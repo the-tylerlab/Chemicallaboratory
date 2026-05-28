@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/style.css", "dest": "/style.css" },
+    { "src": "/app.js", "dest": "/app.js" },
+    { "src": "/data/database.json", "dest": "/data/database.json" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
