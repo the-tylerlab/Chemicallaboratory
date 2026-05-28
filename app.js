@@ -111,6 +111,35 @@ const DEMO_DATA = [
   }
 ];
 
+// Firebase Configuration (เชื่อมต่อคลาวด์อัจฉริยะ)
+// กรอกข้อมูลการตั้งค่าจากคลาสสิกคอนโซลของ Firebase เพื่อเปิดใช้งานระบบคลาวด์ซิงค์เรียลไทม์
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+let db = null;
+let isFirebaseOnline = false;
+
+// ตรวจสอบและตั้งค่าเริ่มต้นให้กับ Firebase
+if (typeof firebase !== 'undefined' && firebaseConfig.projectId !== "YOUR_PROJECT_ID") {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    isFirebaseOnline = true;
+    console.log("🔥 Firebase initialized successfully. Operating in Cloud Sync Mode.");
+  } catch (err) {
+    console.error("🔥 Firebase initialization failed:", err);
+    isFirebaseOnline = false;
+  }
+} else {
+  console.log("🔥 Firebase not configured or script missing. Operating in LocalStorage / Local API mode.");
+}
+
 // Global API settings
 const API_BASE = "http://localhost:3000/api";
 let isBackendOnline = false;
@@ -160,8 +189,36 @@ async function checkBackendStatus() {
   }
 }
 
-// Load all items from either Server API or LocalStorage fallback
+// Load all items from either Firebase, Server API, or LocalStorage fallback
 async function loadAllItems() {
+  if (isFirebaseOnline) {
+    try {
+      const snapshot = await db.collection("items").get();
+      const loadedItems = [];
+      snapshot.forEach(doc => {
+        loadedItems.push(doc.data());
+      });
+      if (loadedItems.length > 0) {
+        items = loadedItems;
+        console.log("🔥 Loaded " + items.length + " items from Firebase Cloud Firestore.");
+        return;
+      } else {
+        // Seed Firestore if empty
+        console.log("🔥 Firestore collection is empty. Seeding with DEMO_DATA...");
+        const batch = db.batch();
+        DEMO_DATA.forEach(item => {
+          const docRef = db.collection("items").doc(item.code);
+          batch.set(docRef, item);
+        });
+        await batch.commit();
+        items = [...DEMO_DATA];
+        return;
+      }
+    } catch (err) {
+      console.error("🔥 Failed to load from Firebase Firestore:", err);
+    }
+  }
+
   if (isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/items`);
@@ -903,6 +960,18 @@ function renderNotificationsList(stats) {
 // ==========================================================================
 
 async function createItemBackend(itemData) {
+  if (isFirebaseOnline) {
+    try {
+      await db.collection("items").doc(itemData.code).set(itemData);
+      items.push(itemData);
+      return true;
+    } catch (err) {
+      console.error("🔥 Firebase write failed:", err);
+      showToast("เกิดข้อผิดพลาดในการเขียนข้อมูลไปยัง Firebase", "error");
+      return false;
+    }
+  }
+
   if (isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/items`, {
@@ -931,6 +1000,18 @@ async function createItemBackend(itemData) {
 }
 
 async function updateItemBackend(code, itemData, index) {
+  if (isFirebaseOnline) {
+    try {
+      await db.collection("items").doc(code).set(itemData);
+      items[index] = itemData;
+      return true;
+    } catch (err) {
+      console.error("🔥 Firebase update failed:", err);
+      showToast("เกิดข้อผิดพลาดในการอัปเดตข้อมูลไปยัง Firebase", "error");
+      return false;
+    }
+  }
+
   if (isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/items/${encodeURIComponent(code)}`, {
@@ -1095,7 +1176,17 @@ window.deleteItem = async function(index) {
   if (!item) return;
 
   if (confirm(`คุณต้องการลบรายการ "${item.name}" (${item.code}) ออกจากระบบใช่หรือไม่?`)) {
-    if (isBackendOnline) {
+    if (isFirebaseOnline) {
+      try {
+        await db.collection("items").doc(item.code).delete();
+        items.splice(index, 1);
+        showToast(`ลบรายการ "${item.name}" สำเร็จ!`, "warning");
+      } catch (err) {
+        console.error("🔥 Firebase delete failed:", err);
+        showToast("เกิดข้อผิดพลาดในการลบข้อมูลบน Firebase", "error");
+        return;
+      }
+    } else if (isBackendOnline) {
       try {
         const response = await fetch(`${API_BASE}/items/${encodeURIComponent(item.code)}`, {
           method: "DELETE"
@@ -1273,6 +1364,35 @@ async function parseCSVAndImport(csvText) {
       shelf,
       createdAt: new Date().toISOString()
     });
+  }
+
+  if (isFirebaseOnline) {
+    try {
+      let importedCount = 0;
+      
+      // Perform batch writes in chunks of 500 (Firestore batch size limit)
+      const batchLimit = 500;
+      for (let i = 0; i < importList.length; i += batchLimit) {
+        const chunk = importList.slice(i, i + batchLimit);
+        const batch = db.batch();
+        
+        chunk.forEach(newItem => {
+          const docRef = db.collection("items").doc(newItem.code);
+          batch.set(docRef, newItem);
+          importedCount++;
+        });
+        
+        await batch.commit();
+      }
+      
+      await loadAllItems();
+      updateUI();
+      showToast(`นำเข้าคลาวด์สำเร็จ ${importedCount} รายการ! ${errorCount > 0 ? `(ข้ามรายการผิดพลาด ${errorCount} รายการ)` : ''}`, "success");
+    } catch (err) {
+      console.error("🔥 Firebase batch import failed:", err);
+      showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูลนำเข้าคลาวด์", "error");
+    }
+    return;
   }
 
   if (isBackendOnline) {
