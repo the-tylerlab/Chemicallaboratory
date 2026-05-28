@@ -1,9 +1,15 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "**/*",
+      "use": "@vercel/static"
+    }
+  ],
   "routes": [
-    { "src": "/style.css", "dest": "/style.css" },
-    { "src": "/app.js", "dest": "/app.js" },
-    { "src": "/data/database.json", "dest": "/data/database.json" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
   ]
 }
