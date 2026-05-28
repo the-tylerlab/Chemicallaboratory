@@ -114,12 +114,13 @@ const DEMO_DATA = [
 // Firebase Configuration (เชื่อมต่อคลาวด์อัจฉริยะ)
 // กรอกข้อมูลการตั้งค่าจากคลาสสิกคอนโซลของ Firebase เพื่อเปิดใช้งานระบบคลาวด์ซิงค์เรียลไทม์
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBEYgji_zDVOrvrFknGn69Eoq6DE-vQri8",
+  authDomain: "chemicallab-eefa4.firebaseapp.com",
+  projectId: "chemicallab-eefa4",
+  storageBucket: "chemicallab-eefa4.firebasestorage.app",
+  messagingSenderId: "435854372023",
+  appId: "1:435854372023:web:29c5c286d13e3bf9d6b132",
+  measurementId: "G-2FX82TTHFP"
 };
 
 let db = null;
