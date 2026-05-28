@@ -114,12 +114,13 @@ const DEMO_DATA = [
 // Firebase Configuration (เชื่อมต่อคลาวด์อัจฉริยะ)
 // กรอกข้อมูลการตั้งค่าจากคลาสสิกคอนโซลของ Firebase เพื่อเปิดใช้งานระบบคลาวด์ซิงค์เรียลไทม์
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "REDACTED_API_KEY",
+  authDomain: "REDACTED_AUTH_DOMAIN",
+  projectId: "REDACTED_PROJECT_ID",
+  storageBucket: "REDACTED_PROJECT_ID.firebasestorage.app",
+  messagingSenderId: "435854372023",
+  appId: "REDACTED_APP_ID",
+  measurementId: "G-2FX82TTHFP"
 };
 
 let db = null;
