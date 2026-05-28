@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบคลังเคมี - Laboratory Management System</title>
+  <!-- SEO & Meta -->
+  <meta name="description" content="ระบบจัดการสารเคมีและอุปกรณ์วิทยาศาสตร์ คลังแล็บอัจฉริยะ รองรับ Responsive">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons Library -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- MOBILE HEADER -->
+    <header class="mobile-header">
+      <button class="menu-toggle-btn" id="menuToggle" aria-label="Toggle Menu">
+        <i data-lucide="menu"></i>
+      </button>
+      <div class="mobile-title">ระบบคลังเคมี</div>
+      <div style="width: 40px;"></div> <!-- Spacer for balance -->
+    </header>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Sidebar Header (Logo) -->
+      <div class="sidebar-header">
+        <div class="logo-icon-container">
+          <i data-lucide="flask-conical"></i>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">ระบบคลังเคมี</span>
+          <span class="logo-subtitle">Laboratory System</span>
+        </div>
+      </div>
+
+      <!-- Welcome Message Banner -->
+      <div class="sidebar-welcome">
+        ยินดีต้อนรับสู่ระบบจัดการสารเคมีและอุปกรณ์วิทยาศาสตร์
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav style="flex: 1;">
+        <ul class="sidebar-menu">
+          <li>
+            <a href="#" class="menu-item-link active" data-target="dashboard">
+              <i data-lucide="layout-dashboard"></i>
+              <span>แดชบอร์ด</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="menu-item-link" data-target="add-item">
+              <i data-lucide="plus-circle"></i>
+              <span>เพิ่มสาร/อุปกรณ์</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="menu-item-link" id="btnSidebarImport">
+              <i data-lucide="file-up"></i>
+              <span>นำเข้าไฟล์ (Import)</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="menu-item-link" data-target="all-items">
+              <i data-lucide="archive"></i>
+              <span>รายการทั้งหมด</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="menu-item-link" data-target="notifications">
+              <i data-lucide="bell"></i>
+              <span>การแจ้งเตือน</span>
+              <span class="badge badge-red" id="alertSidebarCount" style="margin-left: auto; padding: 2px 6px; display: none;">0</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer" style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px; margin-top: auto; font-size: 11px; opacity: 0.6; text-align: center;">
+        เวอร์ชัน 0.0.0
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+      
+
+      <!-- ==========================================
+           PANEL: DASHBOARD
+           ========================================== -->
+      <section class="panel active" id="panel-dashboard">
+        <div class="content-header">
+          <h1>แดชบอร์ด</h1>
+          <p>ภาพรวมสถานะคลังพัสดุและสารเคมี</p>
+        </div>
+
+        <!-- Stat Cards Grid -->
+        <div class="stat-grid">
+          <div class="stat-card blue" style="cursor: pointer;" id="statCardTotal">
+            <div class="stat-info">
+              <span class="stat-title">รายการทั้งหมด</span>
+              <span class="stat-value" id="dashboardValTotal">0</span>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="box"></i>
+            </div>
+          </div>
+          <div class="stat-card red" style="cursor: pointer;" id="statCardExpired">
+            <div class="stat-info">
+              <span class="stat-title">หมดอายุแล้ว</span>
+              <span class="stat-value" id="dashboardValExpired">0</span>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="alert-triangle"></i>
+            </div>
+          </div>
+          <div class="stat-card orange" style="cursor: pointer;" id="statCardLowStock">
+            <div class="stat-info">
+              <span class="stat-title">ใกล้หมด (Stock)</span>
+              <span class="stat-value" id="dashboardValLowStock">0</span>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="mail-warning"></i>
+            </div>
+          </div>
+          <div class="stat-card yellow" style="cursor: pointer;" id="statCardNearExpiry">
+            <div class="stat-info">
+              <span class="stat-title">ใกล้หมดอายุ</span>
+              <span class="stat-value" id="dashboardValNearExpiry">0</span>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="clock"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Split Layout -->
+        <div class="dashboard-grid">
+          <!-- 1. Quick Menu Panel -->
+          <div class="card-container">
+            <div class="card-header">
+              <h2 class="card-title">เมนูด่วน</h2>
+            </div>
+            <div class="quick-menu-list" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+              <button class="quick-btn purple" id="quickBtnAdd" style="margin: 0; flex: 1;">
+                <div class="quick-btn-icon">
+                  <i data-lucide="plus"></i>
+                </div>
+                <div class="quick-btn-info">
+                  <span class="quick-btn-title">เพิ่มสาร/อุปกรณ์ใหม่</span>
+                </div>
+              </button>
+              <button class="quick-btn blue" id="quickBtnImport" style="margin: 0; flex: 1;">
+                <div class="quick-btn-icon">
+                  <i data-lucide="upload"></i>
+                </div>
+                <div class="quick-btn-info">
+                  <span class="quick-btn-title">นำเข้าจากไฟล์ (Import)</span>
+                </div>
+              </button>
+              <button class="quick-btn green" id="quickBtnSearch" style="margin: 0; flex: 1;">
+                <div class="quick-btn-icon">
+                  <i data-lucide="search"></i>
+                </div>
+                <div class="quick-btn-info">
+                  <span class="quick-btn-title">ค้นหารายการ</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Urgent Alerts Panel -->
+          <div class="card-container">
+            <div class="card-header">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <span>รายการแจ้งเตือนด่วน</span>
+                <span class="badge badge-red" id="dashboardUrgentCount" style="padding: 2px 8px; font-size: 11px; display: none;">0</span>
+              </h2>
+            </div>
+            <div id="dashboardUrgentContainer" style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- 3. Category Breakdown Panel -->
+          <div class="card-container">
+            <div class="card-header">
+              <h2 class="card-title">สัดส่วนหมวดหมู่พัสดุ</h2>
+            </div>
+            <div id="categoryBreakdownContainer" style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 4px 4px; justify-content: space-around;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- 4. Recent Items Panel -->
+          <div class="card-container">
+            <div class="card-header">
+              <h2 class="card-title">รายการล่าสุด</h2>
+              <a href="#" class="card-link" id="linkViewAll">ดูทั้งหมด <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></a>
+            </div>
+            <div id="recentItemsContainer" style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           PANEL: ADD/EDIT CHEMICAL/EQUIPMENT
+           ========================================== -->
+      <section class="panel" id="panel-add-item">
+        <div class="content-header">
+          <h1 id="formPanelTitle">เพิ่มสาร/อุปกรณ์</h1>
+          <p id="formPanelSubtitle">กรอกข้อมูลรายละเอียดของสารเคมีหรืออุปกรณ์เพื่อบันทึกเข้าสู่คลังแล็บ</p>
+        </div>
+
+        <div class="form-container">
+          <form id="itemForm">
+            <!-- Hidden input to track item index when editing -->
+            <input type="hidden" id="editItemIndex" value="">
+
+            <div class="form-grid">
+              
+              <!-- Item Code -->
+              <div class="form-group">
+                <label for="itemCode">รหัสสาร/อุปกรณ์ <span class="required">*</span></label>
+                <input type="text" id="itemCode" placeholder="เช่น CHEM-001" required>
+              </div>
+
+              <!-- Item Name -->
+              <div class="form-group">
+                <label for="itemName">ชื่อสาร/อุปกรณ์ <span class="required">*</span></label>
+                <input type="text" id="itemName" placeholder="เช่น กรดไฮโดรคลอริก" required>
+              </div>
+
+              <!-- Category -->
+              <div class="form-group">
+                <label for="itemCategory">หมวดหมู่ <span class="required">*</span></label>
+                <select id="itemCategory" required>
+                  <option value="" disabled selected>-- เลือกหมวดหมู่ --</option>
+                  <option value="สารเคมี">สารเคมี (Chemical)</option>
+                  <option value="อุปกรณ์วิทยาศาสตร์">อุปกรณ์วิทยาศาสตร์ (Scientific Equipment)</option>
+                  <option value="เครื่องแก้ว">เครื่องแก้ว (Glassware)</option>
+                  <option value="วัสดุสิ้นเปลือง">วัสดุสิ้นเปลือง (Consumables)</option>
+                </select>
+              </div>
+
+              <!-- Quantity & Unit -->
+              <div class="form-group">
+                <div class="form-row-multi">
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="itemQty">จำนวน <span class="required">*</span></label>
+                    <input type="number" id="itemQty" value="0" min="0" required>
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="itemUnit">หน่วย <span class="required">*</span></label>
+                    <select id="itemUnit" required>
+                      <option value="ขวด" selected>ขวด</option>
+                      <option value="หลอด">หลอด</option>
+                      <option value="ชิ้น">ชิ้น</option>
+                      <option value="อัน">อัน</option>
+                      <option value="เครื่อง">เครื่อง</option>
+                      <option value="กล่อง">กล่อง</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Min Reorder Alert Point -->
+              <div class="form-group">
+                <label for="itemMinAlert">จุดสั่งซื้อขั้นต่ำ</label>
+                <select id="itemMinAlert">
+                  <option value="" disabled selected>เตือนเมื่อต่ำกว่านี้</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                </select>
+              </div>
+
+              <!-- Expiry Date -->
+              <div class="form-group">
+                <label for="itemExpiry">วันหมดอายุ</label>
+                <input type="date" id="itemExpiry">
+              </div>
+
+              <!-- Storage Location Sub-box -->
+              <div class="form-group full-width">
+                <div class="location-subbox">
+                  <span class="location-subbox-title">
+                    <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
+                    สถานที่จัดเก็บ (ระบุให้ครบถ้วน)
+                  </span>
+                  
+                  <div class="form-group">
+                    <label for="itemRoom">ห้อง/Lab</label>
+                    <input type="text" id="itemRoom" placeholder="เช่น Lab 1">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="itemCabinet">ตู้เก็บของ</label>
+                    <input type="text" id="itemCabinet" placeholder="เช่น ตู้ A">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="itemShelf">ชั้นวาง</label>
+                    <input type="text" id="itemShelf" placeholder="เช่น ชั้น 2">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="btnSubmitForm">บันทึกข้อมูล</button>
+              <button type="button" class="btn btn-secondary" id="btnResetForm">ล้างฟอร์ม</button>
+              <button type="button" class="btn btn-danger" id="btnCancelEdit" style="display: none; margin-left: auto;">ยกเลิกการแก้ไข</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           PANEL: ALL ITEMS LIST
+           ========================================== -->
+      <section class="panel" id="panel-all-items">
+        <div class="content-header">
+          <h1>รายการทั้งหมด</h1>
+          <p>แสดงสารเคมีและอุปกรณ์วิทยาศาสตร์ในระบบพร้อมฟิลเตอร์ค้นหาและการจัดการ</p>
+        </div>
+
+        <!-- Table Filters Section -->
+        <div class="table-filter-bar">
+          <div class="search-box-container">
+            <i data-lucide="search"></i>
+            <input type="text" id="filterSearch" placeholder="ค้นหารหัส, ชื่อ, หมวดหมู่...">
+          </div>
+
+          <select id="filterCategory" class="filter-select">
+            <option value="all">ทุกหมวดหมู่</option>
+            <option value="สารเคมี">สารเคมี (Chemical)</option>
+            <option value="อุปกรณ์วิทยาศาสตร์">อุปกรณ์วิทยาศาสตร์ (Scientific Equipment)</option>
+            <option value="เครื่องแก้ว">เครื่องแก้ว (Glassware)</option>
+            <option value="วัสดุสิ้นเปลือง">วัสดุสิ้นเปลือง (Consumables)</option>
+          </select>
+
+          <select id="filterStatus" class="filter-select">
+            <option value="all">ทุกสถานะ</option>
+            <option value="normal">ปกติ (Normal)</option>
+            <option value="low-stock">ใกล้หมด (Stock)</option>
+            <option value="near-expiry">ใกล้หมดอายุ (Near Expiry)</option>
+            <option value="expired">หมดอายุแล้ว (Expired)</option>
+          </select>
+        </div>
+
+        <!-- Count info -->
+        <div class="table-header-info">
+          <div>พบข้อมูลทั้งหมด <span id="tableTotalCount" style="font-weight: 700; color: var(--primary-purple);">0</span> รายการ</div>
+          <div id="tableFilteredInfo">กำลังแสดงข้อมูลที่ฟิลเตอร์</div>
+        </div>
+
+        <!-- Main Items Table -->
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 30%;">รายละเอียดสินค้า</th>
+                <th style="width: 15%;">จำนวนคงเหลือ</th>
+                <th style="width: 15%;">วันหมดอายุ</th>
+                <th style="width: 20%;">สถานที่จัดเก็บ</th>
+                <th style="width: 10%;">สถานะ</th>
+                <th style="width: 10%; text-align: center;">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="itemsTableBody">
+              <!-- Dynamically populated or empty state -->
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 40px;">
+                  <div class="empty-state">
+                    <div class="empty-state-icon"><i data-lucide="package-search"></i></div>
+                    <div class="empty-state-text">ไม่พบรายการสินค้า</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Footer -->
+        <div class="pagination-container">
+          <div id="paginationInfo">แสดงรายการที่ 0-0 จาก 0 รายการ</div>
+          <div class="pagination-controls">
+            <button class="btn btn-secondary" id="btnPrevPage" style="padding: 6px 12px; font-size: 12px;" disabled>ก่อนหน้า</button>
+            <button class="btn btn-secondary" id="btnNextPage" style="padding: 6px 12px; font-size: 12px;" disabled>ถัดไป</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           PANEL: NOTIFICATIONS / ALERTS
+           ========================================== -->
+      <section class="panel" id="panel-notifications">
+        <div class="content-header">
+          <h1>การแจ้งเตือน</h1>
+          <p>ระบบตรวจสอบวันหมดอายุและสถานะสินค้าคงคลังอัตโนมัติ</p>
+        </div>
+
+        <!-- EXPIRED ALERTS SECTION -->
+        <div class="alert-section expired">
+          <div class="alert-section-header">
+            <span>หมดอายุแล้ว</span>
+            <span class="alert-count-badge" id="alertCountExpired">0</span>
+          </div>
+          <div class="alert-section-content" id="alertListExpired">
+            <!-- Dynamically loaded list of expired items or empty state -->
+            <div class="empty-state" style="padding: 24px;">
+              <div class="empty-state-text">ไม่มีรายการ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEAR EXPIRY ALERTS SECTION -->
+        <div class="alert-section near-expiry">
+          <div class="alert-section-header">
+            <span>ใกล้หมดอายุ (30 วัน)</span>
+            <span class="alert-count-badge" id="alertCountNearExpiry">0</span>
+          </div>
+          <div class="alert-section-content" id="alertListNearExpiry">
+            <!-- Dynamically loaded near expiry items or empty state -->
+            <div class="empty-state" style="padding: 24px;">
+              <div class="empty-state-text">ไม่มีรายการ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOW STOCK ALERTS SECTION -->
+        <div class="alert-section low-stock">
+          <div class="alert-section-header">
+            <span>ใกล้หมด (ต่ำกว่าขั้นต่ำ)</span>
+            <span class="alert-count-badge" id="alertCountLowStock">0</span>
+          </div>
+          <div class="alert-section-content" id="alertListLowStock">
+            <!-- Dynamically loaded low stock items or empty state -->
+            <div class="empty-state" style="padding: 24px;">
+              <div class="empty-state-text">ไม่มีรายการ</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       MODAL: CSV IMPORT DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">นำเข้าไฟล์ (Import CSV)</h3>
+        <button class="modal-close-btn" id="modalClose">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Step 1: Download Template -->
+        <div class="modal-step">
+          <div class="modal-step-title">1. ดาวน์โหลดไฟล์ต้นแบบ (Template)</div>
+          <div class="template-download-box">
+            <span class="template-download-text">
+              ดาวน์โหลดไฟล์เทมเพลต CSV เพื่อกรอกข้อมูลพัสดุและสารเคมีให้ถูกต้องตามระบบ
+            </span>
+            <a href="#" class="template-download-btn" id="btnDownloadTemplate">
+              <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+              Template.csv
+            </a>
+          </div>
+        </div>
+
+        <!-- Step 2: Select File -->
+        <div class="modal-step">
+          <div class="modal-step-title">2. เลือกไฟล์ CSV ของคุณ</div>
+          <div class="file-upload-container">
+            <input type="file" id="csvFileInput" class="file-upload-input" accept=".csv">
+            <label for="csvFileInput" class="file-upload-label">
+              <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+              Choose File
+            </label>
+            <span class="file-upload-filename" id="csvFileName">no file selected</span>
+          </div>
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">
+            * รองรับไฟล์รหัสภาษา UTF-8 (แนะนำให้ใช้การบันทึกใน Excel เป็น CSV UTF-8)<br>
+            * คอลัมน์ที่รองรับ: รหัส, ชื่อ, หมวดหมู่, จำนวน, หน่วย, จุดสั่งซื้อ, วันหมดอายุ, ห้อง, ตู้, ชั้น
+          </p>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelImport">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnConfirmImport" style="background-color: #8b5cf6;" disabled>ยืนยันการนำเข้า</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==========================================
+       TOAST NOTIFICATION SYSTEM
+       ========================================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
