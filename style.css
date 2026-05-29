@@ -1185,6 +1185,38 @@ tr:hover td {
 }
 
 /* ==========================================================================
+   BORROW / RETURN LAYOUT
+   ========================================================================== */
+.borrow-grid {
+  display: grid;
+  grid-template-columns: 4.5fr 7.5fr;
+  gap: 30px;
+  align-items: start;
+}
+
+.badge-borrowed {
+  background-color: var(--accent-orange-light);
+  color: var(--accent-orange);
+  border: 1px solid rgba(249, 115, 22, 0.15);
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  display: inline-block;
+}
+
+.badge-returned {
+  background-color: var(--accent-green-light);
+  color: var(--accent-green);
+  border: 1px solid rgba(10, 185, 129, 0.15);
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  display: inline-block;
+}
+
+/* ==========================================================================
    RESPONSIVE DESIGN MEDIA QUERIES
    ========================================================================== */
 
@@ -1206,7 +1238,8 @@ tr:hover td {
   .main-content {
     margin-left: 0;
     padding: 24px;
-    padding-top: calc(var(--header-height) + 24px);
+    padding-left: 20px;
+    padding-top: calc(var(--header-height) + 20px);
   }
 
   .stat-grid {
@@ -1215,6 +1248,11 @@ tr:hover td {
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+  }
+
+  .borrow-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 }
 
