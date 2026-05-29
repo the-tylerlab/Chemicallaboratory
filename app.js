@@ -204,7 +204,10 @@ async function loadAllItems() {
       const snapshot = await db.collection("items").get();
       const loadedItems = [];
       snapshot.forEach(doc => {
-        loadedItems.push(doc.data());
+        const d = doc.data();
+        if (d && d.code) {
+          loadedItems.push(d);
+        }
       });
       if (loadedItems.length > 0) {
         items = loadedItems;
@@ -224,6 +227,9 @@ async function loadAllItems() {
       }
     } catch (err) {
       console.error("🔥 Failed to load from Firebase Firestore:", err);
+      // Self-healing fallback: disable Firebase for this session and alert user
+      isFirebaseOnline = false;
+      showToast("ระบบสลับการจัดเก็บมาเป็นแบบ Local Storage สำรอง เนื่องจากยังไม่ได้ตั้งค่าสิทธิ์อ่าน/เขียนในคลาวด์ Firebase", "warning");
     }
   }
 
@@ -715,14 +721,19 @@ function renderItemsTable() {
   // Filter the items list
   let filtered = items.filter(item => {
     // 1. Search Query
+    const itemCode = item.code || "";
+    const itemName = item.name || "";
+    const itemCategory = item.category || "";
+    const itemRoom = item.room || "";
+
     const matchesSearch = !filterSearch || 
-      item.code.toLowerCase().includes(filterSearch) || 
-      item.name.toLowerCase().includes(filterSearch) || 
-      item.category.toLowerCase().includes(filterSearch) ||
-      (item.room && item.room.toLowerCase().includes(filterSearch));
+      itemCode.toLowerCase().includes(filterSearch) || 
+      itemName.toLowerCase().includes(filterSearch) || 
+      itemCategory.toLowerCase().includes(filterSearch) ||
+      itemRoom.toLowerCase().includes(filterSearch);
 
     // 2. Category Filter
-    const matchesCategory = filterCategory === "all" || item.category === filterCategory;
+    const matchesCategory = filterCategory === "all" || itemCategory === filterCategory;
 
     // 3. Status Filter
     const status = getItemStatus(item);
@@ -1077,7 +1088,7 @@ function setupFormHandlers() {
 
     // Check duplicate code when creating new item
     if (editIndex === "") {
-      const codeExists = items.some(item => item.code.toLowerCase() === code.toLowerCase());
+      const codeExists = items.some(item => (item.code || "").toLowerCase() === code.toLowerCase());
       if (codeExists) {
         showToast(`ไม่สามารถใช้รหัส ${code} ได้เนื่องจากมีในระบบแล้ว!`, "error");
         return;
@@ -1432,8 +1443,8 @@ async function parseCSVAndImport(csvText) {
   // Local Fallback Mode
   let localImportCount = 0;
   importList.forEach(newItem => {
-    // Check duplicate code locally
-    const isDuplicate = items.some(item => item.code.toLowerCase() === newItem.code.toLowerCase());
+    // Check duplicate code locally safely
+    const isDuplicate = items.some(item => (item.code || "").toLowerCase() === (newItem.code || "").toLowerCase());
     if (isDuplicate) {
       errorCount++;
       return;
@@ -1470,13 +1481,17 @@ async function loadAllTransactions() {
       const snapshot = await db.collection("transactions").get();
       const loadedTrans = [];
       snapshot.forEach(doc => {
-        loadedTrans.push(doc.data());
+        const d = doc.data();
+        if (d && d.id) {
+          loadedTrans.push(d);
+        }
       });
       transactions = loadedTrans;
       console.log("🔥 Loaded " + transactions.length + " transactions from Firebase Cloud.");
       return;
     } catch (err) {
       console.error("🔥 Failed to load transactions from Firebase:", err);
+      isFirebaseOnline = false;
     }
   }
 
@@ -1520,13 +1535,13 @@ function populateBorrowItemDropdown() {
   // Clear all except first default option
   dropdown.innerHTML = '<option value="" disabled selected>-- กรุณาเลือกรายการ --</option>';
 
-  // Sort items alphabetically by name
-  const sortedItems = [...items].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+  // Sort items alphabetically by name safely
+  const sortedItems = [...items].sort((a, b) => (a.name || "").localeCompare(b.name || "", 'th'));
 
   sortedItems.forEach(item => {
     const option = document.createElement("option");
     option.value = item.code;
-    option.innerText = `${item.name} (${item.code}) [คงเหลือ: ${item.qty} ${item.unit}]`;
+    option.innerText = `${item.name || "ไม่มีชื่อพัสดุ"} (${item.code || "ไม่มีรหัส"}) [คงเหลือ: ${item.qty || 0} ${item.unit || "หน่วย"}]`;
     dropdown.appendChild(option);
   });
 
