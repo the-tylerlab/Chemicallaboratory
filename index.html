@@ -75,6 +75,12 @@
             </a>
           </li>
           <li>
+            <a href="#" class="menu-item-link" data-target="borrow-return">
+              <i data-lucide="repeat"></i>
+              <span>ยืม-คืนพัสดุ</span>
+            </a>
+          </li>
+          <li>
             <a href="#" class="menu-item-link" data-target="notifications">
               <i data-lucide="bell"></i>
               <span>การแจ้งเตือน</span>
@@ -403,6 +409,112 @@
           <div class="pagination-controls">
             <button class="btn btn-secondary" id="btnPrevPage" style="padding: 6px 12px; font-size: 12px;" disabled>ก่อนหน้า</button>
             <button class="btn btn-secondary" id="btnNextPage" style="padding: 6px 12px; font-size: 12px;" disabled>ถัดไป</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           PANEL: BORROW / RETURN
+           ========================================== -->
+      <section class="panel" id="panel-borrow-return">
+        <div class="content-header">
+          <h1>ยืม-คืนพัสดุและเคมี</h1>
+          <p>ระบบบันทึกรายการยืม-คืนสารเคมีและอุปกรณ์วิทยาศาสตร์ พร้อมตัดสต็อกอัตโนมัติ</p>
+        </div>
+
+        <div class="borrow-grid">
+          <!-- Left Column: Form -->
+          <div class="form-container" style="margin-bottom: 0;">
+            <div class="form-panel-header">
+              <h2 id="borrowFormTitle">บันทึกรายการยืม-คืน</h2>
+              <p id="borrowFormSubtitle">ทำรายการยืมสารเคมี/อุปกรณ์เพื่อเบิกใช้ หรือบันทึกส่งคืนเข้าสต็อก</p>
+            </div>
+            
+            <form id="borrowForm">
+              <div class="form-group">
+                <label for="borrowItemCode" class="form-label">เลือกรายการสารเคมี / อุปกรณ์ <span style="color: var(--accent-red);">*</span></label>
+                <select id="borrowItemCode" class="form-control" required>
+                  <option value="" disabled selected>-- กรุณาเลือกรายการ --</option>
+                  <!-- Dynamically populated from JS -->
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">ประเภทรายการ <span style="color: var(--accent-red);">*</span></label>
+                <div style="display: flex; gap: 16px;">
+                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                    <input type="radio" name="borrowType" value="borrow" checked style="accent-color: var(--primary-purple); width: 18px; height: 18px;"> ยืมสาร/อุปกรณ์ (Borrow)
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
+                    <input type="radio" name="borrowType" value="return" style="accent-color: var(--primary-purple); width: 18px; height: 18px;"> คืนสาร/อุปกรณ์ (Return)
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="borrowQty" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
+                  <input type="number" id="borrowQty" class="form-control" min="1" placeholder="ระบุจำนวน" required>
+                </div>
+                <div class="form-group">
+                  <label for="borrowerName" class="form-label">ชื่อผู้ทำรายการ <span style="color: var(--accent-red);">*</span></label>
+                  <input type="text" id="borrowerName" class="form-control" placeholder="ระบุชื่อผู้ยืม-คืน" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="borrowDate" class="form-label">วันที่ทำรายการ <span style="color: var(--accent-red);">*</span></label>
+                <input type="date" id="borrowDate" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label for="borrowNotes" class="form-label">หมายเหตุ / วัตถุประสงค์การใช้งาน</label>
+                <textarea id="borrowNotes" class="form-control" rows="3" placeholder="ระบุเหตุผลในการเบิกใช้ หรือรายละเอียดเพิ่มเติม..."></textarea>
+              </div>
+
+              <div class="form-actions" style="margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" id="btnSubmitBorrow">
+                  <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+                  <span>บันทึกรายการ</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnResetBorrow">รีเซ็ต</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right Column: Live Logs -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0;">
+              <h2>ประวัติการทำรายการล่าสุด</h2>
+              <p>แสดงประวัติการยืมและการส่งคืนสินค้าพัสดุวิทยาศาสตร์แบบเรียลไทม์</p>
+            </div>
+
+            <!-- Transaction Table -->
+            <div class="table-container" style="margin-bottom: 0; flex: 1;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 25%;">วันทำรายการ</th>
+                    <th style="width: 25%;">รายการพัสดุ</th>
+                    <th style="width: 15%;">จำนวน</th>
+                    <th style="width: 15%;">ผู้เบิก/คืน</th>
+                    <th style="width: 10%;">ประเภท</th>
+                    <th style="width: 10%; text-align: center;">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionsTableBody">
+                  <!-- Dynamically populated -->
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px;">
+                      <div class="empty-state">
+                        <div class="empty-state-icon"><i data-lucide="history"></i></div>
+                        <div class="empty-state-text">ยังไม่มีประวัติการทำรายการยืม-คืน</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
