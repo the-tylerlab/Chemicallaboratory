@@ -144,6 +144,7 @@ if (typeof firebase !== 'undefined' && firebaseConfig.projectId !== "YOUR_PROJEC
 // Global API settings
 const API_BASE = "http://localhost:3000/api";
 let isBackendOnline = false;
+let transactions = [];
 
 // Initialize application on DOM ready
 document.addEventListener("DOMContentLoaded", async () => {
@@ -153,12 +154,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Load data
   await loadAllItems();
   
+  // Load borrowing transactions
+  await loadAllTransactions();
+  
   // Set up event listeners
   setupNavigation();
   setupFormHandlers();
   setupFilterHandlers();
   setupImportModal();
   setupDashboardCards();
+  
+  // Set up borrow form handlers
+  setupBorrowForm();
   
   // Render views
   updateUI();
@@ -506,6 +513,10 @@ function updateUI() {
 
   // Render Notifications List
   renderNotificationsList(stats);
+  
+  // Render Borrow/Return panel widgets
+  populateBorrowItemDropdown();
+  renderTransactionsTable();
   
   // Trigger Lucide updates for newly rendered icon containers
   lucide.createIcons();
@@ -1447,3 +1458,279 @@ async function parseCSVAndImport(csvText) {
 function setupDashboardCards() {
   // We can add micro-animations to stat cards on click if necessary.
 }
+
+// ==========================================================================
+// BORROW / RETURN SYSTEM (AUTOMATIC STOCK RECONCILIATION)
+// ==========================================================================
+
+// Load transactions from Firebase or LocalStorage
+async function loadAllTransactions() {
+  if (isFirebaseOnline) {
+    try {
+      const snapshot = await db.collection("transactions").get();
+      const loadedTrans = [];
+      snapshot.forEach(doc => {
+        loadedTrans.push(doc.data());
+      });
+      transactions = loadedTrans;
+      console.log("🔥 Loaded " + transactions.length + " transactions from Firebase Cloud.");
+      return;
+    } catch (err) {
+      console.error("🔥 Failed to load transactions from Firebase:", err);
+    }
+  }
+
+  // LocalStorage Fallback
+  const localTrans = localStorage.getItem("lab_transactions");
+  if (localTrans) {
+    transactions = JSON.parse(localTrans);
+  } else {
+    transactions = [];
+  }
+}
+
+// Helper to save a single transaction
+async function saveTransaction(transData) {
+  if (isFirebaseOnline) {
+    try {
+      await db.collection("transactions").doc(transData.id).set(transData);
+      transactions.push(transData);
+      return true;
+    } catch (err) {
+      console.error("🔥 Firebase save transaction failed:", err);
+      showToast("เกิดข้อผิดพลาดในการบันทึกประวัติไปยังคลาวด์", "error");
+      return false;
+    }
+  }
+
+  // LocalStorage Fallback
+  transactions.push(transData);
+  localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+  return true;
+}
+
+// Populate Dropdown List of Items for Borrow Form
+function populateBorrowItemDropdown() {
+  const dropdown = document.getElementById("borrowItemCode");
+  if (!dropdown) return;
+
+  // Preserve selected value if any
+  const selectedVal = dropdown.value;
+
+  // Clear all except first default option
+  dropdown.innerHTML = '<option value="" disabled selected>-- กรุณาเลือกรายการ --</option>';
+
+  // Sort items alphabetically by name
+  const sortedItems = [...items].sort((a, b) => a.name.localeCompare(b.name, 'th'));
+
+  sortedItems.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item.code;
+    option.innerText = `${item.name} (${item.code}) [คงเหลือ: ${item.qty} ${item.unit}]`;
+    dropdown.appendChild(option);
+  });
+
+  // Restore previous selection if it still exists
+  if (selectedVal) {
+    dropdown.value = selectedVal;
+  }
+}
+
+// Setup Form listeners and Submit operations for Borrow/Return
+function setupBorrowForm() {
+  const form = document.getElementById("borrowForm");
+  const btnReset = document.getElementById("btnResetBorrow");
+  const borrowDateInput = document.getElementById("borrowDate");
+
+  if (!form) return;
+
+  // Set default date to today
+  if (borrowDateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    borrowDateInput.value = today;
+  }
+
+  // Reset handler
+  btnReset.addEventListener("click", () => {
+    form.reset();
+    if (borrowDateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      borrowDateInput.value = today;
+    }
+  });
+
+  // Form submit
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const itemCode = document.getElementById("borrowItemCode").value;
+    const borrowType = document.querySelector('input[name="borrowType"]:checked').value;
+    const borrowQty = Number(document.getElementById("borrowQty").value);
+    const borrowerName = document.getElementById("borrowerName").value.trim();
+    const borrowDate = document.getElementById("borrowDate").value;
+    const borrowNotes = document.getElementById("borrowNotes").value.trim();
+
+    if (!itemCode || isNaN(borrowQty) || borrowQty <= 0 || !borrowerName || !borrowDate) {
+      showToast("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน", "error");
+      return;
+    }
+
+    // Find the item
+    const itemIndex = items.findIndex(item => item.code === itemCode);
+    if (itemIndex === -1) {
+      showToast("ไม่พบข้อมูลพัสดุในระบบ", "error");
+      return;
+    }
+    const item = items[itemIndex];
+
+    // Business rules validation
+    let newQty = item.qty;
+    if (borrowType === "borrow") {
+      if (borrowQty > item.qty) {
+        showToast(`ไม่สามารถยืมได้! จำนวนที่ยืม (${borrowQty}) มากกว่าจำนวนคงเหลือในคลัง (${item.qty})`, "error");
+        return;
+      }
+      newQty = item.qty - borrowQty;
+    } else {
+      // Return type
+      newQty = item.qty + borrowQty;
+    }
+
+    // Update item stock in backend/cloud
+    const updatedItem = { ...item, qty: newQty };
+    const success = await updateItemBackend(item.code, updatedItem, itemIndex);
+
+    if (success) {
+      // Log the transaction
+      const transactionData = {
+        id: "TX-" + Date.now(),
+        itemCode: item.code,
+        itemName: item.name,
+        qty: borrowQty,
+        borrower: borrowerName,
+        date: borrowDate,
+        type: borrowType, // "borrow" or "return"
+        status: borrowType === "borrow" ? "borrowed" : "returned",
+        notes: borrowNotes,
+        createdAt: new Date().toISOString()
+      };
+
+      const logged = await saveTransaction(transactionData);
+      if (logged) {
+        showToast(borrowType === "borrow" ? `ทำรายการยืม "${item.name}" สำเร็จ!` : `ทำรายการคืน "${item.name}" สำเร็จ!`, "success");
+        form.reset();
+        if (borrowDateInput) {
+          const today = new Date().toISOString().split('T')[0];
+          borrowDateInput.value = today;
+        }
+        updateUI();
+      }
+    }
+  });
+}
+
+// Render dynamic transaction logs table
+function renderTransactionsTable() {
+  const tableBody = document.getElementById("transactionsTableBody");
+  if (!tableBody) return;
+
+  if (transactions.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 48px;">
+          <div class="empty-state">
+            <div class="empty-state-icon"><i data-lucide="history"></i></div>
+            <div class="empty-state-text">ยังไม่มีประวัติการทำรายการยืม-คืน</div>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  // Sort transactions by date/time (newest first)
+  const sortedTrans = [...transactions].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+  let html = "";
+  sortedTrans.forEach(tx => {
+    const isBorrowed = tx.type === "borrow";
+    const statusText = tx.status === "borrowed" ? "กำลังยืม" : "คืนแล้ว";
+    const statusBadge = tx.status === "borrowed" ? "badge-borrowed" : "badge-returned";
+    
+    // Check if it's currently borrowed to render the "Return" button
+    let actionBtn = "-";
+    if (tx.status === "borrowed") {
+      actionBtn = `
+        <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; border-color: var(--accent-green); color: var(--accent-green);" onclick="returnBorrowedItem('${tx.id}')">
+          <i data-lucide="check" style="width: 12px; height: 12px;"></i>
+          <span>คืนพัสดุ</span>
+        </button>
+      `;
+    }
+
+    html += `
+      <tr>
+        <td data-label="วันที่" style="font-size: 12px; color: var(--text-muted);">${formatThaiDate(tx.date)}</td>
+        <td data-label="รายการ">
+          <div style="font-weight: 600; color: #0f172a; font-size: 13px;">${tx.itemName}</div>
+          <div style="font-family: monospace; font-size: 10px; color: var(--text-muted);">${tx.itemCode}</div>
+          ${tx.notes ? `<div style="font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 2px;">* ${tx.notes}</div>` : ''}
+        </td>
+        <td data-label="จำนวน" style="font-weight: 600; font-size: 13px;">${tx.qty} หน่วย</td>
+        <td data-label="ผู้ทำรายการ" style="font-weight: 500; font-size: 13px;">${tx.borrower}</td>
+        <td data-label="ประเภท"><span class="${statusBadge}">${statusText}</span></td>
+        <td data-label="จัดการ" style="text-align: center;">${actionBtn}</td>
+      </tr>
+    `;
+  });
+
+  tableBody.innerHTML = html;
+}
+
+// Quick click action to Return currently borrowed item
+window.returnBorrowedItem = async function(transId) {
+  const txIndex = transactions.findIndex(t => t.id === transId);
+  if (txIndex === -1) return;
+  const tx = transactions[txIndex];
+
+  if (confirm(`คุณต้องการยืนยันการคืนพัสดุ "${tx.itemName}" จำนวน ${tx.qty} หน่วย จากผู้ยืม "${tx.borrower}" ใช่หรือไม่?`)) {
+    // Find the item
+    const itemIndex = items.findIndex(i => i.code === tx.itemCode);
+    if (itemIndex === -1) {
+      showToast("ไม่พบพัสดุนี้ในระบบคลัง (อาจถูกลบไปแล้ว)", "error");
+      return;
+    }
+    const item = items[itemIndex];
+
+    // Calculate new stock quantity
+    const newQty = item.qty + tx.qty;
+
+    // Update item stock in backend/cloud
+    const updatedItem = { ...item, qty: newQty };
+    const success = await updateItemBackend(item.code, updatedItem, itemIndex);
+
+    if (success) {
+      // Update transaction status
+      const updatedTrans = { ...tx, status: "returned" };
+      
+      // Update in Firebase or LocalStorage
+      if (isFirebaseOnline) {
+        try {
+          await db.collection("transactions").doc(transId).set(updatedTrans);
+          transactions[txIndex] = updatedTrans;
+        } catch (err) {
+          console.error("🔥 Failed to update transaction on Firebase:", err);
+          showToast("เกิดข้อผิดพลาดในการบันทึกสถานะลงคลาวด์", "error");
+          return;
+        }
+      } else {
+        // Local fallback
+        transactions[txIndex] = updatedTrans;
+        localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+      }
+
+      showToast(`คืน "${item.name}" จำนวน ${tx.qty} หน่วย เรียบร้อยแล้ว!`, "success");
+      updateUI();
+    }
+  }
+};
