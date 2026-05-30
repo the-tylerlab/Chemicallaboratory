@@ -81,6 +81,12 @@
             </a>
           </li>
           <li>
+            <a href="#" class="menu-item-link" data-target="lab-booking">
+              <i data-lucide="calendar"></i>
+              <span>จองห้องปฏิบัติการ</span>
+            </a>
+          </li>
+          <li>
             <a href="#" class="menu-item-link" data-target="notifications">
               <i data-lucide="bell"></i>
               <span>การแจ้งเตือน</span>
@@ -509,6 +515,106 @@
                       <div class="empty-state">
                         <div class="empty-state-icon"><i data-lucide="history"></i></div>
                         <div class="empty-state-text">ยังไม่มีประวัติการทำรายการยืม-คืน</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           PANEL: LAB BOOKING
+           ========================================== -->
+      <section class="panel" id="panel-lab-booking">
+        <div class="content-header">
+          <h1>จองห้องปฏิบัติการ</h1>
+          <p>ระบบตรวจสอบความว่างและบันทึกจองห้องปฏิบัติการแบบเรียลไทม์</p>
+        </div>
+
+        <div class="borrow-grid">
+          <!-- Left Column: Form & Grid -->
+          <div class="form-container" style="margin-bottom: 0;">
+            <div class="form-panel-header">
+              <h2>ตรวจสอบและบันทึกการจอง</h2>
+              <p>เลือกห้องแล็บและวันที่เพื่อดูสถานะความว่างของแต่ละช่วงเวลา</p>
+            </div>
+            
+            <form id="bookingForm">
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="bookingRoom" class="form-label">ห้องปฏิบัติการ <span style="color: var(--accent-red);">*</span></label>
+                  <select id="bookingRoom" class="form-control" required>
+                    <option value="Lab 1">Lab 1 (ห้องเคมีทั่วไป)</option>
+                    <option value="Lab 2">Lab 2 (ห้องฟิสิกส์/วิเคราะห์)</option>
+                    <option value="Lab 3">Lab 3 (ห้องชีวภาพ/จุลชีววิทยา)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="bookingDate" class="form-label">วันที่ต้องการเข้าใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                  <input type="date" id="bookingDate" class="form-control" required>
+                </div>
+              </div>
+
+              <!-- Visual Time-Slot Availability Matrix -->
+              <div class="form-group" style="margin-top: 8px;">
+                <label class="form-label">สถานะช่วงเวลาที่เปิดจอง (คลิกเลือกช่วงเวลาว่างสีเขียว) <span style="color: var(--accent-red);">*</span></label>
+                <div class="booking-slots-grid" id="bookingSlotsGrid">
+                  <!-- Dynamically populated via JS -->
+                </div>
+                <input type="hidden" id="selectedBookingSlot" required>
+              </div>
+
+              <div class="form-row-2" style="margin-top: 16px;">
+                <div class="form-group">
+                  <label for="bookerName" class="form-label">ชื่อผู้จอง / อาจารย์ผู้ดูแล <span style="color: var(--accent-red);">*</span></label>
+                  <input type="text" id="bookerName" class="form-control" placeholder="ระบุชื่อผู้จอง" required>
+                </div>
+                <div class="form-group">
+                  <label for="bookingPurpose" class="form-label">วัตถุประสงค์การใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                  <input type="text" id="bookingPurpose" class="form-control" placeholder="ระบุวัตถุประสงค์" required>
+                </div>
+              </div>
+
+              <div class="form-actions" style="margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" id="btnSubmitBooking" style="background-color: #8b5cf6;">
+                  <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+                  <span>บันทึกการจอง</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnResetBooking">รีเซ็ต</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right Column: Logs -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0;">
+              <h2>รายการจองห้องปฏิบัติการ</h2>
+              <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
+            </div>
+
+            <!-- Booking Table -->
+            <div class="table-container" style="margin-bottom: 0; flex: 1;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 18%;">วันที่เข้าใช้</th>
+                    <th style="width: 18%;">ห้องแล็บ</th>
+                    <th style="width: 24%;">ช่วงเวลา</th>
+                    <th style="width: 18%;">ผู้จอง</th>
+                    <th style="width: 12%;">สถานะ</th>
+                    <th style="width: 10%; text-align: center;">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="bookingsTableBody">
+                  <!-- Dynamically populated -->
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px;">
+                      <div class="empty-state">
+                        <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
+                        <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
                       </div>
                     </td>
                   </tr>
