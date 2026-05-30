@@ -145,6 +145,19 @@ if (typeof firebase !== 'undefined' && firebaseConfig.projectId !== "YOUR_PROJEC
 const API_BASE = "http://localhost:3000/api";
 let isBackendOnline = false;
 let transactions = [];
+let bookings = [];
+let selectedSlots = [];
+const BOOKING_SLOTS = [
+  "คาบ 1: 08:10 - 09:00",
+  "คาบ 2: 09:00 - 09:50",
+  "คาบ 3: 09:50 - 10:40",
+  "คาบ 4: 10:50 - 11:40",
+  "คาบ 5: 11:40 - 12:30",
+  "คาบ 6: 12:30 - 13:20",
+  "คาบ 7: 13:20 - 14:10",
+  "คาบ 8: 14:10 - 15:00",
+  "คาบ 9: 15:10 - 16:00"
+];
 
 // Initialize application on DOM ready
 document.addEventListener("DOMContentLoaded", async () => {
@@ -156,6 +169,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Load borrowing transactions
   await loadAllTransactions();
+
+  // Load room bookings
+  await loadAllBookings();
   
   // Set up event listeners
   setupNavigation();
@@ -166,6 +182,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Set up borrow form handlers
   setupBorrowForm();
+
+  // Set up room booking form handlers
+  setupBookingForm();
   
   // Render views
   updateUI();
@@ -523,6 +542,10 @@ function updateUI() {
   // Render Borrow/Return panel widgets
   populateBorrowItemDropdown();
   renderTransactionsTable();
+
+  // Render Room Booking widgets
+  renderBookingSlots();
+  renderBookingsTable();
   
   // Trigger Lucide updates for newly rendered icon containers
   lucide.createIcons();
@@ -1745,6 +1768,376 @@ window.returnBorrowedItem = async function(transId) {
       }
 
       showToast(`คืน "${item.name}" จำนวน ${tx.qty} หน่วย เรียบร้อยแล้ว!`, "success");
+      updateUI();
+    }
+  }
+};
+
+// ==========================================================================
+// LABORATORY ROOM BOOKING SYSTEM
+// ==========================================================================
+
+async function loadAllBookings() {
+  if (isFirebaseOnline) {
+    try {
+      const snapshot = await db.collection("bookings").get();
+      const loadedBookings = [];
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        if (d && d.id) {
+          loadedBookings.push(d);
+        }
+      });
+      bookings = loadedBookings;
+      console.log("🔥 Loaded " + bookings.length + " bookings from Firebase Cloud.");
+      return;
+    } catch (err) {
+      console.error("🔥 Failed to load bookings from Firebase:", err);
+      isFirebaseOnline = false;
+    }
+  }
+
+  // LocalStorage Fallback
+  const localBookings = localStorage.getItem("lab_bookings");
+  if (localBookings) {
+    bookings = JSON.parse(localBookings);
+  } else {
+    bookings = [];
+  }
+}
+
+async function saveBooking(bookingData) {
+  if (isFirebaseOnline) {
+    try {
+      await db.collection("bookings").doc(bookingData.id).set(bookingData);
+      bookings.push(bookingData);
+      return true;
+    } catch (err) {
+      console.error("🔥 Firebase save booking failed:", err);
+      showToast("เกิดข้อผิดพลาดในการบันทึกการจองลงคลาวด์", "error");
+      return false;
+    }
+  }
+
+  // LocalStorage Fallback
+  bookings.push(bookingData);
+  localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+  return true;
+}
+
+async function updateBookingStatus(bookingId, status) {
+  const index = bookings.findIndex(b => b.id === bookingId);
+  if (index === -1) return false;
+
+  const updatedBooking = { ...bookings[index], status: status };
+
+  if (isFirebaseOnline) {
+    try {
+      await db.collection("bookings").doc(bookingId).set(updatedBooking);
+      bookings[index] = updatedBooking;
+      return true;
+    } catch (err) {
+      console.error("🔥 Firebase update booking failed:", err);
+      showToast("เกิดข้อผิดพลาดในการเปลี่ยนสถานะการจองบนคลาวด์", "error");
+      return false;
+    }
+  }
+
+  // LocalStorage Fallback
+  bookings[index] = updatedBooking;
+  localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+  return true;
+}
+
+function renderBookingSlots() {
+  const grid = document.getElementById("bookingSlotsGrid");
+  const room = document.getElementById("bookingRoom") ? document.getElementById("bookingRoom").value : "Lab 1";
+  const date = document.getElementById("bookingDate") ? document.getElementById("bookingDate").value : "";
+
+  if (!grid) return;
+
+  if (!date) {
+    grid.innerHTML = `<div style="grid-column: span 1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 12px;">-- กรุณาเลือกวันที่ก่อนเพื่อตรวจสอบความว่าง --</div>`;
+    return;
+  }
+
+  // Get active bookings for this room, date, and status = "approved" (not cancelled)
+  const activeBookings = bookings.filter(b => b.room === room && b.date === date && b.status === "approved");
+  
+  let html = "";
+  BOOKING_SLOTS.forEach(slot => {
+    // Check if slot is booked (supports multiple comma-separated slots in a booking)
+    const isBooked = activeBookings.some(b => b.slot.split(", ").includes(slot));
+    const isSelected = selectedSlots.includes(slot);
+
+    let statusClass = "vacant";
+    let statusLabel = "🟢 ว่าง";
+    if (isBooked) {
+      statusClass = "booked";
+      statusLabel = "🔴 จองแล้ว";
+    } else if (isSelected) {
+      statusClass = "selected";
+      statusLabel = "🟣 เลือกอยู่";
+    }
+
+    html += `
+      <div class="booking-slot-card ${statusClass}" onclick="selectBookingSlot('${slot}', ${isBooked})">
+        <div class="booking-slot-time">
+          <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
+          <span>${slot}</span>
+        </div>
+        <span class="booking-slot-status ${statusClass}">${statusLabel}</span>
+      </div>
+    `;
+  });
+
+  grid.innerHTML = html;
+  lucide.createIcons();
+}
+
+// Helper function to check if selected slots are consecutive
+function areSlotsConsecutive(slots) {
+  if (slots.length <= 1) return true;
+  const indices = slots.map(s => BOOKING_SLOTS.indexOf(s));
+  indices.sort((a, b) => a - b);
+  for (let i = 0; i < indices.length - 1; i++) {
+    if (indices[i+1] - indices[i] !== 1) {
+      return false;
+    }
+  }
+  return true;
+}
+
+window.selectBookingSlot = function(slot, isBooked) {
+  if (isBooked) {
+    showToast("ช่วงเวลานี้ถูกจองไปแล้ว กรุณาเลือกช่วงเวลาอื่น", "error");
+    return;
+  }
+
+  const slotIndex = BOOKING_SLOTS.indexOf(slot);
+  if (slotIndex === -1) return;
+
+  if (selectedSlots.includes(slot)) {
+    // Deselect if clicked again
+    const tempSlots = selectedSlots.filter(s => s !== slot);
+    if (areSlotsConsecutive(tempSlots)) {
+      selectedSlots = tempSlots;
+    } else {
+      // If deselecting a slot in the middle breaks consecutiveness, reset selection to empty
+      selectedSlots = [];
+      showToast("ล้างการเลือกแล้ว เนื่องจากคุณยกเลิกคาบตรงกลางของการเลือกแบบคาบติดต่อ", "info");
+    }
+  } else {
+    if (selectedSlots.length === 0) {
+      selectedSlots = [slot];
+    } else {
+      // Find the indices of currently selected slots to enforce consecutive selection
+      const currentIndices = selectedSlots.map(s => BOOKING_SLOTS.indexOf(s));
+      const minIndex = Math.min(...currentIndices);
+      const maxIndex = Math.max(...currentIndices);
+
+      if (slotIndex === minIndex - 1 || slotIndex === maxIndex + 1) {
+        // Consecutive slot! Add to selection
+        selectedSlots.push(slot);
+      } else {
+        // Not consecutive! Smooth UX: reset selection to only the newly clicked slot
+        selectedSlots = [slot];
+      }
+    }
+  }
+
+  // Sort selected slots in class period order
+  selectedSlots.sort((a, b) => BOOKING_SLOTS.indexOf(a) - BOOKING_SLOTS.indexOf(b));
+
+  const selectedSlotInput = document.getElementById("selectedBookingSlot");
+  if (selectedSlotInput) {
+    selectedSlotInput.value = selectedSlots.join(", ");
+  }
+
+  // Re-render slots to show selected status
+  renderBookingSlots();
+};
+
+function setupBookingForm() {
+  const form = document.getElementById("bookingForm");
+  const btnReset = document.getElementById("btnResetBooking");
+  const bookingDateInput = document.getElementById("bookingDate");
+  const bookingRoomSelect = document.getElementById("bookingRoom");
+
+  if (!form) return;
+
+  // Set default date to today
+  if (bookingDateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    bookingDateInput.value = today;
+  }
+
+  // Listeners to re-render slot matrix whenever Room or Date changes
+  if (bookingDateInput) {
+    bookingDateInput.addEventListener("change", () => {
+      // Clear selected slots
+      selectedSlots = [];
+      const selectedSlotInput = document.getElementById("selectedBookingSlot");
+      if (selectedSlotInput) selectedSlotInput.value = "";
+      renderBookingSlots();
+    });
+  }
+
+  if (bookingRoomSelect) {
+    bookingRoomSelect.addEventListener("change", () => {
+      // Clear selected slots
+      selectedSlots = [];
+      const selectedSlotInput = document.getElementById("selectedBookingSlot");
+      if (selectedSlotInput) selectedSlotInput.value = "";
+      renderBookingSlots();
+    });
+  }
+
+  // Reset handler
+  btnReset.addEventListener("click", () => {
+    form.reset();
+    if (bookingDateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      bookingDateInput.value = today;
+    }
+    selectedSlots = [];
+    const selectedSlotInput = document.getElementById("selectedBookingSlot");
+    if (selectedSlotInput) selectedSlotInput.value = "";
+    renderBookingSlots();
+  });
+
+  // Submit handler
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const room = document.getElementById("bookingRoom").value;
+    const date = document.getElementById("bookingDate").value;
+    const slot = document.getElementById("selectedBookingSlot").value;
+    const bookerName = document.getElementById("bookerName").value.trim();
+    const purpose = document.getElementById("bookingPurpose").value.trim();
+
+    if (!room || !date || !slot || !bookerName || !purpose) {
+      showToast("กรุณากรอกข้อมูลและเลือกช่วงเวลาว่างให้ครบถ้วน", "error");
+      return;
+    }
+
+    const slotsToBook = slot.split(", ");
+
+    // Defensive check to ensure selected slots are consecutive
+    if (!areSlotsConsecutive(slotsToBook)) {
+      showToast("กรุณาเลือกช่วงเวลาที่ติดต่อกันเท่านั้น (สำหรับคาบคู่/คาบติดต่อ)", "error");
+      return;
+    }
+
+    // Defensive double-booking check (check if any of the selected slots are already booked)
+    const isAlreadyBooked = bookings.some(b => {
+      if (b.room !== room || b.date !== date || b.status !== "approved") return false;
+      const bookedSlots = b.slot.split(", ");
+      return slotsToBook.some(s => bookedSlots.includes(s));
+    });
+
+    if (isAlreadyBooked) {
+      showToast("ไม่สามารถจองได้! มีบางช่วงเวลาที่คุณเลือกถูกจองตัดหน้าไปแล้ว", "error");
+      return;
+    }
+
+    const bookingData = {
+      id: "book_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
+      room,
+      date,
+      slot,
+      bookerName,
+      purpose,
+      status: "approved",
+      createdAt: new Date().toISOString()
+    };
+
+    const success = await saveBooking(bookingData);
+    if (success) {
+      showToast(`จองห้อง "${room}" ช่วงเวลา ${slot} เรียบร้อยแล้ว!`, "success");
+      form.reset();
+      if (bookingDateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        bookingDateInput.value = today;
+      }
+      selectedSlots = [];
+      const selectedSlotInput = document.getElementById("selectedBookingSlot");
+      if (selectedSlotInput) selectedSlotInput.value = "";
+      
+      updateUI();
+    }
+  });
+}
+
+function renderBookingsTable() {
+  const tableBody = document.getElementById("bookingsTableBody");
+  if (!tableBody) return;
+
+  // Sort bookings: newest first
+  const sortedBookings = [...bookings].sort((a, b) => {
+    const dateA = new Date(a.createdAt || 0);
+    const dateB = new Date(b.createdAt || 0);
+    return dateB - dateA;
+  });
+
+  if (sortedBookings.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 40px;">
+          <div class="empty-state">
+            <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
+            <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
+          </div>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  let html = "";
+  sortedBookings.forEach(b => {
+    const isApproved = b.status === "approved";
+    const statusClass = isApproved ? "badge-approved" : "badge-cancelled";
+    const statusLabel = isApproved ? "อนุมัติ" : "ยกเลิกแล้ว";
+
+    // Format Date nicely for display
+    const formattedDate = formatThaiDate(b.date);
+
+    let actionBtn = "";
+    if (isApproved) {
+      actionBtn = `
+        <button class="action-icon-btn delete" onclick="cancelBookingRecord('${b.id}')" title="ยกเลิกการจอง" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background-color: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); color: var(--accent-red); border-radius: var(--border-radius-sm); cursor: pointer; transition: all var(--transition-fast);">
+          <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i>
+        </button>
+      `;
+    } else {
+      actionBtn = `<span style="font-size: 11px; color: var(--text-muted);">-</span>`;
+    }
+
+    html += `
+      <tr>
+        <td data-label="วันที่เข้าใช้" style="font-weight: 500;">${formattedDate}</td>
+        <td data-label="ห้องแล็บ"><span class="product-code" style="background-color: rgba(139, 92, 246, 0.08); color: #8b5cf6;">${b.room}</span></td>
+        <td data-label="ช่วงเวลา" style="font-weight: 600; color: var(--text-main);">${b.slot}</td>
+        <td data-label="ผู้จอง">${b.bookerName}</td>
+        <td data-label="สถานะ"><span class="badge ${statusClass}">${statusLabel}</span></td>
+        <td data-label="จัดการ" style="text-align: center;">${actionBtn}</td>
+      </tr>
+    `;
+  });
+
+  tableBody.innerHTML = html;
+  lucide.createIcons();
+}
+
+window.cancelBookingRecord = async function(bookingId) {
+  const booking = bookings.find(b => b.id === bookingId);
+  if (!booking) return;
+
+  if (confirm(`คุณต้องการยกเลิกการจองห้อง "${booking.room}" ช่วงเวลา ${booking.slot} ในวันที่ ${formatThaiDate(booking.date)} ใช่หรือไม่?`)) {
+    const success = await updateBookingStatus(bookingId, "cancelled");
+    if (success) {
+      showToast("ยกเลิกการจองห้องปฏิบัติการเรียบร้อยแล้ว!", "warning");
       updateUI();
     }
   }
