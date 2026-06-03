@@ -1557,3 +1557,23 @@ tr:hover td {
 .table-clickable-row:active {
   background-color: rgba(139, 92, 246, 0.08) !important;
 }
+
+/* ==========================================================================
+   iOS & IPAD DATE INPUT STYLING FIXES (SAFARI / CHROME)
+   ========================================================================== */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 46px; /* Align height with other text inputs on iOS */
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* iOS Safari Webkit text alignment normalization */
+input[type="date"]::-webkit-date-and-time-value {
+  margin: 0;
+  text-align: left;
+  min-height: 1.2em;
+  font-family: inherit;
+  font-size: inherit;
+}
