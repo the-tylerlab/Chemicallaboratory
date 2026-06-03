@@ -147,6 +147,7 @@ let isBackendOnline = false;
 let transactions = [];
 let bookings = [];
 let selectedSlots = [];
+let isAdminLoggedIn = sessionStorage.getItem("admin_logged_in") === "true";
 const BOOKING_SLOTS = [
   "คาบ 1: 08:10 - 09:00",
   "คาบ 2: 09:00 - 09:50",
@@ -186,8 +187,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Set up room booking form handlers
   setupBookingForm();
   
-  // Render views
-  updateUI();
+  // Set up login system
+  setupLoginHandlers();
+  updateLoginUI();
   
   // Initialize Lucide icons initially
   lucide.createIcons();
@@ -318,13 +320,21 @@ function setupNavigation() {
   const sidebar = document.getElementById("sidebar");
 
   sidebarLinks.forEach(link => {
-    // Skip if it's the Import link which opens modal instead of navigating
-    if (link.id === "btnSidebarImport") return;
+    // Skip if it's the Import or Login link which opens modal instead of navigating
+    if (link.id === "btnSidebarImport" || link.id === "btnSidebarLogin") return;
 
     link.addEventListener("click", (e) => {
       e.preventDefault();
       
       const targetPanelId = link.getAttribute("data-target");
+
+      // Authorization check for sidebar navigation
+      if (targetPanelId === "add-item" && !isAdminLoggedIn) {
+        showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเพิ่มหรือแก้ไขข้อมูลสารเคมี/อุปกรณ์", "error");
+        document.getElementById("loginModal").classList.add("active");
+        lucide.createIcons();
+        return;
+      }
       
       // Update Active Navigation Item class
       sidebarLinks.forEach(l => l.classList.remove("active"));
@@ -374,10 +384,26 @@ function setupNavigation() {
   document.getElementById("statCardNearExpiry").addEventListener("click", () => navigateToPanel("all-items", "all", "near-expiry"));
 
   // Dashboard Quick buttons
-  document.getElementById("quickBtnAdd").addEventListener("click", () => navigateToPanel("add-item"));
-  document.getElementById("quickBtnImport").addEventListener("click", () => {
-    document.getElementById("importModal").classList.add("active");
+  document.getElementById("quickBtnAdd").addEventListener("click", () => {
+    if (isAdminLoggedIn) {
+      navigateToPanel("add-item");
+    } else {
+      showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเพิ่มข้อมูลสารเคมี/อุปกรณ์", "error");
+      document.getElementById("loginModal").classList.add("active");
+      lucide.createIcons();
+    }
   });
+  
+  document.getElementById("quickBtnImport").addEventListener("click", () => {
+    if (isAdminLoggedIn) {
+      document.getElementById("importModal").classList.add("active");
+    } else {
+      showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อนำเข้าไฟล์ข้อมูล", "error");
+      document.getElementById("loginModal").classList.add("active");
+      lucide.createIcons();
+    }
+  });
+  
   document.getElementById("quickBtnSearch").addEventListener("click", () => {
     navigateToPanel("all-items");
     document.getElementById("filterSearch").focus();
@@ -386,7 +412,13 @@ function setupNavigation() {
   // Sidebar Import Button triggers modal
   document.getElementById("btnSidebarImport").addEventListener("click", (e) => {
     e.preventDefault();
-    document.getElementById("importModal").classList.add("active");
+    if (isAdminLoggedIn) {
+      document.getElementById("importModal").classList.add("active");
+    } else {
+      showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อนำเข้าไฟล์ข้อมูล", "error");
+      document.getElementById("loginModal").classList.add("active");
+      lucide.createIcons();
+    }
   });
 
   // "ดูทั้งหมด ->" Link on Dashboard
@@ -398,6 +430,14 @@ function setupNavigation() {
 
 // Function to programmatically switch panels
 function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
+  // Authorization check for admin page
+  if (panelId === "add-item" && !isAdminLoggedIn) {
+    showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเพิ่มหรือแก้ไขข้อมูลสารเคมี/อุปกรณ์", "error");
+    document.getElementById("loginModal").classList.add("active");
+    lucide.createIcons();
+    return;
+  }
+
   const panels = document.querySelectorAll(".panel");
   const sidebarLinks = document.querySelectorAll(".menu-item-link");
   
@@ -714,9 +754,11 @@ function renderDashboardUrgentAlerts() {
             ${descText}
           </div>
         </div>
+        ${isAdminLoggedIn ? `
         <button class="action-icon-btn edit" onclick="editItem(${originalIndex})" title="แก้ไข/สั่งซื้อเพิ่ม" style="align-self: center; background: #fff; border: 1px solid var(--border-color); color: var(--primary); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: var(--border-radius-sm);">
           <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
         </button>
+        ` : ""}
       </div>
     `;
   });
@@ -736,6 +778,11 @@ function renderDashboardUrgentAlerts() {
 function renderItemsTable() {
   const tableBody = document.getElementById("itemsTableBody");
   if (!tableBody) return;
+
+  const thActions = document.getElementById("thActions");
+  if (thActions) {
+    thActions.style.display = isAdminLoggedIn ? "" : "none";
+  }
 
   const filterSearch = document.getElementById("filterSearch").value.toLowerCase().trim();
   const filterCategory = document.getElementById("filterCategory").value;
@@ -779,9 +826,10 @@ function renderItemsTable() {
 
   // Handle empty state after filter
   if (filtered.length === 0) {
+    const colSpanVal = isAdminLoggedIn ? 6 : 5;
     tableBody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align: center; padding: 48px;">
+        <td colspan="${colSpanVal}" style="text-align: center; padding: 48px;">
           <div class="empty-state">
             <div class="empty-state-icon"><i data-lucide="package-search"></i></div>
             <div class="empty-state-text">ไม่พบรายการสินค้าที่ตรงกับเงื่อนไข</div>
@@ -842,6 +890,7 @@ function renderItemsTable() {
         </td>
         <td data-label="สถานที่จัดเก็บ" style="color: var(--text-muted); font-size: 12px;">${locationText}</td>
         <td data-label="สถานะ">${getStatusBadgeMarkup(status)}</td>
+        ${isAdminLoggedIn ? `
         <td data-label="จัดการ">
           <div class="table-actions">
             <button class="action-icon-btn edit" onclick="editItem(${originalIndex})" title="แก้ไขรายการ">
@@ -852,6 +901,7 @@ function renderItemsTable() {
             </button>
           </div>
         </td>
+        ` : ""}
       </tr>
     `;
   });
@@ -932,7 +982,7 @@ function renderNotificationsList(stats) {
             <span style="color: var(--accent-red); font-weight: 600;">หมดอายุแล้วเมื่อ: ${formatThaiDate(item.expiry)}</span>
             <div style="font-size: 11px; color: var(--text-muted);">คงเหลือ: ${item.qty} ${item.unit}</div>
           </div>
-          <button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตข้อมูล"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+          ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตข้อมูล"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
         </div>
       </div>
       `;
@@ -948,7 +998,7 @@ function renderNotificationsList(stats) {
             <span style="color: var(--accent-yellow); font-weight: 600;">จะหมดอายุใน ${diffDays} วัน (${formatThaiDate(item.expiry)})</span>
             <div style="font-size: 11px; color: var(--text-muted);">คงเหลือ: ${item.qty} ${item.unit}</div>
           </div>
-          <button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตข้อมูล"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+          ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตข้อมูล"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
         </div>
       </div>
       `;
@@ -960,7 +1010,7 @@ function renderNotificationsList(stats) {
             <span style="color: var(--accent-orange); font-weight: 600;">ใกล้หมดคลัง: ${item.qty} ${item.unit}</span>
             <div style="font-size: 11px; color: var(--text-muted);">จุดสั่งซื้อขั้นต่ำคือ: ${item.minAlert} ${item.unit}</div>
           </div>
-          <button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตสต็อก"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+          ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตสต็อก"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
         </div>
       </div>
       `;
@@ -1096,6 +1146,11 @@ function setupFormHandlers() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    if (!isAdminLoggedIn) {
+      showToast("กรุณาเข้าสู่ระบบในฐานะผู้ดูแลระบบก่อนบันทึกข้อมูล", "error");
+      return;
+    }
+
     const code = document.getElementById("itemCode").value.trim();
     const name = document.getElementById("itemName").value.trim();
     const category = document.getElementById("itemCategory").value;
@@ -1189,6 +1244,11 @@ function setupFormHandlers() {
 
 // Global Edit Action called from tables
 window.editItem = function(index) {
+  if (!isAdminLoggedIn) {
+    showToast("กรุณาเข้าสู่ระบบในฐานะผู้ดูแลระบบก่อนทำรายการนี้", "error");
+    return;
+  }
+
   const item = items[index];
   if (!item) return;
 
@@ -1218,6 +1278,11 @@ window.editItem = function(index) {
 
 // Global Delete Action
 window.deleteItem = async function(index) {
+  if (!isAdminLoggedIn) {
+    showToast("กรุณาเข้าสู่ระบบในฐานะผู้ดูแลระบบก่อนทำรายการนี้", "error");
+    return;
+  }
+
   const item = items[index];
   if (!item) return;
 
@@ -1510,6 +1575,41 @@ async function loadAllTransactions() {
         }
       });
       transactions = loadedTrans;
+      
+      if (transactions.length === 0) {
+        const mockTrans = [
+          {
+            id: "tx-1",
+            itemCode: "GW-001",
+            itemName: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
+            qty: 2,
+            borrower: "สมชาย มีดี",
+            date: "2026-06-03",
+            type: "borrow",
+            status: "borrowed",
+            notes: "ทำการทดลองวิเคราะห์หาค่าความเป็นกรด-ด่าง",
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: "tx-2",
+            itemCode: "CHEM-001",
+            itemName: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
+            qty: 1,
+            borrower: "ใจดี เรียนดี",
+            date: "2026-06-02",
+            type: "return",
+            status: "returned",
+            notes: "ใช้เตรียมสารละลาย และส่งคืนขวดสารที่เหลือเข้าชั้น",
+            createdAt: new Date(Date.now() - 86400000).toISOString()
+          }
+        ];
+        for (const tx of mockTrans) {
+          await db.collection("transactions").doc(tx.id).set(tx);
+          transactions.push(tx);
+        }
+        console.log("🔥 Seeded mock transactions to Firebase Firestore.");
+      }
+      
       console.log("🔥 Loaded " + transactions.length + " transactions from Firebase Cloud.");
       return;
     } catch (err) {
@@ -1524,6 +1624,36 @@ async function loadAllTransactions() {
     transactions = JSON.parse(localTrans);
   } else {
     transactions = [];
+  }
+
+  if (transactions.length === 0) {
+    transactions = [
+      {
+        id: "tx-1",
+        itemCode: "GW-001",
+        itemName: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
+        qty: 2,
+        borrower: "สมชาย มีดี",
+        date: "2026-06-03",
+        type: "borrow",
+        status: "borrowed",
+        notes: "ทำการทดลองวิเคราะห์หาค่าความเป็นกรด-ด่าง",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: "tx-2",
+        itemCode: "CHEM-001",
+        itemName: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
+        qty: 1,
+        borrower: "ใจดี เรียนดี",
+        date: "2026-06-02",
+        type: "return",
+        status: "returned",
+        notes: "ใช้เตรียมสารละลาย และส่งคืนขวดสารที่เหลือเข้าชั้น",
+        createdAt: new Date(Date.now() - 86400000).toISOString()
+      }
+    ];
+    localStorage.setItem("lab_transactions", JSON.stringify(transactions));
   }
 }
 
@@ -1667,7 +1797,6 @@ function setupBorrowForm() {
   });
 }
 
-// Render dynamic transaction logs table
 function renderTransactionsTable() {
   const tableBody = document.getElementById("transactionsTableBody");
   if (!tableBody) return;
@@ -1675,7 +1804,7 @@ function renderTransactionsTable() {
   if (transactions.length === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align: center; padding: 48px;">
+        <td colspan="2" style="text-align: center; padding: 48px;">
           <div class="empty-state">
             <div class="empty-state-icon"><i data-lucide="history"></i></div>
             <div class="empty-state-text">ยังไม่มีประวัติการทำรายการยืม-คืน</div>
@@ -1691,40 +1820,27 @@ function renderTransactionsTable() {
 
   let html = "";
   sortedTrans.forEach(tx => {
-    const isBorrowed = tx.type === "borrow";
-    const statusText = tx.status === "borrowed" ? "กำลังยืม" : "คืนแล้ว";
-    const statusBadge = tx.status === "borrowed" ? "badge-borrowed" : "badge-returned";
-    
-    // Check if it's currently borrowed to render the "Return" button
-    let actionBtn = "-";
-    if (tx.status === "borrowed") {
-      actionBtn = `
-        <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; border-color: var(--accent-green); color: var(--accent-green);" onclick="returnBorrowedItem('${tx.id}')">
-          <i data-lucide="check" style="width: 12px; height: 12px;"></i>
-          <span>คืนพัสดุ</span>
-        </button>
-      `;
+    let nameThai = tx.itemName;
+    let nameEng = "";
+    const braceIndex = tx.itemName.indexOf("(");
+    if (braceIndex !== -1) {
+      nameThai = tx.itemName.substring(0, braceIndex).trim();
+      nameEng = tx.itemName.substring(braceIndex).trim();
     }
 
     html += `
-      <tr>
-        <td data-label="วันที่" style="font-size: 12px; color: var(--text-muted);">${formatThaiDate(tx.date)}</td>
-        <td data-label="รายการ">
-          <div style="font-weight: 600; color: #0f172a; font-size: 13px;">${tx.itemName}</div>
-          <div style="font-family: monospace; font-size: 10px; color: var(--text-muted);">${tx.itemCode}</div>
-          ${tx.notes ? `<div style="font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 2px;">* ${tx.notes}</div>` : ''}
+      <tr class="table-clickable-row" onclick="showTransactionDetail('${tx.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
+        <td data-label="วันทำรายการ" style="font-size: 12px; color: var(--text-muted);">${formatThaiDate(tx.date)}</td>
+        <td data-label="รายการพัสดุ">
+          <div style="font-weight: 600; color: #0f172a; font-size: 12px; line-height: 1.4;">${nameThai}</div>
+          ${nameEng ? `<div style="color: var(--text-muted); font-size: 11px; line-height: 1.3; margin-top: 1px;">${nameEng}</div>` : ''}
         </td>
-        <td data-label="จำนวน" style="font-weight: 600; font-size: 13px;">${tx.qty} หน่วย</td>
-        <td data-label="ผู้ทำรายการ" style="font-weight: 500; font-size: 13px;">${tx.borrower}</td>
-        <td data-label="ประเภท"><span class="${statusBadge}">${statusText}</span></td>
-        <td data-label="จัดการ" style="text-align: center;">${actionBtn}</td>
       </tr>
     `;
   });
 
   tableBody.innerHTML = html;
 }
-
 // Quick click action to Return currently borrowed item
 window.returnBorrowedItem = async function(transId) {
   const txIndex = transactions.findIndex(t => t.id === transId);
@@ -1789,6 +1905,35 @@ async function loadAllBookings() {
         }
       });
       bookings = loadedBookings;
+      
+      if (bookings.length === 0) {
+        const mockBookings = [
+          {
+            id: "bk-1",
+            room: "Lab 1",
+            date: "2026-06-03",
+            slot: "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
+            bookerName: "อาจารย์ วีระศักดิ์",
+            status: "approved",
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: "bk-2",
+            room: "Lab 2",
+            date: "2026-06-04",
+            slot: "คาบ 3: 09:50 - 10:40",
+            bookerName: "สมชาย มีดี",
+            status: "approved",
+            createdAt: new Date(Date.now() - 3600000).toISOString()
+          }
+        ];
+        for (const bk of mockBookings) {
+          await db.collection("bookings").doc(bk.id).set(bk);
+          bookings.push(bk);
+        }
+        console.log("🔥 Seeded mock bookings to Firebase Firestore.");
+      }
+      
       console.log("🔥 Loaded " + bookings.length + " bookings from Firebase Cloud.");
       return;
     } catch (err) {
@@ -1803,6 +1948,30 @@ async function loadAllBookings() {
     bookings = JSON.parse(localBookings);
   } else {
     bookings = [];
+  }
+
+  if (bookings.length === 0) {
+    bookings = [
+      {
+        id: "bk-1",
+        room: "Lab 1",
+        date: "2026-06-03",
+        slot: "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
+        bookerName: "อาจารย์ วีระศักดิ์",
+        status: "approved",
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: "bk-2",
+        room: "Lab 2",
+        date: "2026-06-04",
+        slot: "คาบ 3: 09:50 - 10:40",
+        bookerName: "สมชาย มีดี",
+        status: "approved",
+        createdAt: new Date(Date.now() - 3600000).toISOString()
+      }
+    ];
+    localStorage.setItem("lab_bookings", JSON.stringify(bookings));
   }
 }
 
@@ -2083,7 +2252,7 @@ function renderBookingsTable() {
   if (sortedBookings.length === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="6" style="text-align: center; padding: 40px;">
+        <td colspan="2" style="text-align: center; padding: 40px;">
           <div class="empty-state">
             <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
             <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
@@ -2096,32 +2265,23 @@ function renderBookingsTable() {
 
   let html = "";
   sortedBookings.forEach(b => {
-    const isApproved = b.status === "approved";
-    const statusClass = isApproved ? "badge-approved" : "badge-cancelled";
-    const statusLabel = isApproved ? "อนุมัติ" : "ยกเลิกแล้ว";
-
     // Format Date nicely for display
     const formattedDate = formatThaiDate(b.date);
-
-    let actionBtn = "";
-    if (isApproved) {
-      actionBtn = `
-        <button class="action-icon-btn delete" onclick="cancelBookingRecord('${b.id}')" title="ยกเลิกการจอง" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; background-color: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); color: var(--accent-red); border-radius: var(--border-radius-sm); cursor: pointer; transition: all var(--transition-fast);">
-          <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i>
-        </button>
-      `;
-    } else {
-      actionBtn = `<span style="font-size: 11px; color: var(--text-muted);">-</span>`;
-    }
+    
+    // Split slots by comma and create a line for each slot
+    const slotHtml = b.slot.split(", ").map(s => `
+      <div style="font-weight: 600; color: var(--text-main); font-size: 11px; line-height: 1.4; margin-top: 2px;">${s}</div>
+    `).join("");
 
     html += `
-      <tr>
-        <td data-label="วันที่เข้าใช้" style="font-weight: 500;">${formattedDate}</td>
-        <td data-label="ห้องแล็บ"><span class="product-code" style="background-color: rgba(139, 92, 246, 0.08); color: #8b5cf6;">${b.room}</span></td>
-        <td data-label="ช่วงเวลา" style="font-weight: 600; color: var(--text-main);">${b.slot}</td>
-        <td data-label="ผู้จอง">${b.bookerName}</td>
-        <td data-label="สถานะ"><span class="badge ${statusClass}">${statusLabel}</span></td>
-        <td data-label="จัดการ" style="text-align: center;">${actionBtn}</td>
+      <tr class="table-clickable-row" onclick="showBookingDetail('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
+        <td data-label="วันที่เข้าใช้" style="font-size: 12px; font-weight: 500; color: var(--text-muted);">${formattedDate}</td>
+        <td data-label="ห้องแล็บ">
+          <div style="margin-bottom: 4px;">
+            <span class="product-code" style="background-color: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${b.room}</span>
+          </div>
+          ${slotHtml}
+        </td>
       </tr>
     `;
   });
@@ -2142,3 +2302,291 @@ window.cancelBookingRecord = async function(bookingId) {
     }
   }
 };
+
+// ==========================================================================
+// ADMIN LOGIN SYSTEM
+// ==========================================================================
+function updateLoginUI() {
+  const sidebarLoginText = document.getElementById("sidebarLoginText");
+  const sidebarLoginIcon = document.getElementById("sidebarLoginIcon");
+  
+  if (isAdminLoggedIn) {
+    if (sidebarLoginText) sidebarLoginText.innerText = "ออกจากระบบ";
+    if (sidebarLoginIcon) {
+      sidebarLoginIcon.setAttribute("data-lucide", "log-out");
+    }
+  } else {
+    if (sidebarLoginText) sidebarLoginText.innerText = "เข้าสู่ระบบหลังบ้าน";
+    if (sidebarLoginIcon) {
+      sidebarLoginIcon.setAttribute("data-lucide", "log-in");
+    }
+    
+    // Redirect if on admin panel
+    const activePanel = document.querySelector(".panel.active");
+    if (activePanel && activePanel.id === "panel-add-item") {
+      navigateToPanel("dashboard");
+    }
+  }
+  
+  // Update entire UI to apply admin / viewer state
+  updateUI();
+}
+
+function setupLoginHandlers() {
+  const btnLogin = document.getElementById("btnSidebarLogin");
+  const loginModal = document.getElementById("loginModal");
+  const btnClose = document.getElementById("loginModalClose");
+  const btnCancel = document.getElementById("btnCancelLogin");
+  const form = document.getElementById("adminLoginForm");
+  const errorMsg = document.getElementById("loginErrorMsg");
+  const btnTogglePassword = document.getElementById("btnTogglePassword");
+  const passwordInput = document.getElementById("loginPassword");
+  const usernameInput = document.getElementById("loginUsername");
+  const eyeIcon = document.getElementById("eyeIcon");
+
+  if (!btnLogin || !loginModal) return;
+
+  // Toggle login / logout
+  btnLogin.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (isAdminLoggedIn) {
+      if (confirm("คุณต้องการออกจากระบบใช่หรือไม่?")) {
+        isAdminLoggedIn = false;
+        sessionStorage.removeItem("admin_logged_in");
+        showToast("ออกจากระบบหลังบ้านแล้ว", "info");
+        updateLoginUI();
+      }
+    } else {
+      // Clear inputs
+      if (usernameInput) usernameInput.value = "";
+      if (passwordInput) {
+        passwordInput.value = "";
+        passwordInput.type = "password";
+      }
+      if (eyeIcon) eyeIcon.setAttribute("data-lucide", "eye");
+      if (errorMsg) errorMsg.style.display = "none";
+      
+      loginModal.classList.add("active");
+      lucide.createIcons();
+    }
+  });
+
+  const closeModal = () => {
+    loginModal.classList.remove("active");
+  };
+
+  if (btnClose) btnClose.addEventListener("click", closeModal);
+  if (btnCancel) btnCancel.addEventListener("click", closeModal);
+
+  // Toggle password visibility
+  if (btnTogglePassword && passwordInput) {
+    btnTogglePassword.addEventListener("click", () => {
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        eyeIcon.setAttribute("data-lucide", "eye-off");
+      } else {
+        passwordInput.type = "password";
+        eyeIcon.setAttribute("data-lucide", "eye");
+      }
+      lucide.createIcons();
+    });
+  }
+
+  // Handle Form Submission
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value;
+
+      if (username === "admin" && password === "admin1234") {
+        isAdminLoggedIn = true;
+        sessionStorage.setItem("admin_logged_in", "true");
+        showToast("เข้าสู่ระบบหลังบ้านสำเร็จ ยินดีต้อนรับผู้ดูแลระบบ!", "success");
+        closeModal();
+        updateLoginUI();
+      } else {
+        if (errorMsg) errorMsg.style.display = "flex";
+      }
+    });
+  }
+}
+
+// ==========================================================================
+// DETAIL MODAL SYSTEM
+// ==========================================================================
+window.showTransactionDetail = function(txId) {
+  const tx = transactions.find(t => t.id === txId);
+  if (!tx) return;
+
+  const modal = document.getElementById("detailModal");
+  const title = document.getElementById("detailModalTitle");
+  const body = document.getElementById("detailModalBody");
+  const footer = document.getElementById("detailModalFooter");
+
+  if (!modal || !title || !body || !footer) return;
+
+  // Set Title
+  title.innerHTML = `
+    <i data-lucide="history" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
+    <span>รายละเอียดการยืม-คืนพัสดุ</span>
+  `;
+
+  // Determine status and badge classes
+  const isBorrowed = tx.type === "borrow";
+  const statusText = tx.status === "borrowed" ? "กำลังยืม" : "คืนแล้ว";
+  const statusBadge = tx.status === "borrowed" ? "badge-borrowed" : "badge-returned";
+
+  // Build Body HTML
+  body.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">รายการพัสดุ:</span>
+        <span style="font-weight: 600; color: #0f172a;">${tx.itemName}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">รหัสรายการ:</span>
+        <span style="font-family: monospace; font-size: 13px;">${tx.itemCode}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">จำนวน:</span>
+        <span style="font-weight: 600;">${tx.qty} หน่วย</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">ผู้ทำรายการ:</span>
+        <span style="font-weight: 500;">${tx.borrower}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">วันที่ทำรายการ:</span>
+        <span>${formatThaiDate(tx.date)}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">ประเภท:</span>
+        <span><span class="${statusBadge}" style="display: inline-block;">${statusText}</span></span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <span style="font-weight: 600; color: var(--text-muted);">หมายเหตุ / วัตถุประสงค์:</span>
+        <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 13px; color: var(--text-main); font-style: italic; min-height: 50px;">
+          ${tx.notes || "-"}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Build Footer Actions
+  let actionBtn = "";
+  if (tx.status === "borrowed") {
+    actionBtn = `
+      <button class="btn btn-primary" style="background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); setTimeout(() => returnBorrowedItem('${tx.id}'), 200);">
+        <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+        <span>คืนพัสดุ</span>
+      </button>
+    `;
+  }
+  footer.innerHTML = `
+    <button class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
+    ${actionBtn}
+  `;
+
+  // Show Modal
+  modal.classList.add("active");
+  lucide.createIcons();
+};
+
+window.showBookingDetail = function(bkId) {
+  const bk = bookings.find(b => b.id === bkId);
+  if (!bk) return;
+
+  const modal = document.getElementById("detailModal");
+  const title = document.getElementById("detailModalTitle");
+  const body = document.getElementById("detailModalBody");
+  const footer = document.getElementById("detailModalFooter");
+
+  if (!modal || !title || !body || !footer) return;
+
+  // Set Title
+  title.innerHTML = `
+    <i data-lucide="calendar" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
+    <span>รายละเอียดการจองห้องปฏิบัติการ</span>
+  `;
+
+  // Determine status and badge classes
+  const isApproved = bk.status === "approved";
+  const statusClass = isApproved ? "badge-approved" : "badge-cancelled";
+  const statusLabel = isApproved ? "อนุมัติ" : "ยกเลิกแล้ว";
+
+  // Build Body HTML
+  body.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">ห้องแล็บ:</span>
+        <span style="font-weight: 600; color: #0f172a;">${bk.room === "Lab 1" ? "Lab 1 (ห้องเคมีทั่วไป)" : bk.room === "Lab 2" ? "Lab 2 (ห้องฟิสิกส์/วิเคราะห์)" : bk.room === "Lab 3" ? "Lab 3 (ห้องชีวภาพ/จุลชีววิทยา)" : bk.room}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">วันที่จองเข้าใช้:</span>
+        <span style="font-weight: 600;">${formatThaiDate(bk.date)}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">ช่วงเวลา (คาบ):</span>
+        <span style="font-weight: 600; color: #8b5cf6;">${bk.slot}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">ผู้จองห้องแล็บ:</span>
+        <span style="font-weight: 500;">${bk.bookerName}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">สถานะการจอง:</span>
+        <span><span class="badge ${statusClass}" style="display: inline-block;">${statusLabel}</span></span>
+      </div>
+      ${bk.purpose ? `
+      <div style="display: flex; flex-direction: column; gap: 4px;">
+        <span style="font-weight: 600; color: var(--text-muted);">วัตถุประสงค์การใช้งาน:</span>
+        <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 13px; color: var(--text-main); font-style: italic; min-height: 50px;">
+          ${bk.purpose}
+        </div>
+      </div>` : ''}
+    </div>
+  `;
+
+  // Build Footer Actions
+  let actionBtn = "";
+  if (isApproved) {
+    actionBtn = `
+      <button class="btn btn-primary" style="background-color: var(--accent-red); border-color: var(--accent-red); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); setTimeout(() => cancelBookingRecord('${bk.id}'), 200);">
+        <i data-lucide="x-circle" style="width: 16px; height: 16px;"></i>
+        <span>ยกเลิกการจอง</span>
+      </button>
+    `;
+  }
+  footer.innerHTML = `
+    <button class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
+    ${actionBtn}
+  `;
+
+  // Show Modal
+  modal.classList.add("active");
+  lucide.createIcons();
+};
+
+window.closeDetailModal = function() {
+  const modal = document.getElementById("detailModal");
+  if (modal) modal.classList.remove("active");
+};
+
+// Setup detail modal listeners on load
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("detailModal");
+  const closeBtn = document.getElementById("detailModalClose");
+  
+  if (modal) {
+    if (closeBtn) closeBtn.addEventListener("click", window.closeDetailModal);
+    
+    // Close modal when clicking on overlay background
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        window.closeDetailModal();
+      }
+    });
+  }
+});
+
