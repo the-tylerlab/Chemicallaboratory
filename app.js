@@ -108,6 +108,58 @@ const DEMO_DATA = [
     cabinet: "ตู้ B",
     shelf: "ชั้น 1",
     createdAt: "2026-05-18T10:45:00.000Z"
+  },
+  {
+    code: "CHEM-005",
+    name: "กรดซัลฟิวริก 98% (Sulfuric Acid)",
+    category: "สารเคมี",
+    qty: 4,
+    unit: "ขวด",
+    minAlert: 2,
+    expiry: "2027-10-15",
+    room: "Lab 1",
+    cabinet: "ตู้ A",
+    shelf: "ชั้น 3",
+    createdAt: "2026-05-20T09:30:00.000Z"
+  },
+  {
+    code: "EQ-002",
+    name: "เครื่องวัดความเป็นกรด-ด่าง (pH Meter)",
+    category: "อุปกรณ์วิทยาศาสตร์",
+    qty: 0,
+    unit: "เครื่อง",
+    minAlert: 1,
+    expiry: "",
+    room: "Lab 2",
+    cabinet: "ตู้เก็บเครื่องมือ",
+    shelf: "ชั้น 1",
+    createdAt: "2026-05-22T14:00:00.000Z"
+  },
+  {
+    code: "GW-003",
+    name: "หลอดทดลองขนาดใหญ่ 25 มม. (Test Tube 25mm)",
+    category: "เครื่องแก้ว",
+    qty: 25,
+    unit: "ชิ้น",
+    minAlert: 10,
+    expiry: "",
+    room: "Lab 1",
+    cabinet: "ตู้เก็บเครื่องแก้ว",
+    shelf: "ชั้น C",
+    createdAt: "2026-05-25T11:15:00.000Z"
+  },
+  {
+    code: "CHEM-006",
+    name: "แอมโมเนียโซลูชัน 25% (Ammonia Solution)",
+    category: "สารเคมี",
+    qty: 2,
+    unit: "ขวด",
+    minAlert: 1,
+    expiry: "2026-06-25",
+    room: "Lab 2",
+    cabinet: "ตู้ A",
+    shelf: "ชั้น 2",
+    createdAt: "2026-05-26T15:45:00.000Z"
   }
 ];
 
@@ -232,6 +284,23 @@ async function loadAllItems() {
       });
       if (loadedItems.length > 0) {
         items = loadedItems;
+        
+        // Smart merge default items if missing
+        let updated = false;
+        const batch = db.batch();
+        DEMO_DATA.forEach(demoItem => {
+          if (!items.some(it => it.code === demoItem.code)) {
+            items.push(demoItem);
+            const docRef = db.collection("items").doc(demoItem.code);
+            batch.set(docRef, demoItem);
+            updated = true;
+          }
+        });
+        if (updated) {
+          await batch.commit();
+          console.log("🔥 Seeded missing DEMO_DATA items to Firebase Firestore.");
+        }
+        
         console.log("🔥 Loaded " + items.length + " items from Firebase Cloud Firestore.");
         return;
       } else {
@@ -270,6 +339,18 @@ async function loadAllItems() {
   const localData = localStorage.getItem("lab_items");
   if (localData) {
     items = JSON.parse(localData);
+    
+    // Smart merge default items if missing
+    let updated = false;
+    DEMO_DATA.forEach(demoItem => {
+      if (!items.some(it => it.code === demoItem.code)) {
+        items.push(demoItem);
+        updated = true;
+      }
+    });
+    if (updated) {
+      saveItemsToLocal();
+    }
   } else {
     items = [...DEMO_DATA];
     saveItemsToLocal();
@@ -625,16 +706,16 @@ function renderRecentItems() {
     if (status === "low-stock") statusClass = "badge-orange";
 
     html += `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); transition: var(--transition-fast);">
-        <div class="product-cell">
-          <span class="product-name" style="font-size: 13px;">${item.name}</span>
-          <span style="font-size: 11px; color: var(--text-muted); display: flex; gap: 8px; align-items: center;">
-            <span class="product-code" style="font-size: 10px; padding: 1px 4px;">${item.code}</span>
+      <div class="recent-item-card">
+        <div class="recent-item-info">
+          <span class="recent-item-name">${item.name}</span>
+          <div class="recent-item-details">
+            <span class="recent-item-code">${item.code}</span>
             <span>${item.category}</span>
-          </span>
+          </div>
         </div>
-        <div style="text-align: right; display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
-          <span style="font-size: 13px; font-weight: 600;">${item.qty} ${item.unit}</span>
+        <div class="recent-item-status-qty">
+          <span class="recent-item-qty">${item.qty} ${item.unit}</span>
           ${getStatusBadgeMarkup(status)}
         </div>
       </div>
@@ -962,27 +1043,27 @@ function renderNotificationsList(stats) {
   items.forEach(item => {
     const status = getItemStatus(item);
     const index = items.findIndex(i => i.code === item.code);
-
-    const baseRowHtml = `
-      <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border-color); font-size: 13px;">
-        <div class="product-cell">
-          <span class="product-name" style="font-size: 14px;">${item.name}</span>
-          <span style="font-size: 12px; color: var(--text-muted); display: flex; gap: 8px;">
-            <span class="product-code">${item.code}</span>
-            <span>จัดเก็บ: ${[item.room, item.cabinet, item.shelf].filter(Boolean).join(" > ") || "-"}</span>
-          </span>
-        </div>
-    `;
+    const storageStr = [item.room, item.cabinet, item.shelf].filter(Boolean).join(" > ") || "-";
 
     if (status === "expired") {
       expiredHtml += `
-        ${baseRowHtml}
-        <div style="text-align: right; display: flex; align-items: center; gap: 16px;">
-          <div>
-            <span style="color: var(--accent-red); font-weight: 600;">หมดอายุแล้วเมื่อ: ${formatThaiDate(item.expiry)}</span>
-            <div style="font-size: 11px; color: var(--text-muted);">คงเหลือ: ${item.qty} ${item.unit}</div>
+      <div class="notification-item status-expired">
+        <div class="notification-header">
+          <div class="notification-title-group">
+            <span class="notification-title">${item.name}</span>
+            <span class="notification-code">${item.code}</span>
           </div>
           ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตข้อมูล"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
+        </div>
+        <div class="notification-meta">
+          <span class="notification-location">
+            <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+            จัดเก็บ: ${storageStr}
+          </span>
+        </div>
+        <div class="notification-alert-banner expired">
+          <i data-lucide="alert-triangle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+          <span><strong>หมดอายุแล้วเมื่อ:</strong> ${formatThaiDate(item.expiry)} (คงเหลือ: ${item.qty} ${item.unit})</span>
         </div>
       </div>
       `;
@@ -992,25 +1073,45 @@ function renderNotificationsList(stats) {
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
       nearExpiryHtml += `
-        ${baseRowHtml}
-        <div style="text-align: right; display: flex; align-items: center; gap: 16px;">
-          <div>
-            <span style="color: var(--accent-yellow); font-weight: 600;">จะหมดอายุใน ${diffDays} วัน (${formatThaiDate(item.expiry)})</span>
-            <div style="font-size: 11px; color: var(--text-muted);">คงเหลือ: ${item.qty} ${item.unit}</div>
+      <div class="notification-item status-near-expiry">
+        <div class="notification-header">
+          <div class="notification-title-group">
+            <span class="notification-title">${item.name}</span>
+            <span class="notification-code">${item.code}</span>
           </div>
           ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตข้อมูล"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
+        </div>
+        <div class="notification-meta">
+          <span class="notification-location">
+            <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+            จัดเก็บ: ${storageStr}
+          </span>
+        </div>
+        <div class="notification-alert-banner near-expiry">
+          <i data-lucide="clock" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+          <span><strong>จะหมดอายุใน ${diffDays} วัน:</strong> ${formatThaiDate(item.expiry)} (คงเหลือ: ${item.qty} ${item.unit})</span>
         </div>
       </div>
       `;
     } else if (status === "low-stock") {
       lowStockHtml += `
-        ${baseRowHtml}
-        <div style="text-align: right; display: flex; align-items: center; gap: 16px;">
-          <div>
-            <span style="color: var(--accent-orange); font-weight: 600;">ใกล้หมดคลัง: ${item.qty} ${item.unit}</span>
-            <div style="font-size: 11px; color: var(--text-muted);">จุดสั่งซื้อขั้นต่ำคือ: ${item.minAlert} ${item.unit}</div>
+      <div class="notification-item status-low-stock">
+        <div class="notification-header">
+          <div class="notification-title-group">
+            <span class="notification-title">${item.name}</span>
+            <span class="notification-code">${item.code}</span>
           </div>
           ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตสต็อก"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
+        </div>
+        <div class="notification-meta">
+          <span class="notification-location">
+            <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+            จัดเก็บ: ${storageStr}
+          </span>
+        </div>
+        <div class="notification-alert-banner low-stock">
+          <i data-lucide="package" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+          <span><strong>ใกล้หมดคลัง:</strong> คงเหลือ ${item.qty} ${item.unit} (จุดสั่งซื้อขั้นต่ำ: ${item.minAlert} ${item.unit})</span>
         </div>
       </div>
       `;
@@ -1564,6 +1665,57 @@ function setupDashboardCards() {
 
 // Load transactions from Firebase or LocalStorage
 async function loadAllTransactions() {
+  const defaultTrans = [
+    {
+      id: "tx-1",
+      itemCode: "GW-001",
+      itemName: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
+      qty: 2,
+      borrower: "สมชาย มีดี",
+      date: "2026-06-03",
+      type: "borrow",
+      status: "borrowed",
+      notes: "ทำการทดลองวิเคราะห์หาค่าความเป็นกรด-ด่าง",
+      createdAt: new Date(Date.now() - 172800000).toISOString()
+    },
+    {
+      id: "tx-2",
+      itemCode: "CHEM-001",
+      itemName: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
+      qty: 1,
+      borrower: "ใจดี เรียนดี",
+      date: "2026-06-02",
+      type: "return",
+      status: "returned",
+      notes: "ใช้เตรียมสารละลาย และส่งคืนขวดสารที่เหลือเข้าชั้น",
+      createdAt: new Date(Date.now() - 259200000).toISOString()
+    },
+    {
+      id: "tx-3",
+      itemCode: "CHEM-004",
+      itemName: "โพแทสเซียมเปอร์แมงกาเนต (Potassium Permanganate)",
+      qty: 1,
+      borrower: "ดร. วีระศักดิ์",
+      date: "2026-06-04",
+      type: "borrow",
+      status: "borrowed",
+      notes: "เตรียมใช้ทดลองหาปริมาณสารอินทรีย์ในน้ำ",
+      createdAt: new Date(Date.now() - 3600000).toISOString()
+    },
+    {
+      id: "tx-4",
+      itemCode: "GW-002",
+      itemName: "ปิเปตขนาด 10 มล. (Pipette 10ml)",
+      qty: 3,
+      borrower: "ใจดี เรียนดี",
+      date: "2026-06-04",
+      type: "borrow",
+      status: "borrowed",
+      notes: "ใช้สำหรับย้ายของเหลวการทดลองเคมีวิเคราะห์",
+      createdAt: new Date().toISOString()
+    }
+  ];
+
   if (isFirebaseOnline) {
     try {
       const snapshot = await db.collection("transactions").get();
@@ -1576,38 +1728,20 @@ async function loadAllTransactions() {
       });
       transactions = loadedTrans;
       
-      if (transactions.length === 0) {
-        const mockTrans = [
-          {
-            id: "tx-1",
-            itemCode: "GW-001",
-            itemName: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
-            qty: 2,
-            borrower: "สมชาย มีดี",
-            date: "2026-06-03",
-            type: "borrow",
-            status: "borrowed",
-            notes: "ทำการทดลองวิเคราะห์หาค่าความเป็นกรด-ด่าง",
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: "tx-2",
-            itemCode: "CHEM-001",
-            itemName: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
-            qty: 1,
-            borrower: "ใจดี เรียนดี",
-            date: "2026-06-02",
-            type: "return",
-            status: "returned",
-            notes: "ใช้เตรียมสารละลาย และส่งคืนขวดสารที่เหลือเข้าชั้น",
-            createdAt: new Date(Date.now() - 86400000).toISOString()
-          }
-        ];
-        for (const tx of mockTrans) {
-          await db.collection("transactions").doc(tx.id).set(tx);
-          transactions.push(tx);
+      // Smart merge missing default transactions
+      let updated = false;
+      const batch = db.batch();
+      defaultTrans.forEach(demoTx => {
+        if (!transactions.some(tx => tx.id === demoTx.id)) {
+          transactions.push(demoTx);
+          const docRef = db.collection("transactions").doc(demoTx.id);
+          batch.set(docRef, demoTx);
+          updated = true;
         }
-        console.log("🔥 Seeded mock transactions to Firebase Firestore.");
+      });
+      if (updated) {
+        await batch.commit();
+        console.log("🔥 Seeded missing mock transactions to Firebase.");
       }
       
       console.log("🔥 Loaded " + transactions.length + " transactions from Firebase Cloud.");
@@ -1622,37 +1756,20 @@ async function loadAllTransactions() {
   const localTrans = localStorage.getItem("lab_transactions");
   if (localTrans) {
     transactions = JSON.parse(localTrans);
-  } else {
-    transactions = [];
-  }
-
-  if (transactions.length === 0) {
-    transactions = [
-      {
-        id: "tx-1",
-        itemCode: "GW-001",
-        itemName: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
-        qty: 2,
-        borrower: "สมชาย มีดี",
-        date: "2026-06-03",
-        type: "borrow",
-        status: "borrowed",
-        notes: "ทำการทดลองวิเคราะห์หาค่าความเป็นกรด-ด่าง",
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: "tx-2",
-        itemCode: "CHEM-001",
-        itemName: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
-        qty: 1,
-        borrower: "ใจดี เรียนดี",
-        date: "2026-06-02",
-        type: "return",
-        status: "returned",
-        notes: "ใช้เตรียมสารละลาย และส่งคืนขวดสารที่เหลือเข้าชั้น",
-        createdAt: new Date(Date.now() - 86400000).toISOString()
+    
+    // Smart merge default transactions
+    let updated = false;
+    defaultTrans.forEach(demoTx => {
+      if (!transactions.some(tx => tx.id === demoTx.id)) {
+        transactions.push(demoTx);
+        updated = true;
       }
-    ];
+    });
+    if (updated) {
+      localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+    }
+  } else {
+    transactions = [...defaultTrans];
     localStorage.setItem("lab_transactions", JSON.stringify(transactions));
   }
 }
@@ -1680,27 +1797,232 @@ async function saveTransaction(transData) {
 // Populate Dropdown List of Items for Borrow Form
 function populateBorrowItemDropdown() {
   const dropdown = document.getElementById("borrowItemCode");
-  if (!dropdown) return;
+  const optionsList = document.getElementById("borrowItemOptionsList");
+  const triggerText = document.querySelector("#borrowItemSelectTrigger .custom-select-trigger-text");
+  
+  if (!dropdown || !optionsList) return;
 
   // Preserve selected value if any
   const selectedVal = dropdown.value;
 
-  // Clear all except first default option
+  // Clear hidden select except first default option
   dropdown.innerHTML = '<option value="" disabled selected>-- กรุณาเลือกรายการ --</option>';
+  // Clear custom options list
+  optionsList.innerHTML = '';
 
   // Sort items alphabetically by name safely
   const sortedItems = [...items].sort((a, b) => (a.name || "").localeCompare(b.name || "", 'th'));
 
   sortedItems.forEach(item => {
+    // 1. Populate hidden select
     const option = document.createElement("option");
     option.value = item.code;
     option.innerText = `${item.name || "ไม่มีชื่อพัสดุ"} (${item.code || "ไม่มีรหัส"}) [คงเหลือ: ${item.qty || 0} ${item.unit || "หน่วย"}]`;
     dropdown.appendChild(option);
+
+    // 2. Populate custom list item
+    const customOpt = document.createElement("div");
+    customOpt.className = "custom-select-option";
+    customOpt.setAttribute("data-value", item.code);
+    customOpt.innerHTML = `
+      <div class="custom-opt-name">${item.name || "ไม่มีชื่อพัสดุ"}</div>
+      <div class="custom-opt-details">
+        <span class="custom-opt-code">${item.code || "ไม่มีรหัส"}</span>
+        <span class="custom-opt-qty">คงเหลือ: ${item.qty || 0} ${item.unit || "หน่วย"}</span>
+      </div>
+    `;
+    
+    // Add click handler to select item
+    customOpt.addEventListener("click", () => {
+      selectCustomOption(item.code, `${item.name || "ไม่มีชื่อพัสดุ"} (${item.code || "ไม่มีรหัส"})`);
+    });
+
+    optionsList.appendChild(customOpt);
   });
 
   // Restore previous selection if it still exists
   if (selectedVal) {
     dropdown.value = selectedVal;
+    const foundItem = items.find(item => item.code === selectedVal);
+    if (foundItem) {
+      triggerText.innerText = `${foundItem.name || "ไม่มีชื่อพัสดุ"} (${foundItem.code || "ไม่มีรหัส"})`;
+      triggerText.classList.add("has-value");
+
+      // Highlight custom list option
+      const options = optionsList.querySelectorAll(".custom-select-option");
+      options.forEach(opt => {
+        if (opt.getAttribute("data-value") === selectedVal) {
+          opt.classList.add("selected");
+        } else {
+          opt.classList.remove("selected");
+        }
+      });
+    }
+  } else {
+    triggerText.innerText = '-- กรุณาเลือกรายการ --';
+    triggerText.classList.remove("has-value");
+  }
+}
+
+// Custom Searchable Dropdown selection logic
+function selectCustomOption(value, text) {
+  const dropdown = document.getElementById("borrowItemCode");
+  const triggerText = document.querySelector("#borrowItemSelectTrigger .custom-select-trigger-text");
+  const dropdownMenu = document.getElementById("borrowItemSelectDropdown");
+  const chevron = document.querySelector("#borrowItemSelectWrapper .custom-select-chevron");
+  const optionsList = document.getElementById("borrowItemOptionsList");
+
+  if (!dropdown) return;
+
+  dropdown.value = value;
+  if (triggerText) {
+    triggerText.innerText = text;
+    triggerText.classList.add("has-value");
+  }
+  
+  // Update selected class visually
+  if (optionsList) {
+    const options = optionsList.querySelectorAll(".custom-select-option");
+    options.forEach(opt => {
+      if (opt.getAttribute("data-value") === value) {
+        opt.classList.add("selected");
+      } else {
+        opt.classList.remove("selected");
+      }
+    });
+  }
+
+  // Close dropdown
+  if (dropdownMenu) dropdownMenu.classList.remove("open");
+  if (chevron) chevron.style.transform = "rotate(0deg)";
+  
+  // Trigger change event
+  dropdown.dispatchEvent(new Event('change'));
+}
+
+// Setup custom searchable select event listeners
+function setupCustomSearchableSelect() {
+  const wrapper = document.getElementById("borrowItemSelectWrapper");
+  if (!wrapper) return;
+
+  const trigger = document.getElementById("borrowItemSelectTrigger");
+  const dropdownMenu = document.getElementById("borrowItemSelectDropdown");
+  const searchInput = document.getElementById("borrowItemSearchInput");
+  const clearBtn = document.getElementById("borrowItemClearSearch");
+  const optionsList = document.getElementById("borrowItemOptionsList");
+  const chevron = wrapper.querySelector(".custom-select-chevron");
+  const form = document.getElementById("borrowForm");
+
+  if (!trigger || !dropdownMenu || !searchInput || !clearBtn || !optionsList) return;
+
+  // Toggle dropdown on trigger click
+  trigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = dropdownMenu.classList.contains("open");
+    
+    if (isOpen) {
+      dropdownMenu.classList.remove("open");
+      if (chevron) chevron.style.transform = "rotate(0deg)";
+    } else {
+      dropdownMenu.classList.add("open");
+      if (chevron) chevron.style.transform = "rotate(180deg)";
+      setTimeout(() => {
+        searchInput.focus();
+        if (searchInput.value) searchInput.select();
+      }, 50);
+    }
+  });
+
+  // Search input typing handler
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase().trim();
+    
+    // Show/hide clear button
+    clearBtn.style.display = query ? "block" : "none";
+    
+    const options = optionsList.querySelectorAll(".custom-select-option");
+    let hasMatch = false;
+
+    options.forEach(opt => {
+      const name = opt.querySelector(".custom-opt-name").innerText.toLowerCase();
+      const code = opt.querySelector(".custom-opt-code").innerText.toLowerCase();
+      
+      if (name.includes(query) || code.includes(query)) {
+        opt.style.display = "flex";
+        hasMatch = true;
+      } else {
+        opt.style.display = "none";
+      }
+    });
+
+    // Remove existing no-results message if any
+    const existingNoResults = optionsList.querySelector(".custom-select-no-results");
+    if (existingNoResults) existingNoResults.remove();
+
+    // Show no-results if nothing matched
+    if (!hasMatch && options.length > 0) {
+      const noResultsDiv = document.createElement("div");
+      noResultsDiv.className = "custom-select-no-results";
+      noResultsDiv.innerText = "❌ ไม่พบรายการพัสดุหรืออุปกรณ์";
+      optionsList.appendChild(noResultsDiv);
+    }
+  });
+
+  // Clear button click handler
+  clearBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    searchInput.value = "";
+    clearBtn.style.display = "none";
+    
+    const options = optionsList.querySelectorAll(".custom-select-option");
+    options.forEach(opt => opt.style.display = "flex");
+
+    const existingNoResults = optionsList.querySelector(".custom-select-no-results");
+    if (existingNoResults) existingNoResults.remove();
+
+    searchInput.focus();
+  });
+
+  // Prevent dropdown closing when clicking inside dropdown menu
+  dropdownMenu.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  // Click outside wrapper to close dropdown
+  document.addEventListener("click", () => {
+    if (dropdownMenu.classList.contains("open")) {
+      dropdownMenu.classList.remove("open");
+      if (chevron) chevron.style.transform = "rotate(0deg)";
+    }
+  });
+
+  // Escape key to close dropdown
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && dropdownMenu.classList.contains("open")) {
+      dropdownMenu.classList.remove("open");
+      if (chevron) chevron.style.transform = "rotate(0deg)";
+    }
+  });
+
+  // Reset form listener
+  if (form) {
+    form.addEventListener("reset", () => {
+      const triggerText = trigger.querySelector(".custom-select-trigger-text");
+      if (triggerText) {
+        triggerText.innerText = "-- กรุณาเลือกรายการ --";
+        triggerText.classList.remove("has-value");
+      }
+      searchInput.value = "";
+      clearBtn.style.display = "none";
+      
+      const options = optionsList.querySelectorAll(".custom-select-option");
+      options.forEach(opt => opt.style.display = "flex");
+
+      const existingNoResults = optionsList.querySelector(".custom-select-no-results");
+      if (existingNoResults) existingNoResults.remove();
+      
+      if (chevron) chevron.style.transform = "rotate(0deg)";
+    });
   }
 }
 
@@ -1711,6 +2033,9 @@ function setupBorrowForm() {
   const borrowDateInput = document.getElementById("borrowDate");
 
   if (!form) return;
+
+  // Set up custom searchable select listeners
+  setupCustomSearchableSelect();
 
   // Set default date to today
   if (borrowDateInput) {
@@ -1894,6 +2219,45 @@ window.returnBorrowedItem = async function(transId) {
 // ==========================================================================
 
 async function loadAllBookings() {
+  const defaultBookings = [
+    {
+      id: "bk-1",
+      room: "Lab 1",
+      date: "2026-06-03",
+      slot: "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
+      bookerName: "อาจารย์ วีระศักดิ์",
+      status: "approved",
+      createdAt: new Date(Date.now() - 86400000).toISOString()
+    },
+    {
+      id: "bk-2",
+      room: "Lab 2",
+      date: "2026-06-04",
+      slot: "คาบ 3: 09:50 - 10:40",
+      bookerName: "สมชาย มีดี",
+      status: "approved",
+      createdAt: new Date(Date.now() - 3600000).toISOString()
+    },
+    {
+      id: "bk-3",
+      room: "Lab 1",
+      date: "2026-06-04",
+      slot: "คาบ 5: 11:30 - 12:20, คาบ 6: 12:20 - 13:10",
+      bookerName: "ดร. ณรงค์ศักดิ์",
+      status: "approved",
+      createdAt: new Date(Date.now() - 7200000).toISOString()
+    },
+    {
+      id: "bk-4",
+      room: "Lab 2",
+      date: "2026-06-05",
+      slot: "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
+      bookerName: "ผศ. ดร. สมเกียรติ",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    }
+  ];
+
   if (isFirebaseOnline) {
     try {
       const snapshot = await db.collection("bookings").get();
@@ -1906,32 +2270,20 @@ async function loadAllBookings() {
       });
       bookings = loadedBookings;
       
-      if (bookings.length === 0) {
-        const mockBookings = [
-          {
-            id: "bk-1",
-            room: "Lab 1",
-            date: "2026-06-03",
-            slot: "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
-            bookerName: "อาจารย์ วีระศักดิ์",
-            status: "approved",
-            createdAt: new Date().toISOString()
-          },
-          {
-            id: "bk-2",
-            room: "Lab 2",
-            date: "2026-06-04",
-            slot: "คาบ 3: 09:50 - 10:40",
-            bookerName: "สมชาย มีดี",
-            status: "approved",
-            createdAt: new Date(Date.now() - 3600000).toISOString()
-          }
-        ];
-        for (const bk of mockBookings) {
-          await db.collection("bookings").doc(bk.id).set(bk);
-          bookings.push(bk);
+      // Smart merge missing default bookings
+      let updated = false;
+      const batch = db.batch();
+      defaultBookings.forEach(demoBk => {
+        if (!bookings.some(b => b.id === demoBk.id)) {
+          bookings.push(demoBk);
+          const docRef = db.collection("bookings").doc(demoBk.id);
+          batch.set(docRef, demoBk);
+          updated = true;
         }
-        console.log("🔥 Seeded mock bookings to Firebase Firestore.");
+      });
+      if (updated) {
+        await batch.commit();
+        console.log("🔥 Seeded missing mock bookings to Firebase Firestore.");
       }
       
       console.log("🔥 Loaded " + bookings.length + " bookings from Firebase Cloud.");
@@ -1946,31 +2298,20 @@ async function loadAllBookings() {
   const localBookings = localStorage.getItem("lab_bookings");
   if (localBookings) {
     bookings = JSON.parse(localBookings);
-  } else {
-    bookings = [];
-  }
-
-  if (bookings.length === 0) {
-    bookings = [
-      {
-        id: "bk-1",
-        room: "Lab 1",
-        date: "2026-06-03",
-        slot: "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
-        bookerName: "อาจารย์ วีระศักดิ์",
-        status: "approved",
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: "bk-2",
-        room: "Lab 2",
-        date: "2026-06-04",
-        slot: "คาบ 3: 09:50 - 10:40",
-        bookerName: "สมชาย มีดี",
-        status: "approved",
-        createdAt: new Date(Date.now() - 3600000).toISOString()
+    
+    // Smart merge default bookings
+    let updated = false;
+    defaultBookings.forEach(demoBk => {
+      if (!bookings.some(b => b.id === demoBk.id)) {
+        bookings.push(demoBk);
+        updated = true;
       }
-    ];
+    });
+    if (updated) {
+      localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+    }
+  } else {
+    bookings = [...defaultBookings];
     localStorage.setItem("lab_bookings", JSON.stringify(bookings));
   }
 }
@@ -2043,7 +2384,7 @@ function renderBookingSlots() {
     let statusLabel = "🟢 ว่าง";
     if (isBooked) {
       statusClass = "booked";
-      statusLabel = "🔴 จองแล้ว";
+      statusLabel = `<i data-lucide="lock" style="width: 12px; height: 12px;"></i> ถูกจองแล้ว`;
     } else if (isSelected) {
       statusClass = "selected";
       statusLabel = "🟣 เลือกอยู่";

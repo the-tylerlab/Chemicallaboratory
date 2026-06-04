@@ -104,7 +104,7 @@
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer" style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px; margin-top: auto; font-size: 11px; opacity: 0.6; text-align: center;">
-        เวอร์ชัน 1.3.0
+        เวอร์ชัน 1.4.0
       </div>
     </aside>
 
@@ -445,10 +445,25 @@
             <form id="borrowForm">
               <div class="form-group">
                 <label for="borrowItemCode" class="form-label">เลือกรายการสารเคมี / อุปกรณ์ <span style="color: var(--accent-red);">*</span></label>
-                <select id="borrowItemCode" class="form-control" required>
-                  <option value="" disabled selected>-- กรุณาเลือกรายการ --</option>
-                  <!-- Dynamically populated from JS -->
-                </select>
+                <div class="custom-select-wrapper" id="borrowItemSelectWrapper">
+                  <div class="custom-select-trigger" id="borrowItemSelectTrigger">
+                    <span class="custom-select-trigger-text">-- กรุณาเลือกรายการ --</span>
+                    <i data-lucide="chevron-down" class="custom-select-chevron" style="width: 16px; height: 16px; transition: transform var(--transition-normal);"></i>
+                  </div>
+                  <div class="custom-select-dropdown" id="borrowItemSelectDropdown">
+                    <div class="custom-select-search-box">
+                      <i data-lucide="search" class="custom-select-search-icon" style="width: 14px; height: 14px;"></i>
+                      <input type="text" id="borrowItemSearchInput" class="custom-select-search-input" placeholder="พิมพ์ค้นหาชื่อ หรือรหัส..." autocomplete="off">
+                      <button type="button" class="custom-select-clear-btn" id="borrowItemClearSearch" style="display: none;">&times;</button>
+                    </div>
+                    <div class="custom-select-options" id="borrowItemOptionsList">
+                      <!-- Options will be populated here dynamically -->
+                    </div>
+                  </div>
+                  <select id="borrowItemCode" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;" required>
+                    <option value="" disabled selected>-- กรุณาเลือกรายการ --</option>
+                  </select>
+                </div>
               </div>
 
               <div class="form-group">
