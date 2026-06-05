@@ -465,29 +465,17 @@ function setupNavigation() {
   document.getElementById("statCardNearExpiry").addEventListener("click", () => navigateToPanel("all-items", "all", "near-expiry"));
 
   // Dashboard Quick buttons
-  document.getElementById("quickBtnAdd").addEventListener("click", () => {
-    if (isAdminLoggedIn) {
-      navigateToPanel("add-item");
-    } else {
-      showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเพิ่มข้อมูลสารเคมี/อุปกรณ์", "error");
-      document.getElementById("loginModal").classList.add("active");
-      lucide.createIcons();
-    }
-  });
-  
-  document.getElementById("quickBtnImport").addEventListener("click", () => {
-    if (isAdminLoggedIn) {
-      document.getElementById("importModal").classList.add("active");
-    } else {
-      showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อนำเข้าไฟล์ข้อมูล", "error");
-      document.getElementById("loginModal").classList.add("active");
-      lucide.createIcons();
-    }
-  });
-  
   document.getElementById("quickBtnSearch").addEventListener("click", () => {
     navigateToPanel("all-items");
     document.getElementById("filterSearch").focus();
+  });
+  
+  document.getElementById("quickBtnBorrowReturn").addEventListener("click", () => {
+    navigateToPanel("borrow-return");
+  });
+  
+  document.getElementById("quickBtnLabBooking").addEventListener("click", () => {
+    navigateToPanel("lab-booking");
   });
 
   // Sidebar Import Button triggers modal
