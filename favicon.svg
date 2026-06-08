@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background Circle (White) -->
+  <circle cx="50" cy="50" r="48" fill="#ffffff"/>
+  
+  <!-- Red Brand Logo in the center -->
+  <!-- Slanted Capsule -->
+  <line x1="34.5" y1="65" x2="56.5" y2="35" stroke="#ef4444" stroke-width="18" stroke-linecap="round"/>
+  <!-- Dot on the right -->
+  <circle cx="64.5" cy="55" r="9.5" fill="#ef4444"/>
+</svg>
