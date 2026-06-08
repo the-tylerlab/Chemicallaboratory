@@ -825,6 +825,15 @@ tr:hover td {
   color: var(--text-muted);
 }
 
+/* Word break utilities */
+.nobrk {
+  white-space: nowrap;
+}
+.keep-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
 /* Badges */
 .badge {
   display: inline-flex;

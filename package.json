@@ -1,6 +1,6 @@
 {
   "name": "chemical-laboratory-system",
-  "version": "1.4.2",
+  "version": "1.4.5",
   "description": "Chemical Laboratory library system and scientific equipment management backend",
   "main": "server.js",
   "scripts": {
