@@ -682,6 +682,7 @@ input[type="text"],
 input[type="number"],
 input[type="date"],
 input[type="password"],
+input[type="url"],
 select,
 textarea {
   padding: 12px 16px;
@@ -693,6 +694,15 @@ textarea {
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   width: 100%;
   resize: vertical;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="password"],
+input[type="url"],
+select {
+  height: 46px;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -719,6 +729,35 @@ input:focus, select:focus, textarea:focus {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+/* Safety Subbox */
+.safety-subbox {
+  background-color: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.safety-subbox-title {
+  grid-column: span 2;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-red);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* GHS Grid layout */
+.ghs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 10px;
 }
 
 /* Buttons Section */
@@ -1766,6 +1805,18 @@ tr:hover td {
     grid-column: span 1;
   }
 
+  .safety-subbox {
+    grid-template-columns: 1fr;
+  }
+
+  .safety-subbox-title {
+    grid-column: span 1;
+  }
+
+  .ghs-grid {
+    grid-template-columns: 1fr;
+  }
+
   .form-actions {
     flex-direction: column;
     gap: 8px;
@@ -2107,3 +2158,139 @@ input[type="date"]::-webkit-date-and-time-value {
   font-family: inherit;
   font-size: inherit;
 }
+
+/* ==========================================================================
+   ROLE SWITCHER & MEDIA PRINT STYLING OVERRIDES (v1.6.0)
+   ========================================================================== */
+
+.role-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.role-toggle-btn:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.role-toggle-btn.active:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+@media print {
+  /* Hide UI elements that shouldn't be printed */
+  .sidebar,
+  .mobile-header,
+  .table-filter-bar,
+  .pagination-container,
+  .form-actions,
+  .modal-overlay,
+  .toast-container,
+  #btnExportCSV,
+  #btnPrintReport,
+  .sidebar-role-switcher,
+  .quick-menu-list,
+  .action-icon-btn,
+  th[id="thActions"],
+  td[data-label="จัดการ"],
+  .card-header .card-link,
+  #quickBtnSearch,
+  #quickBtnBorrowReturn,
+  #quickBtnLabBooking {
+    display: none !important;
+  }
+
+  /* Reset layout constraints for printing */
+  .app-container {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 20px !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Force display of the active panel */
+  .panel {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  .panel.active {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  /* Format Grid Layouts for standard page flow */
+  .dashboard-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 30px !important;
+  }
+
+  .card-container {
+    page-break-inside: avoid !important;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .stat-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .stat-card .stat-icon {
+    display: none !important;
+  }
+
+  /* Overhaul tables to show everything completely */
+  .table-container {
+    max-height: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    border: 1px solid #aaa !important;
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  th {
+    font-weight: bold !important;
+    background-color: #f1f5f9 !important;
+  }
+
+  /* General settings */
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 12pt !important;
+  }
+}
+

@@ -7,6 +7,34 @@ let items = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let fileToImport = null;
+let userRole = "student"; // Default role
+
+// default science lab kits
+const LAB_KITS = {
+  titration: {
+    name: "ชุดไทเทรต (Titration Kit)",
+    items: [
+      { code: "GW-001", qty: 2 }, // บีกเกอร์ขนาด 250 มล.
+      { code: "GW-002", qty: 2 }, // ปิเปตขนาด 10 มล.
+      { code: "CHEM-001", qty: 1 } // กรดไฮโดรคลอริก 37%
+    ]
+  },
+  distillation: {
+    name: "ชุดทดลองกลั่น (Distillation Kit)",
+    items: [
+      { code: "GW-001", qty: 1 }, // บีกเกอร์ขนาด 250 มล.
+      { code: "CHEM-002", qty: 1 } // เอทานอล 95%
+    ]
+  },
+  extraction: {
+    name: "ชุดสกัดสาร (Extraction Kit)",
+    items: [
+      { code: "GW-002", qty: 1 }, // ปิเปตขนาด 10 มล.
+      { code: "CHEM-002", qty: 1 }, // เอทานอล 95%
+      { code: "CHEM-004", qty: 1 } // โพแทสเซียมเปอร์แมงกาเนต
+    ]
+  }
+};
 
 // Constant Categories and Units
 const CATEGORIES = ["สารเคมี", "อุปกรณ์วิทยาศาสตร์", "เครื่องแก้ว", "วัสดุสิ้นเปลือง"];
@@ -241,6 +269,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Set up login system
   setupLoginHandlers();
+  setupRoleSwitcher();
+  setupCsvExport();
+  setupPrintReport();
+  setupBarcodeScanner();
   updateLoginUI();
   
   // Initialize Lucide icons initially
@@ -655,6 +687,12 @@ function updateUI() {
   // Render Room Booking widgets
   renderBookingSlots();
   renderBookingsTable();
+  populateBookingPrepList();
+
+  // Render newly added v1.6.0 widgets
+  renderDashboardOverdueAlerts();
+  renderDashboardDamagedStats();
+  renderPendingRequests();
   
   // Trigger Lucide updates for newly rendered icon containers
   lucide.createIcons();
@@ -942,13 +980,35 @@ function renderItemsTable() {
 
     const status = getItemStatus(item);
 
+    let ghsBadges = "";
+    if (item.ghs && item.ghs.length > 0) {
+      const ghsUrls = {
+        explosive: "./images/GHS-explosive.svg",
+        flammable: "./images/GHS-flammable.svg",
+        oxidizing: "./images/GHS-oxidizing.svg",
+        compressed_gas: "./images/GHS-compressed-gas.svg",
+        corrosive: "./images/GHS-corrosive.svg",
+        toxic: "./images/GHS-toxic.svg",
+        irritant: "./images/GHS-irritant.svg",
+        health_hazard: "./images/GHS-health-hazard.svg",
+        environmental: "./images/GHS-environmental.svg"
+      };
+      ghsBadges = `<div style="display: flex; gap: 6px; margin-top: 4px; flex-wrap: wrap;">` + 
+        item.ghs.map(g => {
+          const url = ghsUrls[g];
+          return url ? `<img src="${url}" alt="${g}" style="width: 20px; height: 20px;" title="${g}">` : "";
+        }).filter(html => html !== "").join("") + 
+        `</div>`;
+    }
+
     rowsHtml += `
-      <tr>
+      <tr class="table-clickable-row" onclick="showItemDetail(event, '${item.code}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียด">
         <td data-label="รายการ">
           <div class="product-cell">
             <span class="product-code">${item.code}</span>
             <span class="product-name">${item.name}</span>
             <span class="product-cat">${item.category}</span>
+            ${ghsBadges}
           </div>
         </td>
         <td data-label="จำนวนคงเหลือ" style="font-weight: 600; font-size: 14px;">${item.qty} ${item.unit}</td>
@@ -1250,6 +1310,16 @@ function setupFormHandlers() {
     const room = document.getElementById("itemRoom").value.trim();
     const cabinet = document.getElementById("itemCabinet").value.trim();
     const shelf = document.getElementById("itemShelf").value.trim();
+    
+    // v1.6.0 upgrades
+    const chemicalType = document.getElementById("itemChemicalType").value;
+    const sdsUrl = document.getElementById("itemSdsUrl").value.trim();
+    const damagedQty = Number(document.getElementById("itemDamagedQty").value || 0);
+    const repairQty = Number(document.getElementById("itemRepairQty").value || 0);
+    
+    // Retrieve checked GHS checkboxes
+    const ghsCheckboxes = document.querySelectorAll('input[name="ghs"]:checked');
+    const ghs = Array.from(ghsCheckboxes).map(cb => cb.value);
 
     const editIndex = document.getElementById("editItemIndex").value;
 
@@ -1259,6 +1329,57 @@ function setupFormHandlers() {
       if (codeExists) {
         showToast(`ไม่สามารถใช้รหัส ${code} ได้เนื่องจากมีในระบบแล้ว!`, "error");
         return;
+      }
+    }
+
+    // Chemical Incompatibility Check
+    if (category === "สารเคมี" && chemicalType && room && cabinet) {
+      let conflictType = null;
+      let conflictName = "";
+
+      const potentialConflict = items.find(item => {
+        // Skip current item if in edit mode
+        if (editIndex !== "" && item.code === items[editIndex].code) return false;
+
+        if (item.category === "สารเคมี" && item.room === room && item.cabinet === cabinet && item.chemicalType) {
+          if (chemicalType === "acid" && item.chemicalType === "base") {
+            conflictType = "base";
+            conflictName = item.name;
+            return true;
+          }
+          if (chemicalType === "base" && item.chemicalType === "acid") {
+            conflictType = "acid";
+            conflictName = item.name;
+            return true;
+          }
+          if (chemicalType === "oxidizer" && item.chemicalType === "organic") {
+            conflictType = "organic";
+            conflictName = item.name;
+            return true;
+          }
+          if (chemicalType === "organic" && item.chemicalType === "oxidizer") {
+            conflictType = "oxidizer";
+            conflictName = item.name;
+            return true;
+          }
+        }
+        return false;
+      });
+
+      if (potentialConflict) {
+        const typeLabels = {
+          acid: "กรด (Acid)",
+          base: "เบส/ด่าง (Base)",
+          oxidizer: "สารออกซิไดซ์ (Oxidizer)",
+          organic: "ตัวทำละลายอินทรีย์/สารไวไฟ (Organic/Flammable)"
+        };
+        const msg = `⚠️ คำเตือนสารเคมีเข้ากันไม่ได้:\n` +
+                    `พบ "${conflictName}" ซึ่งเป็นสารประเภท "${typeLabels[conflictType]}" จัดเก็บอยู่ใน "${room} > ${cabinet}" เรียบร้อยแล้ว\n` +
+                    `ไม่ควรจัดเก็บสารประเภท "${typeLabels[chemicalType]}" ร่วมกันในตู้เดียวกัน\n\n` +
+                    `คุณต้องการบันทึกการจัดเก็บต่อไปใช่หรือไม่?`;
+        if (!confirm(msg)) {
+          return;
+        }
       }
     }
 
@@ -1273,6 +1394,12 @@ function setupFormHandlers() {
       room,
       cabinet,
       shelf,
+      chemicalType,
+      sdsUrl,
+      damagedQty,
+      repairQty,
+      ghs,
+      dilutions: editIndex !== "" ? (items[editIndex].dilutions || []) : [],
       createdAt: editIndex !== "" ? items[editIndex].createdAt : new Date().toISOString()
     };
 
@@ -1296,6 +1423,13 @@ function setupFormHandlers() {
       showToast(`บันทึกข้อมูล "${name}" เข้าสู่ระบบแล้ว!`);
     }
 
+    // Reset Form safety elements
+    document.querySelectorAll('input[name="ghs"]').forEach(cb => cb.checked = false);
+    document.getElementById("itemChemicalType").value = "";
+    document.getElementById("itemSdsUrl").value = "";
+    document.getElementById("itemDamagedQty").value = 0;
+    document.getElementById("itemRepairQty").value = 0;
+
     // Update UI directly
     updateUI();
     form.reset();
@@ -1313,6 +1447,11 @@ function setupFormHandlers() {
     form.reset();
     document.getElementById("itemUnit").value = "ขวด";
     document.getElementById("itemMinAlert").value = "";
+    document.getElementById("itemChemicalType").value = "";
+    document.getElementById("itemSdsUrl").value = "";
+    document.getElementById("itemDamagedQty").value = 0;
+    document.getElementById("itemRepairQty").value = 0;
+    document.querySelectorAll('input[name="ghs"]').forEach(cb => cb.checked = false);
   });
 
   // Cancel edit handler
@@ -1327,6 +1466,11 @@ function setupFormHandlers() {
     btnCancelEdit.style.display = "none";
     document.getElementById("itemUnit").value = "ขวด";
     document.getElementById("itemMinAlert").value = "";
+    document.getElementById("itemChemicalType").value = "";
+    document.getElementById("itemSdsUrl").value = "";
+    document.getElementById("itemDamagedQty").value = 0;
+    document.getElementById("itemRepairQty").value = 0;
+    document.querySelectorAll('input[name="ghs"]').forEach(cb => cb.checked = false);
     navigateToPanel("all-items");
   });
 }
@@ -1357,6 +1501,18 @@ window.editItem = function(index) {
   document.getElementById("itemRoom").value = item.room || "";
   document.getElementById("itemCabinet").value = item.cabinet || "";
   document.getElementById("itemShelf").value = item.shelf || "";
+  
+  // v1.6.0 safety properties populating
+  document.getElementById("itemChemicalType").value = item.chemicalType || "";
+  document.getElementById("itemSdsUrl").value = item.sdsUrl || "";
+  document.getElementById("itemDamagedQty").value = item.damagedQty || 0;
+  document.getElementById("itemRepairQty").value = item.repairQty || 0;
+
+  // Populate GHS checkboxes
+  const ghsCheckboxes = document.querySelectorAll('input[name="ghs"]');
+  ghsCheckboxes.forEach(cb => {
+    cb.checked = item.ghs && item.ghs.includes(cb.value);
+  });
 
   // UI state change
   document.getElementById("formPanelTitle").innerText = "แก้ไขข้อมูลสาร/อุปกรณ์";
@@ -1664,6 +1820,7 @@ async function loadAllTransactions() {
       type: "borrow",
       status: "borrowed",
       notes: "ทำการทดลองวิเคราะห์หาค่าความเป็นกรด-ด่าง",
+      expectedReturnDate: "2026-06-10",
       createdAt: new Date(Date.now() - 172800000).toISOString()
     },
     {
@@ -1676,6 +1833,7 @@ async function loadAllTransactions() {
       type: "return",
       status: "returned",
       notes: "ใช้เตรียมสารละลาย และส่งคืนขวดสารที่เหลือเข้าชั้น",
+      expectedReturnDate: "2026-06-09",
       createdAt: new Date(Date.now() - 259200000).toISOString()
     },
     {
@@ -1688,6 +1846,7 @@ async function loadAllTransactions() {
       type: "borrow",
       status: "borrowed",
       notes: "เตรียมใช้ทดลองหาปริมาณสารอินทรีย์ในน้ำ",
+      expectedReturnDate: "2026-06-11",
       createdAt: new Date(Date.now() - 3600000).toISOString()
     },
     {
@@ -1700,7 +1859,34 @@ async function loadAllTransactions() {
       type: "borrow",
       status: "borrowed",
       notes: "ใช้สำหรับย้ายของเหลวการทดลองเคมีวิเคราะห์",
+      expectedReturnDate: "2026-06-11",
       createdAt: new Date().toISOString()
+    },
+    {
+      id: "tx-5",
+      itemCode: "CHEM-002",
+      itemName: "เอทานอล 95% (Ethanol)",
+      qty: 1,
+      borrower: "นายสมชาย เรียนดี",
+      date: "2026-05-15",
+      type: "borrow",
+      status: "borrowed",
+      notes: "การทดลองเรื่องสารประกอบอินทรีย์",
+      expectedReturnDate: "2026-05-22",
+      createdAt: "2026-05-15T09:00:00.000Z"
+    },
+    {
+      id: "tx-6",
+      itemCode: "GW-002",
+      itemName: "ปิเปตขนาด 10 มล. (Pipette 10ml)",
+      qty: 2,
+      borrower: "นางสาวสมหญิง ใจดี",
+      date: "2026-05-10",
+      type: "borrow",
+      status: "borrowed",
+      notes: "วิชาเคมี ชั้น ม.5",
+      expectedReturnDate: "2026-05-17",
+      createdAt: "2026-05-10T10:00:00.000Z"
     }
   ];
 
@@ -2031,6 +2217,93 @@ function setupBorrowForm() {
     borrowDateInput.value = today;
   }
 
+  // Handle Lab Kit Dropdown Change and Previews
+  const kitSelect = document.getElementById("borrowLabKit");
+  const kitPreview = document.getElementById("labKitPreview");
+  const kitItemsList = document.getElementById("labKitItemsList");
+  const singleItemSelectGroup = document.getElementById("singleItemSelectGroup");
+  const borrowQtyInput = document.getElementById("borrowQty");
+
+  if (kitSelect) {
+    kitSelect.addEventListener("change", () => {
+      const kitId = kitSelect.value;
+      if (kitId && LAB_KITS[kitId]) {
+        // Hide single select group and force borrow quantity to be determined by the kit
+        singleItemSelectGroup.style.display = "none";
+        document.getElementById("borrowItemCode").required = false;
+        
+        // Populate items list preview
+        kitPreview.style.display = "block";
+        let listHtml = "";
+        let allAvailable = true;
+
+        LAB_KITS[kitId].items.forEach(kitItem => {
+          const item = items.find(i => i.code === kitItem.code);
+          const currentStock = item ? item.qty : 0;
+          const reqQty = kitItem.qty;
+          const name = item ? item.name : kitItem.code;
+          const unit = item ? item.unit : "ชิ้น";
+          const hasStock = currentStock >= reqQty;
+          if (!hasStock) allAvailable = false;
+
+          listHtml += `
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 4px 0;">
+              <span style="font-weight: 500;">• ${name}</span>
+              <span>
+                จำนวน: <strong>${reqQty}</strong> / ในคลัง: <strong style="color: ${hasStock ? 'var(--accent-green)' : 'var(--accent-red)'};">${currentStock} ${unit}</strong>
+                ${hasStock ? '' : ' <span style="font-size: 11px; font-weight: bold; color: var(--accent-red);">(ไม่พอ)</span>'}
+              </span>
+            </div>
+          `;
+        });
+
+        kitItemsList.innerHTML = listHtml;
+        lucide.createIcons();
+        
+        // Lock quantity input to 1 (since quantity is defined inside the kit)
+        borrowQtyInput.value = 1;
+        borrowQtyInput.disabled = true;
+
+        if (!allAvailable) {
+          document.getElementById("btnSubmitBorrow").disabled = true;
+          showToast("ชุดอุปกรณ์มีวัสดุบางรายการไม่เพียงพอในคลัง", "error");
+        } else {
+          document.getElementById("btnSubmitBorrow").disabled = false;
+        }
+      } else {
+        // Show single select group again
+        singleItemSelectGroup.style.display = "block";
+        document.getElementById("borrowItemCode").required = true;
+        kitPreview.style.display = "none";
+        kitItemsList.innerHTML = "";
+        
+        borrowQtyInput.value = 1;
+        borrowQtyInput.disabled = false;
+        document.getElementById("btnSubmitBorrow").disabled = false;
+      }
+    });
+  }
+
+  // Hide/Show Lab Kit dropdown depending on Borrow vs Return type
+  const borrowTypeRadios = document.querySelectorAll('input[name="borrowType"]');
+  borrowTypeRadios.forEach(radio => {
+    radio.addEventListener("change", () => {
+      const isReturn = document.querySelector('input[name="borrowType"]:checked').value === "return";
+      const kitGroup = document.getElementById("labKitSelectGroup");
+      const kitSelectEl = document.getElementById("borrowLabKit");
+      
+      if (isReturn) {
+        if (kitGroup) kitGroup.style.display = "none";
+        if (kitSelectEl) {
+          kitSelectEl.value = "";
+          kitSelectEl.dispatchEvent(new Event('change'));
+        }
+      } else {
+        if (kitGroup) kitGroup.style.display = "block";
+      }
+    });
+  });
+
   // Reset handler
   btnReset.addEventListener("click", () => {
     form.reset();
@@ -2038,25 +2311,126 @@ function setupBorrowForm() {
       const today = new Date().toISOString().split('T')[0];
       borrowDateInput.value = today;
     }
+    if (kitSelect) {
+      kitSelect.value = "";
+      kitSelect.dispatchEvent(new Event('change'));
+    }
+    const kitGroup = document.getElementById("labKitSelectGroup");
+    if (kitGroup) kitGroup.style.display = "block";
   });
 
   // Form submit
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const itemCode = document.getElementById("borrowItemCode").value;
     const borrowType = document.querySelector('input[name="borrowType"]:checked').value;
-    const borrowQty = Number(document.getElementById("borrowQty").value);
     const borrowerName = document.getElementById("borrowerName").value.trim();
     const borrowDate = document.getElementById("borrowDate").value;
     const borrowNotes = document.getElementById("borrowNotes").value.trim();
+    const kitId = kitSelect ? kitSelect.value : "";
 
-    if (!itemCode || isNaN(borrowQty) || borrowQty <= 0 || !borrowerName || !borrowDate) {
-      showToast("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน", "error");
+    if (!borrowerName || !borrowDate) {
+      showToast("กรุณากรอกข้อมูลผู้ทำรายการและวันที่", "error");
       return;
     }
 
-    // Find the item
+    // Determine expected return date (7 days after borrow)
+    const expectedReturnDate = addDays(borrowDate, 7);
+
+    // 1. LAB KIT BUNDLE BORROWING FLOW
+    if (borrowType === "borrow" && kitId && LAB_KITS[kitId]) {
+      const kit = LAB_KITS[kitId];
+      
+      // Stock pre-check
+      let allAvailable = true;
+      kit.items.forEach(kitItem => {
+        const item = items.find(i => i.code === kitItem.code);
+        if (!item || item.qty < kitItem.qty) {
+          allAvailable = false;
+        }
+      });
+
+      if (!allAvailable) {
+        showToast("ไม่สามารถทำรายการได้เนื่องจากพัสดุบางรายการในชุดมีไม่เพียงพอ", "error");
+        return;
+      }
+
+      // Execute borrows
+      let loggedCount = 0;
+      for (const kitItem of kit.items) {
+        const itemIndex = items.findIndex(i => i.code === kitItem.code);
+        const item = items[itemIndex];
+
+        if (userRole === "student") {
+          // Student View: Creates pending request, no stock change
+          const transactionData = {
+            id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+            itemCode: item.code,
+            itemName: item.name,
+            qty: kitItem.qty,
+            borrower: borrowerName,
+            date: borrowDate,
+            type: "borrow",
+            status: "pending",
+            notes: `[ยืมในชุด: ${kit.name}] ${borrowNotes}`,
+            expectedReturnDate,
+            kitName: kit.name,
+            createdAt: new Date().toISOString()
+          };
+          await saveTransaction(transactionData);
+          loggedCount++;
+        } else {
+          // Teacher View: Auto approve, decrements stock immediately
+          const newQty = item.qty - kitItem.qty;
+          const updatedItem = { ...item, qty: newQty };
+          const success = await updateItemBackend(item.code, updatedItem, itemIndex);
+          
+          if (success) {
+            const transactionData = {
+              id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+              itemCode: item.code,
+              itemName: item.name,
+              qty: kitItem.qty,
+              borrower: borrowerName,
+              date: borrowDate,
+              type: "borrow",
+              status: "borrowed",
+              notes: `[ยืมในชุด: ${kit.name}] ${borrowNotes}`,
+              expectedReturnDate,
+              kitName: kit.name,
+              createdAt: new Date().toISOString()
+            };
+            await saveTransaction(transactionData);
+            loggedCount++;
+          }
+        }
+      }
+
+      if (loggedCount > 0) {
+        if (userRole === "student") {
+          showToast(`ส่งคำขออนุมัติยืมชุดพัสดุ "${kit.name}" เรียบร้อยแล้ว!`, "info");
+        } else {
+          showToast(`ทำรายการยืมชุดพัสดุ "${kit.name}" สำเร็จ!`, "success");
+        }
+        form.reset();
+        if (kitSelect) {
+          kitSelect.value = "";
+          kitSelect.dispatchEvent(new Event('change'));
+        }
+        updateUI();
+      }
+      return;
+    }
+
+    // 2. SINGLE ITEM BORROW/RETURN FLOW
+    const itemCode = document.getElementById("borrowItemCode").value;
+    const borrowQty = Number(document.getElementById("borrowQty").value);
+
+    if (!itemCode || isNaN(borrowQty) || borrowQty <= 0) {
+      showToast("กรุณาเลือกรายการและระบุจำนวนให้ถูกต้อง", "error");
+      return;
+    }
+
     const itemIndex = items.findIndex(item => item.code === itemCode);
     if (itemIndex === -1) {
       showToast("ไม่พบข้อมูลพัสดุในระบบ", "error");
@@ -2064,47 +2438,87 @@ function setupBorrowForm() {
     }
     const item = items[itemIndex];
 
-    // Business rules validation
-    let newQty = item.qty;
     if (borrowType === "borrow") {
       if (borrowQty > item.qty) {
         showToast(`ไม่สามารถยืมได้! จำนวนที่ยืม (${borrowQty}) มากกว่าจำนวนคงเหลือในคลัง (${item.qty})`, "error");
         return;
       }
-      newQty = item.qty - borrowQty;
-    } else {
-      // Return type
-      newQty = item.qty + borrowQty;
-    }
 
-    // Update item stock in backend/cloud
-    const updatedItem = { ...item, qty: newQty };
-    const success = await updateItemBackend(item.code, updatedItem, itemIndex);
-
-    if (success) {
-      // Log the transaction
-      const transactionData = {
-        id: "TX-" + Date.now(),
-        itemCode: item.code,
-        itemName: item.name,
-        qty: borrowQty,
-        borrower: borrowerName,
-        date: borrowDate,
-        type: borrowType, // "borrow" or "return"
-        status: borrowType === "borrow" ? "borrowed" : "returned",
-        notes: borrowNotes,
-        createdAt: new Date().toISOString()
-      };
-
-      const logged = await saveTransaction(transactionData);
-      if (logged) {
-        showToast(borrowType === "borrow" ? `ทำรายการยืม "${item.name}" สำเร็จ!` : `ทำรายการคืน "${item.name}" สำเร็จ!`, "success");
-        form.reset();
-        if (borrowDateInput) {
-          const today = new Date().toISOString().split('T')[0];
-          borrowDateInput.value = today;
+      if (userRole === "student") {
+        // Student View: Creates pending request, no stock change
+        const transactionData = {
+          id: "TX-" + Date.now(),
+          itemCode: item.code,
+          itemName: item.name,
+          qty: borrowQty,
+          borrower: borrowerName,
+          date: borrowDate,
+          type: "borrow",
+          status: "pending",
+          notes: borrowNotes,
+          expectedReturnDate,
+          createdAt: new Date().toISOString()
+        };
+        const logged = await saveTransaction(transactionData);
+        if (logged) {
+          showToast(`ส่งคำขออนุมัติยืม "${item.name}" เรียบร้อยแล้ว!`, "info");
+          form.reset();
+          updateUI();
         }
-        updateUI();
+      } else {
+        // Teacher View: Decrement stock immediately and save approved transaction
+        const newQty = item.qty - borrowQty;
+        const updatedItem = { ...item, qty: newQty };
+        const success = await updateItemBackend(item.code, updatedItem, itemIndex);
+
+        if (success) {
+          const transactionData = {
+            id: "TX-" + Date.now(),
+            itemCode: item.code,
+            itemName: item.name,
+            qty: borrowQty,
+            borrower: borrowerName,
+            date: borrowDate,
+            type: "borrow",
+            status: "borrowed",
+            notes: borrowNotes,
+            expectedReturnDate,
+            createdAt: new Date().toISOString()
+          };
+          const logged = await saveTransaction(transactionData);
+          if (logged) {
+            showToast(`ทำรายการยืม "${item.name}" สำเร็จ!`, "success");
+            form.reset();
+            updateUI();
+          }
+        }
+      }
+    } else {
+      // RETURN FLOW (Immediate Return)
+      const newQty = item.qty + borrowQty;
+      const updatedItem = { ...item, qty: newQty };
+      const success = await updateItemBackend(item.code, updatedItem, itemIndex);
+
+      if (success) {
+        const transactionData = {
+          id: "TX-" + Date.now(),
+          itemCode: item.code,
+          itemName: item.name,
+          qty: borrowQty,
+          borrower: borrowerName,
+          date: borrowDate,
+          type: "return",
+          status: "returned",
+          notes: borrowNotes,
+          expectedReturnDate: "",
+          createdAt: new Date().toISOString()
+        };
+        const logged = await saveTransaction(transactionData);
+        if (logged) {
+          showToast(`ทำรายการคืน "${item.name}" สำเร็จ!`, "success");
+          form.reset();
+          updateUI();
+        }
       }
     }
   });
@@ -2501,6 +2915,10 @@ function setupBookingForm() {
     selectedSlots = [];
     const selectedSlotInput = document.getElementById("selectedBookingSlot");
     if (selectedSlotInput) selectedSlotInput.value = "";
+    
+    // Reset prep items checklist checkboxes
+    document.querySelectorAll('input[name="bookingPrepItem"]').forEach(cb => cb.checked = false);
+    
     renderBookingSlots();
   });
 
@@ -2539,6 +2957,17 @@ function setupBookingForm() {
       return;
     }
 
+    // Retrieve prep items checklist
+    const prepCheckboxes = document.querySelectorAll('input[name="bookingPrepItem"]:checked');
+    const prepItems = Array.from(prepCheckboxes).map(cb => {
+      const code = cb.value;
+      const qtyInput = document.querySelector(`.prep-qty-input[data-code="${code}"]`);
+      return {
+        code,
+        qty: qtyInput ? Number(qtyInput.value) : 1
+      };
+    });
+
     const bookingData = {
       id: "book_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
       room,
@@ -2546,6 +2975,7 @@ function setupBookingForm() {
       slot,
       bookerName,
       purpose,
+      prepItems,
       status: "approved",
       createdAt: new Date().toISOString()
     };
@@ -2561,6 +2991,9 @@ function setupBookingForm() {
       selectedSlots = [];
       const selectedSlotInput = document.getElementById("selectedBookingSlot");
       if (selectedSlotInput) selectedSlotInput.value = "";
+      
+      // Clear prep check boxes
+      document.querySelectorAll('input[name="bookingPrepItem"]').forEach(cb => cb.checked = false);
       
       updateUI();
     }
@@ -2844,6 +3277,23 @@ window.showBookingDetail = function(bkId) {
   const statusClass = isApproved ? "badge-approved" : "badge-cancelled";
   const statusLabel = isApproved ? "อนุมัติ" : "ยกเลิกแล้ว";
 
+  let prepHtml = "";
+  if (bk.prepItems && bk.prepItems.length > 0) {
+    prepHtml = `
+      <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+        <span style="font-weight: 600; color: var(--text-muted);">วัสดุ / สารเคมีที่เตรียมสอน (Prep Items):</span>
+        <div style="display: flex; flex-direction: column; gap: 4px; padding-left: 12px; margin-top: 4px;">
+          ${bk.prepItems.map(pi => {
+            const item = items.find(i => i.code === pi.code);
+            const name = item ? item.name : pi.code;
+            const unit = item ? item.unit : "หน่วย";
+            return `<div style="font-size: 13px; font-weight: 500; color: #334155;">• ${name} (${pi.code}) - <strong>${pi.qty}</strong> ${unit}</div>`;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }
+
   // Build Body HTML
   body.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -2868,12 +3318,13 @@ window.showBookingDetail = function(bkId) {
         <span><span class="badge ${statusClass}" style="display: inline-block;">${statusLabel}</span></span>
       </div>
       ${bk.purpose ? `
-      <div style="display: flex; flex-direction: column; gap: 4px;">
+      <div style="display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">วัตถุประสงค์การใช้งาน:</span>
-        <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 13px; color: var(--text-main); font-style: italic; min-height: 50px;">
+        <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 13px; color: var(--text-main); font-style: italic; min-height: 40px;">
           ${bk.purpose}
         </div>
       </div>` : ''}
+      ${prepHtml}
     </div>
   `;
 
@@ -2918,4 +3369,765 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+// ==========================================================================
+// TEACHER PORTAL & SCIENCE LAB FEATURE SUITE (v1.6.0) FUNCTIONS
+// ==========================================================================
+
+function setupRoleSwitcher() {
+  const btnStudent = document.getElementById("roleBtnStudent");
+  const btnTeacher = document.getElementById("roleBtnTeacher");
+  if (!btnStudent || !btnTeacher) return;
+
+  const setRoleActiveState = (role) => {
+    if (role === "teacher") {
+      btnTeacher.classList.add("active");
+      btnTeacher.style.background = "rgba(255,255,255,0.15)";
+      btnTeacher.style.color = "#ffffff";
+      
+      btnStudent.classList.remove("active");
+      btnStudent.style.background = "none";
+      btnStudent.style.color = "rgba(255,255,255,0.6)";
+    } else {
+      btnStudent.classList.add("active");
+      btnStudent.style.background = "rgba(255,255,255,0.15)";
+      btnStudent.style.color = "#ffffff";
+      
+      btnTeacher.classList.remove("active");
+      btnTeacher.style.background = "none";
+      btnTeacher.style.color = "rgba(255,255,255,0.6)";
+    }
+  };
+
+  btnStudent.addEventListener("click", () => {
+    userRole = "student";
+    isAdminLoggedIn = false;
+    sessionStorage.setItem("admin_logged_in", "false");
+    localStorage.setItem("user_role", "student");
+    setRoleActiveState("student");
+    showToast("เปลี่ยนบทบาทเป็น นักเรียน (Student) แล้ว", "info");
+    updateLoginUI();
+  });
+
+  btnTeacher.addEventListener("click", () => {
+    userRole = "teacher";
+    isAdminLoggedIn = true;
+    sessionStorage.setItem("admin_logged_in", "true");
+    localStorage.setItem("user_role", "teacher");
+    setRoleActiveState("teacher");
+    showToast("เปลี่ยนบทบาทเป็น ครู/เจ้าหน้าที่ (Teacher/Staff) แล้ว", "info");
+    updateLoginUI();
+  });
+
+  // Load initial role state
+  const savedRole = localStorage.getItem("user_role") || "student";
+  userRole = savedRole;
+  isAdminLoggedIn = (savedRole === "teacher");
+  sessionStorage.setItem("admin_logged_in", isAdminLoggedIn ? "true" : "false");
+  setRoleActiveState(savedRole);
+}
+
+function renderDashboardOverdueAlerts() {
+  const container = document.getElementById("dashboardOverdueContainer");
+  const countBadge = document.getElementById("dashboardOverdueCount");
+  if (!container) return;
+
+  const overdueTrans = transactions.filter(tx => {
+    return tx.type === "borrow" && tx.status === "borrowed" && tx.expectedReturnDate && tx.expectedReturnDate < "2026-05-28";
+  });
+
+  if (overdueTrans.length === 0) {
+    if (countBadge) countBadge.style.display = "none";
+    container.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background-color: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: var(--border-radius-md); color: #10b981; font-size: 13px;">
+        <i data-lucide="check-circle" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
+        <div style="font-weight: 500;">ไม่มีรายการค้างคืนที่เกินกำหนดส่ง!</div>
+      </div>
+    `;
+    return;
+  }
+
+  if (countBadge) {
+    countBadge.innerText = overdueTrans.length;
+    countBadge.style.display = "inline-flex";
+  }
+
+  let html = `<div style="display: flex; flex-direction: column; gap: 12px;">`;
+  overdueTrans.forEach(tx => {
+    html += `
+      <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; background-color: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: var(--border-radius-md);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <span style="font-size: 13px; font-weight: 600; color: #0f172a;">${tx.itemName}</span>
+          <span class="badge badge-red" style="font-size: 10px; padding: 1px 6px;">⚠️ เกินกำหนด ${getOverdueDays(tx.expectedReturnDate)} วัน</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); flex-wrap: wrap; gap: 4px;">
+          <span>ผู้ยืม: <strong>${tx.borrower}</strong> (จำนวน: ${tx.qty})</span>
+          <span>กำหนดคืน: <strong style="color: var(--accent-red);">${formatThaiDate(tx.expectedReturnDate)}</strong></span>
+        </div>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+function getOverdueDays(expectedDateStr) {
+  const exp = new Date(expectedDateStr);
+  const diffTime = TODAY.getTime() - exp.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays > 0 ? diffDays : 0;
+}
+
+function renderDashboardDamagedStats() {
+  const container = document.getElementById("dashboardDamagedContainer");
+  if (!container) return;
+
+  const damagedItems = items.filter(item => (item.damagedQty && item.damagedQty > 0) || (item.repairQty && item.repairQty > 0));
+
+  if (damagedItems.length === 0) {
+    container.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background-color: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: var(--border-radius-md); color: #10b981; font-size: 13px;">
+        <i data-lucide="shield-check" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
+        <div style="font-weight: 500;">ไม่มีรายการพัสดุที่ชำรุดหรืออยู่ระหว่างส่งซ่อม!</div>
+      </div>
+    `;
+    return;
+  }
+
+  let totalDamaged = 0;
+  let totalRepair = 0;
+  
+  damagedItems.forEach(item => {
+    totalDamaged += (item.damagedQty || 0);
+    totalRepair += (item.repairQty || 0);
+  });
+
+  let html = `
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+      <div style="background-color: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: var(--border-radius-md); padding: 12px; text-align: center;">
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">ชำรุดทั้งหมด</div>
+        <div style="font-size: 20px; font-weight: 700; color: var(--accent-red); margin-top: 4px;">${totalDamaged}</div>
+      </div>
+      <div style="background-color: rgba(245, 158, 11, 0.03); border: 1px solid rgba(245, 158, 11, 0.1); border-radius: var(--border-radius-md); padding: 12px; text-align: center;">
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">อยู่ระหว่างส่งซ่อม</div>
+        <div style="font-size: 20px; font-weight: 700; color: var(--accent-orange); margin-top: 4px;">${totalRepair}</div>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto;">
+  `;
+
+  damagedItems.forEach(item => {
+    const dQty = item.damagedQty || 0;
+    const rQty = item.repairQty || 0;
+    html += `
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; font-size: 12px;">
+        <span style="font-weight: 500; color: #334155;">${item.name} (${item.code})</span>
+        <div style="display: flex; gap: 6px;">
+          ${dQty > 0 ? `<span class="badge badge-red" style="font-size: 10px; padding: 1px 6px;">ชำรุด: ${dQty} ${item.unit}</span>` : ""}
+          ${rQty > 0 ? `<span class="badge badge-orange" style="font-size: 10px; padding: 1px 6px;">ส่งซ่อม: ${rQty} ${item.unit}</span>` : ""}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+function renderPendingRequests() {
+  const card = document.getElementById("pendingRequestsCard");
+  const container = document.getElementById("pendingRequestsContainer");
+  const countBadge = document.getElementById("pendingRequestsCount");
+  
+  if (!card || !container) return;
+
+  if (userRole !== "teacher") {
+    card.style.display = "none";
+    return;
+  }
+
+  const pendingTx = transactions.filter(tx => tx.type === "borrow" && tx.status === "pending");
+
+  if (pendingTx.length === 0) {
+    card.style.display = "block";
+    if (countBadge) countBadge.innerText = "0";
+    container.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px;">
+        ไม่มีคำขอยืมรอดำเนินการในขณะนี้
+      </div>
+    `;
+    return;
+  }
+
+  card.style.display = "block";
+  if (countBadge) countBadge.innerText = pendingTx.length;
+
+  let html = "";
+  pendingTx.forEach(tx => {
+    html += `
+      <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; background-color: rgba(245, 158, 11, 0.03); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: var(--border-radius-md); font-size: 13px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <div>
+            <div style="font-weight: 600; color: #1e293b;">${tx.itemName}</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">รหัส: ${tx.itemCode} | จำนวน: <strong>${tx.qty}</strong></div>
+          </div>
+          <span class="badge badge-orange" style="font-size: 10px; padding: 1px 6px;">รอดำเนินการ</span>
+        </div>
+        <div style="font-size: 11px; color: #475569; padding-left: 2px;">
+          ผู้ยืม: <strong>${tx.borrower}</strong> | วันยืม: ${formatThaiDate(tx.date)}
+        </div>
+        ${tx.notes ? `<div style="font-size: 11px; color: var(--text-muted); font-style: italic; background-color: #ffffff; padding: 6px; border-radius: 4px; border: 1px solid #f1f5f9;">${tx.notes}</div>` : ""}
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+          <button type="button" class="btn btn-primary" style="flex: 1; padding: 6px 12px; font-size: 12px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="approveBorrowRequest('${tx.id}')">
+            <i data-lucide="check" style="width: 14px; height: 14px;"></i> อนุมัติ
+          </button>
+          <button type="button" class="btn btn-danger" style="flex: 1; padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="rejectBorrowRequest('${tx.id}')">
+            <i data-lucide="x" style="width: 14px; height: 14px;"></i> ปฏิเสธ
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  lucide.createIcons();
+}
+
+window.approveBorrowRequest = async function(txId) {
+  const txIndex = transactions.findIndex(t => t.id === txId);
+  if (txIndex === -1) return;
+  const tx = transactions[txIndex];
+
+  // Stock check
+  const itemIndex = items.findIndex(i => i.code === tx.itemCode);
+  if (itemIndex === -1) {
+    showToast("ไม่พบพัสดุในระบบเพื่อตัดสต็อก", "error");
+    return;
+  }
+  const item = items[itemIndex];
+  if (tx.qty > item.qty) {
+    showToast(`สต็อกคงเหลือไม่พออนุมัติ! (คงเหลือ: ${item.qty} | คำขอ: ${tx.qty})`, "error");
+    return;
+  }
+
+  // Update item stock
+  const updatedItem = { ...item, qty: item.qty - tx.qty };
+  const success = await updateItemBackend(item.code, updatedItem, itemIndex);
+  if (success) {
+    // Approve transaction
+    transactions[txIndex].status = "borrowed";
+    localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+    if (isFirebaseOnline) {
+      try {
+        await db.collection("transactions").doc(txId).update({ status: "borrowed" });
+      } catch (err) {
+        console.error("Firebase update failed:", err);
+      }
+    }
+    showToast(`อนุมัติคำขอยืม "${tx.itemName}" เรียบร้อยแล้ว!`, "success");
+    updateUI();
+  }
+};
+
+window.rejectBorrowRequest = async function(txId) {
+  const txIndex = transactions.findIndex(t => t.id === txId);
+  if (txIndex === -1) return;
+
+  if (confirm("คุณต้องการปฏิเสธคำขอยืมนี้ใช่หรือไม่?")) {
+    transactions[txIndex].status = "rejected";
+    localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+    if (isFirebaseOnline) {
+      try {
+        await db.collection("transactions").doc(txId).update({ status: "rejected" });
+      } catch (err) {
+        console.error("Firebase update failed:", err);
+      }
+    }
+    showToast("ปฏิเสธคำขอยืมเรียบร้อยแล้ว", "info");
+    updateUI();
+  }
+};
+
+window.showItemDetail = function(event, itemCode) {
+  if (event && (event.target.closest('button') || event.target.closest('.action-icon-btn'))) return;
+
+  const item = items.find(i => i.code === itemCode);
+  if (!item) return;
+
+  const modal = document.getElementById("detailModal");
+  const title = document.getElementById("detailModalTitle");
+  const body = document.getElementById("detailModalBody");
+  const footer = document.getElementById("detailModalFooter");
+
+  if (!modal || !title || !body || !footer) return;
+
+  // Title with icon
+  title.innerHTML = `
+    <i data-lucide="flask-conical" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
+    <span>รายละเอียดสาร/อุปกรณ์</span>
+  `;
+
+  // GHS Pictograms Section
+  let ghsSection = "";
+  if (item.category === "สารเคมี") {
+    const ghsInfo = {
+      explosive: { text: "ระเบิดได้ (Explosive)", url: "./images/GHS-explosive.svg" },
+      flammable: { text: "ไวไฟ (Flammable)", url: "./images/GHS-flammable.svg" },
+      oxidizing: { text: "ออกซิไดซ์ (Oxidizing)", url: "./images/GHS-oxidizing.svg" },
+      compressed_gas: { text: "ก๊าซความดัน (Compressed Gas)", url: "./images/GHS-compressed-gas.svg" },
+      corrosive: { text: "กัดกร่อน (Corrosive)", url: "./images/GHS-corrosive.svg" },
+      toxic: { text: "สารพิษ (Toxic)", url: "./images/GHS-toxic.svg" },
+      irritant: { text: "ระคายเคือง (Irritant)", url: "./images/GHS-irritant.svg" },
+      health_hazard: { text: "ภัยสุขภาพ (Health Hazard)", url: "./images/GHS-health-hazard.svg" },
+      environmental: { text: "สิ่งแวดล้อม (Eco)", url: "./images/GHS-environmental.svg" }
+    };
+    const ghsBadges = item.ghs && item.ghs.length > 0
+      ? item.ghs.map(g => {
+          const info = ghsInfo[g];
+          if (info) {
+            return `
+              <span class="badge badge-red" style="font-size: 11px; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--accent-red); font-weight: 500;">
+                <img src="${info.url}" alt="${info.text}" style="width: 18px; height: 18px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.08));">
+                <span>${info.text}</span>
+              </span>
+            `;
+          }
+          return `<span class="badge badge-red" style="font-size: 11px; padding: 4px 8px; border-radius: 6px;">${g}</span>`;
+        }).join(" ")
+      : "<span style='color: var(--text-muted); font-style: italic;'>ไม่มีสัญลักษณ์อันตรายเฉพาะ</span>";
+    
+    ghsSection = `
+      <div style="background-color: rgba(239, 68, 68, 0.02); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-weight: 600; color: var(--accent-red); display: flex; align-items: center; gap: 6px; font-size: 13px;">
+          <i data-lucide="shield-alert" style="width: 14px; height: 14px;"></i> สัญลักษณ์ความปลอดภัย (GHS)
+        </span>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+          ${ghsBadges}
+        </div>
+        ${item.sdsUrl ? `
+          <a href="${item.sdsUrl}" target="_blank" class="btn btn-secondary" style="margin-top: 8px; padding: 6px 12px; font-size: 12px; border-color: rgba(239, 68, 68, 0.2); color: var(--accent-red); display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; width: fit-content; background: rgba(239, 68, 68, 0.04);">
+            📄 SDS Safety Sheet
+          </a>
+        ` : `
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">ไม่มีข้อมูล SDS (ลิงก์ความปลอดภัย)</div>
+        `}
+      </div>
+    `;
+  }
+
+  // QR Code URL
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(item.code)}`;
+
+  // Dilutions Section (only for Chemicals)
+  let dilutionsSection = "";
+  if (item.category === "สารเคมี") {
+    let dilutionsListHtml = "";
+    if (item.dilutions && item.dilutions.length > 0) {
+      dilutionsListHtml = `
+        <table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px;">
+          <thead>
+            <tr style="border-bottom: 2px solid var(--border-color); text-align: left; color: var(--text-muted);">
+              <th style="padding: 4px;">ความเข้มข้น</th>
+              <th style="padding: 4px;">ปริมาตร</th>
+              <th style="padding: 4px;">จำนวน</th>
+              <th style="padding: 4px;">ที่จัดเก็บ</th>
+              ${isAdminLoggedIn ? '<th style="padding: 4px; text-align: center;">ลบ</th>' : ''}
+            </tr>
+          </thead>
+          <tbody>
+            ${item.dilutions.map((d, dIdx) => `
+              <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 6px 4px; font-weight: 600; color: #1e293b;">${d.concentration}</td>
+                <td style="padding: 6px 4px; color: #334155;">${d.volume}</td>
+                <td style="padding: 6px 4px; color: #334155;">${d.qty} ขวด</td>
+                <td style="padding: 6px 4px; color: var(--text-muted);">${d.location || "-"}</td>
+                ${isAdminLoggedIn ? `
+                  <td style="padding: 6px 4px; text-align: center;">
+                    <button type="button" style="background: none; border: none; color: var(--accent-red); cursor: pointer; padding: 2px;" onclick="deleteDilution('${item.code}', ${dIdx})">
+                      <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                    </button>
+                  </td>
+                ` : ''}
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    } else {
+      dilutionsListHtml = `<div style="font-size: 12px; color: var(--text-muted); font-style: italic; padding: 8px 0;">ไม่มีรายการสารละลายเจือจาง</div>`;
+    }
+
+    dilutionsSection = `
+      <div style="border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 6px; background-color: #fafafa;">
+        <span style="font-weight: 600; color: var(--primary-purple); display: flex; align-items: center; gap: 6px; font-size: 13px;">
+          <i data-lucide="flask-conical" style="width: 14px; height: 14px;"></i> รายการสารละลายเจือจาง (Dilutions)
+        </span>
+        ${dilutionsListHtml}
+        
+        ${isAdminLoggedIn ? `
+          <button type="button" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; margin-top: 8px; width: fit-content;" onclick="toggleAddDilutionForm()">
+            + เพิ่มสารละลายเจือจาง
+          </button>
+          
+          <div id="addDilutionForm" style="display: none; border-top: 1px solid var(--border-color); padding-top: 10px; margin-top: 10px; flex-direction: column; gap: 8px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div>
+                <label style="font-size: 11px; font-weight: 600; margin-bottom: 4px; display: block;">ความเข้มข้น *</label>
+                <input type="text" id="dilutionConcentration" placeholder="เช่น 0.1M HCl" style="width: 100%; padding: 6px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px;">
+              </div>
+              <div>
+                <label style="font-size: 11px; font-weight: 600; margin-bottom: 4px; display: block;">ปริมาตร *</label>
+                <input type="text" id="dilutionVolume" placeholder="เช่น 250ml" style="width: 100%; padding: 6px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px;">
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div>
+                <label style="font-size: 11px; font-weight: 600; margin-bottom: 4px; display: block;">จำนวน (ขวด) *</label>
+                <input type="number" id="dilutionQty" value="1" min="1" style="width: 100%; padding: 6px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px;">
+              </div>
+              <div>
+                <label style="font-size: 11px; font-weight: 600; margin-bottom: 4px; display: block;">สถานที่จัดเก็บ</label>
+                <input type="text" id="dilutionLocation" placeholder="เช่น ตู้ A ชั้น 2" style="width: 100%; padding: 6px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px;">
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; background-color: var(--primary-purple); width: fit-content; margin-top: 4px;" onclick="submitAddDilution('${item.code}')">บันทึกสารเจือจาง</button>
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }
+
+  // Damaged Stats Section
+  const damagedQty = item.damagedQty || 0;
+  const repairQty = item.repairQty || 0;
+  const damagedSection = `
+    <div style="display: flex; gap: 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px; background: rgba(0,0,0,0.01);">
+      <div style="flex: 1;">
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">ชำรุด</span>
+        <div style="font-size: 16px; font-weight: 700; color: var(--accent-red); margin-top: 2px;">${damagedQty} ${item.unit}</div>
+      </div>
+      <div style="flex: 1; border-left: 1px solid var(--border-color); padding-left: 12px;">
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">อยู่ระหว่างส่งซ่อม</span>
+        <div style="font-size: 16px; font-weight: 700; color: var(--accent-orange); margin-top: 2px;">${repairQty} ${item.unit}</div>
+      </div>
+    </div>
+  `;
+
+  // General details view layout
+  body.innerHTML = `
+    <div style="display: flex; gap: 16px; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+      <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; background: #fff; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; gap: 6px;">
+        <img src="${qrUrl}" alt="QR Code" style="width: 100px; height: 100px;">
+        <span style="font-family: monospace; font-size: 11px; font-weight: bold; color: var(--text-muted);">${item.code}</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">${item.name}</h4>
+        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${item.category}</div>
+        <div style="display: grid; grid-template-columns: 80px 1fr; font-size: 13px; margin-top: 8px; gap: 4px;">
+          <span style="color: var(--text-muted); font-weight: 500;">จำนวนคงเหลือ:</span>
+          <span style="font-weight: 700; color: var(--primary-purple);">${item.qty} ${item.unit}</span>
+          
+          <span style="color: var(--text-muted); font-weight: 500;">สถานที่เก็บ:</span>
+          <span style="font-weight: 600;">${item.room || "-"} > ${item.cabinet || "-"} > ${item.shelf || "-"}</span>
+          
+          <span style="color: var(--text-muted); font-weight: 500;">วันหมดอายุ:</span>
+          <span style="font-weight: 600;">${item.expiry ? formatThaiDate(item.expiry) : "-"}</span>
+        </div>
+      </div>
+    </div>
+
+    ${ghsSection}
+
+    ${damagedSection}
+
+    ${dilutionsSection}
+  `;
+
+  // Build Footer Actions
+  footer.innerHTML = `
+    <button type="button" class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
+    <button type="button" class="btn btn-primary" style="background-color: var(--primary-purple); border-color: var(--primary-purple); display: inline-flex; align-items: center; gap: 6px;" onclick="printItemLabel('${item.code}')">
+      <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+      <span>พิมพ์บาร์โค้ด / สติกเกอร์</span>
+    </button>
+  `;
+
+  // Open the modal
+  modal.classList.add("active");
+  lucide.createIcons();
+};
+
+window.toggleAddDilutionForm = function() {
+  const form = document.getElementById("addDilutionForm");
+  if (!form) return;
+  if (form.style.display === "none" || form.style.display === "") {
+    form.style.display = "flex";
+  } else {
+    form.style.display = "none";
+  }
+};
+
+window.submitAddDilution = async function(itemCode) {
+  const itemIndex = items.findIndex(i => i.code === itemCode);
+  if (itemIndex === -1) return;
+  const item = items[itemIndex];
+
+  const conc = document.getElementById("dilutionConcentration").value.trim();
+  const vol = document.getElementById("dilutionVolume").value.trim();
+  const qty = Number(document.getElementById("dilutionQty").value || 1);
+  const loc = document.getElementById("dilutionLocation").value.trim();
+
+  if (!conc || !vol || isNaN(qty) || qty <= 0) {
+    showToast("กรุณากรอกข้อมูลความเข้มข้น ปริมาตร และจำนวนให้ครบถ้วน", "error");
+    return;
+  }
+
+  const newDilution = {
+    id: "dil-" + Date.now(),
+    concentration: conc,
+    volume: vol,
+    qty: qty,
+    location: loc
+  };
+
+  const updatedDilutions = [...(item.dilutions || []), newDilution];
+  const updatedItem = { ...item, dilutions: updatedDilutions };
+
+  const success = await updateItemBackend(item.code, updatedItem, itemIndex);
+  if (success) {
+    showToast("เพิ่มสารละลายเจือจางสำเร็จ!", "success");
+    showItemDetail(null, itemCode);
+    updateUI();
+  }
+};
+
+window.deleteDilution = async function(itemCode, dIdx) {
+  const itemIndex = items.findIndex(i => i.code === itemCode);
+  if (itemIndex === -1) return;
+  const item = items[itemIndex];
+
+  if (confirm("คุณต้องการลบสารละลายเจือจางนี้ใช่หรือไม่?")) {
+    const updatedDilutions = [...(item.dilutions || [])];
+    updatedDilutions.splice(dIdx, 1);
+    const updatedItem = { ...item, dilutions: updatedDilutions };
+
+    const success = await updateItemBackend(item.code, updatedItem, itemIndex);
+    if (success) {
+      showToast("ลบรายการเจือจางสำเร็จ", "info");
+      showItemDetail(null, itemCode);
+      updateUI();
+    }
+  }
+};
+
+window.printItemLabel = function(itemCode) {
+  const item = items.find(i => i.code === itemCode);
+  if (!item) return;
+
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.code)}`;
+
+  const printWindow = window.open("", "_blank", "width=600,height=400");
+  if (!printWindow) {
+    showToast("ไม่สามารถเปิดหน้าต่างพิมพ์ได้ กรุณาเปิดสิทธิ์การใช้งาน Pop-up บนบราวเซอร์", "error");
+    return;
+  }
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>พิมพ์สติกเกอร์บาร์โค้ด - ${item.code}</title>
+        <style>
+          body {
+            font-family: 'Inter', 'Sarabun', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #fff;
+          }
+          .label-card {
+            border: 2px dashed #000;
+            padding: 20px;
+            width: 380px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            box-sizing: border-box;
+          }
+          .qr-img {
+            width: 120px;
+            height: 120px;
+          }
+          .info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+          }
+          .title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 0 6px 0;
+            line-height: 1.3;
+          }
+          .code {
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+          }
+          .loc {
+            font-size: 12px;
+            color: #555;
+            margin-top: 4px;
+          }
+          @media print {
+            body { padding: 0; }
+            .label-card { border-style: solid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="label-card">
+          <img class="qr-img" src="${qrUrl}" alt="QR Code">
+          <div class="info">
+            <h3 class="title">${item.name}</h3>
+            <span class="code">CODE: ${item.code}</span>
+            <div class="loc">จัดเก็บ: ${item.room || "-"} > ${item.cabinet || "-"} > ${item.shelf || "-"}</div>
+          </div>
+        </div>
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(function() { window.close(); }, 500);
+          }
+        </script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+};
+
+function setupCsvExport() {
+  const btn = document.getElementById("btnExportCSV");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    if (items.length === 0) {
+      showToast("ไม่มีข้อมูลในระบบที่สามารถส่งออกได้", "error");
+      return;
+    }
+
+    const headers = [
+      "รหัส (Item Code)",
+      "ชื่อ (Name)",
+      "หมวดหมู่ (Category)",
+      "จำนวนคงเหลือ (Quantity)",
+      "หน่วย (Unit)",
+      "จุดสั่งซื้อต่ำสุด (Min Reorder)",
+      "วันหมดอายุ (Expiry Date)",
+      "ห้อง/Lab (Room)",
+      "ตู้เก็บของ (Cabinet)",
+      "ชั้นวาง (Shelf)",
+      "ประเภทอันตรายเคมี (Chemical Type)",
+      "ลิงก์ SDS (SDS Link)",
+      "ชำรุด (Damaged)",
+      "ส่งซ่อม (Repairing)"
+    ];
+
+    let csvContent = "\ufeff"; // UTF-8 BOM to display Thai characters correctly in Excel
+    csvContent += headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\n";
+
+    items.forEach(item => {
+      const row = [
+        item.code || "",
+        item.name || "",
+        item.category || "",
+        item.qty || 0,
+        item.unit || "",
+        item.minAlert || "",
+        item.expiry || "",
+        item.room || "",
+        item.cabinet || "",
+        item.shelf || "",
+        item.chemicalType || "",
+        item.sdsUrl || "",
+        item.damagedQty || 0,
+        item.repairQty || 0
+      ];
+      csvContent += row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `chemical_lab_inventory_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("ส่งออกไฟล์ CSV สำเร็จ!", "success");
+  });
+}
+
+function setupPrintReport() {
+  const btn = document.getElementById("btnPrintReport");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    window.print();
+  });
+}
+
+function setupBarcodeScanner() {
+  const input = document.getElementById("scanInput");
+  if (!input) return;
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const code = input.value.trim();
+      if (!code) return;
+
+      const item = items.find(i => i.code.toLowerCase() === code.toLowerCase());
+      if (item) {
+        showItemDetail(null, item.code);
+        showToast(`สแกนพบพัสดุ: ${item.name}`, "success");
+      } else {
+        showToast(`ไม่พบรหัสพัสดุ: ${code}`, "warning");
+      }
+      input.value = "";
+    }
+  });
+}
+
+function populateBookingPrepList() {
+  const container = document.getElementById("bookingPrepContainer");
+  if (!container) return;
+
+  if (items.length === 0) {
+    container.innerHTML = `<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">ไม่มีพัสดุในคลัง</span>`;
+    return;
+  }
+
+  let html = "";
+  items.forEach(item => {
+    html += `
+      <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer; padding: 4px 0; border-bottom: 1px solid #f8fafc;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" name="bookingPrepItem" value="${item.code}" style="accent-color: #8b5cf6; width: 15px; height: 15px;">
+          <span>${item.name} (${item.code})</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span style="font-size: 11px; color: var(--text-muted);">จำนวน:</span>
+          <input type="number" class="prep-qty-input" data-code="${item.code}" value="1" min="1" max="${item.qty}" style="width: 50px; padding: 2px 4px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px; text-align: center;">
+        </div>
+      </label>
+    `;
+  });
+  container.innerHTML = html;
+}
 
