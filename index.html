@@ -47,6 +47,15 @@
         ยินดีต้อนรับสู่ระบบจัดการสารเคมีและอุปกรณ์วิทยาศาสตร์
       </div>
 
+      <!-- Role Switcher Widget -->
+      <div class="sidebar-role-switcher" style="padding: 0 4px; margin-bottom: 20px;">
+        <label style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px;">บทบาทผู้ใช้งาน (User Role)</label>
+        <div class="role-toggle-container" style="display: flex; background: rgba(0, 0, 0, 0.2); border-radius: var(--border-radius-sm); padding: 2px; border: 1px solid rgba(255,255,255,0.1);">
+          <button type="button" id="roleBtnStudent" class="role-toggle-btn active" style="flex: 1; padding: 6px; font-size: 12px; font-weight: 600; text-align: center; border-radius: 6px; transition: var(--transition-fast); color: #ffffff; background: rgba(255,255,255,0.15);">นักเรียน</button>
+          <button type="button" id="roleBtnTeacher" class="role-toggle-btn" style="flex: 1; padding: 6px; font-size: 12px; font-weight: 600; text-align: center; border-radius: 6px; transition: var(--transition-fast); color: rgba(255,255,255,0.6);">ครู/เจ้าหน้าที่</button>
+        </div>
+      </div>
+
       <!-- Navigation Menu -->
       <nav style="flex: 1;">
         <ul class="sidebar-menu">
@@ -104,7 +113,7 @@
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer" style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px; margin-top: auto; font-size: 11px; opacity: 0.6; text-align: center;">
-        เวอร์ชัน 1.5.1
+        เวอร์ชัน 1.6.0
       </div>
     </aside>
 
@@ -213,6 +222,31 @@
             </div>
           </div>
 
+          <!-- 3. Overdue Items Panel -->
+          <div class="card-container" id="overdueCard">
+            <div class="card-header">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <span>รายการค้างส่งคืน (Overdue)</span>
+                <span class="badge badge-red" id="dashboardOverdueCount" style="padding: 2px 8px; font-size: 11px; display: none;">0</span>
+              </h2>
+            </div>
+            <div id="dashboardOverdueContainer" style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- 4. Damaged & Repair Stats Panel -->
+          <div class="card-container" id="damagedStatsCard">
+            <div class="card-header">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <span>สถานะพัสดุชำรุดและส่งซ่อม</span>
+              </h2>
+            </div>
+            <div id="dashboardDamagedContainer" style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
           <!-- 3. Category Breakdown Panel -->
           <div class="card-container">
             <div class="card-header">
@@ -297,6 +331,20 @@
                 </div>
               </div>
 
+              <!-- Damaged & Under Repair Quantity -->
+              <div class="form-group">
+                <div class="form-row-multi">
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="itemDamagedQty">จำนวนที่ชำรุด (Damaged)</label>
+                    <input type="number" id="itemDamagedQty" value="0" min="0">
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="itemRepairQty">จำนวนส่งซ่อม (Repairing)</label>
+                    <input type="number" id="itemRepairQty" value="0" min="0">
+                  </div>
+                </div>
+              </div>
+
               <!-- Min Reorder Alert Point -->
               <div class="form-group">
                 <label for="itemMinAlert">จุดสั่งซื้อขั้นต่ำ</label>
@@ -341,6 +389,84 @@
                 </div>
               </div>
 
+              <!-- Safety & Risk Management Sub-box -->
+              <div class="form-group full-width">
+                <div class="safety-subbox" style="border-left-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.02);">
+                  <span class="safety-subbox-title" style="color: var(--accent-red);">
+                    <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i>
+                    ความปลอดภัยและการจัดการความเสี่ยง (Safety & Risk Management)
+                  </span>
+                  
+                  <div class="form-group">
+                    <label for="itemChemicalType">ประเภทความเป็นอันตราย (ตรวจจัดเก็บซ้ำซ้อน)</label>
+                    <select id="itemChemicalType">
+                      <option value="" selected>-- ไม่ใช่สารเคมี / ไม่ระบุ --</option>
+                      <option value="acid">กรด (Acid)</option>
+                      <option value="base">เบส/ด่าง (Base)</option>
+                      <option value="oxidizer">สารออกซิไดซ์ (Oxidizer)</option>
+                      <option value="organic">ตัวทำละลายอินทรีย์/สารไวไฟ (Organic/Flammable)</option>
+                      <option value="other">สารเคมีทั่วไปอื่นๆ (Other Chemical)</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="itemSdsUrl">ลิงก์ SDS (Safety Data Sheet)</label>
+                    <input type="url" id="itemSdsUrl" placeholder="เช่น https://example.com/sds/acid.pdf">
+                  </div>
+                  
+                  <div class="form-group full-width">
+                    <label style="margin-bottom: 8px; display: block;">สัญลักษณ์แสดงความเป็นอันตราย GHS (GHS Pictograms)</label>
+                    <div class="ghs-grid">
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="ghs" value="explosive" style="accent-color: var(--accent-red); width: 16px; height: 16px;">
+                        <img src="./images/GHS-explosive.svg" alt="Explosive" style="width: 20px; height: 20px;">
+                        <span>ระเบิดได้ (Explosive)</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="ghs" value="flammable" style="accent-color: var(--accent-red); width: 16px; height: 16px;">
+                        <img src="./images/GHS-flammable.svg" alt="Flammable" style="width: 20px; height: 20px;">
+                        <span>ไวไฟ (Flammable)</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="ghs" value="oxidizing" style="accent-color: var(--accent-red); width: 16px; height: 16px;">
+                        <img src="./images/GHS-oxidizing.svg" alt="Oxidizing" style="width: 20px; height: 20px;">
+                        <span>ออกซิไดซ์ (Oxidizing)</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="ghs" value="compressed_gas" style="accent-color: var(--accent-red); width: 16px; height: 16px;">
+                        <img src="./images/GHS-compressed-gas.svg" alt="Compressed Gas" style="width: 20px; height: 20px;">
+                        <span>ก๊าซความดัน (Compressed Gas)</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="ghs" value="corrosive" style="accent-color: var(--accent-red); width: 16px; height: 16px;">
+                        <img src="./images/GHS-corrosive.svg" alt="Corrosive" style="width: 20px; height: 20px;">
+                        <span>กัดกร่อน (Corrosive)</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="ghs" value="toxic" style="accent-color: var(--accent-red); width: 16px; height: 16px;">
+                        <img src="./images/GHS-toxic.svg" alt="Toxic" style="width: 20px; height: 20px;">
+                        <span>สารพิษ (Toxic)</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="ghs" value="irritant" style="accent-color: var(--accent-red); width: 16px; height: 16px;">
+                        <img src="./images/GHS-irritant.svg" alt="Irritant" style="width: 20px; height: 20px;">
+                        <span>ระคายเคือง (Irritant)</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="ghs" value="health_hazard" style="accent-color: var(--accent-red); width: 16px; height: 16px;">
+                        <img src="./images/GHS-health-hazard.svg" alt="Health Hazard" style="width: 20px; height: 20px;">
+                        <span>ภัยสุขภาพ (Health Hazard)</span>
+                      </label>
+                      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer;">
+                        <input type="checkbox" name="ghs" value="environmental" style="accent-color: var(--accent-red); width: 16px; height: 16px;">
+                        <img src="./images/GHS-environmental.svg" alt="Environmental" style="width: 20px; height: 20px;">
+                        <span>สิ่งแวดล้อม (Eco)</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
             <!-- Form Buttons -->
@@ -369,6 +495,12 @@
             <input type="text" id="filterSearch" placeholder="ค้นหารหัส, ชื่อ, หมวดหมู่...">
           </div>
 
+          <!-- Barcode/QR Quick Scan box -->
+          <div class="search-box-container" style="max-width: 200px; min-width: 150px;">
+            <i data-lucide="scan" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 16px; height: 16px;"></i>
+            <input type="text" id="scanInput" placeholder="สแกนบาร์โค้ด..." style="padding-left: 42px;" autocomplete="off">
+          </div>
+
           <select id="filterCategory" class="filter-select">
             <option value="all">ทุกหมวดหมู่</option>
             <option value="สารเคมี">สารเคมี (Chemical)</option>
@@ -384,6 +516,17 @@
             <option value="near-expiry">ใกล้หมดอายุ (Near Expiry)</option>
             <option value="expired">หมดอายุแล้ว (Expired)</option>
           </select>
+
+          <div style="display: flex; gap: 8px; margin-left: auto;">
+            <button class="btn btn-secondary" id="btnExportCSV" style="padding: 10px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+              <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
+              <span>ส่งออก Excel (CSV)</span>
+            </button>
+            <button class="btn btn-secondary" id="btnPrintReport" style="padding: 10px 16px; font-size: 13px; background-color: var(--accent-blue-light); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.2); display: inline-flex; align-items: center; gap: 6px;">
+              <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+              <span>พิมพ์รายงาน (PDF)</span>
+            </button>
+          </div>
         </div>
 
         <!-- Count info -->
@@ -447,7 +590,27 @@
             </div>
             
             <form id="borrowForm">
-              <div class="form-group">
+              <!-- Lab Kit Dropdown -->
+              <div class="form-group" id="labKitSelectGroup" style="margin-bottom: 12px;">
+                <label for="borrowLabKit" class="form-label">ยืมด้วยชุดอุปกรณ์สำเร็จรูป (Lab Kit)</label>
+                <select id="borrowLabKit" class="form-control">
+                  <option value="" selected>-- เลือกชุดอุปกรณ์ (หากต้องการยืมเป็นชุด) --</option>
+                  <option value="titration">ชุดไทเทรต (Titration Kit)</option>
+                  <option value="distillation">ชุดทดลองกลั่น (Distillation Kit)</option>
+                  <option value="extraction">ชุดสกัดสาร (Extraction Kit)</option>
+                </select>
+              </div>
+
+              <!-- Lab Kit Items Details Preview -->
+              <div id="labKitPreview" style="display: none; background: rgba(139, 92, 246, 0.04); border: 1px solid rgba(139, 92, 246, 0.15); border-radius: var(--border-radius-md); padding: 12px; margin-bottom: 16px; font-size: 13px;">
+                <div style="font-weight: 600; color: #8b5cf6; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="package" style="width: 14px; height: 14px;"></i>
+                  <span>รายการวัสดุและอุปกรณ์ในชุด:</span>
+                </div>
+                <div id="labKitItemsList" style="display: flex; flex-direction: column; gap: 4px; padding-left: 20px;"></div>
+              </div>
+
+              <div class="form-group" id="singleItemSelectGroup">
                 <label for="borrowItemCode" class="form-label">เลือกรายการสารเคมี / อุปกรณ์ <span style="color: var(--accent-red);">*</span></label>
                 <div class="custom-select-wrapper" id="borrowItemSelectWrapper">
                   <div class="custom-select-trigger" id="borrowItemSelectTrigger">
@@ -513,8 +676,23 @@
             </form>
           </div>
 
-          <!-- Right Column: Live Logs -->
+          <!-- Right Column: Live Logs & Requests -->
           <div style="display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- Pending Requests Card (Teacher Only) -->
+            <div id="pendingRequestsCard" class="card-container" style="display: none; border-left: 4px solid var(--accent-orange); margin-bottom: 0;">
+              <div class="card-header" style="margin-bottom: 12px;">
+                <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="clock" style="width: 18px; height: 18px; color: var(--accent-orange);"></i>
+                  <span>คำขอยืมรอดำเนินการ</span>
+                  <span class="badge badge-orange" id="pendingRequestsCount" style="padding: 2px 8px; font-size: 11px;">0</span>
+                </h2>
+              </div>
+              <div id="pendingRequestsContainer" style="display: flex; flex-direction: column; gap: 12px; max-height: 250px; overflow-y: auto;">
+                <!-- Dynamically populated pending requests -->
+              </div>
+            </div>
+
             <div class="content-header" style="margin-bottom: 0; padding-bottom: 0;">
               <h2>ประวัติการทำรายการล่าสุด</h2>
               <p style="white-space: nowrap; font-size: 11px; color: var(--text-muted);">แสดงประวัติการยืมและการส่งคืนสินค้าพัสดุวิทยาศาสตร์แบบเรียลไทม์</p>
@@ -596,6 +774,14 @@
                 <div class="form-group">
                   <label for="bookingPurpose" class="form-label">วัตถุประสงค์การใช้งาน <span style="color: var(--accent-red);">*</span></label>
                   <input type="text" id="bookingPurpose" class="form-control" placeholder="ระบุวัตถุประสงค์" required>
+                </div>
+              </div>
+
+              <!-- Prep Items Checklist -->
+              <div class="form-group" style="margin-top: 16px;">
+                <label class="form-label">เลือกวัสดุ / สารเคมีที่ใช้ในการสอน (Prep Items)</label>
+                <div id="bookingPrepContainer" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px; background: #fff; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Dynamic check-list populated via JS -->
                 </div>
               </div>
 
