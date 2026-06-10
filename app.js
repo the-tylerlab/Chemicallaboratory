@@ -631,6 +631,24 @@ function formatThaiDate(dateStr) {
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
+// Helper: Get item display name (Thai only, strip any English in parentheses)
+function getItemDisplayName(item) {
+  if (!item || !item.name) return "";
+  const name = item.name;
+  const openParenIdx = name.indexOf('(');
+  if (openParenIdx !== -1) {
+    return name.substring(0, openParenIdx).trim();
+  }
+  return name;
+}
+
+// Helper: Format item name to display only the Thai part
+function formatItemName(name) {
+  if (!name) return "-";
+  const displayName = getItemDisplayName({ name });
+  return `<span class="name-th" style="display: block; font-weight: 600;">${displayName}</span>`;
+}
+
 // Helper: Get Thai room name
 function getRoomThaiName(room) {
   if (room === "Lab 1") return "ห้องปฏิบัติการเคมี";
@@ -742,7 +760,7 @@ function renderRecentItems() {
     html += `
       <div class="recent-item-card">
         <div class="recent-item-info">
-          <span class="recent-item-name">${item.name}</span>
+          <span class="recent-item-name">${getItemDisplayName(item)}</span>
           <div class="recent-item-details">
             <span class="recent-item-code">${item.code}</span>
             <span>${item.category}</span>
@@ -863,7 +881,7 @@ function renderDashboardUrgentAlerts() {
         <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; justify-content: center;">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <span style="font-size: 11px; font-weight: 700; color: ${textColor}; background: ${isExpired ? 'rgba(239, 68, 68, 0.1)' : 'rgba(249, 115, 22, 0.1)'}; padding: 2px 6px; border-radius: 4px;">${alertLabel}</span>
-            <span style="font-size: 13px; font-weight: 600; color: #0f172a;">${item.name}</span>
+            <span style="font-size: 13px; font-weight: 600; color: #0f172a;">${getItemDisplayName(item)}</span>
           </div>
           <div style="font-size: 11px; color: var(--text-muted); padding-left: 4px; line-height: 1.3;">
             ${descText}
@@ -1014,7 +1032,7 @@ function renderItemsTable() {
         <td data-label="รายการ">
           <div class="product-cell">
             <span class="product-code">${item.code}</span>
-            <span class="product-name">${item.name}</span>
+            <span class="product-name">${formatItemName(item.name)}</span>
             <span class="product-cat">${item.category}</span>
             ${ghsBadges}
           </div>
@@ -1106,7 +1124,7 @@ function renderNotificationsList(stats) {
       <div class="notification-item status-expired">
         <div class="notification-header">
           <div class="notification-title-group">
-            <span class="notification-title">${item.name}</span>
+            <span class="notification-title">${getItemDisplayName(item)}</span>
             <span class="notification-code">${item.code}</span>
           </div>
           ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตข้อมูล"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
@@ -1132,7 +1150,7 @@ function renderNotificationsList(stats) {
       <div class="notification-item status-near-expiry">
         <div class="notification-header">
           <div class="notification-title-group">
-            <span class="notification-title">${item.name}</span>
+            <span class="notification-title">${getItemDisplayName(item)}</span>
             <span class="notification-code">${item.code}</span>
           </div>
           ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตข้อมูล"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
@@ -1154,7 +1172,7 @@ function renderNotificationsList(stats) {
       <div class="notification-item status-low-stock">
         <div class="notification-header">
           <div class="notification-title-group">
-            <span class="notification-title">${item.name}</span>
+            <span class="notification-title">${getItemDisplayName(item)}</span>
             <span class="notification-code">${item.code}</span>
           </div>
           ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตสต็อก"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
@@ -1352,22 +1370,22 @@ function setupFormHandlers() {
         if (item.category === "สารเคมี" && item.room === room && item.cabinet === cabinet && item.chemicalType) {
           if (chemicalType === "acid" && item.chemicalType === "base") {
             conflictType = "base";
-            conflictName = item.name;
+            conflictName = getItemDisplayName(item);
             return true;
           }
           if (chemicalType === "base" && item.chemicalType === "acid") {
             conflictType = "acid";
-            conflictName = item.name;
+            conflictName = getItemDisplayName(item);
             return true;
           }
           if (chemicalType === "oxidizer" && item.chemicalType === "organic") {
             conflictType = "organic";
-            conflictName = item.name;
+            conflictName = getItemDisplayName(item);
             return true;
           }
           if (chemicalType === "organic" && item.chemicalType === "oxidizer") {
             conflictType = "oxidizer";
-            conflictName = item.name;
+            conflictName = getItemDisplayName(item);
             return true;
           }
         }
@@ -1376,10 +1394,10 @@ function setupFormHandlers() {
 
       if (potentialConflict) {
         const typeLabels = {
-          acid: "กรด (Acid)",
-          base: "เบส/ด่าง (Base)",
-          oxidizer: "สารออกซิไดซ์ (Oxidizer)",
-          organic: "ตัวทำละลายอินทรีย์/สารไวไฟ (Organic/Flammable)"
+          acid: "กรด",
+          base: "เบส/ด่าง",
+          oxidizer: "สารออกซิไดซ์",
+          organic: "ตัวทำละลายอินทรีย์/สารไวไฟ"
         };
         const msg = `⚠️ คำเตือนสารเคมีเข้ากันไม่ได้:\n` +
                     `พบ "${conflictName}" ซึ่งเป็นสารประเภท "${typeLabels[conflictType]}" จัดเก็บอยู่ใน "${room} > ${cabinet}" เรียบร้อยแล้ว\n` +
@@ -1524,7 +1542,7 @@ window.editItem = function(index) {
 
   // UI state change
   document.getElementById("formPanelTitle").innerText = "แก้ไขข้อมูลสาร/อุปกรณ์";
-  document.getElementById("formPanelSubtitle").innerText = `กำลังดำเนินการแก้ไขรายการ: [${item.code}] ${item.name}`;
+  document.getElementById("formPanelSubtitle").innerText = `กำลังดำเนินการแก้ไขรายการ: [${item.code}] ${getItemDisplayName(item)}`;
   document.getElementById("btnSubmitForm").innerText = "บันทึกการแก้ไข";
   document.getElementById("btnCancelEdit").style.display = "inline-flex";
 };
@@ -1539,12 +1557,12 @@ window.deleteItem = async function(index) {
   const item = items[index];
   if (!item) return;
 
-  if (confirm(`คุณต้องการลบรายการ "${item.name}" (${item.code}) ออกจากระบบใช่หรือไม่?`)) {
+  if (confirm(`คุณต้องการลบรายการ "${getItemDisplayName(item)}" (${item.code}) ออกจากระบบใช่หรือไม่?`)) {
     if (isFirebaseOnline) {
       try {
         await db.collection("items").doc(item.code).delete();
         items.splice(index, 1);
-        showToast(`ลบรายการ "${item.name}" สำเร็จ!`, "warning");
+        showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
       } catch (err) {
         console.error("🔥 Firebase delete failed:", err);
         showToast("เกิดข้อผิดพลาดในการลบข้อมูลบน Firebase", "error");
@@ -1557,7 +1575,7 @@ window.deleteItem = async function(index) {
         });
         if (response.ok) {
           items.splice(index, 1);
-          showToast(`ลบรายการ "${item.name}" สำเร็จ!`, "warning");
+          showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
         } else {
           const errData = await response.json();
           showToast(errData.error || "เกิดข้อผิดพลาดในการลบข้อมูลหลังบ้าน", "error");
@@ -1567,12 +1585,12 @@ window.deleteItem = async function(index) {
         console.error("Backend delete failed, falling back:", err);
         items.splice(index, 1);
         saveItemsToLocal();
-        showToast(`ลบรายการ "${item.name}" สำเร็จ! (Offline)`, "warning");
+        showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ! (Offline)`, "warning");
       }
     } else {
       items.splice(index, 1);
       saveItemsToLocal();
-      showToast(`ลบรายการ "${item.name}" สำเร็จ!`, "warning");
+      showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
     }
     updateUI();
   }
@@ -2116,7 +2134,7 @@ function populateBorrowItemDropdown() {
     // 1. Populate hidden select
     const option = document.createElement("option");
     option.value = item.code;
-    option.innerText = `${item.name || "ไม่มีชื่อพัสดุ"} (${item.code || "ไม่มีรหัส"}) [คงเหลือ: ${item.qty || 0} ${item.unit || "หน่วย"}]`;
+    option.innerText = `${getItemDisplayName(item) || "ไม่มีชื่อพัสดุ"} (${item.code || "ไม่มีรหัส"}) [คงเหลือ: ${item.qty || 0} ${item.unit || "หน่วย"}]`;
     dropdown.appendChild(option);
 
     // 2. Populate custom list item
@@ -2124,7 +2142,7 @@ function populateBorrowItemDropdown() {
     customOpt.className = "custom-select-option";
     customOpt.setAttribute("data-value", item.code);
     customOpt.innerHTML = `
-      <div class="custom-opt-name">${item.name || "ไม่มีชื่อพัสดุ"}</div>
+      <div class="custom-opt-name">${getItemDisplayName(item) || "ไม่มีชื่อพัสดุ"}</div>
       <div class="custom-opt-details">
         <span class="custom-opt-code">${item.code || "ไม่มีรหัส"}</span>
         <span class="custom-opt-qty">คงเหลือ: ${item.qty || 0} ${item.unit || "หน่วย"}</span>
@@ -2133,7 +2151,7 @@ function populateBorrowItemDropdown() {
     
     // Add click handler to select item
     customOpt.addEventListener("click", () => {
-      selectCustomOption(item.code, `${item.name || "ไม่มีชื่อพัสดุ"} (${item.code || "ไม่มีรหัส"})`);
+      selectCustomOption(item.code, `${getItemDisplayName(item) || "ไม่มีชื่อพัสดุ"} (${item.code || "ไม่มีรหัส"})`);
     });
 
     optionsList.appendChild(customOpt);
@@ -2144,7 +2162,7 @@ function populateBorrowItemDropdown() {
     dropdown.value = selectedVal;
     const foundItem = items.find(item => item.code === selectedVal);
     if (foundItem) {
-      triggerText.innerText = `${foundItem.name || "ไม่มีชื่อพัสดุ"} (${foundItem.code || "ไม่มีรหัส"})`;
+      triggerText.innerText = `${getItemDisplayName(foundItem) || "ไม่มีชื่อพัสดุ"} (${foundItem.code || "ไม่มีรหัส"})`;
       triggerText.classList.add("has-value");
 
       // Highlight custom list option
@@ -2411,7 +2429,7 @@ function setupBorrowForm() {
           const item = items.find(i => i.code === kitItem.code);
           const currentStock = item ? item.qty : 0;
           const reqQty = kitItem.qty;
-          const name = item ? item.name : kitItem.code;
+          const name = item ? getItemDisplayName(item) : kitItem.code;
           const unit = item ? item.unit : "ชิ้น";
           const hasStock = currentStock >= reqQty;
           if (!hasStock) allAvailable = false;
@@ -2559,7 +2577,7 @@ function setupBorrowForm() {
           const transactionData = {
             id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
             itemCode: item.code,
-            itemName: item.name,
+            itemName: getItemDisplayName(item),
             qty: kitItem.qty,
             borrower: borrowerName,
             date: borrowDate,
@@ -2586,7 +2604,7 @@ function setupBorrowForm() {
             const transactionData = {
               id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
               itemCode: item.code,
-              itemName: item.name,
+              itemName: getItemDisplayName(item),
               qty: kitItem.qty,
               borrower: borrowerName,
               date: borrowDate,
@@ -2654,7 +2672,7 @@ function setupBorrowForm() {
         const transactionData = {
           id: "TX-" + Date.now(),
           itemCode: item.code,
-          itemName: item.name,
+          itemName: getItemDisplayName(item),
           qty: borrowQty,
           borrower: borrowerName,
           date: borrowDate,
@@ -2670,7 +2688,7 @@ function setupBorrowForm() {
         };
         const logged = await saveTransaction(transactionData);
         if (logged) {
-          showToast(`ส่งคำขออนุมัติยืม "${item.name}" เรียบร้อยแล้ว!`, "info");
+          showToast(`ส่งคำขออนุมัติยืม "${getItemDisplayName(item)}" เรียบร้อยแล้ว!`, "info");
           form.reset();
           if (borrowBookingSelect) {
             borrowBookingSelect.value = "";
@@ -2688,7 +2706,7 @@ function setupBorrowForm() {
           const transactionData = {
             id: "TX-" + Date.now(),
             itemCode: item.code,
-            itemName: item.name,
+            itemName: getItemDisplayName(item),
             qty: borrowQty,
             borrower: borrowerName,
             date: borrowDate,
@@ -2704,7 +2722,7 @@ function setupBorrowForm() {
           };
           const logged = await saveTransaction(transactionData);
           if (logged) {
-            showToast(`ทำรายการยืม "${item.name}" สำเร็จ!`, "success");
+            showToast(`ทำรายการยืม "${getItemDisplayName(item)}" สำเร็จ!`, "success");
             form.reset();
             if (borrowBookingSelect) {
               borrowBookingSelect.value = "";
@@ -2724,7 +2742,7 @@ function setupBorrowForm() {
         const transactionData = {
           id: "TX-" + Date.now(),
           itemCode: item.code,
-          itemName: item.name,
+          itemName: getItemDisplayName(item),
           qty: borrowQty,
           borrower: borrowerName,
           date: borrowDate,
@@ -2736,7 +2754,7 @@ function setupBorrowForm() {
         };
         const logged = await saveTransaction(transactionData);
         if (logged) {
-          showToast(`ทำรายการคืน "${item.name}" สำเร็จ!`, "success");
+          showToast(`ทำรายการคืน "${getItemDisplayName(item)}" สำเร็จ!`, "success");
           form.reset();
           if (borrowBookingSelect) {
             borrowBookingSelect.value = "";
@@ -2835,7 +2853,7 @@ window.returnBorrowedItem = async function(transId) {
         localStorage.setItem("lab_transactions", JSON.stringify(transactions));
       }
 
-      showToast(`คืน "${item.name}" จำนวน ${tx.qty} หน่วย เรียบร้อยแล้ว!`, "success");
+      showToast(`คืน "${getItemDisplayName(item)}" จำนวน ${tx.qty} หน่วย เรียบร้อยแล้ว!`, "success");
       updateUI();
     }
   }
@@ -3482,11 +3500,11 @@ window.showBookingDetail = function(bkId) {
   if (bk.prepItems && bk.prepItems.length > 0) {
     prepHtml = `
       <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-        <span style="font-weight: 600; color: var(--text-muted);">วัสดุ / สารเคมีที่เตรียมสอน (Prep Items):</span>
+        <span style="font-weight: 600; color: var(--text-muted);">วัสดุ / สารเคมีที่เตรียมสอน:</span>
         <div style="display: flex; flex-direction: column; gap: 4px; padding-left: 12px; margin-top: 4px;">
           ${bk.prepItems.map(pi => {
             const item = items.find(i => i.code === pi.code);
-            const name = item ? item.name : pi.code;
+            const name = item ? getItemDisplayName(item) : pi.code;
             const unit = item ? item.unit : "หน่วย";
             return `<div style="font-size: 13px; font-weight: 500; color: #334155;">• ${name} (${pi.code}) - <strong>${pi.qty}</strong> ${unit}</div>`;
           }).join("")}
@@ -3673,7 +3691,7 @@ function renderDashboardDamagedStats() {
     const rQty = item.repairQty || 0;
     html += `
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; font-size: 12px;">
-        <span style="font-weight: 500; color: #334155;">${item.name} (${item.code})</span>
+        <span style="font-weight: 500; color: #334155;">${getItemDisplayName(item)} (${item.code})</span>
         <div style="display: flex; gap: 6px;">
           ${dQty > 0 ? `<span class="badge badge-red" style="font-size: 10px; padding: 1px 6px;">ชำรุด: ${dQty} ${item.unit}</span>` : ""}
           ${rQty > 0 ? `<span class="badge badge-orange" style="font-size: 10px; padding: 1px 6px;">ส่งซ่อม: ${rQty} ${item.unit}</span>` : ""}
@@ -4054,7 +4072,7 @@ window.showItemDetail = function(event, itemCode) {
         <span style="font-family: monospace; font-size: 11px; font-weight: bold; color: var(--text-muted);">${item.code}</span>
       </div>
       <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">${item.name}</h4>
+        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">${getItemDisplayName(item)}</h4>
         <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${item.category}</div>
         <div style="display: grid; grid-template-columns: 80px 1fr; font-size: 13px; margin-top: 8px; gap: 4px;">
           <span style="color: var(--text-muted); font-weight: 500;">จำนวนคงเหลือ:</span>
@@ -4226,7 +4244,7 @@ window.printItemLabel = function(itemCode) {
         <div class="label-card">
           <img class="qr-img" src="${qrUrl}" alt="QR Code">
           <div class="info">
-            <h3 class="title">${item.name}</h3>
+            <h3 class="title">${getItemDisplayName(item)}</h3>
             <span class="code">CODE: ${item.code}</span>
             <div class="loc">จัดเก็บ: ${item.room || "-"} > ${item.cabinet || "-"} > ${item.shelf || "-"}</div>
           </div>
@@ -4254,20 +4272,20 @@ function setupCsvExport() {
     }
 
     const headers = [
-      "รหัส (Item Code)",
-      "ชื่อ (Name)",
-      "หมวดหมู่ (Category)",
-      "จำนวนคงเหลือ (Quantity)",
-      "หน่วย (Unit)",
-      "จุดสั่งซื้อต่ำสุด (Min Reorder)",
-      "วันหมดอายุ (Expiry Date)",
-      "ห้อง/Lab (Room)",
-      "ตู้เก็บของ (Cabinet)",
-      "ชั้นวาง (Shelf)",
-      "ประเภทอันตรายเคมี (Chemical Type)",
-      "ลิงก์ SDS (SDS Link)",
-      "ชำรุด (Damaged)",
-      "ส่งซ่อม (Repairing)"
+      "รหัส",
+      "ชื่อ",
+      "หมวดหมู่",
+      "จำนวนคงเหลือ",
+      "หน่วย",
+      "จุดสั่งซื้อต่ำสุด",
+      "วันหมดอายุ",
+      "ห้อง/Lab",
+      "ตู้เก็บของ",
+      "ชั้นวาง",
+      "ประเภทอันตรายเคมี",
+      "ลิงก์ SDS",
+      "ชำรุด",
+      "ส่งซ่อม"
     ];
 
     let csvContent = "\ufeff"; // UTF-8 BOM to display Thai characters correctly in Excel
@@ -4328,7 +4346,7 @@ function setupBarcodeScanner() {
       const item = items.find(i => i.code.toLowerCase() === code.toLowerCase());
       if (item) {
         showItemDetail(null, item.code);
-        showToast(`สแกนพบพัสดุ: ${item.name}`, "success");
+        showToast(`สแกนพบพัสดุ: ${getItemDisplayName(item)}`, "success");
       } else {
         showToast(`ไม่พบรหัสพัสดุ: ${code}`, "warning");
       }
@@ -4352,7 +4370,7 @@ function populateBookingPrepList() {
       <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer; padding: 4px 0; border-bottom: 1px solid #f8fafc;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <input type="checkbox" name="bookingPrepItem" value="${item.code}" style="accent-color: #8b5cf6; width: 15px; height: 15px;">
-          <span>${item.name} (${item.code})</span>
+          <span>${getItemDisplayName(item)} (${item.code})</span>
         </div>
         <div style="display: flex; align-items: center; gap: 4px;">
           <span style="font-size: 11px; color: var(--text-muted);">จำนวน:</span>
@@ -4430,7 +4448,7 @@ function startCameraScan() {
     const item = items.find(i => i.code.toLowerCase() === code.toLowerCase());
     if (item) {
       showItemDetail(null, item.code);
-      showToast(`สแกนพบพัสดุ: ${item.name}`, "success");
+      showToast(`สแกนพบพัสดุ: ${getItemDisplayName(item)}`, "success");
     } else {
       showToast(`ไม่พบรหัสพัสดุ: ${code}`, "warning");
     }
