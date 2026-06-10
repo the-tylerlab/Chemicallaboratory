@@ -15,6 +15,8 @@
   <!-- Firebase App & Firestore Compat SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <!-- HTML5 QR Code Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
 
@@ -47,15 +49,7 @@
         ยินดีต้อนรับสู่ระบบจัดการสารเคมีและอุปกรณ์วิทยาศาสตร์
       </div>
 
-      <!-- Role Switcher Widget -->
-      <div class="sidebar-role-switcher" style="padding: 0 4px; margin-bottom: 20px;">
-        <label style="color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; display: block; letter-spacing: 0.5px;">บทบาทผู้ใช้งาน (User Role)</label>
-        <div class="role-toggle-container" style="display: flex; background: rgba(0, 0, 0, 0.2); border-radius: var(--border-radius-sm); padding: 2px; border: 1px solid rgba(255,255,255,0.1); gap: 2px;">
-          <button type="button" id="roleBtnStudent" class="role-toggle-btn active" style="flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; text-align: center; border-radius: 6px; transition: var(--transition-fast); color: #ffffff; background: rgba(255,255,255,0.15); border: none; cursor: pointer;">นักเรียน</button>
-          <button type="button" id="roleBtnTeacher" class="role-toggle-btn" style="flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; text-align: center; border-radius: 6px; transition: var(--transition-fast); color: rgba(255,255,255,0.6); border: none; cursor: pointer; background: none;">ครูผู้สอน</button>
-          <button type="button" id="roleBtnAdmin" class="role-toggle-btn" style="flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; text-align: center; border-radius: 6px; transition: var(--transition-fast); color: rgba(255,255,255,0.6); border: none; cursor: pointer; background: none;">เจ้าหน้าที่แล็บ</button>
-        </div>
-      </div>
+
 
       <!-- Navigation Menu -->
       <nav style="flex: 1;">
@@ -103,12 +97,7 @@
               <span class="badge badge-red" id="alertSidebarCount" style="margin-left: auto; padding: 2px 6px; display: none;">0</span>
             </a>
           </li>
-          <li>
-            <a href="#" class="menu-item-link" id="btnSidebarLogin" style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px; margin-top: 8px; border-radius: 0;">
-              <i data-lucide="log-in" id="sidebarLoginIcon"></i>
-              <span id="sidebarLoginText">เข้าสู่ระบบหลังบ้าน</span>
-            </a>
-          </li>
+
         </ul>
       </nav>
 
@@ -498,8 +487,10 @@
 
           <!-- Barcode/QR Quick Scan box -->
           <div class="search-box-container" style="max-width: 200px; min-width: 150px;">
-            <i data-lucide="scan" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 16px; height: 16px;"></i>
-            <input type="text" id="scanInput" placeholder="สแกนบาร์โค้ด..." style="padding-left: 42px;" autocomplete="off">
+            <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="คลิกเพื่อสแกนด้วยกล้อง">
+              <i data-lucide="scan" style="color: var(--primary-purple); width: 16px; height: 16px;"></i>
+            </button>
+            <input type="text" id="scanInput" placeholder="สแกนคิวอาร์..." style="padding-left: 36px; padding-right: 12px; text-align: center;" autocomplete="off">
           </div>
 
           <select id="filterCategory" class="filter-select">
@@ -518,12 +509,12 @@
             <option value="expired">หมดอายุแล้ว (Expired)</option>
           </select>
 
-          <div style="display: flex; gap: 8px; margin-left: auto;">
-            <button class="btn btn-secondary" id="btnExportCSV" style="padding: 10px 16px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+          <div class="filter-buttons-group">
+            <button class="btn btn-secondary" id="btnExportCSV" style="display: inline-flex; align-items: center; gap: 6px;">
               <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
               <span>ส่งออก Excel (CSV)</span>
             </button>
-            <button class="btn btn-secondary" id="btnPrintReport" style="padding: 10px 16px; font-size: 13px; background-color: var(--accent-blue-light); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.2); display: inline-flex; align-items: center; gap: 6px;">
+            <button class="btn btn-secondary" id="btnPrintReport" style="background-color: var(--accent-blue-light); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.2); display: inline-flex; align-items: center; gap: 6px;">
               <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
               <span>พิมพ์รายงาน (PDF)</span>
             </button>
@@ -717,23 +708,7 @@
           <!-- Right Column: Live Logs & Requests -->
           <div style="display: flex; flex-direction: column; gap: 20px;">
             
-            <!-- Pending Requests Card (Teacher Only) -->
-            <div id="pendingRequestsCard" class="card-container" style="display: none; border-left: 4px solid var(--accent-orange); margin-bottom: 0;">
-              <div class="card-header" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0;">
-                  <i data-lucide="clock" style="width: 18px; height: 18px; color: var(--accent-orange);"></i>
-                  <span>คำขอยืมรอดำเนินการ</span>
-                  <span class="badge badge-orange" id="pendingRequestsCount" style="padding: 2px 8px; font-size: 11px;">0</span>
-                </h2>
-                <div id="teacherFilterContainer" style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
-                  <label for="teacherFilterSelect" style="color: var(--text-muted); font-weight: 500;">ครูผู้ดูแล:</label>
-                  <select id="teacherFilterSelect" class="form-control" style="padding: 4px 8px; font-size: 12px; height: auto; width: auto; min-width: 140px; margin: 0;"></select>
-                </div>
-              </div>
-              <div id="pendingRequestsContainer" style="display: flex; flex-direction: column; gap: 12px; max-height: 250px; overflow-y: auto;">
-                <!-- Dynamically populated pending requests -->
-              </div>
-            </div>
+
 
             <div class="content-header" style="margin-bottom: 0; padding-bottom: 0;">
               <h2>ประวัติการทำรายการล่าสุด</h2>
@@ -783,11 +758,7 @@
               <p>เลือกห้องแล็บและวันที่เพื่อดูสถานะความว่างของแต่ละช่วงเวลา</p>
             </div>
             
-            <div id="bookingAccessDenied" style="display: none; padding: 32px 24px; text-align: center; background: #fff; border: 1px dashed var(--border-color); border-radius: var(--border-radius-md); margin-top: 20px;">
-              <i data-lucide="lock" style="width: 48px; height: 48px; color: var(--accent-orange); margin: 0 auto 12px; display: block;"></i>
-              <h3 style="font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 8px;">สิทธิ์การเข้าใช้งานถูกจำกัด</h3>
-              <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">เฉพาะอาจารย์ผู้สอน (Teacher) และเจ้าหน้าที่แล็บ (Admin) เท่านั้นที่สามารถทำการบันทึกการจองห้องปฏิบัติการได้</p>
-            </div>
+
 
             <form id="bookingForm">
               <div class="form-row-2">
@@ -948,6 +919,21 @@
           </div>
         </div>
 
+        <!-- System Data Reference Guide -->
+        <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px; margin-bottom: 16px; font-size: 12px; line-height: 1.5;">
+          <div style="font-weight: 600; color: var(--primary-purple); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            <i data-lucide="info" style="width: 14px; height: 14px;"></i>
+            <span>ตารางอ้างอิงข้อมูลสำหรับนำเข้า (System Data Reference)</span>
+          </div>
+          <ul style="margin: 0; padding-left: 18px; color: var(--text-main); display: flex; flex-direction: column; gap: 4px;">
+            <li><strong>หมวดหมู่*:</strong> ต้องเป็น <code>สารเคมี</code>, <code>อุปกรณ์วิทยาศาสตร์</code>, <code>เครื่องแก้ว</code>, หรือ <code>วัสดุสิ้นเปลือง</code> เท่านั้น</li>
+            <li><strong>ห้องปฏิบัติการ:</strong> ต้องเป็น <code>ห้องปฏิบัติการเคมี</code> (หรือ <code>Lab 1</code>), <code>ห้องปฏิบัติการฟิสิกส์</code> (หรือ <code>Lab 2</code>), <code>ห้องปฏิบัติการชีววิทยา</code> (หรือ <code>Lab 3</code>)</li>
+            <li><strong>หน่วย*:</strong> เช่น <code>ขวด</code>, <code>เครื่อง</code>, <code>ชิ้น</code>, <code>อัน</code>, <code>กล่อง</code>, <code>หลอด</code>, <code>แกลลอน</code>, <code>ใบ</code></li>
+            <li><strong>ประเภทสารเคมี:</strong> <code>acid</code> (กรด), <code>base</code> (เบส), <code>oxidizer</code> (สารออกซิไดซ์), <code>organic</code> (สารไวไฟ), <code>other</code> (สารเคมีทั่วไป)</li>
+            <li><strong>คอลัมน์ GHS ความปลอดภัย:</strong> ใส่ <code>Y</code>, <code>1</code>, หรือ <code>x</code> ในช่อง GHS ที่ต้องการเลือก (เช่น ไวไฟ(GHS) หรือ กัดกร่อน(GHS))</li>
+          </ul>
+        </div>
+
         <!-- Step 2: Select File -->
         <div class="modal-step">
           <div class="modal-step-title">2. เลือกไฟล์ CSV ของคุณ</div>
@@ -1057,6 +1043,28 @@
       </div>
       <div class="modal-footer" id="detailModalFooter" style="padding: 16px 24px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color);">
         <!-- Buttons dynamically added -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: CAMERA BARCODE / QR SCANNER
+       ========================================== -->
+  <div class="modal-overlay" id="cameraScanModal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="scan" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
+          <span>สแกนคิวอาร์โค้ด / บาร์โค้ด</span>
+        </h3>
+        <button class="modal-close-btn" id="cameraScanModalClose">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; align-items: center;">
+        <div id="qr-reader" style="width: 100%; max-width: 400px; background: #000; border-radius: var(--border-radius-md); overflow: hidden; border: 1px solid var(--border-color);"></div>
+        <div id="qr-reader-results" style="font-size: 13px; color: var(--text-muted); text-align: center;">วางคิวอาร์โค้ดหรือบาร์โค้ดให้อยู่ในกรอบของกล้องเพื่อทำการสแกน</div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; display: flex; justify-content: flex-end;">
+        <button class="btn btn-secondary" id="btnCancelCameraScan">ปิด</button>
       </div>
     </div>
   </div>

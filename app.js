@@ -7,7 +7,7 @@ let items = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let fileToImport = null;
-let userRole = "student"; // Default role
+let userRole = "admin"; // Default role
 
 // default science lab kits
 const LAB_KITS = {
@@ -227,7 +227,7 @@ let isBackendOnline = false;
 let transactions = [];
 let bookings = [];
 let selectedSlots = [];
-let isAdminLoggedIn = sessionStorage.getItem("admin_logged_in") === "true";
+let isAdminLoggedIn = true; // Always logged in for unified role
 const BOOKING_SLOTS = [
   "คาบ 1: 08:10 - 09:00",
   "คาบ 2: 09:00 - 09:50",
@@ -267,12 +267,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Set up room booking form handlers
   setupBookingForm();
   
-  // Set up login system
-  setupLoginHandlers();
-  setupRoleSwitcher();
+  // Set up login system (disabled - unified admin role)
   setupCsvExport();
   setupPrintReport();
   setupBarcodeScanner();
+  setupCameraScanner();
   updateLoginUI();
   
   // Initialize Lucide icons initially
@@ -1651,14 +1650,62 @@ function setupImportModal() {
 
 // Download UTF-8 CSV with BOM for automatic Excel support
 function downloadCSVTemplate() {
-  const headers = ["รหัส*", "ชื่อ*", "หมวดหมู่*", "จำนวน*", "หน่วย*", "จุดสั่งซื้อขั้นต่ำ", "วันหมดอายุ(YYYY-MM-DD)", "ห้อง", "ตู้", "ชั้น"];
-  const sampleRow1 = ["CHEM-005", "กรดอะซิติก (Acetic Acid)", "สารเคมี", "3", "ขวด", "1", "2027-08-20", "Lab 1", "ตู้ B", "ชั้น 1"];
-  const sampleRow2 = ["EQ-002", "กล้องจุลทรรศน์แบบใช้แสง (Microscope)", "อุปกรณ์วิทยาศาสตร์", "4", "เครื่อง", "2", "", "Lab 2", "ตู้เก็บอุปกรณ์", "ตู้ด้านซ้าย"];
+  const instructions = [
+    "# คู่มือการอ้างอิงข้อมูลของระบบสำหรับนำเข้าไฟล์ (System Import Reference Guide)",
+    "# 1. คอลัมน์ที่จำเป็นต้องระบุ (ต้องไม่เว้นว่าง): รหัส, ชื่อ, หมวดหมู่, จำนวน, หน่วย",
+    "# 2. หมวดหมู่* (ต้องตรงตามค่าใดค่าหนึ่ง): สารเคมี | อุปกรณ์วิทยาศาสตร์ | เครื่องแก้ว | วัสดุสิ้นเปลือง",
+    "# 3. หน่วย* (เช่น): ขวด | เครื่อง | ชิ้น | อัน | กล่อง | หลอด | แกลลอน | ใบ | ชุด",
+    "# 4. วันหมดอายุ(YYYY-MM-DD): ปี-เดือน-วัน ค.ศ. เช่น 2027-08-20 (เว้นว่างได้ถ้าไม่มี)",
+    "# 5. ห้อง (ตรงตามระบบ): ห้องปฏิบัติการเคมี (หรือ Lab 1) | ห้องปฏิบัติการฟิสิกส์ (หรือ Lab 2) | ห้องปฏิบัติการชีววิทยา (หรือ Lab 3) | นอกห้องปฏิบัติการ (หรือ None)",
+    "# 6. ประเภทสารเคมี: acid (กรด) | base (เบส) | oxidizer (สารออกซิไดซ์) | organic (สารไวไฟ) | other (สารเคมีทั่วไป)",
+    "# 7. คอลัมน์ GHS (ระเบิดได้ - ภัยสิ่งแวดล้อม): ให้ใส่ Y หรือ 1 หรือ x เพื่อเลือกใช้สัญลักษณ์ความปลอดภัย GHS นั้นๆ (เว้นว่างหากไม่เกี่ยวข้อง)"
+  ];
+  
+  const headers = [
+    "รหัส*", 
+    "ชื่อ*", 
+    "หมวดหมู่*", 
+    "จำนวน*", 
+    "หน่วย*", 
+    "จำนวนที่ชำรุด", 
+    "จำนวนส่งซ่อม", 
+    "จุดสั่งซื้อขั้นต่ำ", 
+    "วันหมดอายุ(YYYY-MM-DD)", 
+    "ห้อง", 
+    "ตู้", 
+    "ชั้น", 
+    "ประเภทสารเคมี", 
+    "ลิงก์ SDS", 
+    "ระเบิดได้(GHS)", 
+    "ไวไฟ(GHS)", 
+    "ออกซิไดซ์(GHS)", 
+    "ก๊าซความดัน(GHS)", 
+    "กัดกร่อน(GHS)", 
+    "ความเป็นพิษ(GHS)", 
+    "ระคายเคือง(GHS)", 
+    "ภัยสุขภาพ(GHS)", 
+    "ภัยสิ่งแวดล้อม(GHS)"
+  ];
+  
+  const sampleRow1 = [
+    "CHEM-005", "กรดอะซิติก (Acetic Acid)", "สารเคมี", "3", "ขวด", "0", "0", "1", "2027-08-20", "ห้องปฏิบัติการเคมี", "ตู้ B", "ชั้น 1", 
+    "acid", "https://example.com/sds-acetic.pdf", "", "Y", "", "", "Y", "", "Y", "", ""
+  ];
+  const sampleRow2 = [
+    "EQ-002", "กล้องจุลทรรศน์แบบใช้แสง (Microscope)", "อุปกรณ์วิทยาศาสตร์", "4", "เครื่อง", "0", "0", "2", "", "ห้องปฏิบัติการฟิสิกส์", "ตู้เก็บอุปกรณ์", "ตู้ด้านซ้าย", 
+    "", "", "", "", "", "", "", "", "", "", ""
+  ];
+  const sampleRow3 = [
+    "GW-003", "บีกเกอร์ 250 มล. (Beaker 250ml)", "เครื่องแก้ว", "10", "ใบ", "1", "0", "5", "", "ห้องปฏิบัติการชีววิทยา", "ตู้แก้ว A", "ชั้น 2", 
+    "", "", "", "", "", "", "", "", "", "", ""
+  ];
   
   const csvContent = [
+    ...instructions,
     headers.join(","),
     sampleRow1.join(","),
-    sampleRow2.join(",")
+    sampleRow2.join(","),
+    sampleRow3.join(",")
   ].join("\n");
 
   // UTF-8 BOM
@@ -1687,10 +1734,17 @@ async function parseCSVAndImport(csvText) {
 
   const importList = [];
   let errorCount = 0;
+  let headerSkipped = false;
 
-  for (let i = 1; i < lines.length; i++) {
+  for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue; // Skip empty rows
+    if (line.startsWith('#')) continue; // Skip comment rows
+
+    if (!headerSkipped) {
+      headerSkipped = true;
+      continue; // Skip header row
+    }
 
     const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ''));
 
@@ -1704,11 +1758,39 @@ async function parseCSVAndImport(csvText) {
     const category = cols[2];
     const qty = Number(cols[3]);
     const unit = cols[4];
-    const minAlert = cols[5] ? Number(cols[5]) : null;
-    const expiry = cols[6] || "";
-    const room = cols[7] || "";
-    const cabinet = cols[8] || "";
-    const shelf = cols[9] || "";
+    const damagedQty = cols[5] ? Number(cols[5]) : 0;
+    const repairQty = cols[6] ? Number(cols[6]) : 0;
+    const minAlert = cols[7] ? Number(cols[7]) : null;
+    const expiry = cols[8] || "";
+    let room = cols[9] || "";
+    const cabinet = cols[10] || "";
+    const shelf = cols[11] || "";
+    const chemicalType = cols[12] || "";
+    const sdsUrl = cols[13] || "";
+
+    // Parse GHS checkboxes from column indices 14-22
+    const ghs = [];
+    const isChecked = (val) => {
+      if (!val) return false;
+      const normalized = val.trim().toLowerCase();
+      return ["y", "1", "x", "yes", "true", "/", "ใช่", "ติ๊ก"].includes(normalized);
+    };
+
+    if (cols.length > 14 && isChecked(cols[14])) ghs.push("explosive");
+    if (cols.length > 15 && isChecked(cols[15])) ghs.push("flammable");
+    if (cols.length > 16 && isChecked(cols[16])) ghs.push("oxidizing");
+    if (cols.length > 17 && isChecked(cols[17])) ghs.push("compressed_gas");
+    if (cols.length > 18 && isChecked(cols[18])) ghs.push("corrosive");
+    if (cols.length > 19 && isChecked(cols[19])) ghs.push("toxic");
+    if (cols.length > 20 && isChecked(cols[20])) ghs.push("irritant");
+    if (cols.length > 21 && isChecked(cols[21])) ghs.push("health_hazard");
+    if (cols.length > 22 && isChecked(cols[22])) ghs.push("environmental");
+
+    // Support both Thai names and short codes for room mapping
+    if (room === "ห้องปฏิบัติการเคมี") room = "Lab 1";
+    else if (room === "ห้องปฏิบัติการฟิสิกส์") room = "Lab 2";
+    else if (room === "ห้องปฏิบัติการชีววิทยา") room = "Lab 3";
+    else if (room === "นอกห้องปฏิบัติการ") room = "None";
 
     // Validation checks for compulsory fields
     if (!code || !name || !category || isNaN(qty) || !unit) {
@@ -1722,11 +1804,16 @@ async function parseCSVAndImport(csvText) {
       category,
       qty,
       unit,
+      damagedQty,
+      repairQty,
       minAlert,
       expiry,
       room,
       cabinet,
       shelf,
+      chemicalType,
+      sdsUrl,
+      ghs,
       createdAt: new Date().toISOString()
     });
   }
@@ -3196,7 +3283,7 @@ function renderBookingsTable() {
         <td data-label="วันที่เข้าใช้" style="font-size: 12px; font-weight: 500; color: var(--text-muted);">${formattedDate}</td>
         <td data-label="ห้องแล็บ">
           <div style="margin-bottom: 4px;">
-            <span class="product-code" style="background-color: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${getRoomThaiName(b.room)}</span>
+            <span style="font-family: var(--font-sans); background-color: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; width: max-content;">${getRoomThaiName(b.room)}</span>
           </div>
           ${slotHtml}
         </td>
@@ -3245,6 +3332,16 @@ function updateLoginUI() {
       navigateToPanel("dashboard");
     }
   }
+
+  // Show/Hide Admin-Only navigation items
+  const menuItemAddItem = document.getElementById("menuItemAddItem");
+  const menuItemImport = document.getElementById("menuItemImport");
+  if (menuItemAddItem) {
+    menuItemAddItem.style.display = isAdminLoggedIn ? "block" : "none";
+  }
+  if (menuItemImport) {
+    menuItemImport.style.display = isAdminLoggedIn ? "block" : "none";
+  }
   
   // Update role switcher toggle state visual representation
   const btnStudent = document.getElementById("roleBtnStudent");
@@ -3275,95 +3372,7 @@ function updateLoginUI() {
 }
 
 function setupLoginHandlers() {
-  const btnLogin = document.getElementById("btnSidebarLogin");
-  const loginModal = document.getElementById("loginModal");
-  const btnClose = document.getElementById("loginModalClose");
-  const btnCancel = document.getElementById("btnCancelLogin");
-  const form = document.getElementById("adminLoginForm");
-  const errorMsg = document.getElementById("loginErrorMsg");
-  const btnTogglePassword = document.getElementById("btnTogglePassword");
-  const passwordInput = document.getElementById("loginPassword");
-  const usernameInput = document.getElementById("loginUsername");
-  const eyeIcon = document.getElementById("eyeIcon");
-
-  if (!btnLogin || !loginModal) return;
-
-  // Toggle login / logout
-  btnLogin.addEventListener("click", (e) => {
-    e.preventDefault();
-    if (isAdminLoggedIn) {
-      if (confirm("คุณต้องการออกจากระบบใช่หรือไม่?")) {
-        isAdminLoggedIn = false;
-        userRole = "student";
-        localStorage.setItem("user_role", "student");
-        sessionStorage.removeItem("admin_logged_in");
-        showToast("ออกจากระบบหลังบ้านแล้ว", "info");
-        updateLoginUI();
-      }
-    } else {
-      // Clear inputs
-      if (usernameInput) usernameInput.value = "";
-      if (passwordInput) {
-        passwordInput.value = "";
-        passwordInput.type = "password";
-      }
-      if (eyeIcon) eyeIcon.setAttribute("data-lucide", "eye");
-      if (errorMsg) errorMsg.style.display = "none";
-      
-      loginModal.classList.add("active");
-      lucide.createIcons();
-    }
-  });
-
-  const closeModal = () => {
-    loginModal.classList.remove("active");
-  };
-
-  if (btnClose) btnClose.addEventListener("click", closeModal);
-  if (btnCancel) btnCancel.addEventListener("click", closeModal);
-
-  // Toggle password visibility
-  if (btnTogglePassword && passwordInput) {
-    btnTogglePassword.addEventListener("click", () => {
-      if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        eyeIcon.setAttribute("data-lucide", "eye-off");
-      } else {
-        passwordInput.type = "password";
-        eyeIcon.setAttribute("data-lucide", "eye");
-      }
-      lucide.createIcons();
-    });
-  }
-
-  // Handle Form Submission
-  if (form) {
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value;
-
-      if (username === "admin" && password === "admin1234") {
-        isAdminLoggedIn = true;
-        userRole = "admin";
-        localStorage.setItem("user_role", "admin");
-        sessionStorage.setItem("admin_logged_in", "true");
-        showToast("เข้าสู่ระบบหลังบ้านสำเร็จ ยินดีต้อนรับเจ้าหน้าที่แล็บ (Admin)!", "success");
-        closeModal();
-        updateLoginUI();
-      } else if (username === "teacher" && password === "teacher1234") {
-        isAdminLoggedIn = true;
-        userRole = "teacher";
-        localStorage.setItem("user_role", "teacher");
-        sessionStorage.setItem("admin_logged_in", "true");
-        showToast("เข้าสู่ระบบสำเร็จ ยินดีต้อนรับครูผู้สอน (Teacher)!", "success");
-        closeModal();
-        updateLoginUI();
-      } else {
-        if (errorMsg) errorMsg.style.display = "flex";
-      }
-    });
-  }
+  // Disabled - unified admin/teacher role
 }
 
 // ==========================================================================
@@ -3567,55 +3576,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================================================
 
 function setupRoleSwitcher() {
-  const btnStudent = document.getElementById("roleBtnStudent");
-  const btnTeacher = document.getElementById("roleBtnTeacher");
-  const btnAdmin = document.getElementById("roleBtnAdmin");
-  if (!btnStudent || !btnTeacher || !btnAdmin) return;
-
-  btnStudent.addEventListener("click", () => {
-    userRole = "student";
-    isAdminLoggedIn = false;
-    sessionStorage.setItem("admin_logged_in", "false");
-    localStorage.setItem("user_role", "student");
-    showToast("เปลี่ยนบทบาทเป็น นักเรียน (Student) แล้ว", "info");
-    updateLoginUI();
-  });
-
-  btnTeacher.addEventListener("click", () => {
-    if (userRole === "teacher") return;
-    const loginModal = document.getElementById("loginModal");
-    if (loginModal) {
-      const usernameInput = document.getElementById("loginUsername");
-      const passwordInput = document.getElementById("loginPassword");
-      const errorMsg = document.getElementById("loginErrorMsg");
-      if (usernameInput) usernameInput.value = "teacher";
-      if (passwordInput) passwordInput.value = "";
-      if (errorMsg) errorMsg.style.display = "none";
-      loginModal.classList.add("active");
-      lucide.createIcons();
-    }
-  });
-
-  btnAdmin.addEventListener("click", () => {
-    if (userRole === "admin") return;
-    const loginModal = document.getElementById("loginModal");
-    if (loginModal) {
-      const usernameInput = document.getElementById("loginUsername");
-      const passwordInput = document.getElementById("loginPassword");
-      const errorMsg = document.getElementById("loginErrorMsg");
-      if (usernameInput) usernameInput.value = "admin";
-      if (passwordInput) passwordInput.value = "";
-      if (errorMsg) errorMsg.style.display = "none";
-      loginModal.classList.add("active");
-      lucide.createIcons();
-    }
-  });
-
-  // Load initial role state
-  const savedRole = localStorage.getItem("user_role") || "student";
-  userRole = savedRole;
-  isAdminLoggedIn = (savedRole === "teacher" || savedRole === "admin");
-  sessionStorage.setItem("admin_logged_in", isAdminLoggedIn ? "true" : "false");
+  // Disabled - unified admin/teacher role
 }
 
 function renderDashboardOverdueAlerts() {
@@ -3732,14 +3693,72 @@ function renderPendingRequests() {
   
   if (!card || !container) return;
 
-  if (userRole !== "teacher") {
+  if (userRole !== "teacher" && userRole !== "admin") {
     card.style.display = "none";
     return;
   }
 
-  const pendingTx = transactions.filter(tx => tx.type === "borrow" && tx.status === "pending");
+  // Get all unique supervising teachers
+  const uniqueTeachers = new Set();
+  transactions.forEach(tx => {
+    if (tx.status === "pending" && tx.supervisingTeacher) {
+      uniqueTeachers.add(tx.supervisingTeacher);
+    }
+  });
+  bookings.forEach(b => {
+    if (b.status === "approved" && b.bookerName) {
+      uniqueTeachers.add(b.bookerName);
+    }
+  });
 
-  if (pendingTx.length === 0) {
+  // Populate/maintain filter dropdown
+  const filterSelect = document.getElementById("teacherFilterSelect");
+  if (filterSelect) {
+    const currentFilter = filterSelect.value;
+    
+    // Clear and rebuild options
+    filterSelect.innerHTML = '<option value="all">แสดงทั้งหมด (Show All)</option>';
+    uniqueTeachers.forEach(teacher => {
+      const option = document.createElement("option");
+      option.value = teacher;
+      option.textContent = teacher;
+      filterSelect.appendChild(option);
+    });
+
+    // Handle event listener only once
+    if (!filterSelect.dataset.listenerInitialized) {
+      filterSelect.addEventListener("change", () => {
+        renderPendingRequests();
+      });
+      filterSelect.dataset.listenerInitialized = "true";
+    }
+
+    // Set default value based on role switch
+    if (!filterSelect.value || filterSelect.dataset.lastRole !== userRole) {
+      filterSelect.dataset.lastRole = userRole;
+      if (userRole === "teacher") {
+        if (uniqueTeachers.size > 0) {
+          filterSelect.value = Array.from(uniqueTeachers)[0];
+        } else {
+          filterSelect.value = "all";
+        }
+      } else {
+        filterSelect.value = "all";
+      }
+    } else if (currentFilter && Array.from(filterSelect.options).some(opt => opt.value === currentFilter)) {
+      filterSelect.value = currentFilter;
+    }
+  }
+
+  const selectedTeacher = filterSelect ? filterSelect.value : "all";
+
+  // Filter pending requests
+  let filteredTx = transactions.filter(tx => tx.type === "borrow" && tx.status === "pending");
+  if (selectedTeacher !== "all") {
+    filteredTx = filteredTx.filter(tx => tx.supervisingTeacher === selectedTeacher);
+  }
+
+  if (filteredTx.length === 0) {
     card.style.display = "block";
     if (countBadge) countBadge.innerText = "0";
     container.innerHTML = `
@@ -3751,10 +3770,10 @@ function renderPendingRequests() {
   }
 
   card.style.display = "block";
-  if (countBadge) countBadge.innerText = pendingTx.length;
+  if (countBadge) countBadge.innerText = filteredTx.length;
 
   let html = "";
-  pendingTx.forEach(tx => {
+  filteredTx.forEach(tx => {
     html += `
       <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; background-color: rgba(245, 158, 11, 0.03); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: var(--border-radius-md); font-size: 13px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
@@ -3764,8 +3783,10 @@ function renderPendingRequests() {
           </div>
           <span class="badge badge-orange" style="font-size: 10px; padding: 1px 6px;">รอดำเนินการ</span>
         </div>
-        <div style="font-size: 11px; color: #475569; padding-left: 2px;">
-          ผู้ยืม: <strong>${tx.borrower}</strong> | วันยืม: ${formatThaiDate(tx.date)}
+        <div style="font-size: 11px; color: #475569; padding-left: 2px; display: flex; flex-direction: column; gap: 2px;">
+          <div>ผู้ยืม: <strong>${tx.borrower}</strong> | วันยืม: ${formatThaiDate(tx.date)}</div>
+          ${tx.supervisingTeacher ? `<div>ครูผู้ดูแลคาบ: <strong style="color: var(--primary-purple);">${tx.supervisingTeacher}</strong></div>` : ""}
+          ${tx.room && tx.room !== "None" ? `<div>ห้องปฏิบัติการ: <strong>${getRoomThaiName(tx.room)}</strong>${tx.slot && tx.slot !== "None" ? ` (ช่วงเวลา: <strong>${tx.slot}</strong>)` : ""}</div>` : ""}
         </div>
         ${tx.notes ? `<div style="font-size: 11px; color: var(--text-muted); font-style: italic; background-color: #ffffff; padding: 6px; border-radius: 4px; border: 1px solid #f1f5f9;">${tx.notes}</div>` : ""}
         <div style="display: flex; gap: 8px; margin-top: 4px;">
@@ -3788,6 +3809,16 @@ window.approveBorrowRequest = async function(txId) {
   const txIndex = transactions.findIndex(t => t.id === txId);
   if (txIndex === -1) return;
   const tx = transactions[txIndex];
+
+  // Teacher role validation: Can only approve requests belonging to their class period
+  if (userRole === "teacher") {
+    const filterSelect = document.getElementById("teacherFilterSelect");
+    const activeTeacher = filterSelect ? filterSelect.value : "";
+    if (!tx.supervisingTeacher || tx.supervisingTeacher !== activeTeacher) {
+      showToast("คุณสามารถอนุมัติเฉพาะคำขอยืมในคาบเรียนของตนเองเท่านั้น (คาบตัวเอง)", "error");
+      return;
+    }
+  }
 
   // Stock check
   const itemIndex = items.findIndex(i => i.code === tx.itemCode);
@@ -3823,6 +3854,17 @@ window.approveBorrowRequest = async function(txId) {
 window.rejectBorrowRequest = async function(txId) {
   const txIndex = transactions.findIndex(t => t.id === txId);
   if (txIndex === -1) return;
+  const tx = transactions[txIndex];
+
+  // Teacher role validation: Can only reject requests belonging to their class period
+  if (userRole === "teacher") {
+    const filterSelect = document.getElementById("teacherFilterSelect");
+    const activeTeacher = filterSelect ? filterSelect.value : "";
+    if (!tx.supervisingTeacher || tx.supervisingTeacher !== activeTeacher) {
+      showToast("คุณสามารถปฏิเสธเฉพาะคำขอยืมในคาบเรียนของตนเองเท่านั้น (คาบตัวเอง)", "error");
+      return;
+    }
+  }
 
   if (confirm("คุณต้องการปฏิเสธคำขอยืมนี้ใช่หรือไม่?")) {
     transactions[txIndex].status = "rejected";
@@ -4320,5 +4362,121 @@ function populateBookingPrepList() {
     `;
   });
   container.innerHTML = html;
+}
+
+// ==========================================================================
+// CAMERA QR & BARCODE SCANNER SYSTEM (html5-qrcode)
+// ==========================================================================
+let html5QrcodeScanner = null;
+
+function setupCameraScanner() {
+  const btnTrigger = document.getElementById("btnTriggerCameraScan");
+  const modalClose = document.getElementById("cameraScanModalClose");
+  const btnCancel = document.getElementById("btnCancelCameraScan");
+  const modal = document.getElementById("cameraScanModal");
+
+  if (!btnTrigger || !modal) return;
+
+  // Trigger Open Scanner
+  btnTrigger.addEventListener("click", () => {
+    startCameraScan();
+  });
+
+  // Close Scanner Events
+  const closeScanner = () => {
+    stopCameraScan();
+  };
+
+  modalClose.addEventListener("click", closeScanner);
+  btnCancel.addEventListener("click", closeScanner);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeScanner();
+  });
+}
+
+function startCameraScan() {
+  const modal = document.getElementById("cameraScanModal");
+  if (!modal) return;
+  
+  modal.classList.add("active");
+  const resultsDiv = document.getElementById("qr-reader-results");
+  if (resultsDiv) {
+    resultsDiv.innerText = "วางคิวอาร์โค้ดหรือบาร์โค้ดให้อยู่ในกรอบของกล้องเพื่อทำการสแกน";
+    resultsDiv.style.color = "var(--text-muted)";
+  }
+
+  // Clear previous scanner instances if any
+  if (html5QrcodeScanner) {
+    try {
+      html5QrcodeScanner.clear();
+    } catch (e) {
+      console.error("Error clearing scanner: ", e);
+    }
+  }
+
+  // Initialize new Html5Qrcode instance
+  html5QrcodeScanner = new Html5Qrcode("qr-reader");
+
+  const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+    console.log(`Scan successful. Decoded text: ${decodedText}`, decodedResult);
+    
+    // Stop scanning and close modal
+    stopCameraScan();
+
+    const code = decodedText.trim();
+    if (!code) return;
+
+    // Search items list for a matching code
+    const item = items.find(i => i.code.toLowerCase() === code.toLowerCase());
+    if (item) {
+      showItemDetail(null, item.code);
+      showToast(`สแกนพบพัสดุ: ${item.name}`, "success");
+    } else {
+      showToast(`ไม่พบรหัสพัสดุ: ${code}`, "warning");
+    }
+  };
+
+  const config = { fps: 15, qrbox: { width: 250, height: 250 } };
+
+  // Request camera access and start
+  html5QrcodeScanner.start(
+    { facingMode: "environment" }, // Rear camera
+    config,
+    qrCodeSuccessCallback
+  ).catch(err => {
+    console.error("Error starting html5-qrcode: ", err);
+    if (resultsDiv) {
+      resultsDiv.innerText = "ไม่สามารถเปิดกล้องได้ กรุณาตรวจสอบสิทธิ์การเข้าถึงกล้องถ่ายภาพ";
+      resultsDiv.style.color = "var(--accent-red)";
+    }
+    showToast("เกิดข้อผิดพลาดในการเปิดกล้อง!", "error");
+  });
+}
+
+function stopCameraScan() {
+  const modal = document.getElementById("cameraScanModal");
+  if (modal) {
+    modal.classList.remove("active");
+  }
+
+  if (html5QrcodeScanner) {
+    try {
+      if (html5QrcodeScanner.isScanning) {
+        html5QrcodeScanner.stop().then(() => {
+          html5QrcodeScanner.clear();
+          html5QrcodeScanner = null;
+        }).catch(err => {
+          console.error("Failed to stop scanner cleanly: ", err);
+          html5QrcodeScanner = null;
+        });
+      } else {
+        html5QrcodeScanner.clear();
+        html5QrcodeScanner = null;
+      }
+    } catch (e) {
+      console.error("Error stopping scanner: ", e);
+      html5QrcodeScanner = null;
+    }
+  }
 }
 
