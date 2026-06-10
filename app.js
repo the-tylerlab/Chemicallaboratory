@@ -2179,8 +2179,8 @@ function renderSelectedBorrowItems() {
     
     html += `
       <div class="selected-item-row" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 8px 12px; gap: 12px;">
-        <div style="display: flex; flex-direction: column; gap: 2px; flex: 1;">
-          <span style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">${item.name}</span>
+        <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+          <span style="font-weight: 600; font-size: 13.5px; color: var(--text-main); line-height: 1.5;">${item.name}</span>
           <span style="font-size: 11px; color: var(--text-muted);">
             รหัส: ${item.code} | คงเหลือในคลัง: ${item.maxQty} ${item.unit}
           </span>
@@ -2637,19 +2637,16 @@ function renderTransactionsTable() {
   let html = "";
   sortedTrans.forEach(tx => {
     let nameThai = tx.itemName;
-    let nameEng = "";
     const braceIndex = tx.itemName.indexOf("(");
     if (braceIndex !== -1) {
       nameThai = tx.itemName.substring(0, braceIndex).trim();
-      nameEng = tx.itemName.substring(braceIndex).trim();
     }
 
     html += `
       <tr class="table-clickable-row" onclick="showTransactionDetail('${tx.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
         <td data-label="วันทำรายการ" style="font-size: 12px; color: var(--text-muted);">${formatThaiDate(tx.date)}</td>
         <td data-label="รายการพัสดุ">
-          <div style="font-weight: 600; color: #0f172a; font-size: 12px; line-height: 1.4;">${nameThai}</div>
-          ${nameEng ? `<div style="color: var(--text-muted); font-size: 11px; line-height: 1.3; margin-top: 1px;">${nameEng}</div>` : ''}
+          <div style="font-weight: 600; color: #0f172a; font-size: 12.5px; line-height: 1.5;">${nameThai}</div>
         </td>
       </tr>
     `;
@@ -3248,7 +3245,8 @@ function setupLoginHandlers() {
   if (btnSidebarLogin) {
     btnSidebarLogin.addEventListener("click", (e) => {
       e.preventDefault();
-      if (isAdminLoggedIn) {
+      const isUserLoggedIn = (userRole === "admin" || userRole === "teacher");
+      if (isUserLoggedIn) {
         // Logout
         isAdminLoggedIn = false;
         userRole = "student";
@@ -3300,15 +3298,21 @@ function setupLoginHandlers() {
       const password = loginPasswordInput ? loginPasswordInput.value : "";
 
       // Check credentials based on index.html hint
-      if (
-        (username === "admin" && password === "admin1234") ||
-        (username === "teacher" && password === "teacher1234")
-      ) {
+      if (username === "admin" && password === "admin1234") {
         isAdminLoggedIn = true;
-        userRole = username; // Update role to match logged in user (admin or teacher)
+        userRole = "admin";
         localStorage.setItem("isAdminLoggedIn", "true");
-        localStorage.setItem("userRole", username);
-        showToast(`เข้าสู่ระบบในฐานะ ${username === "admin" ? "เจ้าหน้าที่แล็บ" : "ครูผู้สอน"} สำเร็จ!`, "success");
+        localStorage.setItem("userRole", "admin");
+        showToast("เข้าสู่ระบบในฐานะ เจ้าหน้าที่แล็บ สำเร็จ!", "success");
+        closeModal();
+        updateLoginUI();
+        lucide.createIcons();
+      } else if (username === "teacher" && password === "teacher1234") {
+        isAdminLoggedIn = false;
+        userRole = "teacher";
+        localStorage.setItem("isAdminLoggedIn", "false");
+        localStorage.setItem("userRole", "teacher");
+        showToast("เข้าสู่ระบบในฐานะ ครูผู้สอน สำเร็จ!", "success");
         closeModal();
         updateLoginUI();
         lucide.createIcons();

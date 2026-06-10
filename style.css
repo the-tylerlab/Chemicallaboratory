@@ -70,6 +70,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   display: flex;
+  line-height: 1.5;
 }
 
 input, select, textarea, button {
@@ -992,7 +993,7 @@ tr:hover td {
 .product-cell {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .product-code {
@@ -1010,6 +1011,7 @@ tr:hover td {
   font-size: 14px;
   font-weight: 600;
   color: #0f172a;
+  line-height: 1.5;
 }
 
 .product-cat {
@@ -1292,7 +1294,7 @@ tr:hover td {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-main);
-  line-height: 1.3;
+  line-height: 1.5;
 }
 
 .notification-code {
@@ -1527,7 +1529,7 @@ tr:hover td {
   font-size: 13.5px;
   font-weight: 500;
   color: var(--text-main);
-  line-height: 1.3;
+  line-height: 1.5;
 }
 
 .custom-opt-details {
