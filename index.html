@@ -97,7 +97,12 @@
               <span class="badge badge-red" id="alertSidebarCount" style="margin-left: auto; padding: 2px 6px; display: none;">0</span>
             </a>
           </li>
-
+          <li>
+            <a href="#" class="menu-item-link" id="btnSidebarLogin">
+              <i id="sidebarLoginIcon" data-lucide="log-in"></i>
+              <span id="sidebarLoginText">เข้าสู่ระบบหลังบ้าน</span>
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -584,31 +589,11 @@
             </div>
             
             <form id="borrowForm">
-              <!-- Lab Kit Dropdown -->
-              <div class="form-group" id="labKitSelectGroup" style="margin-bottom: 12px;">
-                <label for="borrowLabKit" class="form-label">ยืมด้วยชุดอุปกรณ์สำเร็จรูป</label>
-                <select id="borrowLabKit" class="form-control">
-                  <option value="" selected>-- เลือกชุดอุปกรณ์ (หากต้องการยืมเป็นชุด) --</option>
-                  <option value="titration">ชุดไทเทรต</option>
-                  <option value="distillation">ชุดทดลองกลั่น</option>
-                  <option value="extraction">ชุดสกัดสาร</option>
-                </select>
-              </div>
-
-              <!-- Lab Kit Items Details Preview -->
-              <div id="labKitPreview" style="display: none; background: rgba(139, 92, 246, 0.04); border: 1px solid rgba(139, 92, 246, 0.15); border-radius: var(--border-radius-md); padding: 12px; margin-bottom: 16px; font-size: 13px;">
-                <div style="font-weight: 600; color: #8b5cf6; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                  <i data-lucide="package" style="width: 14px; height: 14px;"></i>
-                  <span>รายการวัสดุและอุปกรณ์ในชุด:</span>
-                </div>
-                <div id="labKitItemsList" style="display: flex; flex-direction: column; gap: 4px; padding-left: 20px;"></div>
-              </div>
-
-              <div class="form-group" id="singleItemSelectGroup">
+              <div class="form-group" id="singleItemSelectGroup" style="margin-bottom: 16px;">
                 <label for="borrowItemCode" class="form-label">เลือกรายการสารเคมี / อุปกรณ์ <span style="color: var(--accent-red);">*</span></label>
                 <div class="custom-select-wrapper" id="borrowItemSelectWrapper">
                   <div class="custom-select-trigger" id="borrowItemSelectTrigger">
-                    <span class="custom-select-trigger-text">-- กรุณาเลือกรายการ --</span>
+                    <span class="custom-select-trigger-text">-- ค้นหาและเลือกรายการที่ต้องการเพิ่ม --</span>
                     <i data-lucide="chevron-down" class="custom-select-chevron" style="width: 16px; height: 16px; transition: transform var(--transition-normal);"></i>
                   </div>
                   <div class="custom-select-dropdown" id="borrowItemSelectDropdown">
@@ -621,9 +606,16 @@
                       <!-- Options will be populated here dynamically -->
                     </div>
                   </div>
-                  <select id="borrowItemCode" style="position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none;" required>
-                    <option value="" disabled selected>-- กรุณาเลือกรายการ --</option>
-                  </select>
+                </div>
+              </div>
+
+              <!-- Selected Items List for Multiple Borrowing -->
+              <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label">รายการที่เลือกเพื่อทำรายการ <span style="color: var(--accent-red);">*</span></label>
+                <div id="selectedItemsContainer" style="border: 1px dashed var(--border-color); border-radius: var(--border-radius-md); padding: 12px; min-height: 80px; display: flex; flex-direction: column; gap: 8px; background-color: rgba(0,0,0,0.01);">
+                  <div class="empty-selected-items" style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0;">
+                    (กรุณาเลือกรายการสารเคมี / อุปกรณ์จากกล่องด้านบนเพื่อทำรายการ)
+                  </div>
                 </div>
               </div>
 
@@ -639,15 +631,9 @@
                 </div>
               </div>
 
-              <div class="form-row-2">
-                <div class="form-group">
-                  <label for="borrowQty" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
-                  <input type="number" id="borrowQty" class="form-control" min="1" placeholder="ระบุจำนวน" required>
-                </div>
-                <div class="form-group">
-                  <label for="borrowerName" class="form-label">ชื่อผู้ทำรายการ <span style="color: var(--accent-red);">*</span></label>
-                  <input type="text" id="borrowerName" class="form-control" placeholder="ระบุชื่อผู้ยืม-คืน" required>
-                </div>
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label for="borrowerName" class="form-label">ชื่อผู้ทำรายการ <span style="color: var(--accent-red);">*</span></label>
+                <input type="text" id="borrowerName" class="form-control" placeholder="ระบุชื่อผู้ยืม-คืน" required>
               </div>
 
               <div class="form-group" style="margin-top: 12px; margin-bottom: 12px;">
@@ -795,6 +781,9 @@
                 <div class="form-group">
                   <label for="bookingPurpose" class="form-label">วัตถุประสงค์การใช้งาน <span style="color: var(--accent-red);">*</span></label>
                   <input type="text" id="bookingPurpose" class="form-control" placeholder="ระบุวัตถุประสงค์" required>
+                  <span style="font-size: 11px; color: var(--text-muted); margin-top: -3px; display: block;">
+                    หมายเหตุ: ระบุระดับชั้น วิชา และเรื่อง (เช่น ม.4 วิชาเคมี เรื่องการไทเทรต)
+                  </span>
                 </div>
               </div>
 

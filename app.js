@@ -7,34 +7,8 @@ let items = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let fileToImport = null;
-let userRole = "admin"; // Default role
+let userRole = localStorage.getItem("userRole") || (localStorage.getItem("isAdminLoggedIn") === "true" ? "admin" : "student");
 
-// default science lab kits
-const LAB_KITS = {
-  titration: {
-    name: "ชุดไทเทรต (Titration Kit)",
-    items: [
-      { code: "GW-001", qty: 2 }, // บีกเกอร์ขนาด 250 มล.
-      { code: "GW-002", qty: 2 }, // ปิเปตขนาด 10 มล.
-      { code: "CHEM-001", qty: 1 } // กรดไฮโดรคลอริก 37%
-    ]
-  },
-  distillation: {
-    name: "ชุดทดลองกลั่น (Distillation Kit)",
-    items: [
-      { code: "GW-001", qty: 1 }, // บีกเกอร์ขนาด 250 มล.
-      { code: "CHEM-002", qty: 1 } // เอทานอล 95%
-    ]
-  },
-  extraction: {
-    name: "ชุดสกัดสาร (Extraction Kit)",
-    items: [
-      { code: "GW-002", qty: 1 }, // ปิเปตขนาด 10 มล.
-      { code: "CHEM-002", qty: 1 }, // เอทานอล 95%
-      { code: "CHEM-004", qty: 1 } // โพแทสเซียมเปอร์แมงกาเนต
-    ]
-  }
-};
 
 // Constant Categories and Units
 const CATEGORIES = ["สารเคมี", "อุปกรณ์วิทยาศาสตร์", "เครื่องแก้ว", "วัสดุสิ้นเปลือง"];
@@ -227,7 +201,8 @@ let isBackendOnline = false;
 let transactions = [];
 let bookings = [];
 let selectedSlots = [];
-let isAdminLoggedIn = true; // Always logged in for unified role
+let selectedBorrowItems = [];
+let isAdminLoggedIn = localStorage.getItem("isAdminLoggedIn") === "true";
 const BOOKING_SLOTS = [
   "คาบ 1: 08:10 - 09:00",
   "คาบ 2: 09:00 - 09:50",
@@ -272,6 +247,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupPrintReport();
   setupBarcodeScanner();
   setupCameraScanner();
+  setupLoginHandlers();
   updateLoginUI();
   
   // Initialize Lucide icons initially
@@ -2113,17 +2089,11 @@ function populateBorrowBookingSelect() {
 
 // Populate Dropdown List of Items for Borrow Form
 function populateBorrowItemDropdown() {
-  const dropdown = document.getElementById("borrowItemCode");
   const optionsList = document.getElementById("borrowItemOptionsList");
   const triggerText = document.querySelector("#borrowItemSelectTrigger .custom-select-trigger-text");
   
-  if (!dropdown || !optionsList) return;
+  if (!optionsList) return;
 
-  // Preserve selected value if any
-  const selectedVal = dropdown.value;
-
-  // Clear hidden select except first default option
-  dropdown.innerHTML = '<option value="" disabled selected>-- กรุณาเลือกรายการ --</option>';
   // Clear custom options list
   optionsList.innerHTML = '';
 
@@ -2131,13 +2101,7 @@ function populateBorrowItemDropdown() {
   const sortedItems = [...items].sort((a, b) => (a.name || "").localeCompare(b.name || "", 'th'));
 
   sortedItems.forEach(item => {
-    // 1. Populate hidden select
-    const option = document.createElement("option");
-    option.value = item.code;
-    option.innerText = `${getItemDisplayName(item) || "ไม่มีชื่อพัสดุ"} (${item.code || "ไม่มีรหัส"}) [คงเหลือ: ${item.qty || 0} ${item.unit || "หน่วย"}]`;
-    dropdown.appendChild(option);
-
-    // 2. Populate custom list item
+    // Populate custom list item
     const customOpt = document.createElement("div");
     customOpt.className = "custom-select-option";
     customOpt.setAttribute("data-value", item.code);
@@ -2157,65 +2121,115 @@ function populateBorrowItemDropdown() {
     optionsList.appendChild(customOpt);
   });
 
-  // Restore previous selection if it still exists
-  if (selectedVal) {
-    dropdown.value = selectedVal;
-    const foundItem = items.find(item => item.code === selectedVal);
-    if (foundItem) {
-      triggerText.innerText = `${getItemDisplayName(foundItem) || "ไม่มีชื่อพัสดุ"} (${foundItem.code || "ไม่มีรหัส"})`;
-      triggerText.classList.add("has-value");
-
-      // Highlight custom list option
-      const options = optionsList.querySelectorAll(".custom-select-option");
-      options.forEach(opt => {
-        if (opt.getAttribute("data-value") === selectedVal) {
-          opt.classList.add("selected");
-        } else {
-          opt.classList.remove("selected");
-        }
-      });
-    }
-  } else {
-    triggerText.innerText = '-- กรุณาเลือกรายการ --';
+  if (triggerText) {
+    triggerText.innerText = '-- ค้นหาและเลือกรายการที่ต้องการเพิ่ม --';
     triggerText.classList.remove("has-value");
   }
 }
 
 // Custom Searchable Dropdown selection logic
 function selectCustomOption(value, text) {
-  const dropdown = document.getElementById("borrowItemCode");
-  const triggerText = document.querySelector("#borrowItemSelectTrigger .custom-select-trigger-text");
+  addBorrowItem(value);
   const dropdownMenu = document.getElementById("borrowItemSelectDropdown");
   const chevron = document.querySelector("#borrowItemSelectWrapper .custom-select-chevron");
-  const optionsList = document.getElementById("borrowItemOptionsList");
-
-  if (!dropdown) return;
-
-  dropdown.value = value;
-  if (triggerText) {
-    triggerText.innerText = text;
-    triggerText.classList.add("has-value");
-  }
   
-  // Update selected class visually
-  if (optionsList) {
-    const options = optionsList.querySelectorAll(".custom-select-option");
-    options.forEach(opt => {
-      if (opt.getAttribute("data-value") === value) {
-        opt.classList.add("selected");
-      } else {
-        opt.classList.remove("selected");
-      }
-    });
-  }
-
   // Close dropdown
   if (dropdownMenu) dropdownMenu.classList.remove("open");
   if (chevron) chevron.style.transform = "rotate(0deg)";
-  
-  // Trigger change event
-  dropdown.dispatchEvent(new Event('change'));
 }
+
+// Multi-item borrowing support functions
+function addBorrowItem(itemCode) {
+  const item = items.find(i => i.code === itemCode);
+  if (!item) return;
+
+  const existing = selectedBorrowItems.find(i => i.code === itemCode);
+  if (existing) {
+    showToast(`"${getItemDisplayName(item)}" ถูกเลือกไปแล้ว`, "info");
+    return;
+  }
+
+  selectedBorrowItems.push({
+    code: item.code,
+    name: getItemDisplayName(item),
+    unit: item.unit || "ชิ้น",
+    maxQty: item.qty || 0,
+    qty: 1
+  });
+
+  renderSelectedBorrowItems();
+}
+
+function renderSelectedBorrowItems() {
+  const container = document.getElementById("selectedItemsContainer");
+  if (!container) return;
+
+  if (selectedBorrowItems.length === 0) {
+    container.innerHTML = `
+      <div class="empty-selected-items" style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0;">
+        (กรุณาเลือกรายการสารเคมี / อุปกรณ์จากกล่องด้านบนเพื่อทำรายการ)
+      </div>
+    `;
+    return;
+  }
+
+  let html = "";
+  selectedBorrowItems.forEach((item) => {
+    const isReturn = document.querySelector('input[name="borrowType"]:checked')?.value === "return";
+    
+    html += `
+      <div class="selected-item-row" style="display: flex; align-items: center; justify-content: space-between; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 8px 12px; gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 2px; flex: 1;">
+          <span style="font-weight: 600; font-size: 13.5px; color: var(--text-main);">${item.name}</span>
+          <span style="font-size: 11px; color: var(--text-muted);">
+            รหัส: ${item.code} | คงเหลือในคลัง: ${item.maxQty} ${item.unit}
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-size: 12px; color: var(--text-muted);">จำนวน:</span>
+          <input type="number" 
+                 class="form-control" 
+                 value="${item.qty}" 
+                 min="1" 
+                 ${!isReturn ? `max="${item.maxQty}"` : ''} 
+                 style="width: 70px; padding: 4px 8px; text-align: center; font-size: 13px; height: 30px;"
+                 onchange="updateBorrowItemQty('${item.code}', this.value)">
+          <button type="button" 
+                  class="btn-remove" 
+                  onclick="removeBorrowItem('${item.code}')" 
+                  style="color: var(--accent-red); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 4px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1);">
+            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  lucide.createIcons();
+}
+
+window.updateBorrowItemQty = function(code, val) {
+  const item = selectedBorrowItems.find(i => i.code === code);
+  if (item) {
+    const isReturn = document.querySelector('input[name="borrowType"]:checked')?.value === "return";
+    let num = Number(val);
+    if (isNaN(num) || num <= 0) num = 1;
+    
+    if (!isReturn && num > item.maxQty) {
+      showToast(`จำนวนที่ยืมไม่สามารถมากกว่าจำนวนคงเหลือในคลัง (${item.maxQty})`, "error");
+      num = item.maxQty;
+    }
+    
+    item.qty = num;
+    renderSelectedBorrowItems();
+  }
+};
+
+window.removeBorrowItem = function(code) {
+  selectedBorrowItems = selectedBorrowItems.filter(i => i.code !== code);
+  renderSelectedBorrowItems();
+};
 
 // Setup custom searchable select event listeners
 function setupCustomSearchableSelect() {
@@ -2343,6 +2357,19 @@ function setupCustomSearchableSelect() {
   }
 }
 
+// Helper to add days to a date string safely
+function addDays(dateStr, days) {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "";
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  } catch (e) {
+    return "";
+  }
+}
+
 // Setup Form listeners and Submit operations for Borrow/Return
 function setupBorrowForm() {
   const form = document.getElementById("borrowForm");
@@ -2405,96 +2432,20 @@ function setupBorrowForm() {
     });
   }
 
-  // Handle Lab Kit Dropdown Change and Previews
-  const kitSelect = document.getElementById("borrowLabKit");
-  const kitPreview = document.getElementById("labKitPreview");
-  const kitItemsList = document.getElementById("labKitItemsList");
-  const singleItemSelectGroup = document.getElementById("singleItemSelectGroup");
-  const borrowQtyInput = document.getElementById("borrowQty");
-
-  if (kitSelect) {
-    kitSelect.addEventListener("change", () => {
-      const kitId = kitSelect.value;
-      if (kitId && LAB_KITS[kitId]) {
-        // Hide single select group and force borrow quantity to be determined by the kit
-        singleItemSelectGroup.style.display = "none";
-        document.getElementById("borrowItemCode").required = false;
-        
-        // Populate items list preview
-        kitPreview.style.display = "block";
-        let listHtml = "";
-        let allAvailable = true;
-
-        LAB_KITS[kitId].items.forEach(kitItem => {
-          const item = items.find(i => i.code === kitItem.code);
-          const currentStock = item ? item.qty : 0;
-          const reqQty = kitItem.qty;
-          const name = item ? getItemDisplayName(item) : kitItem.code;
-          const unit = item ? item.unit : "ชิ้น";
-          const hasStock = currentStock >= reqQty;
-          if (!hasStock) allAvailable = false;
-
-          listHtml += `
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 4px 0;">
-              <span style="font-weight: 500;">• ${name}</span>
-              <span>
-                จำนวน: <strong>${reqQty}</strong> / ในคลัง: <strong style="color: ${hasStock ? 'var(--accent-green)' : 'var(--accent-red)'};">${currentStock} ${unit}</strong>
-                ${hasStock ? '' : ' <span style="font-size: 11px; font-weight: bold; color: var(--accent-red);">(ไม่พอ)</span>'}
-              </span>
-            </div>
-          `;
-        });
-
-        kitItemsList.innerHTML = listHtml;
-        lucide.createIcons();
-        
-        // Lock quantity input to 1 (since quantity is defined inside the kit)
-        borrowQtyInput.value = 1;
-        borrowQtyInput.disabled = true;
-
-        if (!allAvailable) {
-          document.getElementById("btnSubmitBorrow").disabled = true;
-          showToast("ชุดอุปกรณ์มีวัสดุบางรายการไม่เพียงพอในคลัง", "error");
-        } else {
-          document.getElementById("btnSubmitBorrow").disabled = false;
-        }
-      } else {
-        // Show single select group again
-        singleItemSelectGroup.style.display = "block";
-        document.getElementById("borrowItemCode").required = true;
-        kitPreview.style.display = "none";
-        kitItemsList.innerHTML = "";
-        
-        borrowQtyInput.value = 1;
-        borrowQtyInput.disabled = false;
-        document.getElementById("btnSubmitBorrow").disabled = false;
-      }
-    });
-  }
-
-  // Hide/Show Lab Kit dropdown depending on Borrow vs Return type
+  // Listen for borrowType change (radio buttons) to refresh selected list (in case max constraints apply)
   const borrowTypeRadios = document.querySelectorAll('input[name="borrowType"]');
   borrowTypeRadios.forEach(radio => {
     radio.addEventListener("change", () => {
-      const isReturn = document.querySelector('input[name="borrowType"]:checked').value === "return";
-      const kitGroup = document.getElementById("labKitSelectGroup");
-      const kitSelectEl = document.getElementById("borrowLabKit");
-      
-      if (isReturn) {
-        if (kitGroup) kitGroup.style.display = "none";
-        if (kitSelectEl) {
-          kitSelectEl.value = "";
-          kitSelectEl.dispatchEvent(new Event('change'));
-        }
-      } else {
-        if (kitGroup) kitGroup.style.display = "block";
-      }
+      renderSelectedBorrowItems();
     });
   });
 
   // Reset handler
   btnReset.addEventListener("click", () => {
     form.reset();
+    selectedBorrowItems = [];
+    renderSelectedBorrowItems();
+    
     if (borrowDateInput) {
       const today = new Date().toISOString().split('T')[0];
       borrowDateInput.value = today;
@@ -2509,23 +2460,21 @@ function setupBorrowForm() {
       borrowBookingSelect.value = "";
       borrowBookingSelect.dispatchEvent(new Event('change'));
     }
-    if (kitSelect) {
-      kitSelect.value = "";
-      kitSelect.dispatchEvent(new Event('change'));
-    }
-    const kitGroup = document.getElementById("labKitSelectGroup");
-    if (kitGroup) kitGroup.style.display = "block";
   });
 
   // Form submit
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    if (selectedBorrowItems.length === 0) {
+      showToast("กรุณาเลือกรายการพัสดุ/อุปกรณ์อย่างน้อย 1 รายการเพื่อทำรายการ", "error");
+      return;
+    }
+
     const borrowType = document.querySelector('input[name="borrowType"]:checked').value;
     const borrowerName = document.getElementById("borrowerName").value.trim();
     const borrowDate = document.getElementById("borrowDate").value;
     const borrowNotes = document.getElementById("borrowNotes").value.trim();
-    const kitId = kitSelect ? kitSelect.value : "";
 
     if (!borrowerName || !borrowDate) {
       showToast("กรุณากรอกข้อมูลผู้ทำรายการและวันที่", "error");
@@ -2548,29 +2497,20 @@ function setupBorrowForm() {
     // Determine expected return date (7 days after borrow)
     const expectedReturnDate = addDays(borrowDate, 7);
 
-    // 1. LAB KIT BUNDLE BORROWING FLOW
-    if (borrowType === "borrow" && kitId && LAB_KITS[kitId]) {
-      const kit = LAB_KITS[kitId];
-      
-      // Stock pre-check
-      let allAvailable = true;
-      kit.items.forEach(kitItem => {
-        const item = items.find(i => i.code === kitItem.code);
-        if (!item || item.qty < kitItem.qty) {
-          allAvailable = false;
+    // Validate stock and process each item
+    let processedCount = 0;
+
+    for (const selectedItem of selectedBorrowItems) {
+      const itemIndex = items.findIndex(item => item.code === selectedItem.code);
+      if (itemIndex === -1) continue;
+      const item = items[itemIndex];
+
+      if (borrowType === "borrow") {
+        // Double check stock quantity
+        if (selectedItem.qty > item.qty) {
+          showToast(`ไม่สามารถยืม "${getItemDisplayName(item)}" ได้! จำนวนที่ยืม (${selectedItem.qty}) มากกว่าคงเหลือในคลัง (${item.qty})`, "error");
+          return;
         }
-      });
-
-      if (!allAvailable) {
-        showToast("ไม่สามารถทำรายการได้เนื่องจากพัสดุบางรายการในชุดมีไม่เพียงพอ", "error");
-        return;
-      }
-
-      // Execute borrows
-      let loggedCount = 0;
-      for (const kitItem of kit.items) {
-        const itemIndex = items.findIndex(i => i.code === kitItem.code);
-        const item = items[itemIndex];
 
         if (userRole === "student") {
           // Student View: Creates pending request, no stock change
@@ -2578,140 +2518,11 @@ function setupBorrowForm() {
             id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
             itemCode: item.code,
             itemName: getItemDisplayName(item),
-            qty: kitItem.qty,
+            qty: selectedItem.qty,
             borrower: borrowerName,
             date: borrowDate,
             type: "borrow",
             status: "pending",
-            notes: `[ยืมในชุด: ${kit.name}] ${borrowNotes}`,
-            expectedReturnDate,
-            kitName: kit.name,
-            bookingId: bookingId || "",
-            room: borrowRoom,
-            slot: borrowSlot,
-            supervisingTeacher: supervisingTeacher || "",
-            createdAt: new Date().toISOString()
-          };
-          await saveTransaction(transactionData);
-          loggedCount++;
-        } else {
-          // Teacher View: Auto approve, decrements stock immediately
-          const newQty = item.qty - kitItem.qty;
-          const updatedItem = { ...item, qty: newQty };
-          const success = await updateItemBackend(item.code, updatedItem, itemIndex);
-          
-          if (success) {
-            const transactionData = {
-              id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
-              itemCode: item.code,
-              itemName: getItemDisplayName(item),
-              qty: kitItem.qty,
-              borrower: borrowerName,
-              date: borrowDate,
-              type: "borrow",
-              status: "borrowed",
-              notes: `[ยืมในชุด: ${kit.name}] ${borrowNotes}`,
-              expectedReturnDate,
-              kitName: kit.name,
-              bookingId: bookingId || "",
-              room: borrowRoom,
-              slot: borrowSlot,
-              supervisingTeacher: supervisingTeacher || "",
-              createdAt: new Date().toISOString()
-            };
-            await saveTransaction(transactionData);
-            loggedCount++;
-          }
-        }
-      }
-
-      if (loggedCount > 0) {
-        if (userRole === "student") {
-          showToast(`ส่งคำขออนุมัติยืมชุดพัสดุ "${kit.name}" เรียบร้อยแล้ว!`, "info");
-        } else {
-          showToast(`ทำรายการยืมชุดพัสดุ "${kit.name}" สำเร็จ!`, "success");
-        }
-        form.reset();
-        if (borrowBookingSelect) {
-          borrowBookingSelect.value = "";
-          borrowBookingSelect.dispatchEvent(new Event('change'));
-        }
-        if (kitSelect) {
-          kitSelect.value = "";
-          kitSelect.dispatchEvent(new Event('change'));
-        }
-        updateUI();
-      }
-      return;
-    }
-
-    // 2. SINGLE ITEM BORROW/RETURN FLOW
-    const itemCode = document.getElementById("borrowItemCode").value;
-    const borrowQty = Number(document.getElementById("borrowQty").value);
-
-    if (!itemCode || isNaN(borrowQty) || borrowQty <= 0) {
-      showToast("กรุณาเลือกรายการและระบุจำนวนให้ถูกต้อง", "error");
-      return;
-    }
-
-    const itemIndex = items.findIndex(item => item.code === itemCode);
-    if (itemIndex === -1) {
-      showToast("ไม่พบข้อมูลพัสดุในระบบ", "error");
-      return;
-    }
-    const item = items[itemIndex];
-
-    if (borrowType === "borrow") {
-      if (borrowQty > item.qty) {
-        showToast(`ไม่สามารถยืมได้! จำนวนที่ยืม (${borrowQty}) มากกว่าจำนวนคงเหลือในคลัง (${item.qty})`, "error");
-        return;
-      }
-
-      if (userRole === "student") {
-        // Student View: Creates pending request, no stock change
-        const transactionData = {
-          id: "TX-" + Date.now(),
-          itemCode: item.code,
-          itemName: getItemDisplayName(item),
-          qty: borrowQty,
-          borrower: borrowerName,
-          date: borrowDate,
-          type: "borrow",
-          status: "pending",
-          notes: borrowNotes,
-          expectedReturnDate,
-          bookingId: bookingId || "",
-          room: borrowRoom,
-          slot: borrowSlot,
-          supervisingTeacher: supervisingTeacher || "",
-          createdAt: new Date().toISOString()
-        };
-        const logged = await saveTransaction(transactionData);
-        if (logged) {
-          showToast(`ส่งคำขออนุมัติยืม "${getItemDisplayName(item)}" เรียบร้อยแล้ว!`, "info");
-          form.reset();
-          if (borrowBookingSelect) {
-            borrowBookingSelect.value = "";
-            borrowBookingSelect.dispatchEvent(new Event('change'));
-          }
-          updateUI();
-        }
-      } else {
-        // Teacher View: Decrement stock immediately and save approved transaction
-        const newQty = item.qty - borrowQty;
-        const updatedItem = { ...item, qty: newQty };
-        const success = await updateItemBackend(item.code, updatedItem, itemIndex);
-
-        if (success) {
-          const transactionData = {
-            id: "TX-" + Date.now(),
-            itemCode: item.code,
-            itemName: getItemDisplayName(item),
-            qty: borrowQty,
-            borrower: borrowerName,
-            date: borrowDate,
-            type: "borrow",
-            status: "borrowed",
             notes: borrowNotes,
             expectedReturnDate,
             bookingId: bookingId || "",
@@ -2720,49 +2531,84 @@ function setupBorrowForm() {
             supervisingTeacher: supervisingTeacher || "",
             createdAt: new Date().toISOString()
           };
-          const logged = await saveTransaction(transactionData);
-          if (logged) {
-            showToast(`ทำรายการยืม "${getItemDisplayName(item)}" สำเร็จ!`, "success");
-            form.reset();
-            if (borrowBookingSelect) {
-              borrowBookingSelect.value = "";
-              borrowBookingSelect.dispatchEvent(new Event('change'));
-            }
-            updateUI();
-          }
-        }
-      }
-    } else {
-      // RETURN FLOW (Immediate Return)
-      const newQty = item.qty + borrowQty;
-      const updatedItem = { ...item, qty: newQty };
-      const success = await updateItemBackend(item.code, updatedItem, itemIndex);
+          const success = await saveTransaction(transactionData);
+          if (success) processedCount++;
+        } else {
+          // Teacher View: Decrement stock immediately and save approved transaction
+          const newQty = item.qty - selectedItem.qty;
+          const updatedItem = { ...item, qty: newQty };
+          const successBackend = await updateItemBackend(item.code, updatedItem, itemIndex);
 
-      if (success) {
-        const transactionData = {
-          id: "TX-" + Date.now(),
-          itemCode: item.code,
-          itemName: getItemDisplayName(item),
-          qty: borrowQty,
-          borrower: borrowerName,
-          date: borrowDate,
-          type: "return",
-          status: "returned",
-          notes: borrowNotes,
-          expectedReturnDate: "",
-          createdAt: new Date().toISOString()
-        };
-        const logged = await saveTransaction(transactionData);
-        if (logged) {
-          showToast(`ทำรายการคืน "${getItemDisplayName(item)}" สำเร็จ!`, "success");
-          form.reset();
-          if (borrowBookingSelect) {
-            borrowBookingSelect.value = "";
-            borrowBookingSelect.dispatchEvent(new Event('change'));
+          if (successBackend) {
+            const transactionData = {
+              id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+              itemCode: item.code,
+              itemName: getItemDisplayName(item),
+              qty: selectedItem.qty,
+              borrower: borrowerName,
+              date: borrowDate,
+              type: "borrow",
+              status: "borrowed",
+              notes: borrowNotes,
+              expectedReturnDate,
+              bookingId: bookingId || "",
+              room: borrowRoom,
+              slot: borrowSlot,
+              supervisingTeacher: supervisingTeacher || "",
+              createdAt: new Date().toISOString()
+            };
+            const success = await saveTransaction(transactionData);
+            if (success) processedCount++;
           }
-          updateUI();
+        }
+      } else {
+        // RETURN FLOW (Immediate Return)
+        const newQty = item.qty + selectedItem.qty;
+        const updatedItem = { ...item, qty: newQty };
+        const successBackend = await updateItemBackend(item.code, updatedItem, itemIndex);
+
+        if (successBackend) {
+          const transactionData = {
+            id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+            itemCode: item.code,
+            itemName: getItemDisplayName(item),
+            qty: selectedItem.qty,
+            borrower: borrowerName,
+            date: borrowDate,
+            type: "return",
+            status: "returned",
+            notes: borrowNotes,
+            expectedReturnDate: "",
+            createdAt: new Date().toISOString()
+          };
+          const success = await saveTransaction(transactionData);
+          if (success) processedCount++;
         }
       }
+    }
+
+    if (processedCount > 0) {
+      if (borrowType === "borrow") {
+        if (userRole === "student") {
+          showToast(`ส่งคำขออนุมัติยืม ${processedCount} รายการเรียบร้อยแล้ว!`, "info");
+        } else {
+          showToast(`ทำรายการยืม ${processedCount} รายการสำเร็จ!`, "success");
+        }
+      } else {
+        showToast(`ทำรายการคืน ${processedCount} รายการสำเร็จ!`, "success");
+      }
+      
+      // Clear selection and reset form
+      selectedBorrowItems = [];
+      renderSelectedBorrowItems();
+      form.reset();
+      
+      if (borrowBookingSelect) {
+        borrowBookingSelect.value = "";
+        borrowBookingSelect.dispatchEvent(new Event('change'));
+      }
+      
+      updateUI();
     }
   });
 }
@@ -3390,7 +3236,103 @@ function updateLoginUI() {
 }
 
 function setupLoginHandlers() {
-  // Disabled - unified admin/teacher role
+  const btnSidebarLogin = document.getElementById("btnSidebarLogin");
+  const loginModal = document.getElementById("loginModal");
+  const loginModalClose = document.getElementById("loginModalClose");
+  const btnCancelLogin = document.getElementById("btnCancelLogin");
+  const adminLoginForm = document.getElementById("adminLoginForm");
+  const btnTogglePassword = document.getElementById("btnTogglePassword");
+  const loginPasswordInput = document.getElementById("loginPassword");
+  const eyeIcon = document.getElementById("eyeIcon");
+
+  if (btnSidebarLogin) {
+    btnSidebarLogin.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (isAdminLoggedIn) {
+        // Logout
+        isAdminLoggedIn = false;
+        userRole = "student";
+        localStorage.removeItem("isAdminLoggedIn");
+        localStorage.removeItem("userRole");
+        showToast("ออกจากระบบเรียบร้อยแล้ว", "info");
+        updateLoginUI();
+        lucide.createIcons();
+      } else {
+        // Show login modal
+        if (loginModal) {
+          loginModal.classList.add("active");
+          const usernameInput = document.getElementById("loginUsername");
+          if (usernameInput) usernameInput.value = "";
+          if (loginPasswordInput) loginPasswordInput.value = "";
+          const errorMsg = document.getElementById("loginErrorMsg");
+          if (errorMsg) errorMsg.style.display = "none";
+          lucide.createIcons();
+        }
+      }
+    });
+  }
+
+  // Close modal helper
+  const closeModal = () => {
+    if (loginModal) loginModal.classList.remove("active");
+  };
+
+  if (loginModalClose) {
+    loginModalClose.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeModal();
+    });
+  }
+  
+  if (btnCancelLogin) {
+    btnCancelLogin.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeModal();
+    });
+  }
+
+  // Submit login form
+  if (adminLoginForm) {
+    adminLoginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const usernameInput = document.getElementById("loginUsername");
+      const username = usernameInput ? usernameInput.value.trim() : "";
+      const password = loginPasswordInput ? loginPasswordInput.value : "";
+
+      // Check credentials based on index.html hint
+      if (
+        (username === "admin" && password === "admin1234") ||
+        (username === "teacher" && password === "teacher1234")
+      ) {
+        isAdminLoggedIn = true;
+        userRole = username; // Update role to match logged in user (admin or teacher)
+        localStorage.setItem("isAdminLoggedIn", "true");
+        localStorage.setItem("userRole", username);
+        showToast(`เข้าสู่ระบบในฐานะ ${username === "admin" ? "เจ้าหน้าที่แล็บ" : "ครูผู้สอน"} สำเร็จ!`, "success");
+        closeModal();
+        updateLoginUI();
+        lucide.createIcons();
+      } else {
+        const errorMsg = document.getElementById("loginErrorMsg");
+        if (errorMsg) errorMsg.style.display = "flex";
+      }
+    });
+  }
+
+  // Password visibility toggle
+  if (btnTogglePassword && loginPasswordInput && eyeIcon) {
+    btnTogglePassword.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (loginPasswordInput.type === "password") {
+        loginPasswordInput.type = "text";
+        eyeIcon.setAttribute("data-lucide", "eye-off");
+      } else {
+        loginPasswordInput.type = "password";
+        eyeIcon.setAttribute("data-lucide", "eye");
+      }
+      lucide.createIcons();
+    });
+  }
 }
 
 // ==========================================================================

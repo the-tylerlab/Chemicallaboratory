@@ -545,13 +545,18 @@ button {
   border-radius: var(--border-radius-md);
   text-align: left;
   border: 1px solid transparent;
-  transition: transform var(--transition-spring), box-shadow var(--transition-spring), border-color 0.3s ease;
+  transition: transform var(--transition-spring), box-shadow var(--transition-spring), border-color 0.25s ease, background-color 0.25s ease;
   width: 100%;
+  cursor: pointer;
 }
 
 .quick-btn:hover {
   transform: translateX(6px);
   box-shadow: var(--shadow-premium);
+}
+
+.quick-btn:active {
+  transform: scale(0.97) translateX(3px) !important;
 }
 
 .quick-btn-icon {
@@ -587,6 +592,7 @@ button {
   background-color: #f5f3ff;
 }
 .quick-btn.purple:hover {
+  background-color: #ede9fe;
   border-color: rgba(63, 27, 133, 0.25);
 }
 .quick-btn.purple .quick-btn-icon {
@@ -597,6 +603,7 @@ button {
   background-color: var(--accent-blue-light);
 }
 .quick-btn.blue:hover {
+  background-color: #dbeafe;
   border-color: rgba(59, 130, 246, 0.25);
 }
 .quick-btn.blue .quick-btn-icon {
@@ -607,6 +614,7 @@ button {
   background-color: var(--accent-green-light);
 }
 .quick-btn.green:hover {
+  background-color: #d1fae5;
   border-color: rgba(16, 185, 129, 0.25);
 }
 .quick-btn.green .quick-btn-icon {
