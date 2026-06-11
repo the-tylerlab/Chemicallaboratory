@@ -2439,11 +2439,49 @@ function setupBorrowForm() {
     });
   }
 
+  function updateBorrowFormUI() {
+    const borrowType = document.querySelector('input[name="borrowType"]:checked')?.value || "borrow";
+    const singleItemSelectGroup = document.getElementById("singleItemSelectGroup");
+    const selectedItemsGroup = document.getElementById("selectedItemsGroup");
+    const borrowBookingDetailsRow = document.getElementById("borrowBookingDetailsRow");
+    
+    const borrowDateInput = document.getElementById("borrowDate");
+    const borrowRoomSelect = document.getElementById("borrowRoom");
+    const borrowSlotSelect = document.getElementById("borrowSlot");
+    const btnSubmitBorrowSpan = document.querySelector("#btnSubmitBorrow span");
+
+    if (borrowType === "return") {
+      if (singleItemSelectGroup) singleItemSelectGroup.style.display = "none";
+      if (selectedItemsGroup) selectedItemsGroup.style.display = "none";
+      if (borrowBookingDetailsRow) borrowBookingDetailsRow.style.display = "none";
+      
+      if (borrowDateInput) borrowDateInput.required = false;
+      if (borrowRoomSelect) borrowRoomSelect.required = false;
+      if (borrowSlotSelect) borrowSlotSelect.required = false;
+      
+      if (btnSubmitBorrowSpan) btnSubmitBorrowSpan.textContent = "ยืนยันการคืนพัสดุทั้งหมด";
+    } else {
+      if (singleItemSelectGroup) singleItemSelectGroup.style.display = "block";
+      if (selectedItemsGroup) selectedItemsGroup.style.display = "block";
+      if (borrowBookingDetailsRow) borrowBookingDetailsRow.style.display = "grid";
+      
+      if (borrowDateInput) borrowDateInput.required = true;
+      if (borrowRoomSelect) borrowRoomSelect.required = true;
+      if (borrowSlotSelect) borrowSlotSelect.required = true;
+      
+      if (btnSubmitBorrowSpan) btnSubmitBorrowSpan.textContent = "บันทึกรายการ";
+    }
+  }
+
+  // Initial call
+  updateBorrowFormUI();
+
   // Listen for borrowType change (radio buttons) to refresh selected list (in case max constraints apply)
   const borrowTypeRadios = document.querySelectorAll('input[name="borrowType"]');
   borrowTypeRadios.forEach(radio => {
     radio.addEventListener("change", () => {
       renderSelectedBorrowItems();
+      updateBorrowFormUI();
     });
   });
 
@@ -2467,24 +2505,109 @@ function setupBorrowForm() {
       borrowBookingSelect.value = "";
       borrowBookingSelect.dispatchEvent(new Event('change'));
     }
+
+    updateBorrowFormUI();
   });
 
   // Form submit
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const borrowType = document.querySelector('input[name="borrowType"]:checked').value;
+    const borrowerName = document.getElementById("borrowerName").value.trim();
+
+    if (!borrowerName) {
+      showToast("กรุณากรอกชื่อผู้ทำรายการ", "error");
+      return;
+    }
+
+    if (borrowType === "return") {
+      // Find all transactions currently borrowed by this user
+      const borrowedTx = transactions.filter(t => 
+        t.borrower && 
+        t.borrower.trim().toLowerCase() === borrowerName.toLowerCase() && 
+        t.type === "borrow" && 
+        t.status === "borrowed"
+      );
+
+      if (borrowedTx.length === 0) {
+        showToast(`ไม่พบรายการยืมพัสดุที่ยังไม่ได้คืนสำหรับผู้ยืมชื่อ "${borrowerName}"`, "error");
+        return;
+      }
+
+      if (confirm(`คุณต้องการยืนยันการคืนพัสดุทั้งหมดจำนวน ${borrowedTx.length} รายการ ของผู้ยืม "${borrowerName}" ใช่หรือไม่?`)) {
+        let successCount = 0;
+        for (const tx of borrowedTx) {
+          // Find the item
+          const itemIndex = items.findIndex(i => i.code === tx.itemCode);
+          if (itemIndex === -1) continue;
+          const item = items[itemIndex];
+
+          // Calculate new stock quantity
+          const newQty = item.qty + tx.qty;
+
+          // Update item stock in backend/cloud
+          const updatedItem = { ...item, qty: newQty };
+          const successBackend = await updateItemBackend(item.code, updatedItem, itemIndex);
+
+          if (successBackend) {
+            // Update transaction status
+            const updatedTrans = { ...tx, status: "returned" };
+            
+            // Update in Firebase or LocalStorage
+            if (isFirebaseOnline) {
+              try {
+                await db.collection("transactions").doc(tx.id).set(updatedTrans);
+                const idx = transactions.findIndex(t => t.id === tx.id);
+                if (idx !== -1) transactions[idx] = updatedTrans;
+              } catch (err) {
+                console.error("🔥 Failed to update transaction on Firebase:", err);
+                continue;
+              }
+            } else {
+              // Local fallback
+              const idx = transactions.findIndex(t => t.id === tx.id);
+              if (idx !== -1) transactions[idx] = updatedTrans;
+              localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+            }
+            successCount++;
+          }
+        }
+
+        if (successCount > 0) {
+          showToast(`คืนพัสดุสำเร็จทั้งหมด ${successCount} รายการ!`, "success");
+          
+          // Clear selection and reset form
+          selectedBorrowItems = [];
+          renderSelectedBorrowItems();
+          form.reset();
+          
+          if (borrowDateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            borrowDateInput.value = today;
+          }
+          
+          // Reset UI toggles
+          updateBorrowFormUI();
+          updateUI();
+        } else {
+          showToast("เกิดข้อผิดพลาดในการคืนพัสดุ", "error");
+        }
+      }
+      return;
+    }
+
+    // BORROW FLOW
     if (selectedBorrowItems.length === 0) {
       showToast("กรุณาเลือกรายการพัสดุ/อุปกรณ์อย่างน้อย 1 รายการเพื่อทำรายการ", "error");
       return;
     }
 
-    const borrowType = document.querySelector('input[name="borrowType"]:checked').value;
-    const borrowerName = document.getElementById("borrowerName").value.trim();
     const borrowDate = document.getElementById("borrowDate").value;
     const borrowNotes = document.getElementById("borrowNotes").value.trim();
 
-    if (!borrowerName || !borrowDate) {
-      showToast("กรุณากรอกข้อมูลผู้ทำรายการและวันที่", "error");
+    if (!borrowDate) {
+      showToast("กรุณากรอกข้อมูลวันที่ใช้งาน", "error");
       return;
     }
 
@@ -2512,65 +2635,36 @@ function setupBorrowForm() {
       if (itemIndex === -1) continue;
       const item = items[itemIndex];
 
-      if (borrowType === "borrow") {
-        // Double check stock quantity
-        if (selectedItem.qty > item.qty) {
-          showToast(`ไม่สามารถยืม "${getItemDisplayName(item)}" ได้! จำนวนที่ยืม (${selectedItem.qty}) มากกว่าคงเหลือในคลัง (${item.qty})`, "error");
-          return;
-        }
+      // Double check stock quantity
+      if (selectedItem.qty > item.qty) {
+        showToast(`ไม่สามารถยืม "${getItemDisplayName(item)}" ได้! จำนวนที่ยืม (${selectedItem.qty}) มากกว่าคงเหลือในคลัง (${item.qty})`, "error");
+        return;
+      }
 
-        if (userRole === "student") {
-          // Student View: Creates pending request, no stock change
-          const transactionData = {
-            id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
-            itemCode: item.code,
-            itemName: getItemDisplayName(item),
-            qty: selectedItem.qty,
-            borrower: borrowerName,
-            date: borrowDate,
-            type: "borrow",
-            status: "pending",
-            notes: borrowNotes,
-            expectedReturnDate,
-            bookingId: bookingId || "",
-            room: borrowRoom,
-            slot: borrowSlot,
-            supervisingTeacher: supervisingTeacher || "",
-            createdAt: new Date().toISOString()
-          };
-          const success = await saveTransaction(transactionData);
-          if (success) processedCount++;
-        } else {
-          // Teacher View: Decrement stock immediately and save approved transaction
-          const newQty = item.qty - selectedItem.qty;
-          const updatedItem = { ...item, qty: newQty };
-          const successBackend = await updateItemBackend(item.code, updatedItem, itemIndex);
-
-          if (successBackend) {
-            const transactionData = {
-              id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
-              itemCode: item.code,
-              itemName: getItemDisplayName(item),
-              qty: selectedItem.qty,
-              borrower: borrowerName,
-              date: borrowDate,
-              type: "borrow",
-              status: "borrowed",
-              notes: borrowNotes,
-              expectedReturnDate,
-              bookingId: bookingId || "",
-              room: borrowRoom,
-              slot: borrowSlot,
-              supervisingTeacher: supervisingTeacher || "",
-              createdAt: new Date().toISOString()
-            };
-            const success = await saveTransaction(transactionData);
-            if (success) processedCount++;
-          }
-        }
+      if (userRole === "student") {
+        // Student View: Creates pending request, no stock change
+        const transactionData = {
+          id: "TX-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+          itemCode: item.code,
+          itemName: getItemDisplayName(item),
+          qty: selectedItem.qty,
+          borrower: borrowerName,
+          date: borrowDate,
+          type: "borrow",
+          status: "pending",
+          notes: borrowNotes,
+          expectedReturnDate,
+          bookingId: bookingId || "",
+          room: borrowRoom,
+          slot: borrowSlot,
+          supervisingTeacher: supervisingTeacher || "",
+          createdAt: new Date().toISOString()
+        };
+        const success = await saveTransaction(transactionData);
+        if (success) processedCount++;
       } else {
-        // RETURN FLOW (Immediate Return)
-        const newQty = item.qty + selectedItem.qty;
+        // Teacher View: Decrement stock immediately and save approved transaction
+        const newQty = item.qty - selectedItem.qty;
         const updatedItem = { ...item, qty: newQty };
         const successBackend = await updateItemBackend(item.code, updatedItem, itemIndex);
 
@@ -2582,10 +2676,14 @@ function setupBorrowForm() {
             qty: selectedItem.qty,
             borrower: borrowerName,
             date: borrowDate,
-            type: "return",
-            status: "returned",
+            type: "borrow",
+            status: "borrowed",
             notes: borrowNotes,
-            expectedReturnDate: "",
+            expectedReturnDate,
+            bookingId: bookingId || "",
+            room: borrowRoom,
+            slot: borrowSlot,
+            supervisingTeacher: supervisingTeacher || "",
             createdAt: new Date().toISOString()
           };
           const success = await saveTransaction(transactionData);
@@ -2595,14 +2693,10 @@ function setupBorrowForm() {
     }
 
     if (processedCount > 0) {
-      if (borrowType === "borrow") {
-        if (userRole === "student") {
-          showToast(`ส่งคำขออนุมัติยืม ${processedCount} รายการเรียบร้อยแล้ว!`, "info");
-        } else {
-          showToast(`ทำรายการยืม ${processedCount} รายการสำเร็จ!`, "success");
-        }
+      if (userRole === "student") {
+        showToast(`ส่งคำขออนุมัติยืม ${processedCount} รายการเรียบร้อยแล้ว!`, "info");
       } else {
-        showToast(`ทำรายการคืน ${processedCount} รายการสำเร็จ!`, "success");
+        showToast(`ทำรายการยืม ${processedCount} รายการสำเร็จ!`, "success");
       }
       
       // Clear selection and reset form
@@ -2615,6 +2709,7 @@ function setupBorrowForm() {
         borrowBookingSelect.dispatchEvent(new Event('change'));
       }
       
+      updateBorrowFormUI();
       updateUI();
     }
   });
