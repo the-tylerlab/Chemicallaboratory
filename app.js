@@ -209,10 +209,10 @@ const BOOKING_SLOTS = [
   "คาบ 3: 09:50 - 10:40",
   "คาบ 4: 10:50 - 11:40",
   "คาบ 5: 11:40 - 12:30",
-  "คาบ 6: 12:30 - 13:20",
-  "คาบ 7: 13:20 - 14:10",
-  "คาบ 8: 14:10 - 15:00",
-  "คาบ 9: 15:10 - 16:00"
+  "พักกลางวัน: 12:30 - 13:20",
+  "คาบ 6: 13:20 - 14:10",
+  "คาบ 7: 14:10 - 15:00",
+  "คาบ 8: 15:10 - 16:00"
 ];
 
 // Initialize application on DOM ready
@@ -445,6 +445,14 @@ function setupNavigation() {
       // Reset page back to 1 when changing panels
       currentPage = 1;
       updateUI();
+
+      // Auto-focus search input if navigating to all-items
+      if (targetPanelId === "all-items") {
+        const filterSearch = document.getElementById("filterSearch");
+        if (filterSearch) {
+          setTimeout(() => filterSearch.focus(), 50);
+        }
+      }
     });
   });
 
@@ -472,11 +480,6 @@ function setupNavigation() {
   document.getElementById("statCardNearExpiry").addEventListener("click", () => navigateToPanel("all-items", "all", "near-expiry"));
 
   // Dashboard Quick buttons
-  document.getElementById("quickBtnSearch").addEventListener("click", () => {
-    navigateToPanel("all-items");
-    document.getElementById("filterSearch").focus();
-  });
-  
   document.getElementById("quickBtnBorrowReturn").addEventListener("click", () => {
     navigateToPanel("borrow-return");
   });
@@ -539,6 +542,10 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   if (panelId === "all-items") {
     document.getElementById("filterCategory").value = catFilter;
     document.getElementById("filterStatus").value = statusFilter;
+    const filterSearch = document.getElementById("filterSearch");
+    if (filterSearch) {
+      setTimeout(() => filterSearch.focus(), 50);
+    }
   }
 
   currentPage = 1;
@@ -2407,7 +2414,7 @@ function setupBorrowForm() {
             borrowRoomSelect.disabled = true;
           }
           if (borrowSlotSelect) {
-            const slotMatch = booking.slot.match(/คาบ \d+/);
+            const slotMatch = booking.slot.match(/คาบ \d+|พักกลางวัน/);
             borrowSlotSelect.value = slotMatch ? slotMatch[0] : "None";
             borrowSlotSelect.disabled = true;
           }
@@ -2730,7 +2737,7 @@ async function loadAllBookings() {
       id: "bk-3",
       room: "Lab 1",
       date: "2026-06-04",
-      slot: "คาบ 5: 11:30 - 12:20, คาบ 6: 12:20 - 13:10",
+      slot: "คาบ 5: 11:40 - 12:30, พักกลางวัน: 12:30 - 13:20",
       bookerName: "ดร. ณรงค์ศักดิ์",
       status: "approved",
       createdAt: new Date(Date.now() - 7200000).toISOString()
