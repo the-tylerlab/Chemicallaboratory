@@ -9,6 +9,17 @@ const itemsPerPage = 10;
 let fileToImport = null;
 let userRole = localStorage.getItem("userRole") || (localStorage.getItem("isAdminLoggedIn") === "true" ? "admin" : "student");
 
+// One-time cleanup of test data for production launch
+if (!localStorage.getItem("lab_cleaned_v1.7.0")) {
+  localStorage.removeItem("lab_transactions");
+  localStorage.removeItem("lab_bookings");
+  localStorage.removeItem("lab_items");
+  localStorage.removeItem("userRole");
+  localStorage.removeItem("isAdminLoggedIn");
+  localStorage.setItem("lab_cleaned_v1.7.0", "true");
+  userRole = "student";
+}
+
 
 // Constant Categories and Units
 const CATEGORIES = ["สารเคมี", "อุปกรณ์วิทยาศาสตร์", "เครื่องแก้ว", "วัสดุสิ้นเปลือง"];
@@ -219,6 +230,59 @@ const BOOKING_SLOTS = [
 document.addEventListener("DOMContentLoaded", async () => {
   // First, check backend online status
   await checkBackendStatus();
+  
+  // One-Time Firebase Firestore database cleanup (for clearing mock data from cloud)
+  if (!localStorage.getItem("firebase_cleared_v1.7.0") && isFirebaseOnline && db) {
+    try {
+      console.log("🧹 Starting Firebase Firestore cleanup...");
+      
+      // 1. Clear transactions collection
+      const txSnapshot = await db.collection("transactions").get();
+      const txBatch = db.batch();
+      let txCount = 0;
+      txSnapshot.forEach(doc => {
+        txBatch.delete(doc.ref);
+        txCount++;
+      });
+      if (txCount > 0) {
+        await txBatch.commit();
+        console.log(`🧹 Cleared ${txCount} transactions from Firebase.`);
+      }
+
+      // 2. Clear bookings collection
+      const bkSnapshot = await db.collection("bookings").get();
+      const bkBatch = db.batch();
+      let bkCount = 0;
+      bkSnapshot.forEach(doc => {
+        bkBatch.delete(doc.ref);
+        bkCount++;
+      });
+      if (bkCount > 0) {
+        await bkBatch.commit();
+        console.log(`🧹 Cleared ${bkCount} bookings from Firebase.`);
+      }
+
+      // 3. Clear and re-seed items collection
+      const itSnapshot = await db.collection("items").get();
+      const itBatch = db.batch();
+      itSnapshot.forEach(doc => {
+        itBatch.delete(doc.ref);
+      });
+      await itBatch.commit();
+      
+      const seedBatch = db.batch();
+      DEMO_DATA.forEach(item => {
+        const docRef = db.collection("items").doc(item.code);
+        seedBatch.set(docRef, item);
+      });
+      await seedBatch.commit();
+      
+      localStorage.setItem("firebase_cleared_v1.7.0", "true");
+      console.log("🧹 Firebase Firestore cleanup completed successfully.");
+    } catch (err) {
+      console.error("🧹 Firebase Firestore cleanup failed:", err);
+    }
+  }
   
   // Load data
   await loadAllItems();
@@ -1906,86 +1970,7 @@ function setupDashboardCards() {
 
 // Load transactions from Firebase or LocalStorage
 async function loadAllTransactions() {
-  const defaultTrans = [
-    {
-      id: "tx-1",
-      itemCode: "GW-001",
-      itemName: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
-      qty: 2,
-      borrower: "สมชาย มีดี",
-      date: "2026-06-03",
-      type: "borrow",
-      status: "borrowed",
-      notes: "ทำการทดลองวิเคราะห์หาค่าความเป็นกรด-ด่าง",
-      expectedReturnDate: "2026-06-10",
-      createdAt: new Date(Date.now() - 172800000).toISOString()
-    },
-    {
-      id: "tx-2",
-      itemCode: "CHEM-001",
-      itemName: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
-      qty: 1,
-      borrower: "ใจดี เรียนดี",
-      date: "2026-06-02",
-      type: "return",
-      status: "returned",
-      notes: "ใช้เตรียมสารละลาย และส่งคืนขวดสารที่เหลือเข้าชั้น",
-      expectedReturnDate: "2026-06-09",
-      createdAt: new Date(Date.now() - 259200000).toISOString()
-    },
-    {
-      id: "tx-3",
-      itemCode: "CHEM-004",
-      itemName: "โพแทสเซียมเปอร์แมงกาเนต (Potassium Permanganate)",
-      qty: 1,
-      borrower: "ดร. วีระศักดิ์",
-      date: "2026-06-04",
-      type: "borrow",
-      status: "borrowed",
-      notes: "เตรียมใช้ทดลองหาปริมาณสารอินทรีย์ในน้ำ",
-      expectedReturnDate: "2026-06-11",
-      createdAt: new Date(Date.now() - 3600000).toISOString()
-    },
-    {
-      id: "tx-4",
-      itemCode: "GW-002",
-      itemName: "ปิเปตขนาด 10 มล. (Pipette 10ml)",
-      qty: 3,
-      borrower: "ใจดี เรียนดี",
-      date: "2026-06-04",
-      type: "borrow",
-      status: "borrowed",
-      notes: "ใช้สำหรับย้ายของเหลวการทดลองเคมีวิเคราะห์",
-      expectedReturnDate: "2026-06-11",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "tx-5",
-      itemCode: "CHEM-002",
-      itemName: "เอทานอล 95% (Ethanol)",
-      qty: 1,
-      borrower: "นายสมชาย เรียนดี",
-      date: "2026-05-15",
-      type: "borrow",
-      status: "borrowed",
-      notes: "การทดลองเรื่องสารประกอบอินทรีย์",
-      expectedReturnDate: "2026-05-22",
-      createdAt: "2026-05-15T09:00:00.000Z"
-    },
-    {
-      id: "tx-6",
-      itemCode: "GW-002",
-      itemName: "ปิเปตขนาด 10 มล. (Pipette 10ml)",
-      qty: 2,
-      borrower: "นางสาวสมหญิง ใจดี",
-      date: "2026-05-10",
-      type: "borrow",
-      status: "borrowed",
-      notes: "วิชาเคมี ชั้น ม.5",
-      expectedReturnDate: "2026-05-17",
-      createdAt: "2026-05-10T10:00:00.000Z"
-    }
-  ];
+  const defaultTrans = [];
 
   if (isFirebaseOnline) {
     try {
@@ -2809,44 +2794,7 @@ window.returnBorrowedItem = async function(transId) {
 // ==========================================================================
 
 async function loadAllBookings() {
-  const defaultBookings = [
-    {
-      id: "bk-1",
-      room: "Lab 1",
-      date: "2026-06-03",
-      slot: "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
-      bookerName: "อาจารย์ วีระศักดิ์",
-      status: "approved",
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    },
-    {
-      id: "bk-2",
-      room: "Lab 2",
-      date: "2026-06-04",
-      slot: "คาบ 3: 09:50 - 10:40",
-      bookerName: "สมชาย มีดี",
-      status: "approved",
-      createdAt: new Date(Date.now() - 3600000).toISOString()
-    },
-    {
-      id: "bk-3",
-      room: "Lab 1",
-      date: "2026-06-04",
-      slot: "คาบ 5: 11:40 - 12:30, พักกลางวัน: 12:30 - 13:20",
-      bookerName: "ดร. ณรงค์ศักดิ์",
-      status: "approved",
-      createdAt: new Date(Date.now() - 7200000).toISOString()
-    },
-    {
-      id: "bk-4",
-      room: "Lab 2",
-      date: "2026-06-05",
-      slot: "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
-      bookerName: "ผศ. ดร. สมเกียรติ",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    }
-  ];
+  const defaultBookings = [];
 
   if (isFirebaseOnline) {
     try {
