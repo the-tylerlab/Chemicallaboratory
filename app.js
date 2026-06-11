@@ -3304,7 +3304,7 @@ function setupLoginHandlers() {
       const username = usernameInput ? usernameInput.value.trim() : "";
       const password = loginPasswordInput ? loginPasswordInput.value : "";
 
-      // Check credentials based on index.html hint
+      // Check credentials based on admin/teacher usernames and passwords
       if (username === "admin" && password === "admin1234") {
         isAdminLoggedIn = true;
         userRole = "admin";
