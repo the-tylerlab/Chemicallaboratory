@@ -9,7 +9,7 @@
   <!-- Favicon (ไอคอนแท็บเบราว์เซอร์) -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='white'/%3E%3Cline x1='34.5' y1='65' x2='56.5' y2='35' stroke='%23ef4444' stroke-width='18' stroke-linecap='round'/%3E%3Ccircle cx='64.5' cy='55' r='9.5' fill='%23ef4444'/%3E%3C/svg%3E">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1.6.7">
   <!-- Lucide Icons Library -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Firebase App & Firestore Compat SDKs -->
@@ -581,7 +581,32 @@
             </div>
             
             <form id="borrowForm">
-              <div class="form-group" id="singleItemSelectGroup" style="margin-bottom: 16px;">
+              <div class="form-group">
+                <label class="form-label" style="font-weight: 600; font-size: 14px;">ประเภทรายการ <span style="color: var(--accent-red);">*</span></label>
+                <div class="transaction-cards-container">
+                  <label class="transaction-card">
+                    <input type="radio" name="borrowType" id="typeBorrow" value="borrow" checked class="transaction-card-input">
+                    <div class="transaction-card-content">
+                      <div class="transaction-card-details">
+                        <span class="transaction-card-title">ยืมสาร/อุปกรณ์</span>
+                        <span class="transaction-card-desc">เบิกใช้สำหรับเข้าเรียน/ทำปฏิบัติการ</span>
+                      </div>
+                    </div>
+                  </label>
+                  
+                  <label class="transaction-card">
+                    <input type="radio" name="borrowType" id="typeReturn" value="return" class="transaction-card-input">
+                    <div class="transaction-card-content">
+                      <div class="transaction-card-details">
+                        <span class="transaction-card-title">คืนสาร/อุปกรณ์</span>
+                        <span class="transaction-card-desc">บันทึกส่งคืนพัสดุและอุปกรณ์เคมี</span>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group" id="singleItemSelectGroup">
                 <label for="borrowItemCode" class="form-label">เลือกรายการสารเคมี / อุปกรณ์ <span style="color: var(--accent-red);">*</span></label>
                 <div class="custom-select-wrapper" id="borrowItemSelectWrapper">
                   <div class="custom-select-trigger" id="borrowItemSelectTrigger">
@@ -602,7 +627,7 @@
               </div>
 
               <!-- Selected Items List for Multiple Borrowing -->
-              <div class="form-group" style="margin-bottom: 20px;">
+              <div class="form-group" id="selectedItemsGroup">
                 <label class="form-label">รายการที่เลือกเพื่อทำรายการ <span style="color: var(--accent-red);">*</span></label>
                 <div id="selectedItemsContainer" style="border: 1px dashed var(--border-color); border-radius: var(--border-radius-md); padding: 12px; min-height: 80px; display: flex; flex-direction: column; gap: 8px; background-color: rgba(0,0,0,0.01);">
                   <div class="empty-selected-items" style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0;">
@@ -612,18 +637,6 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">ประเภทรายการ <span style="color: var(--accent-red);">*</span></label>
-                <div style="display: flex; gap: 16px;">
-                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
-                    <input type="radio" name="borrowType" value="borrow" checked style="accent-color: var(--primary-purple); width: 18px; height: 18px;"> ยืมสาร/อุปกรณ์
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">
-                    <input type="radio" name="borrowType" value="return" style="accent-color: var(--primary-purple); width: 18px; height: 18px;"> คืนสาร/อุปกรณ์
-                  </label>
-                </div>
-              </div>
-
-              <div class="form-group" style="margin-bottom: 12px;">
                 <label for="borrowerName" class="form-label">ชื่อผู้ทำรายการ <span style="color: var(--accent-red);">*</span></label>
                 <input type="text" id="borrowerName" class="form-control" placeholder="ระบุชื่อผู้ยืม-คืน" required>
               </div>
@@ -631,7 +644,7 @@
 
 
               <!-- Linked Booking Details (Date, Room, Period) -->
-              <div class="form-row-3" id="borrowBookingDetailsRow" style="margin-top: 12px; margin-bottom: 12px;">
+              <div class="form-row-3" id="borrowBookingDetailsRow">
                 <div class="form-group">
                   <label for="borrowDate" class="form-label">วันที่ใช้งาน <span style="color: var(--accent-red);">*</span></label>
                   <input type="date" id="borrowDate" class="form-control" required>

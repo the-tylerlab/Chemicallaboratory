@@ -658,17 +658,131 @@ button {
   border: 1px solid var(--border-color);
 }
 
+.form-panel-header {
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+}
+
+#borrowFormTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+#borrowFormSubtitle {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+#borrowForm {
+  margin-top: 20px;
+}
+
+
+#borrowForm .form-row-3 {
+  margin-top: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+#borrowForm .form-actions {
+  margin-top: 16px !important;
+}
+
+/* Premium Choice Cards for Transaction Type */
+.transaction-cards-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.transaction-card {
+  position: relative;
+  cursor: pointer;
+  display: block;
+}
+
+.transaction-card-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.transaction-card-content {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: var(--border-radius-md);
+  border: 1.5px solid var(--border-color);
+  background-color: var(--bg-card);
+  transition: all var(--transition-normal);
+  height: 100%;
+}
+
+.transaction-card:hover .transaction-card-content {
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.transaction-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.transaction-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: color var(--transition-normal);
+}
+
+.transaction-card-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Checked State Styles */
+.transaction-card-input:checked + .transaction-card-content {
+  border-color: var(--primary-purple);
+  background-color: rgba(63, 27, 133, 0.02);
+  box-shadow: 0 4px 12px rgba(63, 27, 133, 0.08);
+}
+
+.transaction-card-input:checked + .transaction-card-content .transaction-card-title {
+  color: var(--primary-purple);
+}
+
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: 16px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+/* Reset margin-bottom for form groups inside grid/row layouts to ensure balance */
+.form-grid > .form-group,
+.form-row-2 > .form-group,
+.form-row-2-always > .form-group,
+.form-row-3 > .form-group,
+.form-row-multi > .form-group {
+  margin-bottom: 0;
 }
 
 .form-group.full-width {
@@ -678,20 +792,20 @@ button {
 .form-row-multi {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .form-row-2,
 .form-row-2-always {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 12px;
 }
 
 .form-row-3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  gap: 12px;
 }
 
 label {
