@@ -74,8 +74,8 @@
           </li>
           <li>
             <a href="#" class="menu-item-link" data-target="all-items">
-              <i data-lucide="archive"></i>
-              <span>รายการทั้งหมด</span>
+              <i data-lucide="search"></i>
+              <span>ค้นหารายการ</span>
             </a>
           </li>
           <li>
@@ -173,12 +173,14 @@
               <h2 class="card-title">เมนูด่วน</h2>
             </div>
             <div class="quick-menu-list" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
-              <button class="quick-btn green" id="quickBtnSearch" style="margin: 0; flex: 1;">
+              <button class="quick-btn blue" id="quickBtnLabBooking" style="margin: 0; flex: 1;">
                 <div class="quick-btn-icon">
-                  <i data-lucide="search"></i>
+                  <i data-lucide="calendar"></i>
                 </div>
                 <div class="quick-btn-info">
-                  <span class="quick-btn-title nobrk">ค้นหารายการ</span>
+                  <span class="quick-btn-title">
+                    จอง<span class="keep-word">ห้องปฏิบัติการ</span>
+                  </span>
                 </div>
               </button>
               <button class="quick-btn purple" id="quickBtnBorrowReturn" style="margin: 0; flex: 1;">
@@ -188,16 +190,6 @@
                 <div class="quick-btn-info">
                   <span class="quick-btn-title">
                     <span class="keep-word">ยืม-คืนพัสดุ</span> และ<span class="keep-word">เคมีภัณฑ์</span>
-                  </span>
-                </div>
-              </button>
-              <button class="quick-btn blue" id="quickBtnLabBooking" style="margin: 0; flex: 1;">
-                <div class="quick-btn-icon">
-                  <i data-lucide="calendar"></i>
-                </div>
-                <div class="quick-btn-info">
-                  <span class="quick-btn-title">
-                    จอง<span class="keep-word">ห้องปฏิบัติการ</span>
                   </span>
                 </div>
               </button>
@@ -636,13 +628,7 @@
                 <input type="text" id="borrowerName" class="form-control" placeholder="ระบุชื่อผู้ยืม-คืน" required>
               </div>
 
-              <div class="form-group" style="margin-top: 12px; margin-bottom: 12px;">
-                <label for="borrowBookingSelect" class="form-label">จองสำหรับคาบเรียนห้องแล็บ</label>
-                <select id="borrowBookingSelect" class="form-control">
-                  <option value="" selected>-- เลือกการจองคาบเรียนห้องแล็บ (ถ้ามี) --</option>
-                  <option value="none">เบิกใช้นอกคาบเรียน / กรณีพิเศษ (ไม่ได้จองห้อง)</option>
-                </select>
-              </div>
+
 
               <!-- Linked Booking Details (Date, Room, Period) -->
               <div class="form-row-3" id="borrowBookingDetailsRow" style="margin-top: 12px; margin-bottom: 12px;">
@@ -664,15 +650,15 @@
                   <label for="borrowSlot" class="form-label">คาบเรียนที่ใช้งาน <span style="color: var(--accent-red);">*</span></label>
                   <select id="borrowSlot" class="form-control" required>
                     <option value="" disabled selected>-- เลือกคาบเรียน --</option>
-                    <option value="คาบ 1">คาบ 1 (08:30 - 09:20)</option>
-                    <option value="คาบ 2">คาบ 2 (09:20 - 10:10)</option>
-                    <option value="คาบ 3">คาบ 3 (10:10 - 11:00)</option>
-                    <option value="คาบ 4">คาบ 4 (11:00 - 11:50)</option>
-                    <option value="คาบ 5">คาบ 5 (11:50 - 12:40)</option>
-                    <option value="คาบ 6">คาบ 6 (12:40 - 13:30)</option>
-                    <option value="คาบ 7">คาบ 7 (13:30 - 14:20)</option>
-                    <option value="คาบ 8">คาบ 8 (14:20 - 15:10)</option>
-                    <option value="คาบ 9">คาบ 9 (15:10 - 16:00)</option>
+                    <option value="คาบ 1">คาบ 1 (08:10 - 09:00)</option>
+                    <option value="คาบ 2">คาบ 2 (09:00 - 09:50)</option>
+                    <option value="คาบ 3">คาบ 3 (09:50 - 10:40)</option>
+                    <option value="คาบ 4">คาบ 4 (10:50 - 11:40)</option>
+                    <option value="คาบ 5">คาบ 5 (11:40 - 12:30)</option>
+                    <option value="พักกลางวัน">พักกลางวัน (12:30 - 13:20)</option>
+                    <option value="คาบ 6">คาบ 6 (13:20 - 14:10)</option>
+                    <option value="คาบ 7">คาบ 7 (14:10 - 15:00)</option>
+                    <option value="คาบ 8">คาบ 8 (15:10 - 16:00)</option>
                     <option value="None">ไม่อยู่ในคาบเรียน</option>
                   </select>
                 </div>

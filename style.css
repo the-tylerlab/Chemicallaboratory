@@ -541,8 +541,8 @@ button {
 .quick-btn {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
+  gap: 20px;
+  padding: 20px 24px;
   border-radius: var(--border-radius-md);
   text-align: left;
   border: 1px solid transparent;
@@ -561,15 +561,20 @@ button {
 }
 
 .quick-btn-icon {
-  width: 44px;
-  height: 44px;
+  width: 54px;
+  height: 54px;
   border-radius: var(--border-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  font-size: 18px;
   transition: transform var(--transition-spring);
+}
+
+.quick-btn-icon svg,
+.quick-btn-icon i {
+  width: 28px !important;
+  height: 28px !important;
 }
 
 .quick-btn:hover .quick-btn-icon {
@@ -583,7 +588,7 @@ button {
 }
 
 .quick-btn-title {
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text-main);
 }
