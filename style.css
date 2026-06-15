@@ -64,11 +64,17 @@
   font-family: var(--font-sans);
 }
 
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   background-color: var(--bg-main);
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
+  max-width: 100%;
   display: flex;
   line-height: 1.5;
 }
@@ -108,6 +114,8 @@ button {
   width: 100%;
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 /* Sidebar Styling */
@@ -224,15 +232,29 @@ button {
   stroke-width: 2;
 }
 
+/* Sidebar Bottom Menu */
+.sidebar-bottom-menu {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 12px;
+  margin-bottom: 8px;
+}
+
+.sidebar-menu-bottom {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 0;
+  margin: 0;
+}
+
 /* Sidebar Footer */
 .sidebar-footer {
-  margin-top: auto;
-  padding: 12px 16px 0;
+  padding: 4px 16px 0;
   font-size: 11px;
   opacity: 0.5;
   text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 16px;
 }
 
 /* Mobile Toggle Hamburger */
@@ -843,6 +865,11 @@ input[type="date"],
 input[type="password"],
 input[type="url"] {
   height: 46px;
+}
+
+/* Hide native HTML5 datalist dropdown arrow */
+input[list]::-webkit-calendar-picker-indicator {
+  display: none !important;
 }
 
 select {
@@ -1968,6 +1995,11 @@ tr:hover td {
 
 /* Small Devices (Mobile Phones < 640px) */
 @media (max-width: 640px) {
+  /* Prevent iOS auto-zoom on input focus */
+  input, select, textarea, .custom-select-search-input {
+    font-size: 16px !important;
+  }
+
   .stat-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
@@ -2003,12 +2035,21 @@ tr:hover td {
   }
 
   .main-content {
-    padding: 16px;
-    padding-top: calc(var(--header-height) + 16px);
+    padding: 8px 6px;
+    padding-top: calc(var(--header-height) + 10px);
   }
 
   .form-container {
-    padding: 20px;
+    padding: 12px 10px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .form-grid {
@@ -2585,4 +2626,71 @@ input[type="date"]::-webkit-date-and-time-value {
     font-size: 12pt !important;
   }
 }
+
+/* Access Denied Modal Lock Screen */
+.access-denied-content {
+  border-radius: 28px !important;
+  padding: 32px !important;
+  border: none !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16) !important;
+  font-family: 'Inter', 'Outfit', 'Sarabun', sans-serif;
+}
+
+.access-denied-lock-icon {
+  margin: 12px auto 20px;
+  width: 64px;
+  height: 64px;
+  background-color: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-access-request {
+  width: 100%;
+  background-color: #55484d !important;
+  border-color: #55484d !important;
+  color: #ffffff !important;
+  padding: 14px 20px !important;
+  border-radius: 16px !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px;
+  transition: all 0.2s ease !important;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-access-request:hover {
+  background-color: #43383c !important;
+  border-color: #43383c !important;
+  transform: translateY(-1px);
+}
+
+/* Custom layout for Borrow Booking Details to prevent text wrapping */
+#borrowBookingDetailsRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+#borrowBookingDetailsRow > .form-group:first-child {
+  grid-column: span 2;
+}
+
+@media (max-width: 1024px) {
+  #borrowBookingDetailsRow {
+    grid-template-columns: 1fr;
+  }
+  #borrowBookingDetailsRow > .form-group:first-child {
+    grid-column: span 1;
+  }
+}
+
+
 

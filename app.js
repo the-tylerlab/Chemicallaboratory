@@ -10,16 +10,28 @@ let fileToImport = null;
 let userRole = localStorage.getItem("userRole") || (localStorage.getItem("isAdminLoggedIn") === "true" ? "admin" : "student");
 
 // One-time cleanup of test data for production launch
-if (!localStorage.getItem("lab_cleaned_v1.7.0")) {
+if (!localStorage.getItem("lab_cleaned_v1.8.0")) {
   localStorage.removeItem("lab_transactions");
   localStorage.removeItem("lab_bookings");
   localStorage.removeItem("lab_items");
   localStorage.removeItem("userRole");
   localStorage.removeItem("isAdminLoggedIn");
-  localStorage.setItem("lab_cleaned_v1.7.0", "true");
+  localStorage.setItem("lab_cleaned_v1.8.0", "true");
   userRole = "student";
 }
 
+
+// Configuration for login credentials (edit here to change username and password)
+const USER_CREDENTIALS = {
+  admin: {
+    username: "admin",
+    password: "admin1234" // รหัสผ่านของเจ้าหน้าที่แล็บ (Admin)
+  },
+  teacher: {
+    username: "teacher",
+    password: "teacher1234" // รหัสผ่านของครูผู้สอน (Teacher)
+  }
+};
 
 // Constant Categories and Units
 const CATEGORIES = ["สารเคมี", "อุปกรณ์วิทยาศาสตร์", "เครื่องแก้ว", "วัสดุสิ้นเปลือง"];
@@ -35,7 +47,7 @@ const DEMO_DATA = [
     code: "CHEM-001",
     name: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
     category: "สารเคมี",
-    qty: 5,
+    qty: 3, // Somchai borrowed 2, remaining 3
     unit: "ขวด",
     minAlert: 2,
     expiry: "2027-12-31",
@@ -61,7 +73,7 @@ const DEMO_DATA = [
     code: "CHEM-003",
     name: "โซเดียมไฮดรอกไซด์ (Sodium Hydroxide)",
     category: "สารเคมี",
-    qty: 3,
+    qty: 2, // Somying borrowed 1, remaining 2
     unit: "ขวด",
     minAlert: 1,
     expiry: "2026-04-12", // Expired! (Before May 2026)
@@ -87,7 +99,8 @@ const DEMO_DATA = [
     code: "GW-001",
     name: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
     category: "เครื่องแก้ว",
-    qty: 12,
+    qty: 11, // Mana returned 3 good and 1 damaged (original 12 - 1 damaged = 11)
+    damagedQty: 1,
     unit: "ชิ้น",
     minAlert: 5,
     expiry: "",
@@ -232,7 +245,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await checkBackendStatus();
   
   // One-Time Firebase Firestore database cleanup (for clearing mock data from cloud)
-  if (!localStorage.getItem("firebase_cleared_v1.7.0") && isFirebaseOnline && db) {
+  if (!localStorage.getItem("firebase_cleared_v1.8.0") && isFirebaseOnline && db) {
     try {
       console.log("🧹 Starting Firebase Firestore cleanup...");
       
@@ -277,7 +290,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       await seedBatch.commit();
       
-      localStorage.setItem("firebase_cleared_v1.7.0", "true");
+      localStorage.setItem("firebase_cleared_v1.8.0", "true");
       console.log("🧹 Firebase Firestore cleanup completed successfully.");
     } catch (err) {
       console.error("🧹 Firebase Firestore cleanup failed:", err);
@@ -312,6 +325,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupBarcodeScanner();
   setupCameraScanner();
   setupLoginHandlers();
+  setupAccessDeniedModal();
   updateLoginUI();
   
   // Initialize Lucide icons initially
@@ -558,8 +572,11 @@ function setupNavigation() {
     if (isAdminLoggedIn) {
       document.getElementById("importModal").classList.add("active");
     } else {
-      showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อนำเข้าไฟล์ข้อมูล", "error");
       document.getElementById("loginModal").classList.add("active");
+      setTimeout(() => {
+        const usernameInput = document.getElementById("loginUsername");
+        if (usernameInput) usernameInput.focus();
+      }, 100);
       lucide.createIcons();
     }
   });
@@ -575,8 +592,7 @@ function setupNavigation() {
 function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   // Authorization check for admin page
   if (panelId === "add-item" && !isAdminLoggedIn) {
-    showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเพิ่มหรือแก้ไขข้อมูลสารเคมี/อุปกรณ์", "error");
-    document.getElementById("loginModal").classList.add("active");
+    document.getElementById("accessDeniedModal").classList.add("active");
     lucide.createIcons();
     return;
   }
@@ -1970,7 +1986,61 @@ function setupDashboardCards() {
 
 // Load transactions from Firebase or LocalStorage
 async function loadAllTransactions() {
-  const defaultTrans = [];
+  const defaultTrans = [
+    {
+      id: "tx-mock-001",
+      itemCode: "CHEM-001",
+      itemName: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
+      qty: 2,
+      borrower: "นายสมชาย เรียนดี",
+      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      type: "borrow",
+      status: "borrowed",
+      notes: "แล็บวิชาเคมี 1 เรื่องกรด-เบส",
+      expectedReturnDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      bookingId: "book_mock_001",
+      room: "Lab 1",
+      slot: "3",
+      supervisingTeacher: "อาจารย์สมศักดิ์ รักสอน",
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "tx-mock-002",
+      itemCode: "CHEM-003",
+      itemName: "โซเดียมไฮดรอกไซด์ (Sodium Hydroxide)",
+      qty: 1,
+      borrower: "นางสาวสมหญิง ใจดี",
+      date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      type: "borrow",
+      status: "borrowed",
+      notes: "แล็บเคมีฟิสิกส์ เรื่องปฏิกิริยาความร้อน",
+      expectedReturnDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      bookingId: "book_mock_002",
+      room: "Lab 2",
+      slot: "4, 5",
+      supervisingTeacher: "อาจารย์ศิริมา ดีใจ",
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "tx-mock-003",
+      itemCode: "GW-001",
+      itemName: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
+      qty: 4,
+      borrower: "นายมานะ ขยันเรียน",
+      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      type: "borrow",
+      status: "returned",
+      notes: "ทดลองเรื่องความเข้มข้นสารละลาย",
+      expectedReturnDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      bookingId: "",
+      room: "Lab 2",
+      slot: "2",
+      supervisingTeacher: "อาจารย์วิภาดา ใฝ่รู้",
+      returnDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      damagedQty: 1,
+      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ];
 
   if (isFirebaseOnline) {
     try {
@@ -2424,6 +2494,34 @@ function setupBorrowForm() {
     });
   }
 
+  function updateBorrowerDatalist() {
+    const datalist = document.getElementById("borrowerList");
+    if (!datalist) return;
+
+    const borrowType = document.querySelector('input[name="borrowType"]:checked')?.value || "borrow";
+    const names = new Set();
+
+    if (borrowType === "return") {
+      // Return mode: suggest active borrowers
+      transactions.forEach(t => {
+        if (t.borrower && t.type === "borrow" && t.status === "borrowed") {
+          names.add(t.borrower.trim());
+        }
+      });
+    } else {
+      // Borrow mode: suggest all unique historical borrowers
+      transactions.forEach(t => {
+        if (t.borrower) {
+          names.add(t.borrower.trim());
+        }
+      });
+    }
+
+    datalist.innerHTML = Array.from(names)
+      .map(name => `<option value="${name}"></option>`)
+      .join("");
+  }
+
   function updateBorrowFormUI() {
     const borrowType = document.querySelector('input[name="borrowType"]:checked')?.value || "borrow";
     const singleItemSelectGroup = document.getElementById("singleItemSelectGroup");
@@ -2456,25 +2554,113 @@ function setupBorrowForm() {
       
       if (btnSubmitBorrowSpan) btnSubmitBorrowSpan.textContent = "บันทึกรายการ";
     }
+
+    updateBorrowerDatalist();
+  }
+
+  function refreshReturnItemsChecklist() {
+    const borrowType = document.querySelector('input[name="borrowType"]:checked')?.value || "borrow";
+    const borrowerNameInput = document.getElementById("borrowerName");
+    const borrowerName = borrowerNameInput ? borrowerNameInput.value.trim() : "";
+    const containerGroup = document.getElementById("returnItemsChecklistGroup");
+    const container = document.getElementById("returnItemsChecklistContainer");
+
+    if (!containerGroup || !container) return;
+
+    if (borrowType !== "return" || !borrowerName) {
+      containerGroup.style.display = "none";
+      container.innerHTML = "";
+      return;
+    }
+
+    // Find active borrowed transactions
+    const borrowedTx = transactions.filter(t => 
+      t.borrower && 
+      t.borrower.trim().toLowerCase() === borrowerName.toLowerCase() && 
+      t.type === "borrow" && 
+      t.status === "borrowed"
+    );
+
+    if (borrowedTx.length === 0) {
+      containerGroup.style.display = "block";
+      container.innerHTML = `
+        <div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 12px; font-weight: 500;">
+          ไม่มีรายการพัสดุค้างยืมสำหรับชื่อนี้
+        </div>
+      `;
+      return;
+    }
+
+    containerGroup.style.display = "block";
+    let html = "";
+    borrowedTx.forEach(tx => {
+      const item = items.find(i => i.code === tx.itemCode) || { name: tx.itemName || tx.itemCode, unit: "ชิ้น" };
+      html += `
+        <div class="return-item-row" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; width: 100%; max-width: 100%; overflow: hidden; box-sizing: border-box;">
+          <div style="flex: 1; min-width: 0; padding-right: 8px;">
+            <div style="font-weight: 600; color: #111827; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${item.name}">
+              ${item.name}
+            </div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">
+              รหัส: ${tx.itemCode} | ยืม: <strong style="color: var(--primary-purple);">${tx.qty}</strong> ${item.unit || "ชิ้น"}
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+            <label style="font-size: 11px; color: var(--accent-red); font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; margin-bottom: 0;">
+              <input type="checkbox" class="damage-checkbox" data-tx-id="${tx.id}" style="width: 14px; height: 14px; cursor: pointer;">
+              <span>ชำรุด</span>
+            </label>
+            <input type="number" class="damage-qty-input" data-tx-id="${tx.id}" value="1" min="1" max="${tx.qty}" style="width: 56px; height: 26px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; display: none; text-align: center; outline: none;">
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+
+    // Attach checkbox event listeners
+    const checkboxes = container.querySelectorAll(".damage-checkbox");
+    checkboxes.forEach(cb => {
+      cb.addEventListener("change", (e) => {
+        const txId = e.target.getAttribute("data-tx-id");
+        const qtyInput = container.querySelector(`.damage-qty-input[data-tx-id="${txId}"]`);
+        if (qtyInput) {
+          qtyInput.style.display = e.target.checked ? "inline-block" : "none";
+        }
+      });
+    });
   }
 
   // Initial call
   updateBorrowFormUI();
 
-  // Listen for borrowType change (radio buttons) to refresh selected list (in case max constraints apply)
+  // Listen for borrowType change (radio buttons) to refresh selected list
   const borrowTypeRadios = document.querySelectorAll('input[name="borrowType"]');
   borrowTypeRadios.forEach(radio => {
     radio.addEventListener("change", () => {
       renderSelectedBorrowItems();
       updateBorrowFormUI();
+      refreshReturnItemsChecklist();
     });
   });
+
+  // Listen for borrowerName inputs to refresh checklist
+  const borrowerNameInput = document.getElementById("borrowerName");
+  if (borrowerNameInput) {
+    borrowerNameInput.addEventListener("input", () => {
+      refreshReturnItemsChecklist();
+    });
+  }
 
   // Reset handler
   btnReset.addEventListener("click", () => {
     form.reset();
     selectedBorrowItems = [];
     renderSelectedBorrowItems();
+    
+    const returnItemsChecklistGroup = document.getElementById("returnItemsChecklistGroup");
+    const returnItemsChecklistContainer = document.getElementById("returnItemsChecklistContainer");
+    if (returnItemsChecklistGroup) returnItemsChecklistGroup.style.display = "none";
+    if (returnItemsChecklistContainer) returnItemsChecklistContainer.innerHTML = "";
     
     if (borrowDateInput) {
       const today = new Date().toISOString().split('T')[0];
@@ -2528,16 +2714,37 @@ function setupBorrowForm() {
           if (itemIndex === -1) continue;
           const item = items[itemIndex];
 
-          // Calculate new stock quantity
-          const newQty = item.qty + tx.qty;
+          // Check if this item has a damage count specified
+          const chkDamage = document.querySelector(`.damage-checkbox[data-tx-id="${tx.id}"]`);
+          const numDamage = document.querySelector(`.damage-qty-input[data-tx-id="${tx.id}"]`);
+          
+          let damagedCount = 0;
+          if (chkDamage && chkDamage.checked) {
+            damagedCount = Math.min(tx.qty, Math.max(0, Number(numDamage?.value || 0)));
+          }
+
+          const goodReturnedCount = tx.qty - damagedCount;
+
+          // Calculate new stock quantity (good items go back to qty, damaged items do not)
+          const newQty = item.qty + goodReturnedCount;
+          const newDamagedQty = (item.damagedQty || 0) + damagedCount;
 
           // Update item stock in backend/cloud
-          const updatedItem = { ...item, qty: newQty };
+          const updatedItem = { 
+            ...item, 
+            qty: newQty,
+            damagedQty: newDamagedQty
+          };
           const successBackend = await updateItemBackend(item.code, updatedItem, itemIndex);
 
           if (successBackend) {
             // Update transaction status
-            const updatedTrans = { ...tx, status: "returned" };
+            const updatedTrans = { 
+              ...tx, 
+              status: "returned",
+              returnDate: new Date().toISOString().split('T')[0],
+              damagedQty: damagedCount
+            };
             
             // Update in Firebase or LocalStorage
             if (isFirebaseOnline) {
@@ -2566,6 +2773,11 @@ function setupBorrowForm() {
           selectedBorrowItems = [];
           renderSelectedBorrowItems();
           form.reset();
+          
+          const returnItemsChecklistGroup = document.getElementById("returnItemsChecklistGroup");
+          const returnItemsChecklistContainer = document.getElementById("returnItemsChecklistContainer");
+          if (returnItemsChecklistGroup) returnItemsChecklistGroup.style.display = "none";
+          if (returnItemsChecklistContainer) returnItemsChecklistContainer.innerHTML = "";
           
           if (borrowDateInput) {
             const today = new Date().toISOString().split('T')[0];
@@ -2794,7 +3006,40 @@ window.returnBorrowedItem = async function(transId) {
 // ==========================================================================
 
 async function loadAllBookings() {
-  const defaultBookings = [];
+  const defaultBookings = [
+    {
+      id: "book_mock_001",
+      room: "Lab 1",
+      date: new Date().toISOString().split('T')[0],
+      slot: "3",
+      bookerName: "นายสมชาย เรียนดี",
+      purpose: "เพื่อทดสอบกระบวนการทำแล็บเคมีเบื้องต้น",
+      prepItems: [
+        {
+          code: "CHEM-001",
+          qty: 2
+        }
+      ],
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_002",
+      room: "Lab 2",
+      date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      slot: "4, 5",
+      bookerName: "นางสาวสมหญิง ใจดี",
+      purpose: "ทดลองเรื่องกลศาสตร์แรงและการหมุน",
+      prepItems: [
+        {
+          code: "CHEM-003",
+          qty: 1
+        }
+      ],
+      status: "approved",
+      createdAt: new Date().toISOString()
+    }
+  ];
 
   if (isFirebaseOnline) {
     try {
@@ -3248,10 +3493,10 @@ function updateLoginUI() {
   const menuItemAddItem = document.getElementById("menuItemAddItem");
   const menuItemImport = document.getElementById("menuItemImport");
   if (menuItemAddItem) {
-    menuItemAddItem.style.display = isAdminLoggedIn ? "block" : "none";
+    menuItemAddItem.style.display = "block";
   }
   if (menuItemImport) {
-    menuItemImport.style.display = isAdminLoggedIn ? "block" : "none";
+    menuItemImport.style.display = "block";
   }
   
   // Update role switcher toggle state visual representation
@@ -3347,8 +3592,8 @@ function setupLoginHandlers() {
       const username = usernameInput ? usernameInput.value.trim() : "";
       const password = loginPasswordInput ? loginPasswordInput.value : "";
 
-      // Check credentials based on admin/teacher usernames and passwords
-      if (username === "admin" && password === "admin1234") {
+      // Check credentials based on credentials configuration
+      if (username === USER_CREDENTIALS.admin.username && password === USER_CREDENTIALS.admin.password) {
         isAdminLoggedIn = true;
         userRole = "admin";
         localStorage.setItem("isAdminLoggedIn", "true");
@@ -3357,7 +3602,7 @@ function setupLoginHandlers() {
         closeModal();
         updateLoginUI();
         lucide.createIcons();
-      } else if (username === "teacher" && password === "teacher1234") {
+      } else if (username === USER_CREDENTIALS.teacher.username && password === USER_CREDENTIALS.teacher.password) {
         isAdminLoggedIn = false;
         userRole = "teacher";
         localStorage.setItem("isAdminLoggedIn", "false");
@@ -3383,6 +3628,49 @@ function setupLoginHandlers() {
       } else {
         loginPasswordInput.type = "password";
         eyeIcon.setAttribute("data-lucide", "eye");
+      }
+      lucide.createIcons();
+    });
+  }
+}
+
+// Function to initialize and handle the custom Access Denied modal (Lock Screen)
+function setupAccessDeniedModal() {
+  const modal = document.getElementById("accessDeniedModal");
+  const btnClose = document.getElementById("accessDeniedModalClose");
+  const btnRequest = document.getElementById("btnAccessDeniedRequest");
+  const loginModal = document.getElementById("loginModal");
+
+  if (!modal) return;
+
+  const closeModal = () => {
+    modal.classList.remove("active");
+  };
+
+  if (btnClose) {
+    btnClose.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeModal();
+    });
+  }
+
+  // Close modal when clicking on the overlay backdrop
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Request Access button click logic: closes lock modal and launches login modal
+  if (btnRequest) {
+    btnRequest.addEventListener("click", (e) => {
+      e.preventDefault();
+      closeModal();
+      
+      if (loginModal) {
+        loginModal.classList.add("active");
+        setTimeout(() => {
+          const usernameInput = document.getElementById("loginUsername");
+          if (usernameInput) usernameInput.focus();
+        }, 100);
       }
       lucide.createIcons();
     });
@@ -3429,6 +3717,12 @@ window.showTransactionDetail = function(txId) {
         <span style="font-weight: 600; color: var(--text-muted);">จำนวน:</span>
         <span style="font-weight: 600;">${tx.qty} หน่วย</span>
       </div>
+      ${tx.damagedQty && tx.damagedQty > 0 ? `
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--accent-red);">ชำรุดเสียหาย:</span>
+        <span style="font-weight: 600; color: var(--accent-red);">${tx.damagedQty} หน่วย</span>
+      </div>
+      ` : ""}
       <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">ผู้ทำรายการ:</span>
         <span style="font-weight: 500;">${tx.borrower}</span>
