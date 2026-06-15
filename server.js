@@ -22,7 +22,7 @@ const DEFAULT_SEEDS = [
     code: "CHEM-001",
     name: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
     category: "สารเคมี",
-    qty: 5,
+    qty: 3, // Somchai borrowed 2, remaining 3
     unit: "ขวด",
     minAlert: 2,
     expiry: "2027-12-31",
@@ -48,7 +48,7 @@ const DEFAULT_SEEDS = [
     code: "CHEM-003",
     name: "โซเดียมไฮดรอกไซด์ (Sodium Hydroxide)",
     category: "สารเคมี",
-    qty: 3,
+    qty: 2, // Somying borrowed 1, remaining 2
     unit: "ขวด",
     minAlert: 1,
     expiry: "2026-04-12",
@@ -74,7 +74,8 @@ const DEFAULT_SEEDS = [
     code: "GW-001",
     name: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
     category: "เครื่องแก้ว",
-    qty: 12,
+    qty: 11, // Mana returned 3 good and 1 damaged (original 12 - 1 damaged = 11)
+    damagedQty: 1,
     unit: "ชิ้น",
     minAlert: 5,
     expiry: "",
