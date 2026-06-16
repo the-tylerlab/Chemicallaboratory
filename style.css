@@ -12,6 +12,7 @@
   --bg-card: #ffffff;
   
   --primary-purple: #3f1b85; /* Deep purple matching screenshot */
+  --primary-color: var(--primary-purple);
   --primary-purple-hover: #31146b;
   --primary-purple-light: rgba(255, 255, 255, 0.12);
   --primary-purple-active: rgba(255, 255, 255, 0.2);
@@ -295,7 +296,7 @@ button {
 .main-content {
   flex: 1;
   margin-left: var(--sidebar-width);
-  padding: 32px;
+  padding: 32px 32px 96px 32px;
   min-height: 100vh;
   transition: var(--transition-normal);
 }
@@ -2690,6 +2691,269 @@ input[type="date"]::-webkit-date-and-time-value {
   #borrowBookingDetailsRow > .form-group:first-child {
     grid-column: span 1;
   }
+}
+
+/* ==========================================================================
+   CHATBOT: LAB AI ASSISTANT WIDGET
+   ========================================================================== */
+
+/* Floating Action Button (FAB) */
+.chatbot-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary-purple);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 16px rgba(63, 27, 133, 0.25);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chatbot-fab:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(63, 27, 133, 0.4);
+}
+
+.chatbot-fab:active {
+  transform: scale(0.95);
+}
+
+/* Pulse indicator dot */
+.chatbot-pulse-dot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  background-color: var(--accent-green);
+  border: 1.5px solid #ffffff;
+  border-radius: 50%;
+}
+
+/* Chat Panel */
+.chatbot-panel {
+  position: fixed;
+  bottom: 96px;
+  right: 24px;
+  width: 380px;
+  height: 520px;
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.15);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  flex-direction: column;
+  z-index: 998;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.chatbot-panel.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+/* Chat Header */
+.chatbot-header {
+  padding: 16px 20px;
+  background: var(--primary-purple);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatbot-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+  background-color: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatbot-close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.chatbot-close-btn:hover {
+  color: #ffffff;
+}
+
+/* Chat Body (Messages) */
+.chatbot-body {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: rgba(248, 250, 252, 0.4);
+}
+
+.chat-message {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: var(--border-radius-md);
+  font-size: 13px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  word-break: break-word;
+}
+
+.chat-message.bot {
+  background-color: #ffffff;
+  color: var(--text-main);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-top-left-radius: 4px;
+  align-self: flex-start;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.chat-message.user {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border-top-right-radius: 4px;
+  align-self: flex-end;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Suggestion Chips */
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.chat-suggestion-chip {
+  background-color: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  color: #475569;
+  border-radius: 30px;
+  padding: 6px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  font-family: inherit;
+}
+
+.chat-suggestion-chip:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+/* Chat Footer Input */
+.chatbot-footer {
+  padding: 12px 16px;
+  background-color: #ffffff;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chatbot-footer input {
+  flex: 1;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 8px 12px;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.chatbot-footer input:focus {
+  border-color: var(--primary-color);
+}
+
+.chatbot-footer button {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.chatbot-footer button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Responsiveness for small screens */
+@media (max-width: 480px) {
+  .chatbot-panel {
+    width: calc(100% - 32px);
+    right: 16px;
+    left: 16px;
+    bottom: 84px;
+    height: 460px;
+  }
+  .chatbot-fab {
+    bottom: 16px;
+    right: 16px;
+  }
+}
+
+/* Hide in print */
+@media print {
+  .chatbot-fab,
+  .chatbot-panel,
+  .chatbot-overlay {
+    display: none !important;
+  }
+}
+
+/* Chat Panel Backdrop Overlay (No Blur, Transparent) */
+.chatbot-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  z-index: 997;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.chatbot-overlay.active {
+  opacity: 1;
+  pointer-events: all;
 }
 
 
