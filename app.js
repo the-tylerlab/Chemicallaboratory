@@ -326,6 +326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupCameraScanner();
   setupLoginHandlers();
   setupAccessDeniedModal();
+  setupRepairModalHandlers();
   updateLoginUI();
   
   // Initialize Lucide icons initially
@@ -3979,12 +3980,20 @@ function renderDashboardDamagedStats() {
   damagedItems.forEach(item => {
     const dQty = item.damagedQty || 0;
     const rQty = item.repairQty || 0;
+    const isBackoffice = (userRole === "admin" || userRole === "teacher");
     html += `
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; font-size: 12px;">
         <span style="font-weight: 500; color: #334155;">${getItemDisplayName(item)} (${item.code})</span>
-        <div style="display: flex; gap: 6px;">
-          ${dQty > 0 ? `<span class="badge badge-red" style="font-size: 10px; padding: 1px 6px;">ชำรุด: ${dQty} ${item.unit}</span>` : ""}
-          ${rQty > 0 ? `<span class="badge badge-orange" style="font-size: 10px; padding: 1px 6px;">ส่งซ่อม: ${rQty} ${item.unit}</span>` : ""}
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="display: flex; gap: 6px;">
+            ${dQty > 0 ? `<span class="badge badge-red" style="font-size: 10px; padding: 1px 6px;">ชำรุด: ${dQty} ${item.unit}</span>` : ""}
+            ${rQty > 0 ? `<span class="badge badge-orange" style="font-size: 10px; padding: 1px 6px;">ส่งซ่อม: ${rQty} ${item.unit}</span>` : ""}
+          </div>
+          ${isBackoffice ? `
+            <button class="btn-manage-repair" data-code="${item.code}" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-orange)'" onmouseout="this.style.color='var(--text-muted)'" title="จัดการพัสดุชำรุด/ส่งซ่อม">
+              <i data-lucide="wrench" style="width: 14px; height: 14px;"></i>
+            </button>
+          ` : ""}
         </div>
       </div>
     `;
@@ -3992,6 +4001,20 @@ function renderDashboardDamagedStats() {
 
   html += `</div>`;
   container.innerHTML = html;
+
+  if (userRole === "admin" || userRole === "teacher") {
+    container.querySelectorAll(".btn-manage-repair").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const code = btn.getAttribute("data-code");
+        openRepairModal(code);
+      });
+    });
+  }
+
+  // Render icons inside dashboard container
+  if (typeof lucide !== "undefined" && lucide.createIcons) {
+    lucide.createIcons();
+  }
 }
 
 function renderPendingRequests() {
@@ -4786,5 +4809,235 @@ function stopCameraScan() {
       html5QrcodeScanner = null;
     }
   }
+}
+
+// ==========================================
+// REPAIR / DAMAGED ITEMS MODAL CONTROLLERS
+// ==========================================
+let currentRepairItemCode = null;
+
+function openRepairModal(code) {
+  const item = items.find(i => i.code === code);
+  if (!item) {
+    showToast("ไม่พบข้อมูลพัสดุ", "error");
+    return;
+  }
+
+  currentRepairItemCode = code;
+  
+  // Set item metadata in UI
+  document.getElementById("repairItemName").innerText = item.name;
+  document.getElementById("repairItemCode").innerText = `รหัส: ${item.code}`;
+  
+  const dQty = item.damagedQty || 0;
+  const rQty = item.repairQty || 0;
+  
+  document.getElementById("repairDamagedQtyText").innerText = dQty;
+  document.getElementById("repairUnderRepairQtyText").innerText = rQty;
+  
+  // Default values
+  const actionTypeSelect = document.getElementById("repairActionType");
+  actionTypeSelect.value = "send_to_repair";
+  
+  const sourceTypeSelect = document.getElementById("repairSourceType");
+  sourceTypeSelect.value = "damaged";
+
+  const actionQtyInput = document.getElementById("repairActionQty");
+  actionQtyInput.value = 1;
+  actionQtyInput.min = 1;
+
+  // Update dynamic fields
+  updateRepairModalFields(item);
+
+  // Show modal
+  const modal = document.getElementById("repairModal");
+  if (modal) {
+    modal.classList.add("active");
+  }
+}
+
+function updateRepairModalFields(item) {
+  const actionType = document.getElementById("repairActionType").value;
+  const sourceGroup = document.getElementById("repairSourceGroup");
+  const sourceTypeSelect = document.getElementById("repairSourceType");
+  const actionQtyInput = document.getElementById("repairActionQty");
+  const maxQtyHint = document.getElementById("repairMaxQtyHint");
+  
+  const dQty = item.damagedQty || 0;
+  const rQty = item.repairQty || 0;
+  
+  let maxQty = 0;
+  
+  if (actionType === "send_to_repair") {
+    // Can only send to repair from damagedQty
+    sourceGroup.style.display = "none";
+    maxQty = dQty;
+  } else {
+    // For repair_success or repair_fail_discard:
+    // We can deduct from damagedQty or repairQty
+    if (dQty > 0 && rQty > 0) {
+      sourceGroup.style.display = "block";
+      // Determine max based on selected source type
+      const source = sourceTypeSelect.value;
+      if (source === "damaged") {
+        maxQty = dQty;
+      } else {
+        maxQty = rQty;
+      }
+    } else {
+      sourceGroup.style.display = "none";
+      if (dQty > 0) {
+        maxQty = dQty;
+      } else if (rQty > 0) {
+        maxQty = rQty;
+      } else {
+        maxQty = 0;
+      }
+    }
+  }
+  
+  actionQtyInput.max = maxQty;
+  maxQtyHint.innerText = `จำนวนสูงสุดที่ทำรายการได้: ${maxQty} ${item.unit}`;
+  
+  // Cap current value if it exceeds max
+  if (parseInt(actionQtyInput.value) > maxQty) {
+    actionQtyInput.value = maxQty;
+  }
+  if (maxQty === 0) {
+    actionQtyInput.value = 0;
+  }
+}
+
+function setupRepairModalHandlers() {
+  const modal = document.getElementById("repairModal");
+  const closeBtn = document.getElementById("repairModalClose");
+  const actionTypeSelect = document.getElementById("repairActionType");
+  const sourceTypeSelect = document.getElementById("repairSourceType");
+  const confirmBtn = document.getElementById("btnConfirmRepairAction");
+  const actionQtyInput = document.getElementById("repairActionQty");
+
+  if (!modal || !closeBtn || !actionTypeSelect || !sourceTypeSelect || !confirmBtn || !actionQtyInput) return;
+
+  const closeModal = () => {
+    modal.classList.remove("active");
+    currentRepairItemCode = null;
+  };
+
+  closeBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Handle action type changes
+  actionTypeSelect.addEventListener("change", () => {
+    if (!currentRepairItemCode) return;
+    const item = items.find(i => i.code === currentRepairItemCode);
+    if (item) {
+      updateRepairModalFields(item);
+    }
+  });
+
+  // Handle source type changes
+  sourceTypeSelect.addEventListener("change", () => {
+    if (!currentRepairItemCode) return;
+    const item = items.find(i => i.code === currentRepairItemCode);
+    if (item) {
+      updateRepairModalFields(item);
+    }
+  });
+
+  // Handle confirmation
+  confirmBtn.addEventListener("click", async () => {
+    if (!currentRepairItemCode) return;
+    
+    const itemIndex = items.findIndex(i => i.code === currentRepairItemCode);
+    if (itemIndex === -1) {
+      showToast("ไม่พบพัสดุนี้ในระบบ", "error");
+      return;
+    }
+    
+    const item = items[itemIndex];
+    const actionType = actionTypeSelect.value;
+    const actionQty = parseInt(actionQtyInput.value);
+    
+    if (isNaN(actionQty) || actionQty <= 0) {
+      showToast("กรุณาระบุจำนวนที่ต้องการจัดการให้ถูกต้อง", "warning");
+      return;
+    }
+    
+    const dQty = item.damagedQty || 0;
+    const rQty = item.repairQty || 0;
+    
+    // Determine the source to deduct from
+    let source = "damaged";
+    if (actionType === "send_to_repair") {
+      source = "damaged";
+    } else {
+      if (dQty > 0 && rQty > 0) {
+        source = sourceTypeSelect.value;
+      } else if (dQty > 0) {
+        source = "damaged";
+      } else if (rQty > 0) {
+        source = "repair";
+      } else {
+        showToast("ไม่มีพัสดุชำรุดหรือส่งซ่อมให้จัดการ", "warning");
+        return;
+      }
+    }
+    
+    // Validate quantities
+    if (source === "damaged" && actionQty > dQty) {
+      showToast(`จำนวนชำรุดมีไม่เพียงพอ (มีเพียง ${dQty} ${item.unit})`, "warning");
+      return;
+    }
+    if (source === "repair" && actionQty > rQty) {
+      showToast(`จำนวนส่งซ่อมมีไม่เพียงพอ (มีเพียง ${rQty} ${item.unit})`, "warning");
+      return;
+    }
+    
+    // Prepare updated item object
+    const updatedItem = { ...item };
+    
+    if (actionType === "send_to_repair") {
+      updatedItem.damagedQty = dQty - actionQty;
+      updatedItem.repairQty = rQty + actionQty;
+      
+      showToast(`ส่งซ่อมพัสดุจำนวน ${actionQty} ${item.unit} เรียบร้อยแล้ว`, "success");
+    } 
+    else if (actionType === "repair_success") {
+      if (source === "damaged") {
+        updatedItem.damagedQty = dQty - actionQty;
+      } else {
+        updatedItem.repairQty = rQty - actionQty;
+      }
+      // Add back to active qty
+      updatedItem.qty = (item.qty || 0) + actionQty;
+      
+      showToast(`ซ่อมเสร็จสิ้นและคืนพัสดุ ${actionQty} ${item.unit} เข้าคลังสินค้าเรียบร้อยแล้ว`, "success");
+    } 
+    else if (actionType === "repair_fail_discard") {
+      if (source === "damaged") {
+        updatedItem.damagedQty = dQty - actionQty;
+      } else {
+        updatedItem.repairQty = rQty - actionQty;
+      }
+      // Simply subtract without increasing active qty (discarded/thrown away)
+      
+      showToast(`ทำการจำหน่ายออก (ทิ้ง) พัสดุจำนวน ${actionQty} ${item.unit} เรียบร้อยแล้ว`, "success");
+    }
+    
+    // Clean up properties if 0
+    if (updatedItem.damagedQty === 0) updatedItem.damagedQty = 0;
+    if (updatedItem.repairQty === 0) updatedItem.repairQty = 0;
+    
+    // Save to database/backend
+    const success = await updateItemBackend(updatedItem.code, updatedItem, itemIndex);
+    if (success) {
+      closeModal();
+      updateUI();
+    } else {
+      showToast("เกิดข้อผิดพลาดในการอัปเดตข้อมูลพัสดุ", "error");
+    }
+  });
 }
 

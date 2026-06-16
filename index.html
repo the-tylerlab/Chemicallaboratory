@@ -1064,6 +1064,73 @@
   </div>
 
   <!-- ==========================================
+       MODAL: MANAGE REPAIRS / DAMAGED ITEMS
+       ========================================== -->
+  <div class="modal-overlay" id="repairModal">
+    <div class="modal-content" style="max-width: 480px; box-sizing: border-box;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="wrench" style="width: 18px; height: 18px; color: var(--accent-orange);"></i>
+          <span>จัดการพัสดุชำรุดและส่งซ่อม</span>
+        </h3>
+        <button class="modal-close-btn" id="repairModalClose">&times;</button>
+      </div>
+      
+      <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px; font-size: 13px;">
+          <div style="font-weight: 600; color: var(--text-main);" id="repairItemName">ชื่อพัสดุ</div>
+          <div style="color: var(--text-muted); margin-top: 4px;" id="repairItemCode">รหัส: -</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px;">
+          <div style="background-color: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: var(--border-radius-md); padding: 10px; text-align: center;">
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">ชำรุดทั้งหมด</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--accent-red); margin-top: 4px;" id="repairDamagedQtyText">0</div>
+          </div>
+          <div style="background-color: rgba(245, 158, 11, 0.03); border: 1px solid rgba(245, 158, 11, 0.1); border-radius: var(--border-radius-md); padding: 10px; text-align: center;">
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">อยู่ระหว่างส่งซ่อม</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--accent-orange); margin-top: 4px;" id="repairUnderRepairQtyText">0</div>
+          </div>
+        </div>
+
+        <!-- Action Form Selection -->
+        <div class="form-group">
+          <label for="repairActionType" class="form-label">เลือกการดำเนินการ <span style="color: var(--accent-red);">*</span></label>
+          <select id="repairActionType" class="form-control" style="width: 100%;">
+            <option value="send_to_repair">ส่งซ่อมพัสดุ (ชำรุด -> ส่งซ่อม)</option>
+            <option value="repair_success">ซ่อมเสร็จสิ้น (ลดชำรุด/ส่งซ่อม -> เพิ่มคลังสินค้าที่ดี)</option>
+            <option value="repair_fail_discard">จ่ายออก/ทิ้ง (ซ่อมไม่ได้ -> หักยอดชำรุดถาวร)</option>
+          </select>
+        </div>
+
+        <!-- Source Selection (Visible only when relevant and both exist) -->
+        <div class="form-group" id="repairSourceGroup" style="display: none;">
+          <label for="repairSourceType" class="form-label">ดำเนินการจากส่วนใด <span style="color: var(--accent-red);">*</span></label>
+          <select id="repairSourceType" class="form-control" style="width: 100%;">
+            <option value="damaged">ยอดชำรุด (Damaged)</option>
+            <option value="repair">ยอดส่งซ่อม (Under Repair)</option>
+          </select>
+        </div>
+
+        <!-- Quantity Input -->
+        <div class="form-group">
+          <label for="repairActionQty" class="form-label">จำนวนที่ต้องการจัดการ <span style="color: var(--accent-red);">*</span></label>
+          <input type="number" id="repairActionQty" class="form-control" value="1" min="1" style="width: 100%;">
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="repairMaxQtyHint">จำนวนสูงสุดที่ทำรายการได้: -</div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions" style="margin-top: 8px;">
+          <button type="button" class="btn btn-primary" id="btnConfirmRepairAction" style="width: 100%; justify-content: center;">
+            <i data-lucide="check" style="width: 18px; height: 18px;"></i>
+            <span>ยืนยันการดำเนินการ</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
        TOAST NOTIFICATION SYSTEM
        ========================================== -->
   <div class="toast-container" id="toastContainer"></div>
