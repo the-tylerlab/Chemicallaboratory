@@ -327,6 +327,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupLoginHandlers();
   setupAccessDeniedModal();
   setupRepairModalHandlers();
+  setupChatbot();
   updateLoginUI();
   
   // Initialize Lucide icons initially
@@ -5039,5 +5040,285 @@ function setupRepairModalHandlers() {
       showToast("เกิดข้อผิดพลาดในการอัปเดตข้อมูลพัสดุ", "error");
     }
   });
+}
+
+// ==========================================
+// CHATBOT: LOCAL SMART ASSISTANT SYSTEM
+// ==========================================
+function setupChatbot() {
+  const fab = document.getElementById("chatbotFab");
+  const panel = document.getElementById("chatbotPanel");
+  const overlay = document.getElementById("chatbotOverlay");
+  const closeBtn = document.getElementById("chatbotCloseBtn");
+  const sendBtn = document.getElementById("chatbotSendBtn");
+  const input = document.getElementById("chatbotInput");
+  const body = document.getElementById("chatbotBody");
+  const suggestionsContainer = document.getElementById("chatSuggestions");
+
+  if (!fab || !panel || !closeBtn || !sendBtn || !input || !body) return;
+
+  const openChatbot = () => {
+    panel.classList.add("active");
+    if (overlay) overlay.classList.add("active");
+    
+    // Remove pulse dot after opening once
+    const pulseDot = fab.querySelector(".chatbot-pulse-dot");
+    if (pulseDot) {
+      pulseDot.style.display = "none";
+    }
+    input.focus();
+  };
+
+  const closeChatbot = () => {
+    panel.classList.remove("active");
+    if (overlay) overlay.classList.remove("active");
+  };
+
+  // Toggle chatbot panel visibility
+  fab.addEventListener("click", () => {
+    if (panel.classList.contains("active")) {
+      closeChatbot();
+    } else {
+      openChatbot();
+    }
+  });
+
+  closeBtn.addEventListener("click", closeChatbot);
+  
+  if (overlay) {
+    overlay.addEventListener("click", closeChatbot);
+  }
+
+  // Handle send message
+  const handleSendMessage = () => {
+    const text = input.value.trim();
+    if (!text) return;
+
+    // Append user message
+    appendChatMessage("user", text);
+    input.value = "";
+
+    // Show bot thinking/typing indicator
+    const typingIndicator = appendChatTypingIndicator();
+
+    setTimeout(() => {
+      // Remove typing indicator and append bot response
+      typingIndicator.remove();
+      const botResponse = generateBotResponse(text);
+      appendChatMessage("bot", botResponse);
+    }, 600);
+  };
+
+  sendBtn.addEventListener("click", handleSendMessage);
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      handleSendMessage();
+    }
+  });
+
+  // Handle quick suggestion chips click
+  if (suggestionsContainer) {
+    suggestionsContainer.addEventListener("click", (e) => {
+      const chip = e.target.closest(".chat-suggestion-chip");
+      if (!chip) return;
+      const query = chip.getAttribute("data-query");
+      
+      // Simulate user clicking / typing query
+      appendChatMessage("user", query);
+      const typingIndicator = appendChatTypingIndicator();
+
+      setTimeout(() => {
+        typingIndicator.remove();
+        const botResponse = generateBotResponse(query);
+        appendChatMessage("bot", botResponse);
+      }, 500);
+    });
+  }
+
+  function appendChatMessage(sender, text) {
+    const msgDiv = document.createElement("div");
+    msgDiv.className = `chat-message ${sender}`;
+    msgDiv.innerHTML = text.replace(/\n/g, "<br>");
+    body.appendChild(msgDiv);
+    
+    // Auto-scroll to bottom of the body
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function appendChatTypingIndicator() {
+    const typingDiv = document.createElement("div");
+    typingDiv.className = "chat-message bot typing-indicator";
+    typingDiv.innerHTML = `<span style="display: inline-flex; gap: 4px; align-items: center;">
+      <span class="dot" style="width: 6px; height: 6px; background-color: var(--text-muted); border-radius: 50%; display: inline-block; animation: bounce 1s infinite alternate;"></span>
+      <span class="dot" style="width: 6px; height: 6px; background-color: var(--text-muted); border-radius: 50%; display: inline-block; animation: bounce 1s infinite alternate; animation-delay: 0.2s;"></span>
+      <span class="dot" style="width: 6px; height: 6px; background-color: var(--text-muted); border-radius: 50%; display: inline-block; animation: bounce 1s infinite alternate; animation-delay: 0.4s;"></span>
+    </span>`;
+    
+    // Add CSS rule dynamically for typing bounce if not in style.css
+    if (!document.getElementById("chatbot-animation-style")) {
+      const style = document.createElement("style");
+      style.id = "chatbot-animation-style";
+      style.innerHTML = `
+        @keyframes bounce {
+          from { transform: translateY(0); }
+          to { transform: translateY(-4px); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    body.appendChild(typingDiv);
+    body.scrollTop = body.scrollHeight;
+    return typingDiv;
+  }
+}
+
+function generateBotResponse(query) {
+  const q = query.toLowerCase().trim();
+
+  // 1. GREETINGS
+  if (q === "สวัสดี" || q === "สวัสดีครับ" || q === "สวัสดีค่ะ" || q === "หวัดดี" || q === "hello" || q === "hi") {
+    return `สวัสดีครับ! ยินดีที่ได้พูดคุยกับคุณในวันนี้ ผมคือ <b>แคททาไลต์ (Catalyst)</b> ตัวเร่งปฏิกิริยาและผู้ช่วยห้องแล็บส่วนตัวของคุณ ผมสามารถช่วยคุณทำสิ่งเหล่านี้ได้ครับ:
+- 🔍 ค้นหาที่อยู่พัสดุ (เช่นพิมพ์: <i>ค้นหา เอทานอล</i>)
+- ⚠️ ตรวจสอบสินค้าสต็อกต่ำ
+- ⏰ ตรวจสอบสารหมดอายุ
+- 📖 แนะนำการยืม-คืน หรือจองห้อง
+บอกผมได้เลยว่าคุณต้องการข้อมูลส่วนไหนครับ`;
+  }
+
+  // 2. HELP SYSTEM / SYSTEM USAGE
+  if (q.includes("ยืม") || q.includes("คืน") || q.includes("การยืม") || q.includes("วิธีใช้งานระบบ") || q.includes("แนะนำการใช้งาน")) {
+    return `📖 <b>วิธีการยืม-คืนพัสดุ:</b>
+1. กดเลือกเมนู <b>"ยืม-คืนพัสดุ"</b> ที่แถบเมนูด้านซ้าย
+2. <b>การยืม:</b> กรอกชื่อผู้ยืม ค้นหาชื่อพัสดุและระบุจำนวนที่ต้องการ แล้วกดปุ่ม <b>"ยืนยันการยืมพัสดุ"</b>
+3. <b>การคืน:</b> กรอกชื่อผู้คืน ระบบจะแสดงรายการล่าสุดที่ยืมไป สามารถเลือกจำนวนพัสดุเพื่อระบุของชำรุด (ถ้ามี) แล้วกด <b>"ยืนยันการส่งคืน"</b>
+4. รายการประวัติจะอัปเดตลงตารางประวัติในหน้านั้นทันทีครับ`;
+  }
+
+  if (q.includes("จอง") || q.includes("จองห้อง") || q.includes("จองแล็บ") || q.includes("ห้องปฏิบัติการ")) {
+    return `🏫 <b>วิธีการจองห้องปฏิบัติการ (Lab Booking):</b>
+1. ไปที่เมนู <b>"จองห้องปฏิบัติการ"</b>
+2. เลือกห้องปฏิบัติการ วันที่ และคาบเรียนที่ต้องการจอง
+3. กรอกรายละเอียดวิชา/ผู้จอง แล้วกด <b>"ยืนยันการจอง"</b>
+4. รายการจองจะไปบันทึกอยู่ด้านล่างสุดของหน้าตารางประวัติการจองห้องแล็บครับ`;
+  }
+
+  if (q.includes("ชำรุด") || q.includes("ส่งซ่อม") || q.includes("ประแจ") || q.includes("ซ่อม")) {
+    return `🔧 <b>ระบบจัดการพัสดุชำรุดและส่งซ่อม:</b>
+1. หากส่งคืนพัสดุแล้วแจ้งว่าชำรุด จะมาแสดงในแถบ <b>"พัสดุชำรุดและส่งซ่อม"</b> หน้าแรก
+2. เจ้าหน้าที่ (Admin) หรือครู (Teacher) สามารถคลิกปุ่ม <b>ประแจ 🔧</b> เพื่อ:
+   - สั่งส่งไปที่ห้องซ่อมบำรุง
+   - แจ้งซ่อมสำเร็จเพื่อนำพัสดุกลับเข้าสู่คลังสินค้าดีตามเดิม
+   - แจ้งซ่อมไม่ได้และตัดทิ้ง (จำหน่ายออก) ถาวรจากสต็อก`;
+  }
+
+  // 3. CHECK EXPIRED
+  if (q.includes("หมดอายุ") || q.includes("expired") || q === "เช็คสารเคมีหมดอายุ") {
+    // Expiration date reference is TODAY (2026-05-28)
+    const today = new Date('2026-05-28');
+    const expiredList = items.filter(item => {
+      if (!item.expiry) return false;
+      const exp = new Date(item.expiry);
+      return exp < today;
+    });
+
+    const nearExpiryList = items.filter(item => {
+      if (!item.expiry) return false;
+      const exp = new Date(item.expiry);
+      const diffTime = exp.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays >= 0 && diffDays <= 30; // within 30 days
+    });
+
+    let res = "";
+    if (expiredList.length > 0) {
+      res += `🚨 <b>พัสดุ/สารเคมีที่หมดอายุแล้ว:</b>\n`;
+      expiredList.forEach(item => {
+        res += `- ${item.name} (${item.code}) หมดเมื่อ: <i>${item.expiry}</i>\n`;
+      });
+    }
+    if (nearExpiryList.length > 0) {
+      res += `${res ? '\n' : ''}⚠️ <b>สารเคมีที่ใกล้หมดอายุใน 30 วัน:</b>\n`;
+      nearExpiryList.forEach(item => {
+        res += `- ${item.name} (${item.code}) หมดวันที่: <i>${item.expiry}</i>\n`;
+      });
+    }
+    if (!res) {
+      res = `✅ ยอดเยี่ยมมาก! ตรวจสอบแล้วไม่มีสารเคมีตัวใดที่หมดอายุหรือใกล้หมดอายุในคลังตอนนี้ครับ`;
+    }
+    return res;
+  }
+
+  // 4. CHECK LOW STOCK
+  if (q.includes("สต็อกต่ำ") || q.includes("ใกล้หมด") || q.includes("ใกล้หมดคลัง") || q.includes("เช็คสินค้าสต็อกต่ำ") || q.includes("ของใกล้หมดคลัง")) {
+    const lowStockList = items.filter(item => {
+      const min = item.minAlert || 0;
+      return (item.qty || 0) <= min;
+    });
+
+    if (lowStockList.length > 0) {
+      let res = `⚠️ <b>รายการพัสดุที่สต็อกต่ำกว่าเกณฑ์แจ้งเตือน:</b>\n`;
+      lowStockList.forEach(item => {
+        res += `- ${item.name} เหลือ <i>${item.qty} ${item.unit}</i> (เกณฑ์เตือน: ${item.minAlert})\n`;
+      });
+      return res;
+    } else {
+      return `✅ ไม่มีพัสดุรายการใดต่ำกว่าเกณฑ์เตือนภัยครับ ทุกชิ้นมีพัสดุในจำนวนที่ปลอดภัยในคลัง`;
+    }
+  }
+
+  // 5. ITEM LOCATIONS / INVENTORY QUERY
+  // Check if they want to find an item
+  let searchWord = query;
+  const searchPrefixes = ["ค้นหา", "มี", "หา", "เช็ค", "เช็ก", "ขอดู", "ดู", "อยากได้", "ขอ"];
+  for (const prefix of searchPrefixes) {
+    if (q.startsWith(prefix)) {
+      searchWord = query.substring(prefix.length).trim();
+      break;
+    }
+  }
+  
+  // Clean suffixes
+  const searchSuffixes = ["ไหม", "หรือเปล่า", "บ้าง", "ครับ", "ค่ะ", "หน่อย", "ที", "อยู่ตู้ไหน", "อยู่ไหน", "อยู่ที่ไหน", "อยู่ห้องไหน"];
+  for (const suffix of searchSuffixes) {
+    if (searchWord.endsWith(suffix)) {
+      searchWord = searchWord.substring(0, searchWord.length - suffix.length).trim();
+    }
+  }
+
+  if (searchWord.length >= 2) {
+    // Search in items
+    const matches = items.filter(item => 
+      item.name.toLowerCase().includes(searchWord.toLowerCase()) || 
+      item.code.toLowerCase().includes(searchWord.toLowerCase()) ||
+      item.category.toLowerCase().includes(searchWord.toLowerCase())
+    );
+
+    if (matches.length > 0) {
+      let res = `🔍 <b>ผลการค้นหาพัสดุ (${matches.length} รายการ):</b>\n`;
+      matches.forEach(item => {
+        res += `\n📦 <b>${item.name}</b>\n`;
+        res += `- รหัสพัสดุ: <i>${item.code}</i>\n`;
+        res += `- จำนวนคงเหลือ: <b>${item.qty} ${item.unit}</b>\n`;
+        res += `- หมวดหมู่: ${item.category}\n`;
+        res += `- ที่จัดเก็บ: ห้อง <i>${getRoomThaiName(item.room)}</i>, ${item.cabinet || "-"} / ${item.shelf || "-"}\n`;
+        if (item.damagedQty > 0) {
+          res += `- ⚠️ ชำรุด: ${item.damagedQty} ${item.unit}\n`;
+        }
+        if (item.repairQty > 0) {
+          res += `- 🔧 ส่งซ่อม: ${item.repairQty} ${item.unit}\n`;
+        }
+      });
+      return res;
+    }
+  }
+
+  // 6. DEFAULT FALLBACK
+  return `🤔 ขออภัยด้วยครับ ผมยังไม่เข้าใจคำถามนี้ทั้งหมด หรือไม่พบข้อมูลพัสดุที่ระบุ
+  
+หากคุณต้องการข้อมูลใด สามารถลองพิมพ์หัวข้อดังนี้ได้ครับ:
+- พิมพ์ชื่อพัสดุเพื่อค้นหา เช่น <i>"เอทานอล"</i> หรือ <i>"บีกเกอร์"</i>
+- พิมพ์เพื่อเช็คสต็อก เช่น <i>"ของใกล้หมด"</i> หรือ <i>"หมดอายุ"</i>
+- พิมพ์ถามการใช้งาน เช่น <i>"วิธีจองห้อง"</i> หรือ <i>"วิธียืมคืน"</i>`;
 }
 

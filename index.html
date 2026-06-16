@@ -7,7 +7,7 @@
   <!-- SEO & Meta -->
   <meta name="description" content="ระบบจัดการสารเคมีและอุปกรณ์วิทยาศาสตร์ คลังแล็บอัจฉริยะ รองรับ Responsive">
   <!-- Favicon (ไอคอนแท็บเบราว์เซอร์) -->
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='white'/%3E%3Cline x1='34.5' y1='65' x2='56.5' y2='35' stroke='%23ef4444' stroke-width='18' stroke-linecap='round'/%3E%3Ccircle cx='64.5' cy='55' r='9.5' fill='%23ef4444'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <!-- Stylesheets -->
   <link rel="stylesheet" href="style.css?v=1.8.2">
   <!-- Lucide Icons Library -->
@@ -1127,6 +1127,61 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       CHATBOT: LAB AI ASSISTANT WIDGET
+       ========================================== -->
+  <!-- Floating Action Button -->
+  <button class="chatbot-fab" id="chatbotFab" title="คุยกับแคททาไลต์ (Catalyst)">
+    <i data-lucide="bot" style="width: 18px; height: 18px;"></i>
+    <span class="chatbot-pulse-dot"></span>
+  </button>
+
+  <!-- Chat Panel Backdrop Overlay -->
+  <div class="chatbot-overlay" id="chatbotOverlay"></div>
+
+  <!-- Chat Panel -->
+  <div class="chatbot-panel" id="chatbotPanel">
+    <div class="chatbot-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="chatbot-avatar">
+          <i data-lucide="bot" style="width: 18px; height: 18px; color: #ffffff;"></i>
+        </div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: #ffffff; line-height: 1.2;">แคททาไลต์ (Catalyst)</div>
+          <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+            <span style="width: 6px; height: 6px; background-color: var(--accent-green); border-radius: 50%; display: inline-block;"></span>
+            <span style="font-size: 10px; color: rgba(255, 255, 255, 0.75);">พร้อมให้บริการ</span>
+          </div>
+        </div>
+      </div>
+      <button class="chatbot-close-btn" id="chatbotCloseBtn" style="color: rgba(255, 255, 255, 0.85); font-size: 22px; cursor: pointer; transition: color 0.2s;">&times;</button>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="chatbot-body" id="chatbotBody">
+      <!-- Welcome Message -->
+      <div class="chat-message bot">
+        สวัสดีครับ! ยินดีต้อนรับสู่ระบบคลังแล็บอัจฉริยะ ผมคือ <b>แคททาไลต์ (Catalyst)</b> ตัวเร่งปฏิกิริยาและผู้ช่วยห้องแล็บส่วนตัวของคุณ สามารถพิมพ์ค้นหาสารเคมี พัสดุคงคลัง หรือคลิกเลือกข้อสอบถามด่วนด้านล่างได้เลยครับ
+      </div>
+      
+      <!-- Suggestion chips inside body -->
+      <div class="chat-suggestions" id="chatSuggestions">
+        <button class="chat-suggestion-chip" data-query="ค้นหาสารเคมี">🔍 ค้นหาสารเคมี/พัสดุ</button>
+        <button class="chat-suggestion-chip" data-query="เช็คของใกล้หมดคลัง">⚠️ เช็คสินค้าสต็อกต่ำ</button>
+        <button class="chat-suggestion-chip" data-query="เช็คสารเคมีหมดอายุ">⏰ เช็คสารเคมีหมดอายุ</button>
+        <button class="chat-suggestion-chip" data-query="วิธีใช้งานระบบ">📖 แนะนำการใช้งานระบบ</button>
+      </div>
+    </div>
+
+    <!-- Chat Input Footer -->
+    <div class="chatbot-footer">
+      <input type="text" id="chatbotInput" placeholder="พิมพ์คำถามของคุณที่นี่..." autocomplete="off">
+      <button id="chatbotSendBtn">
+        <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+      </button>
     </div>
   </div>
 
