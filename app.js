@@ -322,6 +322,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Set up login system (disabled - unified admin role)
   setupCsvExport();
   setupPrintReport();
+  setupHistoryExports();
   setupBarcodeScanner();
   setupCameraScanner();
   setupLoginHandlers();
@@ -784,6 +785,13 @@ function updateUI() {
   renderDashboardOverdueAlerts();
   renderDashboardDamagedStats();
   renderPendingRequests();
+  
+  // Show/Hide export buttons depending on login status
+  const borrowExportActions = document.getElementById("borrowExportActions");
+  const bookingExportActions = document.getElementById("bookingExportActions");
+  const isBackoffice = (userRole === "admin" || userRole === "teacher");
+  if (borrowExportActions) borrowExportActions.style.display = isBackoffice ? "inline-flex" : "none";
+  if (bookingExportActions) bookingExportActions.style.display = isBackoffice ? "inline-flex" : "none";
   
   // Trigger Lucide updates for newly rendered icon containers
   lucide.createIcons();
@@ -4645,6 +4653,244 @@ function setupPrintReport() {
   btn.addEventListener("click", () => {
     window.print();
   });
+}
+
+function setupHistoryExports() {
+  const btnExportBorrowCSV = document.getElementById("btnExportBorrowCSV");
+  const btnExportBorrowPDF = document.getElementById("btnExportBorrowPDF");
+  const btnExportBookingCSV = document.getElementById("btnExportBookingCSV");
+  const btnExportBookingPDF = document.getElementById("btnExportBookingPDF");
+
+  if (btnExportBorrowCSV) {
+    btnExportBorrowCSV.addEventListener("click", () => {
+      if (transactions.length === 0) {
+        showToast("ไม่มีข้อมูลประวัติการทำรายการยืม-คืนที่สามารถส่งออกได้", "error");
+        return;
+      }
+      const headers = [
+        "วันทำรายการ",
+        "รหัสพัสดุ",
+        "รายการพัสดุ",
+        "จำนวนที่ยืม",
+        "ผู้ยืม",
+        "ห้องปฏิบัติการ",
+        "คาบเรียน",
+        "ผู้ดูแล (อาจารย์)",
+        "สถานะ",
+        "วันกำหนดส่งคืน",
+        "วันที่คืนจริง",
+        "หมายเหตุ"
+      ];
+      const rows = transactions.map(tx => [
+        tx.date || "",
+        tx.itemCode || "",
+        tx.itemName || "",
+        tx.qty || 0,
+        tx.borrower || "",
+        getRoomThaiName(tx.room) || "",
+        tx.slot || "",
+        tx.supervisingTeacher || "",
+        tx.status === "borrowed" ? "กำลังยืม" : tx.status === "pending" ? "รออนุมัติ" : tx.status === "rejected" ? "ปฏิเสธการยืม" : "คืนแล้ว",
+        tx.expectedReturnDate || "",
+        tx.returnDate || "",
+        tx.notes || ""
+      ]);
+      exportDataToCSV(`borrow_return_history_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+      showToast("ส่งออกประวัติการยืม-คืนแบบ CSV สำเร็จ!", "success");
+    });
+  }
+
+  if (btnExportBorrowPDF) {
+    btnExportBorrowPDF.addEventListener("click", () => {
+      if (transactions.length === 0) {
+        showToast("ไม่มีข้อมูลประวัติการทำรายการยืม-คืนที่สามารถส่งออกได้", "error");
+        return;
+      }
+      const printDate = formatThaiDate(new Date().toISOString().split('T')[0]) + " " + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      const rowsHtml = transactions.map(tx => `
+        <tr>
+          <td>${formatThaiDate(tx.date)}</td>
+          <td>${tx.itemCode}</td>
+          <td>${tx.itemName}</td>
+          <td>${tx.qty}</td>
+          <td>${tx.borrower}</td>
+          <td>${getRoomThaiName(tx.room)}</td>
+          <td>${tx.status === "borrowed" ? "<span style='color:#f97316; font-weight: 500;'>กำลังยืม</span>" : tx.status === "pending" ? "<span style='color:#f59e0b; font-weight: 500;'>รออนุมัติ</span>" : tx.status === "rejected" ? "<span style='color:#ef4444; font-weight: 500;'>ปฏิเสธการยืม</span>" : "<span style='color:#10b981; font-weight: 500;'>คืนแล้ว</span>"}</td>
+        </tr>
+      `).join("");
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>รายงานประวัติการยืม-คืนพัสดุและสารเคมี</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+            body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+            h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
+            p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+            th { background-color: #f1f5f9; font-weight: 600; color: #334155; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            .footer { margin-top: 40px; font-size: 10px; text-align: right; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>รายงานประวัติการยืม-คืนพัสดุและสารเคมี</h1>
+          <p class="meta">ออกรายงาน ณ วันที่: ${printDate} | จำนวนธุรกรรมทั้งหมด: ${transactions.length} รายการ</p>
+          <table>
+            <thead>
+              <tr>
+                <th>วันทำรายการ</th>
+                <th>รหัสพัสดุ</th>
+                <th>รายการพัสดุ</th>
+                <th>จำนวน</th>
+                <th>ผู้ยืม</th>
+                <th>ห้องปฏิบัติการ</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          <div class="footer">ระบบจัดการห้องปฏิบัติการเคมีและอุปกรณ์วิทยาศาสตร์</div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            }
+          </script>
+        </body>
+        </html>
+      `;
+      const printWindow = window.open("", "_blank");
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    });
+  }
+
+  if (btnExportBookingCSV) {
+    btnExportBookingCSV.addEventListener("click", () => {
+      if (bookings.length === 0) {
+        showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการที่สามารถส่งออกได้", "error");
+        return;
+      }
+      const headers = [
+        "วันที่เข้าใช้",
+        "ห้องปฏิบัติการ",
+        "คาบเรียนที่ใช้",
+        "ผู้จอง",
+        "วัตถุประสงค์",
+        "สถานะ",
+        "วันที่จอง (บันทึกเข้าระบบ)"
+      ];
+      const rows = bookings.map(b => [
+        b.date || "",
+        getRoomThaiName(b.room) || "",
+        b.slot || "",
+        b.bookerName || "",
+        b.purpose || "",
+        b.status === "approved" ? "อนุมัติ" : b.status === "pending" ? "รออนุมัติ" : "ปฏิเสธ",
+        b.createdAt ? b.createdAt.split('T')[0] : ""
+      ]);
+      exportDataToCSV(`lab_booking_history_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+      showToast("ส่งออกประวัติการจองห้องปฏิบัติการแบบ CSV สำเร็จ!", "success");
+    });
+  }
+
+  if (btnExportBookingPDF) {
+    btnExportBookingPDF.addEventListener("click", () => {
+      if (bookings.length === 0) {
+        showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการที่สามารถส่งออกได้", "error");
+        return;
+      }
+      const printDate = formatThaiDate(new Date().toISOString().split('T')[0]) + " " + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      const rowsHtml = bookings.map(b => `
+        <tr>
+          <td>${formatThaiDate(b.date)}</td>
+          <td>${getRoomThaiName(b.room)}</td>
+          <td>${b.slot}</td>
+          <td>${b.bookerName}</td>
+          <td>${b.purpose}</td>
+          <td>${b.status === "approved" ? "<span style='color:#10b981; font-weight: 500;'>อนุมัติแล้ว</span>" : b.status === "pending" ? "<span style='color:#f59e0b; font-weight: 500;'>รออนุมัติ</span>" : "<span style='color:#ef4444; font-weight: 500;'>ปฏิเสธ</span>"}</td>
+        </tr>
+      `).join("");
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>รายงานประวัติการใช้ห้องปฏิบัติการ</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+            body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+            h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
+            p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+            th { background-color: #f1f5f9; font-weight: 600; color: #334155; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            .footer { margin-top: 40px; font-size: 10px; text-align: right; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>รายงานประวัติการใช้ห้องปฏิบัติการ</h1>
+          <p class="meta">ออกรายงาน ณ วันที่: ${printDate} | จำนวนรายการจองทั้งหมด: ${bookings.length} รายการ</p>
+          <table>
+            <thead>
+              <tr>
+                <th>วันที่เข้าใช้</th>
+                <th>ห้องปฏิบัติการ</th>
+                <th>คาบเรียน</th>
+                <th>ผู้จอง</th>
+                <th>วัตถุประสงค์</th>
+                <th>สถานะ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+          <div class="footer">ระบบจัดการห้องปฏิบัติการเคมีและอุปกรณ์วิทยาศาสตร์</div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            }
+          </script>
+        </body>
+        </html>
+      `;
+      const printWindow = window.open("", "_blank");
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    });
+  }
+}
+
+function exportDataToCSV(filename, headers, rows) {
+  let csvContent = "\ufeff"; // BOM
+  csvContent += headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\n";
+  rows.forEach(row => {
+    csvContent += row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(",") + "\n";
+  });
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function setupBarcodeScanner() {
