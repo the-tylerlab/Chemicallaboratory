@@ -114,7 +114,7 @@
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-        เวอร์ชัน 1.7.1
+        เวอร์ชัน 1.7.0
       </div>
     </aside>
 
@@ -207,7 +207,7 @@
             <div class="card-header">
               <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
                 <span>รายการแจ้งเตือนด่วน</span>
-                <span class="badge badge-red" id="dashboardUrgentCount" style="padding: 2px 8px; font-size: 12.5px; display: none;">0</span>
+                <span class="badge badge-red" id="dashboardUrgentCount" style="padding: 2px 8px; font-size: 11px; display: none;">0</span>
               </h2>
             </div>
             <div id="dashboardUrgentContainer" style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;">
@@ -220,7 +220,7 @@
             <div class="card-header">
               <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
                 <span>รายการค้างส่งคืน (Overdue)</span>
-                <span class="badge badge-red" id="dashboardOverdueCount" style="padding: 2px 8px; font-size: 12.5px; display: none;">0</span>
+                <span class="badge badge-red" id="dashboardOverdueCount" style="padding: 2px 8px; font-size: 11px; display: none;">0</span>
               </h2>
             </div>
             <div id="dashboardOverdueContainer" style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;">
@@ -243,10 +243,7 @@
           <!-- 3. Category Breakdown Panel -->
           <div class="card-container">
             <div class="card-header">
-              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <span>สัดส่วนหมวดหมู่พัสดุ</span>
-                <span class="badge badge-purple" id="categoryBreakdownCount" style="padding: 2px 8px; font-size: 12.5px;">0 รายการ</span>
-              </h2>
+              <h2 class="card-title">สัดส่วนหมวดหมู่พัสดุ</h2>
             </div>
             <div id="categoryBreakdownContainer" style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 4px 4px; justify-content: space-around;">
               <!-- Dynamically populated -->
@@ -715,7 +712,7 @@
 
             <div class="content-header" style="margin-bottom: 0; padding-bottom: 0;">
               <h2>ประวัติการทำรายการล่าสุด</h2>
-              <p style="font-size: 12.5px; color: var(--text-muted);">แสดงประวัติการยืมและการส่งคืนสินค้าพัสดุวิทยาศาสตร์แบบเรียลไทม์</p>
+              <p style="font-size: 11px; color: var(--text-muted);">แสดงประวัติการยืมและการส่งคืนสินค้าพัสดุวิทยาศาสตร์แบบเรียลไทม์</p>
             </div>
 
             <!-- Export Actions for Borrow/Return History (Admin/Teacher Only) -->
@@ -807,7 +804,7 @@
                 <div class="form-group">
                   <label for="bookingPurpose" class="form-label">วัตถุประสงค์การใช้งาน <span style="color: var(--accent-red);">*</span></label>
                   <input type="text" id="bookingPurpose" class="form-control" placeholder="ระบุวัตถุประสงค์" required>
-                  <span style="font-size: 12.5px; color: var(--text-muted); margin-top: -3px; display: block;">
+                  <span style="font-size: 11px; color: var(--text-muted); margin-top: -3px; display: block;">
                     หมายเหตุ: ระบุระดับชั้น วิชา และเรื่อง (เช่น ม.4 วิชาเคมี เรื่องการไทเทรต)
                   </span>
                 </div>
@@ -928,7 +925,7 @@
   <div class="modal-overlay" id="importModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">นำเข้าไฟล์ (CSV)</h2>
+        <h3 class="modal-title">นำเข้าไฟล์ (CSV)</h3>
         <button class="modal-close-btn" id="modalClose">&times;</button>
       </div>
       
@@ -960,7 +957,7 @@
             </label>
             <span class="file-upload-filename" id="csvFileName">ยังไม่ได้เลือกไฟล์</span>
           </div>
-          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">
+          <p style="font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">
             * รองรับไฟล์รหัสภาษา UTF-8 (แนะนำให้ใช้การบันทึกใน Excel เป็น CSV UTF-8)<br>
             * คอลัมน์ที่รองรับ: รหัส, ชื่อ, หมวดหมู่, จำนวน, หน่วย, จุดสั่งซื้อ, วันหมดอายุ, ห้อง, ตู้, ชั้น
           </p>
@@ -1002,10 +999,10 @@
   <div class="modal-overlay" id="loginModal">
     <div class="modal-content" style="max-width: 400px;">
       <div class="modal-header">
-        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
           <i data-lucide="lock" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
           <span>เข้าสู่ระบบหลังบ้าน</span>
-        </h2>
+        </h3>
         <button class="modal-close-btn" id="loginModalClose">&times;</button>
       </div>
       
@@ -1052,7 +1049,7 @@
   <div class="modal-overlay" id="detailModal">
     <div class="modal-content" style="max-width: 520px;">
       <div class="modal-header">
-        <h2 class="modal-title" id="detailModalTitle" style="display: flex; align-items: center; gap: 8px;">
+        <h3 class="modal-title" id="detailModalTitle" style="display: flex; align-items: center; gap: 8px;">
           <!-- Icon & Title dynamically added -->
         </h3>
         <button class="modal-close-btn" id="detailModalClose">&times;</button>
@@ -1072,10 +1069,10 @@
   <div class="modal-overlay" id="cameraScanModal">
     <div class="modal-content" style="max-width: 480px;">
       <div class="modal-header">
-        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
           <i data-lucide="scan" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
           <span>สแกนคิวอาร์โค้ด / บาร์โค้ด</span>
-        </h2>
+        </h3>
         <button class="modal-close-btn" id="cameraScanModalClose">&times;</button>
       </div>
       <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; align-items: center;">
@@ -1094,10 +1091,10 @@
   <div class="modal-overlay" id="repairModal">
     <div class="modal-content" style="max-width: 480px; box-sizing: border-box;">
       <div class="modal-header">
-        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
           <i data-lucide="wrench" style="width: 18px; height: 18px; color: var(--accent-orange);"></i>
           <span>จัดการพัสดุชำรุดและส่งซ่อม</span>
-        </h2>
+        </h3>
         <button class="modal-close-btn" id="repairModalClose">&times;</button>
       </div>
       
@@ -1109,11 +1106,11 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px;">
           <div style="background-color: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: var(--border-radius-md); padding: 10px; text-align: center;">
-            <div style="font-size: 12.5px; color: var(--text-muted); font-weight: 500;">ชำรุดทั้งหมด</div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">ชำรุดทั้งหมด</div>
             <div style="font-size: 18px; font-weight: 700; color: var(--accent-red); margin-top: 4px;" id="repairDamagedQtyText">0</div>
           </div>
           <div style="background-color: rgba(245, 158, 11, 0.03); border: 1px solid rgba(245, 158, 11, 0.1); border-radius: var(--border-radius-md); padding: 10px; text-align: center;">
-            <div style="font-size: 12.5px; color: var(--text-muted); font-weight: 500;">อยู่ระหว่างส่งซ่อม</div>
+            <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">อยู่ระหว่างส่งซ่อม</div>
             <div style="font-size: 18px; font-weight: 700; color: var(--accent-orange); margin-top: 4px;" id="repairUnderRepairQtyText">0</div>
           </div>
         </div>
@@ -1141,7 +1138,7 @@
         <div class="form-group">
           <label for="repairActionQty" class="form-label">จำนวนที่ต้องการจัดการ <span style="color: var(--accent-red);">*</span></label>
           <input type="number" id="repairActionQty" class="form-control" value="1" min="1" style="width: 100%;">
-          <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;" id="repairMaxQtyHint">จำนวนสูงสุดที่ทำรายการได้: -</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="repairMaxQtyHint">จำนวนสูงสุดที่ทำรายการได้: -</div>
         </div>
 
         <!-- Submit Button -->

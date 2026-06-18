@@ -854,10 +854,17 @@ function renderCategoryBreakdown() {
   const container = document.getElementById("categoryBreakdownContainer");
   if (!container) return;
 
+  // Set count badge at the card header
+  const totalCountEl = document.getElementById("categoryBreakdownCount");
+  if (totalCountEl) {
+    totalCountEl.textContent = `${items.length} รายการ`;
+  }
+
   const counts = {
     "สารเคมี": 0,
+    "อุปกรณ์วิทยาศาสตร์": 0,
     "เครื่องแก้ว": 0,
-    "อุปกรณ์ทั่วไป": 0,
+    "วัสดุสิ้นเปลือง": 0,
     "อื่นๆ": 0
   };
 
@@ -873,10 +880,15 @@ function renderCategoryBreakdown() {
   const total = items.length || 1;
   const categoriesList = [
     { name: "สารเคมี", count: counts["สารเคมี"], color: "#8b5cf6" },
+    { name: "อุปกรณ์วิทยาศาสตร์", count: counts["อุปกรณ์วิทยาศาสตร์"], color: "#10b981" },
     { name: "เครื่องแก้ว", count: counts["เครื่องแก้ว"], color: "#3b82f6" },
-    { name: "อุปกรณ์ทั่วไป", count: counts["อุปกรณ์ทั่วไป"], color: "#10b981" },
-    { name: "อื่นๆ", count: counts["อื่นๆ"], color: "#6b7280" }
+    { name: "วัสดุสิ้นเปลือง", count: counts["วัสดุสิ้นเปลือง"], color: "#f97316" }
   ];
+
+  // Only display 'อื่นๆ' if there are items fall under this fallback category
+  if (counts["อื่นๆ"] > 0) {
+    categoriesList.push({ name: "อื่นๆ", count: counts["อื่นๆ"], color: "#6b7280" });
+  }
 
   let html = "";
   categoriesList.forEach(cat => {
@@ -898,6 +910,7 @@ function renderCategoryBreakdown() {
   });
   container.innerHTML = html;
 }
+
 
 function renderDashboardUrgentAlerts() {
   const container = document.getElementById("dashboardUrgentContainer");
@@ -5421,6 +5434,198 @@ function setupChatbot() {
 
 function generateBotResponse(query) {
   const q = query.toLowerCase().trim();
+
+  // Chemical Knowledge Base for Pronunciation & Reactions
+  const CHEM_DB = {
+    "กรดไฮโดรคลอริก": {
+      read: "กรด-ไฮ-โดร-คลอ-ริก",
+      formula: "HCl",
+      commonName: "กรดเกลือ",
+      aliases: ["กรดไฮโดรคลอริก", "กรดเกลือ", "hcl"],
+      reactions: [
+        { partner: "โซเดียมไฮดรอกไซด์", product: "เกลือแกง (โซเดียมคลอไรด์) + น้ำ (เกิดปฏิกิริยาสะเทิน คลายความร้อน)", equation: "HCl + NaOH → NaCl + H₂O" },
+        { partner: "โซเดียมไบคาร์บอเนต", product: "โซเดียมคลอไรด์ + น้ำ + แก๊สคาร์บอนไดออกไซด์ (เกิดฟองแก๊สฟูฟ่อง)", equation: "HCl + NaHCO₃ → NaCl + H₂O + CO₂" },
+        { partner: "แคลเซียมคาร์บอเนต", product: "แคลเซียมคลอไรด์ + น้ำ + แก๊สคาร์บอนไดออกไซด์ (หินปูนสึกกร่อน เกิดฟองแก๊ส)", equation: "2HCl + CaCO₃ → CaCl₂ + H₂O + CO₂" },
+        { partner: "สังกะสี", product: "ซิงค์คลอไรด์ (Zinc Chloride) + แก๊สไฮโดรเจน (เกิดแก๊สไวไฟชนิดเบา)", equation: "2HCl + Zn → ZnCl₂ + H₂" }
+      ]
+    },
+    "โซเดียมไฮดรอกไซด์": {
+      read: "โซ-เดียม-ไฮ-ดรอก-ไซด์",
+      formula: "NaOH",
+      commonName: "โซดาไฟ",
+      aliases: ["โซเดียมไฮดรอกไซด์", "โซดาไฟ", "naoh"],
+      reactions: [
+        { partner: "กรดไฮโดรคลอริก", product: "เกลือแกง (โซเดียมคลอไรด์) + น้ำ (เกิดปฏิกิริยาสะเทิน คลายความร้อน)", equation: "NaOH + HCl → NaCl + H₂O" },
+        { partner: "กรดแอซีติก", product: "โซเดียมแอซีเตต (Sodium Acetate) + น้ำ", equation: "NaOH + CH₃COOH → CH₃COONa + H₂O" }
+      ]
+    },
+    "เอทานอล": {
+      read: "เอ-ทา-นอล",
+      formula: "C₂H₅OH",
+      commonName: "แอลกอฮอล์, เอทิลแอลกอฮอล์",
+      aliases: ["เอทานอล", "แอลกอฮอล์", "เอทิลแอลกอฮอล์", "c2h5oh"],
+      reactions: [
+        { partner: "กรดซาลิไซลิก", product: "เอทิลซาลิไซเลต (Ethyl Salicylate) ซึ่งเป็นเอสเทอร์ที่มีกลิ่นหอมคล้ายน้ำมันระกำ (โดยใช้กรดซัลฟิวริกเข้มข้นเป็นตัวเร่งปฏิกิริยาในปฏิกิริยา Esterification)", equation: "C₇H₆O₃ + C₂H₅OH → C₉H₁₀O₃ + H₂O" }
+      ]
+    },
+    "กรดแอซีติก": {
+      read: "กรด-แอ-ซี-ติก",
+      formula: "CH₃COOH",
+      commonName: "กรดอะซิติก, กรดน้ำส้ม",
+      aliases: ["กรดแอซีติก", "กรดอะซิติก", "กรดน้ำส้ม", "ch3cooh"],
+      reactions: [
+        { partner: "โซเดียมไบคาร์บอเนต", product: "โซเดียมแอซีเตต + น้ำ + แก๊สคาร์บอนไดออกไซด์ (เกิดฟองฟูฟ่องอย่างรวดเร็ว)", equation: "CH₃COOH + NaHCO₃ → CH₃COONa + H₂O + CO₂" },
+        { partner: "โซเดียมไฮดรอกไซด์", product: "โซเดียมแอซีเตต + น้ำ", equation: "CH₃COOH + NaOH → CH₃COONa + H₂O" }
+      ]
+    },
+    "โซเดียมไบคาร์บอเนต": {
+      read: "โซ-เดียม-ไบ-คาร์-บอ-เนต",
+      formula: "NaHCO₃",
+      commonName: "เบกกิ้งโซดา, ผงฟู",
+      aliases: ["โซเดียมไบคาร์บอเนต", "เบกกิ้งโซดา", "ผงฟู", "nahco3"],
+      reactions: [
+        { partner: "กรดแอซีติก", product: "โซเดียมแอซีเตต + น้ำ + แก๊สคาร์บอนไดออกไซด์ (เกิดฟองฟูฟ่อง)", equation: "NaHCO₃ + CH₃COOH → CH₃COONa + H₂O + CO₂" },
+        { partner: "กรดไฮโดมคลอริก", product: "โซเดียมคลอไรด์ + น้ำ + แก๊สคาร์บอนไดออกไซด์ (เกิดฟองแก๊ส)", equation: "NaHCO₃ + HCl → NaCl + H₂O + CO₂" }
+      ]
+    },
+    "แคลเซียมคาร์บอเนต": {
+      read: "แคล-เซียม-คา-บอ-เนต",
+      formula: "CaCO₃",
+      commonName: "หินปูน",
+      aliases: ["แคลเซียมคาร์บอเนต", "หินปูน", "ชอล์ก", "caco3"],
+      reactions: [
+        { partner: "กรดไฮโดรคลอริก", product: "แคลเซียมคลอไรด์ + น้ำ + แก๊สคาร์บอนไดออกไซด์ (หินปูนสึกกร่อน เกิดฟองแก๊สคาร์บอนไดออกไซด์)", equation: "CaCO₃ + 2HCl → CaCl₂ + H₂O + CO₂" }
+      ]
+    },
+    "น้ำ": {
+      read: "น้ำ",
+      formula: "H₂O",
+      commonName: "-",
+      aliases: ["น้ำ", "h2o"],
+      reactions: [
+        { partner: "โซเดียม", product: "โซเดียมไฮดรอกไซด์ + แก๊สไฮโดรเจน (เกิดปฏิกิริยารุนแรงมาก คลายความร้อนสูง มีเปลวไฟและเกิดระเบิดเล็กน้อย)", equation: "2Na + 2H₂O → 2NaOH + H₂" }
+      ]
+    },
+    "โซเดียม": {
+      read: "โซ-เดียม",
+      formula: "Na",
+      commonName: "-",
+      aliases: ["โซเดียม", "na"],
+      reactions: [
+        { partner: "น้ำ", product: "โซเดียมไฮดรอกไซด์ + แก๊สไฮโดรเจน (เกิดปฏิกิริยารุนแรง คลายความร้อนสูงและเปลวไฟ)", equation: "2Na + 2H₂O → 2NaOH + H₂" }
+      ]
+    },
+    "กรดซัลฟิวริก": {
+      read: "กรด-ซัล-ฟิว-ริก",
+      formula: "H₂SO₄",
+      commonName: "กรดกำมะถัน",
+      aliases: ["กรดซัลฟิวริก", "กรดกำมะถัน", "h2so4"],
+      reactions: [
+        { partner: "น้ำ", product: "กรดซัลฟิวริกเจือจาง (ข้อควรระวัง: ปฏิกิริยาคายความร้อนสูงมาก ห้ามเทน้ำลงในกรดเข้มข้น ให้ใช้วิธีค่อยๆ เทกรดเข้มข้นลงในน้ำช้าๆ)", equation: "H₂SO₄ + H₂O → H₃O⁺ + HSO₄⁻ (คายความร้อนสูง)" }
+      ]
+    }
+  };
+
+  // Helper to normalize subscripts to standard digits
+  const normalizeSubscripts = (str) => {
+    const subscriptMap = {
+      '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+      '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
+    };
+    return str.replace(/[₀-₉]/g, m => subscriptMap[m]);
+  };
+  const qSubNormal = normalizeSubscripts(q);
+
+  // Find matches in CHEM_DB
+  const matchedKeys = [];
+  for (const [key, chem] of Object.entries(CHEM_DB)) {
+    let found = false;
+    if (qSubNormal.includes(key.toLowerCase())) found = true;
+    if (qSubNormal.includes(normalizeSubscripts(chem.formula).toLowerCase())) found = true;
+    if (chem.aliases && chem.aliases.some(alias => qSubNormal.includes(normalizeSubscripts(alias).toLowerCase()))) {
+      found = true;
+    }
+    if (found) {
+      matchedKeys.push(key);
+    }
+  }
+
+  // 1A. MULTIPLE CHEMICALS REACTION
+  if (matchedKeys.length >= 2) {
+    const keyA = matchedKeys[0];
+    const keyB = matchedKeys[1];
+    
+    // Find reaction keyA + keyB
+    const chemA = CHEM_DB[keyA];
+    const reaction = chemA.reactions.find(r => 
+      qSubNormal.includes(r.partner.toLowerCase()) || 
+      CHEM_DB[r.partner].aliases.some(alias => qSubNormal.includes(normalizeSubscripts(alias).toLowerCase()))
+    );
+
+    if (reaction) {
+      return `🧪 <b>ปฏิกิริยาเคมีระหว่าง ${keyA} (${chemA.formula}) กับ ${reaction.partner} (${CHEM_DB[reaction.partner].formula}):</b>\n\n` +
+             `- <b>ผลผลิตที่ได้:</b> ${reaction.product}\n` +
+             `- <b>สมการเคมี:</b> <code>${reaction.equation}</code>`;
+    } else {
+      // Try reverse check (keyB + keyA)
+      const chemB = CHEM_DB[keyB];
+      const revReaction = chemB.reactions.find(r => 
+        qSubNormal.includes(r.partner.toLowerCase()) || 
+        CHEM_DB[r.partner].aliases.some(alias => qSubNormal.includes(normalizeSubscripts(alias).toLowerCase()))
+      );
+
+      if (revReaction) {
+        return `🧪 <b>ปฏิกิริยาเคมีระหว่าง ${keyB} (${chemB.formula}) กับ ${revReaction.partner} (${CHEM_DB[revReaction.partner].formula}):</b>\n\n` +
+               `- <b>ผลผลิตที่ได้:</b> ${revReaction.product}\n` +
+               `- <b>สมการเคมี:</b> <code>${revReaction.equation}</code>`;
+      } else {
+        return `🧪 ไม่พบข้อมูลปฏิกิริยาเคมีโดยตรงระหว่าง <b>${keyA}</b> และ <b>${keyB}</b> ในคลังความรู้แล็บ ณ ขณะนี้ครับ สารคู่นี้อาจไม่ทำปฏิกิริยากันภายใต้สภาวะปกติ หรือเป็นปฏิกิริยาที่ต้องใช้สภาวะเฉพาะในการเร่งปฏิกิริยาครับ`;
+      }
+    }
+  }
+
+  // 1B. SINGLE CHEMICAL PENDING DETAILS (Pronunciation or Single Reaction List)
+  if (matchedKeys.length === 1) {
+    const key = matchedKeys[0];
+    const chem = CHEM_DB[key];
+    
+    // Check if query is about pronunciation OR if it is a direct match
+    const isPronounce = qSubNormal.includes("อ่านว่า") || qSubNormal.includes("อ่านอย่างไร") || qSubNormal.includes("อ่านว่าอย่างไร") || qSubNormal.includes("อ่านว่ายังไง") || qSubNormal.includes("อ่านออกเสียง") || qSubNormal.includes("สอนอ่าน");
+    const isReaction = qSubNormal.includes("ทำปฏิกิริยา") || qSubNormal.includes("ปฏิกิริยา") || qSubNormal.includes("ผสม") || qSubNormal.includes("เกิดอะไร") || qSubNormal.includes("ได้อะไร") || qSubNormal.includes("ทำปฏิกิริยากับอะไร");
+
+    const isDirectMatch = (
+      qSubNormal === normalizeSubscripts(chem.formula).toLowerCase() ||
+      qSubNormal === key.toLowerCase() ||
+      (chem.aliases && chem.aliases.some(alias => qSubNormal === normalizeSubscripts(alias).toLowerCase()))
+    );
+
+    if (isDirectMatch || isPronounce) {
+      return `🗣️\n` +
+             `- สารเคมี ${chem.formula} คือ ${key}\n` +
+             `- คำอ่านภาษาไทย "${chem.read}"\n` +
+             `- ชื่ออื่นๆ/ชื่อสามัญ ${chem.commonName || "-"}`;
+    }
+
+    if (isReaction) {
+      let res = `🧪 <b>ข้อมูลปฏิกิริยาเคมีของ ${key} (${chem.formula}):</b>\n\n`;
+      res += `สารนี้สามารถทำปฏิกิริยากับสารเคมีพื้นฐานอื่นๆ ในคลังได้ดังนี้ครับ:\n\n`;
+      chem.reactions.forEach((r, idx) => {
+        res += `${idx + 1}. <b>ทำปฏิกิริยากับ ${r.partner}:</b>\n`;
+        res += `   - ผลผลิต: ${r.product}\n`;
+        res += `   - สมการ: <code>${r.equation}</code>\n\n`;
+      });
+      return res.trim();
+    }
+  }
+
+  // 1C. FALLBACK RECOGNITION FOR INVENTORY ITEMS
+  if (q.includes("อ่านว่า") || q.includes("อ่านอย่างไร") || q.includes("อ่านว่าอย่างไร") || q.includes("อ่านว่ายังไง") || q.includes("ทำปฏิกิริยา") || q.includes("ปฏิกิริยา")) {
+    // Find if any item in inventory is mentioned in the query
+    const matchedItem = items.find(item => q.includes(item.name.toLowerCase()));
+    if (matchedItem) {
+      return `🗣️🧪 ผมพบสารเคมี/อุปกรณ์ชื่อ <b>"${matchedItem.name}"</b> ในระบบคลัง (รหัส: ${matchedItem.code}) แต่ปัจจุบันข้อมูลคำอ่านและสมการปฏิกิริยาของสารนี้ยังไม่ได้ถูกบันทึกไว้ในฐานความรู้ของผมครับ\n\n💡 แนะนำให้ลองพิมพ์ถามสารเคมีพื้นฐานอื่นๆ เช่น: <i>กรดไฮโดรคลอริก, โซเดียมไฮดรอกไซด์, เอทานอล, กรดแอซีติก, โซเดียมไบคาร์บอเนต, แคลเซียมคาร์บอเนต หรือ กรดซัลฟิวริก</i> ครับ`;
+    }
+  }
 
   // 1. GREETINGS
   if (q === "สวัสดี" || q === "สวัสดีครับ" || q === "สวัสดีค่ะ" || q === "หวัดดี" || q === "hello" || q === "hi") {
