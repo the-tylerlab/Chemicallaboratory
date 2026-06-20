@@ -1,7 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap');
+
 /* ==========================================================================
    DESIGN SYSTEM & VARIABLES
    ========================================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap');
 
 :root {
   /* Fonts */
@@ -2348,6 +2349,11 @@ tr:hover td {
     padding: 8px 10px;
     font-size: 12px;
   }
+
+  /* Override table min-width on mobile */
+  .purchase-orders-grid table {
+    min-width: 0 !important;
+  }
 }
 
 
@@ -2973,10 +2979,56 @@ input[type="date"]::-webkit-date-and-time-value {
   align-items: start;
 }
 
-@media (max-width: 1024px) {
+.purchase-orders-grid table {
+  min-width: 700px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
   .purchase-orders-grid {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* Annual Budget Stat Grid */
+.budget-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .budget-stat-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* Edit Budget Elements */
+.budget-edit-btn:hover {
+  color: var(--primary-purple) !important;
+  background-color: rgba(63, 27, 133, 0.08) !important;
+}
+
+/* Draft Basket Styling */
+.draft-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  font-size: 13px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.draft-item:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(63, 27, 133, 0.2);
 }
 
 

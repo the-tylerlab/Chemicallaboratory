@@ -3598,6 +3598,18 @@ window.cancelBookingRecord = async function(bookingId) {
 // PURCHASE ORDERS SYSTEM
 // ==========================================================================
 let purchaseOrders = [];
+let purchaseOrderDrafts = [];
+let annualBudget = 100000;
+
+function loadAnnualBudget() {
+  const localBudget = localStorage.getItem("lab_annual_budget");
+  if (localBudget) {
+    annualBudget = parseFloat(localBudget) || 100000;
+  } else {
+    annualBudget = 100000;
+    localStorage.setItem("lab_annual_budget", annualBudget.toString());
+  }
+}
 
 function escapeHTML(str) {
   if (typeof str !== 'string') return str;
@@ -3613,6 +3625,7 @@ function escapeHTML(str) {
 }
 
 function loadPurchaseOrders() {
+  loadAnnualBudget();
   const defaultOrders = [
     {
       id: "ord-mock-001",
@@ -3714,8 +3727,8 @@ function setupPurchaseOrders() {
       const budget = parseFloat(document.getElementById("poBudget").value) || 0;
       const discount = parseFloat(document.getElementById("poDiscount").value) || 0;
 
-      const newOrder = {
-        id: "ord-" + Date.now(),
+      const newDraftItem = {
+        id: "draft-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
         code,
         name,
         unitPrice,
@@ -3725,19 +3738,201 @@ function setupPurchaseOrders() {
         discount
       };
 
-      purchaseOrders.push(newOrder);
-      localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      purchaseOrderDrafts.push(newDraftItem);
       
       form.reset();
       if (poTotalPrice) poTotalPrice.value = "0.00";
 
-      showToast("บันทึกรายการสั่งซื้อสำเร็จ", "success");
+      showToast("เพิ่มรายการสินค้าลงตารางชั่วคราวสำเร็จ", "success");
+      renderPoDrafts();
+      
+      const firstInput = document.getElementById("poProductCode");
+      if (firstInput) firstInput.focus();
+    });
+  }
+
+  // Setup Budget Inline Editor
+  const btnEditAnnualBudget = document.getElementById("btnEditAnnualBudget");
+  const btnSaveAnnualBudget = document.getElementById("btnSaveAnnualBudget");
+  const btnCancelAnnualBudget = document.getElementById("btnCancelAnnualBudget");
+  const containerAnnualBudget = document.getElementById("containerAnnualBudget");
+  const annualBudgetEditForm = document.getElementById("annualBudgetEditForm");
+  const txtAnnualBudget = document.getElementById("txtAnnualBudget");
+
+  if (btnEditAnnualBudget && containerAnnualBudget && annualBudgetEditForm && txtAnnualBudget) {
+    btnEditAnnualBudget.addEventListener("click", () => {
+      txtAnnualBudget.value = annualBudget;
+      containerAnnualBudget.style.display = "none";
+      annualBudgetEditForm.style.display = "flex";
+      txtAnnualBudget.focus();
+    });
+  }
+
+  if (btnSaveAnnualBudget && containerAnnualBudget && annualBudgetEditForm && txtAnnualBudget) {
+    btnSaveAnnualBudget.addEventListener("click", () => {
+      const newBudget = parseFloat(txtAnnualBudget.value);
+      if (isNaN(newBudget) || newBudget < 0) {
+        showToast("กรุณากรอกงบประมาณที่ถูกต้อง", "error");
+        return;
+      }
+      annualBudget = newBudget;
+      localStorage.setItem("lab_annual_budget", annualBudget.toString());
+      containerAnnualBudget.style.display = "flex";
+      annualBudgetEditForm.style.display = "none";
+      showToast("แก้ไขงบประมาณประจำปีสำเร็จ", "success");
       updateUI();
+    });
+  }
+
+  if (btnCancelAnnualBudget && containerAnnualBudget && annualBudgetEditForm) {
+    btnCancelAnnualBudget.addEventListener("click", () => {
+      containerAnnualBudget.style.display = "flex";
+      annualBudgetEditForm.style.display = "none";
+    });
+  }
+
+  // Setup Commit Draft Button
+  const btnCommit = document.getElementById("btnCommitPoDraft");
+  if (btnCommit) {
+    btnCommit.addEventListener("click", () => {
+      if (purchaseOrderDrafts.length === 0) return;
+
+      let subtotal = 0;
+      purchaseOrderDrafts.forEach(item => {
+        subtotal += item.totalPrice;
+      });
+
+      let totalSpent = 0;
+      purchaseOrders.forEach(order => {
+        totalSpent += order.totalPrice;
+      });
+      const remainingBudget = annualBudget - totalSpent;
+
+      if (subtotal > remainingBudget) {
+        const exceededAmount = subtotal - remainingBudget;
+        const confirmSave = confirm(
+          `คำเตือน: ราคารวมการสั่งซื้อนี้ (${subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท) ` +
+          `เกินงบประมาณประจำปีคงเหลือ (${remainingBudget.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท) ` +
+          `เป็นจำนวน ${exceededAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท\n\n` +
+          `คุณยังต้องการทำรายการบันทึกสั่งซื้อต่อไปหรือไม่?`
+        );
+        if (!confirmSave) return;
+      }
+
+      purchaseOrderDrafts.forEach(draft => {
+        draft.id = "ord-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
+        draft.date = new Date().toISOString().split('T')[0];
+        purchaseOrders.push(draft);
+      });
+
+      localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      purchaseOrderDrafts = [];
+
+      renderPoDrafts();
+      updateUI();
+      showToast("บันทึกรายการสั่งซื้อทั้งหมดสำเร็จ", "success");
     });
   }
 }
 
+window.deleteDraftItem = function(index) {
+  purchaseOrderDrafts.splice(index, 1);
+  renderPoDrafts();
+  showToast("ลบรายการชั่วคราวสำเร็จ", "success");
+};
+
+window.renderPoDrafts = function() {
+  const container = document.getElementById("poDraftContainer");
+  const listEl = document.getElementById("poDraftList");
+  const totalEl = document.getElementById("poDraftTotal");
+  const btnCommitText = document.getElementById("btnCommitPoDraftText");
+
+  if (!container || !listEl || !totalEl || !btnCommitText) return;
+
+  if (purchaseOrderDrafts.length === 0) {
+    container.style.display = "none";
+    return;
+  }
+
+  container.style.display = "block";
+
+  let html = "";
+  let subtotal = 0;
+
+  purchaseOrderDrafts.forEach((item, index) => {
+    subtotal += item.totalPrice;
+    html += `
+      <div class="draft-item">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-weight: 600; color: var(--text-main); text-align: left;">${escapeHTML(item.name)}</span>
+          <span style="font-size: 11px; color: var(--text-muted); font-family: monospace; text-align: left;">
+            <span style="font-family: monospace;">${escapeHTML(item.code)}</span> • ${item.quantity} x ${item.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.
+          </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-weight: 700; color: var(--text-main);">${item.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.</span>
+          <button type="button" class="action-icon-btn delete" onclick="deleteDraftItem(${index})" style="padding: 4px; width: 28px; height: 28px; border: none; background: transparent; cursor: pointer;" title="ลบรายการนี้">
+            <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--accent-red);"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  listEl.innerHTML = html;
+  totalEl.innerText = subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
+  btnCommitText.innerText = `บันทึกใบสั่งซื้อทั้งหมด (${purchaseOrderDrafts.length} รายการ)`;
+
+  lucide.createIcons();
+};
+
+function updateBudgetUI() {
+  // Load annual budget
+  const localBudget = localStorage.getItem("lab_annual_budget");
+  annualBudget = localBudget ? parseFloat(localBudget) : 100000;
+
+  // Calculate total spent
+  let totalSpent = 0;
+  purchaseOrders.forEach(order => {
+    totalSpent += order.totalPrice;
+  });
+
+  // Calculate remaining
+  const remainingBudget = annualBudget - totalSpent;
+
+  // Update DOM
+  const lblAnnualBudget = document.getElementById("lblAnnualBudget");
+  const lblTotalSpent = document.getElementById("lblTotalSpent");
+  const lblRemainingBudget = document.getElementById("lblRemainingBudget");
+  const cardRemainingBudget = document.getElementById("cardRemainingBudget");
+  const iconRemainingBudget = document.getElementById("iconRemainingBudget");
+
+  if (lblAnnualBudget) lblAnnualBudget.innerText = annualBudget.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (lblTotalSpent) lblTotalSpent.innerText = totalSpent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (lblRemainingBudget) lblRemainingBudget.innerText = remainingBudget.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  if (cardRemainingBudget && iconRemainingBudget) {
+    if (remainingBudget < 0) {
+      // Exceeded budget - Red
+      cardRemainingBudget.style.borderColor = "var(--accent-red)";
+      iconRemainingBudget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+      iconRemainingBudget.style.color = "rgb(239, 68, 68)";
+    } else if (remainingBudget < (annualBudget * 0.3)) {
+      // Warning low budget (< 30%) - Orange
+      cardRemainingBudget.style.borderColor = "#f97316";
+      iconRemainingBudget.style.backgroundColor = "rgba(249, 115, 22, 0.1)";
+      iconRemainingBudget.style.color = "rgb(249, 115, 22)";
+    } else {
+      // Healthy budget - Green
+      cardRemainingBudget.style.borderColor = "var(--border-color)";
+      iconRemainingBudget.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+      iconRemainingBudget.style.color = "rgb(16, 185, 129)";
+    }
+  }
+}
+
 function renderOrdersTable() {
+  updateBudgetUI();
   const formCol = document.getElementById("purchaseOrderFormCol");
   const grid = document.getElementById("purchaseOrdersGrid");
   const isBackoffice = (userRole === "admin" || userRole === "teacher");
@@ -3795,14 +3990,14 @@ function renderOrdersTable() {
 
     html += `
       <tr>
-        <td style="font-weight: 500; font-family: monospace;">${escapeHTML(order.code)}</td>
-        <td>${escapeHTML(order.name)}</td>
-        <td style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td style="text-align: center;">${order.quantity}</td>
-        <td style="text-align: right; font-weight: 600;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td>${budgetDiscountText}</td>
+        <td data-label="รหัสสินค้า" style="font-weight: 500;"><span style="font-family: monospace;">${escapeHTML(order.code)}</span></td>
+        <td data-label="ชื่อสินค้า">${escapeHTML(order.name)}</td>
+        <td data-label="ราคา/หน่วย" style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td data-label="จำนวน" style="text-align: center;">${order.quantity}</td>
+        <td data-label="ราคารวม" style="text-align: right; font-weight: 600;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td data-label="งบประมาณ + ส่วนลด">${budgetDiscountText}</td>
         ${isBackoffice ? `
-          <td style="text-align: center;">
+          <td data-label="จัดการ" style="text-align: center;">
             <button class="action-icon-btn delete" onclick="deletePurchaseOrder('${order.id}')" title="ลบรายการสั่งซื้อ">
               <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
             </button>
