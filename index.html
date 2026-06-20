@@ -90,6 +90,12 @@
               <span>จองห้องปฏิบัติการ</span>
             </a>
           </li>
+          <li id="menuItemPurchaseOrders" style="display: none;">
+            <a href="#" class="menu-item-link" data-target="purchase-orders">
+              <i data-lucide="shopping-cart"></i>
+              <span>รายการสั่งซื้อ</span>
+            </a>
+          </li>
           <li>
             <a href="#" class="menu-item-link" data-target="notifications">
               <i data-lucide="bell"></i>
@@ -665,9 +671,9 @@
                   <label for="borrowRoom" class="form-label">ห้องปฏิบัติการ <span style="color: var(--accent-red);">*</span></label>
                   <select id="borrowRoom" class="form-control" required>
                     <option value="" disabled selected>-- เลือกห้องแล็บ --</option>
-                    <option value="Lab 1">ห้องปฏิบัติการเคมี</option>
-                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์</option>
-                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา</option>
+                    <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
                     <option value="None">เบิกใช้นอกห้องปฏิบัติการ</option>
                   </select>
                 </div>
@@ -719,14 +725,26 @@
             </div>
 
             <!-- Export Actions for Borrow/Return History (Admin/Teacher Only) -->
-            <div id="borrowExportActions" style="display: none; align-items: center; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
-              <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);">ส่งออกข้อมูล:</span>
-              <button type="button" class="btn" id="btnExportBorrowCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
-                <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
-              </button>
-              <button type="button" class="btn" id="btnExportBorrowPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
-                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
-              </button>
+            <div id="borrowExportActions" style="display: none; align-items: center; gap: 10px; margin-top: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+              <div style="display: inline-flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">กรองห้อง:</span>
+                <select id="exportBorrowRoomFilter" class="form-control" style="width: 250px; display: inline-block; font-size: 12px !important; padding: 0 32px 0 12px !important; height: 34px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
+                  <option value="all">-- ทุกห้องปฏิบัติการ --</option>
+                  <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                  <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                  <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                  <option value="None">นอกห้องปฏิบัติการ</option>
+                </select>
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">ส่งออก:</span>
+                <button type="button" class="btn" id="btnExportBorrowCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
+                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
+                </button>
+                <button type="button" class="btn" id="btnExportBorrowPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
+                  <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
+                </button>
+              </div>
             </div>
 
             <!-- Transaction Table -->
@@ -779,9 +797,9 @@
                 <div class="form-group">
                   <label for="bookingRoom" class="form-label">ห้องปฏิบัติการ <span style="color: var(--accent-red);">*</span></label>
                   <select id="bookingRoom" class="form-control" required>
-                    <option value="Lab 1">ห้องปฏิบัติการเคมี</option>
-                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์</option>
-                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา</option>
+                    <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -831,14 +849,25 @@
             </div>
 
             <!-- Export Actions for Booking History (Admin/Teacher Only) -->
-            <div id="bookingExportActions" style="display: none; align-items: center; gap: 8px; margin-top: 12px; margin-bottom: 12px;">
-              <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);">ส่งออกข้อมูล:</span>
-              <button type="button" class="btn" id="btnExportBookingCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
-                <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
-              </button>
-              <button type="button" class="btn" id="btnExportBookingPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
-                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
-              </button>
+            <div id="bookingExportActions" style="display: none; align-items: center; gap: 10px; margin-top: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+              <div style="display: inline-flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">กรองห้อง:</span>
+                <select id="exportBookingRoomFilter" class="form-control" style="width: 250px; display: inline-block; font-size: 12px !important; padding: 0 32px 0 12px !important; height: 34px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
+                  <option value="all">-- ทุกห้องปฏิบัติการ --</option>
+                  <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                  <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                  <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                </select>
+              </div>
+              <div style="display: inline-flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">ส่งออก:</span>
+                <button type="button" class="btn" id="btnExportBookingCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
+                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
+                </button>
+                <button type="button" class="btn" id="btnExportBookingPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
+                  <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
+                </button>
+              </div>
             </div>
 
             <!-- Booking Table -->
@@ -914,6 +943,121 @@
             <!-- Dynamically loaded low stock items or empty state -->
             <div class="empty-state" style="padding: 24px;">
               <div class="empty-state-text">ไม่มีรายการ</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           PANEL: PURCHASE ORDERS
+           ========================================== -->
+      <section class="panel" id="panel-purchase-orders">
+        <div class="content-header">
+          <h1>รายการสั่งซื้อห้องปฏิบัติการ</h1>
+          <p>ประวัติและลิสต์รายการสั่งซื้อวัสดุ สารเคมี และอุปกรณ์ทางวิทยาศาสตร์</p>
+        </div>
+
+        <div class="purchase-orders-grid" id="purchaseOrdersGrid">
+          <!-- Left Column: Form -->
+          <div class="form-container" id="purchaseOrderFormCol" style="margin-bottom: 0;">
+            <div class="form-panel-header">
+              <h2>บันทึกรายการสั่งซื้อ</h2>
+              <p>กรอกข้อมูลรายละเอียดสินค้าที่ต้องการสั่งซื้อ</p>
+            </div>
+            
+            <form id="purchaseOrderForm">
+              <div class="form-group">
+                <label for="poProductCode" class="form-label">รหัสสินค้า <span style="color: var(--accent-red);">*</span></label>
+                <input type="text" id="poProductCode" class="form-control" placeholder="ระบุรหัสสินค้า (เช่น CHEM-001)" required>
+              </div>
+              
+              <div class="form-group">
+                <label for="poProductName" class="form-label">ชื่อสินค้า <span style="color: var(--accent-red);">*</span></label>
+                <input type="text" id="poProductName" class="form-control" placeholder="ระบุชื่อสินค้า" required>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="poUnitPrice" class="form-label">ราคาต่อหน่วย (บาท) <span style="color: var(--accent-red);">*</span></label>
+                  <input type="number" step="any" min="0" id="poUnitPrice" class="form-control" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                  <label for="poQuantity" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
+                  <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="poTotalPrice" class="form-label">ราคารวม (บาท)</label>
+                <input type="text" id="poTotalPrice" class="form-control" placeholder="0.00" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: 700;">
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="poBudget" class="form-label">งบประมาณ (บาท) <span style="color: var(--accent-red);">*</span></label>
+                  <input type="number" step="any" min="0" id="poBudget" class="form-control" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                  <label for="poDiscount" class="form-label">ส่วนลด (%)</label>
+                  <input type="number" step="any" min="0" max="100" id="poDiscount" class="form-control" placeholder="0" value="0">
+                </div>
+              </div>
+
+              <div class="form-actions" style="margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" id="btnSubmitPurchaseOrder" style="background-color: #8b5cf6;">
+                  <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
+                  <span>บันทึกการสั่งซื้อ</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnResetPurchaseOrder">รีเซ็ต</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right Column: Table List -->
+          <div id="purchaseOrderListCol" style="display: flex; flex-direction: column; gap: 20px; overflow-x: auto;">
+            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0;">
+              <h2>รายการสั่งซื้อสะสม</h2>
+              <p>แสดงประวัติการสั่งซื้อพัสดุและสารเคมีในระบบทั้งหมด</p>
+            </div>
+
+            <!-- Export Actions for Purchase Orders -->
+            <div id="poExportActions" style="display: inline-flex; align-items: center; gap: 10px; margin-top: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+              <div style="display: inline-flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">ส่งออก:</span>
+                <button type="button" class="btn" id="btnExportPoCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
+                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
+                </button>
+                <button type="button" class="btn" id="btnExportPoPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
+                  <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
+                </button>
+              </div>
+            </div>
+
+            <!-- Purchase Orders Table -->
+            <div class="table-container" style="margin-bottom: 0; flex: 1; overflow-x: auto;">
+              <table style="min-width: 700px;">
+                <thead>
+                  <tr>
+                    <th style="width: 15%;">รหัสสินค้า</th>
+                    <th style="width: 25%;">ชื่อสินค้า</th>
+                    <th style="width: 13%; text-align: right;">ราคา/หน่วย</th>
+                    <th style="width: 10%; text-align: center;">จำนวน</th>
+                    <th style="width: 15%; text-align: right;">ราคารวม</th>
+                    <th style="width: 22%;">งบประมาณ + ส่วนลด</th>
+                    <th class="po-action-header" style="width: 5%; text-align: center;">ลบ</th>
+                  </tr>
+                </thead>
+                <tbody id="purchaseOrdersTableBody">
+                  <!-- Dynamically populated -->
+                </tbody>
+                <tfoot>
+                  <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid var(--border-color);">
+                    <td colspan="4" style="text-align: right; padding: 12px 20px;">ราคารวมทั้งหมด:</td>
+                    <td id="poGrandTotal" style="text-align: right; padding: 12px 20px; color: var(--primary-purple); font-size: 14px;">0.00 บาท</td>
+                    <td colspan="2"></td>
+                  </tr>
+                </tfoot>
+              </table>
             </div>
           </div>
         </div>
