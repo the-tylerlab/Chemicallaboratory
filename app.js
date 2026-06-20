@@ -3937,6 +3937,17 @@ function renderOrdersTable() {
   const grid = document.getElementById("purchaseOrdersGrid");
   const isBackoffice = (userRole === "admin" || userRole === "teacher");
 
+  const budgetStatGrid = document.getElementById("budgetStatGrid");
+  if (budgetStatGrid) {
+    if (isBackoffice) {
+      budgetStatGrid.style.gridTemplateColumns = "380px 1fr 1fr";
+      budgetStatGrid.style.gap = "30px";
+    } else {
+      budgetStatGrid.style.gridTemplateColumns = "1fr 1fr 1fr";
+      budgetStatGrid.style.gap = "20px";
+    }
+  }
+
   if (formCol && grid) {
     if (isBackoffice) {
       formCol.style.display = "block";
