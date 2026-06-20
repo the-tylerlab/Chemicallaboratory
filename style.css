@@ -2963,6 +2963,22 @@ input[type="date"]::-webkit-date-and-time-value {
   pointer-events: all;
 }
 
+/* ==========================================================================
+   PURCHASE ORDERS SECTION
+   ========================================================================== */
+.purchase-orders-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 30px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .purchase-orders-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 
 
 

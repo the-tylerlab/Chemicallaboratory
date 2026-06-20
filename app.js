@@ -306,6 +306,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Load room bookings
   await loadAllBookings();
   
+  // Load purchase orders
+  loadPurchaseOrders();
+  
   // Set up event listeners
   setupNavigation();
   setupFormHandlers();
@@ -329,6 +332,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupAccessDeniedModal();
   setupRepairModalHandlers();
   setupChatbot();
+  setupPurchaseOrders();
   updateLoginUI();
   
   // Initialize Lucide icons initially
@@ -498,8 +502,9 @@ function setupNavigation() {
       const targetPanelId = link.getAttribute("data-target");
 
       // Authorization check for sidebar navigation
-      if (targetPanelId === "add-item" && !isAdminLoggedIn) {
-        showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเพิ่มหรือแก้ไขข้อมูลสารเคมี/อุปกรณ์", "error");
+      const isBackoffice = (userRole === "admin" || userRole === "teacher");
+      if ((targetPanelId === "add-item" || targetPanelId === "purchase-orders") && !isBackoffice) {
+        showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเข้าใช้งานหน้านี้", "error");
         document.getElementById("loginModal").classList.add("active");
         lucide.createIcons();
         return;
@@ -594,7 +599,8 @@ function setupNavigation() {
 // Function to programmatically switch panels
 function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   // Authorization check for admin page
-  if (panelId === "add-item" && !isAdminLoggedIn) {
+  const isBackoffice = (userRole === "admin" || userRole === "teacher");
+  if ((panelId === "add-item" || panelId === "purchase-orders") && !isBackoffice) {
     document.getElementById("accessDeniedModal").classList.add("active");
     lucide.createIcons();
     return;
@@ -717,9 +723,9 @@ function formatItemName(name) {
 
 // Helper: Get Thai room name
 function getRoomThaiName(room) {
-  if (room === "Lab 1") return "ห้องปฏิบัติการเคมี";
-  if (room === "Lab 2") return "ห้องปฏิบัติการฟิสิกส์";
-  if (room === "Lab 3") return "ห้องปฏิบัติการชีววิทยา";
+  if (room === "Lab 1" || room === "ห้องปฏิบัติการเคมี" || room === "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ") return "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ";
+  if (room === "Lab 2" || room === "ห้องปฏิบัติการฟิสิกส์" || room === "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์") return "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์";
+  if (room === "Lab 3" || room === "ห้องปฏิบัติการชีววิทยา" || room === "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์") return "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์";
   return room;
 }
 
@@ -794,6 +800,7 @@ function updateUI() {
   if (bookingExportActions) bookingExportActions.style.display = isBackoffice ? "inline-flex" : "none";
   
   // Trigger Lucide updates for newly rendered icon containers
+  renderOrdersTable();
   lucide.createIcons();
 }
 
@@ -1760,7 +1767,7 @@ function downloadCSVTemplate() {
     "# 2. หมวดหมู่* (ต้องตรงตามค่าใดค่าหนึ่ง): สารเคมี | อุปกรณ์วิทยาศาสตร์ | เครื่องแก้ว | วัสดุสิ้นเปลือง",
     "# 3. หน่วย* (เช่น): ขวด | เครื่อง | ชิ้น | อัน | กล่อง | หลอด | แกลลอน | ใบ | ชุด",
     "# 4. วันหมดอายุ(YYYY-MM-DD): ปี-เดือน-วัน ค.ศ. เช่น 2027-08-20 (เว้นว่างได้ถ้าไม่มี)",
-    "# 5. ห้อง (ตรงตามระบบ): ห้องปฏิบัติการเคมี (หรือ Lab 1) | ห้องปฏิบัติการฟิสิกส์ (หรือ Lab 2) | ห้องปฏิบัติการชีววิทยา (หรือ Lab 3) | นอกห้องปฏิบัติการ (หรือ None)",
+    "# 5. ห้อง (ตรงตามระบบ): ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ (หรือ Lab 1) | ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์ (หรือ Lab 2) | ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์ (หรือ Lab 3) | นอกห้องปฏิบัติการ (หรือ None)",
     "# 6. ประเภทสารเคมี: acid (กรด) | base (เบส) | oxidizer (สารออกซิไดซ์) | organic (สารไวไฟ) | other (สารเคมีทั่วไป)",
     "# 7. คอลัมน์ GHS (ระเบิดได้ - ภัยสิ่งแวดล้อม): ให้ใส่ Y หรือ 1 หรือ x เพื่อเลือกใช้สัญลักษณ์ความปลอดภัย GHS นั้นๆ (เว้นว่างหากไม่เกี่ยวข้อง)"
   ];
@@ -1792,15 +1799,15 @@ function downloadCSVTemplate() {
   ];
   
   const sampleRow1 = [
-    "CHEM-005", "กรดอะซิติก (Acetic Acid)", "สารเคมี", "3", "ขวด", "0", "0", "1", "2027-08-20", "ห้องปฏิบัติการเคมี", "ตู้ B", "ชั้น 1", 
+    "CHEM-005", "กรดอะซิติก (Acetic Acid)", "สารเคมี", "3", "ขวด", "0", "0", "1", "2027-08-20", "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ", "ตู้ B", "ชั้น 1", 
     "acid", "https://example.com/sds-acetic.pdf", "", "Y", "", "", "Y", "", "Y", "", ""
   ];
   const sampleRow2 = [
-    "EQ-002", "กล้องจุลทรรศน์แบบใช้แสง (Microscope)", "อุปกรณ์วิทยาศาสตร์", "4", "เครื่อง", "0", "0", "2", "", "ห้องปฏิบัติการฟิสิกส์", "ตู้เก็บอุปกรณ์", "ตู้ด้านซ้าย", 
+    "EQ-002", "กล้องจุลทรรศน์แบบใช้แสง (Microscope)", "อุปกรณ์วิทยาศาสตร์", "4", "เครื่อง", "0", "0", "2", "", "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์", "ตู้เก็บอุปกรณ์", "ตู้ด้านซ้าย", 
     "", "", "", "", "", "", "", "", "", "", ""
   ];
   const sampleRow3 = [
-    "GW-003", "บีกเกอร์ 250 มล. (Beaker 250ml)", "เครื่องแก้ว", "10", "ใบ", "1", "0", "5", "", "ห้องปฏิบัติการชีววิทยา", "ตู้แก้ว A", "ชั้น 2", 
+    "GW-003", "บีกเกอร์ 250 มล. (Beaker 250ml)", "เครื่องแก้ว", "10", "ใบ", "1", "0", "5", "", "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์", "ตู้แก้ว A", "ชั้น 2", 
     "", "", "", "", "", "", "", "", "", "", ""
   ];
   
@@ -1891,9 +1898,9 @@ async function parseCSVAndImport(csvText) {
     if (cols.length > 22 && isChecked(cols[22])) ghs.push("environmental");
 
     // Support both Thai names and short codes for room mapping
-    if (room === "ห้องปฏิบัติการเคมี") room = "Lab 1";
-    else if (room === "ห้องปฏิบัติการฟิสิกส์") room = "Lab 2";
-    else if (room === "ห้องปฏิบัติการชีววิทยา") room = "Lab 3";
+    if (room === "ห้องปฏิบัติการเคมี" || room === "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ") room = "Lab 1";
+    else if (room === "ห้องปฏิบัติการฟิสิกส์" || room === "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์") room = "Lab 2";
+    else if (room === "ห้องปฏิบัติการชีววิทยา" || room === "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์") room = "Lab 3";
     else if (room === "นอกห้องปฏิบัติการ") room = "None";
 
     // Validation checks for compulsory fields
@@ -2062,6 +2069,58 @@ async function loadAllTransactions() {
       returnDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       damagedQty: 1,
       createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "tx-mock-004",
+      itemCode: "GW-002",
+      itemName: "ปิเปตขนาด 10 มล. (Pipette 10ml)",
+      qty: 2,
+      borrower: "นายมานะ ขยันเรียน",
+      date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      type: "borrow",
+      status: "borrowed",
+      notes: "ศึกษาการดูดจ่ายสารเคมีและเซลล์พืช",
+      expectedReturnDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      bookingId: "book_mock_003",
+      room: "Lab 3",
+      slot: "1, 2",
+      supervisingTeacher: "อาจารย์ศิริมา ดีใจ",
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: "tx-mock-005",
+      itemCode: "CHEM-002",
+      itemName: "เอทานอล 95% (Ethanol)",
+      qty: 1,
+      borrower: "นางสาววิภา ใฝ่เรียน",
+      date: new Date().toISOString().split('T')[0],
+      type: "borrow",
+      status: "pending",
+      notes: "สกัดคลอโรฟิลล์จากใบพืช",
+      expectedReturnDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      bookingId: "book_mock_004",
+      room: "Lab 1",
+      slot: "5, 6",
+      supervisingTeacher: "อาจารย์สมศักดิ์ รักสอน",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "tx-mock-006",
+      itemCode: "EQ-001",
+      itemName: "เครื่องชั่งดิจิตอล 4 ตำแหน่ง (Digital Balance)",
+      qty: 1,
+      borrower: "นายชูชาติ รักชาติ",
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      type: "borrow",
+      status: "returned",
+      notes: "ชั่งสารเคมีเพื่อทดลองแรงลอยตัวและกระแสไฟฟ้า",
+      expectedReturnDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      bookingId: "book_mock_005",
+      room: "Lab 2",
+      slot: "3",
+      supervisingTeacher: "อาจารย์วิภาดา ใฝ่รู้",
+      returnDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
     }
   ];
 
@@ -3061,6 +3120,54 @@ async function loadAllBookings() {
       ],
       status: "approved",
       createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_003",
+      room: "Lab 3",
+      date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      slot: "1, 2",
+      bookerName: "นายมานะ ขยันเรียน",
+      purpose: "ศึกษาการดูดจ่ายสารเคมีและเซลล์พืชด้วยกล้องจุลทรรศน์",
+      prepItems: [
+        {
+          code: "GW-002",
+          qty: 2
+        }
+      ],
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_004",
+      room: "Lab 1",
+      date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      slot: "5, 6",
+      bookerName: "นางสาววิภา ใฝ่เรียน",
+      purpose: "สกัดคลอโรฟิลล์เพื่อวัดอัตราการสังเคราะห์แสง",
+      prepItems: [
+        {
+          code: "CHEM-002",
+          qty: 1
+        }
+      ],
+      status: "pending",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_005",
+      room: "Lab 2",
+      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      slot: "3",
+      bookerName: "นายชูชาติ รักชาติ",
+      purpose: "ทดสอบแรงลอยตัวและกระแสไฟฟ้าเบื้องต้น",
+      prepItems: [
+        {
+          code: "EQ-001",
+          qty: 1
+        }
+      ],
+      status: "approved",
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
     }
   ];
 
@@ -3488,11 +3595,248 @@ window.cancelBookingRecord = async function(bookingId) {
 };
 
 // ==========================================================================
+// PURCHASE ORDERS SYSTEM
+// ==========================================================================
+let purchaseOrders = [];
+
+function escapeHTML(str) {
+  if (typeof str !== 'string') return str;
+  return str.replace(/[&<>'"]/g, 
+    tag => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&#39;',
+      '"': '&quot;'
+    }[tag] || tag)
+  );
+}
+
+function loadPurchaseOrders() {
+  const defaultOrders = [
+    {
+      id: "ord-mock-001",
+      code: "CHEM-001",
+      name: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
+      unitPrice: 350.00,
+      quantity: 5,
+      totalPrice: 1750.00,
+      budget: 2000.00,
+      discount: 5
+    },
+    {
+      id: "ord-mock-002",
+      code: "EQ-005",
+      name: "เครื่องชั่งดิจิตอล 2 ตำแหน่ง",
+      unitPrice: 2400.00,
+      quantity: 2,
+      totalPrice: 4800.00,
+      budget: 5000.00,
+      discount: 10
+    }
+  ];
+
+  const localOrders = localStorage.getItem("lab_purchase_orders");
+  if (localOrders) {
+    try {
+      purchaseOrders = JSON.parse(localOrders);
+      // Smart merge missing default items
+      let updated = false;
+      defaultOrders.forEach(demoOrd => {
+        if (!purchaseOrders.some(o => o.id === demoOrd.id)) {
+          purchaseOrders.push(demoOrd);
+          updated = true;
+        }
+      });
+      // Migrate old mock data formats to new format (using % discount)
+      purchaseOrders.forEach(o => {
+        if (o.id === "ord-mock-001" && (typeof o.budget !== 'number' || o.discount === 100)) {
+          o.budget = 2000.00;
+          o.discount = 5;
+          delete o.budgetDiscount;
+          updated = true;
+        }
+        if (o.id === "ord-mock-002" && (typeof o.budget !== 'number' || o.discount === 500)) {
+          o.budget = 5000.00;
+          o.discount = 10;
+          delete o.budgetDiscount;
+          updated = true;
+        }
+      });
+      if (updated) {
+        localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      }
+    } catch (e) {
+      console.error("Error parsing purchase orders:", e);
+      purchaseOrders = [...defaultOrders];
+      localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+    }
+  } else {
+    purchaseOrders = [...defaultOrders];
+    localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+  }
+}
+
+function setupPurchaseOrders() {
+  const form = document.getElementById("purchaseOrderForm");
+  const poUnitPrice = document.getElementById("poUnitPrice");
+  const poQuantity = document.getElementById("poQuantity");
+  const poTotalPrice = document.getElementById("poTotalPrice");
+  const btnReset = document.getElementById("btnResetPurchaseOrder");
+
+  if (poUnitPrice && poQuantity && poTotalPrice) {
+    const calculateTotal = () => {
+      const price = parseFloat(poUnitPrice.value) || 0;
+      const qty = parseInt(poQuantity.value) || 0;
+      const total = price * qty;
+      poTotalPrice.value = total.toFixed(2);
+    };
+
+    poUnitPrice.addEventListener("input", calculateTotal);
+    poQuantity.addEventListener("input", calculateTotal);
+  }
+
+  if (btnReset && form) {
+    btnReset.addEventListener("click", () => {
+      form.reset();
+      if (poTotalPrice) poTotalPrice.value = "0.00";
+    });
+  }
+
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const code = document.getElementById("poProductCode").value.trim();
+      const name = document.getElementById("poProductName").value.trim();
+      const unitPrice = parseFloat(document.getElementById("poUnitPrice").value) || 0;
+      const quantity = parseInt(document.getElementById("poQuantity").value) || 1;
+      const budget = parseFloat(document.getElementById("poBudget").value) || 0;
+      const discount = parseFloat(document.getElementById("poDiscount").value) || 0;
+
+      const newOrder = {
+        id: "ord-" + Date.now(),
+        code,
+        name,
+        unitPrice,
+        quantity,
+        totalPrice: unitPrice * quantity,
+        budget,
+        discount
+      };
+
+      purchaseOrders.push(newOrder);
+      localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      
+      form.reset();
+      if (poTotalPrice) poTotalPrice.value = "0.00";
+
+      showToast("บันทึกรายการสั่งซื้อสำเร็จ", "success");
+      updateUI();
+    });
+  }
+}
+
+function renderOrdersTable() {
+  const formCol = document.getElementById("purchaseOrderFormCol");
+  const grid = document.getElementById("purchaseOrdersGrid");
+  const isBackoffice = (userRole === "admin" || userRole === "teacher");
+
+  if (formCol && grid) {
+    if (isBackoffice) {
+      formCol.style.display = "block";
+      grid.style.gridTemplateColumns = "380px 1fr";
+    } else {
+      formCol.style.display = "none";
+      grid.style.gridTemplateColumns = "1fr";
+    }
+  }
+
+  const tbody = document.getElementById("purchaseOrdersTableBody");
+  if (!tbody) return;
+
+  if (purchaseOrders.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 40px;">
+          <div class="empty-state">
+            <div class="empty-state-icon"><i data-lucide="shopping-cart"></i></div>
+            <div class="empty-state-text">ยังไม่มีรายการสั่งซื้อ</div>
+          </div>
+        </td>
+      </tr>
+    `;
+    const grandTotalEl = document.getElementById("poGrandTotal");
+    if (grandTotalEl) grandTotalEl.innerText = "0.00 บาท";
+    
+    const actionHeaders = document.querySelectorAll(".po-action-header");
+    actionHeaders.forEach(th => th.style.display = isBackoffice ? "" : "none");
+    return;
+  }
+
+  const actionHeaders = document.querySelectorAll(".po-action-header");
+  actionHeaders.forEach(th => th.style.display = isBackoffice ? "" : "none");
+
+  let html = "";
+  let grandTotal = 0;
+
+  purchaseOrders.forEach(order => {
+    grandTotal += order.totalPrice;
+    
+    let budgetDiscountText = "";
+    if (typeof order.budget === 'number') {
+      budgetDiscountText = `งบ: ${order.budget.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.`;
+      if (typeof order.discount === 'number' && order.discount > 0) {
+        budgetDiscountText += `<br><span style="font-size: 11px; color: var(--accent-green); font-weight: 500;">(ลด: ${order.discount}%)</span>`;
+      }
+    } else {
+      budgetDiscountText = order.budgetDiscount || "-";
+    }
+
+    html += `
+      <tr>
+        <td style="font-weight: 500; font-family: monospace;">${escapeHTML(order.code)}</td>
+        <td>${escapeHTML(order.name)}</td>
+        <td style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td style="text-align: center;">${order.quantity}</td>
+        <td style="text-align: right; font-weight: 600;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td>${budgetDiscountText}</td>
+        ${isBackoffice ? `
+          <td style="text-align: center;">
+            <button class="action-icon-btn delete" onclick="deletePurchaseOrder('${order.id}')" title="ลบรายการสั่งซื้อ">
+              <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+            </button>
+          </td>
+        ` : `
+          <td style="display: none;"></td>
+        `}
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+
+  const grandTotalEl = document.getElementById("poGrandTotal");
+  if (grandTotalEl) {
+    grandTotalEl.innerText = grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
+  }
+}
+
+window.deletePurchaseOrder = function(orderId) {
+  if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้?")) return;
+  purchaseOrders = purchaseOrders.filter(o => o.id !== orderId);
+  localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+  showToast("ลบรายการสั่งซื้อสำเร็จ", "success");
+  updateUI();
+};
+
+// ==========================================================================
 // ADMIN LOGIN SYSTEM
 // ==========================================================================
 function updateLoginUI() {
   const sidebarLoginText = document.getElementById("sidebarLoginText");
   const sidebarLoginIcon = document.getElementById("sidebarLoginIcon");
+  const isBackoffice = (userRole === "admin" || userRole === "teacher");
   
   if (isAdminLoggedIn) {
     if (sidebarLoginText) sidebarLoginText.innerText = "ออกจากระบบ";
@@ -3504,10 +3848,12 @@ function updateLoginUI() {
     if (sidebarLoginIcon) {
       sidebarLoginIcon.setAttribute("data-lucide", "log-in");
     }
-    
-    // Redirect if on admin panel
+  }
+
+  // Redirect if on admin panel or purchase orders panel and not backoffice
+  if (!isBackoffice) {
     const activePanel = document.querySelector(".panel.active");
-    if (activePanel && activePanel.id === "panel-add-item") {
+    if (activePanel && (activePanel.id === "panel-add-item" || activePanel.id === "panel-purchase-orders")) {
       navigateToPanel("dashboard");
     }
   }
@@ -3515,11 +3861,15 @@ function updateLoginUI() {
   // Show/Hide Admin-Only navigation items
   const menuItemAddItem = document.getElementById("menuItemAddItem");
   const menuItemImport = document.getElementById("menuItemImport");
+  const menuItemPurchaseOrders = document.getElementById("menuItemPurchaseOrders");
   if (menuItemAddItem) {
     menuItemAddItem.style.display = "block";
   }
   if (menuItemImport) {
     menuItemImport.style.display = "block";
+  }
+  if (menuItemPurchaseOrders) {
+    menuItemPurchaseOrders.style.display = isBackoffice ? "block" : "none";
   }
   
   // Update role switcher toggle state visual representation
@@ -4676,8 +5026,13 @@ function setupHistoryExports() {
 
   if (btnExportBorrowCSV) {
     btnExportBorrowCSV.addEventListener("click", () => {
-      if (transactions.length === 0) {
-        showToast("ไม่มีข้อมูลประวัติการทำรายการยืม-คืนที่สามารถส่งออกได้", "error");
+      let filtered = [...transactions];
+      const filterVal = document.getElementById("exportBorrowRoomFilter") ? document.getElementById("exportBorrowRoomFilter").value : "all";
+      if (filterVal !== "all") {
+        filtered = filtered.filter(tx => tx.room === filterVal);
+      }
+      if (filtered.length === 0) {
+        showToast("ไม่มีข้อมูลประวัติการทำรายการยืม-คืนสำหรับห้องปฏิบัติการที่เลือก", "error");
         return;
       }
       const headers = [
@@ -4694,7 +5049,7 @@ function setupHistoryExports() {
         "วันที่คืนจริง",
         "หมายเหตุ"
       ];
-      const rows = transactions.map(tx => [
+      const rows = filtered.map(tx => [
         tx.date || "",
         tx.itemCode || "",
         tx.itemName || "",
@@ -4708,19 +5063,25 @@ function setupHistoryExports() {
         tx.returnDate || "",
         tx.notes || ""
       ]);
-      exportDataToCSV(`borrow_return_history_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+      const roomSuffix = filterVal !== "all" ? `_${filterVal}` : "";
+      exportDataToCSV(`borrow_return_history${roomSuffix}_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
       showToast("ส่งออกประวัติการยืม-คืนแบบ CSV สำเร็จ!", "success");
     });
   }
 
   if (btnExportBorrowPDF) {
     btnExportBorrowPDF.addEventListener("click", () => {
-      if (transactions.length === 0) {
-        showToast("ไม่มีข้อมูลประวัติการทำรายการยืม-คืนที่สามารถส่งออกได้", "error");
+      let filtered = [...transactions];
+      const filterVal = document.getElementById("exportBorrowRoomFilter") ? document.getElementById("exportBorrowRoomFilter").value : "all";
+      if (filterVal !== "all") {
+        filtered = filtered.filter(tx => tx.room === filterVal);
+      }
+      if (filtered.length === 0) {
+        showToast("ไม่มีข้อมูลประวัติการทำรายการยืม-คืนสำหรับห้องปฏิบัติการที่เลือก", "error");
         return;
       }
       const printDate = formatThaiDate(new Date().toISOString().split('T')[0]) + " " + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-      const rowsHtml = transactions.map(tx => `
+      const rowsHtml = filtered.map(tx => `
         <tr>
           <td>${formatThaiDate(tx.date)}</td>
           <td>${tx.itemCode}</td>
@@ -4732,11 +5093,13 @@ function setupHistoryExports() {
         </tr>
       `).join("");
 
+      const filterText = filterVal !== "all" ? ` (${getRoomThaiName(filterVal)})` : "";
+
       const htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
-          <title>รายงานประวัติการยืม-คืนพัสดุและสารเคมี</title>
+          <title>รายงานประวัติการยืม-คืนพัสดุและสารเคมี${filterText}</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
             body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
@@ -4753,8 +5116,8 @@ function setupHistoryExports() {
           </style>
         </head>
         <body>
-          <h1>รายงานประวัติการยืม-คืนพัสดุและสารเคมี</h1>
-          <p class="meta">ออกรายงาน ณ วันที่: ${printDate} | จำนวนธุรกรรมทั้งหมด: ${transactions.length} รายการ</p>
+          <h1>รายงานประวัติการยืม-คืนพัสดุและสารเคมี${filterText}</h1>
+          <p class="meta">ออกรายงาน ณ วันที่: ${printDate} | จำนวนธุรกรรมทั้งหมด: ${filtered.length} รายการ</p>
           <table>
             <thead>
               <tr>
@@ -4789,8 +5152,13 @@ function setupHistoryExports() {
 
   if (btnExportBookingCSV) {
     btnExportBookingCSV.addEventListener("click", () => {
-      if (bookings.length === 0) {
-        showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการที่สามารถส่งออกได้", "error");
+      let filtered = [...bookings];
+      const filterVal = document.getElementById("exportBookingRoomFilter") ? document.getElementById("exportBookingRoomFilter").value : "all";
+      if (filterVal !== "all") {
+        filtered = filtered.filter(b => b.room === filterVal);
+      }
+      if (filtered.length === 0) {
+        showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการสำหรับห้องปฏิบัติการที่เลือก", "error");
         return;
       }
       const headers = [
@@ -4802,7 +5170,7 @@ function setupHistoryExports() {
         "สถานะ",
         "วันที่จอง (บันทึกเข้าระบบ)"
       ];
-      const rows = bookings.map(b => [
+      const rows = filtered.map(b => [
         b.date || "",
         getRoomThaiName(b.room) || "",
         b.slot || "",
@@ -4811,19 +5179,25 @@ function setupHistoryExports() {
         b.status === "approved" ? "อนุมัติ" : b.status === "pending" ? "รออนุมัติ" : "ปฏิเสธ",
         b.createdAt ? b.createdAt.split('T')[0] : ""
       ]);
-      exportDataToCSV(`lab_booking_history_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+      const roomSuffix = filterVal !== "all" ? `_${filterVal}` : "";
+      exportDataToCSV(`lab_booking_history${roomSuffix}_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
       showToast("ส่งออกประวัติการจองห้องปฏิบัติการแบบ CSV สำเร็จ!", "success");
     });
   }
 
   if (btnExportBookingPDF) {
     btnExportBookingPDF.addEventListener("click", () => {
-      if (bookings.length === 0) {
-        showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการที่สามารถส่งออกได้", "error");
+      let filtered = [...bookings];
+      const filterVal = document.getElementById("exportBookingRoomFilter") ? document.getElementById("exportBookingRoomFilter").value : "all";
+      if (filterVal !== "all") {
+        filtered = filtered.filter(b => b.room === filterVal);
+      }
+      if (filtered.length === 0) {
+        showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการสำหรับห้องปฏิบัติการที่เลือก", "error");
         return;
       }
       const printDate = formatThaiDate(new Date().toISOString().split('T')[0]) + " " + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-      const rowsHtml = bookings.map(b => `
+      const rowsHtml = filtered.map(b => `
         <tr>
           <td>${formatThaiDate(b.date)}</td>
           <td>${getRoomThaiName(b.room)}</td>
@@ -4834,11 +5208,13 @@ function setupHistoryExports() {
         </tr>
       `).join("");
 
+      const filterText = filterVal !== "all" ? ` (${getRoomThaiName(filterVal)})` : "";
+
       const htmlContent = `
         <!DOCTYPE html>
         <html>
         <head>
-          <title>รายงานประวัติการใช้ห้องปฏิบัติการ</title>
+          <title>รายงานประวัติการใช้ห้องปฏิบัติการ${filterText}</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
             body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
@@ -4855,8 +5231,8 @@ function setupHistoryExports() {
           </style>
         </head>
         <body>
-          <h1>รายงานประวัติการใช้ห้องปฏิบัติการ</h1>
-          <p class="meta">ออกรายงาน ณ วันที่: ${printDate} | จำนวนรายการจองทั้งหมด: ${bookings.length} รายการ</p>
+          <h1>รายงานประวัติการใช้ห้องปฏิบัติการ${filterText}</h1>
+          <p class="meta">ออกรายงาน ณ วันที่: ${printDate} | จำนวนรายการจองทั้งหมด: ${filtered.length} รายการ</p>
           <table>
             <thead>
               <tr>
@@ -4870,6 +5246,127 @@ function setupHistoryExports() {
             </thead>
             <tbody>
               ${rowsHtml}
+            </tbody>
+          </table>
+          <div class="footer">ระบบจัดการห้องปฏิบัติการเคมีและอุปกรณ์วิทยาศาสตร์</div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            }
+          </script>
+        </body>
+        </html>
+      `;
+      const printWindow = window.open("", "_blank");
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    });
+  }
+
+  const btnExportPoCSV = document.getElementById("btnExportPoCSV");
+  const btnExportPoPDF = document.getElementById("btnExportPoPDF");
+
+  if (btnExportPoCSV) {
+    btnExportPoCSV.addEventListener("click", () => {
+      if (purchaseOrders.length === 0) {
+        showToast("ไม่มีข้อมูลรายการสั่งซื้อเพื่อส่งออก", "error");
+        return;
+      }
+      const headers = [
+        "รหัสสินค้า",
+        "ชื่อสินค้า",
+        "ราคาต่อหน่วย (บาท)",
+        "จำนวน",
+        "ราคารวม (บาท)",
+        "งบประมาณ (บาท)",
+        "ส่วนลด (%)"
+      ];
+      const rows = purchaseOrders.map(order => [
+        order.code || "",
+        order.name || "",
+        order.unitPrice || 0,
+        order.quantity || 0,
+        order.totalPrice || 0,
+        order.budget || 0,
+        order.discount !== undefined ? `${order.discount}%` : ""
+      ]);
+      exportDataToCSV(`purchase_orders_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+      showToast("ส่งออกรายการสั่งซื้อแบบ CSV สำเร็จ!", "success");
+    });
+  }
+
+  if (btnExportPoPDF) {
+    btnExportPoPDF.addEventListener("click", () => {
+      if (purchaseOrders.length === 0) {
+        showToast("ไม่มีข้อมูลรายการสั่งซื้อเพื่อส่งออก", "error");
+        return;
+      }
+      const printDate = formatThaiDate(new Date().toISOString().split('T')[0]) + " " + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      
+      let grandTotal = 0;
+      const rowsHtml = purchaseOrders.map(order => {
+        grandTotal += order.totalPrice;
+        
+        let budgetDiscountStr = `งบ: ${order.budget.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.`;
+        if (order.discount > 0) {
+          budgetDiscountStr += ` (ลด: ${order.discount}%)`;
+        }
+        
+        return `
+          <tr>
+            <td style="font-family: monospace;">${order.code}</td>
+            <td>${order.name}</td>
+            <td style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="text-align: center;">${order.quantity}</td>
+            <td style="text-align: right; font-weight: bold;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td>${budgetDiscountStr}</td>
+          </tr>
+        `;
+      }).join("");
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>รายงานรายการสั่งซื้อสะสม</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+            body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+            h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
+            p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+            th { background-color: #f1f5f9; font-weight: 600; color: #334155; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            .total-row { background-color: #f1f5f9; font-weight: bold; }
+            .footer { margin-top: 40px; font-size: 10px; text-align: right; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>รายงานรายการสั่งซื้อสะสม</h1>
+          <p class="meta">ออกรายงาน ณ วันที่: ${printDate} | จำนวนรายการสั่งซื้อทั้งหมด: ${purchaseOrders.length} รายการ</p>
+          <table>
+            <thead>
+              <tr>
+                <th>รหัสสินค้า</th>
+                <th>ชื่อสินค้า</th>
+                <th style="text-align: right;">ราคาต่อหน่วย</th>
+                <th style="text-align: center;">จำนวน</th>
+                <th style="text-align: right;">ราคารวม</th>
+                <th>งบประมาณ + ส่วนลด</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+              <tr class="total-row">
+                <td colspan="4" style="text-align: right;">ราคารวมทั้งหมด:</td>
+                <td style="text-align: right; color: #8b5cf6;">${grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td>บาท</td>
+              </tr>
             </tbody>
           </table>
           <div class="footer">ระบบจัดการห้องปฏิบัติการเคมีและอุปกรณ์วิทยาศาสตร์</div>
