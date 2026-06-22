@@ -307,7 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadAllBookings();
   
   // Load purchase orders
-  loadPurchaseOrders();
+  await loadPurchaseOrders();
   
   // Set up event listeners
   setupNavigation();
@@ -611,7 +611,10 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   
   // Update sidebar active link
   sidebarLinks.forEach(link => {
-    if (link.getAttribute("data-target") === panelId) {
+    const target = link.getAttribute("data-target");
+    if (panelId === "purchase-orders" && target === "add-item") {
+      link.classList.add("active");
+    } else if (target === panelId) {
       link.classList.add("active");
     } else {
       link.classList.remove("active");
@@ -2160,6 +2163,34 @@ async function loadAllTransactions() {
     }
   }
 
+  if (isBackendOnline) {
+    try {
+      const response = await fetch(`${API_BASE}/transactions`);
+      if (response.ok) {
+        transactions = await response.json();
+        // Smart merge missing default transactions
+        let updated = false;
+        defaultTrans.forEach(demoTx => {
+          if (!transactions.some(tx => tx.id === demoTx.id)) {
+            transactions.push(demoTx);
+            updated = true;
+          }
+        });
+        if (updated) {
+          fetch(`${API_BASE}/transactions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(transactions)
+          }).catch(e => console.error("Failed to sync transactions:", e));
+        }
+        localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+        return;
+      }
+    } catch (e) {
+      console.error("Failed to load transactions from backend:", e);
+    }
+  }
+
   // LocalStorage Fallback
   const localTrans = localStorage.getItem("lab_transactions");
   if (localTrans) {
@@ -2199,6 +2230,7 @@ async function saveTransaction(transData) {
   // LocalStorage Fallback
   transactions.push(transData);
   localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+  syncTransactionsToBackend();
   return true;
 }
 
@@ -2843,6 +2875,7 @@ function setupBorrowForm() {
               const idx = transactions.findIndex(t => t.id === tx.id);
               if (idx !== -1) transactions[idx] = updatedTrans;
               localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+              syncTransactionsToBackend();
             }
             successCount++;
           }
@@ -3075,6 +3108,7 @@ window.returnBorrowedItem = async function(transId) {
         // Local fallback
         transactions[txIndex] = updatedTrans;
         localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+        syncTransactionsToBackend();
       }
 
       showToast(`คืน "${getItemDisplayName(item)}" จำนวน ${tx.qty} หน่วย เรียบร้อยแล้ว!`, "success");
@@ -3207,6 +3241,34 @@ async function loadAllBookings() {
     }
   }
 
+  if (isBackendOnline) {
+    try {
+      const response = await fetch(`${API_BASE}/bookings`);
+      if (response.ok) {
+        bookings = await response.json();
+        // Smart merge missing default bookings
+        let updated = false;
+        defaultBookings.forEach(demoBk => {
+          if (!bookings.some(b => b.id === demoBk.id)) {
+            bookings.push(demoBk);
+            updated = true;
+          }
+        });
+        if (updated) {
+          fetch(`${API_BASE}/bookings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookings)
+          }).catch(e => console.error("Failed to sync bookings:", e));
+        }
+        localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+        return;
+      }
+    } catch (e) {
+      console.error("Failed to load bookings from backend:", e);
+    }
+  }
+
   // LocalStorage Fallback
   const localBookings = localStorage.getItem("lab_bookings");
   if (localBookings) {
@@ -3245,6 +3307,7 @@ async function saveBooking(bookingData) {
   // LocalStorage Fallback
   bookings.push(bookingData);
   localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+  syncBookingsToBackend();
   return true;
 }
 
@@ -3269,6 +3332,7 @@ async function updateBookingStatus(bookingId, status) {
   // LocalStorage Fallback
   bookings[index] = updatedBooking;
   localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+  syncBookingsToBackend();
   return true;
 }
 
@@ -3594,6 +3658,47 @@ window.cancelBookingRecord = async function(bookingId) {
   }
 };
 
+// Sync functions to persist local changes to database server
+function syncBudgetToBackend() {
+  if (isBackendOnline) {
+    fetch(`${API_BASE}/budget`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ budget: annualBudget })
+    }).catch(e => console.error("Failed to sync budget to backend:", e));
+  }
+}
+
+function syncPurchaseOrdersToBackend() {
+  if (isBackendOnline) {
+    fetch(`${API_BASE}/purchase-orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(purchaseOrders)
+    }).catch(e => console.error("Failed to sync purchase orders to backend:", e));
+  }
+}
+
+function syncBookingsToBackend() {
+  if (isBackendOnline) {
+    fetch(`${API_BASE}/bookings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bookings)
+    }).catch(e => console.error("Failed to sync bookings to backend:", e));
+  }
+}
+
+function syncTransactionsToBackend() {
+  if (isBackendOnline) {
+    fetch(`${API_BASE}/transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(transactions)
+    }).catch(e => console.error("Failed to sync transactions to backend:", e));
+  }
+}
+
 // ==========================================================================
 // PURCHASE ORDERS SYSTEM
 // ==========================================================================
@@ -3601,7 +3706,21 @@ let purchaseOrders = [];
 let purchaseOrderDrafts = [];
 let annualBudget = 100000;
 
-function loadAnnualBudget() {
+async function loadAnnualBudget() {
+  if (isBackendOnline) {
+    try {
+      const response = await fetch(`${API_BASE}/budget`);
+      if (response.ok) {
+        const data = await response.json();
+        annualBudget = parseFloat(data.budget) || 100000;
+        localStorage.setItem("lab_annual_budget", annualBudget.toString());
+        return;
+      }
+    } catch (e) {
+      console.error("Failed to load budget from backend:", e);
+    }
+  }
+
   const localBudget = localStorage.getItem("lab_annual_budget");
   if (localBudget) {
     annualBudget = parseFloat(localBudget) || 100000;
@@ -3624,8 +3743,8 @@ function escapeHTML(str) {
   );
 }
 
-function loadPurchaseOrders() {
-  loadAnnualBudget();
+async function loadPurchaseOrders() {
+  await loadAnnualBudget();
   const defaultOrders = [
     {
       id: "ord-mock-001",
@@ -3648,6 +3767,34 @@ function loadPurchaseOrders() {
       discount: 10
     }
   ];
+
+  if (isBackendOnline) {
+    try {
+      const response = await fetch(`${API_BASE}/purchase-orders`);
+      if (response.ok) {
+        purchaseOrders = await response.json();
+        // Smart merge missing default items
+        let updated = false;
+        defaultOrders.forEach(demoOrd => {
+          if (!purchaseOrders.some(o => o.id === demoOrd.id)) {
+            purchaseOrders.push(demoOrd);
+            updated = true;
+          }
+        });
+        if (updated) {
+          fetch(`${API_BASE}/purchase-orders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(purchaseOrders)
+          }).catch(e => console.error("Failed to sync purchase orders:", e));
+        }
+        localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+        return;
+      }
+    } catch (e) {
+      console.error("Failed to load purchase orders from backend:", e);
+    }
+  }
 
   const localOrders = localStorage.getItem("lab_purchase_orders");
   if (localOrders) {
@@ -3694,55 +3841,58 @@ function setupPurchaseOrders() {
   const form = document.getElementById("purchaseOrderForm");
   const poUnitPrice = document.getElementById("poUnitPrice");
   const poQuantity = document.getElementById("poQuantity");
+  const poDiscount = document.getElementById("poDiscount");
   const poTotalPrice = document.getElementById("poTotalPrice");
   const btnReset = document.getElementById("btnResetPurchaseOrder");
-
+ 
   if (poUnitPrice && poQuantity && poTotalPrice) {
     const calculateTotal = () => {
       const price = parseFloat(poUnitPrice.value) || 0;
       const qty = parseInt(poQuantity.value) || 0;
-      const total = price * qty;
+      const discount = poDiscount ? (parseFloat(poDiscount.value) || 0) : 0;
+      const total = price * qty * (1 - discount / 100);
       poTotalPrice.value = total.toFixed(2);
     };
-
+ 
     poUnitPrice.addEventListener("input", calculateTotal);
     poQuantity.addEventListener("input", calculateTotal);
+    if (poDiscount) {
+      poDiscount.addEventListener("input", calculateTotal);
+    }
   }
-
+ 
   if (btnReset && form) {
     btnReset.addEventListener("click", () => {
       form.reset();
       if (poTotalPrice) poTotalPrice.value = "0.00";
     });
   }
-
+ 
   if (form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
-
+ 
       const code = document.getElementById("poProductCode").value.trim();
       const name = document.getElementById("poProductName").value.trim();
       const unitPrice = parseFloat(document.getElementById("poUnitPrice").value) || 0;
       const quantity = parseInt(document.getElementById("poQuantity").value) || 1;
-      const budget = parseFloat(document.getElementById("poBudget").value) || 0;
       const discount = parseFloat(document.getElementById("poDiscount").value) || 0;
-
+ 
       const newDraftItem = {
         id: "draft-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
         code,
         name,
         unitPrice,
         quantity,
-        totalPrice: unitPrice * quantity,
-        budget,
+        totalPrice: unitPrice * quantity * (1 - discount / 100),
         discount
       };
-
+ 
       purchaseOrderDrafts.push(newDraftItem);
       
       form.reset();
       if (poTotalPrice) poTotalPrice.value = "0.00";
-
+ 
       showToast("เพิ่มรายการสินค้าลงตารางชั่วคราวสำเร็จ", "success");
       renderPoDrafts();
       
@@ -3777,6 +3927,7 @@ function setupPurchaseOrders() {
       }
       annualBudget = newBudget;
       localStorage.setItem("lab_annual_budget", annualBudget.toString());
+      syncBudgetToBackend();
       containerAnnualBudget.style.display = "flex";
       annualBudgetEditForm.style.display = "none";
       showToast("แก้ไขงบประมาณประจำปีสำเร็จ", "success");
@@ -3826,6 +3977,7 @@ function setupPurchaseOrders() {
       });
 
       localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      syncPurchaseOrdersToBackend();
       purchaseOrderDrafts = [];
 
       renderPoDrafts();
@@ -3943,7 +4095,7 @@ function renderOrdersTable() {
       budgetStatGrid.style.gridTemplateColumns = "380px 1fr 1fr";
       budgetStatGrid.style.gap = "30px";
     } else {
-      budgetStatGrid.style.gridTemplateColumns = "1fr 1fr 1fr";
+      budgetStatGrid.style.gridTemplateColumns = "repeat(3, 1fr)";
       budgetStatGrid.style.gap = "20px";
     }
   }
@@ -3989,14 +4141,11 @@ function renderOrdersTable() {
   purchaseOrders.forEach(order => {
     grandTotal += order.totalPrice;
     
-    let budgetDiscountText = "";
-    if (typeof order.budget === 'number') {
-      budgetDiscountText = `งบ: ${order.budget.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.`;
-      if (typeof order.discount === 'number' && order.discount > 0) {
-        budgetDiscountText += `<br><span style="font-size: 11px; color: var(--accent-green); font-weight: 500;">(ลด: ${order.discount}%)</span>`;
-      }
-    } else {
-      budgetDiscountText = order.budgetDiscount || "-";
+    let discountText = "-";
+    if (typeof order.discount === 'number' && order.discount > 0) {
+      discountText = `<span style="font-size: 13px; color: var(--accent-green); font-weight: 500;">ลด ${order.discount}%</span>`;
+    } else if (order.budgetDiscount) {
+      discountText = order.budgetDiscount;
     }
 
     html += `
@@ -4006,7 +4155,7 @@ function renderOrdersTable() {
         <td data-label="ราคา/หน่วย" style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         <td data-label="จำนวน" style="text-align: center;">${order.quantity}</td>
         <td data-label="ราคารวม" style="text-align: right; font-weight: 600;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td data-label="งบประมาณ + ส่วนลด">${budgetDiscountText}</td>
+        <td data-label="ส่วนลด">${discountText}</td>
         ${isBackoffice ? `
           <td data-label="จัดการ" style="text-align: center;">
             <button class="action-icon-btn delete" onclick="deletePurchaseOrder('${order.id}')" title="ลบรายการสั่งซื้อ">
@@ -4032,6 +4181,7 @@ window.deletePurchaseOrder = function(orderId) {
   if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้?")) return;
   purchaseOrders = purchaseOrders.filter(o => o.id !== orderId);
   localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+  syncPurchaseOrdersToBackend();
   showToast("ลบรายการสั่งซื้อสำเร็จ", "success");
   updateUI();
 };
@@ -4075,7 +4225,7 @@ function updateLoginUI() {
     menuItemImport.style.display = "block";
   }
   if (menuItemPurchaseOrders) {
-    menuItemPurchaseOrders.style.display = isBackoffice ? "block" : "none";
+    menuItemPurchaseOrders.style.display = "none";
   }
   
   // Update role switcher toggle state visual representation
@@ -4748,6 +4898,7 @@ window.approveBorrowRequest = async function(txId) {
     // Approve transaction
     transactions[txIndex].status = "borrowed";
     localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+    syncTransactionsToBackend();
     if (isFirebaseOnline) {
       try {
         await db.collection("transactions").doc(txId).update({ status: "borrowed" });
@@ -4778,6 +4929,7 @@ window.rejectBorrowRequest = async function(txId) {
   if (confirm("คุณต้องการปฏิเสธคำขอยืมนี้ใช่หรือไม่?")) {
     transactions[txIndex].status = "rejected";
     localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+    syncTransactionsToBackend();
     if (isFirebaseOnline) {
       try {
         await db.collection("transactions").doc(txId).update({ status: "rejected" });
@@ -5485,7 +5637,6 @@ function setupHistoryExports() {
         "ราคาต่อหน่วย (บาท)",
         "จำนวน",
         "ราคารวม (บาท)",
-        "งบประมาณ (บาท)",
         "ส่วนลด (%)"
       ];
       const rows = purchaseOrders.map(order => [
@@ -5494,7 +5645,6 @@ function setupHistoryExports() {
         order.unitPrice || 0,
         order.quantity || 0,
         order.totalPrice || 0,
-        order.budget || 0,
         order.discount !== undefined ? `${order.discount}%` : ""
       ]);
       exportDataToCSV(`purchase_orders_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
@@ -5514,9 +5664,11 @@ function setupHistoryExports() {
       const rowsHtml = purchaseOrders.map(order => {
         grandTotal += order.totalPrice;
         
-        let budgetDiscountStr = `งบ: ${order.budget.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.`;
+        let discountStr = "-";
         if (order.discount > 0) {
-          budgetDiscountStr += ` (ลด: ${order.discount}%)`;
+          discountStr = `ลด ${order.discount}%`;
+        } else if (order.budgetDiscount) {
+          discountStr = order.budgetDiscount;
         }
         
         return `
@@ -5526,7 +5678,7 @@ function setupHistoryExports() {
             <td style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
             <td style="text-align: center;">${order.quantity}</td>
             <td style="text-align: right; font-weight: bold;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            <td>${budgetDiscountStr}</td>
+            <td>${discountStr}</td>
           </tr>
         `;
       }).join("");
@@ -5563,7 +5715,7 @@ function setupHistoryExports() {
                 <th style="text-align: right;">ราคาต่อหน่วย</th>
                 <th style="text-align: center;">จำนวน</th>
                 <th style="text-align: right;">ราคารวม</th>
-                <th>งบประมาณ + ส่วนลด</th>
+                <th>ส่วนลด</th>
               </tr>
             </thead>
             <tbody>

@@ -15,6 +15,10 @@ app.use(express.static(path.join(__dirname)));
 
 const DB_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DB_DIR, 'database.json');
+const BUDGET_FILE = path.join(DB_DIR, 'budget.json');
+const PURCHASE_ORDERS_FILE = path.join(DB_DIR, 'purchase_orders.json');
+const BOOKINGS_FILE = path.join(DB_DIR, 'bookings.json');
+const TRANSACTIONS_FILE = path.join(DB_DIR, 'transactions.json');
 
 // Default Demo Data to seed the database if it doesn't exist
 const DEFAULT_SEEDS = [
@@ -148,6 +152,124 @@ function writeDatabase(items) {
   }
 }
 
+// Helper: Read budget from database
+function readBudget() {
+  try {
+    if (!fs.existsSync(BUDGET_FILE)) {
+      fs.writeFileSync(BUDGET_FILE, JSON.stringify({ budget: 100000 }, null, 2), 'utf-8');
+      return { budget: 100000 };
+    }
+    const data = fs.readFileSync(BUDGET_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return { budget: 100000 };
+  }
+}
+
+// Helper: Save budget to database
+function writeBudget(budgetData) {
+  try {
+    fs.writeFileSync(BUDGET_FILE, JSON.stringify(budgetData, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Helper: Read purchase orders from database
+function readPurchaseOrders() {
+  try {
+    if (!fs.existsSync(PURCHASE_ORDERS_FILE)) {
+      const defaultOrders = [
+        {
+          id: "ord-mock-001",
+          code: "CHEM-001",
+          name: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
+          unitPrice: 350.00,
+          quantity: 5,
+          totalPrice: 1750.00,
+          budget: 2000.00,
+          discount: 5
+        },
+        {
+          id: "ord-mock-002",
+          code: "EQ-005",
+          name: "เครื่องชั่งดิจิตอล 2 ตำแหน่ง",
+          unitPrice: 2400.00,
+          quantity: 2,
+          totalPrice: 4800.00,
+          budget: 5000.00,
+          discount: 10
+        }
+      ];
+      fs.writeFileSync(PURCHASE_ORDERS_FILE, JSON.stringify(defaultOrders, null, 2), 'utf-8');
+      return defaultOrders;
+    }
+    const data = fs.readFileSync(PURCHASE_ORDERS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+// Helper: Save purchase orders to database
+function writePurchaseOrders(orders) {
+  try {
+    fs.writeFileSync(PURCHASE_ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Helper: Read bookings from database
+function readBookings() {
+  try {
+    if (!fs.existsSync(BOOKINGS_FILE)) {
+      fs.writeFileSync(BOOKINGS_FILE, JSON.stringify([], null, 2), 'utf-8');
+      return [];
+    }
+    const data = fs.readFileSync(BOOKINGS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+// Helper: Save bookings to database
+function writeBookings(bookings) {
+  try {
+    fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(bookings, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Helper: Read transactions from database
+function readTransactions() {
+  try {
+    if (!fs.existsSync(TRANSACTIONS_FILE)) {
+      fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify([], null, 2), 'utf-8');
+      return [];
+    }
+    const data = fs.readFileSync(TRANSACTIONS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+// Helper: Save transactions to database
+function writeTransactions(transactions) {
+  try {
+    fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify(transactions, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 // ==========================================================================
 // HTTP API ENDPOINTS
 // ==========================================================================
@@ -257,6 +379,54 @@ app.post('/api/items/import', (req, res) => {
     imported: successCount, 
     errors: errorCount 
   });
+});
+
+// GET /api/budget
+app.get('/api/budget', (req, res) => {
+  res.json(readBudget());
+});
+
+// POST /api/budget
+app.post('/api/budget', (req, res) => {
+  const data = req.body;
+  writeBudget(data);
+  res.json({ success: true, budget: data.budget });
+});
+
+// GET /api/purchase-orders
+app.get('/api/purchase-orders', (req, res) => {
+  res.json(readPurchaseOrders());
+});
+
+// POST /api/purchase-orders
+app.post('/api/purchase-orders', (req, res) => {
+  const orders = req.body;
+  writePurchaseOrders(orders);
+  res.json({ success: true });
+});
+
+// GET /api/bookings
+app.get('/api/bookings', (req, res) => {
+  res.json(readBookings());
+});
+
+// POST /api/bookings
+app.post('/api/bookings', (req, res) => {
+  const bookings = req.body;
+  writeBookings(bookings);
+  res.json({ success: true });
+});
+
+// GET /api/transactions
+app.get('/api/transactions', (req, res) => {
+  res.json(readTransactions());
+});
+
+// POST /api/transactions
+app.post('/api/transactions', (req, res) => {
+  const transactions = req.body;
+  writeTransactions(transactions);
+  res.json({ success: true });
 });
 
 // Start Express Web Server
