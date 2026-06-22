@@ -574,6 +574,13 @@ function setupNavigation() {
     navigateToPanel("lab-booking");
   });
 
+  const quickBtnAddItem = document.getElementById("quickBtnAddItem");
+  if (quickBtnAddItem) {
+    quickBtnAddItem.addEventListener("click", () => {
+      navigateToPanel("add-item");
+    });
+  }
+
   // Sidebar Import Button triggers modal
   document.getElementById("btnSidebarImport").addEventListener("click", (e) => {
     e.preventDefault();
@@ -798,9 +805,11 @@ function updateUI() {
   // Show/Hide export buttons depending on login status
   const borrowExportActions = document.getElementById("borrowExportActions");
   const bookingExportActions = document.getElementById("bookingExportActions");
+  const quickBtnAddItem = document.getElementById("quickBtnAddItem");
   const isBackoffice = (userRole === "admin" || userRole === "teacher");
   if (borrowExportActions) borrowExportActions.style.display = isBackoffice ? "inline-flex" : "none";
   if (bookingExportActions) bookingExportActions.style.display = isBackoffice ? "inline-flex" : "none";
+  if (quickBtnAddItem) quickBtnAddItem.style.display = isBackoffice ? "flex" : "none";
   
   // Trigger Lucide updates for newly rendered icon containers
   renderOrdersTable();
