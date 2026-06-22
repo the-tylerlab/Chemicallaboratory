@@ -6400,6 +6400,222 @@ function generateBotResponse(query) {
   };
   const qSubNormal = normalizeSubscripts(q);
 
+  // 0A. NEW SMART CHATBOT FEATURES
+  
+  // 1. Equation Balancer Routing
+  const isBalanceQuery = q.includes("ดุล") || q.includes("ดล") || q.includes("สมการ") || q.includes("balance");
+  if (isBalanceQuery) {
+    let cleanQuery = query;
+    const subscriptMap = {
+      '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+      '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
+    };
+    cleanQuery = cleanQuery.replace(/[₀-₉]/g, m => subscriptMap[m]);
+    
+    const eqMatch = cleanQuery.match(/[A-Za-z0-9()·*.\s\-+=>→➔]+/);
+    if (eqMatch) {
+      const candidate = eqMatch[0].trim();
+      if (candidate.includes("->") || candidate.includes("=") || candidate.includes("➔") || candidate.includes("→")) {
+        return balanceEquation(candidate);
+      }
+    }
+
+    return `🧪 <b>ระบบดุลสมการเคมีอัตโนมัติ (Chemical Equation Balancer)</b>\n\n` +
+           `กรุณาระบุสมการเคมีที่ต้องการดุล โดยใช้เครื่องหมาย <code>-&gt;</code> หรือ <code>=</code> ในการแยกสารตั้งต้นและผลิตภัณฑ์ เช่น:\n` +
+           `- <i>"ดุลสมการ H2 + O2 -&gt; H2O"</i>\n` +
+           `- <i>"ช่วยดุลสมการ Fe + Cl2 = FeCl3 หน่อย"</i>`;
+  }
+
+  // 2. Molar Mass Calculator Routing
+  const isMolarMassQuery = q.includes("มวล") || q.includes("โมเลกุล") || q.includes("โฒเลกุล") || q.includes("molar") || q.includes("mw") || q.includes("molecular") || q.includes("weight") || q.includes("น้ำหนัก");
+  if (isMolarMassQuery) {
+    const ELEM_MAP = {};
+    for (let k of Object.keys(ATOMIC_WEIGHTS)) {
+      ELEM_MAP[k.toLowerCase()] = k;
+    }
+
+    function findElementCasing(s) {
+      if (s === "") return "";
+      
+      // Try 2 letters first
+      if (s.length >= 2) {
+        const two = s.slice(0, 2).toLowerCase();
+        const standardTwo = ELEM_MAP[two];
+        if (standardTwo) {
+          const rest = findElementCasing(s.slice(2));
+          if (rest !== null) {
+            return standardTwo + rest;
+          }
+        }
+      }
+      
+      // Try 1 letter
+      if (s.length >= 1) {
+        const one = s.slice(0, 1).toLowerCase();
+        const standardOne = ELEM_MAP[one];
+        if (standardOne) {
+          const rest = findElementCasing(s.slice(1));
+          if (rest !== null) {
+            return standardOne + rest;
+          }
+        }
+      }
+      
+      return null;
+    }
+
+    function autoCapitalizeChemicalFormula(formulaStr) {
+      return formulaStr.replace(/[A-Za-z]+/g, (match) => {
+        const capitalized = findElementCasing(match);
+        return capitalized !== null ? capitalized : match;
+      });
+    }
+
+    const getFormulaFromText = (txt) => {
+      const subscriptMap = {
+        '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+        '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
+      };
+      let cleanQuery = txt.replace(/[₀-₉]/g, m => subscriptMap[m]);
+      
+      const words = cleanQuery.match(/[A-Za-z0-9()·*.]+/g);
+      if (!words) return null;
+      
+      const COMMON_FORMULAS = {
+        'h2o': 'H2O', 'nacl': 'NaCl', 'naoh': 'NaOH', 'hcl': 'HCl',
+        'h2so4': 'H2SO4', 'ch3cooh': 'CH3COOH', 'c2h5oh': 'C2H5OH',
+        'nahco3': 'NaHCO3', 'caco3': 'CaCO3', 'co2': 'CO2', 'o2': 'O2',
+        'h2': 'H2', 'n2': 'N2', 'cl2': 'Cl2', 'nh3': 'NH3', 'ch4': 'CH4',
+        'c6h12o6': 'C6H12O6', 'c12h22o11': 'C12H22O11', 'hno3': 'HNO3',
+        'h3po4': 'H3PO4', 'cuso4': 'CuSO4', 'mgso4': 'MgSO4', 'caso4': 'CaSO4',
+        'baso4': 'BaSO4', 'kno3': 'KNO3', 'nano3': 'NaNO3', 'nh4cl': 'NH4Cl',
+        'nh4no3': 'NH4NO3', 'na2co3': 'Na2CO3', 'k2co3': 'K2CO3', 'khco3': 'KHCO3',
+        'ki': 'KI', 'kbr': 'KBr', 'kcl': 'KCl', 'na2so4': 'Na2SO4',
+        'k2so4': 'K2SO4', 'mgco3': 'MgCO3', 'ca(oh)2': 'Ca(OH)2', 'ba(oh)2': 'Ba(OH)2',
+        'al(oh)3': 'Al(OH)3', 'koh': 'KOH', 'hf': 'HF', 'hbr': 'HBr',
+        'hi': 'HI', 'o3': 'O3', 'f2': 'F2', 'br2': 'Br2', 'i2': 'I2',
+        'co': 'CO', 'no': 'NO', 'c': 'C', 's': 'S', 'p': 'P', 'fe': 'Fe',
+        'cu': 'Cu', 'zn': 'Zn', 'al': 'Al', 'mg': 'Mg', 'ca': 'Ca', 'na': 'Na',
+        'k': 'K', 'li': 'Li', 'cocl2': 'CoCl2', 'h2o2': 'H2O2', 'fe2o3': 'Fe2O3',
+        'fe3o4': 'Fe3O4', 'al2o3': 'Al2O3', 'sio2': 'SiO2', 'so2': 'SO2',
+        'so3': 'SO3', 'no2': 'NO2', 'n2o': 'N2O', 'h2s': 'H2S', 'hcn': 'HCN',
+        'licl': 'LiCl', 'pbs': 'PbS', 'cuo': 'CuO', 'zno': 'ZnO', 'mno': 'MnO',
+        'feo': 'FeO', 'agno3': 'AgNO3', 'pb(no3)2': 'Pb(NO3)2'
+      };
+      
+      for (let word of words) {
+        const lowerWord = word.toLowerCase();
+        
+        // 1. Check direct match in COMMON_FORMULAS
+        if (COMMON_FORMULAS[lowerWord]) {
+          return COMMON_FORMULAS[lowerWord];
+        }
+        
+        // 2. Check candidate filters
+        const isCandidate = 
+          /[0-9()·*.]/.test(word) || // contains digit or structure chars
+          /^[A-Z]/.test(word) ||     // starts with uppercase
+          COMMON_FORMULAS[lowerWord] !== undefined;
+          
+        if (isCandidate) {
+          // Attempt auto-capitalization
+          const capitalized = autoCapitalizeChemicalFormula(word);
+          const parsed = parseFormula(capitalized);
+          if (parsed && Object.keys(parsed).length > 0) {
+            let allValid = true;
+            for (let elem of Object.keys(parsed)) {
+              if (!ATOMIC_WEIGHTS[elem]) {
+                allValid = false;
+                break;
+              }
+            }
+            if (allValid) return capitalized;
+          }
+        }
+      }
+      return null;
+    };
+
+    const rawFormula = getFormulaFromText(query);
+    if (rawFormula) {
+      const res = getFormulaWeightBreakdown(rawFormula);
+      if (res && !res.error) {
+        const { totalMass, breakdown } = res;
+        let html = `⚖️ <b>ผลการคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n`;
+        html += `สูตรเคมี: <b>${formatChemicalFormula(rawFormula)}</b>\n\n`;
+        html += `<table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12.5px; background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 6px; overflow: hidden;">`;
+        html += `<thead>`;
+        html += `<tr style="background-color: var(--bg-hover); border-bottom: 2px solid rgba(226, 232, 240, 0.8); text-align: left;">`;
+        html += `<th style="padding: 8px; font-weight: 600;">ธาตุ</th>`;
+        html += `<th style="padding: 8px; font-weight: 600; text-align: right;">มวลอะตอม</th>`;
+        html += `<th style="padding: 8px; font-weight: 600; text-align: center;">จำนวน</th>`;
+        html += `<th style="padding: 8px; font-weight: 600; text-align: right;">มวลรวม (g/mol)</th>`;
+        html += `</tr>`;
+        html += `</thead>`;
+        html += `<tbody>`;
+        
+        breakdown.forEach((item, index) => {
+          const bg = index % 2 === 0 ? '#ffffff' : 'rgba(248, 250, 252, 0.5)';
+          html += `<tr style="background: ${bg}; border-bottom: 1px solid rgba(226, 232, 240, 0.5);">`;
+          html += `<td style="padding: 8px; font-weight: 600; color: var(--primary-color);">${item.elem}</td>`;
+          html += `<td style="padding: 8px; text-align: right; color: var(--text-muted);">${item.weight.toFixed(4)}</td>`;
+          html += `<td style="padding: 8px; text-align: center;">${item.count}</td>`;
+          html += `<td style="padding: 8px; text-align: right; font-weight: 500;">${item.total.toFixed(4)}</td>`;
+          html += `</tr>`;
+        });
+        
+        html += `</tbody>`;
+        html += `</table>\n`;
+        html += `<div style="border-top: 2.5px double var(--primary-color); margin-top: 8px; padding-top: 8px; text-align: right; font-weight: 700; font-size: 14.5px;">`;
+        html += `มวลโมเลกุลรวม: <span style="color: var(--primary-color); font-family: 'Sora', monospace;">${totalMass.toFixed(4)} g/mol</span>`;
+        html += `</div>`;
+        
+        return html;
+      } else if (res && res.error) {
+        return `❌ <b>ข้อผิดพลาด:</b> ${res.error}`;
+      }
+    }
+
+    return `⚖️ <b>ระบบคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n\n` +
+           `กรุณาระบุสูตรเคมีที่คุณต้องการคำนวณมวลโมเลกุล (สามารถพิมพ์ตัวพิมพ์เล็กหรือตัวพิมพ์ใหญ่ได้) เช่น:\n` +
+           `- <i>"มวลโมเลกุล H2O"</i> หรือ <i>"มวลโมเลกุล h2o"</i>\n` +
+           `- <i>"คำนวณมวลโมเลกุลของ Ca(OH)2"</i> หรือ <i>"คำนวณมวลโฒเลกุลของ ca(oh)2"</i>\n` +
+           `- <i>"mw c6h12o6"</i>`;
+  }
+
+  // 3. Solution Prep Calculator Routing
+  const isPrep = q.includes("เตรียมสาร") || q.includes("เตรียมความเข้มข้น") || q.includes("เจือจาง") || q.includes("dilute") || q.includes("c1v1") || q === "วิธีเตรียมสารละลาย";
+  if (isPrep) {
+    return calculateSolutionPrep(query);
+  }
+
+  // 4. Safety & Emergency Advisor Routing
+  const isSafety = q.includes("ความปลอดภัย") || q.includes("ปฐมพยาบาล") || q.includes("สารเคมีหก") || q.includes("กรดหก") || q.includes("ด่างหก") || q.includes("สารหก") || q.includes("โดนผิว") || q.includes("สัมผัสผิว") || q.includes("เข้าตา") || q.includes("สูดดม") || q.includes("ดมแก๊ส") || q.includes("กลืนกิน") || q.includes("กินสารเคมี") || q.includes("safety") || q.includes("first aid");
+  if (isSafety) {
+    let key = null;
+    if (q.includes("หก") || q.includes("spill")) key = "spill";
+    else if (q.includes("ผิว") || q.includes("skin")) key = "skin";
+    else if (q.includes("ตา") || q.includes("eye")) key = "eye";
+    else if (q.includes("สูด") || q.includes("ดม") || q.includes("inhale")) key = "inhale";
+    else if (q.includes("กิน") || q.includes("กลืน") || q.includes("ingest")) key = "ingest";
+
+    if (key && SAFETY_DB[key]) {
+      const data = SAFETY_DB[key];
+      return `${data.title}\n\n` +
+             `<ol style="padding-left: 20px; margin: 8px 0; font-size: 13px; line-height: 1.6; display: flex; flex-direction: column; gap: 8px;">` +
+             data.steps.map(step => `<li>${step}</li>`).join('') +
+             `</ol>`;
+    } else {
+      return `🛡️ <b>ระบบแนะนำความปลอดภัยและการปฐมพยาบาลเบื้องต้น (Lab Safety):</b>\n\n` +
+             `กรุณาคลิกหรือระบุอุบัติเหตุที่เกิดขึ้นเพื่อรับวิธีรับมือทันที:\n\n` +
+             `1. 🚨 <b>สารเคมีหกเลอะ:</b> พิมพ์ <i>"ปฐมพยาบาลสารเคมีหก"</i> หรือ <i>"กรดหก"</i>\n` +
+             `2. ⚠️ <b>สารเคมีสัมผัสผิวหนัง:</b> พิมพ์ <i>"สารเคมีโดนผิวหนัง"</i>\n` +
+             `3. 👀 <b>สารเคมีเข้าตา:</b> พิมพ์ <i>"สารเคมีเข้าตา"</i>\n` +
+             `4. 🫁 <b>สูดดมแก๊สพิษ/ไอระเหย:</b> พิมพ์ <i>"สูดดมไอระเหย"</i>\n` +
+             `5. 👄 <b>กลืนกินสารเคมี:</b> พิมพ์ <i>"กลืนกินสารเคมี"</i>`;
+    }
+  }
+
   // Find matches in CHEM_DB
   const matchedKeys = [];
   for (const [key, chem] of Object.entries(CHEM_DB)) {
@@ -6493,12 +6709,13 @@ function generateBotResponse(query) {
 
   // 1. GREETINGS
   if (q === "สวัสดี" || q === "สวัสดีครับ" || q === "สวัสดีค่ะ" || q === "หวัดดี" || q === "hello" || q === "hi") {
-    return `สวัสดีครับ! ยินดีที่ได้พูดคุยกับคุณในวันนี้ ผมคือ <b>แคททาไลต์ (Catalyst)</b> ตัวเร่งปฏิกิริยาและผู้ช่วยห้องแล็บส่วนตัวของคุณ ผมสามารถช่วยคุณทำสิ่งเหล่านี้ได้ครับ:
-- 🔍 ค้นหาที่อยู่พัสดุ (เช่นพิมพ์: <i>ค้นหา เอทานอล</i>)
-- ⚠️ ตรวจสอบสินค้าสต็อกต่ำ
-- ⏰ ตรวจสอบสารหมดอายุ
-- 📖 แนะนำการยืม-คืน หรือจองห้อง
-บอกผมได้เลยว่าคุณต้องการข้อมูลส่วนไหนครับ`;
+    return `สวัสดีครับ! ยินดีที่ได้พูดคุยกับคุณในวันนี้ ผมคือ <b>แคททาไลต์ (Catalyst)</b> ตัวเร่งปฏิกิริยาและผู้ช่วยห้องแล็บส่วนตัวของคุณ ผมมีฟีเจอร์อัจฉริยะช่วยอำนวยความสะดวกในแล็บดังนี้ครับ:
+- 🧪 <b>ดุลสมการเคมีอัตโนมัติ:</b> พิมพ์ <i>"ดุลสมการ C3H8 + O2 -> CO2 + H2O"</i>
+- ⚖️ <b>คำนวณมวลโมเลกุล:</b> พิมพ์ <i>"มวลโมเลกุล Ca(OH)2"</i> หรือสูตรเคมีอื่นๆ
+- 💧 <b>เครื่องช่วยคำนวณเตรียมสารละลาย:</b> พิมพ์ <i>"เตรียมสาร"</i> หรือ <i>"เจือจางจาก 10 M เป็น 2 M ปริมาตร 250 mL"</i>
+- 🚨 <b>แนะนำความปลอดภัย/ปฐมพยาบาล:</b> พิมพ์ <i>"ปฐมพยาบาลสารเคมีหก"</i> หรือ <i>"กรดเข้าตา"</i>
+- 🔍 <b>ค้นหาพัสดุ/ข้อมูลสารเคมีพื้นฐาน:</b> เช่นพิมพ์ <i>"ค้นหา เอทานอล"</i> หรือเช็คสต็อกต่ำและหมดอายุ
+บอกผมได้เลยครับว่าอยากให้ช่วยตรงจุดไหนครับ`;
   }
 
   // 2. HELP SYSTEM / SYSTEM USAGE
@@ -6635,5 +6852,489 @@ function generateBotResponse(query) {
 - พิมพ์ชื่อพัสดุเพื่อค้นหา เช่น <i>"เอทานอล"</i> หรือ <i>"บีกเกอร์"</i>
 - พิมพ์เพื่อเช็คสต็อก เช่น <i>"ของใกล้หมด"</i> หรือ <i>"หมดอายุ"</i>
 - พิมพ์ถามการใช้งาน เช่น <i>"วิธีจองห้อง"</i> หรือ <i>"วิธียืมคืน"</i>`;
+}
+
+// ============================================================================
+// NEW HELPER FUNCTIONS & DATA BASES FOR SMART LAB ASSISTANT
+// ============================================================================
+
+// ATOMIC WEIGHTS DICTIONARY FOR MOLAR MASS CALCULATOR
+const ATOMIC_WEIGHTS = {
+  H: 1.008, He: 4.0026, Li: 6.94, Be: 9.0122, B: 10.81, C: 12.011, N: 14.007, O: 15.999,
+  F: 18.998, Ne: 20.180, Na: 22.990, Mg: 24.305, Al: 26.982, Si: 28.085, P: 30.974, S: 32.06,
+  Cl: 35.45, Ar: 39.948, K: 39.098, Ca: 40.078, Sc: 44.956, Ti: 47.867, V: 50.942, Cr: 51.996,
+  Mn: 54.938, Fe: 55.845, Co: 58.933, Ni: 58.693, Cu: 63.546, Zn: 65.38, Ga: 69.723, Ge: 72.63,
+  As: 74.922, Se: 78.971, Br: 79.904, Kr: 83.798, Rb: 85.468, Sr: 87.62, Y: 88.906, Zr: 91.224,
+  Nb: 92.906, Mo: 95.95, Tc: 98, Ru: 101.07, Rh: 102.91, Pd: 106.42, Ag: 107.87, Cd: 112.41,
+  In: 114.82, Sn: 118.71, Sb: 121.76, Te: 127.60, I: 126.90, Xe: 131.29, Cs: 132.91, Ba: 137.33,
+  La: 138.91, Ce: 140.12, Pr: 140.91, Nd: 144.24, Pm: 145, Sm: 150.36, Eu: 151.96, Gd: 157.25,
+  Tb: 158.93, Dy: 162.50, Ho: 164.93, Er: 167.26, Tm: 168.93, Yb: 173.05, Lu: 174.97, Hf: 178.49,
+  Ta: 180.95, W: 183.84, Re: 186.21, Os: 190.23, Ir: 192.22, Pt: 195.08, Au: 196.97, Hg: 200.59,
+  Tl: 204.38, Pb: 207.2, Bi: 208.98, Po: 209, At: 210, Rn: 222, Fr: 223, Ra: 226, Ac: 227,
+  Th: 232.04, Pa: 231.04, U: 238.03
+};
+
+function parseFormula(formulaStr) {
+  let str = formulaStr.replace(/\s+/g, '');
+  const subscriptMap = {
+    '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+    '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
+  };
+  str = str.replace(/[₀-₉]/g, m => subscriptMap[m]);
+
+  // Handle hydrates e.g., CuSO4*5H2O or CuSO4.5H2O
+  const parts = str.split(/[·*.]/);
+  if (parts.length > 1) {
+    const result = {};
+    for (let part of parts) {
+      const match = part.match(/^(\d+)(.*)$/);
+      if (match) {
+        const coef = parseInt(match[1], 10);
+        const subForm = match[2];
+        const parsed = parseStandardFormula(subForm);
+        for (let [elem, count] of Object.entries(parsed)) {
+          result[elem] = (result[elem] || 0) + count * coef;
+        }
+      } else {
+        const parsed = parseStandardFormula(part);
+        for (let [elem, count] of Object.entries(parsed)) {
+          result[elem] = (result[elem] || 0) + count;
+        }
+      }
+    }
+    return result;
+  }
+
+  const mainMatch = str.match(/^(\d+)(.*)$/);
+  if (mainMatch) {
+    const coef = parseInt(mainMatch[1], 10);
+    const subForm = mainMatch[2];
+    const parsed = parseStandardFormula(subForm);
+    const result = {};
+    for (let [elem, count] of Object.entries(parsed)) {
+      result[elem] = count * coef;
+    }
+    return result;
+  }
+
+  return parseStandardFormula(str);
+}
+
+function parseStandardFormula(str) {
+  const result = {};
+  let i = 0;
+  const n = str.length;
+
+  function parseGroup() {
+    const group = {};
+    while (i < n) {
+      const char = str[i];
+      if (char === '(') {
+        i++; // skip '('
+        const subGroup = parseGroup();
+        let mult = 1;
+        let digits = '';
+        while (i < n && /\d/.test(str[i])) {
+          digits += str[i];
+          i++;
+        }
+        if (digits) {
+          mult = parseInt(digits, 10);
+        }
+        for (let [elem, count] of Object.entries(subGroup)) {
+          group[elem] = (group[elem] || 0) + count * mult;
+        }
+      } else if (char === ')') {
+        i++; // skip ')'
+        return group;
+      } else if (/[A-Z]/.test(char)) {
+        let elem = char;
+        i++;
+        if (i < n && /[a-z]/.test(str[i])) {
+          elem += str[i];
+          i++;
+        }
+        let count = 1;
+        let digits = '';
+        while (i < n && /\d/.test(str[i])) {
+          digits += str[i];
+          i++;
+        }
+        if (digits) {
+          count = parseInt(digits, 10);
+        }
+        group[elem] = (group[elem] || 0) + count;
+      } else {
+        i++;
+      }
+    }
+    return group;
+  }
+
+  return parseGroup();
+}
+
+function getFormulaWeightBreakdown(formulaStr) {
+  const parsed = parseFormula(formulaStr);
+  if (!parsed || Object.keys(parsed).length === 0) return null;
+  
+  let totalMass = 0;
+  const breakdown = [];
+  for (let [elem, count] of Object.entries(parsed)) {
+    const weight = ATOMIC_WEIGHTS[elem];
+    if (!weight) return { error: `ไม่พบธาตุ <b>"${elem}"</b> ในฐานข้อมูลน้ำหนักอะตอม` };
+    const elemTotal = weight * count;
+    totalMass += elemTotal;
+    breakdown.push({ elem, weight, count, total: elemTotal });
+  }
+  return { totalMass, breakdown };
+}
+
+function formatChemicalFormula(formulaStr) {
+  const subMap = {
+    '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+    '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+  };
+  return formulaStr.replace(/[·*.]/g, '·').replace(/\d/g, m => subMap[m]);
+}
+
+function balanceEquation(equationText) {
+  let cleanText = equationText.replace(/\s+/g, '');
+  const subscriptMap = {
+    '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+    '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
+  };
+  cleanText = cleanText.replace(/[₀-₉]/g, m => subscriptMap[m]);
+
+  const sides = cleanText.split(/->|-->|=>|=/);
+  if (sides.length !== 2) {
+    return "❌ รูปแบบสมการไม่ถูกต้อง กรุณาใช้เครื่องหมาย <code>-&gt;</code> หรือ <code>=</code> ในการแยกสารตั้งต้นและผลิตภัณฑ์ (เช่น <code>C3H8 + O2 -&gt; CO2 + H2O</code>)";
+  }
+
+  const reactantStrs = sides[0].split('+').filter(Boolean);
+  const productStrs = sides[1].split('+').filter(Boolean);
+
+  if (reactantStrs.length === 0 || productStrs.length === 0) {
+    return "❌ สมการต้องมีสารตั้งต้นและสารผลิตภัณฑ์อย่างน้อย 1 ชนิด";
+  }
+
+  const reactants = reactantStrs.map(str => ({ original: str, parsed: parseFormula(str) }));
+  const products = productStrs.map(str => ({ original: str, parsed: parseFormula(str) }));
+  const allCompounds = [...reactants, ...products];
+
+  const elementsSet = new Set();
+  for (let comp of allCompounds) {
+    for (let elem of Object.keys(comp.parsed)) {
+      elementsSet.add(elem);
+    }
+  }
+  const elements = Array.from(elementsSet);
+
+  if (elements.length === 0) {
+    return "❌ ไม่พบธาตุเคมีในสมการที่ระบุ";
+  }
+
+  for (let elem of elements) {
+    if (!ATOMIC_WEIGHTS[elem]) {
+      return `❌ ไม่พบธาตุ <b>"${elem}"</b> ในระบบน้ำหนักอะตอม`;
+    }
+  }
+
+  const numRows = elements.length;
+  const numCols = allCompounds.length;
+
+  const matrix = Array.from({ length: numRows }, () => Array(numCols).fill(0));
+  for (let i = 0; i < numRows; i++) {
+    const elem = elements[i];
+    for (let j = 0; j < reactants.length; j++) {
+      matrix[i][j] = reactants[j].parsed[elem] || 0;
+    }
+    for (let j = 0; j < products.length; j++) {
+      matrix[i][reactants.length + j] = -(products[j].parsed[elem] || 0);
+    }
+  }
+
+  rref(matrix);
+
+  const numRowsM = matrix.length;
+  const numColsM = matrix[0].length;
+  
+  const pivotRow = {};
+  for (let r = 0; r < numRowsM; r++) {
+    let leadCol = -1;
+    for (let c = 0; c < numColsM; c++) {
+      if (Math.abs(matrix[r][c]) > 1e-9) {
+        leadCol = c;
+        break;
+      }
+    }
+    if (leadCol !== -1) {
+      pivotRow[leadCol] = r;
+    }
+  }
+
+  const isPivot = Array(numColsM).fill(false);
+  for (let c of Object.keys(pivotRow)) {
+    isPivot[Number(c)] = true;
+  }
+
+  const freeCols = [];
+  for (let c = 0; c < numColsM; c++) {
+    if (!isPivot[c]) {
+      freeCols.push(c);
+    }
+  }
+
+  if (freeCols.length === 0) {
+    return "❌ ไม่สามารถดุลสมการนี้ได้ (สมการอาจไม่ถูกต้องหรือไม่สมดุลทางเคมี)";
+  }
+
+  const rawSolution = Array(numColsM).fill(0);
+  for (let fc of freeCols) {
+    rawSolution[fc] = 1.0;
+  }
+
+  for (let c = 0; c < numColsM; c++) {
+    if (isPivot[c]) {
+      const r = pivotRow[c];
+      let val = 0;
+      for (let fc of freeCols) {
+        val -= matrix[r][fc] * rawSolution[fc];
+      }
+      rawSolution[c] = val;
+    }
+  }
+
+  if (rawSolution.some(val => val < 1e-9)) {
+    return "❌ ไม่สามารถดุลสมการนี้ได้ (สัมประสิทธิ์ที่คำนวณได้ติดลบหรือเป็นศูนย์ สมการนี้ไม่สมดุลทางเคมีหรือสารไม่มีการทำปฏิกิริยากัน)";
+  }
+
+  let scale = -1;
+  for (let k = 1; k <= 1000; k++) {
+    let allInt = true;
+    for (let val of rawSolution) {
+      const scaledVal = val * k;
+      if (Math.abs(Math.round(scaledVal) - scaledVal) > 1e-5) {
+        allInt = false;
+        break;
+      }
+    }
+    if (allInt) {
+      scale = k;
+      break;
+    }
+  }
+
+  if (scale === -1) {
+    return "❌ ไม่สามารถแปลงสัมประสิทธิ์เป็นจำนวนเต็มต่ำได้ (สัมประสิทธิ์มีค่าเป็นทศนิยมที่ไม่สิ้นสุดหรือมีขนาดใหญ่เกินเกณฑ์เตือนภัย)";
+  }
+
+  const coefficients = rawSolution.map(val => Math.round(val * scale));
+
+  const formatSubscripts = (str) => {
+    const subMap = {
+      '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄',
+      '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉'
+    };
+    let formulaPart = str.replace(/^\d+/, '');
+    formulaPart = formulaPart.replace(/[·*.]/g, '·');
+    return formulaPart.replace(/\d/g, m => subMap[m]);
+  };
+
+  const reactantParts = [];
+  for (let j = 0; j < reactants.length; j++) {
+    const coef = coefficients[j];
+    const formatted = formatSubscripts(reactants[j].original);
+    reactantParts.push(coef === 1 ? formatted : `${coef}${formatted}`);
+  }
+
+  const productParts = [];
+  for (let j = 0; j < products.length; j++) {
+    const coef = coefficients[reactants.length + j];
+    const formatted = formatSubscripts(products[j].original);
+    productParts.push(coef === 1 ? formatted : `${coef}${formatted}`);
+  }
+
+  const finalEquation = `${reactantParts.join(' + ')} ➔ ${productParts.join(' + ')}`;
+
+  return `🧪 <b>ผลการดุลสมการเคมีสำเร็จ!</b>\n\n` +
+         `<div style="font-size: 15px; font-weight: 600; padding: 12px; background-color: var(--bg-hover); border-radius: var(--border-radius-md); border-left: 4px solid var(--primary-color); margin: 8px 0; font-family: 'Sora', monospace; letter-spacing: 0.5px;">` +
+         `${finalEquation}` +
+         `</div>\n` +
+         `📋 <b>อัตราส่วนสัมประสิทธิ์จำเพาะ:</b>\n` +
+         `<ul>` +
+         reactants.map((r, i) => `<li><b>${formatSubscripts(r.original)}:</b> ${coefficients[i]}</li>`).join('') +
+         products.map((p, i) => `<li><b>${formatSubscripts(p.original)}:</b> ${coefficients[reactants.length + i]} (ผลิตภัณฑ์)</li>`).join('') +
+         `</ul>`;
+}
+
+function calculateSolutionPrep(query) {
+  const q = query.toLowerCase().trim();
+
+  const dilutionRegex = /(?:เจือจาง|dilute).*?(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(?:เป็น|ต้องการ)\s*(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(?:ปริมาตร|ขนาด)?\s*(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร)/i;
+  const dilutionMatch = q.match(dilutionRegex) || q.match(/(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(?:เจือจางเป็น|เป็น|ต้องการ)\s*(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร)/i);
+
+  if (dilutionMatch) {
+    const c1 = parseFloat(dilutionMatch[1]);
+    const c2 = parseFloat(dilutionMatch[2]);
+    const v2Val = parseFloat(dilutionMatch[3]);
+    const v2Unit = dilutionMatch[4].toLowerCase();
+
+    if (c1 <= c2) {
+      return "⚠️ ความเข้มข้นเริ่มต้น (C₁) ต้องมากกว่าความเข้มข้นที่ต้องการ (C₂) สำหรับการเจือจางสารละลายครับ";
+    }
+
+    let v2 = v2Val;
+    if (v2Unit === 'l' || v2Unit === 'ลิตร') {
+      v2 = v2Val * 1000;
+    }
+
+    const v1 = (c2 * v2) / c1;
+    const solvent = v2 - v1;
+
+    return `💧 <b>ผลการคำนวณเตรียมสารละลายด้วยการเจือจาง (Dilution):</b>\n\n` +
+           `- <b>สูตรที่ใช้:</b> <code>C₁V₁ = C₂V₂</code>\n` +
+           `- <b>ค่าที่ระบุ:</b> ความเข้มข้นเริ่มต้น (C₁) = <b>${c1} M</b>, ความเข้มข้นที่ต้องการ (C₂) = <b>${c2} M</b>, ปริมาตรสุทธิ (V₂) = <b>${v2Val} ${v2Unit === 'l' || v2Unit === 'ลิตร' ? 'L' : 'mL'}</b>\n\n` +
+           `🧪 <b>วิธีการเตรียม:</b>\n` +
+           `1. ตวงสารละลายเข้มข้นเริ่มต้น (C₁) ปริมาตร <b>${v1.toFixed(2)} mL</b>\n` +
+           `2. นำไปเทใส่ขวดวัดปริมาตร (Volumetric Flask) ขนาด <b>${v2.toFixed(0)} mL</b>\n` +
+           `3. เติมตัวทำละลาย (เช่น น้ำกลั่น) ปริมาตร <b>${solvent.toFixed(2)} mL</b> (หรือเติมจนถึงขีดบอกปริมาตรของขวดวัดปริมาตร)\n` +
+           `4. ปิดฝาแล้วกลับขวดไปมาเพื่อให้สารผสมเป็นเนื้อเดียวกัน`;
+  }
+
+  const solidMatch = q.match(/(\d+(?:\.\d+)?)\s*(?:m|โมลาร์).*?(?:ปริมาตร)?\s*(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร).*?(?:มวลโมเลกุล|mw|g\/mol)?\s*(\d+(?:\.\d+)?)/i) ||
+                     q.match(/(?:มวลโมเลกุล|mw).*?(\d+(?:\.\d+)?).*?(\d+(?:\.\d+)?)\s*(?:m|โมลาร์).*?(?:ปริมาตร)?\s*(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร)/i);
+
+  if (solidMatch) {
+    let m, vVal, vUnit, mw;
+    if (solidMatch[3] === 'ml' || solidMatch[3] === 'l' || solidMatch[3] === 'มล' || solidMatch[3] === 'ลิตร') {
+      m = parseFloat(solidMatch[1]);
+      vVal = parseFloat(solidMatch[2]);
+      vUnit = solidMatch[3].toLowerCase();
+      mw = parseFloat(solidMatch[4]);
+    } else {
+      mw = parseFloat(solidMatch[1]);
+      m = parseFloat(solidMatch[2]);
+      vVal = parseFloat(solidMatch[3]);
+      vUnit = solidMatch[4].toLowerCase();
+    }
+
+    if (isNaN(m) || isNaN(vVal) || isNaN(mw)) {
+      return "⚠️ รูปแบบค่าที่ระบุไม่ถูกต้อง กรุณาระบุ ความเข้มข้น (M), ปริมาตร (mL หรือ L) และ มวลโมเลกุล (g/mol) ให้ครบถ้วน";
+    }
+
+    let vL = vVal;
+    if (vUnit === 'ml' || vUnit === 'มล') {
+      vL = vVal / 1000;
+    }
+
+    const g = m * mw * vL;
+    const vML = vUnit === 'ml' || vUnit === 'มล' ? vVal : vVal * 1000;
+
+    return `⚖️ <b>ผลการคำนวณเตรียมสารละลายจากของแข็ง/สารบริสุทธิ์:</b>\n\n` +
+           `- <b>สูตรที่ใช้:</b> <code>g = M × MW × V (ลิตร)</code>\n` +
+           `- <b>ค่าที่ระบุ:</b> ความเข้มข้นที่ต้องการ (M) = <b>${m} M</b>, ปริมาตร (V) = <b>${vVal} ${vUnit === 'l' || vUnit === 'ลิตร' ? 'L' : 'mL'}</b>, มวลโมเลกุล (MW) = <b>${mw} g/mol</b>\n\n` +
+           `🧪 <b>วิธีการเตรียม:</b>\n` +
+           `1. ชั่งสารตั้งต้นของแข็งปริมาณ <b>${g.toFixed(4)} กรัม</b> ด้วยเครื่องชั่งสารอย่างละเอียด\n` +
+           `2. เทสารลงในบีกเกอร์และเติมน้ำกลั่นเล็กน้อย คนจนละลายหมด\n` +
+           `3. เทสารที่ละลายแล้วลงในขวดวัดปริมาตรขนาด <b>${vML.toFixed(0)} mL</b>\n` +
+           `4. กลั้วบีกเกอร์ด้วยน้ำกลั่นและเทใส่ขวดวัดปริมาตร เพื่อนำสารที่ตกค้างออกให้หมด\n` +
+           `5. เติมน้ำกลั่นลงขวดวัดปริมาตรจนถึงขีดบอกปริมาตร ปิดฝาแล้วกลับขวดไปมาให้เข้ากัน`;
+  }
+
+  return `💧 <b>วิธีการคำนวณเตรียมสารละลายด้วย Catalyst:</b>\n\n` +
+         `คุณสามารถพิมพ์ถามคำนวณการเตรียมสารได้ 2 วิธีดังนี้ครับ:\n\n` +
+         `1️⃣ <b>การเตรียมสารละลายจากของแข็ง (Solid)</b>\n` +
+         `- <b>สูตร:</b> <code>g = M × MW × V</code>\n` +
+         `- <b>วิธีถาม:</b> พิมพ์ความเข้มข้น ปริมาตร และมวลโมเลกุล เช่น:\n` +
+         `  👉 <i>"เตรียมสาร 0.5 M ปริมาตร 500 mL มวลโมเลกุล 40"</i>\n\n` +
+         `2️⃣ <b>การเจือจางสารละลาย (Dilution)</b>\n` +
+         `- <b>สูตร:</b> <code>C₁V₁ = C₂V₂</code>\n` +
+         `- <b>วิธีถาม:</b> พิมพ์ความเข้มข้นเริ่มต้น ความเข้มข้นที่ต้องการ และปริมาตร เช่น:\n` +
+         `  👉 <i>"เจือจางจาก 10 M เป็น 2 M ปริมาตร 250 mL"</i>`;
+}
+
+const SAFETY_DB = {
+  spill: {
+    title: "🚨 <b>วิธีปฏิบัติและปฐมพยาบาลกรณีสารเคมีหกเลอะ (Chemical Spill)</b>",
+    steps: [
+      "<b>อพยพคน:</b> พาผู้คนที่ไม่เกี่ยวข้องออกจากพื้นที่หกทันที หากเป็นสารระเหยง่ายหรือมีกลิ่นฉุน",
+      "<b>สวมเครื่องป้องกัน:</b> สวมถุงมือยาง แว่นตานิรภัย และหน้ากากกรองสารเคมีก่อนเริ่มการทำความสะอาด",
+      "<b>กรณีเป็นกรดหก:</b> ค่อยๆ เติมผงโซเดียมไบคาร์บอเนต (เบกกิ้งโซดา) หรือปูนขาวลงบนบริเวณที่หกเพื่อทำปฏิกิริยาสะเทินจนฟองแก๊สหมด",
+      "<b>กรณีเป็นเบส/ด่างหก:</b> ค่อยๆ เติมสารละลายกรดแอซีติกเจือจาง (น้ำส้มสายชู) เพื่อทำปฏิกิริยาสะเทิน",
+      "<b>ดูดซับสาร:</b> ใช้ทรายแห้ง ดินซิลิกา หรือวัสดุดูดซับเฉื่อยเทกลบทับสารเคมีที่สะเทินแล้ว กวาดเก็บใส่ถังพลาสติกปิดฝามิดชิด ติดป้ายระบุสารเพื่อส่งกำจัดอย่างถูกต้อง"
+    ]
+  },
+  skin: {
+    title: "⚠️ <b>ปฐมพยาบาลกรณีสารเคมีสัมผัสผิวหนัง (Skin Contact)</b>",
+    steps: [
+      "<b>ถอดเสื้อผ้าออก:</b> รีบถอดเสื้อผ้า เครื่องประดับ หรือรองเท้าส่วนที่สัมผัสกับสารเคมีออกโดยเร็วที่สุด",
+      "<b>ล้างน้ำสะอาด:</b> ชำระล้างผิวหนังส่วนนั้นด้วยน้ำสะอาดไหลผ่านปริมาณมากๆ อย่างน้อย 15 นาที",
+      "<b>ข้อควรระวังสำคัญ: ห้ามใช้กรดหรือด่างมาทำปฏิกิริยาสะเทินบนผิวหนังเด็ดขาด!</b> เพราะความร้อนจากปฏิกิริยาสะเทินจะซ้ำเติมให้ผิวหนังไหม้รุนแรงยิ่งขึ้น",
+      "<b>ส่งพบแพทย์:</b> หากผิวหนังเกิดผื่นแดง ไหม้พอง หรือระคายเคืองรุนแรง ให้รีบนำตัวส่งโรงพยาบาลพร้อมชื่อสารเคมี"
+    ]
+  },
+  eye: {
+    title: "👀 <b>ปฐมพยาบาลกรณีสารเคมีเข้าตา (Eye Contact)</b>",
+    steps: [
+      "<b>ใช้ที่ล้างตาฉุกเฉิน:</b> รีบพยุงผู้ป่วยไปยังอ่างล้างตาฉุกเฉิน (Emergency Eyewash) ทันที",
+      "<b>เปิดตาและล้างน้ำ:</b> ลืมตาในน้ำสะอาดไหลผ่านเบาๆ โดยใช้นิ้วถ่างเปลือกตาให้กว้างและกลอกตาไปมาเพื่อให้ล้างสารเคมีออกได้ทั่วถึง",
+      "<b>ล้างอย่างต่อเนื่อง:</b> ล้างตานานอย่างน้อย 15-20 นาที",
+      "<b>ห้ามขยี้ตา:</b> ห้ามขยี้ตาหรือทายาหยอดตาใดๆ ก่อนพบแพทย์",
+      "<b>พบแพทย์ด่วน:</b> รีบส่งตัวไปพบจักษุแพทย์เพื่อตรวจรักษาทันทีหลังล้างตาเสร็จ"
+    ]
+  },
+  inhale: {
+    title: "🫁 <b>ปฐมพยาบาลกรณีสูดดมไอระเหย/แก๊สพิษ (Inhalation)</b>",
+    steps: [
+      "<b>ย้ายไปที่อากาศถ่ายเท:</b> รีบเคลื่อนย้ายผู้ป่วยออกจากจุดเกิดเหตุไปยังที่ที่มีอากาศบริสุทธิ์และถ่ายเทสะดวกทันที",
+      "<b>คลายเสื้อผ้า:</b> จัดให้ผู้ป่วยนอนราบ คลายเสื้อผ้าและเข็มขัดให้หลวมเพื่อให้หน้าอกขยายและหายใจสะดวก",
+      "<b>ปฐมพยาบาลการหายใจ:</b> หากผู้ป่วยหยุดหายใจหรือหายใจติดขัด ให้ทำ CPR ทันที (ระวังอย่าสูดลมหายใจที่ปนเปื้อนแก๊สพิษจากผู้ป่วย)",
+      "<b>ส่งตัวพบแพทย์:</b> รีบนำส่งแพทย์ทันทีและคอยสังเกตอาการหายใจอย่างใกล้ชิด"
+    ]
+  },
+  ingest: {
+    title: "👄 <b>ปฐมพยาบาลกรณีกลืนกินสารเคมี (Ingestion)</b>",
+    steps: [
+      "<b>ตรวจสอบสติ:</b> หากผู้ป่วยหมดสติ ห้ามนำสิ่งใดใส่ปากหรือพยายามทำให้อาเจียนเด็ดขาด ให้จัดท่านอนตะแคงป้องกันการอุดกั้นทางเดินหายใจ",
+      "<b>ห้ามทำให้อาเจียนเด็ดขาดหากเป็นสารกัดกร่อน:</b> หากกลืนกิน <b>กรดแก่ ด่างแก่ หรือน้ำมันเชื้อเพลิง</b> ห้ามทำให้อาเจียน เพราะจะทำให้สารเคมีกัดกร่อนหลอดอาหารซ้ำอีกรอบหรือสำลักเข้าสู่ปอด ให้บ้วนปากด้วยน้ำสะอาดมากๆ",
+      "<b>กลืนกินสารทั่วไป:</b> ให้ผู้ป่วยกลั้วคอบ้วนปากด้วยน้ำสะอาดหลายๆ ครั้ง",
+      "<b>ส่งตัวพบแพทย์ด่วน:</b> รีบส่งโรงพยาบาลทันที พร้อมทั้งนำขวดบรรจุสารเคมีหรือฉลากสารเคมีติดตัวไปด้วยเพื่อเป็นข้อมูลให้แพทย์"
+    ]
+  }
+};
+
+function rref(matrix) {
+  const numRows = matrix.length;
+  const numCols = matrix[0].length;
+  let lead = 0;
+  for (let r = 0; r < numRows; r++) {
+    if (lead >= numCols) return;
+    let i = r;
+    while (Math.abs(matrix[i][lead]) < 1e-9) {
+      i++;
+      if (i === numRows) {
+        i = r;
+        lead++;
+        if (lead === numCols) return;
+      }
+    }
+    let temp = matrix[i];
+    matrix[i] = matrix[r];
+    matrix[r] = temp;
+    let lv = matrix[r][lead];
+    for (let j = 0; j < numCols; j++) {
+      matrix[r][j] /= lv;
+    }
+    for (let i = 0; i < numRows; i++) {
+      if (i !== r) {
+        let lv2 = matrix[i][lead];
+        for (let j = 0; j < numCols; j++) {
+          matrix[i][j] -= lv2 * matrix[r][j];
+        }
+      }
+    }
+    lead++;
+  }
 }
 
