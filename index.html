@@ -280,9 +280,15 @@
            PANEL: ADD/EDIT CHEMICAL/EQUIPMENT
            ========================================== -->
       <section class="panel" id="panel-add-item">
-        <div class="content-header">
-          <h1 id="formPanelTitle">เพิ่มสาร/อุปกรณ์</h1>
-          <p id="formPanelSubtitle">กรอกข้อมูลรายละเอียดของสารเคมีหรืออุปกรณ์เพื่อบันทึกเข้าสู่คลังแล็บ</p>
+        <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h1 id="formPanelTitle">เพิ่มสาร/อุปกรณ์</h1>
+            <p id="formPanelSubtitle">กรอกข้อมูลรายละเอียดของสารเคมีหรืออุปกรณ์เพื่อบันทึกเข้าสู่คลังแล็บ</p>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="navigateToPanel('purchase-orders')" style="background-color: var(--primary-purple); display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 16px; height: 42px; border-radius: var(--border-radius-md); cursor: pointer; border: none; color: white;">
+            <i data-lucide="shopping-cart" style="width: 16px; height: 16px;"></i>
+            <span>รายการสั่งซื้อ</span>
+          </button>
         </div>
 
         <div class="form-container">
@@ -821,18 +827,17 @@
                 <input type="hidden" id="selectedBookingSlot" required>
               </div>
 
-              <div class="form-row-2" style="margin-top: 16px;">
-                <div class="form-group">
-                  <label for="bookerName" class="form-label">ชื่อผู้จอง / อาจารย์ผู้ดูแล <span style="color: var(--accent-red);">*</span></label>
-                  <input type="text" id="bookerName" class="form-control" placeholder="ระบุชื่อผู้จอง" required>
-                </div>
-                <div class="form-group">
-                  <label for="bookingPurpose" class="form-label">วัตถุประสงค์การใช้งาน <span style="color: var(--accent-red);">*</span></label>
-                  <input type="text" id="bookingPurpose" class="form-control" placeholder="ระบุวัตถุประสงค์" required>
-                  <span style="font-size: 12.5px; color: var(--text-muted); margin-top: -3px; display: block;">
-                    หมายเหตุ: ระบุระดับชั้น วิชา และเรื่อง (เช่น ม.4 วิชาเคมี เรื่องการไทเทรต)
-                  </span>
-                </div>
+              <div class="form-group" style="margin-top: 16px;">
+                <label for="bookerName" class="form-label">ชื่อผู้จอง / อาจารย์ผู้ดูแล <span style="color: var(--accent-red);">*</span></label>
+                <input type="text" id="bookerName" class="form-control" placeholder="ระบุชื่อผู้จอง" required>
+              </div>
+
+              <div class="form-group" style="margin-top: 16px;">
+                <label for="bookingPurpose" class="form-label">วัตถุประสงค์การใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                <input type="text" id="bookingPurpose" class="form-control" placeholder="ระบุวัตถุประสงค์" required>
+                <span style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px; display: block;">
+                  หมายเหตุ: ระบุระดับชั้น วิชา และเรื่อง (เช่น ม.4 วิชาเคมี เรื่องการไทเทรต)
+                </span>
               </div>
 
               <div class="form-actions" style="margin-top: 24px;">
@@ -956,9 +961,15 @@
            PANEL: PURCHASE ORDERS
            ========================================== -->
       <section class="panel" id="panel-purchase-orders">
-        <div class="content-header">
-          <h1>รายการสั่งซื้อห้องปฏิบัติการ</h1>
-          <p>ประวัติและลิสต์รายการสั่งซื้อวัสดุ สารเคมี และอุปกรณ์ทางวิทยาศาสตร์</p>
+        <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h1>รายการสั่งซื้อห้องปฏิบัติการ</h1>
+            <p>ประวัติและลิสต์รายการสั่งซื้อวัสดุ สารเคมี และอุปกรณ์ทางวิทยาศาสตร์</p>
+          </div>
+          <button type="button" class="btn btn-secondary" onclick="navigateToPanel('add-item')" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 16px; height: 42px; border-radius: var(--border-radius-md); cursor: pointer; border: 1px solid var(--border-color); background-color: white; color: var(--text-main);">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+            <span>กลับหน้าเพิ่มสาร/อุปกรณ์</span>
+          </button>
         </div>
 
         <!-- Annual Budget Overview -->
@@ -1053,19 +1064,14 @@
                 </div>
               </div>
 
-              <div class="form-group">
-                <label for="poTotalPrice" class="form-label">ราคารวม (บาท)</label>
-                <input type="text" id="poTotalPrice" class="form-control" placeholder="0.00" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: 700;">
-              </div>
-
               <div class="form-row-2">
-                <div class="form-group">
-                  <label for="poBudget" class="form-label">งบประมาณ (บาท) <span style="color: var(--accent-red);">*</span></label>
-                  <input type="number" step="any" min="0" id="poBudget" class="form-control" placeholder="0.00" required>
-                </div>
                 <div class="form-group">
                   <label for="poDiscount" class="form-label">ส่วนลด (%)</label>
                   <input type="number" step="any" min="0" max="100" id="poDiscount" class="form-control" placeholder="0" value="0">
+                </div>
+                <div class="form-group">
+                  <label for="poTotalPrice" class="form-label">ราคารวม (บาท)</label>
+                  <input type="text" id="poTotalPrice" class="form-control" placeholder="0.00" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: 700;">
                 </div>
               </div>
 
@@ -1134,7 +1140,7 @@
                     <th style="width: 13%; text-align: right;">ราคา/หน่วย</th>
                     <th style="width: 10%; text-align: center;">จำนวน</th>
                     <th style="width: 15%; text-align: right;">ราคารวม</th>
-                    <th style="width: 22%;">งบประมาณ + ส่วนลด</th>
+                    <th style="width: 22%;">ส่วนลด</th>
                     <th class="po-action-header" style="width: 5%; text-align: center;">ลบ</th>
                   </tr>
                 </thead>
@@ -1143,8 +1149,9 @@
                 </tbody>
                 <tfoot>
                   <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid var(--border-color);">
-                    <td colspan="4" style="text-align: right; padding: 12px 20px;">ราคารวมทั้งหมด:</td>
-                    <td id="poGrandTotal" style="text-align: right; padding: 12px 20px; color: var(--primary-purple); font-size: 14px;">0.00 บาท</td>
+                    <td colspan="5" style="text-align: right; padding: 12px 20px; white-space: nowrap;">
+                      ราคารวมทั้งหมด: <span id="poGrandTotal" style="color: var(--primary-purple); font-size: 14px; margin-left: 8px; font-weight: 700;">0.00 บาท</span>
+                    </td>
                     <td colspan="2"></td>
                   </tr>
                 </tfoot>
