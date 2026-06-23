@@ -45,6 +45,7 @@
         <div class="logo-text">
           <span class="logo-title">ระบบคลังเคมี</span>
           <span class="logo-subtitle">Laboratory System</span>
+          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.7.1</span>
         </div>
       </div>
 
@@ -94,6 +95,18 @@
               <span>จองห้องปฏิบัติการ</span>
             </a>
           </li>
+          <li id="menuItemReports" style="display: none;">
+            <a href="#" class="menu-item-link" data-target="reports">
+              <i data-lucide="bar-chart-2"></i>
+              <span>รายงานและสถิติ</span>
+            </a>
+          </li>
+          <!-- <li>
+            <a href="#" class="menu-item-link" data-target="plan-lab">
+              <i data-lucide="flask-conical"></i>
+              <span>วางแผนการทดลอง (Plan Lab)</span>
+            </a>
+          </li> -->
           <li id="menuItemPurchaseOrders" style="display: none;">
             <a href="#" class="menu-item-link" data-target="purchase-orders">
               <i data-lucide="shopping-cart"></i>
@@ -123,9 +136,9 @@
       </div>
 
       <!-- Sidebar Footer -->
-      <div class="sidebar-footer">
-        เวอร์ชัน 1.7.1
-      </div>
+      <!-- <div class="sidebar-footer">
+        เวอร์ชัน 1.8.2
+      </div> -->
     </aside>
 
     <!-- MAIN CONTENT AREA -->
@@ -283,6 +296,53 @@
               <!-- Dynamically populated -->
             </div>
           </div>
+
+        </div>
+      </section>
+
+      <!-- ==========================================
+           PANEL: REPORTS & STATISTICS
+           ========================================== -->
+      <section class="panel" id="panel-reports">
+        <div class="content-header">
+          <h1>รายงานและสถิติ</h1>
+          <p>ส่งออกข้อมูลรายงานคลังพัสดุและวิเคราะห์ประวัติการใช้งานห้องปฏิบัติการ</p>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- 1. Report Export Panel -->
+          <div class="card-container" id="reportExportCard">
+            <div class="card-header">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="printer" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+                <span>ส่งออกรายงานคลัง</span>
+              </h2>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: center;">
+              <button class="btn btn-secondary" id="dashboardBtnExportInventory" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; padding: 12px;">
+                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                <span>ส่งออกรายงานคลังพัสดุ (CSV)</span>
+              </button>
+              <button class="btn btn-secondary" id="dashboardBtnExportTransactions" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; padding: 12px;">
+                <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
+                <span>ส่งออกประวัติการยืม-คืน (CSV)</span>
+              </button>
+              <button class="btn btn-primary" id="dashboardBtnPrintReport" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; background-color: var(--primary-purple); color: white; border: none; padding: 12px; cursor: pointer;">
+                <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+                <span>พิมพ์รายงานสรุปสถานะคลัง (PDF)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Lab Booking Stats Card -->
+          <div class="card-container" id="chartBookingCard">
+            <div class="card-header">
+              <h2 class="card-title">สถิติการจองใช้งานห้องปฏิบัติการ</h2>
+            </div>
+            <div id="chartBookingContainer" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 200px;">
+              <!-- Dynamic SVG -->
+            </div>
+          </div>
         </div>
       </section>
 
@@ -411,10 +471,9 @@
                 </div>
               </div>
 
-              <!-- Safety & Risk Management Sub-box -->
               <div class="form-group full-width">
-                <div class="safety-subbox" style="border-left-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.02);">
-                  <span class="safety-subbox-title" style="color: var(--accent-red);">
+                <div class="safety-subbox">
+                  <span class="safety-subbox-title">
                     <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i>
                     ความปลอดภัยและการจัดการความเสี่ยง
                   </span>
@@ -757,7 +816,7 @@
                 </select>
               </div>
               <div style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">ส่งออก:</span>
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: auto; display: inline-block;">ส่งออก:</span>
                 <button type="button" class="btn" id="btnExportBorrowCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
                   <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
                 </button>
@@ -879,7 +938,7 @@
                 </select>
               </div>
               <div style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">ส่งออก:</span>
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: auto; display: inline-block;">ส่งออก:</span>
                 <button type="button" class="btn" id="btnExportBookingCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
                   <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
                 </button>
@@ -1130,7 +1189,7 @@
             <!-- Export Actions for Purchase Orders -->
             <div id="poExportActions" style="display: inline-flex; align-items: center; gap: 10px; margin-top: 12px; margin-bottom: 12px; flex-wrap: wrap;">
               <div style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">ส่งออก:</span>
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: auto; display: inline-block;">ส่งออก:</span>
                 <button type="button" class="btn" id="btnExportPoCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
                   <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
                 </button>
@@ -1145,13 +1204,13 @@
               <table>
                 <thead>
                   <tr>
-                    <th style="width: 15%;">รหัสสินค้า</th>
-                    <th style="width: 25%;">ชื่อสินค้า</th>
-                    <th style="width: 13%; text-align: right;">ราคา/หน่วย</th>
-                    <th style="width: 10%; text-align: center;">จำนวน</th>
-                    <th style="width: 15%; text-align: right;">ราคารวม</th>
-                    <th style="width: 22%;">ส่วนลด</th>
-                    <th class="po-action-header" style="width: 5%; text-align: center;">ลบ</th>
+                    <th style="width: 12%;">รหัสสินค้า</th>
+                    <th style="width: 38%;">ชื่อสินค้า</th>
+                    <th style="width: 12%; text-align: right;">ราคา/หน่วย</th>
+                    <th style="width: 8%; text-align: center;">จำนวน</th>
+                    <th style="width: 12%; text-align: right;">ราคารวม</th>
+                    <th style="width: 12%;">ส่วนลด</th>
+                    <th class="po-action-header" style="width: 6%; text-align: center;">ลบ</th>
                   </tr>
                 </thead>
                 <tbody id="purchaseOrdersTableBody">
@@ -1169,6 +1228,327 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- ==========================================
+           PANEL: PLAN LAB (DIAGRAM BUILDER)
+           ========================================== -->
+      <section class="panel" id="panel-plan-lab">
+        <div class="content-header">
+          <div>
+            <h1>วางแผนการทดลอง (Lab Plan Designer)</h1>
+            <p>ออกแบบ วาดไดอะแกรม และวางแผนขั้นตอนการทดลองวิทยาศาสตร์ในห้องปฏิบัติการ</p>
+          </div>
+        </div>
+
+        <div class="lab-planner-wrapper" style="display: flex; gap: 16px; height: calc(100vh - 200px); min-height: 550px; margin-top: 16px;">
+          <!-- Left Column: Tool Box / Library -->
+          <div class="lab-library-panel" style="width: 250px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;">
+            <div style="padding: 12px 16px; background-color: #f8fafc; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="package" style="width: 16px; height: 16px;"></i>
+              <span>คลังอุปกรณ์วิทยาศาสตร์</span>
+            </div>
+            
+            <!-- Category Search/Filter -->
+            <div style="padding: 8px 12px; border-bottom: 1px solid var(--border-color);">
+              <input type="text" id="apparatusSearch" placeholder="ค้นหาอุปกรณ์..." style="width: 100%; padding: 6px 10px; font-size: 12.5px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none;">
+            </div>
+
+            <!-- Categories Scrollable Container -->
+            <div class="library-categories-scroll" style="flex: 1; overflow-y: auto; padding: 12px;">
+              
+              <!-- Category: Containers -->
+              <div class="library-category" style="margin-bottom: 16px;">
+                <div style="font-weight: 700; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">ภาชนะบรรจุสาร (Containers)</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;" class="apparatus-grid">
+                  <button class="btn-apparatus-item" data-type="beaker" title="Beaker / บีกเกอร์">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 15,10 L 15,70 A 5,5 0 0 0 20,75 L 60,75 A 5,5 0 0 0 65,70 L 65,10" fill="none" stroke="#1e293b" stroke-width="2.5"/><path d="M 12,12 Q 10,12 10,8 L 70,8" fill="none" stroke="#1e293b" stroke-width="2.5"/></svg>
+                    <span>บีกเกอร์</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="test-tube" title="Test Tube / หลอดทดลอง">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 28,10 Q 25,10 25,6 L 55,6 Q 55,10 52,10 L 52,65 A 12,12 0 0 1 28,65 Z" fill="none" stroke="#1e293b" stroke-width="2.5"/></svg>
+                    <span>หลอดทดลอง</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="conical-flask" title="Conical Flask / ขวดรูปชมพู่">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 32,20 L 32,10 Q 28,10 28,6 L 52,6 Q 52,10 48,10 L 48,20 L 68,68 A 5,5 0 0 1 63,75 L 17,75 A 5,5 0 0 1 12,68 Z" fill="none" stroke="#1e293b" stroke-width="2.5"/></svg>
+                    <span>ขวดรูปชมพู่</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="cylinder" title="Graduated Cylinder / กระบอกตวง">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 30,10 L 30,70 L 15,70 L 15,75 L 65,75 L 65,70 L 50,70 L 50,10" fill="none" stroke="#1e293b" stroke-width="2.5"/><path d="M 30,10 Q 40,15 50,10" fill="none" stroke="#1e293b" stroke-width="2.5"/></svg>
+                    <span>กระบอกตวง</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="round-flask" title="Round Bottom Flask / ขวดก้นกลม">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 36,5 L 36,35 A 25,25 0 1 0 44,35 L 44,5 Z" fill="none" stroke="#1e293b" stroke-width="2.5"/></svg>
+                    <span>ขวดก้นกลม</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="crucible" title="Crucible / ถ้วยกระเบื้องเผาสาร">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 22,45 L 58,45 L 62,25 L 18,25 Z" fill="none" stroke="#1e293b" stroke-width="2.5"/><path d="M 15,25 L 65,25 L 65,21 L 15,21 Z" fill="none" stroke="#1e293b" stroke-width="2"/><path d="M 35,21 Q 40,15 45,21" fill="none" stroke="#1e293b" stroke-width="2"/></svg>
+                    <span>ถ้วยกระเบื้อง</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="evaporating-dish" title="Evaporating Dish / ถ้วยระเหยสาร">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 15,30 A 25,18 0 0 0 65,30" fill="none" stroke="#1e293b" stroke-width="2.5"/><path d="M 15,30 L 65,30" fill="none" stroke="#1e293b" stroke-width="2"/></svg>
+                    <span>ถ้วยระเหยสาร</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Category: Measurement -->
+              <div class="library-category" style="margin-bottom: 16px;">
+                <div style="font-weight: 700; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">เครื่องมือวัด (Measurement)</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;" class="apparatus-grid">
+                  <button class="btn-apparatus-item" data-type="thermometer" title="Thermometer / เทอร์โมมิเตอร์">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><rect x="36" y="5" width="8" height="55" rx="4" fill="none" stroke="#1e293b" stroke-width="2"/><circle cx="40" cy="65" r="7" fill="#ef4444" stroke="#1e293b" stroke-width="2"/></svg>
+                    <span>เทอร์โมมิเตอร์</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="scale" title="Digital Scale / เครื่องชั่งดิจิทัล">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><rect x="15" y="35" width="50" height="20" rx="3" fill="#e2e8f0" stroke="#1e293b" stroke-width="2.5"/><line x1="20" y1="33" x2="60" y2="33" stroke="#1e293b" stroke-width="4"/><rect x="27" y="40" width="26" height="8" rx="1" fill="#0f172a"/></svg>
+                    <span>เครื่องชั่งดิจิทัล</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="burette" title="Burette / บิวเรตต์">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><rect x="36" y="5" width="8" height="60" fill="none" stroke="#1e293b" stroke-width="2"/><circle cx="40" cy="55" r="4" fill="#1e293b"/></svg>
+                    <span>บิวเรตต์</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Category: Heating & Support -->
+              <div class="library-category" style="margin-bottom: 16px;">
+                <div style="font-weight: 700; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">การทำความร้อนและอุปกรณ์เสริม</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;" class="apparatus-grid">
+                  <button class="btn-apparatus-item" data-type="bunsen" title="Bunsen Burner / ตะเกียงบุนเซน">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><rect x="37" y="25" width="6" height="35" fill="#94a3b8" stroke="#1e293b" stroke-width="2.5"/><path d="M 20,70 L 60,70 L 55,60 L 25,60 Z" fill="#475569" stroke="#1e293b" stroke-width="2.5"/></svg>
+                    <span>ตะเกียงบุนเซน</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="retort-stand" title="Retort Stand / ขาตั้งจับ">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><line x1="30" y1="10" x2="30" y2="70" stroke="#475569" stroke-width="3.5"/><rect x="15" y="70" width="50" height="6" fill="#1e293b"/><line x1="30" y1="30" x2="50" y2="30" stroke="#64748b" stroke-width="3"/><path d="M 50,22 Q 55,22 55,30 Q 55,38 50,38" fill="none" stroke="#1e293b" stroke-width="3"/></svg>
+                    <span>ขาตั้ง Retort</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="tripod" title="Tripod Stand / ขาตั้งสามขา">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><line x1="20" y1="30" x2="60" y2="30" stroke="#1e293b" stroke-width="3"/><line x1="25" y1="30" x2="10" y2="70" stroke="#1e293b" stroke-width="2.5"/><line x1="55" y1="30" x2="70" y2="70" stroke="#1e293b" stroke-width="2.5"/><line x1="40" y1="30" x2="40" y2="70" stroke="#1e293b" stroke-width="2.5"/></svg>
+                    <span>ขาตั้งสามขา</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="gauze" title="Wire Gauze / ตะแกรงลวด">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><rect x="15" y="20" width="50" height="40" rx="2" fill="none" stroke="#1e293b" stroke-width="2" stroke-dasharray="2,2"/><circle cx="40" cy="40" r="12" fill="#e2e8f0" stroke="#1e293b" stroke-width="1.5"/></svg>
+                    <span>ตะแกรงลวด</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="clay-triangle" title="Clay Triangle / สามเหลี่ยมดินเผา">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><polygon points="40,15 20,55 60,55" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/></svg>
+                    <span>สามเหลี่ยมดินเผา</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Category: Transfers & Separation -->
+              <div class="library-category" style="margin-bottom: 16px;">
+                <div style="font-weight: 700; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">การถ่ายเทและการแยกสาร</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;" class="apparatus-grid">
+                  <button class="btn-apparatus-item" data-type="pipette" title="Pipette / ปิเปตต์">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 38,5 L 38,30 L 35,35 L 35,55 L 38,60 L 38,75 L 40,78 L 42,75 L 42,60 L 45,55 L 45,35 L 42,30 L 42,5 Z" fill="none" stroke="#1e293b" stroke-width="2"/></svg>
+                    <span>ปิเปตต์</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="funnel" title="Funnel / กรวยกรอง">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 20,15 L 60,15 L 43,45 L 43,70 L 37,70 L 37,45 Z" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/></svg>
+                    <span>กรวยกรอง</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="dropper" title="Dropper / หลอดหยดสาร">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><path d="M 35,5 C 30,5 30,25 37,25 L 43,25 C 50,25 50,5 45,5 Z" fill="none" stroke="#1e293b" stroke-width="2"/><line x1="40" y1="25" x2="40" y2="75" stroke="#1e293b" stroke-width="2.5"/></svg>
+                    <span>หลอดหยดสาร</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="condenser" title="Condenser / เครื่องควบแน่น">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><rect x="28" y="15" width="24" height="50" fill="none" stroke="#1e293b" stroke-width="2.5"/><line x1="40" y1="5" x2="40" y2="75" stroke="#1e293b" stroke-width="2"/><line x1="28" y1="25" x2="20" y2="25" stroke="#1e293b" stroke-width="2"/><line x1="52" y1="55" x2="60" y2="55" stroke="#1e293b" stroke-width="2"/></svg>
+                    <span>เครื่องควบแน่น</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Category: Annotations -->
+              <div class="library-category" style="margin-bottom: 16px;">
+                <div style="font-weight: 700; font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">องค์ประกอบขั้นตอน (Steps)</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;" class="apparatus-grid">
+                  <button class="btn-apparatus-item" data-type="arrow" title="Flow Arrow / ลูกศรระบุทิศทาง">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><line x1="10" y1="40" x2="60" y2="40" stroke="#1e293b" stroke-width="3"/><polygon points="58,35 68,40 58,45" fill="#1e293b"/></svg>
+                    <span>ลูกศรบอกขั้นตอน</span>
+                  </button>
+                  <button class="btn-apparatus-item" data-type="text-box" title="Text Label / ข้อความอธิบาย">
+                    <svg viewBox="0 0 80 80" width="36" height="36" style="margin-bottom: 4px;"><rect x="15" y="25" width="50" height="30" rx="3" fill="none" stroke="#1e293b" stroke-dasharray="3,3"/><text x="40" y="44" text-anchor="middle" font-size="12" font-weight="bold" font-family="sans-serif" fill="#1e293b">TEXT</text></svg>
+                    <span>กล่องข้อความ</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Middle Column: Workspace Canvas -->
+          <div class="lab-canvas-panel" style="flex: 1; display: flex; flex-direction: column; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); overflow: hidden; position: relative;">
+            
+            <!-- Toolbar Header -->
+            <div style="padding: 12px 16px; background-color: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              
+              <!-- Plan Title Input -->
+              <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 200px;">
+                <input type="text" id="labPlanTitle" value="แผนการทดลองไม่มีชื่อ" style="font-size: 14px; font-weight: 600; color: var(--text-main); border: 1px solid transparent; background: transparent; padding: 4px 8px; border-radius: var(--border-radius-sm); width: 100%; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='white';" onblur="this.style.borderColor='transparent'; this.style.backgroundColor='transparent';">
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-secondary" id="btnPlanOpen" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12.5px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer; background: white; font-weight: 600;">
+                  <i data-lucide="folder-open" style="width: 14px; height: 14px;"></i>
+                  <span>เปิดแผน</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnPlanSave" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12.5px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer; background: white; font-weight: 600;">
+                  <i data-lucide="save" style="width: 14px; height: 14px;"></i>
+                  <span>บันทึก</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnPlanClear" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12.5px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer; background: white; color: var(--accent-red); font-weight: 600;">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                  <span>ล้างกระดาน</span>
+                </button>
+                
+                <div style="width: 1px; background-color: var(--border-color); margin: 0 4px;"></div>
+                
+                <button type="button" class="btn btn-primary" id="btnPlanExportPng" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12.5px; border-radius: var(--border-radius-sm); border: none; cursor: pointer; background: var(--primary-purple); color: white; font-weight: 600;">
+                  <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                  <span>ส่งออกรูปภาพ (PNG)</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnPlanExportSvg" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12.5px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer; background: white; font-weight: 600;">
+                  <i data-lucide="file-code" style="width: 14px; height: 14px;"></i>
+                  <span>ส่งออกไฟล์ SVG</span>
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Drawing Area -->
+            <div id="labCanvasWrapper" style="flex: 1; overflow: auto; background-color: #f8fafc; background-image: radial-gradient(#e2e8f0 1.2px, #f8fafc 1.2px); background-size: 24px 24px; position: relative;">
+              <svg id="labPlanSvg" width="1600" height="1000" style="position: absolute; left: 0; top: 0; cursor: default; user-select: none;">
+                <!-- Markers and Definitions -->
+                <defs>
+                  <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#1e293b" />
+                  </marker>
+                  <marker id="arrowhead-selected" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="var(--primary-purple)" />
+                  </marker>
+                </defs>
+                <!-- Elements will be drawn here dynamically -->
+              </svg>
+            </div>
+            
+            <!-- Canvas Zoom/Control overlay -->
+            <div style="position: absolute; bottom: 16px; right: 16px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); padding: 4px 8px; display: flex; gap: 12px; font-size: 12px; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: var(--text-muted);">
+              <span>คลิกเพื่อเลือกวัตถุ | ลากเพื่อย้ายตำแหน่ง</span>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Properties Panel -->
+          <div class="lab-properties-panel" id="labPropertiesPanel" style="width: 250px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; padding: 16px;">
+            <div style="font-weight: 600; font-size: 13px; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="sliders" style="width: 16px; height: 16px;"></i>
+              <span>ปรับแต่งอุปกรณ์</span>
+            </div>
+
+            <!-- Empty State properties -->
+            <div id="propertiesEmptyState" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); padding: 16px;">
+              <i data-lucide="mouse-pointer" style="width: 32px; height: 32px; margin-bottom: 12px; opacity: 0.5;"></i>
+              <p style="font-size: 13px; margin: 0;">คลิกเลือกชิ้นงานบนบอร์ดนำเสนอเพื่อดูแผงปรับแต่ง</p>
+            </div>
+
+            <!-- Active controls wrapper -->
+            <div id="propertiesControls" style="display: none; flex: 1; flex-direction: column; gap: 16px; overflow-y: auto;">
+              
+              <!-- Element type tag -->
+              <div>
+                <span style="font-size: 11px; font-weight: 700; color: var(--primary-purple); background-color: rgba(63, 27, 133, 0.08); padding: 3px 8px; border-radius: 12px;" id="propElementTypeName">Beaker</span>
+              </div>
+
+              <!-- Option: Custom Text Label -->
+              <div class="prop-group" id="propGroupLabel">
+                <label style="display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px;">ป้ายชื่ออธิบาย (Label)</label>
+                <input type="text" id="propLabelText" style="width: 100%; padding: 6px 8px; font-size: 12.5px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none;">
+              </div>
+
+              <!-- Option: Liquid Level (Beaker, Conical, Test Tube, Cylinder, Pipette) -->
+              <div class="prop-group" id="propGroupLiquidLevel">
+                <label style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 6px;">
+                  <span>ปริมาณของเหลว</span>
+                  <span id="propLiquidLevelValue" style="color: var(--primary-purple); font-family: monospace;">50%</span>
+                </label>
+                <input type="range" id="propLiquidLevelRange" min="0" max="100" value="50" style="width: 100%; cursor: pointer; accent-color: var(--primary-purple);">
+              </div>
+
+              <!-- Option: Liquid Color (Color choices) -->
+              <div class="prop-group" id="propGroupLiquidColor">
+                <label style="display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px;">สีของเหลว</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px;" id="propColorPresets">
+                  <!-- Javascript will populate presets -->
+                </div>
+              </div>
+
+              <!-- Option: Thermometer Temperature -->
+              <div class="prop-group" id="propGroupTemp">
+                <label style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 6px;">
+                  <span>อุณหภูมิ (°C)</span>
+                  <span id="propTempValue" style="color: var(--accent-red); font-family: monospace;">25°C</span>
+                </label>
+                <input type="range" id="propTempRange" min="-10" max="110" value="25" style="width: 100%; cursor: pointer; accent-color: var(--accent-red);">
+              </div>
+
+              <!-- Option: Scale Weight -->
+              <div class="prop-group" id="propGroupWeight">
+                <label style="display: block; font-size: 12.5px; font-weight: 600; margin-bottom: 6px;">ตัวเลขบนหน้าจอเครื่องชั่ง (g)</label>
+                <input type="number" id="propWeightNum" step="0.01" min="0" value="0.00" style="width: 100%; padding: 6px 8px; font-size: 12.5px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; font-family: monospace;">
+              </div>
+
+              <!-- Option: Bunsen Burner Flame -->
+              <div class="prop-group" id="propGroupFlame">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer;">
+                  <input type="checkbox" id="propFlameOn" style="width: 16px; height: 16px; accent-color: var(--primary-purple);">
+                  <span>จุดตะเกียง (Flame On)</span>
+                </label>
+              </div>
+
+              <!-- Option: Scale size & Rotate -->
+              <div class="prop-group">
+                <label style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 6px;">
+                  <span>ขนาดชิ้นงาน</span>
+                  <span id="propScaleValue" style="color: var(--text-muted);">1.0x</span>
+                </label>
+                <input type="range" id="propScaleRange" min="5" max="25" value="10" style="width: 100%; cursor: pointer; accent-color: var(--primary-purple);">
+              </div>
+
+              <div class="prop-group" id="propGroupRotate">
+                <label style="display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; margin-bottom: 6px;">
+                  <span>หมุนชิ้นงาน (องศา)</span>
+                  <span id="propRotateValue" style="color: var(--text-muted);">0°</span>
+                </label>
+                <input type="range" id="propRotateRange" min="0" max="360" value="0" style="width: 100%; cursor: pointer; accent-color: var(--primary-purple);">
+              </div>
+
+              <!-- Action: Layer Order & Deletion -->
+              <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn btn-secondary" id="btnPropMoveUp" style="flex: 1; padding: 6px; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: white; cursor: pointer; font-weight: 600;">
+                    <i data-lucide="arrow-up" style="width: 12px; height: 12px;"></i>
+                    <span>ไว้บนสุด</span>
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="btnPropMoveDown" style="flex: 1; padding: 6px; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); background: white; cursor: pointer; font-weight: 600;">
+                    <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                    <span>ไว้ล่างสุด</span>
+                  </button>
+                </div>
+                
+                <button type="button" class="btn btn-secondary" id="btnPropDelete" style="width: 100%; padding: 8px; font-size: 12.5px; border: 1px solid var(--accent-red); border-radius: var(--border-radius-sm); background: white; color: var(--accent-red); cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                  <span>ลบชิ้นงานนี้</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
       </section>
 
     </main>
@@ -1463,6 +1843,50 @@
       <button id="chatbotSendBtn">
         <i data-lucide="send" style="width: 16px; height: 16px;"></i>
       </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: VERSION HISTORY DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="versionModal">
+    <div class="modal-content" style="max-width: 550px; border-radius: var(--border-radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; overflow: hidden; background: #ffffff;">
+      <div class="modal-header" style="background: var(--primary-purple); color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="history" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
+          <span style="color: #ffffff !important;">ประวัติการอัปเดตระบบ (Version History)</span>
+        </h2>
+        <button class="modal-close-btn" id="versionModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
+      </div>
+      
+      <div class="modal-body" style="padding: 24px; max-height: 400px; overflow-y: auto; font-family: 'Prompt', sans-serif;">
+        <!-- v1.7.1 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.1</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">28 พฤษภาคม 2569 (เสถียรล่าสุด)</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>เปิดตัวแชทบอทอัจฉริยะ Catalyst (แคททาไลต์):</b> ผู้ช่วยส่วนตัวเคมี สามารถตอบปัญหา สรุปข้อมูล ปฐมพยาบาลเบื้องต้น และให้คำแนะนำวิธีดำเนินงานสารเคมีได้ทันใจ</li>
+            <li><b>ระบบดุลสมการเคมีอัตโนมัติ:</b> แปลงสมการเคมีและหาตัวร่วมที่น้อยที่สุดด้วยการแก้ระบบสมการเชิงเส้น Gaussian Elimination (RREF) และแสดงผลเลขห้อยสวยงาม</li>
+            <li><b>เครื่องคำนวณมวลโมเลกุล (Molar Mass) แก้ไขบัก:</b> แยกสัญลักษณ์วงเล็บ กลุ่มไฮเดรตสารอย่างถูกต้องแม่นยำ พร้อมระบบกรองคำค้นหา Thai Typo Tolerance แม้สะกดผิดก็ค้นเจอ</li>
+            <li><b>เครื่องมือเตรียมสารละลาย:</b> สูตรความเข้มข้นสารละลายและการเจือจาง (C₁V₁ = C₂V₂) พร้อมคำแนะนำวิธีผสมสาร</li>
+          </ul>
+        </div>
+
+        <!-- v1.6.0 -->
+        <div class="version-block" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.6.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">10 พฤษภาคม 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบจองห้องปฏิบัติการ (Lab Booking):</b> รองรับตารางเวลาของคณะครู นักเรียน และเจ้าหน้าที่อย่างมีประสิทธิภาพ</li>
+            <li><b>การจัดการสต็อกและความปลอดภัย:</b> ระบบเตือนสินค้าเหลือน้อยกว่าค่าขั้นต่ำ (Min Stock) และแจ้งรายการสารเคมีใกล้หรือหมดอายุอัตโนมัติ</li>
+            <li><b>ยกระดับความเร็วระบบ:</b> รองรับความเร็วในการดึงข้อมูลจากหลังบ้านและการนำเข้าข้อมูลไฟล์ CSV ในปริมาณมาก</li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 

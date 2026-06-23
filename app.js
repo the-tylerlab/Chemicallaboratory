@@ -9,17 +9,6 @@ const itemsPerPage = 10;
 let fileToImport = null;
 let userRole = localStorage.getItem("userRole") || (localStorage.getItem("isAdminLoggedIn") === "true" ? "admin" : "student");
 
-// One-time cleanup of test data for production launch
-if (!localStorage.getItem("lab_cleaned_v1.8.0")) {
-  localStorage.removeItem("lab_transactions");
-  localStorage.removeItem("lab_bookings");
-  localStorage.removeItem("lab_items");
-  localStorage.removeItem("userRole");
-  localStorage.removeItem("isAdminLoggedIn");
-  localStorage.setItem("lab_cleaned_v1.8.0", "true");
-  userRole = "student";
-}
-
 
 // Configuration for login credentials (edit here to change username and password)
 const USER_CREDENTIALS = {
@@ -322,10 +311,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Set up room booking form handlers
   setupBookingForm();
   
-  // Set up login system (disabled - unified admin role)
   setupCsvExport();
   setupPrintReport();
+  setupDashboardReports();
   setupHistoryExports();
+  setupGhsSuggestions();
   setupBarcodeScanner();
   setupCameraScanner();
   setupLoginHandlers();
@@ -333,6 +323,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupRepairModalHandlers();
   setupChatbot();
   setupPurchaseOrders();
+  setupLabPlanner();
   updateLoginUI();
   
   // Initialize Lucide icons initially
@@ -376,23 +367,6 @@ async function loadAllItems() {
       });
       if (loadedItems.length > 0) {
         items = loadedItems;
-        
-        // Smart merge default items if missing
-        let updated = false;
-        const batch = db.batch();
-        DEMO_DATA.forEach(demoItem => {
-          if (!items.some(it => it.code === demoItem.code)) {
-            items.push(demoItem);
-            const docRef = db.collection("items").doc(demoItem.code);
-            batch.set(docRef, demoItem);
-            updated = true;
-          }
-        });
-        if (updated) {
-          await batch.commit();
-          console.log("🔥 Seeded missing DEMO_DATA items to Firebase Firestore.");
-        }
-        
         console.log("🔥 Loaded " + items.length + " items from Firebase Cloud Firestore.");
         return;
       } else {
@@ -431,18 +405,6 @@ async function loadAllItems() {
   const localData = localStorage.getItem("lab_items");
   if (localData) {
     items = JSON.parse(localData);
-    
-    // Smart merge default items if missing
-    let updated = false;
-    DEMO_DATA.forEach(demoItem => {
-      if (!items.some(it => it.code === demoItem.code)) {
-        items.push(demoItem);
-        updated = true;
-      }
-    });
-    if (updated) {
-      saveItemsToLocal();
-    }
   } else {
     items = [...DEMO_DATA];
     saveItemsToLocal();
@@ -503,7 +465,7 @@ function setupNavigation() {
 
       // Authorization check for sidebar navigation
       const isBackoffice = (userRole === "admin" || userRole === "teacher");
-      if ((targetPanelId === "add-item" || targetPanelId === "purchase-orders") && !isBackoffice) {
+      if ((targetPanelId === "add-item" || targetPanelId === "purchase-orders" || targetPanelId === "reports") && !isBackoffice) {
         showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเข้าใช้งานหน้านี้", "error");
         document.getElementById("loginModal").classList.add("active");
         lucide.createIcons();
@@ -601,13 +563,34 @@ function setupNavigation() {
     e.preventDefault();
     navigateToPanel("all-items");
   });
+
+  // Version Modal Handlers
+  const versionBadge = document.getElementById("versionBadge");
+  const versionModal = document.getElementById("versionModal");
+  const versionModalClose = document.getElementById("versionModalClose");
+  if (versionBadge && versionModal) {
+    versionBadge.addEventListener("click", () => {
+      versionModal.classList.add("active");
+      lucide.createIcons();
+    });
+  }
+  if (versionModalClose && versionModal) {
+    versionModalClose.addEventListener("click", () => {
+      versionModal.classList.remove("active");
+    });
+    versionModal.addEventListener("click", (e) => {
+      if (e.target === versionModal) {
+        versionModal.classList.remove("active");
+      }
+    });
+  }
 }
 
 // Function to programmatically switch panels
 function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   // Authorization check for admin page
   const isBackoffice = (userRole === "admin" || userRole === "teacher");
-  if ((panelId === "add-item" || panelId === "purchase-orders") && !isBackoffice) {
+  if ((panelId === "add-item" || panelId === "purchase-orders" || panelId === "reports") && !isBackoffice) {
     document.getElementById("accessDeniedModal").classList.add("active");
     lucide.createIcons();
     return;
@@ -813,6 +796,7 @@ function updateUI() {
   
   // Trigger Lucide updates for newly rendered icon containers
   renderOrdersTable();
+  renderAnalyticsCharts();
   lucide.createIcons();
 }
 
@@ -828,8 +812,8 @@ function renderRecentItems() {
     return dateB - dateA;
   });
 
-  // Select top 4 recent
-  const recents = sortedItems.slice(0, 4);
+  // Select top 3 recent
+  const recents = sortedItems.slice(0, 3);
 
   if (recents.length === 0) {
     container.innerHTML = `
@@ -2146,26 +2130,22 @@ async function loadAllTransactions() {
           loadedTrans.push(d);
         }
       });
-      transactions = loadedTrans;
-      
-      // Smart merge missing default transactions
-      let updated = false;
-      const batch = db.batch();
-      defaultTrans.forEach(demoTx => {
-        if (!transactions.some(tx => tx.id === demoTx.id)) {
+      if (loadedTrans.length > 0) {
+        transactions = loadedTrans;
+        console.log("🔥 Loaded " + transactions.length + " transactions from Firebase Cloud.");
+        return;
+      } else {
+        // Seed Firebase if empty
+        const batch = db.batch();
+        defaultTrans.forEach(demoTx => {
           transactions.push(demoTx);
           const docRef = db.collection("transactions").doc(demoTx.id);
           batch.set(docRef, demoTx);
-          updated = true;
-        }
-      });
-      if (updated) {
+        });
         await batch.commit();
-        console.log("🔥 Seeded missing mock transactions to Firebase.");
+        console.log("🔥 Seeded default transactions to Firebase.");
+        return;
       }
-      
-      console.log("🔥 Loaded " + transactions.length + " transactions from Firebase Cloud.");
-      return;
     } catch (err) {
       console.error("🔥 Failed to load transactions from Firebase:", err);
       isFirebaseOnline = false;
@@ -2177,21 +2157,6 @@ async function loadAllTransactions() {
       const response = await fetch(`${API_BASE}/transactions`);
       if (response.ok) {
         transactions = await response.json();
-        // Smart merge missing default transactions
-        let updated = false;
-        defaultTrans.forEach(demoTx => {
-          if (!transactions.some(tx => tx.id === demoTx.id)) {
-            transactions.push(demoTx);
-            updated = true;
-          }
-        });
-        if (updated) {
-          fetch(`${API_BASE}/transactions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(transactions)
-          }).catch(e => console.error("Failed to sync transactions:", e));
-        }
         localStorage.setItem("lab_transactions", JSON.stringify(transactions));
         return;
       }
@@ -2204,18 +2169,6 @@ async function loadAllTransactions() {
   const localTrans = localStorage.getItem("lab_transactions");
   if (localTrans) {
     transactions = JSON.parse(localTrans);
-    
-    // Smart merge default transactions
-    let updated = false;
-    defaultTrans.forEach(demoTx => {
-      if (!transactions.some(tx => tx.id === demoTx.id)) {
-        transactions.push(demoTx);
-        updated = true;
-      }
-    });
-    if (updated) {
-      localStorage.setItem("lab_transactions", JSON.stringify(transactions));
-    }
   } else {
     transactions = [...defaultTrans];
     localStorage.setItem("lab_transactions", JSON.stringify(transactions));
@@ -3224,26 +3177,22 @@ async function loadAllBookings() {
           loadedBookings.push(d);
         }
       });
-      bookings = loadedBookings;
-      
-      // Smart merge missing default bookings
-      let updated = false;
-      const batch = db.batch();
-      defaultBookings.forEach(demoBk => {
-        if (!bookings.some(b => b.id === demoBk.id)) {
+      if (loadedBookings.length > 0) {
+        bookings = loadedBookings;
+        console.log("🔥 Loaded " + bookings.length + " bookings from Firebase Cloud.");
+        return;
+      } else {
+        // Seed Firebase if empty
+        const batch = db.batch();
+        defaultBookings.forEach(demoBk => {
           bookings.push(demoBk);
           const docRef = db.collection("bookings").doc(demoBk.id);
           batch.set(docRef, demoBk);
-          updated = true;
-        }
-      });
-      if (updated) {
+        });
         await batch.commit();
-        console.log("🔥 Seeded missing mock bookings to Firebase Firestore.");
+        console.log("🔥 Seeded default bookings to Firebase.");
+        return;
       }
-      
-      console.log("🔥 Loaded " + bookings.length + " bookings from Firebase Cloud.");
-      return;
     } catch (err) {
       console.error("🔥 Failed to load bookings from Firebase:", err);
       isFirebaseOnline = false;
@@ -3255,21 +3204,6 @@ async function loadAllBookings() {
       const response = await fetch(`${API_BASE}/bookings`);
       if (response.ok) {
         bookings = await response.json();
-        // Smart merge missing default bookings
-        let updated = false;
-        defaultBookings.forEach(demoBk => {
-          if (!bookings.some(b => b.id === demoBk.id)) {
-            bookings.push(demoBk);
-            updated = true;
-          }
-        });
-        if (updated) {
-          fetch(`${API_BASE}/bookings`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bookings)
-          }).catch(e => console.error("Failed to sync bookings:", e));
-        }
         localStorage.setItem("lab_bookings", JSON.stringify(bookings));
         return;
       }
@@ -3282,18 +3216,6 @@ async function loadAllBookings() {
   const localBookings = localStorage.getItem("lab_bookings");
   if (localBookings) {
     bookings = JSON.parse(localBookings);
-    
-    // Smart merge default bookings
-    let updated = false;
-    defaultBookings.forEach(demoBk => {
-      if (!bookings.some(b => b.id === demoBk.id)) {
-        bookings.push(demoBk);
-        updated = true;
-      }
-    });
-    if (updated) {
-      localStorage.setItem("lab_bookings", JSON.stringify(bookings));
-    }
   } else {
     bookings = [...defaultBookings];
     localStorage.setItem("lab_bookings", JSON.stringify(bookings));
@@ -3782,21 +3704,6 @@ async function loadPurchaseOrders() {
       const response = await fetch(`${API_BASE}/purchase-orders`);
       if (response.ok) {
         purchaseOrders = await response.json();
-        // Smart merge missing default items
-        let updated = false;
-        defaultOrders.forEach(demoOrd => {
-          if (!purchaseOrders.some(o => o.id === demoOrd.id)) {
-            purchaseOrders.push(demoOrd);
-            updated = true;
-          }
-        });
-        if (updated) {
-          fetch(`${API_BASE}/purchase-orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(purchaseOrders)
-          }).catch(e => console.error("Failed to sync purchase orders:", e));
-        }
         localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
         return;
       }
@@ -3809,15 +3716,8 @@ async function loadPurchaseOrders() {
   if (localOrders) {
     try {
       purchaseOrders = JSON.parse(localOrders);
-      // Smart merge missing default items
+      // Migrate old mock data formats to new format (using % discount) if they exist
       let updated = false;
-      defaultOrders.forEach(demoOrd => {
-        if (!purchaseOrders.some(o => o.id === demoOrd.id)) {
-          purchaseOrders.push(demoOrd);
-          updated = true;
-        }
-      });
-      // Migrate old mock data formats to new format (using % discount)
       purchaseOrders.forEach(o => {
         if (o.id === "ord-mock-001" && (typeof o.budget !== 'number' || o.discount === 100)) {
           o.budget = 2000.00;
@@ -4218,7 +4118,7 @@ function updateLoginUI() {
   // Redirect if on admin panel or purchase orders panel and not backoffice
   if (!isBackoffice) {
     const activePanel = document.querySelector(".panel.active");
-    if (activePanel && (activePanel.id === "panel-add-item" || activePanel.id === "panel-purchase-orders")) {
+    if (activePanel && (activePanel.id === "panel-add-item" || activePanel.id === "panel-purchase-orders" || activePanel.id === "panel-reports")) {
       navigateToPanel("dashboard");
     }
   }
@@ -4227,6 +4127,7 @@ function updateLoginUI() {
   const menuItemAddItem = document.getElementById("menuItemAddItem");
   const menuItemImport = document.getElementById("menuItemImport");
   const menuItemPurchaseOrders = document.getElementById("menuItemPurchaseOrders");
+  const menuItemReports = document.getElementById("menuItemReports");
   if (menuItemAddItem) {
     menuItemAddItem.style.display = "block";
   }
@@ -4235,6 +4136,9 @@ function updateLoginUI() {
   }
   if (menuItemPurchaseOrders) {
     menuItemPurchaseOrders.style.display = "none";
+  }
+  if (menuItemReports) {
+    menuItemReports.style.display = isBackoffice ? "block" : "none";
   }
   
   // Update role switcher toggle state visual representation
@@ -5376,14 +5280,654 @@ function setupCsvExport() {
   });
 }
 
+function renderTopBorrowedChart() {
+  const container = document.getElementById("chartBorrowedContainer");
+  if (!container) return;
+
+  const borrowCounts = {};
+  transactions.forEach(tx => {
+    const name = tx.itemName || tx.itemCode;
+    if (!name) return;
+    borrowCounts[name] = (borrowCounts[name] || 0) + 1;
+  });
+
+  const topBorrowed = Object.entries(borrowCounts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  if (topBorrowed.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding: 20px;">
+        <div class="empty-state-icon" style="font-size: 24px; color: var(--text-muted);"><i data-lucide="bar-chart-2"></i></div>
+        <div class="empty-state-text" style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">ยังไม่มีข้อมูลการยืม</div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  const maxCount = Math.max(...topBorrowed.map(d => d.count)) || 1;
+
+  let svgHtml = `<svg width="100%" height="220" viewBox="0 0 450 220" style="background: transparent; font-family: var(--font-sans);">`;
+
+  // Add gradient definitions
+  svgHtml += `
+    <defs>
+      <linearGradient id="barGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#8b5cf6" />
+        <stop offset="100%" stop-color="#3b82f6" />
+      </linearGradient>
+    </defs>
+  `;
+
+  topBorrowed.forEach((d, idx) => {
+    const y = 15 + idx * 40;
+    const barWidth = (d.count / maxCount) * 260;
+    const displayName = d.name.length > 18 ? d.name.substring(0, 16) + "..." : d.name;
+
+    svgHtml += `
+      <!-- Text Label -->
+      <text x="10" y="${y + 12}" fill="var(--text-main)" font-size="12.5" font-weight="500">${displayName}</text>
+      
+      <!-- Bar Track -->
+      <rect x="140" y="${y}" width="260" height="14" rx="7" fill="#f1f5f9" />
+      
+      <!-- Active Bar -->
+      <rect x="140" y="${y}" width="${barWidth}" height="14" rx="7" fill="url(#barGrad)">
+        <animate attributeName="width" from="0" to="${barWidth}" dur="0.8s" fill="freeze" />
+      </rect>
+      
+      <!-- Value Label -->
+      <text x="${145 + barWidth}" y="${y + 12}" fill="var(--text-main)" font-size="11.5" font-weight="600">${d.count} ครั้ง</text>
+    `;
+  });
+
+  svgHtml += `</svg>`;
+  container.innerHTML = svgHtml;
+}
+
+function renderBookingChart() {
+  const container = document.getElementById("chartBookingContainer");
+  if (!container) return;
+
+  const roomCounts = {
+    "Lab 1": 0,
+    "Lab 2": 0,
+    "Lab 3": 0
+  };
+
+  bookings.forEach(b => {
+    let roomKey = "Lab 1";
+    if (b.room === "Lab 2" || b.room === "ห้องปฏิบัติการฟิสิกส์" || (b.room && b.room.includes("ฟิสิกส์"))) roomKey = "Lab 2";
+    else if (b.room === "Lab 3" || b.room === "ห้องปฏิบัติการชีววิทยา" || (b.room && b.room.includes("ชีววิทยา"))) roomKey = "Lab 3";
+    
+    roomCounts[roomKey]++;
+  });
+
+  const maxCount = Math.max(roomCounts["Lab 1"], roomCounts["Lab 2"], roomCounts["Lab 3"]) || 1;
+
+  let svgHtml = `<svg width="100%" height="220" viewBox="0 0 300 220" style="background: transparent; font-family: var(--font-sans);">`;
+
+  // Add vertical gradient and shadow definitions
+  svgHtml += `
+    <defs>
+      <linearGradient id="bookingBarGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+        <stop offset="0%" stop-color="#3f1b85" />
+        <stop offset="100%" stop-color="#8b5cf6" />
+      </linearGradient>
+      <filter id="barShadow" x="-25%" y="-25%" width="150%" height="150%">
+        <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#3f1b85" flood-opacity="0.15" />
+      </filter>
+    </defs>
+    
+    <!-- Grid Lines -->
+    <line x1="20" y1="50" x2="280" y2="50" stroke="rgba(0,0,0,0.04)" stroke-width="1" stroke-dasharray="3 3" />
+    <line x1="20" y1="105" x2="280" y2="105" stroke="rgba(0,0,0,0.04)" stroke-width="1" stroke-dasharray="3 3" />
+    <line x1="20" y1="160" x2="280" y2="160" stroke="rgba(0,0,0,0.08)" stroke-width="1.5" />
+  `;
+
+  const labs = [
+    { key: "Lab 1", name: "แล็บเคมี", x: 60 },
+    { key: "Lab 2", name: "แล็บฟิสิกส์", x: 150 },
+    { key: "Lab 3", name: "แล็บชีวะ", x: 240 }
+  ];
+
+  labs.forEach(lab => {
+    const count = roomCounts[lab.key] || 0;
+    const barHeight = (count / maxCount) * 110;
+    const y = 160 - barHeight;
+
+    svgHtml += `
+      <!-- Bar Track -->
+      <rect x="${lab.x - 12}" y="50" width="24" height="110" rx="12" fill="rgba(63, 27, 133, 0.04)" />
+      
+      <!-- Active Bar -->
+      <rect x="${lab.x - 12}" y="${y}" width="24" height="${barHeight}" rx="12" fill="url(#bookingBarGrad)" filter="url(#barShadow)">
+        <animate attributeName="height" from="0" to="${barHeight}" dur="0.8s" fill="freeze" />
+        <animate attributeName="y" from="160" to="${y}" dur="0.8s" fill="freeze" />
+      </rect>
+      
+      <!-- Value text -->
+      <text x="${lab.x}" y="42" fill="var(--text-main)" font-size="12" font-weight="700" text-anchor="middle">${count} ครั้ง</text>
+      
+      <!-- X-Axis Label -->
+      <text x="${lab.x}" y="185" fill="var(--text-muted)" font-size="12" font-weight="600" text-anchor="middle">${lab.name}</text>
+    `;
+  });
+
+  svgHtml += `</svg>`;
+  container.innerHTML = svgHtml;
+}
+
+function renderAnalyticsCharts() {
+  renderBookingChart();
+}
+
 function setupPrintReport() {
   const btn = document.getElementById("btnPrintReport");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    window.print();
-  });
+  if (btn) {
+    btn.addEventListener("click", () => {
+      printComprehensiveInventoryReport();
+    });
+  }
 }
+
+function printComprehensiveInventoryReport() {
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    showToast("ไม่สามารถเปิดหน้าต่างพิมพ์ได้ กรุณาเปิดสิทธิ์การใช้งาน Pop-up บนบราวเซอร์", "error");
+    return;
+  }
+
+  // Calculate statistics
+  const totalItems = items.length;
+  let expiredCount = 0;
+  let lowStockCount = 0;
+  let nearExpiryCount = 0;
+  let damagedCount = 0;
+  let repairCount = 0;
+
+  items.forEach(item => {
+    const status = getItemStatus(item);
+    if (status === "expired") expiredCount++;
+    if (status === "low-stock") lowStockCount++;
+    if (status === "near-expiry") nearExpiryCount++;
+    if (item.damagedQty) damagedCount += Number(item.damagedQty);
+    if (item.repairQty) repairCount += Number(item.repairQty);
+  });
+
+  const expiredItems = items.filter(item => getItemStatus(item) === "expired");
+  const lowStockItems = items.filter(item => getItemStatus(item) === "low-stock");
+  const recentTxs = [...transactions].sort((a, b) => new Date(b.borrowDate) - new Date(a.borrowDate)).slice(0, 10);
+
+  let html = `
+    <html>
+      <head>
+        <title>รายงานสรุปสถานะคลังพัสดุและเคมีภัณฑ์ - ${new Date().toLocaleDateString('th-TH')}</title>
+        <style>
+          body {
+            font-family: 'Prompt', sans-serif;
+            color: #1e293b;
+            padding: 40px;
+            background-color: #ffffff;
+            line-height: 1.5;
+          }
+          .report-header {
+            text-align: center;
+            border-bottom: 3px double #3f1b85;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .report-header h1 {
+            margin: 0 0 10px 0;
+            color: #3f1b85;
+            font-size: 24px;
+          }
+          .report-header p {
+            margin: 0;
+            color: #64748b;
+            font-size: 14px;
+          }
+          .report-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 30px;
+          }
+          .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+          }
+          .stats-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            background-color: #f8fafc;
+          }
+          .stats-card.alert {
+            border-color: #fecaca;
+            background-color: #fef2f2;
+          }
+          .stats-card.warning {
+            border-color: #fed7aa;
+            background-color: #fff7ed;
+          }
+          .stats-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-top: 5px;
+          }
+          .stats-card.alert .stats-value {
+            color: #ef4444;
+          }
+          .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #3f1b85;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-bottom: 20px;
+          }
+          th, td {
+            border: 1px solid #cbd5e1;
+            padding: 8px 10px;
+            text-align: left;
+          }
+          th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+          }
+          .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+          }
+          .badge-red { background-color: #fee2e2; color: #ef4444; }
+          .badge-orange { background-color: #ffedd5; color: #f97316; }
+          .badge-yellow { background-color: #fef3c7; color: #d97706; }
+          .badge-green { background-color: #d1fae5; color: #10b981; }
+          .signature-section {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+          }
+          .signature-box {
+            text-align: center;
+            width: 200px;
+          }
+          .signature-line {
+            border-bottom: 1px solid #94a3b8;
+            height: 40px;
+            margin-bottom: 10px;
+          }
+          @media print {
+            body {
+              padding: 0;
+            }
+            .no-print {
+              display: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="report-header">
+          <h1>รายงานสรุปสถานะคลังพัสดุและเคมีภัณฑ์</h1>
+          <p>ระบบบริหารจัดการห้องปฏิบัติการเคมีและอุปกรณ์วิทยาศาสตร์</p>
+        </div>
+
+        <div class="report-meta">
+          <div><strong>วันที่ออกรายงาน:</strong> ${new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} น.</div>
+          <div><strong>ผู้ออกรายงาน:</strong> ผู้ดูแลระบบ (Admin)</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stats-card">
+            <div>รายการพัสดุทั้งหมด</div>
+            <div class="stats-value">${totalItems} รายการ</div>
+          </div>
+          <div class="stats-card alert">
+            <div>หมดอายุแล้ว</div>
+            <div class="stats-value">${expiredCount} รายการ</div>
+          </div>
+          <div class="stats-card warning">
+            <div>สินค้าใกล้หมดคลัง</div>
+            <div class="stats-value">${lowStockCount} รายการ</div>
+          </div>
+          <div class="stats-card warning">
+            <div>ใกล้หมดอายุ (ภายใน 30 วัน)</div>
+            <div class="stats-value">${nearExpiryCount} รายการ</div>
+          </div>
+          <div class="stats-card alert">
+            <div>ชำรุดเสียหาย</div>
+            <div class="stats-value">${damagedCount} ชิ้น</div>
+          </div>
+          <div class="stats-card">
+            <div>ส่งซ่อมบำรุง</div>
+            <div class="stats-value">${repairCount} ชิ้น</div>
+          </div>
+        </div>
+
+        <!-- Expired Items Section -->
+        \${expiredItems.length > 0 ? \`
+          <div class="section-title">รายการเคมีภัณฑ์หมดอายุ</div>
+          <table>
+            <thead>
+              <tr>
+                <th>รหัส</th>
+                <th>ชื่อเคมีภัณฑ์</th>
+                <th>จำนวนคงเหลือ</th>
+                <th>หน่วย</th>
+                <th>วันหมดอายุ</th>
+                <th>สถานที่เก็บ</th>
+              </tr>
+            </thead>
+            <tbody>
+              \${expiredItems.map(item => \`
+                <tr>
+                  <td>\${item.code}</td>
+                  <td>\${item.name}</td>
+                  <td>\${item.qty}</td>
+                  <td>\${item.unit}</td>
+                  <td style="color: #ef4444; font-weight: 500;">\${item.expiry ? formatThaiDate(item.expiry) : "-"}</td>
+                  <td>\${item.room || "-"} > \${item.cabinet || "-"}</td>
+                </tr>
+              \`).join("")}
+            </tbody>
+          </table>
+        \` : ""}
+
+        <!-- Low Stock Items Section -->
+        \${lowStockItems.length > 0 ? \`
+          <div class="section-title">รายการพัสดุใกล้หมดคลัง (Low Stock)</div>
+          <table>
+            <thead>
+              <tr>
+                <th>รหัส</th>
+                <th>ชื่อสาร/อุปกรณ์</th>
+                <th>จำนวนคงเหลือ</th>
+                <th>จุดแจ้งเตือนขั้นต่ำ</th>
+                <th>หน่วย</th>
+                <th>สถานที่เก็บ</th>
+              </tr>
+            </thead>
+            <tbody>
+              \${lowStockItems.map(item => \`
+                <tr>
+                  <td>\${item.code}</td>
+                  <td>\${item.name}</td>
+                  <td style="color: #f97316; font-weight: 600;">\${item.qty}</td>
+                  <td>\${item.minAlert}</td>
+                  <td>\${item.unit}</td>
+                  <td>\${item.room || "-"} > \${item.cabinet || "-"}</td>
+                </tr>
+              \`).join("")}
+            </tbody>
+          </table>
+        \` : ""}
+
+        <!-- Full Inventory Summary Table -->
+        <div class="section-title">สรุปรายการคลังพัสดุทั้งหมด</div>
+        <table>
+          <thead>
+            <tr>
+              <th>รหัส</th>
+              <th>ชื่อสาร/อุปกรณ์</th>
+              <th>หมวดหมู่</th>
+              <th>จำนวนคงเหลือ</th>
+              <th>หน่วย</th>
+              <th>สถานที่จัดเก็บ</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+            \${items.map(item => {
+              const status = getItemStatus(item);
+              let statusLabel = '<span class="badge badge-green">ปกติ</span>';
+              if (status === "expired") statusLabel = '<span class="badge badge-red">หมดอายุ</span>';
+              else if (status === "near-expiry") statusLabel = '<span class="badge badge-yellow">ใกล้หมดอายุ</span>';
+              else if (status === "low-stock") statusLabel = '<span class="badge badge-orange">ใกล้หมด</span>';
+
+              return \`
+                <tr>
+                  <td>\${item.code}</td>
+                  <td>\${item.name}</td>
+                  <td>\${item.category}</td>
+                  <td>\${item.qty}</td>
+                  <td>\${item.unit}</td>
+                  <td>\${item.room || "-"} / \${item.cabinet || "-"} / \${item.shelf || "-"}</td>
+                  <td>\${statusLabel}</td>
+                </tr>
+              \`;
+            }).join("")}
+          </tbody>
+        </table>
+
+        <!-- Recent Borrow/Return History -->
+        <div class="section-title">ประวัติการยืม-คืนล่าสุด (10 รายการล่าสุด)</div>
+        <table>
+          <thead>
+            <tr>
+              <th>รหัสรายการ</th>
+              <th>ชื่อผู้ยืม</th>
+              <th>ชื่อพัสดุ/เคมีภัณฑ์</th>
+              <th>จำนวน</th>
+              <th>วันที่ยืม</th>
+              <th>วันที่คืน</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+            \${recentTxs.map(tx => \`
+              <tr>
+                <td>\${tx.id}</td>
+                <td>\${tx.borrower}</td>
+                <td>\${tx.itemName}</td>
+                <td>\${tx.qty} \${tx.itemUnit || "ชิ้น"}</td>
+                <td>\${tx.borrowDate ? formatThaiDate(tx.borrowDate) : "-"}</td>
+                <td>\${tx.returnDate ? formatThaiDate(tx.returnDate) : "-"}</td>
+                <td>
+                  <span class="badge \${tx.status === "returned" ? "badge-green" : "badge-orange"}">
+                    \${tx.status === "returned" ? "คืนแล้ว" : "ยังไม่คืน"}
+                  </span>
+                </td>
+              </tr>
+            \`).join("")}
+          </tbody>
+        </table>
+
+        <div class="signature-section">
+          <div class="signature-box">
+            <div class="signature-line"></div>
+            <div>( ลงชื่อ )...................................................</div>
+            <div style="margin-top: 5px;">ผู้พิมพ์รายงาน</div>
+          </div>
+          <div class="signature-box">
+            <div class="signature-line"></div>
+            <div>( ลงชื่อ )...................................................</div>
+            <div style="margin-top: 5px;">เจ้าหน้าที่ดูแลห้องปฏิบัติการ</div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+          }
+        </script>
+      </body>
+    </html>
+  `;
+
+  printWindow.document.write(html);
+  printWindow.document.close();
+}
+
+function setupDashboardReports() {
+  const btnInv = document.getElementById("dashboardBtnExportInventory");
+  const btnTx = document.getElementById("dashboardBtnExportTransactions");
+  const btnPrint = document.getElementById("dashboardBtnPrintReport");
+  
+  if (btnInv) {
+    btnInv.addEventListener("click", () => {
+      const originalBtn = document.getElementById("btnExportCSV");
+      if (originalBtn) {
+        originalBtn.click();
+      }
+    });
+  }
+  
+  if (btnTx) {
+    btnTx.addEventListener("click", () => {
+      if (transactions.length === 0) {
+        showToast("ไม่มีประวัติการยืม-คืนที่สามารถส่งออกได้", "error");
+        return;
+      }
+      const headers = [
+        "รหัสรายการ",
+        "รหัสพัสดุ",
+        "ชื่อพัสดุ/เคมีภัณฑ์",
+        "ประเภท",
+        "จำนวน",
+        "หน่วย",
+        "ผู้ยืม",
+        "ผู้ทำรายการ",
+        "วันที่ยืม",
+        "กำหนดคืน",
+        "วันที่คืนจริง",
+        "สถานะ",
+        "หมายเหตุ"
+      ];
+      const rows = transactions.map(tx => [
+        tx.id || "",
+        tx.itemCode || "",
+        tx.itemName || "",
+        tx.itemCategory || "",
+        tx.qty || 0,
+        tx.itemUnit || "ชิ้น",
+        tx.borrower || "",
+        tx.officer || "",
+        tx.borrowDate || "",
+        tx.dueDate || "",
+        tx.returnDate || "",
+        tx.status || "",
+        tx.note || ""
+      ]);
+      exportDataToCSV(`borrow_return_history_all_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+      showToast("ส่งออกประวัติการยืม-คืนทั้งหมดสำเร็จ!", "success");
+    });
+  }
+  
+  if (btnPrint) {
+    btnPrint.addEventListener("click", () => {
+      printComprehensiveInventoryReport();
+    });
+  }
+}
+
+function setupGhsSuggestions() {
+  const itemNameInput = document.getElementById("itemName");
+  const itemCategorySelect = document.getElementById("itemCategory");
+  
+  if (!itemNameInput || !itemCategorySelect) return;
+  
+  function getGhsSuggestions(name) {
+    const suggestions = [];
+    const nameLower = name.toLowerCase();
+    
+    // Flammable
+    const flammablePatterns = ["ไวไฟ", "เอทานอล", "มีทานอล", "เมทานอล", "แอลกอฮอล์", "อะซิโตน", "โทลูอีน", "ไซลีน", "เฮกเซน", "ไฮโดรเจน", "บิวเทน", "โพรเพน", "อีเธอร์", "ฟอสฟอรัส", "โซเดียม", "flammable", "ethanol", "methanol", "alcohol", "acetone", "toluene", "xylene", "hexane", "hydrogen", "butane", "propane", "ether", "gasoline", "solvent"];
+    if (flammablePatterns.some(p => nameLower.includes(p))) {
+      suggestions.push("flammable");
+    }
+    
+    // Corrosive
+    const corrosivePatterns = ["กรด", "ไฮโดรคลอริก", "ซัลฟิวริก", "ไนตริก", "อะซิติก", "เบส", "ด่าง", "โซเดียมไฮดรอกไซด์", "แอมโมเนีย", "โพแทสเซียมไฮดรอกไซด์", "acid", "hydrochloric", "sulfuric", "nitric", "acetic", "base", "alkali", "hydroxide", "ammonia", "corrosive"];
+    if (corrosivePatterns.some(p => nameLower.includes(p))) {
+      suggestions.push("corrosive");
+    }
+    
+    // Toxic
+    const toxicPatterns = ["พิษ", "ไซยาไนด์", "คลอรีน", "สารหนู", "ปรอท", "เมทานอล", "ฟอร์มาลิน", "ฟอร์มาลดีไฮด์", "เบนซีน", "toxic", "poison", "cyanide", "chlorine", "arsenic", "mercury", "benzene", "formalin", "formaldehyde"];
+    if (toxicPatterns.some(p => nameLower.includes(p))) {
+      suggestions.push("toxic");
+    }
+    
+    // Explosive
+    const explosivePatterns = ["ระเบิด", "ดินปืน", "ไนโตร", "แอมโมเนียมไนเตรต", "explosive", "nitro", "tnt", "dynamite", "azide", "picric"];
+    if (explosivePatterns.some(p => nameLower.includes(p))) {
+      suggestions.push("explosive");
+    }
+    
+    // Oxidizing
+    const oxidizingPatterns = ["ออกซิไดซ์", "เปอร์ออกไซด์", "ด่างทับทิม", "โพแทสเซียมเปอร์แมงกาเนต", "ไนเตรต", "คลอเรต", "oxidizing", "oxidizer", "peroxide", "permanganate", "nitrate", "chlorate"];
+    if (oxidizingPatterns.some(p => nameLower.includes(p))) {
+      suggestions.push("oxidizing");
+    }
+    
+    // Compressed gas
+    const gasPatterns = ["ก๊าซความดัน", "แก๊สความดัน", "ถังแก๊ส", "ถังก๊าซ", "ไนโตรเจนเหลว", "compressed gas", "cylinder", "liquid nitrogen"];
+    if (gasPatterns.some(p => nameLower.includes(p))) {
+      suggestions.push("compressed_gas");
+    }
+    
+    // Irritant
+    const irritantPatterns = ["ระคายเคือง", "คลอรีน", "แอมโมเนีย", "ฟีนอล", "irritant", "irritating"];
+    if (irritantPatterns.some(p => nameLower.includes(p))) {
+      suggestions.push("irritant");
+    }
+    
+    // Health hazard
+    const healthPatterns = ["มะเร็ง", "กลายพันธุ์", "สารก่อมะเร็ง", "เบนซีน", "ฟอร์มาลดีไฮด์", "carcinogen", "mutagen", "health hazard"];
+    if (healthPatterns.some(p => nameLower.includes(p))) {
+      suggestions.push("health_hazard");
+    }
+    
+    // Environmental
+    const envPatterns = ["สิ่งแวดล้อม", "เป็นพิษต่อสัตว์น้ำ", "คอปเปอร์ซัลเฟต", "โลหะหนัก", "environmental", "toxic to aquatic", "eco-toxic", "pollutant"];
+    if (envPatterns.some(p => nameLower.includes(p))) {
+      suggestions.push("environmental");
+    }
+    
+    return suggestions;
+  }
+  
+  function applyGhsSuggestions() {
+    const category = itemCategorySelect.value;
+    if (category !== "สารเคมี") return;
+    
+    const name = itemNameInput.value.trim();
+    if (!name) return;
+    
+    const suggestions = getGhsSuggestions(name);
+    
+    // Auto-check suggestion checkboxes
+    document.querySelectorAll('input[name="ghs"]').forEach(cb => {
+      if (suggestions.includes(cb.value)) {
+        cb.checked = true;
+      }
+    });
+  }
+  
+  itemNameInput.addEventListener("input", applyGhsSuggestions);
+  itemCategorySelect.addEventListener("change", applyGhsSuggestions);
+}
+
+
 
 function setupHistoryExports() {
   const btnExportBorrowCSV = document.getElementById("btnExportBorrowCSV");
@@ -7337,4 +7881,1092 @@ function rref(matrix) {
     lead++;
   }
 }
+
+// ============================================================================
+// DIAGRAM PLANNER SYSTEM (PLAN LAB) - STYLE OF CHEMIX.ORG
+// ============================================================================
+let plannerElements = [];
+let selectedElementId = null;
+
+function setupLabPlanner() {
+  const sidebarLinks = document.querySelectorAll(".menu-item-link");
+  const panels = document.querySelectorAll(".panel");
+
+  // Toolbox Categories items click
+  document.querySelectorAll('.btn-apparatus-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.getAttribute('data-type');
+      addApparatus(type);
+    });
+  });
+
+  // Toolbox Search
+  document.getElementById("apparatusSearch").addEventListener("input", (e) => {
+    const q = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('.btn-apparatus-item').forEach(btn => {
+      const title = btn.getAttribute('title').toLowerCase();
+      const text = btn.innerText.toLowerCase();
+      if (title.includes(q) || text.includes(q)) {
+        btn.style.display = "flex";
+      } else {
+        btn.style.display = "none";
+      }
+    });
+  });
+
+  // Canvas background click to deselect
+  document.getElementById("labPlanSvg").addEventListener("mousedown", (e) => {
+    if (e.target === document.getElementById("labPlanSvg")) {
+      selectElement(null);
+    }
+  });
+
+  // Save Plan Click
+  document.getElementById("btnPlanSave").addEventListener("click", () => {
+    const title = document.getElementById("labPlanTitle").value.trim() || "แผนการทดลองไม่มีชื่อ";
+    if (plannerElements.length === 0) {
+      showToast("ไม่สามารถบันทึกแผนเปล่าได้ กรุณาเพิ่มอุปกรณ์ก่อน", "warning");
+      return;
+    }
+    
+    const savedPlans = JSON.parse(localStorage.getItem("saved_lab_plans") || "[]");
+    const planIndex = savedPlans.findIndex(p => p.title === title);
+    
+    const domElements = Array.from(document.querySelectorAll('#labPlanSvg .apparatus'))
+      .map(g => plannerElements.find(item => item.id === g.id))
+      .filter(Boolean);
+    
+    const planData = {
+      title: title,
+      date: new Date().toLocaleString("th-TH"),
+      elements: domElements
+    };
+    
+    if (planIndex > -1) {
+      savedPlans[planIndex] = planData;
+    } else {
+      savedPlans.push(planData);
+    }
+    
+    localStorage.setItem("saved_lab_plans", JSON.stringify(savedPlans));
+    showToast(`บันทึกแผน "${title}" สำเร็จ!`, "success");
+  });
+
+  // Open Plan Click
+  document.getElementById("btnPlanOpen").addEventListener("click", () => {
+    const savedPlans = JSON.parse(localStorage.getItem("saved_lab_plans") || "[]");
+    if (savedPlans.length === 0) {
+      showToast("ไม่พบแผนการทดลองที่บันทึกไว้", "info");
+      return;
+    }
+    
+    let modal = document.getElementById("planOpenModal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "planOpenModal";
+      modal.className = "modal-overlay";
+      modal.style.zIndex = "2000";
+      document.body.appendChild(modal);
+    }
+    
+    let listHtml = savedPlans.map((p, idx) => `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 13px;">
+        <div>
+          <div style="font-weight: 600; color: var(--text-main);">${p.title}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">บันทึกเมื่อ: ${p.date}</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn btn-primary btn-open-plan-item" data-idx="${idx}" style="padding: 6px 12px; font-size: 12px; background: var(--primary-purple); color: white; border: none; border-radius: var(--border-radius-sm); cursor: pointer;">เปิด</button>
+          <button type="button" class="btn btn-secondary btn-delete-plan-item" data-idx="${idx}" style="padding: 6px 12px; font-size: 12px; border: 1px solid var(--accent-red); color: var(--accent-red); background: white; border-radius: var(--border-radius-sm); cursor: pointer;">ลบ</button>
+        </div>
+      </div>
+    `).join('');
+    
+    modal.innerHTML = `
+      <div class="modal-box" style="width: 450px; max-width: 90%; padding: 24px; border-radius: var(--border-radius-md); background: white; box-shadow: var(--shadow-lg);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+          <h3 style="margin: 0; font-size: 16px; font-weight: bold; color: var(--text-main);">แผนการทดลองที่บันทึกไว้</h3>
+          <button type="button" class="btn-close-plan-modal" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted);">&times;</button>
+        </div>
+        <div style="max-height: 300px; overflow-y: auto; margin-bottom: 16px;">
+          ${listHtml}
+        </div>
+      </div>
+    `;
+    
+    modal.classList.add("active");
+    
+    modal.querySelector('.btn-close-plan-modal').addEventListener('click', () => {
+      modal.classList.remove("active");
+    });
+    
+    modal.querySelectorAll('.btn-open-plan-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        loadPlan(savedPlans[idx]);
+        modal.classList.remove("active");
+      });
+    });
+    
+    modal.querySelectorAll('.btn-delete-plan-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.getAttribute('data-idx'), 10);
+        const name = savedPlans[idx].title;
+        if (confirm(`คุณต้องการลบแผน "${name}" ใช่หรือไม่?`)) {
+          savedPlans.splice(idx, 1);
+          localStorage.setItem("saved_lab_plans", JSON.stringify(savedPlans));
+          showToast(`ลบแผน "${name}" สำเร็จ`, "info");
+          modal.classList.remove("active");
+          document.getElementById("btnPlanOpen").click();
+        }
+      });
+    });
+  });
+
+  // Clear Canvas Click
+  document.getElementById("btnPlanClear").addEventListener("click", () => {
+    if (plannerElements.length > 0 && confirm("คุณต้องการล้างอุปกรณ์ทั้งหมดออกจากบอร์ดใช่หรือไม่?")) {
+      clearCanvas();
+      showToast("ล้างบอร์ดเรียบร้อย", "info");
+    }
+  });
+
+  // Export SVG
+  document.getElementById("btnPlanExportSvg").addEventListener("click", () => {
+    const title = document.getElementById("labPlanTitle").value.trim() || "lab_plan";
+    const svgElement = document.getElementById("labPlanSvg");
+    
+    selectElement(null); // deselect highlight
+    
+    const serializer = new XMLSerializer();
+    let source = serializer.serializeToString(svgElement);
+    
+    if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    
+    const svgBlob = new Blob([source], {type: "image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(svgBlob);
+    
+    const a = document.createElement("a");
+    a.download = `${title}.svg`;
+    a.href = url;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast("ส่งออกไฟล์ SVG สำเร็จ!", "success");
+  });
+
+  // Export PNG
+  document.getElementById("btnPlanExportPng").addEventListener("click", () => {
+    const title = document.getElementById("labPlanTitle").value.trim() || "lab_plan";
+    const svgElement = document.getElementById("labPlanSvg");
+    
+    selectElement(null);
+    
+    const serializer = new XMLSerializer();
+    let source = serializer.serializeToString(svgElement);
+    
+    if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    
+    const svgBlob = new Blob([source], {type: "image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(svgBlob);
+    
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1600;
+      canvas.height = 1000;
+      const ctx = canvas.getContext("2d");
+      
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      
+      const a = document.createElement("a");
+      a.download = `${title}.png`;
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("ส่งออกไฟล์รูปภาพ PNG สำเร็จ!", "success");
+    };
+    img.onerror = function(err) {
+      console.error("PNG export error:", err);
+      showToast("เกิดข้อผิดพลาดในการส่งออกภาพ PNG", "error");
+    };
+    img.src = url;
+  });
+
+  // Properties inputs listeners
+  document.getElementById("propLabelText").addEventListener("input", (e) => {
+    if (!selectedElementId) return;
+    const el = plannerElements.find(item => item.id === selectedElementId);
+    if (el) {
+      el.label = e.target.value;
+      renderApparatusVisuals(selectedElementId);
+    }
+  });
+
+  document.getElementById("propLiquidLevelRange").addEventListener("input", (e) => {
+    if (!selectedElementId) return;
+    const el = plannerElements.find(item => item.id === selectedElementId);
+    if (el) {
+      el.liquidLevel = parseInt(e.target.value, 10);
+      document.getElementById("propLiquidLevelValue").textContent = `${el.liquidLevel}%`;
+      renderApparatusVisuals(selectedElementId);
+    }
+  });
+
+  document.getElementById("propTempRange").addEventListener("input", (e) => {
+    if (!selectedElementId) return;
+    const el = plannerElements.find(item => item.id === selectedElementId);
+    if (el) {
+      el.temp = parseInt(e.target.value, 10);
+      document.getElementById("propTempValue").textContent = `${el.temp}°C`;
+      renderApparatusVisuals(selectedElementId);
+    }
+  });
+
+  document.getElementById("propWeightNum").addEventListener("input", (e) => {
+    if (!selectedElementId) return;
+    const el = plannerElements.find(item => item.id === selectedElementId);
+    if (el) {
+      el.weight = parseFloat(e.target.value) || 0.00;
+      renderApparatusVisuals(selectedElementId);
+    }
+  });
+
+  document.getElementById("propFlameOn").addEventListener("change", (e) => {
+    if (!selectedElementId) return;
+    const el = plannerElements.find(item => item.id === selectedElementId);
+    if (el) {
+      el.flameOn = e.target.checked;
+      renderApparatusVisuals(selectedElementId);
+    }
+  });
+
+  document.getElementById("propScaleRange").addEventListener("input", (e) => {
+    if (!selectedElementId) return;
+    const el = plannerElements.find(item => item.id === selectedElementId);
+    if (el) {
+      el.scale = parseInt(e.target.value, 10);
+      document.getElementById("propScaleValue").textContent = `${(el.scale / 10).toFixed(1)}x`;
+      renderApparatusVisuals(selectedElementId);
+    }
+  });
+
+  document.getElementById("propRotateRange").addEventListener("input", (e) => {
+    if (!selectedElementId) return;
+    const el = plannerElements.find(item => item.id === selectedElementId);
+    if (el) {
+      el.rotate = parseInt(e.target.value, 10);
+      document.getElementById("propRotateValue").textContent = `${el.rotate}°`;
+      renderApparatusVisuals(selectedElementId);
+    }
+  });
+
+  document.getElementById("btnPropDelete").addEventListener("click", () => {
+    if (!selectedElementId) return;
+    const g = document.getElementById(selectedElementId);
+    if (g) g.remove();
+    
+    plannerElements = plannerElements.filter(item => item.id !== selectedElementId);
+    selectElement(null);
+    showToast("ลบอุปกรณ์เรียบร้อยแล้ว", "info");
+  });
+
+  document.getElementById("btnPropMoveUp").addEventListener("click", () => {
+    if (!selectedElementId) return;
+    const g = document.getElementById(selectedElementId);
+    if (g && g.parentNode) {
+      g.parentNode.appendChild(g);
+    }
+  });
+
+  document.getElementById("btnPropMoveDown").addEventListener("click", () => {
+    if (!selectedElementId) return;
+    const g = document.getElementById(selectedElementId);
+    if (g && g.parentNode) {
+      g.parentNode.insertBefore(g, g.parentNode.firstChild);
+    }
+  });
+}
+
+function getApparatusMarkup(type, id, opt) {
+  if (type === 'beaker') {
+    return `
+      <defs>
+        <linearGradient id="glassGrad_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
+          <stop offset="20%" stop-color="rgba(255,255,255,0.05)"/>
+          <stop offset="80%" stop-color="rgba(255,255,255,0.02)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.2)"/>
+        </linearGradient>
+      </defs>
+      <!-- Glass shading fill -->
+      <path d="M 5,20 L 5,115 A 5,5 0 0 0 10,120 L 75,120 A 5,5 0 0 0 80,115 L 80,20 Z" fill="url(#glassGrad_${id})" />
+      <path class="liquid" d="" fill="${opt.liquidColor}" opacity="0.65"/>
+      <!-- Glass Highlights & Markings -->
+      <path d="M 6,22 L 6,115 A 4,4 0 0 0 10,119 L 70,119 A 4,4 0 0 0 74,119 L 74,22" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" />
+      <line class="outline" x1="15" y1="40" x2="23" y2="40" stroke="#94a3b8" stroke-width="1.2"/>
+      <line class="outline" x1="15" y1="60" x2="23" y2="60" stroke="#94a3b8" stroke-width="1.2"/>
+      <line class="outline" x1="15" y1="80" x2="23" y2="80" stroke="#94a3b8" stroke-width="1.2"/>
+      <line class="outline" x1="15" y1="100" x2="23" y2="100" stroke="#94a3b8" stroke-width="1.2"/>
+      <line class="outline" x1="15" y1="30" x2="20" y2="30" stroke="#cbd5e1" stroke-width="0.8"/>
+      <line class="outline" x1="15" y1="50" x2="20" y2="50" stroke="#cbd5e1" stroke-width="0.8"/>
+      <line class="outline" x1="15" y1="70" x2="20" y2="70" stroke="#cbd5e1" stroke-width="0.8"/>
+      <line class="outline" x1="15" y1="90" x2="20" y2="90" stroke="#cbd5e1" stroke-width="0.8"/>
+      <line class="outline" x1="15" y1="110" x2="20" y2="110" stroke="#cbd5e1" stroke-width="0.8"/>
+      <!-- Outer Outline -->
+      <path class="outline" d="M 5,20 L 5,10 A 3,3 0 0 0 2,7 L 0,7 Q 0,3 5,3 L 75,3 Q 80,3 80,7 L 80,115 A 5,5 0 0 1 75,120 L 10,120 A 5,5 0 0 1 5,115 Z" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'test-tube') {
+    return `
+      <defs>
+        <linearGradient id="tubeGlassGrad_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
+          <stop offset="25%" stop-color="rgba(255,255,255,0.05)"/>
+          <stop offset="75%" stop-color="rgba(255,255,255,0.02)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.2)"/>
+        </linearGradient>
+      </defs>
+      <!-- Tube glass shading -->
+      <path d="M 12,5 Q 10,5 10,2 L 20,2 Q 20,5 18,5 L 18,75 A 8,8 0 0 1 2,75 Z" fill="url(#tubeGlassGrad_${id})" transform="scale(1.5) translate(-2, 0)"/>
+      <path class="liquid" d="" fill="${opt.liquidColor}" opacity="0.65"/>
+      <!-- Glass highlight lines -->
+      <path d="M 17,5 L 17,73" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" transform="scale(1.5) translate(-2, 0)"/>
+      <!-- Outer Outline -->
+      <path class="outline" d="M 12,5 Q 10,5 10,2 L 20,2 Q 20,5 18,5 L 18,75 A 8,8 0 0 1 2,75 Z" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round" transform="scale(1.5) translate(-2, 0)"/>
+      <text class="apparatus-label" x="15" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'conical-flask') {
+    return `
+      <defs>
+        <linearGradient id="flaskGlassGrad_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
+          <stop offset="30%" stop-color="rgba(255,255,255,0.05)"/>
+          <stop offset="70%" stop-color="rgba(255,255,255,0.02)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.2)"/>
+        </linearGradient>
+      </defs>
+      <!-- Glass shading fill -->
+      <path d="M 30,15 L 30,5 L 50,5 L 50,15 L 75,113 A 5,5 0 0 1 70,120 L 10,120 A 5,5 0 0 1 5,113 Z" fill="url(#flaskGlassGrad_${id})" />
+      <path class="liquid" d="" fill="${opt.liquidColor}" opacity="0.65"/>
+      <!-- Markings & Highlights -->
+      <line x1="33" y1="70" x2="41" y2="70" stroke="#94a3b8" stroke-width="1.2"/>
+      <line x1="28" y1="90" x2="38" y2="90" stroke="#94a3b8" stroke-width="1.2"/>
+      <line x1="24" y1="110" x2="36" y2="110" stroke="#94a3b8" stroke-width="1.2"/>
+      <path d="M 32,15 L 32,5" stroke="rgba(255,255,255,0.5)" stroke-width="1.2" fill="none"/>
+      <path d="M 48,15 L 72,112" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" fill="none"/>
+      <!-- Outer Outline -->
+      <path class="outline" d="M 30,15 L 30,5 Q 26,5 26,2 L 54,2 Q 54,5 50,5 L 50,15 L 75,113 A 5,5 0 0 1 70,120 L 10,120 A 5,5 0 0 1 5,113 Z" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'cylinder') {
+    return `
+      <defs>
+        <linearGradient id="cylinderGlassGrad_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+          <stop offset="25%" stop-color="rgba(255,255,255,0.05)"/>
+          <stop offset="75%" stop-color="rgba(255,255,255,0.02)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.2)"/>
+        </linearGradient>
+      </defs>
+      <rect x="10" y="15" width="20" height="100" fill="url(#cylinderGlassGrad_${id})"/>
+      <rect class="liquid" x="10" y="40" width="20" height="75" fill="${opt.liquidColor}" opacity="0.65"/>
+      <!-- Markings -->
+      <line class="outline" x1="10" y1="30" x2="16" y2="30" stroke="#94a3b8" stroke-width="1"/>
+      <line class="outline" x1="10" y1="50" x2="16" y2="50" stroke="#94a3b8" stroke-width="1"/>
+      <line class="outline" x1="10" y1="70" x2="16" y2="70" stroke="#94a3b8" stroke-width="1"/>
+      <line class="outline" x1="10" y1="90" x2="16" y2="90" stroke="#94a3b8" stroke-width="1"/>
+      <line class="outline" x1="10" y1="110" x2="16" y2="110" stroke="#94a3b8" stroke-width="1"/>
+      <!-- Reflection Highlight -->
+      <line x1="28" y1="18" x2="28" y2="112" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+      <!-- Base & Lip -->
+      <path class="outline" d="M 10,15 L 10,115 L 2,115 L 2,120 L 38,120 L 38,115 L 30,115 L 30,15" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/>
+      <path class="outline" d="M 10,15 Q 20,20 30,15" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+      <text class="apparatus-label" x="20" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'thermometer') {
+    return `
+      <!-- Glass backing with reflections -->
+      <rect x="8" y="0" width="8" height="100" rx="4" fill="rgba(255,255,255,0.3)" stroke="#1e293b" stroke-width="2.2"/>
+      <line x1="9.5" y1="4" x2="9.5" y2="96" stroke="rgba(255,255,255,0.5)" stroke-width="0.8"/>
+      <!-- Liquid tube inside -->
+      <rect class="thermometer-liquid" x="11" y="40" width="2" height="60" fill="#ef4444"/>
+      <!-- Alcohol bulb -->
+      <circle class="outline" cx="12" cy="107" r="8" fill="#ef4444" stroke="#1e293b" stroke-width="2.2"/>
+      <circle cx="10" cy="105" r="2.2" fill="rgba(255,255,255,0.6)"/>
+      <!-- Marks -->
+      <line class="outline" x1="12" y1="20" x2="15" y2="20" stroke="#1e293b" stroke-width="0.8"/>
+      <line class="outline" x1="12" y1="40" x2="15" y2="40" stroke="#1e293b" stroke-width="0.8"/>
+      <line class="outline" x1="12" y1="60" x2="15" y2="60" stroke="#1e293b" stroke-width="0.8"/>
+      <line class="outline" x1="12" y1="80" x2="15" y2="80" stroke="#1e293b" stroke-width="0.8"/>
+      <text class="apparatus-label" x="12" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'scale') {
+    return `
+      <!-- Scale Housing (metal silver) -->
+      <rect x="5" y="20" width="90" height="20" rx="3" fill="#cbd5e1" stroke="#1e293b" stroke-width="2.5"/>
+      <!-- Weighing Plate (stainless steel) -->
+      <path d="M 12,18 L 88,18 L 82,13 L 18,13 Z" fill="#94a3b8" stroke="#1e293b" stroke-width="2.2" stroke-linejoin="round"/>
+      <!-- LCD Screen -->
+      <rect x="25" y="25" width="50" height="11" rx="1" fill="#0f172a" stroke="#475569" stroke-width="1"/>
+      <text class="scale-reading" x="70" y="34" fill="#10b981" font-family="monospace" font-weight="bold" font-size="9" text-anchor="end">0.00 g</text>
+      <!-- Buttons -->
+      <circle cx="15" cy="30" r="2" fill="#ef4444" stroke="#1e293b" stroke-width="0.8"/>
+      <circle cx="85" cy="30" r="2" fill="#3b82f6" stroke="#1e293b" stroke-width="0.8"/>
+      <text class="apparatus-label" x="50" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'bunsen') {
+    return `
+      <defs>
+        <linearGradient id="outerFlameGrad_${id}" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#ef4444" stop-opacity="0.8"/>
+          <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#2563eb" stop-opacity="0.95"/>
+        </linearGradient>
+        <linearGradient id="innerFlameGrad_${id}" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.95"/>
+        </linearGradient>
+        <linearGradient id="metalTube_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#94a3b8"/>
+          <stop offset="40%" stop-color="#cbd5e1"/>
+          <stop offset="100%" stop-color="#475569"/>
+        </linearGradient>
+      </defs>
+      <!-- Outer Flame -->
+      <path class="flame" d="M 20,40 Q 20,10 15,0 Q 10,10 10,40 Z" fill="url(#outerFlameGrad_${id})" />
+      <!-- Inner Flame Core -->
+      <path class="inner-flame" d="M 17,40 Q 17,25 15,15 Q 13,25 13,40 Z" fill="url(#innerFlameGrad_${id})" />
+      <!-- Metal Burner Tube -->
+      <rect class="outline" x="12" y="40" width="6" height="32" fill="url(#metalTube_${id})" stroke="#1e293b" stroke-width="2"/>
+      <!-- Air Collar (brass look) -->
+      <rect class="outline" x="10" y="72" width="10" height="6" fill="#f59e0b" stroke="#1e293b" stroke-width="1.8"/>
+      <!-- Base (heavy iron) -->
+      <path class="outline" d="M 2,85 L 28,85 L 24,78 L 6,78 Z" fill="#334155" stroke="#1e293b" stroke-width="2" stroke-linejoin="round"/>
+      <!-- Gas inlet nozzle -->
+      <path class="outline" d="M 20,75 L 32,75" fill="none" stroke="#1e293b" stroke-width="2" />
+      <text class="apparatus-label" x="15" y="-15" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'retort-stand') {
+    return `
+      <defs>
+        <linearGradient id="rodGrad_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#94a3b8"/>
+          <stop offset="40%" stop-color="#e2e8f0"/>
+          <stop offset="100%" stop-color="#475569"/>
+        </linearGradient>
+      </defs>
+      <!-- Base (heavy iron) -->
+      <rect class="outline" x="0" y="120" width="60" height="8" rx="2" fill="#334155" stroke="#1e293b" stroke-width="2"/>
+      <!-- Rod -->
+      <line class="outline" x1="10" y1="10" x2="10" y2="120" stroke="url(#rodGrad_${id})" stroke-width="4.5" stroke-linecap="round"/>
+      <!-- Bosshead and Clamp -->
+      <rect class="outline" x="8" y="40" width="8" height="8" rx="1.5" fill="#64748b" stroke="#1e293b" stroke-width="1.8"/>
+      <!-- Adjuster screw -->
+      <circle cx="12" cy="38" r="1.5" fill="#1e293b"/>
+      <!-- Extension arm -->
+      <line class="outline" x1="16" y1="44" x2="35" y2="44" stroke="#64748b" stroke-width="3"/>
+      <!-- Jaws -->
+      <path class="outline" d="M 35,35 Q 42,35 42,44 Q 42,53 35,53" fill="none" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>
+      <text class="apparatus-label" x="30" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'pipette') {
+    return `
+      <path class="liquid" d="" fill="${opt.liquidColor}" opacity="0.65"/>
+      <!-- Highlight -->
+      <path d="M 8,0 L 8,40 L 5,50 L 5,90" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" transform="scale(1, 0.8) translate(0, 10)"/>
+      <path class="outline" d="M 7,0 L 7,40 L 4,50 L 4,90 L 7,100 L 7,140 L 9,150 L 9,140 L 11,100 L 11,90 L 14,50 L 11,40 L 11,0 Z" fill="none" stroke="#1e293b" stroke-width="1.8" transform="scale(1, 0.8) translate(0, 10)"/>
+      <text class="apparatus-label" x="9" y="-15" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'arrow') {
+    return `
+      <line class="outline" x1="0" y1="10" x2="60" y2="10" stroke="#1e293b" stroke-width="3" marker-end="url(#arrowhead)"/>
+      <text class="apparatus-label" x="30" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'text-box') {
+    return `
+      <rect class="outline" x="0" y="0" width="100" height="40" rx="3" fill="none" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="3,3"/>
+      <text class="text-box-content" x="50" y="24" text-anchor="middle" font-size="13" font-weight="bold" font-family="'Sora', 'Prompt', sans-serif" fill="#1e293b">TEXT</text>
+    `;
+  }
+  if (type === 'round-flask') {
+    return `
+      <defs>
+        <clipPath id="clip_${id}">
+          <path d="M 30,5 L 30,45 A 35,35 0 1 0 50,45 L 50,5 Z"/>
+        </clipPath>
+        <linearGradient id="roundGlassGrad_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
+          <stop offset="25%" stop-color="rgba(255,255,255,0.05)"/>
+          <stop offset="75%" stop-color="rgba(255,255,255,0.02)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,0.2)"/>
+        </linearGradient>
+      </defs>
+      <path d="M 30,5 L 30,45 A 35,35 0 1 0 50,45 L 50,5 Z" fill="url(#roundGlassGrad_${id})"/>
+      <rect class="liquid" x="5" y="5" width="70" height="115" fill="${opt.liquidColor}" opacity="0.65" clip-path="url(#clip_${id})"/>
+      <path d="M 15,80 A 25,25 0 0 1 65,80" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="3" stroke-linecap="round"/>
+      <path class="outline" d="M 30,5 L 30,45 A 35,35 0 1 0 50,45 L 50,5 Q 50,2 52,2 L 54,2 L 54,0 L 26,0 L 26,2 L 28,2 Q 30,2 30,5 Z" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'crucible') {
+    return `
+      <defs>
+        <clipPath id="clip_${id}">
+          <path d="M 22,25 L 58,25 L 54,49 L 26,49 Z"/>
+        </clipPath>
+        <linearGradient id="porcelainGrad_${id}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fafaf9"/>
+          <stop offset="60%" stop-color="#f5f5f4"/>
+          <stop offset="100%" stop-color="#e7e5e4"/>
+        </linearGradient>
+      </defs>
+      <!-- Ceramic body -->
+      <path d="M 22,45 L 58,45 L 62,25 L 18,25 Z" fill="url(#porcelainGrad_${id})" stroke="#1e293b" stroke-width="2.5"/>
+      <rect class="liquid" x="15" y="20" width="50" height="35" fill="${opt.liquidColor}" opacity="0.65" clip-path="url(#clip_${id})"/>
+      <!-- Porcelain lid -->
+      <path d="M 15,25 L 65,25 L 65,21 L 15,21 Z" fill="url(#porcelainGrad_${id})" stroke="#1e293b" stroke-width="2.5"/>
+      <path d="M 35,21 Q 40,14 45,21" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'evaporating-dish') {
+    return `
+      <defs>
+        <clipPath id="clip_${id}">
+          <path d="M 12,30 A 28,20 0 0 0 68,30 Z"/>
+        </clipPath>
+        <linearGradient id="porcelainDishGrad_${id}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fafaf9"/>
+          <stop offset="50%" stop-color="#f5f5f4"/>
+          <stop offset="100%" stop-color="#d6d3d1"/>
+        </linearGradient>
+      </defs>
+      <!-- Bowl -->
+      <path d="M 10,30 A 30,22 0 0 0 70,30" fill="url(#porcelainDishGrad_${id})" stroke="#1e293b" stroke-width="2.5" />
+      <rect class="liquid" x="5" y="20" width="70" height="35" fill="${opt.liquidColor}" opacity="0.65" clip-path="url(#clip_${id})"/>
+      <!-- Rim -->
+      <path d="M 10,30 L 70,30 Q 73,31 70,30 M 10,30 Q 7,31 10,30" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'burette') {
+    return `
+      <defs>
+        <clipPath id="clip_${id}">
+          <rect x="36.5" y="5" width="7" height="110"/>
+        </clipPath>
+      </defs>
+      <rect class="liquid" x="35" y="5" width="10" height="115" fill="${opt.liquidColor}" opacity="0.65" clip-path="url(#clip_${id})"/>
+      <!-- Glass reflections -->
+      <rect x="36" y="5" width="1.5" height="110" fill="rgba(255,255,255,0.4)"/>
+      <line class="outline" x1="36" y1="20" x2="40" y2="20" stroke="#64748b" stroke-width="0.8"/>
+      <line class="outline" x1="36" y1="40" x2="40" y2="40" stroke="#64748b" stroke-width="0.8"/>
+      <line class="outline" x1="36" y1="60" x2="40" y2="60" stroke="#64748b" stroke-width="0.8"/>
+      <line class="outline" x1="36" y1="80" x2="40" y2="80" stroke="#64748b" stroke-width="0.8"/>
+      <line class="outline" x1="36" y1="100" x2="40" y2="100" stroke="#64748b" stroke-width="0.8"/>
+      <path class="outline" d="M 36,0 L 36,115 L 34,120 L 34,125 L 46,125 L 46,120 L 44,115 L 44,0 Z" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linejoin="round"/>
+      <!-- Blue stopcock knob -->
+      <circle class="outline" cx="40" cy="122.5" r="4.5" fill="#3b82f6" stroke="#1e293b" stroke-width="1.8"/>
+      <path class="outline" d="M 39,125 L 39,145 L 40,148 L 41,145 L 41,125 Z" fill="#1e293b" stroke="#1e293b" stroke-width="1"/>
+      <text class="apparatus-label" x="40" y="-12" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'tripod') {
+    return `
+      <defs>
+        <linearGradient id="metalLeg_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#64748b"/>
+          <stop offset="50%" stop-color="#94a3b8"/>
+          <stop offset="100%" stop-color="#334155"/>
+        </linearGradient>
+      </defs>
+      <!-- Platform -->
+      <rect class="outline" x="15" y="25" width="50" height="5" rx="1.5" fill="#334155" stroke="#1e293b" stroke-width="2.5"/>
+      <!-- Legs -->
+      <line class="outline" x1="22" y1="30" x2="8" y2="80" stroke="url(#metalLeg_${id})" stroke-width="3" stroke-linecap="round"/>
+      <line class="outline" x1="58" y1="30" x2="72" y2="80" stroke="url(#metalLeg_${id})" stroke-width="3" stroke-linecap="round"/>
+      <line class="outline" x1="40" y1="30" x2="40" y2="83" stroke="url(#metalLeg_${id})" stroke-width="3" stroke-linecap="round"/>
+      <!-- Rubber feet -->
+      <circle cx="8" cy="80" r="2.5" fill="#0f172a"/>
+      <circle cx="72" cy="80" r="2.5" fill="#0f172a"/>
+      <circle cx="40" cy="83" r="2.5" fill="#0f172a"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'gauze') {
+    return `
+      <rect class="outline" x="5" y="25" width="70" height="6" rx="1" fill="none" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="2,2"/>
+      <line x1="5" y1="28" x2="75" y2="28" stroke="#475569" stroke-width="1"/>
+      <circle cx="40" cy="28" r="10" fill="#e2e8f0" opacity="0.9" stroke="#1e293b" stroke-width="1"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'clay-triangle') {
+    return `
+      <polygon points="40,15 18,53 62,53" fill="none" stroke="#cbd5e1" stroke-width="8" stroke-linejoin="round"/>
+      <polygon points="40,18 20,52 60,52" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/>
+      <line x1="40" y1="18" x2="40" y2="5" stroke="#1e293b" stroke-width="2"/>
+      <line x1="20" y1="52" x2="8" y2="60" stroke="#1e293b" stroke-width="2"/>
+      <line x1="60" y1="52" x2="72" y2="60" stroke="#1e293b" stroke-width="2"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'funnel') {
+    return `
+      <defs>
+        <clipPath id="clip_${id}">
+          <path d="M 16.5,10 L 63.5,10 L 42,43 L 42,80 L 38,80 L 38,43 Z"/>
+        </clipPath>
+      </defs>
+      <rect class="liquid" x="10" y="5" width="60" height="80" fill="${opt.liquidColor}" opacity="0.65" clip-path="url(#clip_${id})"/>
+      <!-- Glass highlight -->
+      <path d="M 18,10 L 41,41 M 39,43 L 39,78" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      <path class="outline" d="M 15,10 L 65,10 L 43,43 L 43,80 L 37,80 L 37,43 Z" fill="none" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'dropper') {
+    return `
+      <defs>
+        <clipPath id="clip_${id}">
+          <path d="M 38,30 L 38,85 L 40,88 L 42,85 L 42,30 Z"/>
+        </clipPath>
+        <linearGradient id="dropperBulbGrad_${id}" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#ef4444"/>
+          <stop offset="50%" stop-color="#f87171"/>
+          <stop offset="100%" stop-color="#b91c1c"/>
+        </linearGradient>
+      </defs>
+      <rect class="liquid" x="35" y="25" width="10" height="70" fill="${opt.liquidColor}" opacity="0.65" clip-path="url(#clip_${id})"/>
+      <!-- Bulb -->
+      <path class="rubber-bulb" d="M 32,5 C 26,5 26,30 35,30 L 45,30 C 54,30 54,5 48,5 Z" fill="url(#dropperBulbGrad_${id})" stroke="#1e293b" stroke-width="2.2" stroke-linejoin="round"/>
+      <!-- Glass highlight -->
+      <line x1="39" y1="30" x2="39" y2="83" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+      <!-- Stem -->
+      <path class="outline" d="M 37.5,30 L 37.5,85 L 39.5,89.5 L 40.5,89.5 L 42.5,85 L 42.5,30 Z" fill="none" stroke="#1e293b" stroke-width="2" stroke-linejoin="round"/>
+      <text class="apparatus-label" x="40" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  if (type === 'condenser') {
+    return `
+      <!-- Outer jacket water body -->
+      <rect x="26.5" y="20" width="27" height="60" fill="#93c5fd" opacity="0.4"/>
+      <!-- Reflections on outer glass -->
+      <rect x="28" y="20" width="2" height="60" fill="rgba(255,255,255,0.4)"/>
+      <rect class="outline" x="25" y="20" width="30" height="60" rx="3" fill="none" stroke="#1e293b" stroke-width="2.5"/>
+      <!-- Inner tube -->
+      <path class="outline" d="M 36.5,0 L 36.5,100 M 43.5,0 L 43.5,100" fill="none" stroke="#1e293b" stroke-width="2"/>
+      <!-- Water inlet/outlet ports -->
+      <rect class="outline" x="18" y="25" width="8" height="6" rx="1" fill="#94a3b8" stroke="#1e293b" stroke-width="1.8"/>
+      <rect class="outline" x="54" y="69" width="8" height="6" rx="1" fill="#94a3b8" stroke="#1e293b" stroke-width="1.8"/>
+      <text class="apparatus-label" x="40" y="-12" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
+    `;
+  }
+  return "";
+}
+
+function getTypeNameThai(type) {
+  const map = {
+    beaker: "บีกเกอร์ (Beaker)",
+    "test-tube": "หลอดทดลอง (Test Tube)",
+    "conical-flask": "ขวดรูปชมพู่ (Conical Flask)",
+    cylinder: "กระบอกตวง (Cylinder)",
+    "round-flask": "ขวดก้นกลม (Round Flask)",
+    crucible: "ถ้วยกระเบื้อง (Crucible)",
+    "evaporating-dish": "ถ้วยระเหยสาร (Evaporation Dish)",
+    thermometer: "เทอร์โมมิเตอร์ (Thermometer)",
+    scale: "เครื่องชั่ง (Scale)",
+    burette: "บิวเรตต์ (Burette)",
+    bunsen: "ตะเกียงบุนเซน (Bunsen Burner)",
+    "retort-stand": "ขาตั้ง Retort (Retort Stand)",
+    tripod: "ขาตั้งสามขา (Tripod Stand)",
+    gauze: "ตะแกรงลวด (Wire Gauze)",
+    "clay-triangle": "สามเหลี่ยมดินเผา (Clay Triangle)",
+    pipette: "ปิเปตต์ (Pipette)",
+    funnel: "กรวยกรอง (Funnel)",
+    dropper: "หลอดหยดสาร (Dropper)",
+    condenser: "เครื่องควบแน่น (Condenser)",
+    arrow: "ลูกศรขั้นตอน (Flow Arrow)",
+    "text-box": "กล่องข้อความ (Text Box)"
+  };
+  return map[type] || type;
+}
+
+function getDefaultLabel(type) {
+  const map = {
+    beaker: "Beaker 250 mL",
+    "test-tube": "Test Tube",
+    "conical-flask": "Conical Flask",
+    cylinder: "Cylinder 25 mL",
+    "round-flask": "Round Flask 250 mL",
+    crucible: "Crucible",
+    "evaporating-dish": "Evaporating Dish",
+    thermometer: "",
+    scale: "Scale",
+    burette: "Burette 50 mL",
+    bunsen: "",
+    "retort-stand": "",
+    tripod: "",
+    gauze: "",
+    "clay-triangle": "",
+    pipette: "Pipette 25 mL",
+    funnel: "Funnel",
+    dropper: "Dropper",
+    condenser: "Condenser",
+    arrow: "",
+    "text-box": "TEXT"
+  };
+  return map[type] || "";
+}
+
+function addApparatus(type) {
+  const id = 'el_' + Date.now();
+  
+  const newElement = {
+    id: id,
+    type: type,
+    x: 100 + Math.random() * 50,
+    y: 100 + Math.random() * 50,
+    scale: 10, // 10 matches 1.0x scale internally (scaleRange is 5 to 25)
+    rotate: 0,
+    label: getDefaultLabel(type),
+    liquidLevel: 50,
+    liquidColor: '#3b82f6',
+    temp: 25,
+    weight: 0.00,
+    flameOn: true
+  };
+
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.id = id;
+  g.setAttribute("class", "apparatus");
+  g.innerHTML = getApparatusMarkup(type, id, newElement);
+  document.getElementById("labPlanSvg").appendChild(g);
+
+  plannerElements.push(newElement);
+
+  // Bind drag events
+  let isDragging = false;
+  let startX, startY;
+
+  g.addEventListener("mousedown", (e) => {
+    e.stopPropagation();
+    selectElement(id);
+    
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    
+    const mouseMoveHandler = (ev) => {
+      if (!isDragging) return;
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      
+      newElement.x += dx;
+      newElement.y += dy;
+      
+      startX = ev.clientX;
+      startY = ev.clientY;
+      
+      renderApparatusVisuals(id);
+    };
+    
+    const mouseUpHandler = () => {
+      isDragging = false;
+      document.removeEventListener("mousemove", mouseMoveHandler);
+      document.removeEventListener("mouseup", mouseUpHandler);
+    };
+    
+    document.addEventListener("mousemove", mouseMoveHandler);
+    document.addEventListener("mouseup", mouseUpHandler);
+  });
+
+  renderApparatusVisuals(id);
+  selectElement(id);
+}
+
+function renderApparatusVisuals(id) {
+  const el = plannerElements.find(item => item.id === id);
+  if (!el) return;
+  
+  const g = document.getElementById(id);
+  if (!g) return;
+  
+  const scaleVal = el.scale / 10;
+  g.setAttribute("transform", `translate(${el.x}, ${el.y}) scale(${scaleVal}) rotate(${el.rotate})`);
+  
+  const labelText = g.querySelector('.apparatus-label');
+  if (labelText) {
+    labelText.textContent = el.label || "";
+  }
+  
+  const liquid = g.querySelector('.liquid');
+  if (liquid) {
+    liquid.setAttribute("fill", el.liquidColor);
+    
+    let d = "";
+    if (el.type === 'beaker') {
+      const liquidTopY = 120 - (el.liquidLevel / 100) * 110;
+      d = `M 5,${liquidTopY} Q 40,${liquidTopY + 4} 75,${liquidTopY} L 75,115 A 5,5 0 0 1 70,120 L 10,120 A 5,5 0 0 1 5,115 Z`;
+    } else if (el.type === 'test-tube') {
+      const liquidTopY = 112.5 - (el.liquidLevel / 100) * 97.5;
+      d = `M 3,${liquidTopY} Q 15,${liquidTopY + 3} 27,${liquidTopY} L 27,105 A 12,12 0 0 1 3,105 Z`;
+    } else if (el.type === 'conical-flask') {
+      const liquidTopY = 120 - (el.liquidLevel / 100) * 105;
+      const ratio = (120 - liquidTopY) / 105;
+      const halfWidth = 10 + ratio * 19;
+      const xLeft = 40 - halfWidth;
+      const xRight = 40 + halfWidth;
+      d = `M ${xLeft},${liquidTopY} Q 40,${liquidTopY + 4} ${xRight},${liquidTopY} L 73,113 A 5,5 0 0 1 68,120 L 12,120 A 5,5 0 0 1 7,113 Z`;
+    } else if (el.type === 'pipette') {
+      const liquidTopY = 90 - (el.liquidLevel / 100) * 40;
+      d = `M 4,${liquidTopY} Q 9,${liquidTopY + 2} 14,${liquidTopY} L 11,90 L 11,120 L 9,130 L 9,120 L 7,90 Z`;
+    }
+    
+    if (el.liquidLevel <= 0) {
+      liquid.style.display = "none";
+    } else {
+      liquid.style.display = "inline";
+      const isRectLiquid = ['cylinder', 'round-flask', 'crucible', 'evaporating-dish', 'burette', 'funnel', 'dropper'].includes(el.type);
+      if (!isRectLiquid) {
+        liquid.setAttribute("d", d);
+      } else {
+        let bottomY = 115, heightMax = 100;
+        if (el.type === 'cylinder') { bottomY = 115; heightMax = 100; }
+        else if (el.type === 'round-flask') { bottomY = 115; heightMax = 110; }
+        else if (el.type === 'crucible') { bottomY = 49; heightMax = 29; }
+        else if (el.type === 'evaporating-dish') { bottomY = 45; heightMax = 25; }
+        else if (el.type === 'burette') { bottomY = 115; heightMax = 110; }
+        else if (el.type === 'funnel') { bottomY = 80; heightMax = 75; }
+        else if (el.type === 'dropper') { bottomY = 90; heightMax = 65; }
+        
+        const liquidTopY = bottomY - (el.liquidLevel / 100) * heightMax;
+        liquid.setAttribute("y", liquidTopY);
+        liquid.setAttribute("height", bottomY - liquidTopY);
+      }
+    }
+  }
+  
+  if (el.type === 'thermometer') {
+    const thermometerLiquid = g.querySelector('.thermometer-liquid');
+    if (thermometerLiquid) {
+      const ratio = Math.max(0, Math.min(1, (el.temp + 10) / 120));
+      const height = ratio * 80;
+      const y = 100 - height;
+      thermometerLiquid.setAttribute("y", y);
+      thermometerLiquid.setAttribute("height", height);
+    }
+  }
+  
+  if (el.type === 'scale') {
+    const reading = g.querySelector('.scale-reading');
+    if (reading) {
+      reading.textContent = `${el.weight.toFixed(2)} g`;
+    }
+  }
+  
+  if (el.type === 'bunsen') {
+    const flame = g.querySelector('.flame');
+    const innerFlame = g.querySelector('.inner-flame');
+    if (flame && innerFlame) {
+      if (el.flameOn) {
+        flame.style.display = "inline";
+        innerFlame.style.display = "inline";
+      } else {
+        flame.style.display = "none";
+        innerFlame.style.display = "none";
+      }
+    }
+  }
+  
+  if (el.type === 'text-box') {
+    const content = g.querySelector('.text-box-content');
+    if (content) {
+      content.textContent = el.label || "TEXT";
+    }
+  }
+}
+
+function selectElement(id) {
+  if (selectedElementId) {
+    const prev = document.getElementById(selectedElementId);
+    if (prev) {
+      prev.classList.remove("selected");
+      const line = prev.querySelector('line');
+      if (line && line.getAttribute('marker-end') === 'url(#arrowhead-selected)') {
+        line.setAttribute('marker-end', 'url(#arrowhead)');
+      }
+    }
+  }
+  
+  selectedElementId = id;
+  
+  const propertiesControls = document.getElementById("propertiesControls");
+  const propertiesEmptyState = document.getElementById("propertiesEmptyState");
+  
+  if (!id) {
+    propertiesControls.style.display = "none";
+    propertiesEmptyState.style.display = "flex";
+    return;
+  }
+  
+  const el = plannerElements.find(item => item.id === id);
+  if (!el) return;
+  
+  const g = document.getElementById(id);
+  if (g) {
+    g.classList.add("selected");
+    const line = g.querySelector('line');
+    if (line && line.getAttribute('marker-end') === 'url(#arrowhead)') {
+      line.setAttribute('marker-end', 'url(#arrowhead-selected)');
+    }
+  }
+  
+  propertiesControls.style.display = "flex";
+  propertiesEmptyState.style.display = "none";
+  
+  document.getElementById("propElementTypeName").textContent = getTypeNameThai(el.type);
+  document.getElementById("propLabelText").value = el.label || "";
+  
+  const supportLiquid = ['beaker', 'test-tube', 'conical-flask', 'cylinder', 'pipette', 'round-flask', 'crucible', 'evaporating-dish', 'burette', 'funnel', 'dropper'].includes(el.type);
+  document.getElementById("propGroupLiquidLevel").style.display = supportLiquid ? "block" : "none";
+  document.getElementById("propGroupLiquidColor").style.display = supportLiquid ? "block" : "none";
+  
+  document.getElementById("propGroupTemp").style.display = el.type === 'thermometer' ? "block" : "none";
+  document.getElementById("propGroupWeight").style.display = el.type === 'scale' ? "block" : "none";
+  document.getElementById("propGroupFlame").style.display = el.type === 'bunsen' ? "block" : "none";
+  
+  if (supportLiquid) {
+    document.getElementById("propLiquidLevelRange").value = el.liquidLevel;
+    document.getElementById("propLiquidLevelValue").textContent = `${el.liquidLevel}%`;
+    
+    // Preset Solution Colors
+    const presets = [
+      { color: '#3b82f6', name: 'สารละลายสีฟ้า (Blue)' },
+      { color: '#ef4444', name: 'สารละลายสีแดง (Red)' },
+      { color: '#10b981', name: 'สารละลายสีเขียว (Green)' },
+      { color: '#f59e0b', name: 'สารละลายสีเหลือง (Yellow)' },
+      { color: '#f97316', name: 'สารละลายสีส้ม (Orange)' },
+      { color: '#a855f7', name: 'สารละลายสีม่วง (Purple)' },
+      { color: '#ffffff', name: 'น้ำกลั่น/ไม่มีสี (Clear)' },
+      { color: '#090d16', name: 'สารละลายสีดำ (Black)' }
+    ];
+    
+    const presetsContainer = document.getElementById("propColorPresets");
+    presetsContainer.innerHTML = presets.map(p => {
+      const activeClass = p.color === el.liquidColor ? "active" : "";
+      return `<button type="button" class="color-preset-btn ${activeClass}" data-color="${p.color}" style="background-color: ${p.color};" title="${p.name}"></button>`;
+    }).join('');
+
+    presetsContainer.querySelectorAll('.color-preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        presetsContainer.querySelectorAll('.color-preset-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const color = btn.getAttribute('data-color');
+        el.liquidColor = color;
+        renderApparatusVisuals(id);
+      });
+    });
+  }
+  
+  if (el.type === 'thermometer') {
+    document.getElementById("propTempRange").value = el.temp;
+    document.getElementById("propTempValue").textContent = `${el.temp}°C`;
+  }
+  
+  if (el.type === 'scale') {
+    document.getElementById("propWeightNum").value = el.weight.toFixed(2);
+  }
+  
+  if (el.type === 'bunsen') {
+    document.getElementById("propFlameOn").checked = el.flameOn;
+  }
+  
+  document.getElementById("propScaleRange").value = el.scale;
+  document.getElementById("propScaleValue").textContent = `${(el.scale / 10).toFixed(1)}x`;
+  
+  document.getElementById("propRotateRange").value = el.rotate;
+  document.getElementById("propRotateValue").textContent = `${el.rotate}°`;
+  
+  lucide.createIcons();
+}
+
+function clearCanvas() {
+  document.querySelectorAll('#labPlanSvg .apparatus').forEach(el => el.remove());
+  plannerElements = [];
+  selectElement(null);
+}
+
+function loadPlan(plan) {
+  clearCanvas();
+  document.getElementById("labPlanTitle").value = plan.title || "แผนการทดลองไม่มีชื่อ";
+  
+  plan.elements.forEach(el => {
+    plannerElements.push(el);
+    
+    const id = el.id;
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.id = id;
+    g.setAttribute("class", "apparatus");
+    g.innerHTML = getApparatusMarkup(el.type, id, el);
+    document.getElementById("labPlanSvg").appendChild(g);
+    
+    renderApparatusVisuals(id);
+    
+    let isDragging = false;
+    let startX, startY;
+
+    g.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+      selectElement(id);
+      
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      
+      const mouseMoveHandler = (ev) => {
+        if (!isDragging) return;
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        
+        el.x += dx;
+        el.y += dy;
+        
+        startX = ev.clientX;
+        startY = ev.clientY;
+        
+        renderApparatusVisuals(id);
+      };
+      
+      const mouseUpHandler = () => {
+        isDragging = false;
+        document.removeEventListener("mousemove", mouseMoveHandler);
+        document.removeEventListener("mouseup", mouseUpHandler);
+      };
+      
+      document.addEventListener("mousemove", mouseMoveHandler);
+      document.addEventListener("mouseup", mouseUpHandler);
+    });
+  });
+  
+  showToast(`โหลดแผน "${plan.title}" สำเร็จ`, "success");
+}
+
 
