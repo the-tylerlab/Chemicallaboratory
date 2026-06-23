@@ -878,31 +878,88 @@ input:focus, select:focus, textarea:focus {
 
 /* Safety Subbox */
 .safety-subbox {
-  background-color: #f8fafc;
-  border: 1px solid var(--border-color);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.01) 0%, rgba(239, 68, 68, 0.03) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-left: 4px solid var(--accent-red);
   border-radius: var(--border-radius-lg);
-  padding: 20px;
+  padding: 16px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 12px;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.02);
 }
 
 .safety-subbox-title {
   grid-column: span 2;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--accent-red);
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.08);
+  padding: 4px 12px;
+  border-radius: 30px;
+  width: fit-content;
+  margin-bottom: 4px;
+  border: 1px solid rgba(239, 68, 68, 0.12);
 }
 
 /* GHS Grid layout */
 .ghs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ghs-grid label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  padding: 6px 12px !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--border-radius-md) !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
+  user-select: none !important;
+}
+
+.ghs-grid label:hover {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  background: rgba(239, 68, 68, 0.01) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.06) !important;
+}
+
+.ghs-grid label:has(input[type="checkbox"]:checked) {
+  border-color: var(--accent-red) !important;
+  background-color: rgba(239, 68, 68, 0.06) !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1) !important;
+  font-weight: 600 !important;
+  color: var(--accent-red) !important;
+}
+
+.ghs-grid label input[type="checkbox"] {
+  accent-color: var(--accent-red) !important;
+  width: 16px !important;
+  height: 16px !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+}
+
+.ghs-grid label img {
+  width: 22px !important;
+  height: 22px !important;
+  transition: transform 0.2s ease !important;
+}
+
+.ghs-grid label:hover img {
+  transform: scale(1.1) !important;
 }
 
 /* Buttons Section */
@@ -3051,6 +3108,139 @@ input[type="date"]::-webkit-date-and-time-value {
   box-shadow: var(--shadow-md);
   border-color: rgba(63, 27, 133, 0.2);
 }
+
+/* ==========================================================================
+   LAB DIAGRAM PLANNER SECTION (PLAN LAB)
+   ========================================================================== */
+.lab-planner-wrapper {
+  gap: 16px;
+  align-items: stretch;
+}
+
+.lab-library-panel,
+.lab-canvas-panel,
+.lab-properties-panel {
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  background-color: white;
+}
+
+.btn-apparatus-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 80px;
+}
+
+.btn-apparatus-item:hover {
+  border-color: var(--primary-purple);
+  background-color: rgba(63, 27, 133, 0.03);
+  transform: translateY(-1px);
+}
+
+.btn-apparatus-item svg {
+  transition: transform 0.2s ease;
+}
+
+.btn-apparatus-item:hover svg {
+  transform: scale(1.05);
+}
+
+.btn-apparatus-item span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Apparatus dragging & selection inside SVG */
+.apparatus {
+  cursor: grab;
+}
+
+.apparatus:active {
+  cursor: grabbing;
+}
+
+.apparatus.selected path.outline,
+.apparatus.selected rect,
+.apparatus.selected circle,
+.apparatus.selected line {
+  stroke: var(--primary-purple) !important;
+  stroke-width: 3.5px !important;
+  filter: drop-shadow(0 0 3px rgba(63, 27, 133, 0.4));
+}
+
+.apparatus.selected text.scale-reading {
+  fill: #10b981 !important; /* Keep digital display green */
+}
+
+/* Properties controls */
+.prop-group {
+  margin-bottom: 14px;
+}
+
+.prop-group label {
+  color: var(--text-muted);
+}
+
+.color-preset-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px var(--border-color);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.color-preset-btn:hover {
+  transform: scale(1.15);
+}
+
+.color-preset-btn.active {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 2px var(--primary-purple);
+}
+
+.library-categories-scroll::-webkit-scrollbar,
+#propertiesControls::-webkit-scrollbar {
+  width: 4px;
+}
+
+.library-categories-scroll::-webkit-scrollbar-thumb,
+#propertiesControls::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+/* Responsive adjustment for lab diagram wrapper */
+@media (max-width: 1024px) {
+  .lab-planner-wrapper {
+    flex-direction: column;
+    height: auto !important;
+  }
+  
+  .lab-library-panel,
+  .lab-properties-panel {
+    width: 100% !important;
+    height: 300px !important;
+  }
+  
+  .lab-canvas-panel {
+    height: 500px !important;
+  }
+}
+
 
 
 
