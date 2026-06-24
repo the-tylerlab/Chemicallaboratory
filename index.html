@@ -45,7 +45,7 @@
         <div class="logo-text">
           <span class="logo-title">ระบบคลังเคมี</span>
           <span class="logo-subtitle">Laboratory System</span>
-          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.7.1</span>
+          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.7.4</span>
         </div>
       </div>
 
@@ -378,6 +378,7 @@
               <div class="form-group">
                 <label for="itemName">ชื่อสาร/อุปกรณ์ <span class="required">*</span></label>
                 <input type="text" id="itemName" placeholder="เช่น กรดไฮโดรคลอริก" required>
+                <div id="compatibilityRecBadge" style="display: none; margin-top: 6px; font-size: 12px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 16px; border: 1px solid; transition: all 0.2s; width: fit-content;"></div>
               </div>
 
               <!-- Category -->
@@ -482,11 +483,17 @@
                     <label for="itemChemicalType">ประเภทความเป็นอันตราย (ตรวจจัดเก็บซ้ำซ้อน)</label>
                     <select id="itemChemicalType">
                       <option value="" selected>-- ไม่ใช่สารเคมี / ไม่ระบุ --</option>
-                      <option value="acid">กรด</option>
-                      <option value="base">เบส/ด่าง</option>
-                      <option value="oxidizer">สารออกซิไดซ์</option>
-                      <option value="organic">ตัวทำละลายอินทรีย์/สารไวไฟ</option>
-                      <option value="other">สารเคมีทั่วไปอื่นๆ</option>
+                      <option value="A">กลุ่ม A - เบสอินทรีย์ (Organic Bases)</option>
+                      <option value="B">กลุ่ม B - สารที่ลุกติดไฟเอง/ทำปฏิกิริยากับน้ำ (Pyrophoric/Water Reactive)</option>
+                      <option value="C">กลุ่ม C - เบสอนินทรีย์ (Inorganic Bases)</option>
+                      <option value="D">กลุ่ม D - กรดอินทรีย์ (Organic Acids)</option>
+                      <option value="E">กลุ่ม E - สารออกซิไดเซอร์อนินทรีย์ (Inorganic Oxidizers)</option>
+                      <option value="F">กลุ่ม F - กรดอนินทรีย์ (Inorganic Acids)</option>
+                      <option value="G">กลุ่ม G - สารเคมีทั่วไปที่ไม่ว่องไว (Non-reactive/General)</option>
+                      <option value="I">กลุ่ม I - สารออกซิไดเซอร์ที่เป็นกรดแก่ (Strong Oxidizing Acids)</option>
+                      <option value="K">กลุ่ม K - สารระเบิดได้ที่มีความคงตัว (Stable Explosives)</option>
+                      <option value="L">กลุ่ม L - สารไวไฟและตัวทำละลายอินทรีย์ (Flammables/Solvents)</option>
+                      <option value="X">กลุ่ม X - สารที่ไม่เข้ากันกับสารอื่น (Incompatible with ALL)</option>
                     </select>
                   </div>
                   
@@ -557,6 +564,20 @@
               <button type="button" class="btn btn-danger" id="btnCancelEdit" style="display: none; margin-left: auto;">ยกเลิกการแก้ไข</button>
             </div>
           </form>
+        </div>
+
+        <!-- CU WasteTrack Section -->
+        <div class="form-container" id="wasteClassificationCard" style="margin-top: 24px; display: none;">
+          <h2 style="font-size: 16px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+            <i data-lucide="trash-2" style="color: var(--accent-red); width: 20px; height: 20px;"></i>
+            <span>ระบบช่วยเหลือจำแนกประเภทของเสียสารเคมี (CU WasteTrack)</span>
+          </h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+            ประเมินและจำแนกประเภทของเสียทางห้องปฏิบัติการอ้างอิงตามระบบการจำแนกของเสีย 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย
+          </p>
+          <div id="wasteClassificationWizard" style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--border-radius-md); transition: all 0.3s ease;">
+            <!-- Interactive steps will be generated here -->
+          </div>
         </div>
       </section>
 
@@ -1834,6 +1855,7 @@
         <button class="chat-suggestion-chip" data-query="คำนวณมวลโมเลกุล">⚖️ คำนวณมวลโมเลกุล</button>
         <button class="chat-suggestion-chip" data-query="ปฐมพยาบาลสารเคมีหก">🚨 ปฐมพยาบาลสารหก</button>
         <button class="chat-suggestion-chip" data-query="เตรียมสารละลาย">💧 วิธีเตรียมสารละลาย</button>
+        <button class="chat-suggestion-chip" data-query="จำแนกของเสีย">🗑️ จำแนกประเภทของเสีย</button>
       </div>
     </div>
 
@@ -1860,11 +1882,46 @@
       </div>
       
       <div class="modal-body" style="padding: 24px; max-height: 400px; overflow-y: auto; font-family: 'Prompt', sans-serif;">
+        <!-- v1.7.4 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.4</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">24 มิถุนายน 2569 (ล่าสุด)</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>การเชื่อมโยงข้อมูลระหว่างหลายอุปกรณ์ (Multi-device Admin Sync):</b> เพิ่มการดึงข้อมูลงบประมาณประจำปีและรายการสั่งซื้อย้อนหลังแบบเรียลไทม์จากเซิร์ฟเวอร์หลังบ้าน/ฐานข้อมูลคลาวด์โดยอัตโนมัติ ทำให้ผู้ใช้ที่เป็นแอดมินหลายคนสามารถเข้าดูข้อมูลตัวเลขงบประมาณที่ตรงกันได้ในทุกอุปกรณ์</li>
+          </ul>
+        </div>
+
+        <!-- v1.7.3 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.3</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">24 มิถุนายน 2569 (ล่าสุด)</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>การจำแนกกลุ่มสารเคมีตาม Chulalongkorn University (SHECU):</b> ปรับปรุงประเภทความเป็นอันตรายและกลุ่มการจัดเก็บสารเคมีเป็น 11 กลุ่มความเข้ากันได้ (A, B, C, D, E, F, G, I, K, L, X) ตามมาตรฐานความปลอดภัยของจุฬาลงกรณ์มหาวิทยาลัย</li>
+            <li><b>ระบบป๊อปอัปคำแนะนำการจัดเก็บ:</b> ปรับปรุงคำเตือนการจัดเก็บสารเคมีร่วมตู้และปรับรูปแบบป้ายคำแนะนำให้ตอบสนองทันทีและไม่กินเนื้อที่หน้าจอ</li>
+          </ul>
+        </div>
+
+        <!-- v1.7.2 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.2</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">23 มิถุนายน 2569 (เสถียรล่าสุด)</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบช่วยเหลือจำแนกของเสีย (CU WasteTrack):</b> ติดตั้งแผงจำแนกประเภทของเสียอัจฉริยะ 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัยในหน้าเพิ่ม/แก้ไขพัสดุ เมื่อเลือกหมวดหมู่เป็นสารเคมี</li>
+            <li><b>ระบบแนะนำการจัดเก็บสารเคมี:</b> แสดงคำแนะนำการจัดเก็บสารเคมีตามกลุ่มความเข้ากันได้ และช่วยเลือกประเภทความเป็นอันตรายโดยอัตโนมัติขณะพิมพ์ชื่อสารเคมี</li>
+          </ul>
+        </div>
+
         <!-- v1.7.1 -->
         <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.1</span>
-            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">28 พฤษภาคม 2569 (เสถียรล่าสุด)</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">28 พฤษภาคม 2569</span>
           </div>
           <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
             <li><b>เปิดตัวแชทบอทอัจฉริยะ Catalyst (แคททาไลต์):</b> ผู้ช่วยส่วนตัวเคมี สามารถตอบปัญหา สรุปข้อมูล ปฐมพยาบาลเบื้องต้น และให้คำแนะนำวิธีดำเนินงานสารเคมีได้ทันใจ</li>
@@ -1886,6 +1943,27 @@
             <li><b>ยกระดับความเร็วระบบ:</b> รองรับความเร็วในการดึงข้อมูลจากหลังบ้านและการนำเข้าข้อมูลไฟล์ CSV ในปริมาณมาก</li>
           </ul>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: STORAGE RECOMMENDATION
+       ========================================== -->
+  <div class="modal-overlay" id="storageRecModal">
+    <div class="modal-content" style="max-width: 500px; border-radius: var(--border-radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; overflow: hidden; background: #ffffff;">
+      <div class="modal-header" id="storageRecModalHeader" style="background: var(--accent-red); color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="shield-alert" id="storageRecModalIcon" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
+          <span id="storageRecModalTitle" style="color: #ffffff !important;">คำแนะนำการจัดเก็บสารเคมี</span>
+        </h2>
+        <button class="modal-close-btn" id="storageRecModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
+      </div>
+      <div class="modal-body" id="storageRecModalBody" style="padding: 24px; font-family: 'Prompt', sans-serif; font-size: 14px; line-height: 1.6; color: var(--text-main); overflow-y: auto; max-height: 350px;">
+        <!-- Dynamic content -->
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="storageRecModalCloseBtn" style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer;">ปิด</button>
       </div>
     </div>
   </div>
