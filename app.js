@@ -232,60 +232,6 @@ const BOOKING_SLOTS = [
 document.addEventListener("DOMContentLoaded", async () => {
   // First, check backend online status
   await checkBackendStatus();
-  
-  // One-Time Firebase Firestore database cleanup (for clearing mock data from cloud)
-  if (!localStorage.getItem("firebase_cleared_v1.8.0") && isFirebaseOnline && db) {
-    try {
-      console.log("🧹 Starting Firebase Firestore cleanup...");
-      
-      // 1. Clear transactions collection
-      const txSnapshot = await db.collection("transactions").get();
-      const txBatch = db.batch();
-      let txCount = 0;
-      txSnapshot.forEach(doc => {
-        txBatch.delete(doc.ref);
-        txCount++;
-      });
-      if (txCount > 0) {
-        await txBatch.commit();
-        console.log(`🧹 Cleared ${txCount} transactions from Firebase.`);
-      }
-
-      // 2. Clear bookings collection
-      const bkSnapshot = await db.collection("bookings").get();
-      const bkBatch = db.batch();
-      let bkCount = 0;
-      bkSnapshot.forEach(doc => {
-        bkBatch.delete(doc.ref);
-        bkCount++;
-      });
-      if (bkCount > 0) {
-        await bkBatch.commit();
-        console.log(`🧹 Cleared ${bkCount} bookings from Firebase.`);
-      }
-
-      // 3. Clear and re-seed items collection
-      const itSnapshot = await db.collection("items").get();
-      const itBatch = db.batch();
-      itSnapshot.forEach(doc => {
-        itBatch.delete(doc.ref);
-      });
-      await itBatch.commit();
-      
-      const seedBatch = db.batch();
-      DEMO_DATA.forEach(item => {
-        const docRef = db.collection("items").doc(item.code);
-        seedBatch.set(docRef, item);
-      });
-      await seedBatch.commit();
-      
-      localStorage.setItem("firebase_cleared_v1.8.0", "true");
-      console.log("🧹 Firebase Firestore cleanup completed successfully.");
-    } catch (err) {
-      console.error("🧹 Firebase Firestore cleanup failed:", err);
-    }
-  }
-  
   // Load data
   await loadAllItems();
   
@@ -316,6 +262,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupDashboardReports();
   setupHistoryExports();
   setupGhsSuggestions();
+  setupWasteClassificationWizard();
   setupBarcodeScanner();
   setupCameraScanner();
   setupLoginHandlers();
@@ -328,6 +275,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Initialize Lucide icons initially
   lucide.createIcons();
+
+  // Background synchronization for budget and purchase orders (multi-admin sync)
+  setInterval(() => {
+    if (typeof syncBudgetInRealtime === "function") {
+      syncBudgetInRealtime();
+    }
+  }, 8000); // Poll every 8 seconds
 });
 
 // Check if Backend server is active
@@ -1457,23 +1411,10 @@ function setupFormHandlers() {
         if (editIndex !== "" && item.code === items[editIndex].code) return false;
 
         if (item.category === "สารเคมี" && item.room === room && item.cabinet === cabinet && item.chemicalType) {
-          if (chemicalType === "acid" && item.chemicalType === "base") {
-            conflictType = "base";
-            conflictName = getItemDisplayName(item);
-            return true;
-          }
-          if (chemicalType === "base" && item.chemicalType === "acid") {
-            conflictType = "acid";
-            conflictName = getItemDisplayName(item);
-            return true;
-          }
-          if (chemicalType === "oxidizer" && item.chemicalType === "organic") {
-            conflictType = "organic";
-            conflictName = getItemDisplayName(item);
-            return true;
-          }
-          if (chemicalType === "organic" && item.chemicalType === "oxidizer") {
-            conflictType = "oxidizer";
+          const g1 = chemicalType;
+          const g2 = item.chemicalType;
+          if (areIncompatible(g1, g2)) {
+            conflictType = g2;
             conflictName = getItemDisplayName(item);
             return true;
           }
@@ -1483,15 +1424,22 @@ function setupFormHandlers() {
 
       if (potentialConflict) {
         const typeLabels = {
-          acid: "กรด",
-          base: "เบส/ด่าง",
-          oxidizer: "สารออกซิไดซ์",
-          organic: "ตัวทำละลายอินทรีย์/สารไวไฟ"
+          "A": "กลุ่ม A - เบสอินทรีย์ (Organic Bases)",
+          "B": "กลุ่ม B - สารที่ลุกติดไฟเอง/ทำปฏิกิริยากับน้ำ (Pyrophoric/Water Reactive)",
+          "C": "กลุ่ม C - เบสอนินทรีย์ (Inorganic Bases)",
+          "D": "กลุ่ม D - กรดอินทรีย์ (Organic Acids)",
+          "E": "กลุ่ม E - สารออกซิไดเซอร์อนินทรีย์ (Inorganic Oxidizers)",
+          "F": "กลุ่ม F - กรดอนินทรีย์ (Inorganic Acids)",
+          "G": "กลุ่ม G - สารเคมีทั่วไปที่ไม่ว่องไว (General)",
+          "I": "กลุ่ม I - สารออกซิไดเซอร์ที่เป็นกรดแก่ (Strong Oxidizing Acids)",
+          "K": "กลุ่ม K - สารระเบิดได้ที่มีความคงตัว (Stable Explosives)",
+          "L": "กลุ่ม L - สารไวไฟและตัวทำละลายอินทรีย์ (Flammables/Solvents)",
+          "X": "กลุ่ม X - สารที่ไม่เข้ากันกับสารอื่น (Incompatible with ALL)"
         };
-        const msg = `⚠️ คำเตือนสารเคมีเข้ากันไม่ได้:\n` +
+        const msg = `⚠️ คำเตือนจัดเก็บสารเคมีร่วมตู้ที่ไม่เข้ากัน:\n` +
                     `พบ "${conflictName}" ซึ่งเป็นสารประเภท "${typeLabels[conflictType]}" จัดเก็บอยู่ใน "${room} > ${cabinet}" เรียบร้อยแล้ว\n` +
-                    `ไม่ควรจัดเก็บสารประเภท "${typeLabels[chemicalType]}" ร่วมกันในตู้เดียวกัน\n\n` +
-                    `คุณต้องการบันทึกการจัดเก็บต่อไปใช่หรือไม่?`;
+                    `สารประเภท "${typeLabels[chemicalType]}" และ "${typeLabels[conflictType]}" ไม่ควรจัดเก็บร่วมกันในตู้เดียวกันตามมาตรฐานความปลอดภัย\n\n` +
+                    `คุณต้องการบันทึกการจัดเก็บร่วมกันต่อไปใช่หรือไม่?`;
         if (!confirm(msg)) {
           return;
         }
@@ -1548,6 +1496,9 @@ function setupFormHandlers() {
     // Update UI directly
     updateUI();
     form.reset();
+    if (typeof window.clearCompatibilityRecommendation === "function") {
+      window.clearCompatibilityRecommendation();
+    }
     
     // Set default value back to "ขวด" after reset
     document.getElementById("itemUnit").value = "ขวด";
@@ -1567,6 +1518,9 @@ function setupFormHandlers() {
     document.getElementById("itemDamagedQty").value = 0;
     document.getElementById("itemRepairQty").value = 0;
     document.querySelectorAll('input[name="ghs"]').forEach(cb => cb.checked = false);
+    if (typeof window.clearCompatibilityRecommendation === "function") {
+      window.clearCompatibilityRecommendation();
+    }
   });
 
   // Cancel edit handler
@@ -1586,6 +1540,9 @@ function setupFormHandlers() {
     document.getElementById("itemDamagedQty").value = 0;
     document.getElementById("itemRepairQty").value = 0;
     document.querySelectorAll('input[name="ghs"]').forEach(cb => cb.checked = false);
+    if (typeof window.clearCompatibilityRecommendation === "function") {
+      window.clearCompatibilityRecommendation();
+    }
     navigateToPanel("all-items");
   });
 }
@@ -1634,6 +1591,10 @@ window.editItem = function(index) {
   document.getElementById("formPanelSubtitle").innerText = `กำลังดำเนินการแก้ไขรายการ: [${item.code}] ${getItemDisplayName(item)}`;
   document.getElementById("btnSubmitForm").innerText = "บันทึกการแก้ไข";
   document.getElementById("btnCancelEdit").style.display = "inline-flex";
+
+  if (typeof window.applyGhsSuggestions === "function") {
+    window.applyGhsSuggestions();
+  }
 };
 
 // Global Delete Action
@@ -3591,6 +3552,10 @@ window.cancelBookingRecord = async function(bookingId) {
 
 // Sync functions to persist local changes to database server
 function syncBudgetToBackend() {
+  if (isFirebaseOnline) {
+    db.collection("system").doc("budget").set({ budget: annualBudget })
+      .catch(e => console.error("Failed to sync budget to Firebase:", e));
+  }
   if (isBackendOnline) {
     fetch(`${API_BASE}/budget`, {
       method: 'POST',
@@ -3601,6 +3566,12 @@ function syncBudgetToBackend() {
 }
 
 function syncPurchaseOrdersToBackend() {
+  if (isFirebaseOnline) {
+    purchaseOrders.forEach(o => {
+      db.collection("purchase_orders").doc(o.id).set(o)
+        .catch(e => console.error("Failed to sync purchase order to Firebase:", e));
+    });
+  }
   if (isBackendOnline) {
     fetch(`${API_BASE}/purchase-orders`, {
       method: 'POST',
@@ -3638,6 +3609,24 @@ let purchaseOrderDrafts = [];
 let annualBudget = 100000;
 
 async function loadAnnualBudget() {
+  if (isFirebaseOnline) {
+    try {
+      const doc = await db.collection("system").doc("budget").get();
+      if (doc.exists) {
+        annualBudget = parseFloat(doc.data().budget) || 100000;
+        localStorage.setItem("lab_annual_budget", annualBudget.toString());
+        return;
+      } else {
+        await db.collection("system").doc("budget").set({ budget: 100000 });
+        annualBudget = 100000;
+        localStorage.setItem("lab_annual_budget", "100000");
+        return;
+      }
+    } catch (e) {
+      console.error("Failed to load budget from Firebase:", e);
+    }
+  }
+
   if (isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/budget`);
@@ -3699,6 +3688,34 @@ async function loadPurchaseOrders() {
     }
   ];
 
+  if (isFirebaseOnline) {
+    try {
+      const snapshot = await db.collection("purchase_orders").get();
+      const loadedOrders = [];
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        if (d && d.id) loadedOrders.push(d);
+      });
+      if (loadedOrders.length > 0) {
+        purchaseOrders = loadedOrders;
+        localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+        return;
+      } else {
+        const batch = db.batch();
+        defaultOrders.forEach(o => {
+          const docRef = db.collection("purchase_orders").doc(o.id);
+          batch.set(docRef, o);
+        });
+        await batch.commit();
+        purchaseOrders = [...defaultOrders];
+        localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+        return;
+      }
+    } catch (e) {
+      console.error("Failed to load purchase orders from Firebase:", e);
+    }
+  }
+
   if (isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/purchase-orders`);
@@ -3743,6 +3760,85 @@ async function loadPurchaseOrders() {
   } else {
     purchaseOrders = [...defaultOrders];
     localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+  }
+}
+
+// Background synchronization for budget and purchase orders (multi-admin sync)
+async function syncBudgetInRealtime() {
+  let changed = false;
+
+  // 1. Sync Budget
+  if (isFirebaseOnline) {
+    try {
+      const doc = await db.collection("system").doc("budget").get();
+      if (doc.exists) {
+        const val = parseFloat(doc.data().budget) || 100000;
+        if (val !== annualBudget) {
+          annualBudget = val;
+          localStorage.setItem("lab_annual_budget", annualBudget.toString());
+          changed = true;
+        }
+      }
+    } catch (e) {
+      console.error("Firebase budget sync failed:", e);
+    }
+  } else if (isBackendOnline) {
+    try {
+      const response = await fetch(`${API_BASE}/budget`);
+      if (response.ok) {
+        const data = await response.json();
+        const val = parseFloat(data.budget) || 100000;
+        if (val !== annualBudget) {
+          annualBudget = val;
+          localStorage.setItem("lab_annual_budget", annualBudget.toString());
+          changed = true;
+        }
+      }
+    } catch (e) {
+      console.error("Backend budget sync failed:", e);
+    }
+  }
+
+  // 2. Sync Purchase Orders
+  if (isFirebaseOnline) {
+    try {
+      const snapshot = await db.collection("purchase_orders").get();
+      const loadedOrders = [];
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        if (d && d.id) loadedOrders.push(d);
+      });
+      if (loadedOrders.length !== purchaseOrders.length || JSON.stringify(loadedOrders) !== JSON.stringify(purchaseOrders)) {
+        purchaseOrders = loadedOrders;
+        localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+        changed = true;
+      }
+    } catch (e) {
+      console.error("Firebase purchase orders sync failed:", e);
+    }
+  } else if (isBackendOnline) {
+    try {
+      const response = await fetch(`${API_BASE}/purchase-orders`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.length !== purchaseOrders.length || JSON.stringify(data) !== JSON.stringify(purchaseOrders)) {
+          purchaseOrders = data;
+          localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+          changed = true;
+        }
+      }
+    } catch (e) {
+      console.error("Backend purchase orders sync failed:", e);
+    }
+  }
+
+  // 3. Update UI if anything changed
+  if (changed) {
+    updateBudgetUI();
+    const poTable = document.getElementById("purchaseOrdersTableBody");
+    if (poTable) {
+      renderOrdersTable();
+    }
   }
 }
 
@@ -4088,6 +4184,12 @@ function renderOrdersTable() {
 
 window.deletePurchaseOrder = function(orderId) {
   if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้?")) return;
+  
+  if (isFirebaseOnline) {
+    db.collection("purchase_orders").doc(orderId).delete()
+      .catch(e => console.error("Failed to delete purchase order from Firebase:", e));
+  }
+  
   purchaseOrders = purchaseOrders.filter(o => o.id !== orderId);
   localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
   syncPurchaseOrdersToBackend();
@@ -5839,11 +5941,75 @@ function setupDashboardReports() {
   }
 }
 
+function areIncompatible(g1, g2) {
+  if (!g1 || !g2) return false;
+  if (g1 === "X" || g2 === "X") return true; // Group X is incompatible with everything, including itself
+  if (g1 === "B" && g2 !== "B") return true;
+  if (g2 === "B" && g1 !== "B") return true;
+  if (g1 === "I" && g2 !== "I") return true;
+  if (g2 === "I" && g1 !== "I") return true;
+  if (g1 === "K" && g2 !== "K") return true;
+  if (g2 === "K" && g1 !== "K") return true;
+  
+  // Specific pairwise incompatibility rules based on poster and Stanford storage compatibility guidelines
+  const incompatibilities = {
+    "A": ["C", "D", "F", "E"],
+    "C": ["A", "D", "F", "E"],
+    "D": ["A", "C", "E"],
+    "F": ["A", "C", "E", "L"],
+    "E": ["A", "C", "D", "F", "L"],
+    "L": ["E", "F", "C"]
+  };
+  
+  if (incompatibilities[g1] && incompatibilities[g1].includes(g2)) return true;
+  if (incompatibilities[g2] && incompatibilities[g2].includes(g1)) return true;
+  
+  return false;
+}
+
 function setupGhsSuggestions() {
   const itemNameInput = document.getElementById("itemName");
   const itemCategorySelect = document.getElementById("itemCategory");
+  const chemTypeSelect = document.getElementById("itemChemicalType");
+  const recBadge = document.getElementById("compatibilityRecBadge");
+  const wasteCard = document.getElementById("wasteClassificationCard");
   
-  if (!itemNameInput || !itemCategorySelect) return;
+  if (!itemNameInput || !itemCategorySelect || !recBadge) return;
+  
+  // Storage Rec Modal Elements
+  const storageRecModal = document.getElementById("storageRecModal");
+  const storageRecModalClose = document.getElementById("storageRecModalClose");
+  const storageRecModalCloseBtn = document.getElementById("storageRecModalCloseBtn");
+  const storageRecModalBody = document.getElementById("storageRecModalBody");
+  const storageRecModalHeader = document.getElementById("storageRecModalHeader");
+
+  function closeRecModal() {
+    if (storageRecModal) {
+      storageRecModal.classList.remove("active");
+    }
+  }
+
+  if (storageRecModalClose) storageRecModalClose.addEventListener("click", closeRecModal);
+  if (storageRecModalCloseBtn) storageRecModalCloseBtn.addEventListener("click", closeRecModal);
+  if (storageRecModal) {
+    storageRecModal.addEventListener("click", (e) => {
+      if (e.target === storageRecModal) {
+        closeRecModal();
+      }
+    });
+  }
+
+  window.openCompatibilityPopup = function() {
+    if (!window.currentStorageRecommendation || !storageRecModal || !storageRecModalBody) return;
+    
+    storageRecModalBody.innerHTML = window.currentStorageRecommendation.text;
+    
+    if (storageRecModalHeader) {
+      storageRecModalHeader.style.background = window.currentStorageRecommendation.borderColor;
+    }
+    
+    storageRecModal.classList.add("active");
+  };
   
   function getGhsSuggestions(name) {
     const suggestions = [];
@@ -5908,10 +6074,31 @@ function setupGhsSuggestions() {
   
   function applyGhsSuggestions() {
     const category = itemCategorySelect.value;
-    if (category !== "สารเคมี") return;
+    const wasteCard = document.getElementById("wasteClassificationCard");
+
+    if (category !== "สารเคมี") {
+      if (recBadge) {
+        recBadge.style.display = "none";
+        recBadge.innerHTML = "";
+      }
+      if (wasteCard) {
+        wasteCard.style.display = "none";
+      }
+      return;
+    } else {
+      if (wasteCard) {
+        wasteCard.style.display = "block";
+      }
+    }
     
     const name = itemNameInput.value.trim();
-    if (!name) return;
+    if (!name) {
+      if (recBadge) {
+        recBadge.style.display = "none";
+        recBadge.innerHTML = "";
+      }
+      return;
+    }
     
     const suggestions = getGhsSuggestions(name);
     
@@ -5921,10 +6108,370 @@ function setupGhsSuggestions() {
         cb.checked = true;
       }
     });
+
+    // Compatibility group suggestions & Auto-hazard dropdown select
+    if (recBadge && chemTypeSelect) {
+      const nameLower = name.toLowerCase();
+      
+      const incompatibleAllPatterns = ["acrolein", "benzyl azide", "picric acid", "phosphorus", "sodium azide", "sodium hydrogen sulfide", "กรดพิกริก", "ฟอสฟอรัส", "โซเดียมเอไซด์"];
+      const explosivePatterns = ["nitroguanidine", "tetrazene", "urea nitrate", "explosive", "สารระเบิด", "ไนโทรกัวนิดีน", "ยูเรียไนเตรต"];
+      const waterReactivePatterns = ["benzoyl chloride", "lithium aluminum hydride", "lithium metal", "methyl lithium", "methanesulfonyl chloride", "potassium metal", "sodium borohydride", "sodium sulfide", "zinc dust", "pyrophoric", "water reactive", "ทำปฏิกิริยากับน้ำ", "ลุกติดไฟได้เอง", "โซเดียมโบโรไฮไดรด์", "ลิเทียมอะลูมิเนียมไฮไดรด์", "ผงสังกะสี", "โลหะโซเดียม", "โลหะโพแทสเซียม"];
+      const strongOxidizingAcidPatterns = ["chromic acid", "hno3", "nitric acid", "perchloric acid", "hclo4", "periodic acid", "sulfuric acid", "h2so4", "กรดซัลฟิวริก", "กรดไนตริก", "กรดเปอร์คลอริก", "กรดโครมิก"];
+      const inorganicAcidPatterns = ["hydrochloric acid", "hcl", "hydrofluoric acid", "hf", "phosphoric acid", "h3po4", "กรดไฮโดรคลอริก", "กรดเกลือ", "กรดฟอสฟอริก", "กรดไฮโดรฟลูออริก", "กรดอนินทรีย์"];
+      const organicAcidPatterns = ["acetic acid", "benzoic acid", "citric acid", "edta", "formic acid", "maleic acid", "propionic acid", "succinic acid", "trifluoroacetic acid", "tfa", "acetic anhydride", "กรดอะซิติก", "กรดซิตริก", "กรดฟอร์มิก", "กรดอินทรีย์"];
+      const organicBasePatterns = ["benzylamine", "diethylamine", "ethanolamine", "imidazole", "piperidine", "pyridine", "triethanolamine", "เบสอินทรีย์", "เอทาโนลามีน", "ไพริดีน", "อิมิดาโซล"];
+      const inorganicBasePatterns = ["ammonium hydroxide", "barium hydroxide", "calcium hydroxide", "cesium hydroxide", "lithium hydroxide", "potassium hydroxide", "sodium hydroxide", "naoh", "koh", "ca(oh)2", "เบสอนินทรีย์", "โซเดียมไฮดรอกไซด์", "โพแทสเซียมไฮดรอกไซด์", "แอมโมเนียมไฮดรอกไซด์"];
+      const oxidizerPatterns = ["aluminum nitrate", "ammonium persulfate", "calcium nitrate", "hydrogen peroxide", "silver nitrate", "sodium chlorate", "sodium dichromate", "sodium hypochlorite", "sodium nitrate", "oxidizer", "peroxide", "nitrate", "chlorate", "ออกซิไดเซอร์", "ไฮโดรเจนเปอร์ออกไซด์", "ไนเตรต", "คลอเรต", "เปอร์ออกไซด์"];
+      const flammablePatterns = ["formamide", "glycerol", "hexane", "methanol", "dmf", "dimethylformamide", "phenol", "propanol", "sds solid", "tetrahydrofuran", "thf", "toluene", "xylene", "ethanol", "acetone", "ethyl acetate", "acetonitrile", "butanol", "dichloromethane", "dcm", "ether", "alcohol", "solvent", "flammable", "ตัวทำละลาย", "สารไวไฟ", "เอทานอล", "เมทานอล", "โทลูอีน", "ไซลีน", "เฮกเซน"];
+      const generalPatterns = ["acrylamide", "agarose", "ammonium acetate", "ammonium chloride", "boric acid", "calcium chloride", "magnesium sulfate", "sodium acetate", "sds solution", "sodium dodecyl sulfate", "ทั่วไป", "เกลือ", "โซเดียมอะซิเตต", "แคลเซียมคลอไรด์", "แมกนีเซียมซัลเฟต", "กรดบอริก"];
+
+      let group = "G";
+      let groupLabel = "กลุ่ม G - สารเคมีทั่วไปที่ไม่ว่องไว";
+      let recText = "";
+      let bgColor = "rgba(16, 185, 129, 0.08)";
+      let textColor = "#047857";
+      let borderColor = "#10b981";
+
+      if (incompatibleAllPatterns.some(p => nameLower.includes(p))) {
+        group = "X";
+        groupLabel = "กลุ่ม X - สารที่ไม่เข้ากันกับสารอื่น";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม X):</b><br>` +
+                  `สารกลุ่มนี้มีความไวต่อปฏิกิริยาเป็นพิเศษ และสามารถทำปฏิกิริยารุนแรงกับสารเคมีอื่นๆ แทบทุกชนิด<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> <b>ต้องจัดเก็บแยกเดี่ยวแยกขาดจากสารเคมีอื่นๆ ทั้งหมด (รวมถึงสารในกลุ่ม X ตัวอื่นๆ ด้วย)</b> โดยแนะนำให้เก็บในภาชนะป้องกันสองชั้น (Double Containment) หรือตู้เฉพาะตัวเดี่ยวๆ`;
+        bgColor = "rgba(75, 85, 99, 0.08)";
+        textColor = "#374151";
+        borderColor = "#4b5563";
+      } else if (explosivePatterns.some(p => nameLower.includes(p))) {
+        group = "K";
+        groupLabel = "กลุ่ม K - สารระเบิดได้ที่มีความคงตัว";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม K):</b><br>` +
+                  `สารระเบิดได้ที่มีความคงตัวในการจัดเก็บปกติ แต่ยังคงไวต่อความร้อน แรงกระแทก ประกายไฟ หรือการเสียดสี<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> <b>ต้องจัดเก็บในตู้เก็บสารระเบิดเฉพาะที่มั่นคงแข็งแรง มีการควบคุมอุณหภูมิและความปลอดภัยสูง</b> แยกห่างจากกลุ่มสารเคมีอื่นๆ ทั้งหมดเด็ดขาด`;
+        bgColor = "rgba(245, 158, 11, 0.08)";
+        textColor = "#d97706";
+        borderColor = "#f59e0b";
+      } else if (waterReactivePatterns.some(p => nameLower.includes(p))) {
+        group = "B";
+        groupLabel = "กลุ่ม B - สารที่ทำปฏิกิริยากับน้ำ/ลุกติดไฟเอง";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม B):</b><br>` +
+                  `สารกลุ่มนี้ไวต่ออากาศและความชื้นอย่างมาก สามารถลุกไหม้ได้เองในอากาศ หรือทำปฏิกิริยากับน้ำแล้วให้แก๊สไวไฟสูง<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> <b>ต้องจัดเก็บแยกเดี่ยวในตู้นิรภัยเฉพาะสารทำปฏิกิริยากับน้ำ/ลุกติดไฟเอง</b> ห้ามจัดเก็บร่วมกับสารกลุ่มอื่นๆ หรือจัดเก็บใกล้แหล่งน้ำหรือความชื้นเด็ดขาด`;
+        bgColor = "rgba(239, 68, 68, 0.08)";
+        textColor = "#dc2626";
+        borderColor = "#ef4444";
+      } else if (strongOxidizingAcidPatterns.some(p => nameLower.includes(p))) {
+        group = "I";
+        groupLabel = "กลุ่ม I - สารออกซิไดเซอร์ที่เป็นกรดแก่";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม I):</b><br>` +
+                  `กรดแก่ที่มีฤทธิ์ออกซิไดซ์สูงมาก ก่อให้เกิดปฏิกิริยารุนแรงและลุกไหม้ได้เมื่อสัมผัสกับสารอินทรีย์หรือตัวทำละลาย<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> <b>ต้องจัดเก็บแยกจากกลุ่มอื่นๆ ทั้งหมดอย่างเด็ดขาด</b> (โดยเฉพาะห้ามเก็บรวมกับกรดอินทรีย์กลุ่ม D หรือตัวทำละลายกลุ่ม L) แนะนำให้ใช้ถาดรองสารเคมีเฉพาะกลุ่มเพื่อแยกทางกายภาพ`;
+        bgColor = "rgba(220, 38, 38, 0.08)";
+        textColor = "#991b1b";
+        borderColor = "#dc2626";
+      } else if (inorganicAcidPatterns.some(p => nameLower.includes(p))) {
+        group = "F";
+        groupLabel = "กลุ่ม F - กรดอนินทรีย์";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม F):</b><br>` +
+                  `กรดอนินทรีย์กัดกร่อนสูง ทำปฏิกิริยารุนแรงคายความร้อนมากกับเบส และทำปฏิกิริยากับสารออกซิไดซ์<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> จัดเก็บในตู้เก็บสารกัดกร่อนเฉพาะสำหรับกรด (Acid Cabinet) แยกห่างจากเบส (กลุ่ม A, C) สารไวไฟ (กลุ่ม L) และสารออกซิไดเซอร์ (กลุ่ม E, I)`;
+        bgColor = "rgba(249, 115, 22, 0.08)";
+        textColor = "#c2410c";
+        borderColor = "#f97316";
+      } else if (organicAcidPatterns.some(p => nameLower.includes(p))) {
+        group = "D";
+        groupLabel = "กลุ่ม D - กรดอินทรีย์";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม D):</b><br>` +
+                  `กรดอินทรีย์เป็นสารติดไฟได้และสามารถทำปฏิกิริยารุนแรงกับกรดออกซิไดซ์ที่เป็นกรดแก่<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> จัดเก็บในตู้เก็บกรดโดยแยกทางกายภาพจากกรดอนินทรีย์แก่ (กลุ่ม I) หรือจัดเก็บในตู้นิรภัยสำหรับสารไวไฟร่วมกับกลุ่ม L แยกห่างจากเบส (กลุ่ม A, C) และสารออกซิไดเซอร์ (กลุ่ม E)`;
+        bgColor = "rgba(168, 85, 247, 0.08)";
+        textColor = "#7e22ce";
+        borderColor = "#a855f7";
+      } else if (organicBasePatterns.some(p => nameLower.includes(p))) {
+        group = "A";
+        groupLabel = "กลุ่ม A - เบสอินทรีย์";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม A):</b><br>` +
+                  `สารกลุ่มนี้ทำปฏิกิริยารุนแรงกับกรด และสามารถเข้าทำปฏิกิริยากับตัวทำละลายฮาโลเจนจนเกิดการระเบิดได้<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> จัดเก็บร่วมกับตัวทำละลายอินทรีย์และเบสอินทรีย์อื่นๆ ได้ (เช่น กลุ่ม L) แต่ห้ามจัดเก็บร่วมกับกรด (กลุ่ม D, F, I) และสารออกซิไดเซอร์ (กลุ่ม E) เด็ดขาด`;
+        bgColor = "rgba(236, 72, 153, 0.08)";
+        textColor = "#be185d";
+        borderColor = "#ec4899";
+      } else if (inorganicBasePatterns.some(p => nameLower.includes(p))) {
+        group = "C";
+        groupLabel = "กลุ่ม C - เบสอนินทรีย์";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม C):</b><br>` +
+                  `สารเคมีกลุ่มเบสอนินทรีย์ ทำปฏิกิริยาคายความร้อนสูงและรุนแรงหากทำปฏิกิริยากับกรด<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> จัดเก็บในตู้อโลหะทนสารเคมีเฉพาะสำหรับเบส/ด่าง แยกเก็บห่างจากกรด (กลุ่ม D, F, I) และสารออกซิไดเซอร์เด็ดขาด`;
+        bgColor = "rgba(59, 130, 246, 0.08)";
+        textColor = "#1d4ed8";
+        borderColor = "#3b82f6";
+      } else if (oxidizerPatterns.some(p => nameLower.includes(p))) {
+        group = "E";
+        groupLabel = "กลุ่ม E - สารออกซิไดเซอร์อนินทรีย์";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม E):</b><br>` +
+                  `สารออกซิไดเซอร์ช่วยเร่งการเผาไหม้อย่างรุนแรง และอาจระเบิดได้หากสัมผัสกับสารอินทรีย์ สารไวไฟ หรือกรด<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> จัดเก็บแยกห่างจากสารไวไฟ ตัวทำละลายอินทรีย์ (กลุ่ม L) กรดอินทรีย์ (กลุ่ม D) และสารลดเด็ดขาด เก็บในตู้ทนไฟเฉพาะสารออกซิไดซ์`;
+        bgColor = "rgba(234, 179, 8, 0.08)";
+        textColor = "#a16207";
+        borderColor = "#eab308";
+      } else if (flammablePatterns.some(p => nameLower.includes(p))) {
+        group = "L";
+        groupLabel = "กลุ่ม L - สารไวไฟและตัวทำละลายอินทรีย์";
+        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม L):</b><br>` +
+                  `สารไวไฟและตัวทำละลายอินทรีย์เสี่ยงต่อการติดไฟรวดเร็วและสะสมไอระเหยที่เป็นอันตราย<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> จัดเก็บในตู้นิรภัยสำหรับเก็บสารไวไฟ (Flammable Safety Cabinet) แยกห่างจากแหล่งความร้อน ประกายไฟ สารออกซิไดเซอร์ (กลุ่ม E, I) และกรดกัดกร่อน (กลุ่ม F)`;
+        bgColor = "rgba(249, 115, 22, 0.08)";
+        textColor = "#c2410c";
+        borderColor = "#f97316";
+      } else {
+        group = "G";
+        groupLabel = "กลุ่ม G - สารเคมีทั่วไปที่ไม่ว่องไว";
+        recText = `<b>ℹ️ คำแนะนำการจัดเก็บ (กลุ่ม G):</b><br>` +
+                  `สารเคมีทั่วไปที่มีความปลอดภัยค่อนข้างสูง ไม่ไวต่อปฏิกิริยา ไม่ลุกติดไฟเอง<br>` +
+                  `• <b>วิธีจัดเก็บ:</b> สามารถจัดเก็บในชั้นวางสารเคมีทั่วไปได้ แต่ให้ปิดฝาให้สนิท หลีกเลี่ยงความร้อนและแสงแดดจัด`;
+        bgColor = "rgba(16, 185, 129, 0.08)";
+        textColor = "#047857";
+        borderColor = "#10b981";
+      }
+
+      chemTypeSelect.value = group;
+      
+      window.currentStorageRecommendation = {
+        text: recText,
+        borderColor: borderColor
+      };
+      
+      recBadge.innerHTML = `💡 คำแนะนำจัดเก็บ (${groupLabel}) คลิกเพื่อดู`;
+      recBadge.style.backgroundColor = bgColor;
+      recBadge.style.color = textColor;
+      recBadge.style.borderColor = borderColor;
+      recBadge.style.display = "inline-flex";
+    }
+  }
+  
+  window.applyGhsSuggestions = applyGhsSuggestions;
+  window.clearCompatibilityRecommendation = function() {
+    if (recBadge) {
+      recBadge.style.display = "none";
+      recBadge.innerHTML = "";
+    }
+    const wasteCard = document.getElementById("wasteClassificationCard");
+    if (wasteCard) {
+      wasteCard.style.display = "none";
+    }
+    window.currentStorageRecommendation = null;
+  };
+  
+  if (recBadge) {
+    recBadge.addEventListener("click", () => {
+      if (typeof window.openCompatibilityPopup === "function") {
+        window.openCompatibilityPopup();
+      }
+    });
   }
   
   itemNameInput.addEventListener("input", applyGhsSuggestions);
   itemCategorySelect.addEventListener("change", applyGhsSuggestions);
+}
+
+
+function setupWasteClassificationWizard() {
+  const wizardContainer = document.getElementById("wasteClassificationWizard");
+  if (!wizardContainer) return;
+
+  function renderStep(stateKey) {
+    wizardContainer.innerHTML = "";
+    
+    let questionText = "";
+    let choices = [];
+    
+    if (stateKey === "waste_start") {
+      questionText = "<b>คำถามที่ 1:</b> เป็นสารเคมีเสื่อมสภาพหรือหมดอายุ (Deteriorated/Expired) ที่ยังสามารถระบุชื่อและระบุความเป็นอันตรายของสารเคมีนั้นได้ชัดเจนหรือไม่?";
+      choices = [
+        { label: "ใช่, เป็นขวดสารเคมีหมดอายุ/เสื่อมสภาพ", next: "waste_chem_15" },
+        { label: "ไม่ใช่ (เป็นสารละลายผสมหรือเศษวัสดุจากการทดลอง)", next: "waste_q2_expired_no" }
+      ];
+    } else if (stateKey === "waste_q2_expired_no") {
+      questionText = "<b>คำถามที่ 2:</b> เป็นของเสียพิเศษ (Special Waste) เช่น ของเสียที่ไม่ทราบที่มาแน่ชัด (Unknown Waste) หรือสารก่อมะเร็ง (เช่น เอธิเดียมโบรไมด์ Ethidium Bromide) หรือไม่?";
+      choices = [
+        { label: "ใช่, เป็นของเสียพิเศษ/สารก่อมะเร็ง", next: "waste_chem_1" },
+        { label: "ไม่ใช่ของเสียพิเศษ", next: "waste_q3_special_no" }
+      ];
+    } else if (stateKey === "waste_q3_special_no") {
+      questionText = "<b>คำถามที่ 3:</b> มีส่วนผสมหรือปนเปื้อนสารปรอท (Mercury) หรือไม่? (เช่น สารละลายเมอร์คิวรี(II) คลอไรด์, หรือเศษแก้วเทอร์โมมิเตอร์ปนเปื้อนปรอท)<br><span style='font-size: 11px; color: var(--text-muted);'>*(หมายเหตุ: ถ้าผสมกับไซยาไนด์จะจัดเป็น Special Waste Class 1)*</span>";
+      choices = [
+        { label: "ใช่, มีส่วนประกอบของปรอท", next: "waste_chem_4" },
+        { label: "ไม่มีสารปรอทปนเปื้อน", next: "waste_q4_mercury_no" }
+      ];
+    } else if (stateKey === "waste_q4_mercury_no") {
+      questionText = "<b>คำถามที่ 4:</b> มีอนุมูลไซยาไนด์ (Inorganic Cyanide) เป็นองค์ประกอบ หรือเป็นสารประกอบเชิงซ้อนไซยาไนด์ หรือไม่? (เช่น สารละลายโพแทสเซียมไซยาไนด์, สารเชิงซ้อน Ni(CN)₄²⁻)<br><span style='font-size: 11px; color: var(--text-muted);'>*(หมายเหตุ: ถ้าผสมกับปรอทจะจัดเป็น Special Waste Class 1)*</span>";
+      choices = [
+        { label: "ใช่, มีไซยาไนด์ปนเปื้อน", next: "waste_chem_2" },
+        { label: "ไม่มีไซยาไนด์", next: "waste_q5_cyanide_no" }
+      ];
+    } else if (stateKey === "waste_q5_cyanide_no") {
+      questionText = "<b>คำถามที่ 5:</b> สถานะทางกายภาพของของเสียเป็น <b>ของแข็ง (Solid)</b> หรือไม่?";
+      choices = [
+        { label: "ใช่, มีสถานะเป็นของแข็ง", next: "waste_q6_solid_yes" },
+        { label: "ไม่ใช่, เป็นของเหลว/สารละลาย", next: "waste_q6_solid_no" }
+      ];
+    } else if (stateKey === "waste_q6_solid_yes") {
+      questionText = "<b>คำถามที่ 6 (ของแข็ง):</b> ของแข็งดังกล่าวเป็นของแข็งเผาไหม้ได้ (Combustible เช่น เศษซากพืชที่ได้จากการสกัด, ถุงมือยางปนเปื้อนเคมี) หรือเผาไหม้ไม่ได้ (Non-Combustible เช่น ซิลิกาเจล, เศษแก้วแตกทั่วไป)?";
+      choices = [
+        { label: "ของแข็งเผาไหม้ได้ (Combustible)", next: "waste_chem_13_1" },
+        { label: "ของแข็งเผาไหม้ไม่ได้ (Non-Combustible)", next: "waste_chem_13_2" }
+      ];
+    } else if (stateKey === "waste_q6_solid_no") {
+      questionText = "<b>คำถามที่ 6 (ของเหลว):</b> เป็นของเสียตัวทำละลายอินทรีย์ (Organic Solvent Waste) ใช่หรือไม่?";
+      choices = [
+        { label: "ใช่, เป็นตัวทำละลายอินทรีย์", next: "waste_q7_organic_yes" },
+        { label: "ไม่ใช่ (เป็นน้ำเสียมีน้ำเป็นตัวทำละลาย / Inorganic Aqueous)", next: "waste_q7_organic_no" }
+      ];
+    } else if (stateKey === "waste_q7_organic_yes") {
+      questionText = "<b>คำถามที่ 7 (สารอินทรีย์):</b> เป็นตัวทำละลายใช้แล้วที่ปนเปื้อนน้อย มีน้ำปนเปื้อนไม่เกิน 15% มีปริมาณมากพอส่งส่งเข้าโครงการ <b>Recycle</b> หรือไม่?";
+      choices = [
+        { label: "ใช่, ต้องการส่ง Recycle", next: "waste_q8_recycle_yes" },
+        { label: "ไม่ต้องการ Recycle (หรือสารปนเปื้อนเยอะ/น้ำปนเกิน 15%)", next: "waste_q8_recycle_no" }
+      ];
+    } else if (stateKey === "waste_q8_recycle_yes") {
+      questionText = "เลือกประเภทตัวทำละลายอินทรีย์รีไซเคิลของท่าน:";
+      choices = [
+        { label: "ของเสียไซลีน (Xylene)", next: "waste_chem_17_1" },
+        { label: "ของเสียเอทานอล (Ethanol)", next: "waste_chem_17_2" },
+        { label: "ของเสียอะซิโตน (Acetone)", next: "waste_chem_17_3" },
+        { label: "สารตัวทำละลายอินทรีย์อื่นๆ ที่จะรีไซเคิล", next: "waste_chem_17_4" }
+      ];
+    } else if (stateKey === "waste_q8_recycle_no") {
+      questionText = "<b>คำถามที่ 8 (สารอินทรีย์ไม่รีไซเคิล):</b> มีน้ำผสมปนเปื้อนอยู่ตั้งแต่ 5% ขึ้นไป (H₂O ≥ 5%) ใช่หรือไม่?";
+      choices = [
+        { label: "ใช่, มีน้ำผสมปนเปื้อน ≥ 5%", next: "waste_chem_16" },
+        { label: "ไม่ใช่, มีน้ำผสมต่ำมาก (< 5%)", next: "waste_q9_water_low" }
+      ];
+    } else if (stateKey === "waste_q9_water_low") {
+      questionText = "<b>คำถามที่ 9 (ตัวทำละลายอินทรีย์น้ำต่ำ):</b> ในโครงสร้างโมเลกุลมีธาตุเฮโลเจน (Halogen - เช่น F, Cl, Br, I) เป็นองค์ประกอบหลักใช่หรือไม่? (เช่น CCl₄, คลอโรฟอร์ม, ไตรคลอโรเอทิลีน)<br><span style='font-size: 11px; color: var(--text-muted);'>*(หมายเหตุ: ถ้าผสมกับ NPS Waste จะจัดเป็น Special Waste Class 1)*</span>";
+      choices = [
+        { label: "ใช่, มีธาตุฮาโลเจนในโครงสร้าง", next: "waste_chem_12" },
+        { label: "ไม่มีธาตุฮาโลเจน", next: "waste_q10_halogen_no" }
+      ];
+    } else if (stateKey === "waste_q10_halogen_no") {
+      questionText = "<b>คำถามที่ 10:</b> ในโครงสร้างโมเลกุลมีธาตุไนโตรเจน (N), ฟอสฟอรัส (P), หรือ ซัลเฟอร์ (S) เป็นองค์ประกอบใช่หรือไม่? (เช่น Dimethylformamide - DMF, Dimethylsulfoxide - DMSO, อะซิโตไนไตรล์)<br><span style='font-size: 11px; color: var(--text-muted);'>*(หมายเหตุ: ถ้าผสมกับ Halogenated Waste จะจัดเป็น Special Waste Class 1)*</span>";
+      choices = [
+        { label: "ใช่, มีธาตุ N, P, หรือ S", next: "waste_chem_11" },
+        { label: "ไม่มีธาตุกลุ่ม N, P, S", next: "waste_q11_nps_no" }
+      ];
+    } else if (stateKey === "waste_q11_nps_no") {
+      questionText = "<b>คำถามที่ 11:</b> ในโครงสร้างโมเลกุลมีธาตุออกซิเจน (O) เป็นองค์ประกอบใช่หรือไม่? (เช่น เอทิลแอซีเตต, อะซิโตน, แอลกอฮอล์, คีโตน, อีเทอร์)";
+      choices = [
+        { label: "ใช่, มีธาตุออกซิเจน", next: "waste_chem_10" },
+        { label: "ไม่มีธาตุออกซิเจน", next: "waste_q12_oxygen_no" }
+      ];
+    } else if (stateKey === "waste_q12_oxygen_no") {
+      questionText = "<b>คำถามที่ 12:</b> เป็นของเสียกลุ่มสารประกอบไฮโดรคาร์บอน (Hydrocarbon) ใช่หรือไม่? (เช่น น้ำมันเบนซิน, ดีเซล, น้ำมันเครื่อง, เฮกเซน, เพนเทน)";
+      choices = [
+        { label: "ใช่, เป็นสารไฮโดรคาร์บอน", next: "waste_chem_9" },
+        { label: "ไม่ใช่กลุ่มสารไฮโดรคาร์บอน", next: "waste_chem_16" }
+      ];
+    } else if (stateKey === "waste_q7_organic_no") {
+      questionText = "<b>คำถามที่ 7 (น้ำเสียอนินทรีย์):</b> มีส่วนประกอบหลักเป็นสารประกอบโครเมียม (Chromium) หรือไม่? (เช่น สารประกอบ Cr(VI), กรดโครมิก, น้ำเสียวิเคราะห์ COD)<br><span style='font-size: 11px; color: var(--text-muted);'>*(หมายเหตุ: ถ้าผสมกับ Mercury Waste จะจัดเป็น Mercury Waste Class 4)*</span>";
+      choices = [
+        { label: "ใช่, มีโครเมียมปนเปื้อน", next: "waste_chem_5" },
+        { label: "ไม่มีสารโครเมียม", next: "waste_q8_chromium_no" }
+      ];
+    } else if (stateKey === "waste_q8_chromium_no") {
+      questionText = "<b>คำถามที่ 8 (น้ำเสียอนินทรีย์):</b> มีคุณสมบัติเป็นสารออกซิไดซ์ (Oxidizing Agent) ที่อาจทำปฏิกิริยารุนแรงหรือไม่? (เช่น กรดไนตริก/ซัลฟิวริกเข้มข้น >60%, ด่างทับทิม, โซเดียมคลอเรต)<br><span style='font-size: 11px; color: var(--text-muted);'>*(หมายเหตุ: ถ้าผสมกับโครเมียมจะจัดเป็น Chromium Waste Class 5)*</span>";
+      choices = [
+        { label: "ใช่, มีความเป็นสารออกซิไดซ์", next: "waste_chem_3" },
+        { label: "ไม่มีสมบัติออกซิไดซ์", next: "waste_q9_oxidizer_no" }
+      ];
+    } else if (stateKey === "waste_q9_oxidizer_no") {
+      questionText = "<b>คำถามที่ 9 (น้ำเสียอนินทรีย์):</b> มีส่วนผสมของโลหะหนักอื่นเจือปนอยู่อย่างเข้มข้นมากกว่า 0.1 g/L (100 ppm) หรือไม่? (โลหะหนักอื่นๆ ที่ไม่ใช่ปรอทและโครเมียม เช่น แคดเมียม ตะกั่ว ทองแดง สังกะสี นิกเกิล เงิน)";
+      choices = [
+        { label: "ใช่, มีโลหะหนักเจือปนความเข้มข้นสูง", next: "waste_chem_6" },
+        { label: "ไม่มีโลหะหนัก หรือมีน้อยมาก (< 0.1 g/L)", next: "waste_q10_heavy_no" }
+      ];
+    } else if (stateKey === "waste_q10_heavy_no") {
+      questionText = "<b>คำถามที่ 10 (น้ำเสียอนินทรีย์):</b> ของเสียสารละลายนี้มีความเป็นกรดแก่หรือเบสแก่ปนเปื้อนอยู่เกิน 5% ใช่หรือไม่?";
+      choices = [
+        { label: "ใช่, เป็นกรดเด่น (pH < 7)", next: "waste_chem_7" },
+        { label: "ใช่, เป็นเบสเด่น (pH > 8)", next: "waste_chem_8" },
+        { label: "ไม่ใช่ (เป็นสารละลายน้ำทั่วไป เช่น น้ำเกลือเจือจาง)", next: "waste_chem_14" }
+      ];
+    }
+
+    if (stateKey.startsWith("waste_chem_")) {
+      const classKey = stateKey.substring(11).replace("_", ".");
+      const c = WASTE_CLASSES[classKey];
+      if (c) {
+        const resultHTML = `
+          <div style="background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--accent-green); padding: 16px; border-radius: var(--border-radius-sm); margin-bottom: 16px;">
+            <div style="font-size: 14px; font-weight: 600; color: var(--accent-green); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+              <span>ผลการจำแนกประเภทของเสียสำเร็จ!</span>
+            </div>
+            <div style="font-size: 14.5px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">
+              ประเภท: ${c.name}
+            </div>
+            <p style="font-size: 13px; color: var(--text-main); line-height: 1.5; margin-bottom: 8px;">
+              <b>คำจำกัดความ:</b> ${c.desc}
+            </p>
+            <p style="font-size: 13px; color: var(--text-main); line-height: 1.5; margin-bottom: 8px;">
+              <b>ตัวอย่างสาร:</b> ${c.examples}
+            </p>
+            <p style="font-size: 13.5px; color: var(--text-main); line-height: 1.5; margin-bottom: 0; background: #ffffff; padding: 10px; border-radius: 6px; border: 1px dashed var(--border-color);">
+              <b>⚠️ คำแนะนำส่งกำจัด:</b> ${c.guide}
+            </p>
+          </div>
+          <button type="button" class="btn btn-secondary" id="btnRestartWasteWizard" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); background: #ffffff; color: var(--text-main); font-weight: 600; cursor: pointer;">
+            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+            <span>เริ่มจำแนกของเสียใหม่</span>
+          </button>
+        `;
+        wizardContainer.innerHTML = resultHTML;
+        
+        lucide.createIcons({
+          attrs: {
+            class: 'lucide'
+          },
+          nameAttr: 'data-lucide',
+          node: wizardContainer
+        });
+
+        document.getElementById("btnRestartWasteWizard").addEventListener("click", () => {
+          renderStep("waste_start");
+        });
+      }
+    } else {
+      const qHTML = `
+        <div style="font-size: 14px; color: var(--text-main); line-height: 1.6; margin-bottom: 16px;">
+          ${questionText}
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          ${choices.map((choice) => `
+            <button type="button" class="waste-choice-btn" data-next="${choice.next}" style="text-align: left; background: #ffffff; border: 1px solid var(--border-color); padding: 12px 16px; border-radius: var(--border-radius-sm); font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; transition: all 0.2s ease; font-family: 'Prompt', sans-serif;">
+              ${choice.label}
+            </button>
+          `).join("")}
+        </div>
+      `;
+      wizardContainer.innerHTML = qHTML;
+
+      wizardContainer.querySelectorAll(".waste-choice-btn").forEach(btn => {
+        btn.addEventListener("mouseover", () => {
+          btn.style.borderColor = "var(--primary-purple)";
+          btn.style.background = "rgba(109, 40, 217, 0.04)";
+        });
+        btn.addEventListener("mouseout", () => {
+          btn.style.borderColor = "var(--border-color)";
+          btn.style.background = "#ffffff";
+        });
+        btn.addEventListener("click", () => {
+          const nextState = btn.getAttribute("data-next");
+          renderStep(nextState);
+        });
+      });
+    }
+  }
+
+  renderStep("waste_start");
 }
 
 
@@ -6802,6 +7349,30 @@ function setupChatbot() {
     });
   }
 
+  // Handle interactive choice buttons click
+  body.addEventListener("click", (e) => {
+    const btn = e.target.closest(".chat-choice-btn");
+    if (!btn) return;
+    const choiceText = btn.innerText;
+    const choiceVal = btn.getAttribute("data-choice");
+    
+    const container = btn.closest(".chat-choices-container");
+    if (container) {
+      container.style.pointerEvents = "none";
+      container.style.opacity = "0.6";
+    }
+
+    // Simulate user clicking / typing query
+    appendChatMessage("user", choiceText);
+    const typingIndicator = appendChatTypingIndicator();
+
+    setTimeout(() => {
+      typingIndicator.remove();
+      const botResponse = generateBotResponse(choiceVal);
+      appendChatMessage("bot", botResponse);
+    }, 500);
+  });
+
   function appendChatMessage(sender, text) {
     const msgDiv = document.createElement("div");
     msgDiv.className = `chat-message ${sender}`;
@@ -6840,8 +7411,293 @@ function setupChatbot() {
   }
 }
 
+const WASTE_CLASSES = {
+  "1": {
+    name: "Class 1 : Special Waste (ประเภทที่ 1 ของเสียพิเศษ)",
+    desc: "ของเสียที่ไม่ทราบที่มาแน่ชัด (Unknown Waste) หรือของเสียที่เป็นสารก่อมะเร็ง",
+    examples: "เอธิเดียมโบรไมด์ (Ethidium Bromide)",
+    guide: "บรรจุในขวดหรือภาชนะที่แข็งแรง ปิดฝาสนิท ระบุป้ายกำกับว่าเป็นของเสียพิเศษ ห้ามปะปนกับของเสียประเภทอื่น"
+  },
+  "2": {
+    name: "Class 2 : Cyanide Waste (ประเภทที่ 2 ของเสียที่มีไซยาไนด์)",
+    desc: "ของเสียที่มีอนุมูลไซยาไนด์เป็นองค์ประกอบ หรือเป็นสารประกอบเชิงซ้อนไซยาไนด์ หรือไซยาโนคอมเพล็กซ์",
+    examples: "สารละลายโพแทสเซียมไซยาไนด์, สารเชิงซ้อน Ni(CN)₄²⁻",
+    guide: "เก็บในภาชนะพลาสติก ห้ามทำให้เป็นกรดเด็ดขาด (เพราะจะเกิดแก๊สไซยาไนด์พิษ) ห้ามผสมปนกับ Mercury Waste (ถ้าผสมจะจัดเป็น Special Waste Class 1)"
+  },
+  "3": {
+    name: "Class 3 : Oxidizing Waste (ประเภทที่ 3 ของเสียที่มีสารออกซิไดซ์)",
+    desc: "ของเสียที่มีสมบัติรับอิเล็กตรอน ซึ่งอาจเกิดปฏิกิริยารุนแรงกับสารอื่นทำให้ระเบิดได้",
+    examples: "กรดไนตริกเข้มข้น, กรดเปอร์คลอริก, กรดซัลฟิวริกเข้มข้น (>60%), โพแทสเซียมเปอร์แมงกาเนต, โซเดียมคลอเรต",
+    guide: "เก็บแยกห่างจากตัวทำละลาย สารไวไฟ และสารอินทรีย์ ห้ามผสมกับ Chromium Waste (ถ้าผสมให้จัดเป็น Chromium Waste Class 5)"
+  },
+  "4": {
+    name: "Class 4 : Mercury Waste (ประเภทที่ 4 ของเสียที่มีปรอท)",
+    desc: "ของเสียที่มีปรอทหรือสารประกอบปรอทเป็นองค์ประกอบ",
+    examples: "เมอร์คิวรี(II) คลอไรด์, อัลคิลเมอร์คิวรี, เศษแก้วแตกจากเทอร์โมมิเตอร์ปรอท",
+    guide: "เก็บในภาชนะปิดสนิทมิดชิดเพื่อป้องกันไอระเหยของปรอท ห้ามผสมปนกับ Cyanide Waste (ถ้าผสมจะจัดเป็น Special Waste Class 1)"
+  },
+  "5": {
+    name: "Class 5 : Chromium Waste (ประเภทที่ 5 ของเสียที่มีสารโครเมียม)",
+    desc: "ของเสียที่มีโครเมียมเป็นองค์ประกอบ",
+    examples: "สารประกอบโครเมียม Cr(VI), กรดโครมิก, น้ำเสียจากการวิเคราะห์ COD",
+    guide: "เก็บแยกในภาชนะพลาสติกทนกรด ห้ามปะปนกับ Mercury Waste (ถ้าผสมจะจัดเป็น Mercury Waste Class 4)"
+  },
+  "6": {
+    name: "Class 6 : Heavy Metal Waste (ประเภทที่ 6 ของเสียที่มีโลหะหนัก)",
+    desc: "ของเสียที่มีไอออนของโลหะหนักอื่นที่ไม่ใช่ปรอทและโครเมียม เจือปนอยู่ความเข้มข้น > 0.1 g/L",
+    examples: "สารละลายของ แบเรียม, แคดเมียม, ตะกั่ว, ทองแดง, เหล็ก, แมงกานีส, สังกะสี, โคบอลต์, เงิน, ดีบุก",
+    guide: "รวบรวมใส่ในถังเก็บเฉพาะสำหรับสารละลายโลหะหนัก ปิดฝาสนิท"
+  },
+  "7": {
+    name: "Class 7 : Acid Waste (ประเภทที่ 7 ของเสียที่เป็นกรด)",
+    desc: "ของเสียที่เป็นกรดอนินทรีย์เจือปนมากกว่า 5% และมีค่า pH ต่ำกว่า 7",
+    examples: "กรดซัลฟิวริกเจือจาง, กรดไฮโดรคลอริก",
+    guide: "บรรจุในขวดพลาสติกทนกรด (HDPE) ปิดฝาให้สนิท ห้ามใช้ภาชนะโลหะเด็ดขาด"
+  },
+  "8": {
+    name: "Class 8 : Alkaline Waste (ประเภทที่ 8 ของเสียอัลคาไลน์)",
+    desc: "ของเสียที่เป็นด่างเจือปนมากกว่า 5% และมีค่า pH สูงกว่า 8",
+    examples: "สารละลายโซเดียมไฮดรอกไซด์เจือจาง, สารละลายโซเดียมคาร์บอเนต, สารละลายแอมโมเนีย",
+    guide: "บรรจุในขวดพลาสติก ปิดฝาให้สนิท ห้ามผสมกับกรดเด็ดขาดเพื่อป้องกันปฏิกิริยาสะเทินคายความร้อนสูง"
+  },
+  "9": {
+    name: "Class 9 : Petroleum Product Waste (ประเภทที่ 9 ผลิตภัณฑ์ปิโตรเลียม)",
+    desc: "น้ำมันปิโตรเลียม ผลิตภัณฑ์จากน้ำมัน และของเสียประเภทตัวทำละลายไฮโดรคาร์บอน (น้ำผสม < 5%)",
+    examples: "น้ำมันเบนซิน, น้ำมันดีเซล, น้ำมันก๊าด, น้ำมันเครื่อง, น้ำมันหล่อลื่น, เฮกเซน, เพนเทน, ไซลีน",
+    guide: "เก็บในภาชนะทนสารเคมี ห่างจากความร้อน ประกายไฟ และสารออกซิไดซ์"
+  },
+  "10": {
+    name: "Class 10 : Oxygenated Waste (ประเภทที่ 10 ของเสียที่มีออกซิเจน)",
+    desc: "ของเสียที่เป็นตัวทำละลายอินทรีย์ที่มีออกซิเจนในโครงสร้างหลัก และมีน้ำผสมต่ำกว่า 5%",
+    examples: "เอทิลแอซีเตต, อะซิโตน, เอสเทอร์, แอลกอฮอล์, คีโตน, อีเทอร์, แอลดีไฮด์",
+    guide: "เก็บในภาชนะปิดสนิท ในพื้นที่แห้งและเย็น ห่างจากแหล่งความร้อนและประกายไฟ"
+  },
+  "11": {
+    name: "Class 11 : NPS Waste (ประเภทที่ 11 ของเสียที่มีไนโตรเจน ฟอสฟอรัส หรือซัลเฟอร์)",
+    desc: "ของเสียตัวทำละลายอินทรีย์ที่มีธาตุ N, P, S อยู่ในโครงสร้างโมเลกุล และมีน้ำผสมต่ำกว่า 5%",
+    examples: "Dimethylformamide (DMF), Dimethylsulfoxide (DMSO), อะซิโตไนไตรล์, เอมีน, เอไมด์",
+    guide: "ห้ามผสมปนกับ Halogenated Waste (ถ้าผสมจะจัดเป็น Special Waste Class 1)"
+  },
+  "12": {
+    name: "Class 12 : Halogenated Waste (ประเภทที่ 12 ของเสียที่มีฮาโลเจน)",
+    desc: "ของเสียตัวทำละลายอินทรีย์ที่มีธาตุเฮโลเจนอยู่ในโครงสร้างโมเลกุล (เช่น F, Cl, Br, I) และมีน้ำผสมต่ำกว่า 5%",
+    examples: "คาร์บอนเททระคลอไรด์ (CCl₄), คลอโรฟอร์ม (CHCl₃), ไตรคลอโรเอทิลีน",
+    guide: "ห้ามผสมปนกับ NPS Waste (ถ้าผสมจะจัดเป็น Special Waste Class 1)"
+  },
+  "13.1": {
+    name: "Class 13.1 : Combustible Solid Waste (ประเภทที่ 13.1 ของแข็งเผาไหม้ได้)",
+    desc: "ของเสียเคมีสถานะของแข็งที่สามารถเผาไหม้ได้",
+    examples: "เศษซากพืชที่ได้จากการสกัด, ถุงมือยาง/ถุงมือไนไตรล์ปนเปื้อนสารเคมี",
+    guide: "รวบรวมใส่ในถุงขยะเคมีทึบหนา มัดปากถุงให้แน่นหนา ปิดป้ายกำกับของเสียปนเปื้อนสารเคมีเผาไหม้ได้"
+  },
+  "13.2": {
+    name: "Class 13.2 : Non-Combustible Solid Waste (ประเภทที่ 13.2 ของแข็งเผาไหม้ไม่ได้)",
+    desc: "ของเสียเคมีสถานะของแข็งที่ไม่สามารถเผาไหม้ได้",
+    examples: "ซิลิกาเจล (Silica Gel), เศษแก้วแตกปนเปื้อนสารเคมี",
+    guide: "รวบรวมใส่ในภาชนะบรรจุหรือกล่องพลาสติกแข็งทนทาน เพื่อป้องกันเศษแก้วแทงทะลุถุง"
+  },
+  "14": {
+    name: "Class 14 : Miscellaneous Aqueous Waste (ประเภทที่ 14 ของเสียน้ำอนินทรีย์ทั่วไป)",
+    desc: "ของเสียที่เป็นสารละลายโดยมีน้ำเป็นตัวทำละลาย และไม่มีคุณสมบัติอันตรายจากสารโลหะหนักหรือกรดเบสแก่",
+    examples: "สารละลายเกลือแกง 10% NaCl, น้ำเสียทั่วไปที่ไม่ปนเปื้อนโลหะหนัก",
+    guide: "บรรจุในขวดเก็บของเสียน้ำเคมีทั่วไป ปิดฝาสนิท"
+  },
+  "15": {
+    name: "Class 15 : Deteriorated or Expired Chemicals (ประเภทที่ 15 ของเสียเคมีเสื่อมสภาพ/หมดอายุ)",
+    desc: "สารเคมีดั้งเดิมที่เสื่อมสภาพหรือหมดอายุการใช้งาน แต่สามารถระบุชื่อและอันตรายของสารได้ชัดเจน",
+    examples: "ขวดสารเคมีหมดอายุค้างตู้เก็บสาร",
+    guide: "ส่งกำจัดในขวดบรรจุดั้งเดิม ห้ามเทผสมรวมกับของเสียอื่นๆ เพื่อป้องกันการเกิดปฏิกิริยารุนแรง"
+  },
+  "16": {
+    name: "Class 16 : Miscellaneous Aqueous Organic Waste (ประเภทที่ 16 ของเสียน้ำปนเปื้อนสารอินทรีย์)",
+    desc: "ของเสียตัวทำละลายอินทรีย์ที่มีน้ำผสมอยู่ระหว่าง 5% - 95% และไม่สามารถรีไซเคิลได้",
+    examples: "ของเสียอินทรีย์ผสมน้ำจากการทดลองทั่วไป",
+    guide: "บรรจุในภาชนะพลาสติกทนสารเคมี ปิดฝาให้สนิท"
+  },
+  "17.1": {
+    name: "Class 17.1 : Recyclable Used Xylene (ประเภทที่ 17.1 ไซลีนรีไซเคิล)",
+    desc: "ของเสียสารละลายไซลีนปนเปื้อนน้อย มีน้ำปนเปื้อน < 15% และมีปริมาณมากพอส่งรีไซเคิล",
+    examples: "ไซลีนใช้แล้วจากการเตรียมแผ่นสไลด์เนื้อเยื่อพืช/สัตว์",
+    guide: "รวบรวมใส่แกลลอนแยกเฉพาะสารเดี่ยว ห้ามเทสารอื่นปนเปื้อน"
+  },
+  "17.2": {
+    name: "Class 17.2 : Recyclable Used Ethanol (ประเภทที่ 17.2 เอทานอลรีไซเคิล)",
+    desc: "ของเสียสารละลายเอทานอลปนเปื้อนน้อย มีน้ำปนเปื้อน < 15% และมีปริมาณมากพอส่งรีไซเคิล",
+    examples: "เอทานอลใช้แล้วจากการล้างเครื่องมือหรือสกัดสารละลาย",
+    guide: "รวบรวมแยกแกลลอนเอทานอลโดยเฉพาะ ปิดฝาสนิทป้องกันการระเหย"
+  },
+  "17.3": {
+    name: "Class 17.3 : Recyclable Used Acetone (ประเภทที่ 17.3 อะซิโตนรีไซเคิล)",
+    desc: "ของเสียสารละลายอะซิโตนปนเปื้อนน้อย มีน้ำปนเปื้อน < 15% และมีปริมาณมากพอส่งรีไซเคิล",
+    examples: "อะซิโตนใช้แล้วจากการล้างแก้วเครื่องมือวิทยาศาสตร์",
+    guide: "รวบรวมแยกใส่แกลลอนพลาสติกเฉพาะสาร ปิดฝาให้แน่นสนิท"
+  },
+  "17.4": {
+    name: "Class 17.4 : Other Recyclable Used Organic Solvent (ประเภทที่ 17.4 ตัวทำละลายอินทรีย์อื่นรีไซเคิล)",
+    desc: "ของเสียตัวทำละลายอินทรีย์รีไซเคิลชนิดอื่น ๆ (เช่น เฮกเซน, โทลูอีน, เอทิลแอซีเตต)",
+    examples: "เฮกเซน หรือ โทลูอีนใช้แล้วที่มีความเข้มข้นหลัก ≥ 85% และปริมาณรวมสะสม ≥ 18 ลิตร",
+    guide: "เก็บรวบรวมแยกเฉพาะชนิดสารตัวทำละลาย ปิดฉลากระบุชนิดตัวทำละลายหลัก"
+  }
+};
+
+function getWasteClassResponse(classKey) {
+  const c = WASTE_CLASSES[classKey];
+  if (!c) return `❌ ไม่พบข้อมูลการจำแนกประเภทของเสียรหัส ${classKey} ครับ`;
+  
+  return `✅ <b>ผลการจำแนกประเภทของเสียสำเร็จ!</b>\n\n` +
+         `🏷️ <b>ประเภท:</b> <span style="color: var(--accent-red); font-weight: 600;">${c.name}</span>\n` +
+         `📝 <b>คำจำกัดความ:</b> ${c.desc}\n` +
+         `🧪 <b>ตัวอย่างสาร:</b> ${c.examples}\n` +
+         `⚠️ <b>คำแนะนำส่งกำจัด:</b> ${c.guide}\n\n` +
+         `ต้องการเริ่มจำแนกของเสียรายการอื่นใหม่หรือไม่ครับ?\n` +
+         `<div class="chat-choices-container">` +
+         `  <button class="chat-choice-btn" data-choice="waste_start">เริ่มจำแนกของเสียใหม่</button>` +
+         `</div>`;
+}
+
 function generateBotResponse(query) {
   const q = query.toLowerCase().trim();
+
+  // WasteTrack Classification Router
+  if (q.includes("ทิ้งสารเคมี") || q.includes("จำแนกสารเคมี") || q.includes("วิธีกำจัดสารเคมี") || q.includes("wastetrack") || q.includes("ทิ้งยา") || q.includes("คลาสของเสีย") || q.includes("จำแนกของเสีย") || q === "waste_start") {
+    return `🧪 <b>ระบบช่วยเหลือจำแนกประเภทของเสียสารเคมี (CU WasteTrack)</b>\n\n` +
+           `อ้างอิงตามระบบการจำแนกของเสียห้องปฏิบัติการ 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย\n\n` +
+           `<b>คำถามที่ 1:</b> เป็นสารเคมีเสื่อมสภาพหรือหมดอายุ (Deteriorated/Expired) ที่ยังสามารถระบุชื่อและระบุความเป็นอันตรายของสารเคมีนั้นได้ชัดเจนหรือไม่?\n\n` +
+           `<div class="chat-choices-container">` +
+           `  <button class="chat-choice-btn" data-choice="waste_chem_15">ใช่, เป็นขวดสารเคมีหมดอายุ/เสื่อมสภาพ</button>` +
+           `  <button class="chat-choice-btn" data-choice="waste_q2_expired_no">ไม่ใช่ (เป็นสารละลายผสมหรือเศษวัสดุจากการทดลอง)</button>` +
+           `</div>`;
+  }
+
+  if (q.startsWith("waste_")) {
+    if (q === "waste_q2_expired_no") {
+      return `<b>คำถามที่ 2:</b> เป็นของเสียพิเศษ (Special Waste) เช่น ของเสียที่ไม่ทราบที่มาแน่ชัด (Unknown Waste) หรือสารก่อมะเร็ง (เช่น เอธิเดียมโบรไมด์ Ethidium Bromide) หรือไม่?\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_1">ใช่, เป็นของเสียพิเศษ/สารก่อมะเร็ง</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q3_special_no">ไม่ใช่ของเสียพิเศษ</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q3_special_no") {
+      return `<b>คำถามที่ 3:</b> มีส่วนผสมหรือปนเปื้อนสารปรอท (Mercury) หรือไม่? (เช่น สารละลายเมอร์คิวรี(II) คลอไรด์, หรือเศษแก้วเทอร์โมมิเตอร์ปนเปื้อนปรอท)\n*(หมายเหตุ: ถ้าผสมกับไซยาไนด์จะจัดเป็น Special Waste Class 1)*\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_4">ใช่, มีส่วนประกอบของปรอท</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q4_mercury_no">ไม่มีสารปรอทปนเปื้อน</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q4_mercury_no") {
+      return `<b>คำถามที่ 4:</b> มีอนุมูลไซยาไนด์ (Inorganic Cyanide) เป็นองค์ประกอบ หรือเป็นสารประกอบเชิงซ้อนไซยาไนด์ หรือไม่? (เช่น สารละลายโพแทสเซียมไซยาไนด์, สารเชิงซ้อน Ni(CN)₄²⁻)\n*(หมายเหตุ: ถ้าผสมกับปรอทจะจัดเป็น Special Waste Class 1)*\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_2">ใช่, มีไซยาไนด์ปนเปื้อน</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q5_cyanide_no">ไม่มีไซยาไนด์</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q5_cyanide_no") {
+      return `<b>คำถามที่ 5:</b> สถานะทางกายภาพของของเสียเป็น **ของแข็ง (Solid)** หรือไม่?\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_q6_solid_yes">ใช่, มีสถานะเป็นของแข็ง</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q6_solid_no">ไม่ใช่, เป็นของเหลว/สารละลาย</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q6_solid_yes") {
+      return `<b>คำถามที่ 6 (ของแข็ง):</b> ของแข็งดังกล่าวเป็นของแข็งเผาไหม้ได้ (Combustible เช่น เศษซากพืชที่ได้จากการสกัด, ถุงมือยางปนเปื้อนเคมี) หรือเผาไหม้ไม่ได้ (Non-Combustible เช่น ซิลิกาเจล, เศษแก้วแตกทั่วไป)?\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_13_1">ของแข็งเผาไหม้ได้ (Combustible)</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_13_2">ของแข็งเผาไหม้ไม่ได้ (Non-Combustible)</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q6_solid_no") {
+      return `<b>คำถามที่ 6 (ของเหลว):</b> เป็นของเสียตัวทำละลายอินทรีย์ (Organic Solvent Waste) ใช่หรือไม่?\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_q7_organic_yes">ใช่, เป็นตัวทำละลายอินทรีย์</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q7_organic_no">ไม่ใช่ (เป็นน้ำเสียมีน้ำเป็นตัวทำละลาย / Inorganic Aqueous)</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q7_organic_yes") {
+      return `<b>คำถามที่ 7 (สารอินทรีย์):</b> เป็นตัวทำละลายใช้แล้วที่ปนเปื้อนน้อย มีน้ำปนเปื้อนไม่เกิน 15% มีปริมาณมากพอส่งส่งเข้าโครงการ **Recycle** หรือไม่?\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_q8_recycle_yes">ใช่, ต้องการส่ง Recycle</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q8_recycle_no">ไม่ต้องการ Recycle (หรือสารปนเปื้อนเยอะ/น้ำปนเกิน 15%)</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q8_recycle_yes") {
+      return `เลือกประเภทตัวทำละลายอินทรีย์รีไซเคิลของท่าน:\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_17_1">ของเสียไซลีน (Xylene)</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_17_2">ของเสียเอทานอล (Ethanol)</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_17_3">ของเสียอะซิโตน (Acetone)</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_17_4">สารตัวทำละลายอินทรีย์อื่นๆ ที่จะรีไซเคิล</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q8_recycle_no") {
+      return `<b>คำถามที่ 8 (สารอินทรีย์ไม่รีไซเคิล):</b> มีน้ำผสมปนเปื้อนอยู่ตั้งแต่ 5% ขึ้นไป (H₂O ≥ 5%) ใช่หรือไม่?\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_16">ใช่, มีน้ำผสมปนเปื้อน ≥ 5%</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q9_water_low">ไม่ใช่, มีน้ำผสมต่ำมาก (< 5%)</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q9_water_low") {
+      return `<b>คำถามที่ 9 (ตัวทำละลายอินทรีย์น้ำต่ำ):</b> ในโครงสร้างโมเลกุลมีธาตุเฮโลเจน (Halogen - เช่น F, Cl, Br, I) เป็นองค์ประกอบหลักใช่หรือไม่? (เช่น CCl₄, คลอโรฟอร์ม, ไตรคลอโรเอทิลีน)\n*(หมายเหตุ: ถ้าผสมกับ NPS Waste จะจัดเป็น Special Waste Class 1)*\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_12">ใช่, มีธาตุฮาโลเจนในโครงสร้าง</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q10_halogen_no">ไม่มีธาตุฮาโลเจน</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q10_halogen_no") {
+      return `<b>คำถามที่ 10:</b> ในโครงสร้างโมเลกุลมีธาตุไนโตรเจน (N), ฟอสฟอรัส (P), หรือ ซัลเฟอร์ (S) เป็นองค์ประกอบใช่หรือไม่? (เช่น Dimethylformamide - DMF, Dimethylsulfoxide - DMSO, อะซิโตไนไตรล์)\n*(หมายเหตุ: ถ้าผสมกับ Halogenated Waste จะจัดเป็น Special Waste Class 1)*\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_11">ใช่, มีธาตุ N, P, หรือ S</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q11_nps_no">ไม่มีธาตุกลุ่ม N, P, S</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q11_nps_no") {
+      return `<b>คำถามที่ 11:</b> ในโครงสร้างโมเลกุลมีธาตุออกซิเจน (O) เป็นองค์ประกอบใช่หรือไม่? (เช่น เอทิลแอซีเตต, อะซิโตน, แอลกอฮอล์, คีโตน, อีเทอร์)\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_10">ใช่, มีธาตุออกซิเจน</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q12_oxygen_no">ไม่มีธาตุออกซิเจน</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q12_oxygen_no") {
+      return `<b>คำถามที่ 12:</b> เป็นของเสียกลุ่มสารประกอบไฮโดรคาร์บอน (Hydrocarbon) ใช่หรือไม่? (เช่น น้ำมันเบนซิน, ดีเซล, น้ำมันเครื่อง, เฮกเซน, เพนเทน)\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_9">ใช่, เป็นสารไฮโดรคาร์บอน</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_16">ไม่ใช่กลุ่มสารไฮโดรคาร์บอน</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q7_organic_no") {
+      return `<b>คำถามที่ 7 (น้ำเสียอนินทรีย์):</b> มีส่วนประกอบหลักเป็นสารประกอบโครเมียม (Chromium) หรือไม่? (เช่น สารประกอบ Cr(VI), กรดโครมิก, น้ำเสียวิเคราะห์ COD)\n*(หมายเหตุ: ถ้าผสมกับ Mercury Waste จะจัดเป็น Mercury Waste Class 4)*\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_5">ใช่, มีโครเมียมปนเปื้อน</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q8_chromium_no">ไม่มีสารโครเมียม</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q8_chromium_no") {
+      return `<b>คำถามที่ 8 (น้ำเสียอนินทรีย์):</b> มีคุณสมบัติเป็นสารออกซิไดซ์ (Oxidizing Agent) ที่อาจทำปฏิกิริยารุนแรงหรือไม่? (เช่น กรดไนตริก/ซัลฟิวริกเข้มข้น >60%, ด่างทับทิม, โซเดียมคลอเรต)\n*(หมายเหตุ: ถ้าผสมกับโครเมียมจะจัดเป็น Chromium Waste Class 5)*\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_3">ใช่, มีความเป็นสารออกซิไดซ์</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q9_oxidizer_no">ไม่มีสมบัติออกซิไดซ์</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q9_oxidizer_no") {
+      return `<b>คำถามที่ 9 (น้ำเสียอนินทรีย์):</b> มีส่วนผสมของโลหะหนักอื่นเจือปนอยู่อย่างเข้มข้นมากกว่า 0.1 g/L (100 ppm) หรือไม่? (โลหะหนักอื่นๆ ที่ไม่ใช่ปรอทและโครเมียม เช่น แคดเมียม ตะกั่ว ทองแดง สังกะสี นิกเกิล เงิน)\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_6">ใช่, มีโลหะหนักเจือปนความเข้มข้นสูง</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_q10_heavy_no">ไม่มีโลหะหนัก หรือมีน้อยมาก (< 0.1 g/L)</button>` +
+             `</div>`;
+    }
+    if (q === "waste_q10_heavy_no") {
+      return `<b>คำถามที่ 10 (น้ำเสียอนินทรีย์):</b> ของเสียสารละลายนี้มีความเป็นกรดแก่หรือเบสแก่ปนเปื้อนอยู่เกิน 5% ใช่หรือไม่?\n\n` +
+             `<div class="chat-choices-container">` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_7">ใช่, เป็นกรดเด่น (pH < 7)</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_8">ใช่, เป็นเบสเด่น (pH > 8)</button>` +
+             `  <button class="chat-choice-btn" data-choice="waste_chem_14">ไม่ใช่ (เป็นสารละลายน้ำทั่วไป เช่น น้ำเกลือเจือจาง)</button>` +
+             `</div>`;
+    }
+
+    if (q.startsWith("waste_chem_")) {
+      const classKey = q.substring(11).replace("_", ".");
+      return getWasteClassResponse(classKey);
+    }
+  }
 
   // Chemical Knowledge Base for Pronunciation & Reactions
   const CHEM_DB = {

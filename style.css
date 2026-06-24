@@ -3241,6 +3241,44 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
+/* Chatbot interactive choices styling */
+.chat-choices-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.chat-choice-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid var(--primary-purple);
+  color: var(--primary-purple);
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.chat-choice-btn:hover {
+  background: var(--primary-purple);
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+#compatibilityRecBadge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  filter: brightness(0.95);
+}
+
 
 
 
