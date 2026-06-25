@@ -45,7 +45,7 @@
         <div class="logo-text">
           <span class="logo-title">ระบบคลังเคมี</span>
           <span class="logo-subtitle">Laboratory System</span>
-          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.7.4</span>
+          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.8.0</span>
         </div>
       </div>
 
@@ -1108,7 +1108,7 @@
             </div>
 
             <!-- Card 3: Remaining Budget -->
-            <div class="stat-card" id="cardRemainingBudget" style="border-left: 1px solid transparent;" onmouseover="this.style.borderColor='var(--accent-green)'" onmouseout="this.style.borderColor='var(--border-color)'">
+            <div class="stat-card" id="cardRemainingBudget" style="border: 2px solid transparent;">
               <div class="stat-info">
                 <span class="stat-title">งบประมาณคงเหลือ</span>
                 <div class="budget-stat-value-container" style="display: flex; align-items: baseline; gap: 6px;">
@@ -1225,13 +1225,13 @@
               <table>
                 <thead>
                   <tr>
-                    <th style="width: 12%;">รหัสสินค้า</th>
-                    <th style="width: 38%;">ชื่อสินค้า</th>
-                    <th style="width: 12%; text-align: right;">ราคา/หน่วย</th>
-                    <th style="width: 8%; text-align: center;">จำนวน</th>
-                    <th style="width: 12%; text-align: right;">ราคารวม</th>
-                    <th style="width: 12%;">ส่วนลด</th>
-                    <th class="po-action-header" style="width: 6%; text-align: center;">ลบ</th>
+                    <th style="width: 15%;">รหัสสินค้า</th>
+                    <th style="width: 20%;">ชื่อสินค้า</th>
+                    <th style="width: 14%; text-align: right;">ราคา/หน่วย</th>
+                    <th style="width: 10%; text-align: center;">จำนวน</th>
+                    <th style="width: 15%; text-align: right;">ราคารวม</th>
+                    <th style="width: 14%; text-align: center;">ส่วนลด</th>
+                    <th class="po-action-header" style="width: 12%; text-align: center;">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody id="purchaseOrdersTableBody">
@@ -1720,6 +1720,81 @@
   </div>
 
   <!-- ==========================================
+       MODAL: BOOKING SUCCESS DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="bookingSuccessModal">
+    <div class="modal-content" style="max-width: 500px; border-radius: var(--border-radius-md); overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; background: #ffffff;">
+      <div class="modal-header" style="background: var(--accent-green); color: #ffffff; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
+          <span>บันทึกการจองห้องแล็บสำเร็จ</span>
+        </h2>
+        <button class="modal-close-btn" id="bookingSuccessModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px; font-family: 'Prompt', sans-serif;">
+        
+        <!-- Screen Capture Note Warning Box -->
+        <div style="background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--accent-red); padding: 14px 16px; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
+          <i data-lucide="camera" style="width: 22px; height: 22px; color: var(--accent-red); flex-shrink: 0; margin-top: 2px;"></i>
+          <div>
+            <h4 style="margin: 0 0 4px 0; color: var(--accent-red); font-size: 14px; font-weight: 600;">โปรดบันทึกภาพหน้าจอ!</h4>
+            <p style="margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.5;">กรุณา<b>แคปภาพหน้าจอนี้ไว้</b> เพื่อใช้เป็นหลักฐานยืนยันการจองกับเจ้าหน้าที่เมื่อเข้าใช้งานห้องปฏิบัติการ</p>
+          </div>
+        </div>
+
+        <!-- Receipt / Info Sheet -->
+        <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: #fafafa;">
+          <div style="background: rgba(0,0,0,0.02); padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13.5px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;">
+            <span>รายละเอียดการจอง</span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+              <span id="bsReceiptId" style="font-family: monospace; font-size: 12px; color: var(--text-main); font-weight: 600;">#ID</span>
+              <span style="font-size: 10px; color: var(--text-muted); font-weight: normal; line-height: 1;">หมายเลขการจอง</span>
+            </div>
+          </div>
+          
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px;">
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">ห้องปฏิบัติการ:</span>
+              <span id="bsRoom" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">วันที่ใช้งาน:</span>
+              <span id="bsDate" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">คาบเวลา:</span>
+              <span id="bsSlots" style="color: var(--primary-purple); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">ผู้จอง:</span>
+              <span id="bsBooker" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">วัตถุประสงค์:</span>
+              <span id="bsPurpose" style="color: var(--text-main);">-</span>
+            </div>
+            
+            <div id="bsPrepBlock" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 4px; flex-direction: column; gap: 6px;">
+              <span style="color: var(--text-muted); font-weight: 500; font-size: 13px;">รายการอุปกรณ์เตรียมแล็บ:</span>
+              <ul id="bsPrepList" style="margin: 0; padding-left: 20px; color: var(--text-main); font-size: 12.5px; line-height: 1.5;">
+                <!-- items -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; display: flex; justify-content: center; border-top: 1px solid var(--border-color); background: #fafafa;">
+        <button id="bookingSuccessModalBtn" class="btn" style="background: var(--accent-green); color: #ffffff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#15803d';" onmouseout="this.style.background='var(--accent-green)';">รับทราบและปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
        MODAL: CAMERA BARCODE / QR SCANNER
        ========================================== -->
   <div class="modal-overlay" id="cameraScanModal">
@@ -1882,52 +1957,26 @@
       </div>
       
       <div class="modal-body" style="padding: 24px; max-height: 400px; overflow-y: auto; font-family: 'Prompt', sans-serif;">
-        <!-- v1.7.4 -->
+        <!-- v1.8.0 -->
         <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.4</span>
-            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">24 มิถุนายน 2569 (ล่าสุด)</span>
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.8.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">25 มิถุนายน 2569 (ล่าสุด)</span>
           </div>
           <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
-            <li><b>การเชื่อมโยงข้อมูลระหว่างหลายอุปกรณ์ (Multi-device Admin Sync):</b> เพิ่มการดึงข้อมูลงบประมาณประจำปีและรายการสั่งซื้อย้อนหลังแบบเรียลไทม์จากเซิร์ฟเวอร์หลังบ้าน/ฐานข้อมูลคลาวด์โดยอัตโนมัติ ทำให้ผู้ใช้ที่เป็นแอดมินหลายคนสามารถเข้าดูข้อมูลตัวเลขงบประมาณที่ตรงกันได้ในทุกอุปกรณ์</li>
+            <li><b>ป๊อปอัพยืนยันใบเสร็จหลังจองห้องแล็บสำเร็จ (Booking Confirmation Modal):</b> เพิ่มระบบหน้าต่างยืนยันความสำเร็จ (Receipt Modal) ทันทีหลังส่งคำขอจอง พร้อมข้อมูลสรุปและคำแนะนำเตือนใจความสำคัญให้ผู้ใช้<b>บันทึกภาพหน้าจอ (Capture)</b> ไว้เป็นหลักฐานเพื่อแสดงต่อเจ้าหน้าที่ห้องปฏิบัติการอย่างชัดเจน</li>
           </ul>
         </div>
 
-        <!-- v1.7.3 -->
+        <!-- v1.7.0 -->
         <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.3</span>
-            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">24 มิถุนายน 2569 (ล่าสุด)</span>
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">23 มิถุนายน 2569</span>
           </div>
           <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
-            <li><b>การจำแนกกลุ่มสารเคมีตาม Chulalongkorn University (SHECU):</b> ปรับปรุงประเภทความเป็นอันตรายและกลุ่มการจัดเก็บสารเคมีเป็น 11 กลุ่มความเข้ากันได้ (A, B, C, D, E, F, G, I, K, L, X) ตามมาตรฐานความปลอดภัยของจุฬาลงกรณ์มหาวิทยาลัย</li>
-            <li><b>ระบบป๊อปอัปคำแนะนำการจัดเก็บ:</b> ปรับปรุงคำเตือนการจัดเก็บสารเคมีร่วมตู้และปรับรูปแบบป้ายคำแนะนำให้ตอบสนองทันทีและไม่กินเนื้อที่หน้าจอ</li>
-          </ul>
-        </div>
-
-        <!-- v1.7.2 -->
-        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.2</span>
-            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">23 มิถุนายน 2569 (เสถียรล่าสุด)</span>
-          </div>
-          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
-            <li><b>ระบบช่วยเหลือจำแนกของเสีย (CU WasteTrack):</b> ติดตั้งแผงจำแนกประเภทของเสียอัจฉริยะ 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัยในหน้าเพิ่ม/แก้ไขพัสดุ เมื่อเลือกหมวดหมู่เป็นสารเคมี</li>
-            <li><b>ระบบแนะนำการจัดเก็บสารเคมี:</b> แสดงคำแนะนำการจัดเก็บสารเคมีตามกลุ่มความเข้ากันได้ และช่วยเลือกประเภทความเป็นอันตรายโดยอัตโนมัติขณะพิมพ์ชื่อสารเคมี</li>
-          </ul>
-        </div>
-
-        <!-- v1.7.1 -->
-        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.7.1</span>
-            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">28 พฤษภาคม 2569</span>
-          </div>
-          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
-            <li><b>เปิดตัวแชทบอทอัจฉริยะ Catalyst (แคททาไลต์):</b> ผู้ช่วยส่วนตัวเคมี สามารถตอบปัญหา สรุปข้อมูล ปฐมพยาบาลเบื้องต้น และให้คำแนะนำวิธีดำเนินงานสารเคมีได้ทันใจ</li>
-            <li><b>ระบบดุลสมการเคมีอัตโนมัติ:</b> แปลงสมการเคมีและหาตัวร่วมที่น้อยที่สุดด้วยการแก้ระบบสมการเชิงเส้น Gaussian Elimination (RREF) และแสดงผลเลขห้อยสวยงาม</li>
-            <li><b>เครื่องคำนวณมวลโมเลกุล (Molar Mass) แก้ไขบัก:</b> แยกสัญลักษณ์วงเล็บ กลุ่มไฮเดรตสารอย่างถูกต้องแม่นยำ พร้อมระบบกรองคำค้นหา Thai Typo Tolerance แม้สะกดผิดก็ค้นเจอ</li>
-            <li><b>เครื่องมือเตรียมสารละลาย:</b> สูตรความเข้มข้นสารละลายและการเจือจาง (C₁V₁ = C₂V₂) พร้อมคำแนะนำวิธีผสมสาร</li>
+            <li><b>ระบบจำแนกของเสียและคู่มือการจัดเก็บเคมีร่วมกัน (CU WasteTrack & Storage Guide):</b> เพิ่มแถบช่วยจำแนกของเสียห้องปฏิบัติการ 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย และระบบแนะนำจัดเก็บสารเคมีร่วมตามความเข้ากันได้ 11 กลุ่มความเข้ากันได้ (SHECU)</li>
+            <li><b>ผู้ช่วย AI แชทบอท Catalyst และเครื่องคำนวณสูตรเคมี:</b> ติดตั้งแชทบอทให้คำปรึกษาเคมี/ปฐมพยาบาลเบื้องต้น พร้อมเครื่องดุลสมการและคำนวณมวลโมเลกุลอัตโนมัติ</li>
           </ul>
         </div>
 
@@ -1938,9 +1987,8 @@
             <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">10 พฤษภาคม 2569</span>
           </div>
           <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
-            <li><b>ระบบจองห้องปฏิบัติการ (Lab Booking):</b> รองรับตารางเวลาของคณะครู นักเรียน และเจ้าหน้าที่อย่างมีประสิทธิภาพ</li>
-            <li><b>การจัดการสต็อกและความปลอดภัย:</b> ระบบเตือนสินค้าเหลือน้อยกว่าค่าขั้นต่ำ (Min Stock) และแจ้งรายการสารเคมีใกล้หรือหมดอายุอัตโนมัติ</li>
-            <li><b>ยกระดับความเร็วระบบ:</b> รองรับความเร็วในการดึงข้อมูลจากหลังบ้านและการนำเข้าข้อมูลไฟล์ CSV ในปริมาณมาก</li>
+            <li><b>ระบบจองห้องปฏิบัติการ (Lab Booking Suite):</b> เปิดใช้งานระบบตารางจองคาบเวลาเข้าใช้ห้องแล็บ คัดกรองและแบ่งสิทธิ์ครูและเจ้าหน้าที่</li>
+            <li><b>การจัดการคลังสารเคมีแจ้งเตือนหมดอายุ:</b> ติดตั้งระบบแจ้งเตือนสต็อกขั้นต่ำ (Min Stock) และแจ้งรายการสารเคมีใกล้และหมดอายุอัตโนมัติ</li>
           </ul>
         </div>
       </div>
