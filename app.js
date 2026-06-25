@@ -1725,7 +1725,7 @@ function downloadCSVTemplate() {
     "# 3. หน่วย* (เช่น): ขวด | เครื่อง | ชิ้น | อัน | กล่อง | หลอด | แกลลอน | ใบ | ชุด",
     "# 4. วันหมดอายุ(YYYY-MM-DD): ปี-เดือน-วัน ค.ศ. เช่น 2027-08-20 (เว้นว่างได้ถ้าไม่มี)",
     "# 5. ห้อง (ตรงตามระบบ): ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ (หรือ Lab 1) | ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์ (หรือ Lab 2) | ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์ (หรือ Lab 3) | นอกห้องปฏิบัติการ (หรือ None)",
-    "# 6. ประเภทสารเคมี: acid (กรด) | base (เบส) | oxidizer (สารออกซิไดซ์) | organic (สารไวไฟ) | other (สารเคมีทั่วไป)",
+    "# 6. ประเภทสารเคมี (กลุ่มความเข้ากันได้ SHECU): A (เบสอินทรีย์) | B (ทำปฏิกิริยากับน้ำ) | C (เบสอนินทรีย์) | D (กรดอินทรีย์) | E (ออกซิไดเซอร์อนินทรีย์) | F (กรดอนินทรีย์) | G (เคมีทั่วไป) | I (ออกซิไดเซอร์ที่เป็นกรดแก่) | K (สารระเบิดได้) | L (สารไวไฟ/ตัวทำละลาย) | X (สารไม่เข้ากันกับกลุ่มใดเลย)",
     "# 7. คอลัมน์ GHS (ระเบิดได้ - ภัยสิ่งแวดล้อม): ให้ใส่ Y หรือ 1 หรือ x เพื่อเลือกใช้สัญลักษณ์ความปลอดภัย GHS นั้นๆ (เว้นว่างหากไม่เกี่ยวข้อง)"
   ];
   
@@ -1757,7 +1757,7 @@ function downloadCSVTemplate() {
   
   const sampleRow1 = [
     "CHEM-005", "กรดอะซิติก (Acetic Acid)", "สารเคมี", "3", "ขวด", "0", "0", "1", "2027-08-20", "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ", "ตู้ B", "ชั้น 1", 
-    "acid", "https://example.com/sds-acetic.pdf", "", "Y", "", "", "Y", "", "Y", "", ""
+    "D", "https://example.com/sds-acetic.pdf", "", "Y", "", "", "Y", "", "Y", "", ""
   ];
   const sampleRow2 = [
     "EQ-002", "กล้องจุลทรรศน์แบบใช้แสง (Microscope)", "อุปกรณ์วิทยาศาสตร์", "4", "เครื่อง", "0", "0", "2", "", "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์", "ตู้เก็บอุปกรณ์", "ตู้ด้านซ้าย", 
@@ -1833,7 +1833,19 @@ async function parseCSVAndImport(csvText) {
     let room = cols[9] || "";
     const cabinet = cols[10] || "";
     const shelf = cols[11] || "";
-    const chemicalType = cols[12] || "";
+    
+    // Map chemical compatibility categories
+    let chemicalType = (cols[12] || "").trim().toUpperCase();
+    if (chemicalType === "ACID") chemicalType = "F";
+    else if (chemicalType === "BASE") chemicalType = "C";
+    else if (chemicalType === "OXIDIZER") chemicalType = "E";
+    else if (chemicalType === "ORGANIC") chemicalType = "L";
+    else if (chemicalType === "OTHER") chemicalType = "G";
+    
+    if (!["A", "B", "C", "D", "E", "F", "G", "I", "K", "L", "X"].includes(chemicalType)) {
+      chemicalType = "";
+    }
+    
     const sdsUrl = cols[13] || "";
 
     // Parse GHS checkboxes from column indices 14-22
@@ -3468,6 +3480,46 @@ function setupBookingForm() {
     const success = await saveBooking(bookingData);
     if (success) {
       showToast(`จองห้อง "${getRoomThaiName(room)}" ช่วงเวลา ${slot} เรียบร้อยแล้ว!`, "success");
+      
+      // Populate bookingSuccessModal fields
+      const bsReceiptId = document.getElementById("bsReceiptId");
+      const bsRoom = document.getElementById("bsRoom");
+      const bsDate = document.getElementById("bsDate");
+      const bsSlots = document.getElementById("bsSlots");
+      const bsBooker = document.getElementById("bsBooker");
+      const bsPurpose = document.getElementById("bsPurpose");
+      const bsPrepBlock = document.getElementById("bsPrepBlock");
+      const bsPrepList = document.getElementById("bsPrepList");
+
+      if (bsReceiptId) bsReceiptId.textContent = `#${bookingData.id.replace('book_', '').toUpperCase()}`;
+      if (bsRoom) bsRoom.textContent = getRoomThaiName(room);
+      if (bsDate) bsDate.textContent = formatThaiDate(date);
+      if (bsSlots) bsSlots.textContent = slot;
+      if (bsBooker) bsBooker.textContent = bookerName;
+      if (bsPurpose) bsPurpose.textContent = purpose;
+
+      // Handle prep items list if any
+      if (bsPrepBlock && bsPrepList) {
+        if (prepItems && prepItems.length > 0) {
+          bsPrepBlock.style.display = "flex";
+          bsPrepList.innerHTML = prepItems.map(item => {
+            const foundItem = items.find(i => i.code === item.code);
+            const itemName = foundItem ? getItemDisplayName(foundItem) : item.code;
+            return `<li>${escapeHTML(itemName)} (${item.qty} ชิ้น)</li>`;
+          }).join("");
+        } else {
+          bsPrepBlock.style.display = "none";
+          bsPrepList.innerHTML = "";
+        }
+      }
+
+      // Show the modal
+      const bookingSuccessModal = document.getElementById("bookingSuccessModal");
+      if (bookingSuccessModal) {
+        bookingSuccessModal.classList.add("active");
+        lucide.createIcons(); // render the check-circle and camera icons in the modal
+      }
+
       form.reset();
       if (bookingDateInput) {
         const today = new Date().toISOString().split('T')[0];
@@ -3483,6 +3535,25 @@ function setupBookingForm() {
       updateUI();
     }
   });
+
+  // Close booking success modal listeners
+  const bookingSuccessModal = document.getElementById("bookingSuccessModal");
+  const bookingSuccessCloseBtn = document.getElementById("bookingSuccessModalClose");
+  const bookingSuccessBtn = document.getElementById("bookingSuccessModalBtn");
+
+  const closeBookingSuccess = () => {
+    if (bookingSuccessModal) bookingSuccessModal.classList.remove("active");
+  };
+
+  if (bookingSuccessCloseBtn) bookingSuccessCloseBtn.addEventListener("click", closeBookingSuccess);
+  if (bookingSuccessBtn) bookingSuccessBtn.addEventListener("click", closeBookingSuccess);
+  if (bookingSuccessModal) {
+    bookingSuccessModal.addEventListener("click", (e) => {
+      if (e.target === bookingSuccessModal) {
+        closeBookingSuccess();
+      }
+    });
+  }
 }
 
 function renderBookingsTable() {
@@ -3607,6 +3678,7 @@ function syncTransactionsToBackend() {
 let purchaseOrders = [];
 let purchaseOrderDrafts = [];
 let annualBudget = 100000;
+let editingPurchaseOrderId = null;
 
 async function loadAnnualBudget() {
   if (isFirebaseOnline) {
@@ -3868,6 +3940,9 @@ function setupPurchaseOrders() {
  
   if (btnReset && form) {
     btnReset.addEventListener("click", () => {
+      editingPurchaseOrderId = null;
+      const btnSubmitSpan = document.querySelector("#btnSubmitPurchaseOrder span");
+      if (btnSubmitSpan) btnSubmitSpan.innerText = "เพิ่มรายการสินค้า";
       form.reset();
       if (poTotalPrice) poTotalPrice.value = "0.00";
     });
@@ -3882,14 +3957,54 @@ function setupPurchaseOrders() {
       const unitPrice = parseFloat(document.getElementById("poUnitPrice").value) || 0;
       const quantity = parseInt(document.getElementById("poQuantity").value) || 1;
       const discount = parseFloat(document.getElementById("poDiscount").value) || 0;
+      const totalPrice = unitPrice * quantity * (1 - discount / 100);
  
+      if (editingPurchaseOrderId) {
+        // Edit mode for committed purchase order
+        const idx = purchaseOrders.findIndex(o => o.id === editingPurchaseOrderId);
+        if (idx !== -1) {
+          const oldOrder = purchaseOrders[idx];
+          const updatedOrder = {
+            ...oldOrder,
+            code,
+            name,
+            unitPrice,
+            quantity,
+            totalPrice,
+            discount
+          };
+          
+          purchaseOrders[idx] = updatedOrder;
+          
+          if (isFirebaseOnline) {
+            db.collection("purchase_orders").doc(editingPurchaseOrderId).set(updatedOrder)
+              .catch(e => console.error("Failed to update purchase order in Firebase:", e));
+          }
+          
+          localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+          syncPurchaseOrdersToBackend();
+          
+          editingPurchaseOrderId = null;
+          
+          const btnSubmitSpan = document.querySelector("#btnSubmitPurchaseOrder span");
+          if (btnSubmitSpan) btnSubmitSpan.innerText = "เพิ่มรายการสินค้า";
+          
+          form.reset();
+          if (poTotalPrice) poTotalPrice.value = "0.00";
+          
+          showToast("แก้ไขรายละเอียดรายการสั่งซื้อสะสมสำเร็จ", "success");
+          updateUI();
+        }
+        return;
+      }
+
       const newDraftItem = {
         id: "draft-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
         code,
         name,
         unitPrice,
         quantity,
-        totalPrice: unitPrice * quantity * (1 - discount / 100),
+        totalPrice,
         discount
       };
  
@@ -4072,16 +4187,15 @@ function updateBudgetUI() {
     if (remainingBudget < 0) {
       // Exceeded budget - Red
       cardRemainingBudget.style.borderColor = "var(--accent-red)";
+      cardRemainingBudget.style.borderWidth = "2px";
+      cardRemainingBudget.style.borderStyle = "solid";
       iconRemainingBudget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
       iconRemainingBudget.style.color = "rgb(239, 68, 68)";
-    } else if (remainingBudget < (annualBudget * 0.3)) {
-      // Warning low budget (< 30%) - Orange
-      cardRemainingBudget.style.borderColor = "#f97316";
-      iconRemainingBudget.style.backgroundColor = "rgba(249, 115, 22, 0.1)";
-      iconRemainingBudget.style.color = "rgb(249, 115, 22)";
     } else {
-      // Healthy budget - Green
-      cardRemainingBudget.style.borderColor = "var(--border-color)";
+      // Healthy/Not negative budget - Green
+      cardRemainingBudget.style.borderColor = "var(--accent-green)";
+      cardRemainingBudget.style.borderWidth = "2px";
+      cardRemainingBudget.style.borderStyle = "solid";
       iconRemainingBudget.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
       iconRemainingBudget.style.color = "rgb(16, 185, 129)";
     }
@@ -4160,12 +4274,17 @@ function renderOrdersTable() {
         <td data-label="ราคา/หน่วย" style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         <td data-label="จำนวน" style="text-align: center;">${order.quantity}</td>
         <td data-label="ราคารวม" style="text-align: right; font-weight: 600;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td data-label="ส่วนลด">${discountText}</td>
+        <td data-label="ส่วนลด" style="text-align: center;">${discountText}</td>
         ${isBackoffice ? `
-          <td data-label="จัดการ" style="text-align: center;">
-            <button class="action-icon-btn delete" onclick="deletePurchaseOrder('${order.id}')" title="ลบรายการสั่งซื้อ">
-              <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-            </button>
+          <td data-label="จัดการ" style="text-align: center; white-space: nowrap;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
+              <button class="action-icon-btn edit" onclick="editPurchaseOrder('${order.id}')" title="แก้ไขรายการสั่งซื้อ" style="color: var(--primary-purple); background: rgba(139, 92, 246, 0.1); border: none; padding: 6px; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;" onmouseover="this.style.background='rgba(139, 92, 246, 0.25)';" onmouseout="this.style.background='rgba(139, 92, 246, 0.1)';">
+                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+              </button>
+              <button class="action-icon-btn delete" onclick="deletePurchaseOrder('${order.id}')" title="ลบรายการสั่งซื้อ" style="color: var(--accent-red); background: rgba(239, 68, 68, 0.1); border: none; padding: 6px; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)';">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+              </button>
+            </div>
           </td>
         ` : `
           <td style="display: none;"></td>
@@ -4179,6 +4298,10 @@ function renderOrdersTable() {
   const grandTotalEl = document.getElementById("poGrandTotal");
   if (grandTotalEl) {
     grandTotalEl.innerText = grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
+  }
+  
+  if (typeof lucide !== "undefined" && lucide.createIcons) {
+    lucide.createIcons();
   }
 }
 
@@ -4195,6 +4318,34 @@ window.deletePurchaseOrder = function(orderId) {
   syncPurchaseOrdersToBackend();
   showToast("ลบรายการสั่งซื้อสำเร็จ", "success");
   updateUI();
+};
+
+window.editPurchaseOrder = function(orderId) {
+  const order = purchaseOrders.find(o => o.id === orderId);
+  if (!order) {
+    showToast("ไม่พบรายการสั่งซื้อที่ต้องการแก้ไข", "error");
+    return;
+  }
+  
+  document.getElementById("poProductCode").value = order.code || "";
+  document.getElementById("poProductName").value = order.name || "";
+  document.getElementById("poUnitPrice").value = order.unitPrice || 0;
+  document.getElementById("poQuantity").value = order.quantity || 1;
+  document.getElementById("poDiscount").value = order.discount || 0;
+  document.getElementById("poTotalPrice").value = (order.totalPrice || 0).toFixed(2);
+  
+  editingPurchaseOrderId = orderId;
+  
+  const btnSubmitSpan = document.querySelector("#btnSubmitPurchaseOrder span");
+  if (btnSubmitSpan) btnSubmitSpan.innerText = "บันทึกการแก้ไข";
+  
+  const formPanel = document.getElementById("purchaseOrderForm");
+  if (formPanel) {
+    formPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  
+  const firstInput = document.getElementById("poProductCode");
+  if (firstInput) firstInput.focus();
 };
 
 // ==========================================================================
