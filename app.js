@@ -271,6 +271,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupChatbot();
   setupPurchaseOrders();
   setupLabPlanner();
+  setupAdminClearHandlers();
   updateLoginUI();
   
   // Initialize Lucide icons initially
@@ -747,6 +748,11 @@ function updateUI() {
   if (borrowExportActions) borrowExportActions.style.display = isBackoffice ? "inline-flex" : "none";
   if (bookingExportActions) bookingExportActions.style.display = isBackoffice ? "inline-flex" : "none";
   if (quickBtnAddItem) quickBtnAddItem.style.display = isBackoffice ? "flex" : "none";
+
+  // Toggle display of admin-only clear data buttons
+  document.querySelectorAll(".admin-clear-btn").forEach(btn => {
+    btn.style.display = (userRole === "admin") ? "inline-flex" : "none";
+  });
   
   // Trigger Lucide updates for newly rendered icon containers
   renderOrdersTable();
@@ -9974,6 +9980,250 @@ function loadPlan(plan) {
   });
   
   showToast(`โหลดแผน "${plan.title}" สำเร็จ`, "success");
+}
+
+// ==========================================================================
+// ADMIN CLEAR DATA HANDLERS & CONFIRMATION MODAL
+// ==========================================================================
+function setupAdminClearHandlers() {
+  let pendingClearAction = null;
+
+  const confirmModal = document.getElementById("confirmDeleteModal");
+  const modalCloseBtn = document.getElementById("confirmDeleteModalClose");
+  const cancelBtn = document.getElementById("confirmDeleteCancelBtn");
+  const confirmBtn = document.getElementById("confirmDeleteConfirmBtn");
+  const confirmInput = document.getElementById("confirmDeleteInput");
+
+  // Show modal for a pending action
+  function openConfirmModal(action) {
+    pendingClearAction = action;
+    if (confirmInput) confirmInput.value = "";
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.style.cursor = "not-allowed";
+      confirmBtn.style.backgroundColor = "var(--text-muted)";
+      confirmBtn.style.borderColor = "var(--text-muted)";
+    }
+    if (confirmModal) confirmModal.classList.add("active");
+    if (confirmInput) confirmInput.focus();
+  }
+
+  // Close modal
+  function closeConfirmModal() {
+    pendingClearAction = null;
+    if (confirmModal) confirmModal.classList.remove("active");
+    if (confirmInput) confirmInput.value = "";
+  }
+
+  // Bind individual clear buttons
+  const btnClearInventory = document.getElementById("btnClearInventory");
+  if (btnClearInventory) {
+    btnClearInventory.addEventListener("click", () => {
+      if (userRole !== "admin") {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+        return;
+      }
+      openConfirmModal("inventory");
+    });
+  }
+
+  const btnClearTransactions = document.getElementById("btnClearTransactions");
+  if (btnClearTransactions) {
+    btnClearTransactions.addEventListener("click", () => {
+      if (userRole !== "admin") {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+        return;
+      }
+      openConfirmModal("transactions");
+    });
+  }
+
+  const btnClearBookings = document.getElementById("btnClearBookings");
+  if (btnClearBookings) {
+    btnClearBookings.addEventListener("click", () => {
+      if (userRole !== "admin") {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+        return;
+      }
+      openConfirmModal("bookings");
+    });
+  }
+
+  const btnClearPurchaseOrders = document.getElementById("btnClearPurchaseOrders");
+  if (btnClearPurchaseOrders) {
+    btnClearPurchaseOrders.addEventListener("click", () => {
+      if (userRole !== "admin") {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+        return;
+      }
+      openConfirmModal("purchaseOrders");
+    });
+  }
+
+  const btnClearSavedPlans = document.getElementById("btnClearSavedPlans");
+  if (btnClearSavedPlans) {
+    btnClearSavedPlans.addEventListener("click", () => {
+      if (userRole !== "admin") {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+        return;
+      }
+      openConfirmModal("plans");
+    });
+  }
+
+  // Input typing validation
+  if (confirmInput && confirmBtn) {
+    confirmInput.addEventListener("input", (e) => {
+      const match = e.target.value === "CONFIRM TO DELETE";
+      confirmBtn.disabled = !match;
+      if (match) {
+        confirmBtn.style.cursor = "pointer";
+        confirmBtn.style.backgroundColor = "var(--accent-red)";
+        confirmBtn.style.borderColor = "var(--accent-red)";
+      } else {
+        confirmBtn.style.cursor = "not-allowed";
+        confirmBtn.style.backgroundColor = "var(--text-muted)";
+        confirmBtn.style.borderColor = "var(--text-muted)";
+      }
+    });
+  }
+
+  // Cancel / Close binds
+  if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeConfirmModal);
+  if (cancelBtn) cancelBtn.addEventListener("click", closeConfirmModal);
+  if (confirmModal) {
+    confirmModal.addEventListener("click", (e) => {
+      if (e.target === confirmModal) closeConfirmModal();
+    });
+  }
+
+  // Confirm execution logic
+  if (confirmBtn) {
+    confirmBtn.addEventListener("click", async () => {
+      if (confirmInput.value !== "CONFIRM TO DELETE") return;
+      if (userRole !== "admin") {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+        closeConfirmModal();
+        return;
+      }
+
+      try {
+        if (pendingClearAction === "inventory") {
+          const itemsToDelete = [...items];
+          items = [];
+          saveItemsToLocal();
+          
+          if (isFirebaseOnline) {
+            for (const item of itemsToDelete) {
+              try {
+                await db.collection("items").doc(item.code).delete();
+              } catch (e) {
+                console.error("Firebase clear doc failed:", item.code, e);
+              }
+            }
+          } else if (isBackendOnline) {
+            for (const item of itemsToDelete) {
+              try {
+                await fetch(`${API_BASE}/items/${encodeURIComponent(item.code)}`, { method: "DELETE" });
+              } catch (e) {
+                console.error("Backend clear doc failed:", item.code, e);
+              }
+            }
+          }
+          showToast("ล้างข้อมูลคลังพัสดุทั้งหมดเรียบร้อยแล้ว", "success");
+        } 
+        else if (pendingClearAction === "transactions") {
+          const txsToDelete = [...transactions];
+          transactions = [];
+          localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+          
+          if (isFirebaseOnline) {
+            for (const tx of txsToDelete) {
+              try {
+                await db.collection("transactions").doc(tx.id).delete();
+              } catch (e) {
+                console.error("Firebase clear tx failed:", tx.id, e);
+              }
+            }
+          } else if (isBackendOnline) {
+            for (const tx of txsToDelete) {
+              try {
+                await fetch(`${API_BASE}/transactions/${encodeURIComponent(tx.id)}`, { method: "DELETE" });
+              } catch (e) {
+                // local fallback
+              }
+            }
+          }
+          showToast("ล้างประวัติธุรกรรมทั้งหมดเรียบร้อยแล้ว", "success");
+        } 
+        else if (pendingClearAction === "bookings") {
+          const bookingsToDelete = [...bookings];
+          bookings = [];
+          localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+          
+          if (isFirebaseOnline) {
+            for (const bk of bookingsToDelete) {
+              try {
+                await db.collection("bookings").doc(bk.id).delete();
+              } catch (e) {
+                console.error("Firebase clear booking failed:", bk.id, e);
+              }
+            }
+          } else if (isBackendOnline) {
+            for (const bk of bookingsToDelete) {
+              try {
+                await fetch(`${API_BASE}/bookings/${encodeURIComponent(bk.id)}`, { method: "DELETE" });
+              } catch (e) {
+                // local fallback
+              }
+            }
+          }
+          showToast("ล้างประวัติการจองห้องปฏิบัติการทั้งหมดเรียบร้อยแล้ว", "success");
+        } 
+        else if (pendingClearAction === "purchaseOrders") {
+          const poToDelete = [...purchaseOrders];
+          purchaseOrders = [];
+          localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+          
+          if (isFirebaseOnline) {
+            for (const po of poToDelete) {
+              try {
+                await db.collection("purchase_orders").doc(po.id).delete();
+              } catch (e) {
+                console.error("Firebase clear PO failed:", po.id, e);
+              }
+            }
+          } else if (isBackendOnline) {
+            for (const po of poToDelete) {
+              try {
+                await fetch(`${API_BASE}/purchase_orders/${encodeURIComponent(po.id)}`, { method: "DELETE" });
+              } catch (e) {
+                // local fallback
+              }
+            }
+          }
+          showToast("ล้างประวัติการสั่งซื้อทั้งหมดเรียบร้อยแล้ว", "success");
+        } 
+        else if (pendingClearAction === "plans") {
+          localStorage.removeItem("saved_lab_plans");
+          plannerElements = [];
+          const svg = document.getElementById("labPlanSvg");
+          if (svg) {
+            svg.querySelectorAll(".apparatus, .connection").forEach(el => el.remove());
+          }
+          showToast("ล้างแผนการทดลองทั้งหมดเรียบร้อยแล้ว", "success");
+        }
+
+        // Refresh views
+        updateUI();
+      } catch (err) {
+        console.error(err);
+        showToast("เกิดข้อผิดพลาดในการล้างข้อมูล", "error");
+      } finally {
+        closeConfirmModal();
+      }
+    });
+  }
 }
 
 

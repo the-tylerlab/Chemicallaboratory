@@ -136,9 +136,9 @@
       </div>
 
       <!-- Sidebar Footer -->
-      <!-- <div class="sidebar-footer">
-        เวอร์ชัน 1.8.2
-      </div> -->
+      <div class="sidebar-footer" style="padding: 16px 24px; font-size: 11px; color: rgba(255, 255, 255, 0.5); text-align: center;">
+        เวอร์ชัน 1.9.0
+      </div>
     </aside>
 
     <!-- MAIN CONTENT AREA -->
@@ -632,6 +632,10 @@
               <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
               <span>พิมพ์รายงาน (PDF)</span>
             </button>
+            <button class="btn btn-secondary admin-clear-btn" id="btnClearInventory" style="display: none; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border-color: rgba(239, 68, 68, 0.2); align-items: center; gap: 6px; font-weight: 600;">
+              <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+              <span>ล้างคลังพัสดุ</span>
+            </button>
           </div>
         </div>
 
@@ -844,6 +848,9 @@
                 <button type="button" class="btn" id="btnExportBorrowPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
                   <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
                 </button>
+                <button type="button" class="btn admin-clear-btn" id="btnClearTransactions" style="display: none; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ล้างประวัติยืม-คืน
+                </button>
               </div>
             </div>
 
@@ -965,6 +972,9 @@
                 </button>
                 <button type="button" class="btn" id="btnExportBookingPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
                   <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
+                </button>
+                <button type="button" class="btn admin-clear-btn" id="btnClearBookings" style="display: none; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ล้างประวัติการจอง
                 </button>
               </div>
             </div>
@@ -1217,6 +1227,9 @@
                 <button type="button" class="btn" id="btnExportPoPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
                   <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
                 </button>
+                <button type="button" class="btn admin-clear-btn" id="btnClearPurchaseOrders" style="display: none; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ล้างรายการสั่งซื้อ
+                </button>
               </div>
             </div>
 
@@ -1424,6 +1437,10 @@
                 <button type="button" class="btn btn-secondary" id="btnPlanClear" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12.5px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer; background: white; color: var(--accent-red); font-weight: 600;">
                   <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                   <span>ล้างกระดาน</span>
+                </button>
+                <button type="button" class="btn admin-clear-btn" id="btnClearSavedPlans" style="display: none; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12.5px; border-radius: var(--border-radius-sm); border: 1px solid rgba(239, 68, 68, 0.2); cursor: pointer; background: rgba(239, 68, 68, 0.08); color: var(--accent-red); font-weight: 600;">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                  <span>ล้างแผนทั้งหมด</span>
                 </button>
                 
                 <div style="width: 1px; background-color: var(--border-color); margin: 0 4px;"></div>
@@ -2012,6 +2029,44 @@
       </div>
       <div class="modal-footer" style="padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
         <button type="button" class="btn btn-secondary" id="storageRecModalCloseBtn" style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer;">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: CONFIRM DELETE DATA
+       ========================================== -->
+  <div class="modal-overlay" id="confirmDeleteModal">
+    <div class="modal-content" style="max-width: 450px; border-radius: var(--border-radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); border: none; overflow: hidden; background: #ffffff;">
+      <div class="modal-header" style="background: var(--accent-red); color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="trash-2" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
+          <span style="color: #ffffff !important;">ยืนยันการล้างข้อมูลอย่างถาวร</span>
+        </h2>
+        <button class="modal-close-btn" id="confirmDeleteModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
+      </div>
+      
+      <div class="modal-body" style="padding: 24px; font-family: 'Prompt', sans-serif;">
+        <div style="display: flex; gap: 12px; margin-bottom: 16px; background: rgba(239, 68, 68, 0.05); padding: 12px; border-left: 4px solid var(--accent-red); border-radius: 4px;">
+          <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: var(--accent-red); flex-shrink: 0; margin-top: 2px;"></i>
+          <div>
+            <div style="font-weight: 600; color: var(--accent-red); font-size: 14px;">การดำเนินการนี้ไม่สามารถย้อนกลับได้!</div>
+            <div style="font-size: 12.5px; color: var(--text-main); margin-top: 4px; line-height: 1.5;">ข้อมูลทั้งหมดในส่วนนี้จะถูกลบออกจากระบบอย่างถาวร หากมั่นใจโปรดพิมพ์คำว่า <strong style="font-family: monospace; background: #fee2e2; padding: 2px 6px; border-radius: 4px; color: var(--accent-red);">CONFIRM TO DELETE</strong> ในช่องด้านล่างเพื่อยืนยัน</div>
+          </div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">ข้อความยืนยัน (ตัวพิมพ์ใหญ่ทั้งหมด):</label>
+          <input type="text" id="confirmDeleteInput" placeholder="พิมพ์ CONFIRM TO DELETE" style="width: 100%; padding: 10px 12px; font-family: 'Prompt', sans-serif; font-size: 14px; border: 1.5px solid var(--border-color); border-radius: 6px; outline: none; transition: border-color 0.2s;" oninput="this.style.borderColor = (this.value === 'CONFIRM TO DELETE') ? 'var(--accent-red)' : 'var(--border-color)';">
+        </div>
+      </div>
+      
+      <div class="modal-footer" style="padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" class="btn btn-secondary" id="confirmDeleteCancelBtn" style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; border: 1px solid var(--border-color); background: white;">ยกเลิก</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteConfirmBtn" disabled style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; font-family: 'Prompt', sans-serif; cursor: not-allowed; background: var(--text-muted); border-color: var(--text-muted); color: #ffffff; display: inline-flex; align-items: center; gap: 6px; border: none;">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+          ยืนยันการลบ
+        </button>
       </div>
     </div>
   </div>

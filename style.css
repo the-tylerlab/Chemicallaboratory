@@ -235,7 +235,6 @@ button {
 /* Sidebar Bottom Menu */
 .sidebar-bottom-menu {
   margin-top: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 12px;
   margin-bottom: 8px;
 }
