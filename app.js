@@ -4251,6 +4251,12 @@ function renderOrdersTable() {
     `;
     const grandTotalEl = document.getElementById("poGrandTotal");
     if (grandTotalEl) grandTotalEl.innerText = "0.00 บาท";
+    const totalBeforeDiscountEl = document.getElementById("poTotalBeforeDiscount");
+    if (totalBeforeDiscountEl) totalBeforeDiscountEl.innerText = "0.00 บาท";
+    const overallDiscountPercentEl = document.getElementById("poOverallDiscountPercent");
+    if (overallDiscountPercentEl) overallDiscountPercentEl.innerText = "0.00";
+    const totalDiscountAmountEl = document.getElementById("poTotalDiscountAmount");
+    if (totalDiscountAmountEl) totalDiscountAmountEl.innerText = "-0.00 บาท";
     
     const actionHeaders = document.querySelectorAll(".po-action-header");
     actionHeaders.forEach(th => th.style.display = isBackoffice ? "" : "none");
@@ -4261,9 +4267,17 @@ function renderOrdersTable() {
   actionHeaders.forEach(th => th.style.display = isBackoffice ? "" : "none");
 
   let html = "";
+  let totalBeforeDiscount = 0;
+  let totalDiscountAmount = 0;
   let grandTotal = 0;
 
   purchaseOrders.forEach(order => {
+    const rawTotal = order.unitPrice * order.quantity;
+    const discountPercent = typeof order.discount === 'number' ? order.discount : 0;
+    const discountAmt = rawTotal * (discountPercent / 100);
+
+    totalBeforeDiscount += rawTotal;
+    totalDiscountAmount += discountAmt;
     grandTotal += order.totalPrice;
     
     let discountText = "-";
@@ -4300,6 +4314,22 @@ function renderOrdersTable() {
   });
 
   tbody.innerHTML = html;
+
+  const totalBeforeDiscountEl = document.getElementById("poTotalBeforeDiscount");
+  if (totalBeforeDiscountEl) {
+    totalBeforeDiscountEl.innerText = totalBeforeDiscount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
+  }
+
+  const overallDiscountPercent = totalBeforeDiscount > 0 ? (totalDiscountAmount / totalBeforeDiscount) * 100 : 0;
+  const overallDiscountPercentEl = document.getElementById("poOverallDiscountPercent");
+  if (overallDiscountPercentEl) {
+    overallDiscountPercentEl.innerText = overallDiscountPercent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  const totalDiscountAmountEl = document.getElementById("poTotalDiscountAmount");
+  if (totalDiscountAmountEl) {
+    totalDiscountAmountEl.innerText = "-" + totalDiscountAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
+  }
 
   const grandTotalEl = document.getElementById("poGrandTotal");
   if (grandTotalEl) {
