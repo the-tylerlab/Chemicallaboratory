@@ -1252,10 +1252,19 @@
                 </tbody>
                 <tfoot>
                   <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid var(--border-color);">
-                    <td colspan="5" style="text-align: right; padding: 12px 20px; white-space: nowrap;">
-                      ราคารวมทั้งหมด: <span id="poGrandTotal" style="color: var(--primary-purple); font-size: 14px; margin-left: 8px; font-weight: 700;">0.00 บาท</span>
+                    <td colspan="7" style="padding: 16px 20px;">
+                      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                        <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">
+                          รวมก่อนลดราคา: <span id="poTotalBeforeDiscount" style="color: var(--text-main); font-weight: 600; margin-left: 8px;">0.00 บาท</span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--accent-green); font-weight: 500;">
+                          ส่วนลดสะสม (<span id="poOverallDiscountPercent">0.00</span>%): <span id="poTotalDiscountAmount" style="font-weight: 600; margin-left: 8px;">-0.00 บาท</span>
+                        </div>
+                        <div style="font-size: 15px; color: var(--primary-purple); font-weight: 700; border-top: 1px dashed var(--border-color); padding-top: 8px; width: 280px; text-align: right; margin-top: 4px;">
+                          ราคาหลังหักส่วนลด: <span id="poGrandTotal" style="font-size: 16px; margin-left: 8px;">0.00 บาท</span>
+                        </div>
+                      </div>
                     </td>
-                    <td colspan="2"></td>
                   </tr>
                 </tfoot>
               </table>
