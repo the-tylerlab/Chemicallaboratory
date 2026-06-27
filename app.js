@@ -6918,6 +6918,19 @@ function setupHistoryExports() {
         showToast("ไม่มีข้อมูลรายการสั่งซื้อเพื่อส่งออก", "error");
         return;
       }
+      
+      let totalBefore = 0;
+      let totalDiscount = 0;
+      let finalTotal = 0;
+      purchaseOrders.forEach(order => {
+        const rawTotal = (order.unitPrice || 0) * (order.quantity || 0);
+        const discountVal = typeof order.discount === 'number' ? order.discount : 0;
+        totalBefore += rawTotal;
+        totalDiscount += rawTotal * (discountVal / 100);
+        finalTotal += order.totalPrice;
+      });
+      const avgDiscountPercent = totalBefore > 0 ? (totalDiscount / totalBefore) * 100 : 0;
+
       const headers = [
         "รหัสสินค้า",
         "ชื่อสินค้า",
@@ -6934,6 +6947,13 @@ function setupHistoryExports() {
         order.totalPrice || 0,
         order.discount !== undefined ? `${order.discount}%` : ""
       ]);
+
+      // Spacing and summaries
+      rows.push(["", "", "", "", "", ""]);
+      rows.push(["รวมก่อนลดราคา", "", "", "", totalBefore, "บาท"]);
+      rows.push(["ส่วนลดสะสม", "", "", "", -totalDiscount, `${avgDiscountPercent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`]);
+      rows.push(["ราคาหลังหักส่วนลด", "", "", "", finalTotal, "บาท"]);
+
       exportDataToCSV(`purchase_orders_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
       showToast("ส่งออกรายการสั่งซื้อแบบ CSV สำเร็จ!", "success");
     });
@@ -6947,8 +6967,17 @@ function setupHistoryExports() {
       }
       const printDate = formatThaiDate(new Date().toISOString().split('T')[0]) + " " + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
       
+      let totalBeforeDiscount = 0;
+      let totalDiscountAmount = 0;
       let grandTotal = 0;
+      
       const rowsHtml = purchaseOrders.map(order => {
+        const rawTotal = (order.unitPrice || 0) * (order.quantity || 0);
+        const discountPercent = typeof order.discount === 'number' ? order.discount : 0;
+        const discountAmt = rawTotal * (discountPercent / 100);
+
+        totalBeforeDiscount += rawTotal;
+        totalDiscountAmount += discountAmt;
         grandTotal += order.totalPrice;
         
         let discountStr = "-";
@@ -6970,6 +6999,8 @@ function setupHistoryExports() {
         `;
       }).join("");
 
+      const overallDiscountPercent = totalBeforeDiscount > 0 ? (totalDiscountAmount / totalBeforeDiscount) * 100 : 0;
+
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -6980,12 +7011,16 @@ function setupHistoryExports() {
             body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
             h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
             p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
             th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
             th { background-color: #f1f5f9; font-weight: 600; color: #334155; }
             tr:nth-child(even) { background-color: #f8fafc; }
-            .total-row { background-color: #f1f5f9; font-weight: bold; }
-            .footer { margin-top: 40px; font-size: 10px; text-align: right; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+            .total-row { background-color: #f8fafc; font-weight: bold; }
+            .grand-total-row { background-color: #f1f5f9; font-weight: bold; font-size: 12px; }
+            .footer { margin-top: 40px; font-size: 10px; text-align: right; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 12px; page-break-inside: avoid; }
             @media print {
               body { padding: 0; }
             }
@@ -7007,10 +7042,20 @@ function setupHistoryExports() {
             </thead>
             <tbody>
               ${rowsHtml}
-              <tr class="total-row">
-                <td colspan="4" style="text-align: right;">ราคารวมทั้งหมด:</td>
-                <td style="text-align: right; color: #8b5cf6;">${grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+              <tr class="total-row" style="border-top: 2px solid #cbd5e1;">
+                <td colspan="4" style="text-align: right;">รวมก่อนลดราคา:</td>
+                <td style="text-align: right;">${totalBeforeDiscount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td>บาท</td>
+              </tr>
+              <tr class="total-row" style="color: #16a34a;">
+                <td colspan="4" style="text-align: right;">ส่วนลดสะสม (${overallDiscountPercent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%):</td>
+                <td style="text-align: right;">-${totalDiscountAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td>บาท</td>
+              </tr>
+              <tr class="grand-total-row" style="border-top: 1px dashed #cbd5e1;">
+                <td colspan="4" style="text-align: right; color: #8b5cf6;">ราคาหลังหักส่วนลด:</td>
+                <td style="text-align: right; color: #8b5cf6;">${grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="color: #8b5cf6;">บาท</td>
               </tr>
             </tbody>
           </table>
