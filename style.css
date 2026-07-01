@@ -517,6 +517,27 @@ button {
   text-decoration: underline;
 }
 
+/* Unified Dashboard Tabs */
+.alert-tab-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  transition: all var(--transition-fast) ease-in-out;
+}
+.alert-tab-btn:hover {
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  border-color: rgba(139, 92, 246, 0.25);
+}
+.alert-tab-btn.active {
+  background-color: var(--accent-blue-light) !important;
+  color: var(--accent-blue) !important;
+  border-color: var(--accent-blue) !important;
+}
+
 /* Quick Menu Actions */
 .quick-menu-list {
   display: flex;
@@ -1229,8 +1250,13 @@ tr:hover td {
 }
 
 .badge-purple {
-  background-color: rgba(63, 27, 133, 0.1);
+  background-color: rgba(139, 92, 246, 0.1);
   color: var(--primary-purple);
+}
+
+.badge-blue {
+  background-color: var(--accent-blue-light);
+  color: var(--accent-blue);
 }
 
 /* Action Table Buttons */
@@ -2468,6 +2494,20 @@ tr:hover td {
   color: #8b5cf6;
 }
 
+/* Status: Pending Booked (รออนุมัติจอง) */
+.booking-slot-card.pending-booked {
+  border-color: rgba(245, 158, 11, 0.3);
+  background-color: rgba(245, 158, 11, 0.03);
+  cursor: not-allowed;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.booking-slot-status.pending-booked {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
 .badge-approved {
   background-color: rgba(16, 185, 129, 0.1);
   color: var(--accent-green);
@@ -2476,6 +2516,11 @@ tr:hover td {
 .badge-cancelled {
   background-color: rgba(107, 114, 128, 0.1);
   color: #6b7280;
+}
+
+.badge-pending {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #d97706;
 }
 
 @media (max-width: 640px) {
@@ -3278,7 +3323,219 @@ input[type="date"]::-webkit-date-and-time-value {
   filter: brightness(0.95);
 }
 
+/* ==========================================================================
+   RECEIPT PRINTER ANIMATION & STYLE
+   ========================================================================== */
+.receipt-printer-slot {
+  height: 12px;
+  background: #cbd5e1;
+  border-radius: 6px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 0 rgba(255, 255, 255, 0.8);
+  position: relative;
+  margin-bottom: -6px;
+  z-index: 10;
+}
 
+.receipt-printer-slot::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 12%;
+  right: 12%;
+  height: 4px;
+  background: #0f172a;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+}
 
+.receipt-paper-wrapper {
+  overflow: hidden;
+  padding-top: 6px;
+  position: relative;
+}
 
+.receipt-paper {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  position: relative;
+  transform: translateY(-100%);
+  transform-origin: top center;
+  margin-bottom: 12px;
+}
 
+/* Active animation: slides/prints down */
+.modal-overlay.active .receipt-paper {
+  animation: printReceipt 2.2s cubic-bezier(0.12, 0.85, 0.35, 1) forwards;
+  animation-delay: 0.3s;
+}
+
+/* Jagged Zigzag Bottom */
+.receipt-paper::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: -1px;
+  right: -1px;
+  height: 10px;
+  background-image: 
+    linear-gradient(-45deg, #ffffff 5px, transparent 0), 
+    linear-gradient(45deg, #ffffff 5px, transparent 0);
+  background-position: left bottom;
+  background-repeat: repeat-x;
+  background-size: 10px 10px;
+  z-index: 5;
+  filter: drop-shadow(0 1px 0 var(--border-color));
+}
+
+@keyframes printReceipt {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   QR CODE LABEL PRINTER STYLES & ANIMATION (v1.9.1)
+   ========================================================================== */
+
+.label-printer-device {
+  width: 200px;
+  height: 100px;
+  background: linear-gradient(135deg, #2e2a3f, #1f1b2d);
+  border-radius: 12px 12px 4px 4px;
+  position: absolute;
+  top: 50px;
+  z-index: 10;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.25), inset 0 2px 2px rgba(255,255,255,0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  border: 1px solid #4a3e6a;
+}
+
+.label-printer-slot {
+  width: 160px;
+  height: 8px;
+  background: #110f18;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+  position: relative;
+}
+
+/* Status indicator light on the printer */
+.label-printer-device::before {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981; /* Green status light */
+  box-shadow: 0 0 8px #10b981;
+  animation: printer-light-blink 1.5s infinite;
+}
+
+.label-printer-device::after {
+  content: "CATALYST PRINTER";
+  position: absolute;
+  top: 13px;
+  right: 20px;
+  font-family: 'Sora', sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.5px;
+}
+
+@keyframes printer-light-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.label-sticker-paper-wrapper {
+  position: absolute;
+  top: 135px; /* Directly below the printer slot */
+  height: 180px;
+  width: 220px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  z-index: 5;
+}
+
+.label-sticker-paper {
+  width: 185px;
+  height: 105px;
+  background: #ffffff;
+  border: 1.5px dashed #8b5cf6; /* Match primary theme color */
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  transform: translateY(-120%); /* Hide inside the printer */
+  transition: transform 2.0s cubic-bezier(0.12, 0.85, 0.35, 1);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.label-sticker-paper.printing {
+  transform: translateY(0);
+}
+
+/* Add a clean adhesive paper tab outline */
+.label-sticker-paper::before {
+  content: "PEEL HERE";
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  font-size: 6px;
+  font-weight: bold;
+  color: #c084fc;
+  letter-spacing: 0.3px;
+  opacity: 0.7;
+}
+
+/* Dashboard Locked Sizes for Student Mode */
+.dashboard-grid.student-mode #quickMenuCard,
+.dashboard-grid.student-mode #unifiedAlertsCard {
+  height: 310px !important;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.dashboard-grid.student-mode #categoryBreakdownCard,
+.dashboard-grid.student-mode #recentItemsCard {
+  height: 400px !important;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Ensure inner scroll areas fit nicely in Student Mode */
+.dashboard-grid.student-mode #unifiedAlertsCard .alert-tab-content {
+  flex: 1;
+  max-height: 175px !important;
+  overflow-y: auto;
+}
+
+.dashboard-grid.student-mode #recentItemsContainer {
+  flex: 1;
+  max-height: 280px !important;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.dashboard-grid.student-mode #categoryBreakdownContainer {
+  flex: 1;
+  max-height: 280px !important;
+  overflow-y: auto;
+  padding-right: 4px;
+}

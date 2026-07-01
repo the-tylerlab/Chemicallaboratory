@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="style.css?v=1.8.2">
+  <link rel="stylesheet" href="style.css?v=1.9.1">
   <!-- Lucide Icons Library -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Firebase App & Firestore Compat SDKs -->
@@ -135,10 +135,7 @@
         </ul>
       </div>
 
-      <!-- Sidebar Footer -->
-      <div class="sidebar-footer" style="padding: 16px 24px; font-size: 11px; color: rgba(255, 255, 255, 0.5); text-align: center;">
-        เวอร์ชัน 1.9.0
-      </div>
+
     </aside>
 
     <!-- MAIN CONTENT AREA -->
@@ -197,7 +194,7 @@
         <!-- Dashboard Split Layout -->
         <div class="dashboard-grid">
           <!-- 1. Quick Menu Panel -->
-          <div class="card-container">
+          <div class="card-container" id="quickMenuCard">
             <div class="card-header">
               <h2 class="card-title">เมนูด่วน</h2>
             </div>
@@ -235,46 +232,65 @@
             </div>
           </div>
 
-          <!-- 2. Urgent Alerts Panel -->
-          <div class="card-container">
-            <div class="card-header">
-              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <span>รายการแจ้งเตือนด่วน</span>
-                <span class="badge badge-red" id="dashboardUrgentCount" style="padding: 2px 8px; font-size: 12.5px; display: none;">0</span>
+          <!-- Pending Requests Card for Admin/Teachers -->
+          <div class="card-container" id="pendingRequestsCard" style="display: none;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                <span>คำขออนุมัติรอดำเนินการ</span>
+                <span class="badge badge-orange" id="pendingRequestsCount" style="padding: 2px 8px; font-size: 12.5px;">0</span>
               </h2>
+              <select id="teacherFilterSelect" class="form-control" style="max-width: 200px; padding: 4px 8px; font-size: 12px; height: auto; border-color: rgba(139, 92, 246, 0.2); outline: none;">
+                <option value="all">แสดงทั้งหมด (Show All)</option>
+              </select>
             </div>
-            <div id="dashboardUrgentContainer" style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;">
-              <!-- Dynamically populated -->
+            <div id="pendingRequestsContainer" style="flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+              <!-- Dynamically populated by renderPendingRequests() -->
             </div>
           </div>
 
-          <!-- 3. Overdue Items Panel -->
-          <div class="card-container" id="overdueCard">
-            <div class="card-header">
-              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <span>รายการค้างส่งคืน (Overdue)</span>
-                <span class="badge badge-red" id="dashboardOverdueCount" style="padding: 2px 8px; font-size: 12.5px; display: none;">0</span>
+          <!-- Unified Alerts Panel with Tabs -->
+          <div class="card-container" id="unifiedAlertsCard">
+            <div class="card-header" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+              <h2 class="card-title" style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text-color); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="bell" style="width: 18px; height: 18px; color: var(--accent-blue);"></i>
+                <span>แจ้งเตือนและสถานะเครื่องมือ</span>
               </h2>
+              <div class="alert-tabs" style="display: flex; gap: 6px; width: 100%;">
+                <button type="button" class="alert-tab-btn active" data-tab="urgent" style="flex: 1; padding: 6px 4px; font-size: 11.5px; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                  <span>เตือนด่วน</span>
+                  <span class="badge badge-red" id="dashboardUrgentCount" style="padding: 1px 5px; font-size: 10px; display: none;">0</span>
+                </button>
+                <button type="button" class="alert-tab-btn" data-tab="overdue" style="flex: 1; padding: 6px 4px; font-size: 11.5px; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                  <span>ค้างส่งคืน</span>
+                  <span class="badge badge-red" id="dashboardOverdueCount" style="padding: 1px 5px; font-size: 10px; display: none;">0</span>
+                </button>
+                <button type="button" class="alert-tab-btn" data-tab="damaged" style="flex: 1; padding: 6px 4px; font-size: 11.5px; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                  <span>ชำรุด/ส่งซ่อม</span>
+                </button>
+              </div>
             </div>
-            <div id="dashboardOverdueContainer" style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;">
-              <!-- Dynamically populated -->
+            
+            <div class="alert-tab-content active" id="tab-urgent" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+              <div id="dashboardUrgentContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated -->
+              </div>
             </div>
-          </div>
-
-          <!-- 4. Damaged & Repair Stats Panel -->
-          <div class="card-container" id="damagedStatsCard">
-            <div class="card-header">
-              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <span>สถานะพัสดุชำรุดและส่งซ่อม</span>
-              </h2>
+            
+            <div class="alert-tab-content" id="tab-overdue" style="display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+              <div id="dashboardOverdueContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated -->
+              </div>
             </div>
-            <div id="dashboardDamagedContainer" style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: flex-start;">
-              <!-- Dynamically populated -->
+            
+            <div class="alert-tab-content" id="tab-damaged" style="display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+              <div id="dashboardDamagedContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated -->
+              </div>
             </div>
           </div>
 
           <!-- 3. Category Breakdown Panel -->
-          <div class="card-container">
+          <div class="card-container" id="categoryBreakdownCard">
             <div class="card-header">
               <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
                 <span>สัดส่วนหมวดหมู่พัสดุ</span>
@@ -285,9 +301,8 @@
               <!-- Dynamically populated -->
             </div>
           </div>
-
           <!-- 4. Recent Items Panel -->
-          <div class="card-container">
+          <div class="card-container" id="recentItemsCard">
             <div class="card-header">
               <h2 class="card-title">รายการล่าสุด</h2>
               <a href="#" class="card-link" id="linkViewAll">ดูทั้งหมด <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i></a>
@@ -296,7 +311,6 @@
               <!-- Dynamically populated -->
             </div>
           </div>
-
         </div>
       </section>
 
@@ -1750,10 +1764,10 @@
        ========================================== -->
   <div class="modal-overlay" id="bookingSuccessModal">
     <div class="modal-content" style="max-width: 500px; border-radius: var(--border-radius-md); overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; background: #ffffff;">
-      <div class="modal-header" style="background: var(--accent-green); color: #ffffff; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="modal-header" id="bookingSuccessModalHeader" style="background: var(--accent-green); color: #ffffff; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;">
         <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
-          <i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>
-          <span>บันทึกการจองห้องแล็บสำเร็จ</span>
+          <span id="bookingSuccessModalIconWrapper"><i data-lucide="check-circle" style="width: 20px; height: 20px;"></i></span>
+          <span id="bookingSuccessModalTitle">บันทึกการจองห้องแล็บสำเร็จ</span>
         </h2>
         <button class="modal-close-btn" id="bookingSuccessModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
       </div>
@@ -1764,11 +1778,11 @@
           <i data-lucide="camera" style="width: 22px; height: 22px; color: var(--accent-red); flex-shrink: 0; margin-top: 2px;"></i>
           <div>
             <h4 style="margin: 0 0 4px 0; color: var(--accent-red); font-size: 14px; font-weight: 600;">โปรดบันทึกภาพหน้าจอ!</h4>
-            <p style="margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.5;">กรุณา<b>แคปภาพหน้าจอนี้ไว้</b> เพื่อใช้เป็นหลักฐานยืนยันการจองกับเจ้าหน้าที่เมื่อเข้าใช้งานห้องปฏิบัติการ</p>
+            <p style="margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.5;" id="bookingSuccessModalWarnText">กรุณา<b>แคปภาพหน้าจอนี้ไว้</b> เพื่อใช้เป็นหลักฐานยืนยันการจองกับเจ้าหน้าที่เมื่อเข้าใช้งานห้องปฏิบัติการ</p>
           </div>
         </div>
 
-        <!-- Receipt / Info Sheet -->
+        <!-- Receipt / Info Sheet (Standard Static View) -->
         <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: #fafafa;">
           <div style="background: rgba(0,0,0,0.02); padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13.5px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;">
             <span>รายละเอียดการจอง</span>
@@ -1804,6 +1818,11 @@
               <span id="bsPurpose" style="color: var(--text-main);">-</span>
             </div>
             
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">สถานะ:</span>
+              <span id="bsStatus" style="font-weight: 600;">-</span>
+            </div>
+            
             <div id="bsPrepBlock" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 4px; flex-direction: column; gap: 6px;">
               <span style="color: var(--text-muted); font-weight: 500; font-size: 13px;">รายการอุปกรณ์เตรียมแล็บ:</span>
               <ul id="bsPrepList" style="margin: 0; padding-left: 20px; color: var(--text-main); font-size: 12.5px; line-height: 1.5;">
@@ -1812,6 +1831,54 @@
             </div>
           </div>
         </div>
+
+        <!-- FUTURE USE: Animated Receipt Printer Structure (Commented out)
+        <div class="receipt-printer-slot"></div>
+        <div class="receipt-paper-wrapper">
+          <div class="receipt-paper">
+            <div style="background: rgba(0,0,0,0.02); padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13.5px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;">
+              <span>รายละเอียดการจอง</span>
+              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                <span id="bsReceiptId" style="font-family: monospace; font-size: 12px; color: var(--text-main); font-weight: 600;">#ID</span>
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: normal; line-height: 1;">หมายเลขการจอง</span>
+              </div>
+            </div>
+            
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px;">
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">ห้องปฏิบัติการ:</span>
+                <span id="bsRoom" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">วันที่ใช้งาน:</span>
+                <span id="bsDate" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">คาบเวลา:</span>
+                <span id="bsSlots" style="color: var(--primary-purple); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">ผู้จอง:</span>
+                <span id="bsBooker" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">วัตถุประสงค์:</span>
+                <span id="bsPurpose" style="color: var(--text-main);">-</span>
+              </div>
+              
+              <div id="bsPrepBlock" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 4px; flex-direction: column; gap: 6px;">
+                <span style="color: var(--text-muted); font-weight: 500; font-size: 13px;">รายการอุปกรณ์เตรียมแล็บ:</span>
+                <ul id="bsPrepList" style="margin: 0; padding-left: 20px; color: var(--text-main); font-size: 12.5px; line-height: 1.5;">
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        -->
 
       </div>
       <div class="modal-footer" style="padding: 16px 24px; display: flex; justify-content: center; border-top: 1px solid var(--border-color); background: #fafafa;">
@@ -1990,7 +2057,7 @@
             <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">25 มิถุนายน 2569 (ล่าสุด)</span>
           </div>
           <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
-            <li><b>ป๊อปอัพยืนยันใบเสร็จหลังจองห้องแล็บสำเร็จ (Booking Confirmation Modal):</b> เพิ่มระบบหน้าต่างยืนยันความสำเร็จ (Receipt Modal) ทันทีหลังส่งคำขอจอง พร้อมข้อมูลสรุปและคำแนะนำเตือนใจความสำคัญให้ผู้ใช้<b>บันทึกภาพหน้าจอ (Capture)</b> ไว้เป็นหลักฐานเพื่อแสดงต่อเจ้าหน้าที่ห้องปฏิบัติการอย่างชัดเจน</li>
+            <li><b>ป๊อปอัพใบยืนยันการจองหลังจองห้องแล็บสำเร็จ (Booking Confirmation Modal):</b> เพิ่มระบบหน้าต่างยืนยันความสำเร็จ (Booking Confirmation Modal) ทันทีหลังส่งคำขอจอง พร้อมข้อมูลสรุปและคำแนะนำเตือนใจความสำคัญให้ผู้ใช้<b>บันทึกภาพหน้าจอ (Capture)</b> ไว้เป็นหลักฐานเพื่อแสดงต่อเจ้าหน้าที่ห้องปฏิบัติการอย่างชัดเจน</li>
           </ul>
         </div>
 
@@ -2038,6 +2105,60 @@
       </div>
       <div class="modal-footer" style="padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
         <button type="button" class="btn btn-secondary" id="storageRecModalCloseBtn" style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer;">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: QR CODE LABEL PRINTER ANIMATION
+       ========================================== -->
+  <div id="labelPrinterModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 600px; padding: 24px; position: relative;">
+      <button class="modal-close" onclick="closeLabelPrinterModal()">&times;</button>
+      <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+        <i data-lucide="printer" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+        <span>เครื่องพิมพ์สติกเกอร์ QR Code</span>
+      </h3>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; margin-top: 10px; min-height: 320px;">
+        <!-- Left column: Control & print state -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="background: rgba(139, 92, 246, 0.05); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid rgba(139, 92, 246, 0.1);">
+            <div style="font-weight: 600; font-size: 14.5px; color: var(--primary-purple); margin-bottom: 4px;" id="lpItemName">-</div>
+            <div style="font-family: monospace; font-size: 13px; color: var(--text-muted); font-weight: 600;" id="lpItemCode">CODE: -</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;" id="lpItemLocation">จัดเก็บ: -</div>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button type="button" class="btn btn-primary" id="lpPrintRealBtn" style="background-color: var(--primary-purple); border-color: var(--primary-purple); display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 42px;">
+              <i data-lucide="printer" style="width: 18px; height: 18px;"></i>
+              <span>พิมพ์สติกเกอร์ (Print Label)</span>
+            </button>
+            <button type="button" class="btn btn-secondary" style="width: 100%; height: 42px;" onclick="closeLabelPrinterModal()">ปิดหน้าต่าง</button>
+          </div>
+        </div>
+        
+        <!-- Right column: 3D Printer and Sticker animation -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; height: 350px; background: rgba(0,0,0,0.02); border-radius: var(--border-radius-md); border: 1px solid var(--border-color);">
+          <!-- 3D Printer Body -->
+          <div class="label-printer-device">
+            <div class="label-printer-slot"></div>
+          </div>
+          
+          <!-- Sticker Roll out paper container -->
+          <div class="label-sticker-paper-wrapper">
+            <div class="label-sticker-paper">
+              <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
+                <img id="lpQrImg" src="" style="width: 70px; height: 70px; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px; background: white;" alt="QR Code">
+                <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; text-align: left;">
+                  <span id="lpStickerName" style="font-size: 11px; font-weight: bold; line-height: 1.2; max-height: 2.4em; overflow: hidden; color: #000; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">-</span>
+                  <span id="lpStickerCode" style="font-family: monospace; font-size: 9.5px; font-weight: bold; color: #333;">CODE: -</span>
+                  <span id="lpStickerLoc" style="font-size: 8.5px; color: #555;">จัดเก็บ: -</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
