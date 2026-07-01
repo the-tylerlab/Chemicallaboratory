@@ -5078,65 +5078,8 @@ function renderPendingRequests() {
     return;
   }
 
-  // Get all unique supervising teachers
-  const uniqueTeachers = new Set();
-  transactions.forEach(tx => {
-    if (tx.status === "pending" && tx.supervisingTeacher) {
-      uniqueTeachers.add(tx.supervisingTeacher);
-    }
-  });
-  bookings.forEach(b => {
-    if (b.status === "approved" && b.bookerName) {
-      uniqueTeachers.add(b.bookerName);
-    }
-  });
-
-  // Populate/maintain filter dropdown
-  const filterSelect = document.getElementById("teacherFilterSelect");
-  if (filterSelect) {
-    const currentFilter = filterSelect.value;
-    
-    // Clear and rebuild options
-    filterSelect.innerHTML = '<option value="all">แสดงทั้งหมด (Show All)</option>';
-    uniqueTeachers.forEach(teacher => {
-      const option = document.createElement("option");
-      option.value = teacher;
-      option.textContent = teacher;
-      filterSelect.appendChild(option);
-    });
-
-    // Handle event listener only once
-    if (!filterSelect.dataset.listenerInitialized) {
-      filterSelect.addEventListener("change", () => {
-        renderPendingRequests();
-      });
-      filterSelect.dataset.listenerInitialized = "true";
-    }
-
-    // Set default value based on role switch
-    if (!filterSelect.value || filterSelect.dataset.lastRole !== userRole) {
-      filterSelect.dataset.lastRole = userRole;
-      if (userRole === "teacher") {
-        if (uniqueTeachers.size > 0) {
-          filterSelect.value = Array.from(uniqueTeachers)[0];
-        } else {
-          filterSelect.value = "all";
-        }
-      } else {
-        filterSelect.value = "all";
-      }
-    } else if (currentFilter && Array.from(filterSelect.options).some(opt => opt.value === currentFilter)) {
-      filterSelect.value = currentFilter;
-    }
-  }
-
-  const selectedTeacher = filterSelect ? filterSelect.value : "all";
-
   // Filter pending requests
   let filteredTx = transactions.filter(tx => tx.type === "borrow" && tx.status === "pending");
-  if (selectedTeacher !== "all") {
-    filteredTx = filteredTx.filter(tx => tx.supervisingTeacher === selectedTeacher);
-  }
 
   // Filter pending bookings
   const filteredBookings = bookings.filter(b => b.status === "pending");
@@ -5308,16 +5251,6 @@ window.approveBorrowRequest = async function(txId) {
   if (txIndex === -1) return;
   const tx = transactions[txIndex];
 
-  // Teacher role validation: Can only approve requests belonging to their class period
-  if (userRole === "teacher") {
-    const filterSelect = document.getElementById("teacherFilterSelect");
-    const activeTeacher = filterSelect ? filterSelect.value : "";
-    if (!tx.supervisingTeacher || tx.supervisingTeacher !== activeTeacher) {
-      showToast("คุณสามารถอนุมัติเฉพาะคำขอยืมในคาบเรียนของตนเองเท่านั้น (คาบตัวเอง)", "error");
-      return;
-    }
-  }
-
   // Stock check
   const itemIndex = items.findIndex(i => i.code === tx.itemCode);
   if (itemIndex === -1) {
@@ -5354,16 +5287,6 @@ window.rejectBorrowRequest = async function(txId) {
   const txIndex = transactions.findIndex(t => t.id === txId);
   if (txIndex === -1) return;
   const tx = transactions[txIndex];
-
-  // Teacher role validation: Can only reject requests belonging to their class period
-  if (userRole === "teacher") {
-    const filterSelect = document.getElementById("teacherFilterSelect");
-    const activeTeacher = filterSelect ? filterSelect.value : "";
-    if (!tx.supervisingTeacher || tx.supervisingTeacher !== activeTeacher) {
-      showToast("คุณสามารถปฏิเสธเฉพาะคำขอยืมในคาบเรียนของตนเองเท่านั้น (คาบตัวเอง)", "error");
-      return;
-    }
-  }
 
   if (confirm("คุณต้องการปฏิเสธคำขอยืมนี้ใช่หรือไม่?")) {
     transactions[txIndex].status = "rejected";
