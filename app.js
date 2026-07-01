@@ -514,10 +514,13 @@ function setupNavigation() {
   });
 
   // "ดูทั้งหมด ->" Link on Dashboard
-  document.getElementById("linkViewAll").addEventListener("click", (e) => {
-    e.preventDefault();
-    navigateToPanel("all-items");
-  });
+  const linkViewAll = document.getElementById("linkViewAll");
+  if (linkViewAll) {
+    linkViewAll.addEventListener("click", (e) => {
+      e.preventDefault();
+      navigateToPanel("all-items");
+    });
+  }
 
   // Version Modal Handlers
   const versionBadge = document.getElementById("versionBadge");
@@ -1982,7 +1985,31 @@ async function parseCSVAndImport(csvText) {
 // ADDITIONAL DECORATIVE UI EVENTS
 // ==========================================================================
 function setupDashboardCards() {
-  // We can add micro-animations to stat cards on click if necessary.
+  // Tabs switching logic for the unifiedAlertsCard
+  const container = document.getElementById("unifiedAlertsCard");
+  if (container) {
+    const tabButtons = container.querySelectorAll(".alert-tab-btn");
+    const tabContents = container.querySelectorAll(".alert-tab-content");
+    
+    tabButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetTab = btn.getAttribute("data-tab");
+        
+        tabButtons.forEach(b => b.classList.remove("active"));
+        tabContents.forEach(c => {
+          c.classList.remove("active");
+          c.style.display = "none";
+        });
+        
+        btn.classList.add("active");
+        const activeContent = document.getElementById(`tab-${targetTab}`);
+        if (activeContent) {
+          activeContent.classList.add("active");
+          activeContent.style.display = "flex";
+        }
+      });
+    });
+  }
 }
 
 // ==========================================================================
@@ -3255,13 +3282,9 @@ function renderBookingSlots() {
   const bookingForm = document.getElementById("bookingForm");
   const bookingAccessDenied = document.getElementById("bookingAccessDenied");
   if (bookingForm && bookingAccessDenied) {
-    if (userRole === "student") {
-      bookingForm.style.display = "none";
-      bookingAccessDenied.style.display = "block";
-    } else {
-      bookingForm.style.display = "block";
-      bookingAccessDenied.style.display = "none";
-    }
+    // Show booking form to everyone so students/requesters can also submit booking requests
+    bookingForm.style.display = "block";
+    bookingAccessDenied.style.display = "none";
   }
 
   if (!grid) return;
@@ -3271,20 +3294,26 @@ function renderBookingSlots() {
     return;
   }
 
-  // Get active bookings for this room, date, and status = "approved" (not cancelled)
-  const activeBookings = bookings.filter(b => b.room === room && b.date === date && b.status === "approved");
+  // Get active bookings for this room, date (including pending requests)
+  const activeBookings = bookings.filter(b => b.room === room && b.date === date && (b.status === "approved" || b.status === "pending"));
   
   let html = "";
   BOOKING_SLOTS.forEach(slot => {
-    // Check if slot is booked (supports multiple comma-separated slots in a booking)
-    const isBooked = activeBookings.some(b => b.slot.split(", ").includes(slot));
+    // Check if slot is booked
+    const slotBooking = activeBookings.find(b => b.slot.split(", ").includes(slot));
+    const isBooked = !!slotBooking;
     const isSelected = selectedSlots.includes(slot);
 
     let statusClass = "vacant";
     let statusLabel = "🟢 ว่าง";
     if (isBooked) {
-      statusClass = "booked";
-      statusLabel = `<i data-lucide="lock" style="width: 12px; height: 12px;"></i> ถูกจองแล้ว`;
+      if (slotBooking.status === "pending") {
+        statusClass = "pending-booked";
+        statusLabel = "⏳ รออนุมัติ";
+      } else {
+        statusClass = "booked";
+        statusLabel = `<i data-lucide="lock" style="width: 12px; height: 12px;"></i> ถูกจองแล้ว`;
+      }
     } else if (isSelected) {
       statusClass = "selected";
       statusLabel = "🟣 เลือกอยู่";
@@ -3424,11 +3453,6 @@ function setupBookingForm() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    if (userRole === "student") {
-      showToast("เฉพาะครูและเจ้าหน้าที่แล็บเท่านั้นที่สามารถจองห้องปฏิบัติการได้", "error");
-      return;
-    }
-
     const room = document.getElementById("bookingRoom").value;
     const date = document.getElementById("bookingDate").value;
     const slot = document.getElementById("selectedBookingSlot").value;
@@ -3448,9 +3472,9 @@ function setupBookingForm() {
       return;
     }
 
-    // Defensive double-booking check (check if any of the selected slots are already booked)
+    // Defensive double-booking check (check if any of the selected slots are already booked or pending approval)
     const isAlreadyBooked = bookings.some(b => {
-      if (b.room !== room || b.date !== date || b.status !== "approved") return false;
+      if (b.room !== room || b.date !== date || (b.status !== "approved" && b.status !== "pending")) return false;
       const bookedSlots = b.slot.split(", ");
       return slotsToBook.some(s => bookedSlots.includes(s));
     });
@@ -3479,13 +3503,17 @@ function setupBookingForm() {
       bookerName,
       purpose,
       prepItems,
-      status: "approved",
+      status: (userRole === "student") ? "pending" : "approved",
       createdAt: new Date().toISOString()
     };
 
     const success = await saveBooking(bookingData);
     if (success) {
-      showToast(`จองห้อง "${getRoomThaiName(room)}" ช่วงเวลา ${slot} เรียบร้อยแล้ว!`, "success");
+      if (userRole === "student") {
+        showToast(`ส่งคำขอจองห้อง "${getRoomThaiName(room)}" เรียบร้อยแล้ว รอการอนุมัติ`, "info");
+      } else {
+        showToast(`จองห้อง "${getRoomThaiName(room)}" ช่วงเวลา ${slot} เรียบร้อยแล้ว!`, "success");
+      }
       
       // Populate bookingSuccessModal fields
       const bsReceiptId = document.getElementById("bsReceiptId");
@@ -3496,6 +3524,7 @@ function setupBookingForm() {
       const bsPurpose = document.getElementById("bsPurpose");
       const bsPrepBlock = document.getElementById("bsPrepBlock");
       const bsPrepList = document.getElementById("bsPrepList");
+      const bsStatus = document.getElementById("bsStatus");
 
       if (bsReceiptId) bsReceiptId.textContent = `#${bookingData.id.replace('book_', '').toUpperCase()}`;
       if (bsRoom) bsRoom.textContent = getRoomThaiName(room);
@@ -3503,6 +3532,39 @@ function setupBookingForm() {
       if (bsSlots) bsSlots.textContent = slot;
       if (bsBooker) bsBooker.textContent = bookerName;
       if (bsPurpose) bsPurpose.textContent = purpose;
+      
+      if (bsStatus) {
+        if (bookingData.status === "pending") {
+          bsStatus.innerHTML = `<span style="color: #f59e0b; font-weight: 600;">⏳ รออนุมัติ (Pending)</span>`;
+        } else {
+          bsStatus.innerHTML = `<span style="color: #10b981; font-weight: 600;">🟢 อนุมัติแล้ว (Approved)</span>`;
+        }
+      }
+
+      const bookingSuccessModalHeader = document.getElementById("bookingSuccessModalHeader");
+      const bookingSuccessModalTitle = document.getElementById("bookingSuccessModalTitle");
+      const bookingSuccessModalWarnText = document.getElementById("bookingSuccessModalWarnText");
+      const bookingSuccessModalIconWrapper = document.getElementById("bookingSuccessModalIconWrapper");
+
+      if (bookingData.status === "pending") {
+        if (bookingSuccessModalHeader) bookingSuccessModalHeader.style.background = "#f59e0b"; // Orange
+        if (bookingSuccessModalTitle) bookingSuccessModalTitle.textContent = "ส่งคำขอจองห้องแล็บแล้ว";
+        if (bookingSuccessModalWarnText) {
+          bookingSuccessModalWarnText.innerHTML = "กรุณา<b>แคปภาพหน้าจอนี้ไว้</b> เพื่อใช้ติดตามสถานะการอนุมัติการจองห้องปฏิบัติการกับอาจารย์หรือผู้ดูแล";
+        }
+        if (bookingSuccessModalIconWrapper) {
+          bookingSuccessModalIconWrapper.innerHTML = `<i data-lucide="clock" style="width: 20px; height: 20px;"></i>`;
+        }
+      } else {
+        if (bookingSuccessModalHeader) bookingSuccessModalHeader.style.background = "var(--accent-green)"; // Green
+        if (bookingSuccessModalTitle) bookingSuccessModalTitle.textContent = "บันทึกการจองห้องแล็บสำเร็จ";
+        if (bookingSuccessModalWarnText) {
+          bookingSuccessModalWarnText.innerHTML = "กรุณา<b>แคปภาพหน้าจอนี้ไว้</b> เพื่อใช้เป็นหลักฐานยืนยันการจองกับเจ้าหน้าที่เมื่อเข้าใช้งานห้องปฏิบัติการ";
+        }
+        if (bookingSuccessModalIconWrapper) {
+          bookingSuccessModalIconWrapper.innerHTML = `<i data-lucide="check-circle" style="width: 20px; height: 20px;"></i>`;
+        }
+      }
 
       // Handle prep items list if any
       if (bsPrepBlock && bsPrepList) {
@@ -3519,11 +3581,56 @@ function setupBookingForm() {
         }
       }
 
+      // Synthesize a mechanical receipt printer sound effect using Web Audio API
+      function playReceiptPrintSound() {
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtx) return;
+          const ctx = new AudioCtx();
+          
+          const playBuzz = (startTime, duration) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const filter = ctx.createBiquadFilter();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(160, startTime);
+            osc.frequency.linearRampToValueAtTime(130, startTime + duration);
+            
+            filter.type = 'bandpass';
+            filter.frequency.value = 1100;
+            filter.Q.value = 2.0;
+            
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.05, startTime + 0.01);
+            gain.gain.setValueAtTime(0.05, startTime + duration - 0.02);
+            gain.gain.linearRampToValueAtTime(0, startTime + duration);
+            
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+          };
+
+          const startOffset = 0.3;
+          playBuzz(ctx.currentTime + startOffset, 0.2);
+          playBuzz(ctx.currentTime + startOffset + 0.3, 0.15);
+          playBuzz(ctx.currentTime + startOffset + 0.55, 0.25);
+          playBuzz(ctx.currentTime + startOffset + 0.9, 0.2);
+          playBuzz(ctx.currentTime + startOffset + 1.2, 0.35);
+        } catch (e) {
+          console.error("Audio print effect error:", e);
+        }
+      }
+
       // Show the modal
       const bookingSuccessModal = document.getElementById("bookingSuccessModal");
       if (bookingSuccessModal) {
         bookingSuccessModal.classList.add("active");
         lucide.createIcons(); // render the check-circle and camera icons in the modal
+        // playReceiptPrintSound(); // FUTURE USE: Play mechanical printer sound
       }
 
       form.reset();
@@ -4392,6 +4499,17 @@ function updateLoginUI() {
   const sidebarLoginIcon = document.getElementById("sidebarLoginIcon");
   const isBackoffice = (userRole === "admin" || userRole === "teacher");
   
+  const dashboardGrid = document.querySelector(".dashboard-grid");
+  if (dashboardGrid) {
+    if (isBackoffice) {
+      dashboardGrid.classList.add("admin-mode");
+      dashboardGrid.classList.remove("student-mode");
+    } else {
+      dashboardGrid.classList.add("student-mode");
+      dashboardGrid.classList.remove("admin-mode");
+    }
+  }
+  
   if (isAdminLoggedIn) {
     if (sidebarLoginText) sidebarLoginText.innerText = "ออกจากระบบ";
     if (sidebarLoginIcon) {
@@ -4714,8 +4832,9 @@ window.showBookingDetail = function(bkId) {
 
   // Determine status and badge classes
   const isApproved = bk.status === "approved";
-  const statusClass = isApproved ? "badge-approved" : "badge-cancelled";
-  const statusLabel = isApproved ? "อนุมัติ" : "ยกเลิกแล้ว";
+  const isPending = bk.status === "pending";
+  const statusClass = isApproved ? "badge-approved" : (isPending ? "badge-pending" : "badge-cancelled");
+  const statusLabel = isApproved ? "อนุมัติแล้ว" : (isPending ? "รออนุมัติ" : "ปฏิเสธ/ยกเลิก");
 
   let prepHtml = "";
   if (bk.prepItems && bk.prepItems.length > 0) {
@@ -5019,43 +5138,104 @@ function renderPendingRequests() {
     filteredTx = filteredTx.filter(tx => tx.supervisingTeacher === selectedTeacher);
   }
 
-  if (filteredTx.length === 0) {
+  // Filter pending bookings
+  const filteredBookings = bookings.filter(b => b.status === "pending");
+
+  const totalCount = filteredTx.length + filteredBookings.length;
+
+  if (totalCount === 0) {
     card.style.display = "block";
     if (countBadge) countBadge.innerText = "0";
     container.innerHTML = `
       <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px;">
-        ไม่มีคำขอยืมรอดำเนินการในขณะนี้
+        ไม่มีคำขอยืมหรือขอจองห้องแล็บรอดำเนินการในขณะนี้
       </div>
     `;
     return;
   }
 
   card.style.display = "block";
-  if (countBadge) countBadge.innerText = filteredTx.length;
+  if (countBadge) countBadge.innerText = totalCount;
 
   let html = "";
-  filteredTx.forEach(tx => {
+
+  // Render pending room bookings
+  filteredBookings.forEach(bk => {
+    let prepItemsHtml = "";
+    if (bk.prepItems && bk.prepItems.length > 0) {
+      prepItemsHtml = `
+        <div style="font-size: 11px; margin-top: 4px; padding: 6px 8px; background: #ffffff; border-radius: 4px; border: 1px solid #e2e8f0;">
+          <span style="font-weight: 600; color: #64748b; display: block; margin-bottom: 2px;">พัสดุ/อุปกรณ์ที่ต้องเตรียม:</span>
+          <ul style="margin: 0; padding-left: 14px; color: #475569;">
+            ${bk.prepItems.map(item => {
+              const foundItem = items.find(i => i.code === item.code);
+              const itemName = foundItem ? getItemDisplayName(foundItem) : item.code;
+              return `<li>${escapeHTML(itemName)} (${item.qty} ชิ้น)</li>`;
+            }).join("")}
+          </ul>
+        </div>
+      `;
+    }
+
     html += `
-      <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; background-color: rgba(245, 158, 11, 0.03); border: 1px solid rgba(245, 158, 11, 0.15); border-radius: var(--border-radius-md); font-size: 13px;">
+      <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: all var(--transition-fast);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
           <div>
-            <div style="font-weight: 600; color: #1e293b;">${tx.itemName}</div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">รหัส: ${tx.itemCode} | จำนวน: <strong>${tx.qty}</strong></div>
+            <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 5px;">
+              <i data-lucide="calendar" style="width: 14px; height: 14px; color: #3b82f6;"></i>
+              <span>จองห้อง: ${getRoomThaiName(bk.room)}</span>
+            </div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 1px;">
+              ผู้ขอจอง: <strong>${escapeHTML(bk.bookerName)}</strong> | วันที่: ${formatThaiDate(bk.date)}
+            </div>
           </div>
-          <span class="badge badge-orange" style="font-size: 10px; padding: 1px 6px;">รอดำเนินการ</span>
+          <span class="badge badge-blue" style="font-size: 9px; padding: 1px 5px; background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;">จองห้องแล็บ</span>
         </div>
-        <div style="font-size: 11px; color: #475569; padding-left: 2px; display: flex; flex-direction: column; gap: 2px;">
-          <div>ผู้ยืม: <strong>${tx.borrower}</strong> | วันยืม: ${formatThaiDate(tx.date)}</div>
-          ${tx.supervisingTeacher ? `<div>ครูผู้ดูแลคาบ: <strong style="color: var(--primary-purple);">${tx.supervisingTeacher}</strong></div>` : ""}
+        <div style="font-size: 10.5px; color: #475569; padding-left: 2px; display: flex; flex-direction: column; gap: 1px;">
+          <div>ช่วงเวลา: <strong>${bk.slot}</strong></div>
+          ${bk.purpose ? `<div>วัตถุประสงค์: <span style="font-style: italic; color: #64748b;">"${escapeHTML(bk.purpose)}"</span></div>` : ""}
+        </div>
+        ${prepItemsHtml}
+        <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 2px;">
+          <button type="button" class="btn btn-primary" style="padding: 3px 8px; font-size: 11px; height: 24px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="approveBookingRequest('${bk.id}')">
+            <i data-lucide="check" style="width: 12px; height: 12px;"></i> อนุมัติ
+          </button>
+          <button type="button" class="btn btn-danger" style="padding: 3px 8px; font-size: 11px; height: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="rejectBookingRequest('${bk.id}')">
+            <i data-lucide="x" style="width: 12px; height: 12px;"></i> ปฏิเสธ
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  // Render pending equipment borrows
+  filteredTx.forEach(tx => {
+    html += `
+      <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: all var(--transition-fast);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <div>
+            <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 5px;">
+              <i data-lucide="flask-conical" style="width: 14px; height: 14px; color: #8b5cf6;"></i>
+              <span>ยืมอุปกรณ์: ${escapeHTML(tx.itemName)}</span>
+            </div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 1px;">
+              รหัส: ${tx.itemCode} | จำนวน: <strong>${tx.qty}</strong>
+            </div>
+          </div>
+          <span class="badge badge-purple" style="font-size: 9px; padding: 1px 5px; background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6;">ยืมอุปกรณ์</span>
+        </div>
+        <div style="font-size: 10.5px; color: #475569; padding-left: 2px; display: flex; flex-direction: column; gap: 1px;">
+          <div>ผู้ยืม: <strong>${escapeHTML(tx.borrower)}</strong> | วันยืม: ${formatThaiDate(tx.date)}</div>
+          ${tx.supervisingTeacher ? `<div>ครูผู้ดูแลคาบ: <strong style="color: var(--primary-purple);">${escapeHTML(tx.supervisingTeacher)}</strong></div>` : ""}
           ${tx.room && tx.room !== "None" ? `<div>ห้องปฏิบัติการ: <strong>${getRoomThaiName(tx.room)}</strong>${tx.slot && tx.slot !== "None" ? ` (ช่วงเวลา: <strong>${tx.slot}</strong>)` : ""}</div>` : ""}
         </div>
-        ${tx.notes ? `<div style="font-size: 11px; color: var(--text-muted); font-style: italic; background-color: #ffffff; padding: 6px; border-radius: 4px; border: 1px solid #f1f5f9;">${tx.notes}</div>` : ""}
-        <div style="display: flex; gap: 8px; margin-top: 4px;">
-          <button type="button" class="btn btn-primary" style="flex: 1; padding: 6px 12px; font-size: 12px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="approveBorrowRequest('${tx.id}')">
-            <i data-lucide="check" style="width: 14px; height: 14px;"></i> อนุมัติ
+        ${tx.notes ? `<div style="font-size: 10px; color: var(--text-muted); font-style: italic; background-color: #ffffff; padding: 4px 6px; border-radius: 4px; border: 1px solid #f1f5f9;">${escapeHTML(tx.notes)}</div>` : ""}
+        <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 2px;">
+          <button type="button" class="btn btn-primary" style="padding: 3px 8px; font-size: 11px; height: 24px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="approveBorrowRequest('${tx.id}')">
+            <i data-lucide="check" style="width: 12px; height: 12px;"></i> อนุมัติ
           </button>
-          <button type="button" class="btn btn-danger" style="flex: 1; padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="rejectBorrowRequest('${tx.id}')">
-            <i data-lucide="x" style="width: 14px; height: 14px;"></i> ปฏิเสธ
+          <button type="button" class="btn btn-danger" style="padding: 3px 8px; font-size: 11px; height: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="rejectBorrowRequest('${tx.id}')">
+            <i data-lucide="x" style="width: 12px; height: 12px;"></i> ปฏิเสธ
           </button>
         </div>
       </div>
@@ -5065,6 +5245,46 @@ function renderPendingRequests() {
   container.innerHTML = html;
   lucide.createIcons();
 }
+
+window.approveBookingRequest = async function(bookingId) {
+  const bkIndex = bookings.findIndex(b => b.id === bookingId);
+  if (bkIndex === -1) return;
+  const bk = bookings[bkIndex];
+
+  bookings[bkIndex].status = "approved";
+  localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+  syncBookingsToBackend();
+  if (isFirebaseOnline) {
+    try {
+      await db.collection("bookings").doc(bookingId).update({ status: "approved" });
+    } catch (err) {
+      console.error("Firebase update failed:", err);
+    }
+  }
+  showToast(`อนุมัติการจองห้อง "${getRoomThaiName(bk.room)}" เรียบร้อยแล้ว!`, "success");
+  updateUI();
+};
+
+window.rejectBookingRequest = async function(bookingId) {
+  const bkIndex = bookings.findIndex(b => b.id === bookingId);
+  if (bkIndex === -1) return;
+  const bk = bookings[bkIndex];
+
+  if (confirm(`คุณต้องการปฏิเสธคำขอจองห้องปฏิบัติการของ "${bk.bookerName}" ใช่หรือไม่?`)) {
+    bookings[bkIndex].status = "rejected";
+    localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+    syncBookingsToBackend();
+    if (isFirebaseOnline) {
+      try {
+        await db.collection("bookings").doc(bookingId).update({ status: "rejected" });
+      } catch (err) {
+        console.error("Firebase update failed:", err);
+      }
+    }
+    showToast("ปฏิเสธคำขอจองห้องแล็บเรียบร้อยแล้ว", "info");
+    updateUI();
+  }
+};
 
 window.approveBorrowRequest = async function(txId) {
   const txIndex = transactions.findIndex(t => t.id === txId);
@@ -5422,6 +5642,63 @@ window.printItemLabel = function(itemCode) {
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.code)}`;
 
+  const lpItemName = document.getElementById("lpItemName");
+  const lpStickerName = document.getElementById("lpStickerName");
+  const lpItemCode = document.getElementById("lpItemCode");
+  const lpStickerCode = document.getElementById("lpStickerCode");
+  const lpItemLocation = document.getElementById("lpItemLocation");
+  const lpStickerLoc = document.getElementById("lpStickerLoc");
+  const lpQrImg = document.getElementById("lpQrImg");
+  const lpPrintRealBtn = document.getElementById("lpPrintRealBtn");
+
+  const displayName = getItemDisplayName(item);
+  const locationText = `จัดเก็บ: ${item.room || "-"} > ${item.cabinet || "-"} > ${item.shelf || "-"}`;
+
+  if (lpItemName) lpItemName.textContent = displayName;
+  if (lpStickerName) lpStickerName.textContent = displayName;
+  if (lpItemCode) lpItemCode.textContent = `CODE: ${item.code}`;
+  if (lpStickerCode) lpStickerCode.textContent = `CODE: ${item.code}`;
+  if (lpItemLocation) lpItemLocation.textContent = locationText;
+  if (lpStickerLoc) lpStickerLoc.textContent = locationText;
+  if (lpQrImg) lpQrImg.src = qrUrl;
+
+  if (lpPrintRealBtn) {
+    lpPrintRealBtn.onclick = function() {
+      triggerPhysicalLabelPrint(item.code);
+    };
+  }
+
+  // Open modal
+  const modal = document.getElementById("labelPrinterModal");
+  if (modal) {
+    modal.classList.add("active");
+    
+    // Reset and trigger printing animation
+    const paper = modal.querySelector(".label-sticker-paper");
+    if (paper) {
+      paper.classList.remove("printing");
+      void paper.offsetWidth; // Force reflow
+      paper.classList.add("printing");
+    }
+    
+    // Play synthetic ESC/POS stepper/thermal printing sound effect
+    playLabelPrintSound();
+  }
+};
+
+window.closeLabelPrinterModal = function() {
+  const modal = document.getElementById("labelPrinterModal");
+  if (modal) {
+    modal.classList.remove("active");
+  }
+};
+
+window.triggerPhysicalLabelPrint = function(itemCode) {
+  const item = items.find(i => i.code === itemCode);
+  if (!item) return;
+
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.code)}`;
+
   const printWindow = window.open("", "_blank", "width=600,height=400");
   if (!printWindow) {
     showToast("ไม่สามารถเปิดหน้าต่างพิมพ์ได้ กรุณาเปิดสิทธิ์การใช้งาน Pop-up บนบราวเซอร์", "error");
@@ -5505,6 +5782,52 @@ window.printItemLabel = function(itemCode) {
   `);
   printWindow.document.close();
 };
+
+function playLabelPrintSound() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!audioCtx) return;
+
+    const duration = 2.0; 
+    const startTime = audioCtx.currentTime;
+
+    const bufferSize = audioCtx.sampleRate * duration;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+      const t = i / audioCtx.sampleRate;
+      const motorPulse = Math.sin(2 * Math.PI * 110 * t) > 0 ? 1 : -1;
+      const randomNoise = Math.random() * 2 - 1;
+      data[i] = (motorPulse * 0.35 + randomNoise * 0.15) * Math.exp(-t * 0.2);
+      
+      const linePeriod = Math.floor(t * 850) % 2 === 0 ? 1 : 0;
+      data[i] *= linePeriod;
+    }
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.setValueAtTime(0.0, startTime);
+    gainNode.gain.linearRampToValueAtTime(0.12, startTime + 0.05); 
+    gainNode.gain.linearRampToValueAtTime(0.12, startTime + duration - 0.1);
+    gainNode.gain.linearRampToValueAtTime(0.0, startTime + duration);
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.setValueAtTime(1100, startTime); 
+    filter.Q.setValueAtTime(1.8, startTime);
+
+    source.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    source.start(startTime);
+  } catch (err) {
+    console.log("AudioContext blocked or failed", err);
+  }
+}
 
 function setupCsvExport() {
   const btn = document.getElementById("btnExportCSV");
@@ -8061,113 +8384,6 @@ function generateBotResponse(query) {
   // 2. Molar Mass Calculator Routing
   const isMolarMassQuery = q.includes("มวล") || q.includes("โมเลกุล") || q.includes("โฒเลกุล") || q.includes("molar") || q.includes("mw") || q.includes("molecular") || q.includes("weight") || q.includes("น้ำหนัก");
   if (isMolarMassQuery) {
-    const ELEM_MAP = {};
-    for (let k of Object.keys(ATOMIC_WEIGHTS)) {
-      ELEM_MAP[k.toLowerCase()] = k;
-    }
-
-    function findElementCasing(s) {
-      if (s === "") return "";
-      
-      // Try 2 letters first
-      if (s.length >= 2) {
-        const two = s.slice(0, 2).toLowerCase();
-        const standardTwo = ELEM_MAP[two];
-        if (standardTwo) {
-          const rest = findElementCasing(s.slice(2));
-          if (rest !== null) {
-            return standardTwo + rest;
-          }
-        }
-      }
-      
-      // Try 1 letter
-      if (s.length >= 1) {
-        const one = s.slice(0, 1).toLowerCase();
-        const standardOne = ELEM_MAP[one];
-        if (standardOne) {
-          const rest = findElementCasing(s.slice(1));
-          if (rest !== null) {
-            return standardOne + rest;
-          }
-        }
-      }
-      
-      return null;
-    }
-
-    function autoCapitalizeChemicalFormula(formulaStr) {
-      return formulaStr.replace(/[A-Za-z]+/g, (match) => {
-        const capitalized = findElementCasing(match);
-        return capitalized !== null ? capitalized : match;
-      });
-    }
-
-    const getFormulaFromText = (txt) => {
-      const subscriptMap = {
-        '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
-        '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
-      };
-      let cleanQuery = txt.replace(/[₀-₉]/g, m => subscriptMap[m]);
-      
-      const words = cleanQuery.match(/[A-Za-z0-9()·*.]+/g);
-      if (!words) return null;
-      
-      const COMMON_FORMULAS = {
-        'h2o': 'H2O', 'nacl': 'NaCl', 'naoh': 'NaOH', 'hcl': 'HCl',
-        'h2so4': 'H2SO4', 'ch3cooh': 'CH3COOH', 'c2h5oh': 'C2H5OH',
-        'nahco3': 'NaHCO3', 'caco3': 'CaCO3', 'co2': 'CO2', 'o2': 'O2',
-        'h2': 'H2', 'n2': 'N2', 'cl2': 'Cl2', 'nh3': 'NH3', 'ch4': 'CH4',
-        'c6h12o6': 'C6H12O6', 'c12h22o11': 'C12H22O11', 'hno3': 'HNO3',
-        'h3po4': 'H3PO4', 'cuso4': 'CuSO4', 'mgso4': 'MgSO4', 'caso4': 'CaSO4',
-        'baso4': 'BaSO4', 'kno3': 'KNO3', 'nano3': 'NaNO3', 'nh4cl': 'NH4Cl',
-        'nh4no3': 'NH4NO3', 'na2co3': 'Na2CO3', 'k2co3': 'K2CO3', 'khco3': 'KHCO3',
-        'ki': 'KI', 'kbr': 'KBr', 'kcl': 'KCl', 'na2so4': 'Na2SO4',
-        'k2so4': 'K2SO4', 'mgco3': 'MgCO3', 'ca(oh)2': 'Ca(OH)2', 'ba(oh)2': 'Ba(OH)2',
-        'al(oh)3': 'Al(OH)3', 'koh': 'KOH', 'hf': 'HF', 'hbr': 'HBr',
-        'hi': 'HI', 'o3': 'O3', 'f2': 'F2', 'br2': 'Br2', 'i2': 'I2',
-        'co': 'CO', 'no': 'NO', 'c': 'C', 's': 'S', 'p': 'P', 'fe': 'Fe',
-        'cu': 'Cu', 'zn': 'Zn', 'al': 'Al', 'mg': 'Mg', 'ca': 'Ca', 'na': 'Na',
-        'k': 'K', 'li': 'Li', 'cocl2': 'CoCl2', 'h2o2': 'H2O2', 'fe2o3': 'Fe2O3',
-        'fe3o4': 'Fe3O4', 'al2o3': 'Al2O3', 'sio2': 'SiO2', 'so2': 'SO2',
-        'so3': 'SO3', 'no2': 'NO2', 'n2o': 'N2O', 'h2s': 'H2S', 'hcn': 'HCN',
-        'licl': 'LiCl', 'pbs': 'PbS', 'cuo': 'CuO', 'zno': 'ZnO', 'mno': 'MnO',
-        'feo': 'FeO', 'agno3': 'AgNO3', 'pb(no3)2': 'Pb(NO3)2'
-      };
-      
-      for (let word of words) {
-        const lowerWord = word.toLowerCase();
-        
-        // 1. Check direct match in COMMON_FORMULAS
-        if (COMMON_FORMULAS[lowerWord]) {
-          return COMMON_FORMULAS[lowerWord];
-        }
-        
-        // 2. Check candidate filters
-        const isCandidate = 
-          /[0-9()·*.]/.test(word) || // contains digit or structure chars
-          /^[A-Z]/.test(word) ||     // starts with uppercase
-          COMMON_FORMULAS[lowerWord] !== undefined;
-          
-        if (isCandidate) {
-          // Attempt auto-capitalization
-          const capitalized = autoCapitalizeChemicalFormula(word);
-          const parsed = parseFormula(capitalized);
-          if (parsed && Object.keys(parsed).length > 0) {
-            let allValid = true;
-            for (let elem of Object.keys(parsed)) {
-              if (!ATOMIC_WEIGHTS[elem]) {
-                allValid = false;
-                break;
-              }
-            }
-            if (allValid) return capitalized;
-          }
-        }
-      }
-      return null;
-    };
-
     const rawFormula = getFormulaFromText(query);
     if (rawFormula) {
       const res = getFormulaWeightBreakdown(rawFormula);
@@ -8248,17 +8464,216 @@ function generateBotResponse(query) {
     }
   }
 
-  // Find matches in CHEM_DB
-  const matchedKeys = [];
+  // Find matches in CHEM_DB with position to avoid substring collisions
+  const matchedKeysWithPos = [];
   for (const [key, chem] of Object.entries(CHEM_DB)) {
-    let found = false;
-    if (qSubNormal.includes(key.toLowerCase())) found = true;
-    if (qSubNormal.includes(normalizeSubscripts(chem.formula).toLowerCase())) found = true;
-    if (chem.aliases && chem.aliases.some(alias => qSubNormal.includes(normalizeSubscripts(alias).toLowerCase()))) {
-      found = true;
+    const searchTerms = [key.toLowerCase(), chem.formula.toLowerCase()];
+    if (chem.aliases) {
+      chem.aliases.forEach(alias => searchTerms.push(alias.toLowerCase()));
     }
-    if (found) {
-      matchedKeys.push(key);
+    
+    let bestIndex = -1;
+    let bestLen = 0;
+    
+    for (const term of searchTerms) {
+      const isEnglish = /^[a-z0-9()·*.]+$/i.test(term);
+      if (isEnglish) {
+        const regex = new RegExp(`\\b${term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
+        const match = qSubNormal.match(regex);
+        if (match) {
+          const idx = match.index;
+          if (bestIndex === -1 || idx < bestIndex || (idx === bestIndex && term.length > bestLen)) {
+            bestIndex = idx;
+            bestLen = term.length;
+          }
+        }
+      } else {
+        const idx = qSubNormal.indexOf(term);
+        if (idx !== -1) {
+          if (bestIndex === -1 || idx < bestIndex || (idx === bestIndex && term.length > bestLen)) {
+            bestIndex = idx;
+            bestLen = term.length;
+          }
+        }
+      }
+    }
+    
+    if (bestIndex !== -1) {
+      matchedKeysWithPos.push({
+        key: key,
+        start: bestIndex,
+        end: bestIndex + bestLen,
+        len: bestLen
+      });
+    }
+  }
+
+  // Filter overlapping sub-matches (e.g. "na" inside "naoh", or "โซเดียม" inside "โซเดียมไฮดรอกไซด์")
+  matchedKeysWithPos.sort((a, b) => b.len - a.len);
+  const keptMatches = [];
+  for (const match of matchedKeysWithPos) {
+    const isOverlapping = keptMatches.some(k => 
+      (match.start >= k.start && match.start < k.end) || 
+      (match.end > k.start && match.end <= k.end) ||
+      (k.start >= match.start && k.start < match.end)
+    );
+    if (!isOverlapping) {
+      keptMatches.push(match);
+    }
+  }
+
+  keptMatches.sort((a, b) => a.start - b.start);
+  const matchedKeys = keptMatches.map(m => m.key);
+
+  // 3A. INTELLIGENT CHEMICAL PREPARATION ROUTING
+  const prepKeywords = ["เตรียม", "prep", "make", "ผสม", "เจือจาง", "dilute"];
+  const hasPrepKeyword = prepKeywords.some(kw => q.includes(kw));
+  
+  if (hasPrepKeyword) {
+    // Try to parse dilution parameters first
+    const dil = parseDilutionParams(q);
+    if (dil) {
+      if (matchedKeys.length === 1) {
+        const key = matchedKeys[0];
+        const chem = CHEM_DB[key];
+        return generateDilutionResponse(dil.c1, dil.c2, dil.v2Val, dil.v2Unit, key, chem.formula);
+      } else {
+        const rawFormula = getFormulaFromText(query);
+        return generateDilutionResponse(dil.c1, dil.c2, dil.v2Val, dil.v2Unit, "", rawFormula || "");
+      }
+    }
+  }
+
+  if (hasPrepKeyword && matchedKeys.length === 1) {
+    const key = matchedKeys[0];
+    const chem = CHEM_DB[key];
+    
+    const concMatch = q.match(/(\d+(?:\.\d+)?)\s*(?:m|โมลาร์|mol\/l)/i);
+    const volMatch = q.match(/(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร)/i);
+    
+    if (concMatch && volMatch) {
+      const targetConc = parseFloat(concMatch[1]);
+      const volVal = parseFloat(volMatch[1]);
+      const volUnit = volMatch[2].toLowerCase();
+      
+      let volL = volVal;
+      if (volUnit === 'ml' || volUnit === 'มล') {
+        volL = volVal / 1000;
+      }
+      const volML = volUnit === 'ml' || volUnit === 'มล' ? volVal : volVal * 1000;
+      
+      const mwResult = getFormulaWeightBreakdown(chem.formula);
+      if (mwResult && !mwResult.error) {
+        const mw = mwResult.totalMass;
+        const isLiquid = ["HCl", "H2SO4", "CH3COOH"].includes(chem.formula);
+        
+        if (!isLiquid) {
+          const grams = targetConc * mw * volL;
+          return `🧪 <b>วิธีการเตรียมสารละลาย ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
+                 `- <b>สูตรคำนวณ:</b> <code>g = M × MW × V (ลิตร)</code>\n` +
+                 `- <b>ค่าคำนวณได้:</b> ชั่งสาร <b>${grams.toFixed(4)} กรัม</b> (มวลโมเลกุล MW = <b>${mw.toFixed(3)} g/mol</b>, ปริมาตร = <b>${volL.toFixed(3)} ลิตร</b>)\n\n` +
+                 `📝 <b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
+                 `1. ชั่งของแข็ง ${key} ปริมาณ <b>${grams.toFixed(4)} กรัม</b> ด้วยเครื่องชั่งสารอย่างละเอียด\n` +
+                 `2. เทสารลงในบีกเกอร์ ค่อยๆ เติมน้ำกลั่นประมาณ 60% ของปริมาตรรวม (ประมาณ <b>${(volML * 0.6).toFixed(0)} mL</b>) และคนจนละลายหมด\n` +
+                 `3. เทสารละลายลงในขวดวัดปริมาตร (Volumetric Flask) ขนาด <b>${volML.toFixed(0)} mL</b>\n` +
+                 `4. กลั้วบีกเกอร์ด้วยน้ำกลั่นปริมาณเล็กน้อย 2-3 ครั้ง เทน้ำกลั้วลงในขวดวัดปริมาตรเพื่อความแม่นยำ\n` +
+                 `5. เติมน้ำกลั่นจนถึงขีดบอกปริมาตร ปิดฝาและกลับขวดไปมาเพื่อให้สารละลายผสมเป็นเนื้อเดียวกัน`;
+        } else {
+          const STOCK_CONCS = {
+            "HCl": 12.0,
+            "H2SO4": 18.0,
+            "CH3COOH": 17.4
+          };
+          
+          const c1 = STOCK_CONCS[chem.formula] || 12.0;
+          if (targetConc >= c1) {
+            return `⚠️ <b>ข้อควรระวัง:</b> ความเข้มข้นที่ต้องการ (${targetConc} M) สูงกว่าความเข้มข้นของสารละลายเข้มข้นสต็อกที่มี (${c1} M) ไม่สามารถเตรียมด้วยการเจือจางได้ครับ`;
+          }
+          
+          const v1 = (targetConc * volML) / c1;
+          const solvent = volML - v1;
+          
+          let safetyNote = "";
+          if (chem.formula === "H2SO4") {
+            safetyNote = `\n🚨 <b>ข้อควรระวังความปลอดภัยสูง:</b> ปฏิกิริยาระหว่างกรดซัลฟิวริกเข้มข้นกับน้ำคายความร้อนสูงมาก! <b>ห้ามเทน้ำลงในกรดเข้มข้นเด็ดขาด</b> ให้ตวงน้ำใส่ขวดก่อนแล้วค่อยๆ เทกรดเข้มข้นลงในน้ำช้าๆ`;
+          }
+          
+          return `💧 <b>วิธีการเจือจางเตรียมสารละลายกรด ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากกรดเข้มข้นสต็อก (${c1} M):</b>\n\n` +
+                 `- <b>สูตรคำนวณ:</b> <code>C₁V₁ = C₂V₂</code>\n` +
+                 `- <b>ค่าคำนวณได้:</b> ใช้กรดสต็อกปริมาตร <b>${v1.toFixed(2)} mL</b> เจือจางด้วยตัวทำละลาย (น้ำกลั่น) <b>${solvent.toFixed(2)} mL</b>\n\n` +
+                 `📝 <b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
+                 `1. ตวงน้ำกลั่นปริมาณ <b>${solvent.toFixed(2)} mL</b> ใส่ในขวดวัดปริมาตรขนาด <b>${volML.toFixed(0)} mL</b>${safetyNote}\n` +
+                 `2. ใช้ปิเปตต์ตวงกรดเข้มข้นสต็อก (${c1} M) ปริมาตร <b>${v1.toFixed(2)} mL</b> ค่อยๆ ปล่อยลงไปในขวดวัดปริมาตรอย่างระมัดระวัง\n` +
+                 `3. หมุนขวดวัดปริมาตรเบาๆ เพื่อให้ผสมเข้ากัน\n` +
+                 `4. ปรับปริมาตรด้วยน้ำกลั่นจนถึงขีดบอกปริมาตร ปิดฝาแล้วกลับขวดไปมาให้เข้ากัน`;
+        }
+      }
+    }
+  }
+
+  // 3B. GENERIC CHEMICAL PREPARATION FALLBACK
+  if (hasPrepKeyword) {
+    const rawFormula = getFormulaFromText(query);
+    const concMatch = q.match(/(\d+(?:\.\d+)?)\s*(?:m|โมลาร์|mol\/l)/i);
+    const volMatch = q.match(/(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร)/i);
+    
+    if (rawFormula && concMatch && volMatch) {
+      const targetConc = parseFloat(concMatch[1]);
+      const volVal = parseFloat(volMatch[1]);
+      const volUnit = volMatch[2].toLowerCase();
+      
+      let volL = volVal;
+      if (volUnit === 'ml' || volUnit === 'มล') {
+        volL = volVal / 1000;
+      }
+      const volML = volUnit === 'ml' || volUnit === 'มล' ? volVal : volVal * 1000;
+      
+      const mwResult = getFormulaWeightBreakdown(rawFormula);
+      if (mwResult && !mwResult.error) {
+        const mw = mwResult.totalMass;
+        const isLiquid = ["HCl", "H2SO4", "HNO3", "H3PO4", "CH3COOH"].includes(rawFormula);
+        
+        if (!isLiquid) {
+          const grams = targetConc * mw * volL;
+          return `🧪 <b>วิธีการเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
+                 `- <b>สูตรคำนวณ:</b> <code>g = M × MW × V (ลิตร)</code>\n` +
+                 `- <b>ค่าคำนวณได้:</b> ชั่งสาร <b>${grams.toFixed(4)} กรัม</b> (มวลโมเลกุล MW = <b>${mw.toFixed(3)} g/mol</b>, ปริมาตร = <b>${volL.toFixed(3)} ลิตร</b>)\n\n` +
+                 `📝 <b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
+                 `1. ชั่งสารของแข็ง ${formatChemicalFormula(rawFormula)} ปริมาณ <b>${grams.toFixed(4)} กรัม</b> ด้วยเครื่องชั่งสารอย่างละเอียด\n` +
+                 `2. เทสารลงในบีกเกอร์ เติมน้ำกลั่นประมาณ 60% ของปริมาตรรวม คนให้ละลายจนหมด\n` +
+                 `3. เทสารละลายที่ได้ลงในขวดวัดปริมาตร (Volumetric Flask) ขนาด <b>${volML.toFixed(0)} mL</b>\n` +
+                 `4. กลั้วบีกเกอร์ด้วยน้ำกลั่นปริมาณเล็กน้อย 2-3 ครั้ง แล้วเทลงในขวดวัดปริมาตร\n` +
+                 `5. เติมน้ำกลั่นปรับปริมาตรจนถึงขีดบอกปริมาตร ปิดฝาแล้วกลับขวดไปมาให้เข้ากัน`;
+        } else {
+          const STOCK_CONCS = {
+            "HCl": 12.0,
+            "H2SO4": 18.0,
+            "HNO3": 15.6,
+            "H3PO4": 14.6,
+            "CH3COOH": 17.4
+          };
+          const c1 = STOCK_CONCS[rawFormula] || 12.0;
+          if (targetConc >= c1) {
+            return `⚠️ <b>ข้อควรระวัง:</b> ความเข้มข้นที่ต้องการ (${targetConc} M) สูงกว่าความเข้มข้นของสารละลายสต็อกที่มี (${c1} M) ไม่สามารถเตรียมด้วยการเจือจางได้ครับ`;
+          }
+          const v1 = (targetConc * volML) / c1;
+          const solvent = volML - v1;
+          
+          let safetyNote = "";
+          if (rawFormula === "H2SO4") {
+            safetyNote = `\n🚨 <b>ข้อควรระวังความปลอดภัยสูง:</b> ปฏิกิริยาระหว่างกรดซัลฟิวริกเข้มข้นกับน้ำคายความร้อนสูงมาก! <b>ห้ามเทน้ำลงในกรดเข้มข้นเด็ดขาด</b> ให้ตวงน้ำใส่ขวดก่อนแล้วค่อยๆ เทกรดเข้มข้นลงในน้ำช้าๆ`;
+          }
+          
+          return `💧 <b>วิธีการเจือจางเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากสต็อก (${c1} M):</b>\n\n` +
+                 `- <b>สูตรคำนวณ:</b> <code>C₁V₁ = C₂V₂</code>\n` +
+                 `- <b>ค่าคำนวณได้:</b> ใช้สารละลายสต็อกปริมาตร <b>${v1.toFixed(2)} mL</b> เจือจางด้วยน้ำกลั่น <b>${solvent.toFixed(2)} mL</b>\n\n` +
+                 `📝 <b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
+                 `1. ตวงน้ำกลั่นปริมาณ <b>${solvent.toFixed(2)} mL</b> ใส่ในขวดวัดปริมาตรขนาด <b>${volML.toFixed(0)} mL</b>${safetyNote}\n` +
+                 `2. ใช้ปิเปตต์ตวงสารละลายเข้มข้นสต็อก (${c1} M) ปริมาตร <b>${v1.toFixed(2)} mL</b> ค่อยๆ ปล่อยลงไปในขวดวัดปริมาตร\n` +
+                 `3. หมุนขวดวัดปริมาตรเบาๆ เพื่อให้ผสมเข้ากัน\n` +
+                 `4. ปรับปริมาตรด้วยน้ำกลั่นจนถึงขีดบอกปริมาตร ปิดฝาแล้วกลับขวดไปมาให้เข้ากัน`;
+        }
+      }
     }
   }
 
@@ -8606,6 +9021,169 @@ function parseStandardFormula(str) {
   return parseGroup();
 }
 
+const ELEM_MAP_GLOBAL = {};
+for (let k of Object.keys(ATOMIC_WEIGHTS)) {
+  ELEM_MAP_GLOBAL[k.toLowerCase()] = k;
+}
+
+function findElementCasing(s) {
+  if (s === "") return "";
+  
+  if (s.length >= 2) {
+    const two = s.slice(0, 2).toLowerCase();
+    const standardTwo = ELEM_MAP_GLOBAL[two];
+    if (standardTwo) {
+      const rest = findElementCasing(s.slice(2));
+      if (rest !== null) {
+        return standardTwo + rest;
+      }
+    }
+  }
+  
+  if (s.length >= 1) {
+    const one = s.slice(0, 1).toLowerCase();
+    const standardOne = ELEM_MAP_GLOBAL[one];
+    if (standardOne) {
+      const rest = findElementCasing(s.slice(1));
+      if (rest !== null) {
+        return standardOne + rest;
+      }
+    }
+  }
+  
+  return null;
+}
+
+function autoCapitalizeChemicalFormula(formulaStr) {
+  return formulaStr.replace(/[A-Za-z]+/g, (match) => {
+    const capitalized = findElementCasing(match);
+    return capitalized !== null ? capitalized : match;
+  });
+}
+
+function getFormulaFromText(txt) {
+  const subscriptMap = {
+    '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4',
+    '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
+  };
+  let cleanQuery = txt.replace(/[₀-₉]/g, m => subscriptMap[m]);
+  
+  const words = cleanQuery.match(/[A-Za-z0-9()·*.]+/g);
+  if (!words) return null;
+  
+  const COMMON_FORMULAS = {
+    'h2o': 'H2O', 'nacl': 'NaCl', 'naoh': 'NaOH', 'hcl': 'HCl',
+    'h2so4': 'H2SO4', 'ch3cooh': 'CH3COOH', 'c2h5oh': 'C2H5OH',
+    'nahco3': 'NaHCO3', 'caco3': 'CaCO3', 'co2': 'CO2', 'o2': 'O2',
+    'h2': 'H2', 'n2': 'N2', 'cl2': 'Cl2', 'nh3': 'NH3', 'ch4': 'CH4',
+    'c6h12o6': 'C6H12O6', 'c12h22o11': 'C12H22O11', 'hno3': 'HNO3',
+    'h3po4': 'H3PO4', 'cuso4': 'CuSO4', 'mgso4': 'MgSO4', 'caso4': 'CaSO4',
+    'baso4': 'BaSO4', 'kno3': 'KNO3', 'nano3': 'NaNO3', 'nh4cl': 'NH4Cl',
+    'nh4no3': 'NH4NO3', 'na2co3': 'Na2CO3', 'k2co3': 'K2CO3', 'khco3': 'KHCO3',
+    'ki': 'KI', 'kbr': 'KBr', 'kcl': 'KCl', 'na2so4': 'Na2SO4',
+    'k2so4': 'K2SO4', 'mgco3': 'MgCO3', 'ca(oh)2': 'Ca(OH)2', 'ba(oh)2': 'Ba(OH)2',
+    'al(oh)3': 'Al(OH)3', 'koh': 'KOH', 'hf': 'HF', 'hbr': 'HBr',
+    'hi': 'HI', 'o3': 'O3', 'f2': 'F2', 'br2': 'Br2', 'i2': 'I2',
+    'co': 'CO', 'no': 'NO', 'c': 'C', 's': 'S', 'p': 'P', 'fe': 'Fe',
+    'cu': 'Cu', 'zn': 'Zn', 'al': 'Al', 'mg': 'Mg', 'ca': 'Ca', 'na': 'Na',
+    'k': 'K', 'li': 'Li', 'cocl2': 'CoCl2', 'h2o2': 'H2O2', 'fe2o3': 'Fe2O3',
+    'fe3o4': 'Fe3O4', 'al2o3': 'Al2O3', 'sio2': 'SiO2', 'so2': 'SO2',
+    'so3': 'SO3', 'no2': 'NO2', 'n2o': 'N2O', 'h2s': 'H2S', 'hcn': 'HCN',
+    'licl': 'LiCl', 'pbs': 'PbS', 'cuo': 'CuO', 'zno': 'ZnO', 'mno': 'MnO',
+    'feo': 'FeO', 'agno3': 'AgNO3', 'pb(no3)2': 'Pb(NO3)2'
+  };
+  
+  for (let word of words) {
+    const lowerWord = word.toLowerCase();
+    
+    if (COMMON_FORMULAS[lowerWord]) {
+      return COMMON_FORMULAS[lowerWord];
+    }
+    
+    const isCandidate = 
+      /[0-9()·*.]/.test(word) || 
+      /^[A-Z]/.test(word) ||     
+      COMMON_FORMULAS[lowerWord] !== undefined;
+      
+    if (isCandidate) {
+      const capitalized = autoCapitalizeChemicalFormula(word);
+      const parsed = parseFormula(capitalized);
+      if (parsed && Object.keys(parsed).length > 0) {
+        let allValid = true;
+        for (let elem of Object.keys(parsed)) {
+          if (!ATOMIC_WEIGHTS[elem]) {
+            allValid = false;
+            break;
+          }
+        }
+        if (allValid) return capitalized;
+      }
+    }
+  }
+  return null;
+}
+
+function parseDilutionParams(q) {
+  const pat1 = /(?:เตรียม|ผสม|เจือจาง|ต้องการ).*?(\d+(?:\.\d+)?)\s*(?:m|โมลาร์|mol\/l).*?(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร).*?(?:จาก|from).*?(\d+(?:\.\d+)?)\s*(?:m|โมลาร์|mol\/l)/i;
+  const m1 = q.match(pat1);
+  if (m1) {
+    return {
+      c2: parseFloat(m1[1]),
+      v2Val: parseFloat(m1[2]),
+      v2Unit: m1[3].toLowerCase(),
+      c1: parseFloat(m1[4])
+    };
+  }
+  const pat2 = /(?:เจือจาง|dilute).*?(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(?:เป็น|ต้องการ|to)\s*(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(?:ปริมาตร|ขนาด)?\s*(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร)/i;
+  const m2 = q.match(pat2);
+  if (m2) {
+    return {
+      c1: parseFloat(m2[1]),
+      c2: parseFloat(m2[2]),
+      v2Val: parseFloat(m2[3]),
+      v2Unit: m2[4].toLowerCase()
+    };
+  }
+  const pat3 = /(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(?:เจือจางเป็น|เป็น|ต้องการ|to)\s*(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร)/i;
+  const m3 = q.match(pat3);
+  if (m3) {
+    return {
+      c1: parseFloat(m3[1]),
+      c2: parseFloat(m3[2]),
+      v2Val: parseFloat(m3[3]),
+      v2Unit: m3[4].toLowerCase()
+    };
+  }
+  return null;
+}
+
+function generateDilutionResponse(c1, c2, v2Val, v2Unit, chemName = "", formula = "") {
+  if (c1 <= c2) {
+    return "⚠️ ความเข้มข้นเริ่มต้น (C₁) ต้องมากกว่าความเข้มข้นที่ต้องการ (C₂) สำหรับการเจือจางสารละลายครับ";
+  }
+  let v2 = v2Val;
+  if (v2Unit === 'l' || v2Unit === 'ลิตร') {
+    v2 = v2Val * 1000;
+  }
+  const v1 = (c2 * v2) / c1;
+  const solvent = v2 - v1;
+  
+  let label = "สารละลาย";
+  if (chemName && formula) {
+    label = `${chemName} (${formula})`;
+  } else if (formula) {
+    label = formatChemicalFormula(formula);
+  }
+  return `💧 <b>ผลการคำนวณเตรียมสารละลายด้วยการเจือจาง (Dilution):</b>\n\n` +
+         `- <b>สูตรที่ใช้:</b> <code>C₁V₁ = C₂V₂</code>\n` +
+         `- <b>ค่าที่ระบุ:</b> ความเข้มข้นสารละลายเริ่มต้น (C₁) = <b>${c1} M</b>, ความเข้มข้นที่ต้องการ (C₂) = <b>${c2} M</b>, ปริมาตรสุทธิ (V₂) = <b>${v2Val} ${v2Unit === 'l' || v2Unit === 'ลิตร' ? 'L' : 'mL'}</b>\n\n` +
+         `🧪 <b>วิธีการเตรียม:</b>\n` +
+         `1. ตวงสารละลาย ${label} เข้มข้นเริ่มต้น (${c1} M) ปริมาตร <b>${v1.toFixed(2)} mL</b>\n` +
+         `2. นำไปเทใส่ขวดวัดปริมาตร (Volumetric Flask) ขนาด <b>${v2.toFixed(0)} mL</b>\n` +
+         `3. เติมตัวทำละลาย (เช่น น้ำกลั่น) ปริมาตร <b>${solvent.toFixed(2)} mL</b> (หรือเติมจนถึงขีดบอกปริมาตรของขวดวัดปริมาตร)\n` +
+         `4. ปิดฝาแล้วกลับขวดไปมาเพื่อให้สารผสมเป็นเนื้อเดียวกัน`;
+}
+
 function getFormulaWeightBreakdown(formulaStr) {
   const parsed = parseFormula(formulaStr);
   if (!parsed || Object.keys(parsed).length === 0) return null;
@@ -8803,35 +9381,9 @@ function balanceEquation(equationText) {
 function calculateSolutionPrep(query) {
   const q = query.toLowerCase().trim();
 
-  const dilutionRegex = /(?:เจือจาง|dilute).*?(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(?:เป็น|ต้องการ)\s*(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(?:ปริมาตร|ขนาด)?\s*(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร)/i;
-  const dilutionMatch = q.match(dilutionRegex) || q.match(/(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(?:เจือจางเป็น|เป็น|ต้องการ)\s*(\d+(?:\.\d+)?)\s*(?:m|%|โมลาร์).*?(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร)/i);
-
-  if (dilutionMatch) {
-    const c1 = parseFloat(dilutionMatch[1]);
-    const c2 = parseFloat(dilutionMatch[2]);
-    const v2Val = parseFloat(dilutionMatch[3]);
-    const v2Unit = dilutionMatch[4].toLowerCase();
-
-    if (c1 <= c2) {
-      return "⚠️ ความเข้มข้นเริ่มต้น (C₁) ต้องมากกว่าความเข้มข้นที่ต้องการ (C₂) สำหรับการเจือจางสารละลายครับ";
-    }
-
-    let v2 = v2Val;
-    if (v2Unit === 'l' || v2Unit === 'ลิตร') {
-      v2 = v2Val * 1000;
-    }
-
-    const v1 = (c2 * v2) / c1;
-    const solvent = v2 - v1;
-
-    return `💧 <b>ผลการคำนวณเตรียมสารละลายด้วยการเจือจาง (Dilution):</b>\n\n` +
-           `- <b>สูตรที่ใช้:</b> <code>C₁V₁ = C₂V₂</code>\n` +
-           `- <b>ค่าที่ระบุ:</b> ความเข้มข้นเริ่มต้น (C₁) = <b>${c1} M</b>, ความเข้มข้นที่ต้องการ (C₂) = <b>${c2} M</b>, ปริมาตรสุทธิ (V₂) = <b>${v2Val} ${v2Unit === 'l' || v2Unit === 'ลิตร' ? 'L' : 'mL'}</b>\n\n` +
-           `🧪 <b>วิธีการเตรียม:</b>\n` +
-           `1. ตวงสารละลายเข้มข้นเริ่มต้น (C₁) ปริมาตร <b>${v1.toFixed(2)} mL</b>\n` +
-           `2. นำไปเทใส่ขวดวัดปริมาตร (Volumetric Flask) ขนาด <b>${v2.toFixed(0)} mL</b>\n` +
-           `3. เติมตัวทำละลาย (เช่น น้ำกลั่น) ปริมาตร <b>${solvent.toFixed(2)} mL</b> (หรือเติมจนถึงขีดบอกปริมาตรของขวดวัดปริมาตร)\n` +
-           `4. ปิดฝาแล้วกลับขวดไปมาเพื่อให้สารผสมเป็นเนื้อเดียวกัน`;
+  const dil = parseDilutionParams(q);
+  if (dil) {
+    return generateDilutionResponse(dil.c1, dil.c2, dil.v2Val, dil.v2Unit);
   }
 
   const solidMatch = q.match(/(\d+(?:\.\d+)?)\s*(?:m|โมลาร์).*?(?:ปริมาตร)?\s*(\d+(?:\.\d+)?)\s*(ml|l|มล|ลิตร).*?(?:มวลโมเลกุล|mw|g\/mol)?\s*(\d+(?:\.\d+)?)/i) ||
