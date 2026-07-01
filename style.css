@@ -3548,9 +3548,9 @@ input[type="date"]::-webkit-date-and-time-value {
   display: flex !important;
 }
 
-/* Responsive adjustments for smaller screens (tablet & mobile) */
-@media (max-width: 1024px) {
-  /* Hide ONLY the filter dropdown on small screens */
+/* Adjustments for iPad landscape, tablet, and mobile (widths up to 1200px) */
+@media (max-width: 1200px) {
+  /* Hide ONLY the filter dropdown on medium/small screens to fit header on one line */
   #pendingRequestsCard #teacherFilterSelect {
     display: none !important;
   }
@@ -3568,7 +3568,10 @@ input[type="date"]::-webkit-date-and-time-value {
   .pending-request-item.expanded .chevron-icon {
     transform: rotate(180deg);
   }
+}
 
+/* Responsive adjustments for smaller screens (tablet & mobile <= 1024px) */
+@media (max-width: 1024px) {
   /* Unlock heights on small screens to let them scroll naturally and expand */
   .dashboard-grid.student-mode #quickMenuCard,
   .dashboard-grid.student-mode #unifiedAlertsCard,
