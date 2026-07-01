@@ -5178,8 +5178,8 @@ function renderPendingRequests() {
     }
 
     html += `
-      <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: all var(--transition-fast);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+      <div class="pending-request-item" style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: all var(--transition-fast);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; cursor: pointer;" onclick="togglePendingRequestDetails(this)">
           <div>
             <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 5px;">
               <i data-lucide="calendar" style="width: 14px; height: 14px; color: #3b82f6;"></i>
@@ -5189,20 +5189,25 @@ function renderPendingRequests() {
               ผู้ขอจอง: <strong>${escapeHTML(bk.bookerName)}</strong> | วันที่: ${formatThaiDate(bk.date)}
             </div>
           </div>
-          <span class="badge badge-blue" style="font-size: 9px; padding: 1px 5px; background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;">จองห้องแล็บ</span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="badge badge-blue" style="font-size: 9px; padding: 1px 5px; background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;">จองห้องแล็บ</span>
+            <i class="chevron-icon" data-lucide="chevron-down" style="width: 14px; height: 14px; color: var(--text-muted); transition: transform 0.2s;"></i>
+          </div>
         </div>
-        <div style="font-size: 10.5px; color: #475569; padding-left: 2px; display: flex; flex-direction: column; gap: 1px;">
-          <div>ช่วงเวลา: <strong>${bk.slot}</strong></div>
-          ${bk.purpose ? `<div>วัตถุประสงค์: <span style="font-style: italic; color: #64748b;">"${escapeHTML(bk.purpose)}"</span></div>` : ""}
-        </div>
-        ${prepItemsHtml}
-        <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 2px;">
-          <button type="button" class="btn btn-primary" style="padding: 3px 8px; font-size: 11px; height: 24px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="approveBookingRequest('${bk.id}')">
-            <i data-lucide="check" style="width: 12px; height: 12px;"></i> อนุมัติ
-          </button>
-          <button type="button" class="btn btn-danger" style="padding: 3px 8px; font-size: 11px; height: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="rejectBookingRequest('${bk.id}')">
-            <i data-lucide="x" style="width: 12px; height: 12px;"></i> ปฏิเสธ
-          </button>
+        <div class="pending-details-body" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px; border-top: 1px dashed rgba(0,0,0,0.06); padding-top: 6px;">
+          <div style="font-size: 10.5px; color: #475569; padding-left: 2px; display: flex; flex-direction: column; gap: 1px;">
+            <div>ช่วงเวลา: <strong>${bk.slot}</strong></div>
+            ${bk.purpose ? `<div>วัตถุประสงค์: <span style="font-style: italic; color: #64748b;">"${escapeHTML(bk.purpose)}"</span></div>` : ""}
+          </div>
+          ${prepItemsHtml}
+          <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 2px;">
+            <button type="button" class="btn btn-primary" style="padding: 3px 8px; font-size: 11px; height: 24px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="approveBookingRequest('${bk.id}')">
+              <i data-lucide="check" style="width: 12px; height: 12px;"></i> อนุมัติ
+            </button>
+            <button type="button" class="btn btn-danger" style="padding: 3px 8px; font-size: 11px; height: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="rejectBookingRequest('${bk.id}')">
+              <i data-lucide="x" style="width: 12px; height: 12px;"></i> ปฏิเสธ
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -5211,8 +5216,8 @@ function renderPendingRequests() {
   // Render pending equipment borrows
   filteredTx.forEach(tx => {
     html += `
-      <div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: all var(--transition-fast);">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+      <div class="pending-request-item" style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: all var(--transition-fast);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; cursor: pointer;" onclick="togglePendingRequestDetails(this)">
           <div>
             <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 5px;">
               <i data-lucide="flask-conical" style="width: 14px; height: 14px; color: #8b5cf6;"></i>
@@ -5222,21 +5227,26 @@ function renderPendingRequests() {
               รหัส: ${tx.itemCode} | จำนวน: <strong>${tx.qty}</strong>
             </div>
           </div>
-          <span class="badge badge-purple" style="font-size: 9px; padding: 1px 5px; background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6;">ยืมอุปกรณ์</span>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="badge badge-purple" style="font-size: 9px; padding: 1px 5px; background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6;">ยืมอุปกรณ์</span>
+            <i class="chevron-icon" data-lucide="chevron-down" style="width: 14px; height: 14px; color: var(--text-muted); transition: transform 0.2s;"></i>
+          </div>
         </div>
-        <div style="font-size: 10.5px; color: #475569; padding-left: 2px; display: flex; flex-direction: column; gap: 1px;">
-          <div>ผู้ยืม: <strong>${escapeHTML(tx.borrower)}</strong> | วันยืม: ${formatThaiDate(tx.date)}</div>
-          ${tx.supervisingTeacher ? `<div>ครูผู้ดูแลคาบ: <strong style="color: var(--primary-purple);">${escapeHTML(tx.supervisingTeacher)}</strong></div>` : ""}
-          ${tx.room && tx.room !== "None" ? `<div>ห้องปฏิบัติการ: <strong>${getRoomThaiName(tx.room)}</strong>${tx.slot && tx.slot !== "None" ? ` (ช่วงเวลา: <strong>${tx.slot}</strong>)` : ""}</div>` : ""}
-        </div>
-        ${tx.notes ? `<div style="font-size: 10px; color: var(--text-muted); font-style: italic; background-color: #ffffff; padding: 4px 6px; border-radius: 4px; border: 1px solid #f1f5f9;">${escapeHTML(tx.notes)}</div>` : ""}
-        <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 2px;">
-          <button type="button" class="btn btn-primary" style="padding: 3px 8px; font-size: 11px; height: 24px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="approveBorrowRequest('${tx.id}')">
-            <i data-lucide="check" style="width: 12px; height: 12px;"></i> อนุมัติ
-          </button>
-          <button type="button" class="btn btn-danger" style="padding: 3px 8px; font-size: 11px; height: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="rejectBorrowRequest('${tx.id}')">
-            <i data-lucide="x" style="width: 12px; height: 12px;"></i> ปฏิเสธ
-          </button>
+        <div class="pending-details-body" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px; border-top: 1px dashed rgba(0,0,0,0.06); padding-top: 6px;">
+          <div style="font-size: 10.5px; color: #475569; padding-left: 2px; display: flex; flex-direction: column; gap: 1px;">
+            <div>ผู้ยืม: <strong>${escapeHTML(tx.borrower)}</strong> | วันยืม: ${formatThaiDate(tx.date)}</div>
+            ${tx.supervisingTeacher ? `<div>ครูผู้ดูแลคาบ: <strong style="color: var(--primary-purple);">${escapeHTML(tx.supervisingTeacher)}</strong></div>` : ""}
+            ${tx.room && tx.room !== "None" ? `<div>ห้องปฏิบัติการ: <strong>${getRoomThaiName(tx.room)}</strong>${tx.slot && tx.slot !== "None" ? ` (ช่วงเวลา: <strong>${tx.slot}</strong>)` : ""}</div>` : ""}
+          </div>
+          ${tx.notes ? `<div style="font-size: 10px; color: var(--text-muted); font-style: italic; background-color: #ffffff; padding: 4px 6px; border-radius: 4px; border: 1px solid #f1f5f9;">${escapeHTML(tx.notes)}</div>` : ""}
+          <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 2px;">
+            <button type="button" class="btn btn-primary" style="padding: 3px 8px; font-size: 11px; height: 24px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="approveBorrowRequest('${tx.id}')">
+              <i data-lucide="check" style="width: 12px; height: 12px;"></i> อนุมัติ
+            </button>
+            <button type="button" class="btn btn-danger" style="padding: 3px 8px; font-size: 11px; height: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="rejectBorrowRequest('${tx.id}')">
+              <i data-lucide="x" style="width: 12px; height: 12px;"></i> ปฏิเสธ
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -5244,6 +5254,13 @@ function renderPendingRequests() {
 
   container.innerHTML = html;
   lucide.createIcons();
+}
+
+window.togglePendingRequestDetails = function(headerElement) {
+  const item = headerElement.closest('.pending-request-item');
+  if (item) {
+    item.classList.toggle('expanded');
+  }
 }
 
 window.approveBookingRequest = async function(bookingId) {

@@ -3539,3 +3539,48 @@ input[type="date"]::-webkit-date-and-time-value {
   overflow-y: auto;
   padding-right: 4px;
 }
+
+/* Collapsible Pending Request Item styles */
+.chevron-icon {
+  display: none !important;
+}
+.pending-details-body {
+  display: flex !important;
+}
+
+/* Responsive adjustments for smaller screens (tablet & mobile) */
+@media (max-width: 1024px) {
+  /* Hide ONLY the filter dropdown on small screens */
+  #pendingRequestsCard #teacherFilterSelect {
+    display: none !important;
+  }
+
+  /* Collapsible behavior in mobile/tablet */
+  .chevron-icon {
+    display: inline-block !important;
+  }
+  .pending-details-body {
+    display: none !important;
+  }
+  .pending-request-item.expanded .pending-details-body {
+    display: flex !important;
+  }
+  .pending-request-item.expanded .chevron-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Unlock heights on small screens to let them scroll naturally and expand */
+  .dashboard-grid.student-mode #quickMenuCard,
+  .dashboard-grid.student-mode #unifiedAlertsCard,
+  .dashboard-grid.student-mode #categoryBreakdownCard,
+  .dashboard-grid.student-mode #recentItemsCard {
+    height: auto !important;
+    max-height: none !important;
+  }
+  
+  .dashboard-grid.student-mode #unifiedAlertsCard .alert-tab-content,
+  .dashboard-grid.student-mode #recentItemsContainer,
+  .dashboard-grid.student-mode #categoryBreakdownContainer {
+    max-height: none !important;
+  }
+}
