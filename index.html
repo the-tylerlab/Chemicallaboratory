@@ -45,7 +45,7 @@
         <div class="logo-text">
           <span class="logo-title">ระบบคลังเคมี</span>
           <span class="logo-subtitle">Laboratory System</span>
-          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.8.0</span>
+          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.9.1</span>
         </div>
       </div>
 
@@ -356,6 +356,28 @@
               <!-- Dynamic SVG -->
             </div>
           </div>
+
+          <!-- 4. Stock Forecast & Auto-PO Card -->
+          <div class="card-container" id="stockForecastCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="trending-down" style="width: 20px; height: 20px; color: #ef4444;"></i>
+                <span>พยากรณ์ความต้องการสต็อกและสารเคมีใกล้หมดเชิงรุก (Stock Forecast & Auto-PO)</span>
+              </h2>
+              <span class="badge-borrowed" id="forecastWarningCount" style="font-weight: 700; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">0 รายการต้องเติมสต็อก</span>
+            </div>
+            <div class="forecast-card-content" style="padding: 20px;">
+              <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; text-align: left;">
+                ระบบวิเคราะห์ประวัติความถี่ในการยืม-คืนย้อนหลัง 60 วัน และเปรียบเทียบระดับเตือนสต็อกต่ำ เพื่อคาดการณ์วันที่ของจะหมดคลังเชิงล่วงหน้า 30 วัน พร้อมมีปุ่มสั่งสร้างใบเบิกซื้อพัสดุชั่วคราวให้อัตโนมัติ (Auto-PO)
+              </p>
+              <div class="forecast-list" id="stockForecastList">
+                <div class="empty-state" style="padding: 30px;">
+                  <div class="empty-state-icon"><i data-lucide="check-circle" style="color: var(--accent-green);"></i></div>
+                  <div class="empty-state-text" style="color: var(--text-muted);">พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งานล่วงหน้า 30 วัน</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -603,94 +625,138 @@
           <p>แสดงสารเคมีและอุปกรณ์วิทยาศาสตร์ในระบบพร้อมฟิลเตอร์ค้นหาและการจัดการ</p>
         </div>
 
-        <!-- Table Filters Section -->
-        <div class="table-filter-bar">
-          <div class="search-scan-group">
-            <div class="search-box-container">
-              <i data-lucide="search"></i>
-              <input type="text" id="filterSearch" placeholder="ค้นหารหัส, ชื่อ, หมวดหมู่...">
+        <!-- View Toggle Bar -->
+        <div class="view-toggle-bar" id="allItemsViewToggle" style="margin-bottom: 20px;">
+          <button type="button" class="view-toggle-btn active" id="btnAllItemsListView">
+            <i data-lucide="list" style="width: 14px; height: 14px;"></i>
+            <span>แบบตารางรายการ</span>
+          </button>
+          <button type="button" class="view-toggle-btn" id="btnAllItemsCabinetToggle">
+            <i data-lucide="layout" style="width: 14px; height: 14px;"></i>
+            <span>แผนผังตู้เก็บสารเคมี (SHECU)</span>
+          </button>
+        </div>
+
+        <!-- List View Area -->
+        <div id="allItemsListViewArea" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+          <!-- Table Filters Section -->
+          <div class="table-filter-bar">
+            <div class="search-scan-group">
+              <div class="search-box-container">
+                <i data-lucide="search"></i>
+                <input type="text" id="filterSearch" placeholder="ค้นหารหัส, ชื่อ, หมวดหมู่...">
+              </div>
+
+              <!-- Barcode/QR Quick Scan box -->
+              <div class="scan-box-container">
+                <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="คลิกเพื่อสแกนด้วยกล้อง">
+                  <i data-lucide="scan" style="color: var(--primary-purple); width: 16px; height: 16px;"></i>
+                </button>
+                <input type="text" id="scanInput" placeholder="สแกนคิวอาร์..." autocomplete="off">
+              </div>
             </div>
 
-            <!-- Barcode/QR Quick Scan box -->
-            <div class="scan-box-container">
-              <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="คลิกเพื่อสแกนด้วยกล้อง">
-                <i data-lucide="scan" style="color: var(--primary-purple); width: 16px; height: 16px;"></i>
+            <select id="filterCategory" class="filter-select">
+              <option value="all">ทุกหมวดหมู่</option>
+              <option value="สารเคมี">สารเคมี</option>
+              <option value="อุปกรณ์วิทยาศาสตร์">อุปกรณ์วิทยาศาสตร์</option>
+              <option value="เครื่องแก้ว">เครื่องแก้ว</option>
+              <option value="วัสดุสิ้นเปลือง">วัสดุสิ้นเปลือง</option>
+            </select>
+
+            <select id="filterStatus" class="filter-select">
+              <option value="all">ทุกสถานะ</option>
+              <option value="normal">ปกติ</option>
+              <option value="low-stock">ใกล้หมด</option>
+              <option value="near-expiry">ใกล้หมดอายุ</option>
+              <option value="expired">หมดอายุแล้ว</option>
+            </select>
+
+            <div class="filter-buttons-group">
+              <button class="btn btn-secondary" id="btnExportCSV" style="display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
+                <span>ส่งออก Excel (CSV)</span>
               </button>
-              <input type="text" id="scanInput" placeholder="สแกนคิวอาร์..." autocomplete="off">
+              <button class="btn btn-secondary" id="btnPrintReport" style="background-color: var(--accent-blue-light); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.2); display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+                <span>พิมพ์รายงาน (PDF)</span>
+              </button>
+              <button class="btn btn-secondary admin-clear-btn" id="btnClearInventory" style="display: none; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border-color: rgba(239, 68, 68, 0.2); align-items: center; gap: 6px; font-weight: 600;">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                <span>ล้างคลังพัสดุ</span>
+              </button>
             </div>
           </div>
 
-          <select id="filterCategory" class="filter-select">
-            <option value="all">ทุกหมวดหมู่</option>
-            <option value="สารเคมี">สารเคมี</option>
-            <option value="อุปกรณ์วิทยาศาสตร์">อุปกรณ์วิทยาศาสตร์</option>
-            <option value="เครื่องแก้ว">เครื่องแก้ว</option>
-            <option value="วัสดุสิ้นเปลือง">วัสดุสิ้นเปลือง</option>
-          </select>
+          <!-- Count info -->
+          <div class="table-header-info">
+            <div>พบข้อมูลทั้งหมด <span id="tableTotalCount" style="font-weight: 700; color: var(--primary-purple);">0</span> รายการ</div>
+            <div id="tableFilteredInfo">กำลังแสดงข้อมูลที่ฟิลเตอร์</div>
+          </div>
 
-          <select id="filterStatus" class="filter-select">
-            <option value="all">ทุกสถานะ</option>
-            <option value="normal">ปกติ</option>
-            <option value="low-stock">ใกล้หมด</option>
-            <option value="near-expiry">ใกล้หมดอายุ</option>
-            <option value="expired">หมดอายุแล้ว</option>
-          </select>
+          <!-- Main Items Table -->
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 30%;">รายละเอียดสินค้า</th>
+                  <th style="width: 12%;">จำนวนคงเหลือ</th>
+                  <th style="width: 12%;">วันหมดอายุ</th>
+                  <th style="width: 18%;">สถานที่จัดเก็บ</th>
+                  <th style="width: 18%;">สถานะ</th>
+                  <th id="thActions" style="width: 10%; text-align: center;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="itemsTableBody">
+                <!-- Dynamically populated or empty state -->
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 40px;">
+                    <div class="empty-state">
+                      <div class="empty-state-icon"><i data-lucide="package-search"></i></div>
+                      <div class="empty-state-text">ไม่พบรายการสินค้า</div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-          <div class="filter-buttons-group">
-            <button class="btn btn-secondary" id="btnExportCSV" style="display: inline-flex; align-items: center; gap: 6px;">
-              <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
-              <span>ส่งออก Excel (CSV)</span>
-            </button>
-            <button class="btn btn-secondary" id="btnPrintReport" style="background-color: var(--accent-blue-light); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.2); display: inline-flex; align-items: center; gap: 6px;">
-              <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
-              <span>พิมพ์รายงาน (PDF)</span>
-            </button>
-            <button class="btn btn-secondary admin-clear-btn" id="btnClearInventory" style="display: none; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border-color: rgba(239, 68, 68, 0.2); align-items: center; gap: 6px; font-weight: 600;">
-              <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-              <span>ล้างคลังพัสดุ</span>
-            </button>
+          <!-- Pagination Footer -->
+          <div class="pagination-container">
+            <div id="paginationInfo">แสดงรายการที่ 0-0 จาก 0 รายการ</div>
+            <div class="pagination-controls">
+              <button class="btn btn-secondary" id="btnPrevPage" style="padding: 6px 12px; font-size: 12px;" disabled>ก่อนหน้า</button>
+              <button class="btn btn-secondary" id="btnNextPage" style="padding: 6px 12px; font-size: 12px;" disabled>ถัดไป</button>
+            </div>
           </div>
         </div>
 
-        <!-- Count info -->
-        <div class="table-header-info">
-          <div>พบข้อมูลทั้งหมด <span id="tableTotalCount" style="font-weight: 700; color: var(--primary-purple);">0</span> รายการ</div>
-          <div id="tableFilteredInfo">กำลังแสดงข้อมูลที่ฟิลเตอร์</div>
-        </div>
+        <!-- Cabinet Map View Area -->
+        <div id="allItemsCabinetViewArea" style="display: none; flex-direction: column; gap: 20px; width: 100%;">
+          <div style="display: flex; align-items: center; gap: 12px; background-color: var(--bg-main); padding: 12px 16px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color); flex-wrap: wrap;">
+            <span style="font-size: 13.5px; font-weight: 600; color: var(--text-main); display: inline-flex; align-items: center; gap: 6px;">
+              <i data-lucide="map-pin" style="width: 16px; height: 16px; color: var(--primary-purple);"></i>
+              เลือกห้องปฏิบัติการเพื่อดูแผนผัง:
+            </span>
+            <select id="cabinetMapRoomFilter" class="form-control" style="width: 300px; height: 36px; font-size: 13px !important; padding: 0 32px 0 12px !important; margin: 0; outline: none; border-color: var(--border-color); background-color: #fff; cursor: pointer;">
+              <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+              <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+              <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
+              <option value="Lab 1" selected>ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+              <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+              <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+              <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+              <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
+            </select>
+            <div style="font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 6px; margin-left: auto;">
+              <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background-color: #ef4444; border: 1px solid #dc2626;"></span> มีกลุ่มสารเคมีที่ไม่เข้ากันร่วมตู้ (Incompatible)
+              <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background-color: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; margin-left: 12px;"></span> จัดเก็บสารเคมีปลอดภัยถูกต้อง
+            </div>
+          </div>
 
-        <!-- Main Items Table -->
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 30%;">รายละเอียดสินค้า</th>
-                <th style="width: 12%;">จำนวนคงเหลือ</th>
-                <th style="width: 12%;">วันหมดอายุ</th>
-                <th style="width: 18%;">สถานที่จัดเก็บ</th>
-                <th style="width: 18%;">สถานะ</th>
-                <th id="thActions" style="width: 10%; text-align: center;">จัดการ</th>
-              </tr>
-            </thead>
-            <tbody id="itemsTableBody">
-              <!-- Dynamically populated or empty state -->
-              <tr>
-                <td colspan="6" style="text-align: center; padding: 40px;">
-                  <div class="empty-state">
-                    <div class="empty-state-icon"><i data-lucide="package-search"></i></div>
-                    <div class="empty-state-text">ไม่พบรายการสินค้า</div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination Footer -->
-        <div class="pagination-container">
-          <div id="paginationInfo">แสดงรายการที่ 0-0 จาก 0 รายการ</div>
-          <div class="pagination-controls">
-            <button class="btn btn-secondary" id="btnPrevPage" style="padding: 6px 12px; font-size: 12px;" disabled>ก่อนหน้า</button>
-            <button class="btn btn-secondary" id="btnNextPage" style="padding: 6px 12px; font-size: 12px;" disabled>ถัดไป</button>
+          <!-- Grid of Cabinets in Room -->
+          <div class="cabinet-grid" id="cabinetMapGrid">
+            <!-- Dynamically populated -->
           </div>
         </div>
       </section>
@@ -788,9 +854,14 @@
                   <label for="borrowRoom" class="form-label">ห้องปฏิบัติการ <span style="color: var(--accent-red);">*</span></label>
                   <select id="borrowRoom" class="form-control" required>
                     <option value="" disabled selected>-- เลือกห้องแล็บ --</option>
+                    <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                    <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                    <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
                     <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
                     <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
                     <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                    <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
                     <option value="None">เบิกใช้นอกห้องปฏิบัติการ</option>
                   </select>
                 </div>
@@ -847,9 +918,14 @@
                 <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">กรองห้อง:</span>
                 <select id="exportBorrowRoomFilter" class="form-control" style="width: 250px; display: inline-block; font-size: 12px !important; padding: 0 32px 0 12px !important; height: 34px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
                   <option value="all">-- ทุกห้องปฏิบัติการ --</option>
+                  <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                  <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                  <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
                   <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
                   <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
                   <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                  <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                  <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
                   <option value="None">นอกห้องปฏิบัติการ</option>
                 </select>
               </div>
@@ -902,7 +978,7 @@
           <p>ระบบตรวจสอบความว่างและบันทึกจองห้องปฏิบัติการแบบเรียลไทม์</p>
         </div>
 
-        <div class="borrow-grid">
+        <div class="borrow-grid booking-grid-layout">
           <!-- Left Column: Form & Grid -->
           <div class="form-container" style="margin-bottom: 0;">
             <div class="form-panel-header">
@@ -917,9 +993,14 @@
                 <div class="form-group">
                   <label for="bookingRoom" class="form-label">ห้องปฏิบัติการ <span style="color: var(--accent-red);">*</span></label>
                   <select id="bookingRoom" class="form-control" required>
+                    <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                    <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                    <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
                     <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
                     <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
                     <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                    <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -960,59 +1041,113 @@
             </form>
           </div>
 
-          <!-- Right Column: Logs -->
-          <div style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Right Column: Logs / Calendar -->
+          <div style="display: flex; flex-direction: column; gap: 20px; flex: 1; min-width: 0;">
             <div class="content-header" style="margin-bottom: 0; padding-bottom: 0;">
               <h2>รายการจองห้องปฏิบัติการ</h2>
               <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
             </div>
 
-            <!-- Export Actions for Booking History (Admin/Teacher Only) -->
-            <div id="bookingExportActions" style="display: none; align-items: center; gap: 10px; margin-top: 12px; margin-bottom: 12px; flex-wrap: wrap;">
-              <div style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">กรองห้อง:</span>
-                <select id="exportBookingRoomFilter" class="form-control" style="width: 250px; display: inline-block; font-size: 12px !important; padding: 0 32px 0 12px !important; height: 34px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
-                  <option value="all">-- ทุกห้องปฏิบัติการ --</option>
-                  <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
-                  <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
-                  <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
-                </select>
+            <!-- View Toggle Bar -->
+            <div class="view-toggle-bar" id="bookingViewToggle" style="margin-bottom: 0;">
+              <button type="button" class="view-toggle-btn active" id="btnBookingCalendarToggle">
+                <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                <span>แบบปฏิทินรายเดือน</span>
+              </button>
+              <button type="button" class="view-toggle-btn" id="btnBookingListView">
+                <i data-lucide="list" style="width: 14px; height: 14px;"></i>
+                <span>แบบรายการ</span>
+              </button>
+            </div>
+
+            <!-- List View Area -->
+            <div id="bookingListViewArea" style="display: none; flex-direction: column; gap: 12px; flex: 1;">
+              <!-- Export Actions for Booking History (Admin/Teacher Only) -->
+              <div id="bookingExportActions" style="display: none; align-items: center; gap: 10px; margin-top: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+                <div style="display: inline-flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">กรองห้อง:</span>
+                  <select id="exportBookingRoomFilter" class="form-control" style="width: 250px; display: inline-block; font-size: 12px !important; padding: 0 32px 0 12px !important; height: 34px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
+                    <option value="all">-- ทุกห้องปฏิบัติการ --</option>
+                    <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                    <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                    <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
+                    <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                    <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
+                  </select>
+                </div>
+                <div style="display: inline-flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: auto; display: inline-block;">ส่งออก:</span>
+                  <button type="button" class="btn" id="btnExportBookingCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
+                    <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
+                  </button>
+                  <button type="button" class="btn" id="btnExportBookingPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
+                    <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
+                  </button>
+                  <button type="button" class="btn admin-clear-btn" id="btnClearBookings" style="display: none; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
+                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ล้างประวัติการจอง
+                  </button>
+                </div>
               </div>
-              <div style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: auto; display: inline-block;">ส่งออก:</span>
-                <button type="button" class="btn" id="btnExportBookingCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
-                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
-                </button>
-                <button type="button" class="btn" id="btnExportBookingPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
-                  <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
-                </button>
-                <button type="button" class="btn admin-clear-btn" id="btnClearBookings" style="display: none; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
-                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ล้างประวัติการจอง
-                </button>
+
+              <!-- Booking Table -->
+              <div class="table-container" style="margin-bottom: 0; flex: 1;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width: 30%;">วันที่เข้าใช้</th>
+                      <th style="width: 70%;">ห้องแล็บ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="bookingsTableBody">
+                    <!-- Dynamically populated -->
+                    <tr>
+                      <td colspan="2" style="text-align: center; padding: 40px;">
+                        <div class="empty-state">
+                          <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
+                          <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <!-- Booking Table -->
-            <div class="table-container" style="margin-bottom: 0; flex: 1;">
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width: 30%;">วันที่เข้าใช้</th>
-                    <th style="width: 70%;">ห้องแล็บ</th>
-                  </tr>
-                </thead>
-                <tbody id="bookingsTableBody">
+            <!-- Calendar View Area -->
+            <div id="bookingCalendarViewArea" style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
+              <div class="booking-calendar-wrapper">
+                <div class="calendar-header">
+                  <span class="calendar-title" id="calendarMonthYearLabel">มกราคม 2569</span>
+                  <div class="calendar-nav-buttons">
+                    <button type="button" class="btn btn-secondary" id="btnPrevMonth" style="padding: 4px 8px; font-size: 11px; height: 28px;">
+                      <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btnTodayMonth" style="padding: 4px 8px; font-size: 11px; height: 28px; font-weight: 600;">วันนี้</button>
+                    <button type="button" class="btn btn-secondary" id="btnNextMonth" style="padding: 4px 8px; font-size: 11px; height: 28px;">
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="calendar-grid">
+                  <div class="calendar-weekday">อา.</div>
+                  <div class="calendar-weekday">จ.</div>
+                  <div class="calendar-weekday">อ.</div>
+                  <div class="calendar-weekday">พ.</div>
+                  <div class="calendar-weekday">พฤ.</div>
+                  <div class="calendar-weekday">ศ.</div>
+                  <div class="calendar-weekday">ส.</div>
+                </div>
+                <div class="calendar-grid" id="bookingCalendarGrid" style="border-top: none; padding-top: 0;">
                   <!-- Dynamically populated -->
-                  <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px;">
-                      <div class="empty-state">
-                        <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
-                        <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                </div>
+                <!-- Calendar Legend -->
+                <div id="bookingCalendarLegend" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 10.5px; font-weight: 600; color: var(--text-muted);">
+                  <!-- Dynamically populated by app.js -->
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2049,11 +2184,35 @@
       </div>
       
       <div class="modal-body" style="padding: 24px; max-height: 400px; overflow-y: auto; font-family: 'Prompt', sans-serif;">
+        <!-- v1.9.1 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.9.1</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">1 กรกฎาคม 2569 (ล่าสุด)</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบพิมพ์สติกเกอร์บาร์โค้ด QR Code แบบแอนิเมชันพร้อมเสียง (Animated QR Code Label Printer):</b> เพิ่มป๊อปอัพและเสียงจำลองเครื่องพิมพ์สติกเกอร์ฉลากติดขวดสารเคมีและอุปกรณ์เมื่อกดสั่งพิมพ์</li>
+          </ul>
+        </div>
+
+        <!-- v1.9.0 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.9.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">26 มิถุนายน 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบล้างข้อมูล Admin (Admin Data Clearing):</b> เพิ่มระบบล้างฐานข้อมูลแยกตามแต่ละโมดูลพร้อมช่องกรอกรหัสยืนยันความปลอดภัยเพื่อป้องกันข้อมูลสูญหาย</li>
+            <li><b>สรุปข้อมูลยอดราคารวมตารางสั่งซื้อสะสม (Committed PO Summary):</b> เพิ่มแถบรายละเอียดราคารวม, ส่วนลดสะสม, และราคาสุทธิหลังหักส่วนลดอย่างสมบูรณ์แบบ</li>
+            <li><b>คู่มือเตรียมสารเคมีในระบบ Catalyst:</b> แชทบอทวิเคราะห์คำนวณสูตรเตรียมสารละลายและความเข้มข้นอัตโนมัติ</li>
+          </ul>
+        </div>
+
         <!-- v1.8.0 -->
         <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.8.0</span>
-            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">25 มิถุนายน 2569 (ล่าสุด)</span>
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.8.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">25 มิถุนายน 2569</span>
           </div>
           <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
             <li><b>ป๊อปอัพใบยืนยันการจองหลังจองห้องแล็บสำเร็จ (Booking Confirmation Modal):</b> เพิ่มระบบหน้าต่างยืนยันความสำเร็จ (Booking Confirmation Modal) ทันทีหลังส่งคำขอจอง พร้อมข้อมูลสรุปและคำแนะนำเตือนใจความสำคัญให้ผู้ใช้<b>บันทึกภาพหน้าจอ (Capture)</b> ไว้เป็นหลักฐานเพื่อแสดงต่อเจ้าหน้าที่ห้องปฏิบัติการอย่างชัดเจน</li>
@@ -2147,6 +2306,8 @@
           <!-- Sticker Roll out paper container -->
           <div class="label-sticker-paper-wrapper">
             <div class="label-sticker-paper">
+              <!-- Tear line & notches -->
+              <div class="label-sticker-tear-line"></div>
               <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
                 <img id="lpQrImg" src="" style="width: 70px; height: 70px; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px; background: white;" alt="QR Code">
                 <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; text-align: left;">
@@ -2196,6 +2357,37 @@
           <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
           ยืนยันการลบ
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: CABINET DETAILS OVERLAY
+       ========================================== -->
+  <div class="modal-overlay" id="cabinetDetailModal">
+    <div class="modal-content" style="max-width: 500px; border-radius: var(--border-radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; overflow: hidden; background: #ffffff;">
+      <div class="modal-header" style="background: var(--primary-purple); color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="layout" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
+          <span id="cabinetDetailModalTitle" style="color: #ffffff !important;">รายละเอียดตู้เก็บพัสดุ</span>
+        </h2>
+        <button class="modal-close-btn" id="cabinetDetailModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px; font-family: 'Prompt', sans-serif; overflow-y: auto; max-height: 400px;">
+        <div id="cabinetDetailWarningSection" style="display: none; gap: 12px; margin-bottom: 16px; background: rgba(239, 68, 68, 0.05); padding: 12px; border-left: 4px solid var(--accent-red); border-radius: 4px;">
+          <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: var(--accent-red); flex-shrink: 0; margin-top: 2px;"></i>
+          <div style="text-align: left;">
+            <div style="font-weight: 600; color: var(--accent-red); font-size: 13.5px;">⚠️ คำเตือนความปลอดภัย (SHECU Incompatibility)</div>
+            <div style="font-size: 12.5px; color: var(--text-main); margin-top: 4px; line-height: 1.5;" id="cabinetDetailWarningText">มีสารเคมีที่ไม่ควรเก็บร่วมตู้เดียวกันเนื่องจากมีความเสี่ยงเกิดปฏิกิริยารุนแรง</div>
+          </div>
+        </div>
+        
+        <div id="cabinetDetailContent">
+          <!-- Dynamically populated shelves and list of chemicals -->
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="cabinetDetailModalCloseBtn" style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer;">ปิด</button>
       </div>
     </div>
   </div>

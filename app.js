@@ -672,11 +672,15 @@ function formatItemName(name) {
   return `<span class="name-th" style="display: block; font-weight: 600;">${displayName}</span>`;
 }
 
-// Helper: Get Thai room name
 function getRoomThaiName(room) {
   if (room === "Lab 1" || room === "ห้องปฏิบัติการเคมี" || room === "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ") return "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ";
   if (room === "Lab 2" || room === "ห้องปฏิบัติการฟิสิกส์" || room === "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์") return "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์";
   if (room === "Lab 3" || room === "ห้องปฏิบัติการชีววิทยา" || room === "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์") return "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์";
+  if (room === "Lab 4" || room === "ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล") return "ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล";
+  if (room === "Lab 5" || room === "ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล") return "ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล";
+  if (room === "Lab 6" || room === "ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ") return "ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ";
+  if (room === "Lab 7" || room === "ห้องศูนย์ STEM CENTER") return "ห้องศูนย์ STEM CENTER";
+  if (room === "Lab 8" || room === "ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่") return "ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่";
   return room;
 }
 
@@ -760,6 +764,18 @@ function updateUI() {
   // Trigger Lucide updates for newly rendered icon containers
   renderOrdersTable();
   renderAnalyticsCharts();
+
+  // Premium Features Rendering
+  if (typeof renderBookingCalendar === "function") {
+    renderBookingCalendar();
+  }
+  if (typeof renderCabinetMap === "function") {
+    renderCabinetMap();
+  }
+  if (typeof renderStockForecast === "function") {
+    renderStockForecast();
+  }
+
   lucide.createIcons();
 }
 
@@ -1879,6 +1895,11 @@ async function parseCSVAndImport(csvText) {
     if (room === "ห้องปฏิบัติการเคมี" || room === "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ") room = "Lab 1";
     else if (room === "ห้องปฏิบัติการฟิสิกส์" || room === "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์") room = "Lab 2";
     else if (room === "ห้องปฏิบัติการชีววิทยา" || room === "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์") room = "Lab 3";
+    else if (room === "ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล") room = "Lab 4";
+    else if (room === "ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล") room = "Lab 5";
+    else if (room === "ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ") room = "Lab 6";
+    else if (room === "ห้องศูนย์ STEM CENTER") room = "Lab 7";
+    else if (room === "ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่") room = "Lab 8";
     else if (room === "นอกห้องปฏิบัติการ") room = "None";
 
     // Validation checks for compulsory fields
@@ -3186,6 +3207,7 @@ async function loadAllBookings() {
       if (loadedBookings.length > 0) {
         bookings = loadedBookings;
         console.log("🔥 Loaded " + bookings.length + " bookings from Firebase Cloud.");
+        injectTestBookings();
         return;
       } else {
         // Seed Firebase if empty
@@ -3197,6 +3219,7 @@ async function loadAllBookings() {
         });
         await batch.commit();
         console.log("🔥 Seeded default bookings to Firebase.");
+        injectTestBookings();
         return;
       }
     } catch (err) {
@@ -3211,6 +3234,7 @@ async function loadAllBookings() {
       if (response.ok) {
         bookings = await response.json();
         localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+        injectTestBookings();
         return;
       }
     } catch (e) {
@@ -3224,6 +3248,76 @@ async function loadAllBookings() {
     bookings = JSON.parse(localBookings);
   } else {
     bookings = [...defaultBookings];
+    localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+  }
+  
+  injectTestBookings();
+}
+
+function injectTestBookings() {
+  const testBookings = [
+    {
+      id: "test_booking_001",
+      room: "Lab 1",
+      date: "2026-07-08",
+      slot: "1, 2",
+      bookerName: "อ.สมศักดิ์ รักเรียน",
+      purpose: "การไทเทรตหาความเข้มข้นของสารละลายกรด-เบส",
+      prepItems: [],
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "test_booking_002",
+      room: "Lab 2",
+      date: "2026-07-08",
+      slot: "3, 4",
+      bookerName: "อ.วีระ ชนะศึก",
+      purpose: "การวัดสนามแม่เหล็กและการทดลองวงจรไฟฟ้า",
+      prepItems: [],
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "test_booking_003",
+      room: "Lab 3",
+      date: "2026-07-08",
+      slot: "5, 6",
+      bookerName: "อ.สิริมา นามดี",
+      purpose: "ศึกษากระบวนการแบ่งเซลล์พืชและการส่องกล้องจุลทรรศน์",
+      prepItems: [],
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "test_booking_004",
+      room: "Lab 7",
+      date: "2026-07-08",
+      slot: "7, 8",
+      bookerName: "อ.พรเทพ เกียรติดี",
+      purpose: "คลาส STEM: การจำลองการทำงานและต่อระบบเซนเซอร์",
+      prepItems: [],
+      status: "approved",
+      createdAt: new Date().toISOString()
+    }
+  ];
+
+  let modified = false;
+  testBookings.forEach(tb => {
+    if (!bookings.some(b => b.id === tb.id)) {
+      bookings.push(tb);
+      modified = true;
+      if (typeof isFirebaseOnline !== "undefined" && isFirebaseOnline) {
+        try {
+          db.collection("bookings").doc(tb.id).set(tb);
+        } catch (e) {
+          console.error("Firebase seeding test booking failed", e);
+        }
+      }
+    }
+  });
+
+  if (modified) {
     localStorage.setItem("lab_bookings", JSON.stringify(bookings));
   }
 }
@@ -5906,20 +6000,32 @@ function renderBookingChart() {
   const roomCounts = {
     "Lab 1": 0,
     "Lab 2": 0,
-    "Lab 3": 0
+    "Lab 3": 0,
+    "Lab 4": 0,
+    "Lab 5": 0,
+    "Lab 6": 0,
+    "Lab 7": 0,
+    "Lab 8": 0
   };
 
   bookings.forEach(b => {
     let roomKey = "Lab 1";
-    if (b.room === "Lab 2" || b.room === "ห้องปฏิบัติการฟิสิกส์" || (b.room && b.room.includes("ฟิสิกส์"))) roomKey = "Lab 2";
-    else if (b.room === "Lab 3" || b.room === "ห้องปฏิบัติการชีววิทยา" || (b.room && b.room.includes("ชีววิทยา"))) roomKey = "Lab 3";
-    
+    if (b.room) {
+      if (b.room.includes("Lab 2") || b.room.includes("ฟิสิกส์")) roomKey = "Lab 2";
+      else if (b.room.includes("Lab 3") || b.room.includes("ชีววิทยา")) roomKey = "Lab 3";
+      else if (b.room.includes("Lab 4") || (b.room.includes("วิทยาศาสตร์") && b.room.includes("ราฟาเอล"))) roomKey = "Lab 4";
+      else if (b.room.includes("Lab 5") || b.room.includes("สสวท")) roomKey = "Lab 5";
+      else if (b.room.includes("Lab 6") || (b.room.includes("วิทยาศาสตร์") && b.room.includes("อัสสัมชัญ"))) roomKey = "Lab 6";
+      else if (b.room.includes("Lab 7") || b.room.includes("STEM")) roomKey = "Lab 7";
+      else if (b.room.includes("Lab 8") || b.room.includes("EP") || b.room.includes("ยอห์น")) roomKey = "Lab 8";
+      else if (b.room.includes("Lab 1") || b.room.includes("เคมี")) roomKey = "Lab 1";
+    }
     roomCounts[roomKey]++;
   });
 
-  const maxCount = Math.max(roomCounts["Lab 1"], roomCounts["Lab 2"], roomCounts["Lab 3"]) || 1;
+  const maxCount = Math.max(...Object.values(roomCounts)) || 1;
 
-  let svgHtml = `<svg width="100%" height="220" viewBox="0 0 300 220" style="background: transparent; font-family: var(--font-sans);">`;
+  let svgHtml = `<svg width="100%" height="220" viewBox="0 0 570 220" style="background: transparent; font-family: var(--font-sans);">`;
 
   // Add vertical gradient and shadow definitions
   svgHtml += `
@@ -5934,15 +6040,20 @@ function renderBookingChart() {
     </defs>
     
     <!-- Grid Lines -->
-    <line x1="20" y1="50" x2="280" y2="50" stroke="rgba(0,0,0,0.04)" stroke-width="1" stroke-dasharray="3 3" />
-    <line x1="20" y1="105" x2="280" y2="105" stroke="rgba(0,0,0,0.04)" stroke-width="1" stroke-dasharray="3 3" />
-    <line x1="20" y1="160" x2="280" y2="160" stroke="rgba(0,0,0,0.08)" stroke-width="1.5" />
+    <line x1="20" y1="50" x2="550" y2="50" stroke="rgba(0,0,0,0.04)" stroke-width="1" stroke-dasharray="3 3" />
+    <line x1="20" y1="105" x2="550" y2="105" stroke="rgba(0,0,0,0.04)" stroke-width="1" stroke-dasharray="3 3" />
+    <line x1="20" y1="160" x2="550" y2="160" stroke="rgba(0,0,0,0.08)" stroke-width="1.5" />
   `;
 
   const labs = [
-    { key: "Lab 1", name: "แล็บเคมี", x: 60 },
-    { key: "Lab 2", name: "แล็บฟิสิกส์", x: 150 },
-    { key: "Lab 3", name: "แล็บชีวะ", x: 240 }
+    { key: "Lab 4", name: "วิทย์ ราฟาเอล", x: 40 },
+    { key: "Lab 5", name: "สสวท. ราฟาเอล", x: 110 },
+    { key: "Lab 6", name: "วิทย์ อัสสัมฯ", x: 180 },
+    { key: "Lab 1", name: "แล็บเคมี", x: 250 },
+    { key: "Lab 2", name: "แล็บฟิสิกส์", x: 320 },
+    { key: "Lab 3", name: "แล็บชีวะ", x: 390 },
+    { key: "Lab 7", name: "STEM CENTER", x: 460 },
+    { key: "Lab 8", name: "วิทย์ EP", x: 530 }
   ];
 
   labs.forEach(lab => {
@@ -5961,10 +6072,10 @@ function renderBookingChart() {
       </rect>
       
       <!-- Value text -->
-      <text x="${lab.x}" y="42" fill="var(--text-main)" font-size="12" font-weight="700" text-anchor="middle">${count} ครั้ง</text>
+      <text x="${lab.x}" y="42" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="middle">${count} ครั้ง</text>
       
       <!-- X-Axis Label -->
-      <text x="${lab.x}" y="185" fill="var(--text-muted)" font-size="12" font-weight="600" text-anchor="middle">${lab.name}</text>
+      <text x="${lab.x}" y="185" fill="var(--text-muted)" font-size="10" font-weight="600" text-anchor="middle">${lab.name}</text>
     `;
   });
 
@@ -10792,5 +10903,656 @@ function setupAdminClearHandlers() {
     });
   }
 }
+
+/* ==========================================================================
+   PREMIUM FEATURE: INTERACTIVE MONTHLY LAB BOOKING CALENDAR
+   ========================================================================== */
+let currentCalendarDate = new Date();
+
+function initCalendarEventListeners() {
+  const btnBookingListView = document.getElementById("btnBookingListView");
+  const btnBookingCalendarToggle = document.getElementById("btnBookingCalendarToggle");
+  const bookingListViewArea = document.getElementById("bookingListViewArea");
+  const bookingCalendarViewArea = document.getElementById("bookingCalendarViewArea");
+
+  if (btnBookingListView && btnBookingCalendarToggle && bookingListViewArea && bookingCalendarViewArea) {
+    btnBookingListView.addEventListener("click", () => {
+      btnBookingListView.classList.add("active");
+      btnBookingCalendarToggle.classList.remove("active");
+      bookingListViewArea.style.display = "flex";
+      bookingCalendarViewArea.style.display = "none";
+    });
+
+    btnBookingCalendarToggle.addEventListener("click", () => {
+      btnBookingCalendarToggle.classList.add("active");
+      btnBookingListView.classList.remove("active");
+      bookingListViewArea.style.display = "none";
+      bookingCalendarViewArea.style.display = "flex";
+      renderBookingCalendar();
+    });
+  }
+
+  const btnPrevMonth = document.getElementById("btnPrevMonth");
+  const btnNextMonth = document.getElementById("btnNextMonth");
+  const btnTodayMonth = document.getElementById("btnTodayMonth");
+
+  if (btnPrevMonth) {
+    btnPrevMonth.addEventListener("click", () => {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+      renderBookingCalendar();
+    });
+  }
+  if (btnNextMonth) {
+    btnNextMonth.addEventListener("click", () => {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+      renderBookingCalendar();
+    });
+  }
+  if (btnTodayMonth) {
+    btnTodayMonth.addEventListener("click", () => {
+      currentCalendarDate = new Date();
+      renderBookingCalendar();
+    });
+  }
+}
+
+function getRoomColor(room) {
+  if (!room) return "#94a3b8"; // Slate
+  if (room.includes("Lab 1") || room.includes("เคมี")) return "#3b82f6"; // Blue
+  if (room.includes("Lab 2") || room.includes("ฟิสิกส์")) return "#10b981"; // Green
+  if (room.includes("Lab 3") || room.includes("ชีววิทยา")) return "#06b6d4"; // Cyan
+  if (room.includes("Lab 4") || room.includes("ราฟาเอล")) return "#f97316"; // Orange
+  if (room.includes("Lab 5") || room.includes("สสวท")) return "#eab308"; // Yellow
+  if (room.includes("Lab 6") || room.includes("อัสสัมชัญ")) return "#8b5cf6"; // Purple
+  if (room.includes("Lab 7") || room.includes("STEM")) return "#ec4899"; // Pink
+  if (room.includes("Lab 8") || room.includes("EP") || room.includes("ยอห์น")) return "#6366f1"; // Indigo
+  return "#8b5cf6";
+}
+
+const thaiMonths = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+];
+
+function renderBookingCalendar() {
+  const label = document.getElementById("calendarMonthYearLabel");
+  const grid = document.getElementById("bookingCalendarGrid");
+  if (!grid || !label) return;
+
+  const year = currentCalendarDate.getFullYear();
+  const month = currentCalendarDate.getMonth();
+
+  label.innerText = `${thaiMonths[month]} ${year + 543}`;
+  grid.innerHTML = "";
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevDaysInMonth = new Date(year, month, 0).getDate();
+
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const dayVal = prevDaysInMonth - i;
+    const cell = document.createElement("div");
+    cell.className = "calendar-day-cell other-month";
+    cell.innerHTML = `<span class="day-number">${dayVal}</span>`;
+    grid.appendChild(cell);
+  }
+
+  const today = new Date();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cellDateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const cellDate = new Date(year, month, d);
+    const cell = document.createElement("div");
+    cell.className = "calendar-day-cell";
+    if (cellDate.toDateString() === today.toDateString()) {
+      cell.classList.add("today");
+    }
+
+    const dayBookings = (bookings || []).filter(b => b.date === cellDateStr && b.status !== "cancelled");
+
+    let bookingsHtml = "";
+    dayBookings.forEach(b => {
+      bookingsHtml += `
+        <div class="calendar-event-dot" 
+             onclick="event.stopPropagation(); showBookingDetail('${b.id}');" 
+             title="${getRoomThaiName(b.room)}: ${b.bookerName} (${b.slot || 'ไม่ได้ระบุช่วงเวลา'})"
+             style="width: 7px; height: 7px; border-radius: 50%; background-color: ${getRoomColor(b.room)}; cursor: pointer; border: 1px solid #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: transform 0.2s;" 
+             onmouseover="this.style.transform='scale(1.35)';" 
+             onmouseout="this.style.transform='scale(1)';">
+        </div>
+      `;
+    });
+
+    cell.innerHTML = `
+      <span class="day-number">${d}</span>
+      <div class="calendar-events-container" style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; margin-top: auto; margin-bottom: 2px; width: 100%;">${bookingsHtml}</div>
+    `;
+
+    cell.addEventListener("click", () => {
+      const bookingDateInput = document.getElementById("bookingDate");
+      if (bookingDateInput) {
+        bookingDateInput.value = cellDateStr;
+        bookingDateInput.dispatchEvent(new Event("change"));
+        const formTitle = document.getElementById("bookingForm");
+        if (formTitle) {
+          formTitle.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    });
+
+    grid.appendChild(cell);
+  }
+
+  const totalCells = grid.children.length;
+  const nextMonthPadding = 42 - totalCells;
+  for (let i = 1; i <= nextMonthPadding; i++) {
+    const cell = document.createElement("div");
+    cell.className = "calendar-day-cell other-month";
+    cell.innerHTML = `<span class="day-number">${i}</span>`;
+    grid.appendChild(cell);
+  }
+
+  // Populate Legend
+  const legend = document.getElementById("bookingCalendarLegend");
+  if (legend) {
+    const legendRooms = [
+      { name: "Lab 1 (เคมี)", color: "#3b82f6" },
+      { name: "Lab 2 (ฟิสิกส์)", color: "#10b981" },
+      { name: "Lab 3 (ชีววิทยา)", color: "#06b6d4" },
+      { name: "Lab 4 (ราฟาเอล)", color: "#f97316" },
+      { name: "Lab 5 (สสวท)", color: "#eab308" },
+      { name: "Lab 6 (อัสสัมชัญ)", color: "#8b5cf6" },
+      { name: "Lab 7 (STEM)", color: "#ec4899" },
+      { name: "Lab 8 (EP)", color: "#6366f1" }
+    ];
+    legend.innerHTML = legendRooms.map(r => `
+      <div style="display: inline-flex; align-items: center; gap: 6px;">
+        <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${r.color}; border: 1px solid rgba(0,0,0,0.1);"></span>
+        <span>${r.name}</span>
+      </div>
+    `).join("");
+  }
+}
+
+/* ==========================================================================
+   PREMIUM FEATURE: INTERACTIVE SHECU CABINET COMPATIBILITY MAP
+   ========================================================================== */
+function renderCabinetMap() {
+  const roomFilter = document.getElementById("cabinetMapRoomFilter");
+  const grid = document.getElementById("cabinetMapGrid");
+  if (!grid) return;
+
+  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  grid.innerHTML = "";
+
+  const roomItems = (items || []).filter(item => item.room === activeRoom);
+
+  const cabinets = {};
+  roomItems.forEach(item => {
+    const cab = item.cabinet || "ไม่ระบุตู้";
+    if (!cabinets[cab]) {
+      cabinets[cab] = {
+        name: cab,
+        items: [],
+        hasIncompatible: false,
+        shelves: {}
+      };
+    }
+    cabinets[cab].items.push(item);
+
+    const shelf = item.shelf || "ไม่ระบุชั้น";
+    if (!cabinets[cab].shelves[shelf]) {
+      cabinets[cab].shelves[shelf] = [];
+    }
+    cabinets[cab].shelves[shelf].push(item);
+  });
+
+  for (const cabName in cabinets) {
+    const cab = cabinets[cabName];
+    for (let i = 0; i < cab.items.length; i++) {
+      for (let j = i + 1; j < cab.items.length; j++) {
+        const itemA = cab.items[i];
+        const itemB = cab.items[j];
+        if (
+          itemA.category === "สารเคมี" &&
+          itemB.category === "สารเคมี" &&
+          itemA.chemicalType &&
+          itemB.chemicalType &&
+          areIncompatible(itemA.chemicalType, itemB.chemicalType)
+        ) {
+          cab.hasIncompatible = true;
+          break;
+        }
+      }
+      if (cab.hasIncompatible) break;
+    }
+  }
+
+  const cabNames = Object.keys(cabinets).sort();
+  if (cabNames.length === 0) {
+    grid.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);">
+        <div class="empty-state">
+          <div class="empty-state-icon"><i data-lucide="layout" style="width: 48px; height: 48px; color: var(--text-muted);"></i></div>
+          <div class="empty-state-text" style="color: var(--text-muted); margin-top: 12px;">ไม่มีข้อมูลตู้เก็บพัสดุในห้องปฏิบัติการนี้</div>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  cabNames.forEach(cabName => {
+    const cab = cabinets[cabName];
+    const chemCount = cab.items.filter(item => item.category === "สารเคมี").length;
+    const equipCount = cab.items.filter(item => item.category === "อุปกรณ์").length;
+
+    let shelvesHtml = "";
+    const shelfNames = Object.keys(cab.shelves).sort();
+    shelfNames.forEach(sName => {
+      const shelfItems = cab.shelves[sName];
+      shelvesHtml += `
+        <div class="shelf-row">
+          <span class="shelf-name">${sName}</span>
+          <span class="shelf-count">${shelfItems.length} รายการ</span>
+        </div>
+      `;
+    });
+
+    const card = document.createElement("div");
+    card.className = "cabinet-card";
+    if (cab.hasIncompatible) {
+      card.classList.add("incompatible-alert");
+    }
+
+    card.innerHTML = `
+      <div class="cabinet-header">
+        <div class="cabinet-title-group">
+          <i data-lucide="layout" style="width: 18px; height: 18px; color: ${cab.hasIncompatible ? '#ef4444' : 'var(--primary-purple)'};"></i>
+          <span class="cabinet-name">${cabName}</span>
+        </div>
+        <span class="cabinet-status-pill ${cab.hasIncompatible ? 'warning' : 'safe'}">
+          ${cab.hasIncompatible ? 'อันตราย: ไม่เข้ากัน' : 'จัดเก็บปลอดภัย'}
+        </span>
+      </div>
+      
+      <div style="font-size: 13px; color: var(--text-muted); text-align: left; display: flex; gap: 12px; margin-top: 4px;">
+        <span>🧪 สารเคมี: <strong>${chemCount}</strong></span>
+        <span>⚙️ อุปกรณ์: <strong>${equipCount}</strong></span>
+      </div>
+
+      ${cab.hasIncompatible ? `
+        <div style="background-color: rgba(239, 68, 68, 0.05); padding: 8px 12px; border-left: 3px solid #ef4444; border-radius: 4px; font-size: 11.5px; color: #dc2626; font-weight: 600; text-align: left; display: flex; align-items: center; gap: 6px;">
+          <i data-lucide="alert-triangle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+          <span>พบสารไม่เข้ากันจัดเก็บร่วมตู้ (Incompatible)</span>
+        </div>
+      ` : ''}
+
+      <div class="shelf-list" style="margin-top: 8px;">
+        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: left; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">รายการชั้นวาง:</div>
+        ${shelvesHtml}
+      </div>
+
+      <button type="button" class="btn btn-secondary" style="margin-top: auto; font-size: 12px; font-weight: 600; font-family: 'Prompt', sans-serif; height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')">
+        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+        <span>ดูรายละเอียดและชั้นวาง</span>
+      </button>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  lucide.createIcons();
+}
+
+window.openCabinetDetails = function(room, cabinetName) {
+  const modal = document.getElementById("cabinetDetailModal");
+  const title = document.getElementById("cabinetDetailModalTitle");
+  const warningSection = document.getElementById("cabinetDetailWarningSection");
+  const warningText = document.getElementById("cabinetDetailWarningText");
+  const content = document.getElementById("cabinetDetailContent");
+
+  if (!modal || !content) return;
+
+  title.innerText = `${cabinetName} - ห้องปฏิบัติการ ${room}`;
+
+  const cabItems = (items || []).filter(item => item.room === room && item.cabinet === cabinetName);
+
+  const incompatiblePairs = [];
+  for (let i = 0; i < cabItems.length; i++) {
+    for (let j = i + 1; j < cabItems.length; j++) {
+      const itemA = cabItems[i];
+      const itemB = cabItems[j];
+      if (
+        itemA.category === "สารเคมี" &&
+        itemB.category === "สารเคมี" &&
+        itemA.chemicalType &&
+        itemB.chemicalType &&
+        areIncompatible(itemA.chemicalType, itemB.chemicalType)
+      ) {
+        incompatiblePairs.push(`- <strong>${itemA.name}</strong> (${getTypeLabel(itemA.chemicalType)}) และ <strong>${itemB.name}</strong> (${getTypeLabel(itemB.chemicalType)})`);
+      }
+    }
+  }
+
+  if (incompatiblePairs.length > 0) {
+    warningSection.style.display = "flex";
+    warningText.innerHTML = `พบการจัดเก็บสารเคมีที่ไม่เข้ากันร่วมกันในตู้นี้ ซึ่งขัดต่อมาตรฐาน SHECU จุฬาฯ:<br>${incompatiblePairs.join("<br>")}`;
+  } else {
+    warningSection.style.display = "none";
+  }
+
+  const shelves = {};
+  cabItems.forEach(item => {
+    const shelf = item.shelf || "ไม่ระบุชั้น";
+    if (!shelves[shelf]) {
+      shelves[shelf] = [];
+    }
+    shelves[shelf].push(item);
+  });
+
+  let contentHtml = "";
+  const sortedShelves = Object.keys(shelves).sort();
+  sortedShelves.forEach(shelfName => {
+    const shelfItems = shelves[shelfName];
+    let itemsHtml = "";
+    shelfItems.forEach(item => {
+      const status = getItemStatus(item);
+      let statusBadge = "";
+      if (status === "expired") {
+        statusBadge = `<span class="badge-expired" style="font-size: 10px; padding: 2px 6px;">หมดอายุ</span>`;
+      } else if (status === "near-expiry") {
+        statusBadge = `<span class="badge-expired" style="font-size: 10px; padding: 2px 6px; background-color: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.2);">ใกล้หมดอายุ</span>`;
+      } else if (status === "low-stock") {
+        statusBadge = `<span class="badge-borrowed" style="font-size: 10px; padding: 2px 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">สต็อกต่ำ</span>`;
+      } else {
+        statusBadge = `<span class="badge-available" style="font-size: 10px; padding: 2px 6px;">ปกติ</span>`;
+      }
+
+      const chemTypeLabel = item.category === "สารเคมี" && item.chemicalType ? ` <span style="font-size: 10px; font-weight: 700; background-color: #f1f5f9; padding: 2px 4px; border-radius: 4px; color: var(--text-muted);">กลุ่ม ${item.chemicalType}</span>` : "";
+
+      itemsHtml += `
+        <div class="cabinet-detail-item">
+          <div>
+            <div class="cabinet-detail-name">${item.name}${chemTypeLabel}</div>
+            <div class="cabinet-detail-meta">รหัส: ${item.code} | จำนวนคงเหลือ: ${item.qty} ${item.unit || "ชิ้น"}</div>
+          </div>
+          <div>
+            ${statusBadge}
+          </div>
+        </div>
+      `;
+    });
+
+    contentHtml += `
+      <div style="margin-bottom: 20px; text-align: left;">
+        <div style="font-weight: 700; font-size: 13.5px; color: var(--primary-purple); border-bottom: 1.5px solid var(--border-color); padding-bottom: 4px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <i data-lucide="layers" style="width: 14px; height: 14px;"></i>
+          <span>ชั้นวาง: ${shelfName}</span>
+        </div>
+        <div>
+          ${itemsHtml}
+        </div>
+      </div>
+    `;
+  });
+
+  content.innerHTML = contentHtml;
+  modal.style.display = "flex";
+  lucide.createIcons();
+};
+
+function getTypeLabel(type) {
+  const typeLabels = {
+    "A": "กลุ่ม A - เบสอินทรีย์",
+    "B": "กลุ่ม B - ลุกติดไฟเอง/ทำปฏิกิริยากับน้ำ",
+    "C": "กลุ่ม C - เบสอนินทรีย์",
+    "D": "กลุ่ม D - กรดอินทรีย์",
+    "E": "กลุ่ม E - สารออกซิไดเซอร์อนินทรีย์",
+    "F": "กลุ่ม F - กรดอนินทรีย์",
+    "G": "กลุ่ม G - สารเคมีทั่วไปที่ไม่ว่องไว",
+    "I": "กลุ่ม I - สารออกซิไดเซอร์ที่เป็นกรดแก่",
+    "K": "กลุ่ม K - สารระเบิดได้ที่มีความคงตัว",
+    "L": "กลุ่ม L - สารเคมีที่เข้าไม่ได้กับสารอื่นส่วนใหญ่",
+    "X": "กลุ่ม X - สารห้ามจัดเก็บร่วมกับสารอื่นเด็ดขาด"
+  };
+  return typeLabels[type] || `กลุ่ม ${type}`;
+}
+
+function initCabinetModalCloseListeners() {
+  const modal = document.getElementById("cabinetDetailModal");
+  const btnClose = document.getElementById("cabinetDetailModalClose");
+  const btnCloseBtn = document.getElementById("cabinetDetailModalCloseBtn");
+
+  const closeModal = () => {
+    if (modal) modal.style.display = "none";
+  };
+
+  if (btnClose) btnClose.addEventListener("click", closeModal);
+  if (btnCloseBtn) btnCloseBtn.addEventListener("click", closeModal);
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+}
+
+/* ==========================================================================
+   PREMIUM FEATURE: AI-POWERED STOCK FORECAST & AUTO-PO
+   ========================================================================== */
+function getUsageVelocity(item) {
+  const sixtyDaysAgo = new Date();
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+  const recentTx = (transactions || []).filter(tx => {
+    if (tx.itemCode !== item.code) return false;
+    const txDateStr = tx.borrowDate || tx.date;
+    if (!txDateStr) return false;
+    const txDate = new Date(txDateStr);
+    return txDate >= sixtyDaysAgo;
+  });
+
+  const totalUsed = recentTx.reduce((sum, tx) => sum + parseFloat(tx.qty || 0), 0);
+  let velocity = totalUsed / 60; // units per day
+
+  if (velocity === 0) {
+    const minAlert = parseFloat(item.minAlert || 0);
+    if (minAlert > 0) {
+      velocity = minAlert / 60;
+    } else {
+      velocity = 0.05; // Fallback slow velocity
+    }
+  }
+  return velocity;
+}
+
+function renderStockForecast() {
+  const listContainer = document.getElementById("stockForecastList");
+  const warningCountSpan = document.getElementById("forecastWarningCount");
+  if (!listContainer) return;
+
+  const forecastItems = [];
+
+  (items || []).forEach(item => {
+    if (item.status === "damaged" || item.status === "disposed") return;
+
+    const velocity = getUsageVelocity(item);
+    const qty = parseFloat(item.qty || 0);
+    const minAlert = parseFloat(item.minAlert || 0);
+
+    let daysRemaining = velocity > 0 ? qty / velocity : Infinity;
+    if (qty === 0) daysRemaining = 0;
+
+    const isLowStock = minAlert > 0 && qty <= minAlert;
+    const willRunOutSoon = daysRemaining <= 30;
+
+    if (qty === 0 || isLowStock || willRunOutSoon) {
+      forecastItems.push({
+        item,
+        velocity,
+        daysRemaining,
+        isLowStock,
+        qty
+      });
+    }
+  });
+
+  forecastItems.sort((a, b) => {
+    if (a.qty === 0 && b.qty > 0) return -1;
+    if (b.qty === 0 && a.qty > 0) return 1;
+    return a.daysRemaining - b.daysRemaining;
+  });
+
+  if (warningCountSpan) {
+    warningCountSpan.innerText = `${forecastItems.length} รายการต้องเติมสต็อก`;
+    if (forecastItems.length > 0) {
+      warningCountSpan.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+      warningCountSpan.style.color = "#ef4444";
+      warningCountSpan.style.borderColor = "rgba(239, 68, 68, 0.2)";
+    } else {
+      warningCountSpan.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+      warningCountSpan.style.color = "#10b981";
+      warningCountSpan.style.borderColor = "rgba(16, 185, 129, 0.2)";
+    }
+  }
+
+  if (forecastItems.length === 0) {
+    listContainer.innerHTML = `
+      <div class="empty-state" style="padding: 30px;">
+        <div class="empty-state-icon"><i data-lucide="check-circle" style="color: var(--accent-green);"></i></div>
+        <div class="empty-state-text" style="color: var(--text-muted);">พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งานล่วงหน้า 30 วัน</div>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  let html = "";
+  forecastItems.forEach(f => {
+    const item = f.item;
+    const days = f.daysRemaining;
+    const velocity = f.velocity;
+
+    let statusLabel = "";
+    let badgeClass = "";
+
+    if (item.qty === 0) {
+      statusLabel = "สินค้าหมดคลัง";
+      badgeClass = "critical";
+    } else if (days <= 10) {
+      statusLabel = `หมดคลังใน ~${Math.ceil(days)} วัน`;
+      badgeClass = "critical";
+    } else if (days <= 30) {
+      statusLabel = `หมดคลังใน ~${Math.ceil(days)} วัน`;
+      badgeClass = "warning";
+    } else {
+      statusLabel = "ระดับสต็อกต่ำกว่า Min Alert";
+      badgeClass = "warning";
+    }
+
+    const velocityText = velocity > 0 ? `${velocity.toFixed(2)} ${item.unit || 'ชิ้น'}/วัน` : "ไม่มีประวัติการใช้";
+    const locText = [item.room, item.cabinet, item.shelf].filter(Boolean).join(" > ") || "ไม่ได้ระบุ";
+
+    html += `
+      <div class="forecast-item">
+        <div class="forecast-info">
+          <div class="forecast-name">${item.name}</div>
+          <div class="forecast-meta">
+            <span>รหัส: <strong>${item.code}</strong></span>
+            <span>| สถานที่: <strong>${locText}</strong></span>
+          </div>
+          <div class="forecast-meta" style="margin-top: 4px;">
+            <span>คงเหลือ: <strong>${item.qty} ${item.unit || 'หน่วย'}</strong></span>
+            <span>| ความถี่ในการใช้งาน: <strong>${velocityText}</strong></span>
+            <span>| ค่าเตือนสต็อกต่ำ: <strong>${item.minAlert || 0} ${item.unit || 'หน่วย'}</strong></span>
+          </div>
+        </div>
+        
+        <div class="forecast-actions" style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+          <span class="forecast-status-badge ${badgeClass}">${statusLabel}</span>
+          <button type="button" class="btn-auto-po" onclick="addAutoPurchaseOrder('${item.code}')">
+            <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
+            <span>เพิ่มในใบเสนอซื้อ (Add to PO)</span>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  listContainer.innerHTML = html;
+  lucide.createIcons();
+}
+
+window.addAutoPurchaseOrder = function(itemCode) {
+  const item = (items || []).find(i => i.code === itemCode);
+  if (!item) return;
+
+  const orderQty = item.minAlert ? Math.ceil(item.minAlert * 2) : 10;
+  const unitPrice = parseFloat(item.price || 0);
+  const totalPrice = unitPrice * orderQty;
+
+  const existingIndex = purchaseOrderDrafts.findIndex(d => d.code === itemCode);
+  if (existingIndex !== -1) {
+    purchaseOrderDrafts[existingIndex].quantity += orderQty;
+    purchaseOrderDrafts[existingIndex].totalPrice = purchaseOrderDrafts[existingIndex].quantity * purchaseOrderDrafts[existingIndex].unitPrice;
+  } else {
+    purchaseOrderDrafts.push({
+      id: "draft-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+      code: item.code,
+      name: item.name,
+      unitPrice: unitPrice,
+      quantity: orderQty,
+      totalPrice: totalPrice,
+      discount: 0
+    });
+  }
+
+  showToast(`เพิ่ม "${item.name}" จำนวน ${orderQty} ${item.unit || 'ชิ้น'} ลงใบสั่งซื้อชั่วคราวแล้ว`, "success");
+  
+  if (typeof renderPoDrafts === "function") {
+    renderPoDrafts();
+  }
+
+  if (typeof navigateToPanel === "function") {
+    navigateToPanel("purchase-orders");
+  }
+};
+
+/* ==========================================================================
+   INITIALIZATION TRIGGER ON DOM CONTENT LOADED
+   ========================================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  initCalendarEventListeners();
+  initCabinetModalCloseListeners();
+  
+  const btnAllItemsListView = document.getElementById("btnAllItemsListView");
+  const btnAllItemsCabinetToggle = document.getElementById("btnAllItemsCabinetToggle");
+  const allItemsListViewArea = document.getElementById("allItemsListViewArea");
+  const allItemsCabinetViewArea = document.getElementById("allItemsCabinetViewArea");
+
+  if (btnAllItemsListView && btnAllItemsCabinetToggle && allItemsListViewArea && allItemsCabinetViewArea) {
+    btnAllItemsListView.addEventListener("click", () => {
+      btnAllItemsListView.classList.add("active");
+      btnAllItemsCabinetToggle.classList.remove("active");
+      allItemsListViewArea.style.display = "flex";
+      allItemsCabinetViewArea.style.display = "none";
+    });
+
+    btnAllItemsCabinetToggle.addEventListener("click", () => {
+      btnAllItemsCabinetToggle.classList.add("active");
+      btnAllItemsListView.classList.remove("active");
+      allItemsListViewArea.style.display = "none";
+      allItemsCabinetViewArea.style.display = "flex";
+      renderCabinetMap();
+    });
+  }
+
+  const cabinetMapRoomFilter = document.getElementById("cabinetMapRoomFilter");
+  if (cabinetMapRoomFilter) {
+    cabinetMapRoomFilter.addEventListener("change", () => {
+      renderCabinetMap();
+    });
+  }
+});
+
 
 

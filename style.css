@@ -143,7 +143,7 @@ button {
 .sidebar-header {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   background: rgba(255, 255, 255, 0.1);
   padding: 14px 16px;
   border-radius: var(--border-radius-lg);
@@ -152,15 +152,21 @@ button {
 }
 
 .logo-icon-container {
-  width: 42px;
-  height: 42px;
+  width: 60px;
+  height: 60px;
   background: #ffffff;
   border-radius: var(--border-radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--primary-purple);
-  font-size: 20px;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.logo-icon-container svg {
+  width: 28px !important;
+  height: 28px !important;
 }
 
 .logo-text {
@@ -1983,6 +1989,10 @@ tr:hover td {
   align-items: start;
 }
 
+.booking-grid-layout {
+  grid-template-columns: 6.5fr 3.5fr;
+}
+
 .badge-borrowed {
   background-color: var(--accent-orange-light);
   color: var(--accent-orange);
@@ -2039,7 +2049,7 @@ tr:hover td {
     grid-template-columns: 1fr;
   }
 
-  .borrow-grid {
+  .borrow-grid, .booking-grid-layout {
     grid-template-columns: 1fr;
     gap: 24px;
   }
@@ -3461,8 +3471,8 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .label-sticker-paper-wrapper {
   position: absolute;
-  top: 135px; /* Directly below the printer slot */
-  height: 180px;
+  top: 125px; /* Moved up to start closer to the printer slot under the printer body */
+  height: 220px; /* Increased to allow it to slide down more */
   width: 220px;
   overflow: hidden;
   display: flex;
@@ -3472,11 +3482,12 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .label-sticker-paper {
   width: 185px;
-  height: 105px;
+  height: 130px; /* Increased from 105px to 130px to make it longer */
   background: #ffffff;
   border: 1.5px dashed #8b5cf6; /* Match primary theme color */
   border-radius: 6px;
   padding: 10px;
+  padding-top: 25px; /* More padding at top to leave space for tear line */
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   transform: translateY(-120%); /* Hide inside the printer */
   transition: transform 2.0s cubic-bezier(0.12, 0.85, 0.35, 1);
@@ -3488,7 +3499,19 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .label-sticker-paper.printing {
-  transform: translateY(0);
+  transform: translateY(20px); /* Slid down 20px further */
+}
+
+/* Perforated tear-off line */
+.label-sticker-tear-line {
+  position: absolute;
+  top: 18px; /* 18px from the top of the sticker */
+  left: 0;
+  width: 100%;
+  height: 1px;
+  border-top: 1px dashed #cbd5e1;
+  z-index: 3;
+  pointer-events: none;
 }
 
 /* Add a clean adhesive paper tab outline */
@@ -3587,3 +3610,409 @@ input[type="date"]::-webkit-date-and-time-value {
     max-height: none !important;
   }
 }
+
+/* ==========================================================================
+   NEW PREMIUM FEATURES: CALENDAR, CABINET MAP, STOCK FORECAST
+   ========================================================================== */
+
+/* 1. Toggle Switch View styling */
+.view-toggle-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background-color: var(--bg-main);
+  padding: 4px;
+  border-radius: var(--border-radius-md);
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border-color);
+}
+
+.view-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  transition: all 0.2s ease;
+}
+
+.view-toggle-btn.active {
+  background-color: #ffffff;
+  color: var(--primary-purple);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 2. Interactive Calendar styling */
+.booking-calendar-wrapper {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xl);
+  padding: 12px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.calendar-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.calendar-nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding-bottom: 6px;
+}
+
+.calendar-day-cell {
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  aspect-ratio: 1 / 1;
+  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  text-align: center;
+}
+
+.calendar-day-cell:hover {
+  border-color: var(--primary-purple);
+  background-color: rgba(139, 92, 246, 0.02);
+}
+
+.calendar-day-cell.other-month {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.calendar-day-cell.today {
+  border-color: var(--primary-purple);
+  background-color: rgba(139, 92, 246, 0.04);
+}
+
+.calendar-day-cell.today .day-number {
+  background-color: var(--primary-purple);
+  color: white;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.day-number {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0;
+}
+
+.calendar-event-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.calendar-event-badge.approved {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.calendar-event-badge.pending {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.calendar-event-badge.rejected {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.calendar-more-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding-left: 4px;
+}
+
+/* 3. SHECU Cabinet Map styling */
+.cabinet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.cabinet-card {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.cabinet-card.incompatible-alert {
+  border: 2px solid #ef4444;
+  animation: alertPulseBorder 2s infinite ease-in-out;
+}
+
+@keyframes alertPulseBorder {
+  0% { border-color: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { border-color: #f87171; box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+  100% { border-color: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.cabinet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1.5px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.cabinet-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cabinet-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.cabinet-status-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.cabinet-status-pill.safe {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.cabinet-status-pill.warning {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.shelf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shelf-row {
+  background-color: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.shelf-row:hover {
+  background-color: rgba(139, 92, 246, 0.04);
+  border-color: var(--primary-purple);
+}
+
+.shelf-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.shelf-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  background-color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+/* 4. Forecast Card styling */
+.forecast-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.forecast-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.forecast-item {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s ease;
+}
+
+.forecast-item:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.forecast-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  flex: 1;
+}
+
+.forecast-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.forecast-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.forecast-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  width: max-content;
+}
+
+.forecast-status-badge.critical {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.forecast-status-badge.warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.forecast-actions {
+  flex-shrink: 0;
+}
+
+.btn-auto-po {
+  background-color: rgba(139, 92, 246, 0.1);
+  color: var(--primary-purple);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-auto-po:hover {
+  background-color: var(--primary-purple);
+  color: #ffffff;
+}
+
+/* 5. Custom styles for cabinet detail modal */
+.cabinet-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.cabinet-detail-item:last-child {
+  border-bottom: none;
+}
+
+.cabinet-detail-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: left;
+}
+
+.cabinet-detail-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  text-align: left;
+}
+
