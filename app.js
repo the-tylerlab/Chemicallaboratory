@@ -6025,6 +6025,39 @@ function renderBookingChart() {
 
   const maxCount = Math.max(...Object.values(roomCounts)) || 1;
 
+  const labs = [
+    { key: "Lab 4", name: "วิทย์ ราฟาเอล", x: 40 },
+    { key: "Lab 5", name: "สสวท. ราฟาเอล", x: 110 },
+    { key: "Lab 6", name: "วิทย์ อัสสัมฯ", x: 180 },
+    { key: "Lab 1", name: "แล็บเคมี", x: 250 },
+    { key: "Lab 2", name: "แล็บฟิสิกส์", x: 320 },
+    { key: "Lab 3", name: "แล็บชีวะ", x: 390 },
+    { key: "Lab 7", name: "STEM CENTER", x: 460 },
+    { key: "Lab 8", name: "วิทย์ EP", x: 530 }
+  ];
+
+  if (window.innerWidth <= 640) {
+    let html = `<div class="booking-chart-html">`;
+    labs.forEach(lab => {
+      const count = roomCounts[lab.key] || 0;
+      const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+      html += `
+        <div class="booking-chart-row">
+          <div class="booking-chart-label" title="${lab.name}">${lab.name}</div>
+          <div class="booking-chart-track-container">
+            <div class="booking-chart-track">
+              <div class="booking-chart-bar" style="width: ${percentage}%;"></div>
+            </div>
+          </div>
+          <div class="booking-chart-value">${count} ครั้ง</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+    return;
+  }
+
   let svgHtml = `<svg width="100%" height="220" viewBox="0 0 570 220" style="background: transparent; font-family: var(--font-sans);">`;
 
   // Add vertical gradient and shadow definitions
@@ -6044,17 +6077,6 @@ function renderBookingChart() {
     <line x1="20" y1="105" x2="550" y2="105" stroke="rgba(0,0,0,0.04)" stroke-width="1" stroke-dasharray="3 3" />
     <line x1="20" y1="160" x2="550" y2="160" stroke="rgba(0,0,0,0.08)" stroke-width="1.5" />
   `;
-
-  const labs = [
-    { key: "Lab 4", name: "วิทย์ ราฟาเอล", x: 40 },
-    { key: "Lab 5", name: "สสวท. ราฟาเอล", x: 110 },
-    { key: "Lab 6", name: "วิทย์ อัสสัมฯ", x: 180 },
-    { key: "Lab 1", name: "แล็บเคมี", x: 250 },
-    { key: "Lab 2", name: "แล็บฟิสิกส์", x: 320 },
-    { key: "Lab 3", name: "แล็บชีวะ", x: 390 },
-    { key: "Lab 7", name: "STEM CENTER", x: 460 },
-    { key: "Lab 8", name: "วิทย์ EP", x: 530 }
-  ];
 
   labs.forEach(lab => {
     const count = roomCounts[lab.key] || 0;
@@ -11458,12 +11480,15 @@ function renderStockForecast() {
           <div class="forecast-name">${item.name}</div>
           <div class="forecast-meta">
             <span>รหัส: <strong>${item.code}</strong></span>
-            <span>| สถานที่: <strong>${locText}</strong></span>
+            <span class="meta-divider">•</span>
+            <span>สถานที่: <strong>${locText}</strong></span>
           </div>
           <div class="forecast-meta" style="margin-top: 4px;">
             <span>คงเหลือ: <strong>${item.qty} ${item.unit || 'หน่วย'}</strong></span>
-            <span>| ความถี่ในการใช้งาน: <strong>${velocityText}</strong></span>
-            <span>| ค่าเตือนสต็อกต่ำ: <strong>${item.minAlert || 0} ${item.unit || 'หน่วย'}</strong></span>
+            <span class="meta-divider">•</span>
+            <span>ความถี่ในการใช้งาน: <strong>${velocityText}</strong></span>
+            <span class="meta-divider">•</span>
+            <span>ค่าเตือนสต็อกต่ำ: <strong>${item.minAlert || 0} ${item.unit || 'หน่วย'}</strong></span>
           </div>
         </div>
         
@@ -11471,7 +11496,8 @@ function renderStockForecast() {
           <span class="forecast-status-badge ${badgeClass}">${statusLabel}</span>
           <button type="button" class="btn-auto-po" onclick="addAutoPurchaseOrder('${item.code}')">
             <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
-            <span>เพิ่มในใบเสนอซื้อ (Add to PO)</span>
+            <span class="btn-text-desktop">เพิ่มในใบเสนอซื้อ (Add to PO)</span>
+            <span class="btn-text-mobile">สั่งซื้อ (Auto-PO)</span>
           </button>
         </div>
       </div>
@@ -11552,6 +11578,17 @@ document.addEventListener("DOMContentLoaded", () => {
       renderCabinetMap();
     });
   }
+
+  // Window resize event listener to dynamically swap chart types (SVG vs HTML List)
+  let resizeTimeout;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      if (typeof renderBookingChart === "function") {
+        renderBookingChart();
+      }
+    }, 150);
+  });
 });
 
 
