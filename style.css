@@ -3629,6 +3629,72 @@ input[type="date"]::-webkit-date-and-time-value {
    QR CODE LABEL PRINTER STYLES & ANIMATION (v1.9.1)
    ========================================================================== */
 
+.label-printer-modal-content {
+  max-width: 600px;
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.label-printer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+  margin-top: 10px;
+  min-height: 320px;
+}
+
+.label-printer-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.label-printer-animation-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  height: 350px;
+  background: rgba(0,0,0,0.02);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+  .label-printer-modal-content {
+    max-width: 95%;
+    padding: 16px;
+    max-height: calc(100vh - 30px);
+    overflow-y: auto;
+  }
+  
+  .label-printer-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    min-height: auto;
+  }
+  
+  .label-printer-animation-container {
+    height: 280px;
+  }
+
+  .label-printer-device {
+    top: 20px !important;
+  }
+
+  .label-sticker-paper-wrapper {
+    top: 95px !important;
+    height: 180px !important;
+  }
+}
+
 .label-printer-device {
   width: 200px;
   height: 100px;
