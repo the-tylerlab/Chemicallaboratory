@@ -353,7 +353,7 @@ button {
 }
 
 .content-header h1 {
-  font-size: 26px;
+  font-size: 21px;
   font-weight: 700;
   color: var(--text-main);
   margin-bottom: 4px;
@@ -502,7 +502,7 @@ button {
 }
 
 .card-title {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--text-main);
 }
@@ -842,12 +842,16 @@ textarea {
   padding: 12px 16px;
   border-radius: var(--border-radius-md);
   border: 1px solid var(--border-color);
-  font-size: 14px;
+  font-size: 13px;
   background-color: #ffffff;
   color: var(--text-main);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   width: 100%;
   resize: vertical;
+}
+
+select option {
+  font-size: 13px;
 }
 
 input[type="text"],
@@ -1121,16 +1125,28 @@ input:focus, select:focus, textarea:focus {
 
 @media (max-width: 640px) {
   .filter-buttons-group {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-left: 0 !important;
     justify-content: stretch;
   }
   .filter-buttons-group .btn {
-    flex: 1;
-    width: auto;
+    flex: none !important;
+    width: 100% !important;
+    font-size: 11px !important;
+    padding: 8px 4px !important;
+    gap: 4px !important;
+    justify-content: center;
   }
   .filter-buttons-group .btn i,
   .filter-buttons-group .btn svg {
-    width: 20px !important;
-    height: 20px !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
+  .filter-buttons-group .admin-clear-btn {
+    grid-column: span 2;
   }
 }
 
@@ -1819,7 +1835,7 @@ tr:hover td {
 }
 
 .modal-title {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--text-main);
 }
@@ -2015,6 +2031,16 @@ tr:hover td {
   display: inline-block;
 }
 
+/* Desktop / Mobile layout utilities */
+.title-mobile,
+.btn-text-mobile {
+  display: none;
+}
+.title-desktop,
+.btn-text-desktop {
+  display: inline;
+}
+
 /* ==========================================================================
    RESPONSIVE DESIGN MEDIA QUERIES
    ========================================================================== */
@@ -2053,6 +2079,10 @@ tr:hover td {
     grid-template-columns: 1fr;
     gap: 24px;
   }
+
+  .card-container {
+    padding: 20px !important;
+  }
 }
 
 /* Small Devices (Mobile Phones < 640px) */
@@ -2060,6 +2090,24 @@ tr:hover td {
   /* Prevent iOS auto-zoom on input focus */
   input, select, textarea, .custom-select-search-input {
     font-size: 16px !important;
+  }
+
+  .card-container {
+    padding: 16px 12px !important;
+  }
+
+  .content-header {
+    margin-bottom: 16px;
+  }
+
+  .content-header h1 {
+    font-size: 17.5px !important;
+    margin-bottom: 4px;
+  }
+
+  .content-header p {
+    font-size: 11.5px !important;
+    line-height: 1.4;
   }
 
   .stat-grid {
@@ -2097,8 +2145,8 @@ tr:hover td {
   }
 
   .main-content {
-    padding: 8px 6px;
-    padding-top: calc(var(--header-height) + 10px);
+    padding: 12px 10px 80px 10px !important;
+    padding-top: calc(var(--header-height) + 12px) !important;
   }
 
   .form-container {
@@ -2299,20 +2347,28 @@ tr:hover td {
   }
   
   .product-cell {
-    align-items: flex-end;
-    text-align: right;
+    align-items: flex-start !important;
+    text-align: left !important;
   }
   
   .product-code {
-    margin-left: auto;
+    margin-left: 0 !important;
+    margin-bottom: 4px;
   }
 
-  td[data-label="รายการ"] {
-    align-items: flex-start;
+  td[data-label="รายการ"],
+  td[data-label="รายการพัสดุ"] {
+    display: block !important;
+    text-align: left !important;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 12px !important;
+    margin-bottom: 8px !important;
+    align-items: flex-start !important;
   }
 
-  td[data-label="รายการ"]::before {
-    margin-top: 24px;
+  td[data-label="รายการ"]::before,
+  td[data-label="รายการพัสดุ"]::before {
+    display: none !important;
   }
   
   .table-actions {
@@ -2411,6 +2467,167 @@ tr:hover td {
   /* Override table min-width on mobile */
   .purchase-orders-grid table {
     min-width: 0 !important;
+  }
+
+  /* Reports and Statistics page responsive styling */
+  #panel-reports .content-header {
+    margin-bottom: 16px;
+  }
+  #panel-reports .content-header h1 {
+    font-size: 20px !important;
+    margin-bottom: 4px;
+  }
+  #panel-reports .content-header p {
+    font-size: 11.5px !important;
+    line-height: 1.4;
+  }
+  #panel-reports .card-container {
+    padding: 12px 10px !important;
+    margin-bottom: 16px !important;
+  }
+  #panel-reports .card-header {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+  #panel-reports .card-title {
+    font-size: 11.5px !important;
+  }
+  .title-desktop {
+    display: none !important;
+  }
+  .title-mobile {
+    display: inline !important;
+  }
+  .btn-text-desktop {
+    display: none !important;
+  }
+  .btn-text-mobile {
+    display: inline !important;
+  }
+  #stockForecastCard .forecast-card-desc {
+    display: none !important;
+  }
+  #panel-reports #reportExportCard button {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+  #chartBookingContainer {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: visible !important;
+    padding: 0 !important;
+  }
+  .booking-chart-html {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 4px;
+    box-sizing: border-box;
+  }
+  .booking-chart-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .booking-chart-label {
+    width: 90px;
+    min-width: 90px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .booking-chart-track-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .booking-chart-track {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(139, 92, 246, 0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .booking-chart-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-purple), #a78bfa);
+    border-radius: 4px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .booking-chart-value {
+    width: 48px;
+    min-width: 48px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-color);
+    text-align: right;
+  }
+  #stockForecastCard .forecast-card-content {
+    padding: 8px 0 !important;
+  }
+  #stockForecastCard .forecast-list {
+    gap: 8px !important;
+  }
+  .forecast-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    padding: 10px 8px !important;
+    border-radius: 8px !important;
+  }
+  .forecast-info {
+    gap: 2px !important;
+  }
+  .forecast-name {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+  }
+  .forecast-meta {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    font-size: 10.5px !important;
+    color: var(--text-muted) !important;
+    margin-top: 2px !important;
+    width: 100% !important;
+  }
+  .meta-divider {
+    display: none !important;
+  }
+  .forecast-meta span {
+    font-size: 10.5px !important;
+  }
+  .forecast-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin-top: 4px !important;
+    padding-top: 6px !important;
+    border-top: 1px dashed rgba(0, 0, 0, 0.08) !important;
+  }
+  .forecast-status-badge {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+  .btn-auto-po {
+    width: auto !important;
+    padding: 5px 10px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
   }
 }
 
@@ -3940,10 +4157,17 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .forecast-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px 12px;
   font-size: 11px;
   color: var(--text-muted);
+}
+
+.meta-divider {
+  color: var(--text-muted);
+  opacity: 0.5;
+  font-weight: bold;
 }
 
 .forecast-status-badge {
@@ -4014,5 +4238,125 @@ input[type="date"]::-webkit-date-and-time-value {
   color: var(--text-muted);
   margin-top: 2px;
   text-align: left;
+}
+
+/* Cabinet map responsive filter bar and legend */
+.cabinet-map-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--bg-main);
+  padding: 12px 16px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cabinet-map-filter-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cabinet-map-legend {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.legend-dot.hazard {
+  background-color: #ef4444;
+  border: 1px solid #dc2626;
+}
+
+.legend-dot.safe {
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid #10b981;
+}
+
+@media (max-width: 1024px) {
+  .cabinet-map-filter-bar {
+    flex-direction: column;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+  #cabinetMapRoomFilter {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .cabinet-map-legend {
+    margin-left: 0 !important;
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 8px;
+  }
+  
+  .table-filter-bar {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .search-scan-group {
+    flex: 1 1 100% !important;
+  }
+  .filter-select {
+    flex: 1;
+    min-width: 150px;
+    width: auto;
+  }
+  .filter-buttons-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .view-toggle-bar {
+    gap: 4px !important;
+    padding: 3px !important;
+  }
+  .view-toggle-btn {
+    padding: 6px 8px !important;
+    font-size: 11.5px !important;
+    gap: 4px !important;
+  }
+  .view-toggle-btn svg,
+  .view-toggle-btn i {
+    width: 12px !important;
+    height: 12px !important;
+  }
+  
+  .calendar-day-cell {
+    aspect-ratio: auto !important;
+    min-height: 48px !important;
+    padding: 4px 2px !important;
+  }
+  .day-number {
+    font-size: 10px !important;
+  }
+  .calendar-weekday {
+    font-size: 10px !important;
+  }
 }
 
