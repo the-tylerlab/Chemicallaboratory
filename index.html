@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="style.css?v=1.9.3">
+  <link rel="stylesheet" href="style.css?v=1.9.4">
   <!-- Lucide Icons Library -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Firebase App & Firestore Compat SDKs -->
@@ -2282,16 +2282,16 @@
        MODAL: QR CODE LABEL PRINTER ANIMATION
        ========================================== -->
   <div id="labelPrinterModal" class="modal-overlay">
-    <div class="modal-content" style="max-width: 600px; padding: 24px; position: relative;">
+    <div class="modal-content label-printer-modal-content" style="position: relative;">
       <button class="modal-close" onclick="closeLabelPrinterModal()">&times;</button>
       <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
         <i data-lucide="printer" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
         <span>เครื่องพิมพ์สติกเกอร์ QR Code</span>
       </h3>
       
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; margin-top: 10px; min-height: 320px;">
+      <div class="label-printer-grid">
         <!-- Left column: Control & print state -->
-        <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="label-printer-controls">
           <div style="background: rgba(139, 92, 246, 0.05); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid rgba(139, 92, 246, 0.1);">
             <div style="font-weight: 600; font-size: 14.5px; color: var(--primary-purple); margin-bottom: 4px;" id="lpItemName">-</div>
             <div style="font-family: monospace; font-size: 13px; color: var(--text-muted); font-weight: 600;" id="lpItemCode">CODE: -</div>
@@ -2308,7 +2308,7 @@
         </div>
         
         <!-- Right column: 3D Printer and Sticker animation -->
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; height: 350px; background: rgba(0,0,0,0.02); border-radius: var(--border-radius-md); border: 1px solid var(--border-color);">
+        <div class="label-printer-animation-container">
           <!-- 3D Printer Body -->
           <div class="label-printer-device">
             <div class="label-printer-slot"></div>
