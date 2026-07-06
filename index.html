@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="style.css?v=1.9.4">
+  <link rel="stylesheet" href="style.css?v=1.9.5">
   <!-- Lucide Icons Library -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Firebase App & Firestore Compat SDKs -->
@@ -45,7 +45,7 @@
         <div class="logo-text">
           <span class="logo-title">ระบบคลังเคมี</span>
           <span class="logo-subtitle">Laboratory System</span>
-          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.9.3</span>
+          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.9.5</span>
         </div>
       </div>
 
@@ -140,6 +140,10 @@
 
     <!-- MAIN CONTENT AREA -->
     <main class="main-content">
+      <!-- Toggle Sidebar Button -->
+      <button id="btnToggleSidebar" class="btn-toggle-sidebar" title="ซ่อน/แสดงแถบด้านข้าง">
+        <i data-lucide="panel-left"></i>
+      </button>
       
 
       <!-- ==========================================
@@ -536,6 +540,51 @@
                   <div class="form-group">
                     <label for="itemSdsUrl">ลิงก์ SDS</label>
                     <input type="url" id="itemSdsUrl" placeholder="เช่น https://example.com/sds/acid.pdf">
+                  </div>
+                  
+                  <div class="form-group full-width">
+                    <label style="margin-bottom: 8px; display: block; font-weight: 600;">ค่าระดับความเสี่ยง NFPA 704 (สำหรับสารเคมี)</label>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                      <div>
+                        <label for="itemNfpaHealth" style="font-size: 11px; color: #3b82f6; font-weight: 600; display: block; margin-bottom: 4px;">Health (สุขภาพ)</label>
+                        <select id="itemNfpaHealth" style="width: 100%; border-color: #3b82f6; padding: 6px; border-radius: 6px;">
+                          <option value="0" selected>0</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label for="itemNfpaFlammability" style="font-size: 11px; color: #ef4444; font-weight: 600; display: block; margin-bottom: 4px;">Flammable (ไวไฟ)</label>
+                        <select id="itemNfpaFlammability" style="width: 100%; border-color: #ef4444; padding: 6px; border-radius: 6px;">
+                          <option value="0" selected>0</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label for="itemNfpaInstability" style="font-size: 11px; color: #f59e0b; font-weight: 600; display: block; margin-bottom: 4px;">Instability (เสถียร)</label>
+                        <select id="itemNfpaInstability" style="width: 100%; border-color: #f59e0b; padding: 6px; border-radius: 6px;">
+                          <option value="0" selected>0</option>
+                          <option value="1">1</option>
+                          <option value="2">2</option>
+                          <option value="3">3</option>
+                          <option value="4">4</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label for="itemNfpaSpecial" style="font-size: 11px; color: #64748b; font-weight: 600; display: block; margin-bottom: 4px;">Special (เฉพาะ)</label>
+                        <select id="itemNfpaSpecial" style="width: 100%; border-color: #cbd5e1; padding: 6px; border-radius: 6px;">
+                          <option value="" selected>ไม่มี</option>
+                          <option value="OX">OX (ออกซิไดซ์)</option>
+                          <option value="W">W (ทำปฏิกิริยากับน้ำ)</option>
+                          <option value="SA">SA (แก๊สอันตราย)</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                   
                   <div class="form-group full-width">
