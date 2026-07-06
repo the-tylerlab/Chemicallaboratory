@@ -121,6 +121,46 @@ button {
   max-width: 100%;
 }
 
+/* Sidebar Collapse Toggle Styles */
+.app-container.sidebar-collapsed .sidebar {
+  transform: translateX(-100%);
+}
+.app-container.sidebar-collapsed .main-content {
+  margin-left: 0;
+}
+
+.btn-toggle-sidebar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-dark);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  margin-bottom: 20px;
+  padding: 0;
+}
+.btn-toggle-sidebar:hover {
+  background: var(--bg-light);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.btn-toggle-sidebar i {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 1024px) {
+  .btn-toggle-sidebar {
+    display: none !important;
+  }
+}
+
 /* Sidebar Styling */
 .sidebar {
   width: var(--sidebar-width);
@@ -164,9 +204,11 @@ button {
   flex-shrink: 0;
 }
 
-.logo-icon-container svg {
-  width: 28px !important;
-  height: 28px !important;
+.logo-icon-container svg,
+.logo-icon-container img {
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: contain;
 }
 
 .logo-text {
@@ -4425,4 +4467,83 @@ input[type="date"]::-webkit-date-and-time-value {
     font-size: 10px !important;
   }
 }
+
+/* NFPA 704 Safety Diamond */
+.nfpa-diamond {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  transform: rotate(45deg);
+  border: 2px solid #1e293b;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: #1e293b;
+  flex-shrink: 0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.nfpa-cell {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Prompt', 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  border: 1px solid #1e293b;
+  box-sizing: border-box;
+}
+
+.nfpa-health {
+  top: 0;
+  left: 0;
+  background-color: #2563eb !important; /* Royal Blue */
+  color: #ffffff !important;
+  transform: rotate(-45deg);
+}
+
+.nfpa-flammability {
+  top: 0;
+  right: 0;
+  background-color: #dc2626 !important; /* Safety Red */
+  color: #ffffff !important;
+  transform: rotate(-45deg);
+}
+
+.nfpa-instability {
+  bottom: 0;
+  right: 0;
+  background-color: #eab308 !important; /* Safety Yellow */
+  color: #1e293b !important;
+  transform: rotate(-45deg);
+}
+
+.nfpa-special {
+  bottom: 0;
+  left: 0;
+  background-color: #ffffff !important; /* Special White */
+  color: #1e293b !important;
+  transform: rotate(-45deg);
+  font-size: 13px !important;
+}
+
+/* Small NFPA Diamond for preview and print labels */
+.nfpa-diamond-sm {
+  width: 48px !important;
+  height: 48px !important;
+  border-width: 1px !important;
+  box-shadow: none !important;
+}
+
+.nfpa-diamond-sm .nfpa-cell {
+  font-size: 10px !important;
+  border-width: 0.5px !important;
+}
+
+.nfpa-diamond-sm .nfpa-special {
+  font-size: 8px !important;
+}
+
 

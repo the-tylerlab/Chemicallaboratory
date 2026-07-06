@@ -273,6 +273,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupLabPlanner();
   setupAdminClearHandlers();
   updateLoginUI();
+  setupSidebarCollapse();
   
   // Initialize Lucide icons initially
   lucide.createIcons();
@@ -1410,6 +1411,12 @@ function setupFormHandlers() {
     const sdsUrl = document.getElementById("itemSdsUrl").value.trim();
     const damagedQty = Number(document.getElementById("itemDamagedQty").value || 0);
     const repairQty = Number(document.getElementById("itemRepairQty").value || 0);
+    const nfpa = {
+      health: Number(document.getElementById("itemNfpaHealth").value || 0),
+      flammability: Number(document.getElementById("itemNfpaFlammability").value || 0),
+      instability: Number(document.getElementById("itemNfpaInstability").value || 0),
+      special: document.getElementById("itemNfpaSpecial").value || ""
+    };
     
     // Retrieve checked GHS checkboxes
     const ghsCheckboxes = document.querySelectorAll('input[name="ghs"]:checked');
@@ -1486,6 +1493,7 @@ function setupFormHandlers() {
       sdsUrl,
       damagedQty,
       repairQty,
+      nfpa,
       ghs,
       dilutions: editIndex !== "" ? (items[editIndex].dilutions || []) : [],
       createdAt: editIndex !== "" ? items[editIndex].createdAt : new Date().toISOString()
@@ -1517,6 +1525,10 @@ function setupFormHandlers() {
     document.getElementById("itemSdsUrl").value = "";
     document.getElementById("itemDamagedQty").value = 0;
     document.getElementById("itemRepairQty").value = 0;
+    document.getElementById("itemNfpaHealth").value = "0";
+    document.getElementById("itemNfpaFlammability").value = "0";
+    document.getElementById("itemNfpaInstability").value = "0";
+    document.getElementById("itemNfpaSpecial").value = "";
 
     // Update UI directly
     updateUI();
@@ -1542,6 +1554,10 @@ function setupFormHandlers() {
     document.getElementById("itemSdsUrl").value = "";
     document.getElementById("itemDamagedQty").value = 0;
     document.getElementById("itemRepairQty").value = 0;
+    document.getElementById("itemNfpaHealth").value = "0";
+    document.getElementById("itemNfpaFlammability").value = "0";
+    document.getElementById("itemNfpaInstability").value = "0";
+    document.getElementById("itemNfpaSpecial").value = "";
     document.querySelectorAll('input[name="ghs"]').forEach(cb => cb.checked = false);
     if (typeof window.clearCompatibilityRecommendation === "function") {
       window.clearCompatibilityRecommendation();
@@ -1564,6 +1580,10 @@ function setupFormHandlers() {
     document.getElementById("itemSdsUrl").value = "";
     document.getElementById("itemDamagedQty").value = 0;
     document.getElementById("itemRepairQty").value = 0;
+    document.getElementById("itemNfpaHealth").value = "0";
+    document.getElementById("itemNfpaFlammability").value = "0";
+    document.getElementById("itemNfpaInstability").value = "0";
+    document.getElementById("itemNfpaSpecial").value = "";
     document.querySelectorAll('input[name="ghs"]').forEach(cb => cb.checked = false);
     if (typeof window.clearCompatibilityRecommendation === "function") {
       window.clearCompatibilityRecommendation();
@@ -1604,6 +1624,13 @@ window.editItem = function(index) {
   document.getElementById("itemSdsUrl").value = item.sdsUrl || "";
   document.getElementById("itemDamagedQty").value = item.damagedQty || 0;
   document.getElementById("itemRepairQty").value = item.repairQty || 0;
+
+  // Populate NFPA 704
+  const nfpa = item.nfpa || { health: 0, flammability: 0, instability: 0, special: "" };
+  document.getElementById("itemNfpaHealth").value = nfpa.health !== undefined ? nfpa.health : 0;
+  document.getElementById("itemNfpaFlammability").value = nfpa.flammability !== undefined ? nfpa.flammability : 0;
+  document.getElementById("itemNfpaInstability").value = nfpa.instability !== undefined ? nfpa.instability : 0;
+  document.getElementById("itemNfpaSpecial").value = nfpa.special || "";
 
   // Populate GHS checkboxes
   const ghsCheckboxes = document.querySelectorAll('input[name="ghs"]');
