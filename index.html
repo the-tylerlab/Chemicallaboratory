@@ -11,9 +11,9 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="style.css?v=1.9.5">
+  <link rel="stylesheet" href="style.css?v=1.9.6">
   <!-- Lucide Icons Library -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Firebase App & Firestore Compat SDKs -->
@@ -23,6 +23,45 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
+
+  <!-- ==========================================
+       APP SKELETON LOADER
+       ========================================== -->
+  <div id="app-skeleton-loader">
+    <div class="skeleton-sidebar">
+      <div class="skeleton-logo animate-pulse"></div>
+      <div class="skeleton-welcome animate-pulse"></div>
+      <div class="skeleton-menu">
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+      </div>
+      <div class="skeleton-footer animate-pulse"></div>
+    </div>
+    
+    <div class="skeleton-main">
+      <div class="skeleton-header">
+        <div class="skeleton-title animate-pulse"></div>
+        <div class="skeleton-subtitle animate-pulse"></div>
+      </div>
+      
+      <div class="skeleton-grid">
+        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card animate-pulse"></div>
+      </div>
+      
+      <div class="skeleton-content-grid">
+        <div class="skeleton-card animate-pulse" style="height: 380px;"></div>
+        <div class="skeleton-card animate-pulse" style="height: 380px;"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="app-container">
     
@@ -40,12 +79,12 @@
       <!-- Sidebar Header (Logo) -->
       <div class="sidebar-header">
         <div class="logo-icon-container">
-          <i data-lucide="flask-conical"></i>
+          <img src="favicon.svg" alt="Logo">
         </div>
         <div class="logo-text">
           <span class="logo-title">ระบบคลังเคมี</span>
           <span class="logo-subtitle">Laboratory System</span>
-          <span id="versionBadge" style="font-size: 10.5px; background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: rgba(255,255,255,0.95); width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)';" onmouseout="this.style.background='rgba(255,255,255,0.15)';">v1.9.5</span>
+          <span id="versionBadge" style="font-size: 10.5px; background: #f4f4f5; padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: #27272a; width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#e4e4e7';" onmouseout="this.style.background='#f4f4f5';">v1.9.5</span>
         </div>
       </div>
 
