@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ระบบคลังเคมี - Laboratory Management System</title>
+  <title>SciPortal - Science Laboratory & Resource Portal</title>
   <!-- SEO & Meta -->
-  <meta name="description" content="ระบบจัดการสารเคมีและอุปกรณ์วิทยาศาสตร์ คลังแล็บอัจฉริยะ รองรับ Responsive">
+  <meta name="description" content="SciPortal: พอร์ทัลจัดการห้องแล็บและวัสดุวิทยาศาสตร์ คลังแล็บอัจฉริยะ รองรับ Responsive">
   <!-- Favicon (ไอคอนแท็บเบราว์เซอร์) -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <!-- Google Fonts -->
@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="style.css?v=1.9.6">
+  <link rel="stylesheet" href="style.css?v=1.9.12">
   <!-- Lucide Icons Library -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Firebase App & Firestore Compat SDKs -->
@@ -70,7 +70,7 @@
       <button class="menu-toggle-btn" id="menuToggle" aria-label="Toggle Menu">
         <i data-lucide="menu"></i>
       </button>
-      <div class="mobile-title">ระบบคลังเคมี</div>
+      <div class="mobile-title">SciPortal</div>
       <div style="width: 40px;"></div> <!-- Spacer for balance -->
     </header>
 
@@ -82,15 +82,15 @@
           <img src="favicon.svg" alt="Logo">
         </div>
         <div class="logo-text">
-          <span class="logo-title">ระบบคลังเคมี</span>
-          <span class="logo-subtitle">Laboratory System</span>
+          <span class="logo-title">SciPortal</span>
+          <span class="logo-subtitle">Science Laboratory & Resource Portal</span>
           <span id="versionBadge" style="font-size: 10.5px; background: #f4f4f5; padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: #27272a; width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#e4e4e7';" onmouseout="this.style.background='#f4f4f5';">v1.9.5</span>
         </div>
       </div>
 
       <!-- Welcome Message Banner -->
       <div class="sidebar-welcome">
-        ยินดีต้อนรับสู่ระบบจัดการสารเคมีและอุปกรณ์วิทยาศาสตร์
+        ยินดีต้อนรับสู่ SciPortal: พอร์ทัลจัดการห้องแล็บและวัสดุวิทยาศาสตร์
       </div>
 
 
@@ -390,13 +390,53 @@
             </div>
           </div>
 
+          <!-- 2. Lab Booking Report Card -->
+          <div class="card-container" id="labBookingReportCard">
+            <div class="card-header">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="calendar" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+                <span>ส่งออกรายงานการจอง</span>
+              </h2>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: center;">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label for="exportBookingRoomFilter" style="font-size: 12px; font-weight: 600; color: var(--text-main);">กรองห้องปฏิบัติการ:</label>
+                <select id="exportBookingRoomFilter" class="form-control" style="width: 100%; height: 38px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
+                  <option value="all">-- ทุกห้องปฏิบัติการ --</option>
+                  <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                  <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                  <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
+                  <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                  <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                  <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                  <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                  <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
+                </select>
+              </div>
+              <div style="display: flex; gap: 10px; margin-top: 4px;">
+                <button type="button" class="btn btn-secondary" id="btnExportBookingCSV" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; height: 38px; cursor: pointer; transition: all 0.2s;">
+                  <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                  <span>ส่งออก CSV</span>
+                </button>
+                <button type="button" class="btn btn-primary" id="btnExportBookingPDF" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; background-color: var(--primary-purple); color: white; border: none; height: 38px; cursor: pointer; transition: all 0.2s;">
+                  <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+                  <span>พิมพ์ PDF</span>
+                </button>
+              </div>
+              <button type="button" class="btn admin-clear-btn" id="btnClearBookings" style="width: 100%; display: none; align-items: center; justify-content: center; gap: 8px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px; border-radius: var(--border-radius-sm); font-size: 13px; font-weight: 600; height: 38px; cursor: pointer; transition: all 0.2s; margin-top: 4px;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                <span>ล้างประวัติการจองทั้งหมด</span>
+              </button>
+            </div>
+          </div>
+
           <!-- 3. Lab Booking Stats Card -->
-          <div class="card-container" id="chartBookingCard">
+          <div class="card-container" id="chartBookingCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
             <div class="card-header">
               <h2 class="card-title">สถิติการจองใช้งานห้องปฏิบัติการ</h2>
             </div>
-            <div id="chartBookingContainer" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 200px;">
-              <!-- Dynamic SVG -->
+            <div id="chartBookingContainer" style="width: 100%; min-height: 200px; box-sizing: border-box;">
+              <!-- Dynamic HTML Chart -->
             </div>
           </div>
 
@@ -1161,35 +1201,6 @@
 
             <!-- List View Area -->
             <div id="bookingListViewArea" style="display: none; flex-direction: column; gap: 12px; flex: 1;">
-              <!-- Export Actions for Booking History (Admin/Teacher Only) -->
-              <div id="bookingExportActions" style="display: none; align-items: center; gap: 10px; margin-top: 12px; margin-bottom: 12px; flex-wrap: wrap;">
-                <div style="display: inline-flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">กรองห้อง:</span>
-                  <select id="exportBookingRoomFilter" class="form-control" style="width: 250px; display: inline-block; font-size: 12px !important; padding: 0 32px 0 12px !important; height: 34px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
-                    <option value="all">-- ทุกห้องปฏิบัติการ --</option>
-                    <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
-                    <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
-                    <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
-                    <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
-                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
-                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
-                    <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
-                    <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
-                  </select>
-                </div>
-                <div style="display: inline-flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: auto; display: inline-block;">ส่งออก:</span>
-                  <button type="button" class="btn" id="btnExportBookingCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
-                    <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
-                  </button>
-                  <button type="button" class="btn" id="btnExportBookingPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
-                    <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
-                  </button>
-                  <button type="button" class="btn admin-clear-btn" id="btnClearBookings" style="display: none; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
-                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ล้างประวัติการจอง
-                  </button>
-                </div>
-              </div>
 
               <!-- Booking Table -->
               <div class="table-container" style="margin-bottom: 0; flex: 1;">
