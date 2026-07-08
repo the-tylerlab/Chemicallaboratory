@@ -769,11 +769,9 @@ function updateUI() {
   
   // Show/Hide export buttons depending on login status
   const borrowExportActions = document.getElementById("borrowExportActions");
-  const bookingExportActions = document.getElementById("bookingExportActions");
   const quickBtnAddItem = document.getElementById("quickBtnAddItem");
   const isBackoffice = (userRole === "admin" || userRole === "teacher");
   if (borrowExportActions) borrowExportActions.style.display = isBackoffice ? "inline-flex" : "none";
-  if (bookingExportActions) bookingExportActions.style.display = isBackoffice ? "inline-flex" : "none";
   if (quickBtnAddItem) quickBtnAddItem.style.display = isBackoffice ? "flex" : "none";
 
   // Toggle display of admin-only clear data buttons
@@ -6315,51 +6313,31 @@ function renderBookingChart() {
     return;
   }
 
-  let svgHtml = `<svg width="100%" height="220" viewBox="0 0 570 220" style="background: transparent; font-family: var(--font-sans);">`;
+  let html = `<div class="booking-chart-container-desktop">`;
+  html += `<div class="booking-chart-columns">`;
 
-  // Add vertical gradient and shadow definitions
-  svgHtml += `
-    <defs>
-      <linearGradient id="bookingBarGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-        <stop offset="0%" stop-color="#3f1b85" />
-        <stop offset="100%" stop-color="#8b5cf6" />
-      </linearGradient>
-      <filter id="barShadow" x="-25%" y="-25%" width="150%" height="150%">
-        <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#3f1b85" flood-opacity="0.15" />
-      </filter>
-    </defs>
-    
-    <!-- Grid Lines -->
-    <line x1="20" y1="50" x2="550" y2="50" stroke="rgba(0,0,0,0.04)" stroke-width="1" stroke-dasharray="3 3" />
-    <line x1="20" y1="105" x2="550" y2="105" stroke="rgba(0,0,0,0.04)" stroke-width="1" stroke-dasharray="3 3" />
-    <line x1="20" y1="160" x2="550" y2="160" stroke="rgba(0,0,0,0.08)" stroke-width="1.5" />
-  `;
-
-  labs.forEach(lab => {
+  labs.forEach((lab, index) => {
     const count = roomCounts[lab.key] || 0;
-    const barHeight = (count / maxCount) * 110;
-    const y = 160 - barHeight;
+    const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+    
+    // Smooth purple light-to-dark progression from left to right
+    const lightness = 82 - index * 5.5; // From ~82% (light lavender) to ~43% (deep purple)
+    const barColor = `hsl(262, 72%, ${lightness}%)`;
+    const barGlowColor = `hsla(262, 72%, ${lightness}%, 0.35)`;
 
-    svgHtml += `
-      <!-- Bar Track -->
-      <rect x="${lab.x - 12}" y="50" width="24" height="110" rx="12" fill="rgba(63, 27, 133, 0.04)" />
-      
-      <!-- Active Bar -->
-      <rect x="${lab.x - 12}" y="${y}" width="24" height="${barHeight}" rx="12" fill="url(#bookingBarGrad)" filter="url(#barShadow)">
-        <animate attributeName="height" from="0" to="${barHeight}" dur="0.8s" fill="freeze" />
-        <animate attributeName="y" from="160" to="${y}" dur="0.8s" fill="freeze" />
-      </rect>
-      
-      <!-- Value text -->
-      <text x="${lab.x}" y="42" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="middle">${count} ครั้ง</text>
-      
-      <!-- X-Axis Label -->
-      <text x="${lab.x}" y="185" fill="var(--text-muted)" font-size="10" font-weight="600" text-anchor="middle">${lab.name}</text>
+    html += `
+      <div class="booking-chart-col">
+        <div class="booking-chart-bar-val">${count} ครั้ง</div>
+        <div class="booking-chart-bar-track">
+          <div class="booking-chart-bar-fill" style="height: ${percentage}%; background: ${barColor}; --bar-glow-color: ${barGlowColor};"></div>
+        </div>
+        <div class="booking-chart-bar-label" title="${lab.name}">${lab.name}</div>
+      </div>
     `;
   });
 
-  svgHtml += `</svg>`;
-  container.innerHTML = svgHtml;
+  html += `</div></div>`;
+  container.innerHTML = html;
 }
 
 function renderAnalyticsCharts() {
