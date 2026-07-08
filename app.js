@@ -5555,7 +5555,12 @@ window.showItemDetail = function(event, itemCode) {
             <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">NFPA 704 Rating</span>
             <div style="width: 130px; height: 130px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
               <div class="nfpa-container">
-                <img src="images/nfpa-blank.svg" alt="NFPA 704" class="nfpa-bg">
+                <svg class="nfpa-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+                  <polygon points="50,2.5 73.75,26.25 50,50 26.25,26.25" fill="#ff6666" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+                  <polygon points="73.75,26.25 97.5,50 73.75,73.75 50,50" fill="#ffff66" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+                  <polygon points="50,50 73.75,73.75 50,97.5 26.25,73.75" fill="#ffffff" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+                  <polygon points="26.25,26.25 50,50 26.25,73.75 2.5,50" fill="#6699ff" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+                </svg>
                 <div class="nfpa-val nfpa-val-flammability">${nfpa.flammability}</div>
                 <div class="nfpa-val nfpa-val-instability">${nfpa.instability}</div>
                 <div class="nfpa-val nfpa-val-special">${specialHtml}</div>
@@ -5886,7 +5891,12 @@ window.triggerPhysicalLabelPrint = function(itemCode) {
     const nfpaDiamondHtml = `
       <div style="width: 58px; height: 58px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 5px;">
         <div class="nfpa-container-sm">
-          <img src="images/nfpa-blank.svg" alt="NFPA 704" class="nfpa-bg">
+          <svg class="nfpa-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <polygon points="50,2.5 73.75,26.25 50,50 26.25,26.25" fill="#ff6666" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+            <polygon points="73.75,26.25 97.5,50 73.75,73.75 50,50" fill="#ffff66" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+            <polygon points="50,50 73.75,73.75 50,97.5 26.25,73.75" fill="#ffffff" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+            <polygon points="26.25,26.25 50,50 26.25,73.75 2.5,50" fill="#6699ff" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+          </svg>
           <div class="nfpa-val nfpa-val-flammability">${nfpa.flammability}</div>
           <div class="nfpa-val nfpa-val-instability">${nfpa.instability}</div>
           <div class="nfpa-val nfpa-val-special">${specialHtml}</div>
