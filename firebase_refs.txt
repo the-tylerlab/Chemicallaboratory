@@ -1,0 +1,383 @@
+310-  }
+311-}
+312-
+313-// Load all items from either Firebase, Server API, or LocalStorage fallback
+314-async function loadAllItems() {
+315:  if (isFirebaseOnline) {
+316-    try {
+317-      const snapshot = await db.collection("items").get();
+318-      const loadedItems = [];
+319-      snapshot.forEach(doc => {
+320-        const d = doc.data();
+--
+339-        return;
+340-      }
+341-    } catch (err) {
+342-      console.error("🔥 Failed to load from Firebase Firestore:", err);
+343-      // Self-healing fallback: disable Firebase for this session and alert user
+344:      isFirebaseOnline = false;
+345-      showToast("ระบบสลับการจัดเก็บมาเป็นแบบ Local Storage สำรอง เนื่องจากยังไม่ได้ตั้งค่าสิทธิ์อ่าน/เขียนในคลาวด์ Firebase", "warning");
+346-    }
+347-  }
+348-
+349-  if (isBackendOnline) {
+--
+1307-// ==========================================================================
+1308-// BACKEND API AJAX CRUD WRAPPERS
+1309-// ==========================================================================
+1310-
+1311-async function createItemBackend(itemData) {
+1312:  if (isFirebaseOnline) {
+1313-    try {
+1314-      await db.collection("items").doc(itemData.code).set(itemData);
+1315-      items.push(itemData);
+1316-      return true;
+1317-    } catch (err) {
+--
+1347-  saveItemsToLocal();
+1348-  return true;
+1349-}
+1350-
+1351-async function updateItemBackend(code, itemData, index) {
+1352:  if (isFirebaseOnline) {
+1353-    try {
+1354-      await db.collection("items").doc(code).set(itemData);
+1355-      items[index] = itemData;
+1356-      return true;
+1357-    } catch (err) {
+--
+1667-
+1668-  const item = items[index];
+1669-  if (!item) return;
+1670-
+1671-  if (confirm(`คุณต้องการลบรายการ "${getItemDisplayName(item)}" (${item.code}) ออกจากระบบใช่หรือไม่?`)) {
+1672:    if (isFirebaseOnline) {
+1673-      try {
+1674-        await db.collection("items").doc(item.code).delete();
+1675-        items.splice(index, 1);
+1676-        showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
+1677-      } catch (err) {
+--
+1962-      ghs,
+1963-      createdAt: new Date().toISOString()
+1964-    });
+1965-  }
+1966-
+1967:  if (isFirebaseOnline) {
+1968-    try {
+1969-      let importedCount = 0;
+1970-      
+1971-      // Perform batch writes in chunks of 500 (Firestore batch size limit)
+1972-      const batchLimit = 500;
+--
+2181-      returnDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+2182-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+2183-    }
+2184-  ];
+2185-
+2186:  if (isFirebaseOnline) {
+2187-    try {
+2188-      const snapshot = await db.collection("transactions").get();
+2189-      const loadedTrans = [];
+2190-      snapshot.forEach(doc => {
+2191-        const d = doc.data();
+--
+2209-        console.log("🔥 Seeded default transactions to Firebase.");
+2210-        return;
+2211-      }
+2212-    } catch (err) {
+2213-      console.error("🔥 Failed to load transactions from Firebase:", err);
+2214:      isFirebaseOnline = false;
+2215-    }
+2216-  }
+2217-
+2218-  if (isBackendOnline) {
+2219-    try {
+--
+2238-  }
+2239-}
+2240-
+2241-// Helper to save a single transaction
+2242-async function saveTransaction(transData) {
+2243:  if (isFirebaseOnline) {
+2244-    try {
+2245-      await db.collection("transactions").doc(transData.id).set(transData);
+2246-      transactions.push(transData);
+2247-      return true;
+2248-    } catch (err) {
+--
+2884-              returnDate: new Date().toISOString().split('T')[0],
+2885-              damagedQty: damagedCount
+2886-            };
+2887-            
+2888-            // Update in Firebase or LocalStorage
+2889:            if (isFirebaseOnline) {
+2890-              try {
+2891-                await db.collection("transactions").doc(tx.id).set(updatedTrans);
+2892-                const idx = transactions.findIndex(t => t.id === tx.id);
+2893-                if (idx !== -1) transactions[idx] = updatedTrans;
+2894-              } catch (err) {
+--
+3118-    if (success) {
+3119-      // Update transaction status
+3120-      const updatedTrans = { ...tx, status: "returned" };
+3121-      
+3122-      // Update in Firebase or LocalStorage
+3123:      if (isFirebaseOnline) {
+3124-        try {
+3125-          await db.collection("transactions").doc(transId).set(updatedTrans);
+3126-          transactions[txIndex] = updatedTrans;
+3127-        } catch (err) {
+3128-          console.error("🔥 Failed to update transaction on Firebase:", err);
+--
+3228-      status: "approved",
+3229-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+3230-    }
+3231-  ];
+3232-
+3233:  if (isFirebaseOnline) {
+3234-    try {
+3235-      const snapshot = await db.collection("bookings").get();
+3236-      const loadedBookings = [];
+3237-      snapshot.forEach(doc => {
+3238-        const d = doc.data();
+--
+3258-        injectTestBookings();
+3259-        return;
+3260-      }
+3261-    } catch (err) {
+3262-      console.error("🔥 Failed to load bookings from Firebase:", err);
+3263:      isFirebaseOnline = false;
+3264-    }
+3265-  }
+3266-
+3267-  if (isBackendOnline) {
+3268-    try {
+--
+3341-  let modified = false;
+3342-  testBookings.forEach(tb => {
+3343-    if (!bookings.some(b => b.id === tb.id)) {
+3344-      bookings.push(tb);
+3345-      modified = true;
+3346:      if (typeof isFirebaseOnline !== "undefined" && isFirebaseOnline) {
+3347-        try {
+3348-          db.collection("bookings").doc(tb.id).set(tb);
+3349-        } catch (e) {
+3350-          console.error("Firebase seeding test booking failed", e);
+3351-        }
+--
+3357-    localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+3358-  }
+3359-}
+3360-
+3361-async function saveBooking(bookingData) {
+3362:  if (isFirebaseOnline) {
+3363-    try {
+3364-      await db.collection("bookings").doc(bookingData.id).set(bookingData);
+3365-      bookings.push(bookingData);
+3366-      return true;
+3367-    } catch (err) {
+--
+3382-  const index = bookings.findIndex(b => b.id === bookingId);
+3383-  if (index === -1) return false;
+3384-
+3385-  const updatedBooking = { ...bookings[index], status: status };
+3386-
+3387:  if (isFirebaseOnline) {
+3388-    try {
+3389-      await db.collection("bookings").doc(bookingId).set(updatedBooking);
+3390-      bookings[index] = updatedBooking;
+3391-      return true;
+3392-    } catch (err) {
+--
+3864-  }
+3865-};
+3866-
+3867-// Sync functions to persist local changes to database server
+3868-function syncBudgetToBackend() {
+3869:  if (isFirebaseOnline) {
+3870-    db.collection("system").doc("budget").set({ budget: annualBudget })
+3871-      .catch(e => console.error("Failed to sync budget to Firebase:", e));
+3872-  }
+3873-  if (isBackendOnline) {
+3874-    fetch(`${API_BASE}/budget`, {
+--
+3878-    }).catch(e => console.error("Failed to sync budget to backend:", e));
+3879-  }
+3880-}
+3881-
+3882-function syncPurchaseOrdersToBackend() {
+3883:  if (isFirebaseOnline) {
+3884-    purchaseOrders.forEach(o => {
+3885-      db.collection("purchase_orders").doc(o.id).set(o)
+3886-        .catch(e => console.error("Failed to sync purchase order to Firebase:", e));
+3887-    });
+3888-  }
+--
+3922-let purchaseOrderDrafts = [];
+3923-let annualBudget = 100000;
+3924-let editingPurchaseOrderId = null;
+3925-
+3926-async function loadAnnualBudget() {
+3927:  if (isFirebaseOnline) {
+3928-    try {
+3929-      const doc = await db.collection("system").doc("budget").get();
+3930-      if (doc.exists) {
+3931-        annualBudget = parseFloat(doc.data().budget) || 100000;
+3932-        localStorage.setItem("lab_annual_budget", annualBudget.toString());
+--
+4001-      budget: 5000.00,
+4002-      discount: 10
+4003-    }
+4004-  ];
+4005-
+4006:  if (isFirebaseOnline) {
+4007-    try {
+4008-      const snapshot = await db.collection("purchase_orders").get();
+4009-      const loadedOrders = [];
+4010-      snapshot.forEach(doc => {
+4011-        const d = doc.data();
+--
+4081-// Background synchronization for budget and purchase orders (multi-admin sync)
+4082-async function syncBudgetInRealtime() {
+4083-  let changed = false;
+4084-
+4085-  // 1. Sync Budget
+4086:  if (isFirebaseOnline) {
+4087-    try {
+4088-      const doc = await db.collection("system").doc("budget").get();
+4089-      if (doc.exists) {
+4090-        const val = parseFloat(doc.data().budget) || 100000;
+4091-        if (val !== annualBudget) {
+--
+4113-      console.error("Backend budget sync failed:", e);
+4114-    }
+4115-  }
+4116-
+4117-  // 2. Sync Purchase Orders
+4118:  if (isFirebaseOnline) {
+4119-    try {
+4120-      const snapshot = await db.collection("purchase_orders").get();
+4121-      const loadedOrders = [];
+4122-      snapshot.forEach(doc => {
+4123-        const d = doc.data();
+--
+4217-            discount
+4218-          };
+4219-          
+4220-          purchaseOrders[idx] = updatedOrder;
+4221-          
+4222:          if (isFirebaseOnline) {
+4223-            db.collection("purchase_orders").doc(editingPurchaseOrderId).set(updatedOrder)
+4224-              .catch(e => console.error("Failed to update purchase order in Firebase:", e));
+4225-          }
+4226-          
+4227-          localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+--
+4579-}
+4580-
+4581-window.deletePurchaseOrder = function(orderId) {
+4582-  if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้?")) return;
+4583-  
+4584:  if (isFirebaseOnline) {
+4585-    db.collection("purchase_orders").doc(orderId).delete()
+4586-      .catch(e => console.error("Failed to delete purchase order from Firebase:", e));
+4587-  }
+4588-  
+4589-  purchaseOrders = purchaseOrders.filter(o => o.id !== orderId);
+--
+5342-  const bk = bookings[bkIndex];
+5343-
+5344-  bookings[bkIndex].status = "approved";
+5345-  localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+5346-  syncBookingsToBackend();
+5347:  if (isFirebaseOnline) {
+5348-    try {
+5349-      await db.collection("bookings").doc(bookingId).update({ status: "approved" });
+5350-    } catch (err) {
+5351-      console.error("Firebase update failed:", err);
+5352-    }
+--
+5362-
+5363-  if (confirm(`คุณต้องการปฏิเสธคำขอจองห้องปฏิบัติการของ "${bk.bookerName}" ใช่หรือไม่?`)) {
+5364-    bookings[bkIndex].status = "rejected";
+5365-    localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+5366-    syncBookingsToBackend();
+5367:    if (isFirebaseOnline) {
+5368-      try {
+5369-        await db.collection("bookings").doc(bookingId).update({ status: "rejected" });
+5370-      } catch (err) {
+5371-        console.error("Firebase update failed:", err);
+5372-      }
+--
+5399-  if (success) {
+5400-    // Approve transaction
+5401-    transactions[txIndex].status = "borrowed";
+5402-    localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+5403-    syncTransactionsToBackend();
+5404:    if (isFirebaseOnline) {
+5405-      try {
+5406-        await db.collection("transactions").doc(txId).update({ status: "borrowed" });
+5407-      } catch (err) {
+5408-        console.error("Firebase update failed:", err);
+5409-      }
+--
+5420-
+5421-  if (confirm("คุณต้องการปฏิเสธคำขอยืมนี้ใช่หรือไม่?")) {
+5422-    transactions[txIndex].status = "rejected";
+5423-    localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+5424-    syncTransactionsToBackend();
+5425:    if (isFirebaseOnline) {
+5426-      try {
+5427-        await db.collection("transactions").doc(txId).update({ status: "rejected" });
+5428-      } catch (err) {
+5429-        console.error("Firebase update failed:", err);
+5430-      }
+--
+11038-        if (pendingClearAction === "inventory") {
+11039-          const itemsToDelete = [...items];
+11040-          items = [];
+11041-          saveItemsToLocal();
+11042-          
+11043:          if (isFirebaseOnline) {
+11044-            for (const item of itemsToDelete) {
+11045-              try {
+11046-                await db.collection("items").doc(item.code).delete();
+11047-              } catch (e) {
+11048-                console.error("Firebase clear doc failed:", item.code, e);
+--
+11062-        else if (pendingClearAction === "transactions") {
+11063-          const txsToDelete = [...transactions];
+11064-          transactions = [];
+11065-          localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+11066-          
+11067:          if (isFirebaseOnline) {
+11068-            for (const tx of txsToDelete) {
+11069-              try {
+11070-                await db.collection("transactions").doc(tx.id).delete();
+11071-              } catch (e) {
+11072-                console.error("Firebase clear tx failed:", tx.id, e);
+--
+11086-        else if (pendingClearAction === "bookings") {
+11087-          const bookingsToDelete = [...bookings];
+11088-          bookings = [];
+11089-          localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+11090-          
+11091:          if (isFirebaseOnline) {
+11092-            for (const bk of bookingsToDelete) {
+11093-              try {
+11094-                await db.collection("bookings").doc(bk.id).delete();
+11095-              } catch (e) {
+11096-                console.error("Firebase clear booking failed:", bk.id, e);
+--
+11110-        else if (pendingClearAction === "purchaseOrders") {
+11111-          const poToDelete = [...purchaseOrders];
+11112-          purchaseOrders = [];
+11113-          localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+11114-          
+11115:          if (isFirebaseOnline) {
+11116-            for (const po of poToDelete) {
+11117-              try {
+11118-                await db.collection("purchase_orders").doc(po.id).delete();
+11119-              } catch (e) {
+11120-                console.error("Firebase clear PO failed:", po.id, e);

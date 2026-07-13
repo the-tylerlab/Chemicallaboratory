@@ -178,34 +178,26 @@ const DEMO_DATA = [
   }
 ];
 
-// Firebase Configuration (เชื่อมต่อคลาวด์อัจฉริยะ)
-// กรอกข้อมูลการตั้งค่าจากคลาสสิกคอนโซลของ Firebase เพื่อเปิดใช้งานระบบคลาวด์ซิงค์เรียลไทม์
-const firebaseConfig = {
-  apiKey: "AIzaSyBEYgji_zDVOrvrFknGn69Eoq6DE-vQri8",
-  authDomain: "chemicallab-eefa4.firebaseapp.com",
-  projectId: "chemicallab-eefa4",
-  storageBucket: "chemicallab-eefa4.firebasestorage.app",
-  messagingSenderId: "435854372023",
-  appId: "1:435854372023:web:29c5c286d13e3bf9d6b132",
-  measurementId: "G-2FX82TTHFP"
-};
+// Supabase Configuration
+const supabaseUrl = 'https://avzneyaalenbyawfvykp.supabase.co';
+const supabaseKey = 'sb_publishable_iqpHDJXb983_PwFSoSDV9w_kd2pvKoj';
 
-let db = null;
-let isFirebaseOnline = false;
+var supabase = window.supabase || null;
+let isSupabaseOnline = false;
 
-// ตรวจสอบและตั้งค่าเริ่มต้นให้กับ Firebase
-if (typeof firebase !== 'undefined' && firebaseConfig.projectId !== "YOUR_PROJECT_ID") {
+// Initialize Supabase Client
+if (typeof supabase !== 'undefined' && supabaseUrl !== 'YOUR_SUPABASE_URL') {
   try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    isFirebaseOnline = true;
-    console.log("🔥 Firebase initialized successfully. Operating in Cloud Sync Mode.");
+    // Note: We use window.supabase which is provided by the CDN script
+    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    isSupabaseOnline = true;
+    console.log("🚀 Supabase initialized successfully. Operating in Cloud Sync Mode.");
   } catch (err) {
-    console.error("🔥 Firebase initialization failed:", err);
-    isFirebaseOnline = false;
+    console.error("🚀 Supabase initialization failed:", err);
+    isSupabaseOnline = false;
   }
 } else {
-  console.log("🔥 Firebase not configured or script missing. Operating in LocalStorage / Local API mode.");
+  console.log("🚀 Supabase not configured or script missing. Operating in LocalStorage / Local API mode.");
 }
 
 // Global API settings
@@ -318,21 +310,21 @@ async function checkBackendStatus() {
   }
 }
 
-// Load all items from either Firebase, Server API, or LocalStorage fallback
+// Load all items from either Supabase, Server API, or LocalStorage fallback
 async function loadAllItems() {
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      const snapshot = await db.collection("items").get();
+      const { data, error } = await supabase.from("items").select('*');
+      if (error) throw error;
       const loadedItems = [];
-      snapshot.forEach(doc => {
-        const d = doc.data();
+      (data || []).forEach(d => {
         if (d && d.code) {
           loadedItems.push(d);
         }
       });
       if (loadedItems.length > 0) {
         items = loadedItems;
-        console.log("🔥 Loaded " + items.length + " items from Firebase Cloud Firestore.");
+        console.log("🔥 Loaded " + items.length + " items from Supabase Cloud Firestore.");
         return;
       } else {
         // Seed Firestore if empty
@@ -347,10 +339,10 @@ async function loadAllItems() {
         return;
       }
     } catch (err) {
-      console.error("🔥 Failed to load from Firebase Firestore:", err);
-      // Self-healing fallback: disable Firebase for this session and alert user
-      isFirebaseOnline = false;
-      showToast("ระบบสลับการจัดเก็บมาเป็นแบบ Local Storage สำรอง เนื่องจากยังไม่ได้ตั้งค่าสิทธิ์อ่าน/เขียนในคลาวด์ Firebase", "warning");
+      console.error("🔥 Failed to load from Supabase Firestore:", err);
+      // Self-healing fallback: disable Supabase for this session and alert user
+      isSupabaseOnline = false;
+      showToast("ระบบสลับการจัดเก็บมาเป็นแบบ Local Storage สำรอง เนื่องจากยังไม่ได้ตั้งค่าสิทธิ์อ่าน/เขียนในคลาวด์ Supabase", "warning");
     }
   }
 
@@ -1317,14 +1309,14 @@ function renderNotificationsList(stats) {
 // ==========================================================================
 
 async function createItemBackend(itemData) {
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      await db.collection("items").doc(itemData.code).set(itemData);
+      await supabase.from("items").upsert(itemData);
       items.push(itemData);
       return true;
     } catch (err) {
-      console.error("🔥 Firebase write failed:", err);
-      showToast("เกิดข้อผิดพลาดในการเขียนข้อมูลไปยัง Firebase", "error");
+      console.error("🔥 Supabase write failed:", err);
+      showToast("เกิดข้อผิดพลาดในการเขียนข้อมูลไปยัง Supabase", "error");
       return false;
     }
   }
@@ -1357,14 +1349,14 @@ async function createItemBackend(itemData) {
 }
 
 async function updateItemBackend(code, itemData, index) {
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      await db.collection("items").doc(code).set(itemData);
+      await supabase.from("items").upsert(itemData);
       items[index] = itemData;
       return true;
     } catch (err) {
-      console.error("🔥 Firebase update failed:", err);
-      showToast("เกิดข้อผิดพลาดในการอัปเดตข้อมูลไปยัง Firebase", "error");
+      console.error("🔥 Supabase update failed:", err);
+      showToast("เกิดข้อผิดพลาดในการอัปเดตข้อมูลไปยัง Supabase", "error");
       return false;
     }
   }
@@ -1677,14 +1669,14 @@ window.deleteItem = async function(index) {
   if (!item) return;
 
   if (confirm(`คุณต้องการลบรายการ "${getItemDisplayName(item)}" (${item.code}) ออกจากระบบใช่หรือไม่?`)) {
-    if (isFirebaseOnline) {
+    if (isSupabaseOnline) {
       try {
-        await db.collection("items").doc(item.code).delete();
+        await supabase.from("items").delete().eq("code", item.code);
         items.splice(index, 1);
         showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
       } catch (err) {
-        console.error("🔥 Firebase delete failed:", err);
-        showToast("เกิดข้อผิดพลาดในการลบข้อมูลบน Firebase", "error");
+        console.error("🔥 Supabase delete failed:", err);
+        showToast("เกิดข้อผิดพลาดในการลบข้อมูลบน Supabase", "error");
         return;
       }
     } else if (isBackendOnline) {
@@ -1972,7 +1964,7 @@ async function parseCSVAndImport(csvText) {
     });
   }
 
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
       let importedCount = 0;
       
@@ -1995,7 +1987,7 @@ async function parseCSVAndImport(csvText) {
       updateUI();
       showToast(`นำเข้าคลาวด์สำเร็จ ${importedCount} รายการ! ${errorCount > 0 ? `(ข้ามรายการผิดพลาด ${errorCount} รายการ)` : ''}`, "success");
     } catch (err) {
-      console.error("🔥 Firebase batch import failed:", err);
+      console.error("🔥 Supabase batch import failed:", err);
       showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูลนำเข้าคลาวด์", "error");
     }
     return;
@@ -2081,7 +2073,7 @@ function setupDashboardCards() {
 // BORROW / RETURN SYSTEM (AUTOMATIC STOCK RECONCILIATION)
 // ==========================================================================
 
-// Load transactions from Firebase or LocalStorage
+// Load transactions from Supabase or LocalStorage
 async function loadAllTransactions() {
   const defaultTrans = [
     {
@@ -2191,22 +2183,22 @@ async function loadAllTransactions() {
     }
   ];
 
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      const snapshot = await db.collection("transactions").get();
+      const { data, error } = await supabase.from("transactions").select('*');
+      if (error) throw error;
       const loadedTrans = [];
-      snapshot.forEach(doc => {
-        const d = doc.data();
+      (data || []).forEach(d => {
         if (d && d.id) {
           loadedTrans.push(d);
         }
       });
       if (loadedTrans.length > 0) {
         transactions = loadedTrans;
-        console.log("🔥 Loaded " + transactions.length + " transactions from Firebase Cloud.");
+        console.log("🔥 Loaded " + transactions.length + " transactions from Supabase Cloud.");
         return;
       } else {
-        // Seed Firebase if empty
+        // Seed Supabase if empty
         const batch = db.batch();
         defaultTrans.forEach(demoTx => {
           transactions.push(demoTx);
@@ -2214,12 +2206,12 @@ async function loadAllTransactions() {
           batch.set(docRef, demoTx);
         });
         await batch.commit();
-        console.log("🔥 Seeded default transactions to Firebase.");
+        console.log("🔥 Seeded default transactions to Supabase.");
         return;
       }
     } catch (err) {
-      console.error("🔥 Failed to load transactions from Firebase:", err);
-      isFirebaseOnline = false;
+      console.error("🔥 Failed to load transactions from Supabase:", err);
+      isSupabaseOnline = false;
     }
   }
 
@@ -2248,13 +2240,13 @@ async function loadAllTransactions() {
 
 // Helper to save a single transaction
 async function saveTransaction(transData) {
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      await db.collection("transactions").doc(transData.id).set(transData);
+      await supabase.from("transactions").upsert(transData);
       transactions.push(transData);
       return true;
     } catch (err) {
-      console.error("🔥 Firebase save transaction failed:", err);
+      console.error("🔥 Supabase save transaction failed:", err);
       showToast("เกิดข้อผิดพลาดในการบันทึกประวัติไปยังคลาวด์", "error");
       return false;
     }
@@ -2893,14 +2885,14 @@ function setupBorrowForm() {
               damagedQty: damagedCount
             };
             
-            // Update in Firebase or LocalStorage
-            if (isFirebaseOnline) {
+            // Update in Supabase or LocalStorage
+            if (isSupabaseOnline) {
               try {
-                await db.collection("transactions").doc(tx.id).set(updatedTrans);
+                await supabase.from("transactions").upsert(updatedTrans);
                 const idx = transactions.findIndex(t => t.id === tx.id);
                 if (idx !== -1) transactions[idx] = updatedTrans;
               } catch (err) {
-                console.error("🔥 Failed to update transaction on Firebase:", err);
+                console.error("🔥 Failed to update transaction on Supabase:", err);
                 continue;
               }
             } else {
@@ -3127,13 +3119,13 @@ window.returnBorrowedItem = async function(transId) {
       // Update transaction status
       const updatedTrans = { ...tx, status: "returned" };
       
-      // Update in Firebase or LocalStorage
-      if (isFirebaseOnline) {
+      // Update in Supabase or LocalStorage
+      if (isSupabaseOnline) {
         try {
-          await db.collection("transactions").doc(transId).set(updatedTrans);
+          await supabase.from("transactions").upsert(updatedTrans);
           transactions[txIndex] = updatedTrans;
         } catch (err) {
-          console.error("🔥 Failed to update transaction on Firebase:", err);
+          console.error("🔥 Failed to update transaction on Supabase:", err);
           showToast("เกิดข้อผิดพลาดในการบันทึกสถานะลงคลาวด์", "error");
           return;
         }
@@ -3238,23 +3230,23 @@ async function loadAllBookings() {
     }
   ];
 
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      const snapshot = await db.collection("bookings").get();
+      const { data, error } = await supabase.from("bookings").select('*');
+      if (error) throw error;
       const loadedBookings = [];
-      snapshot.forEach(doc => {
-        const d = doc.data();
+      (data || []).forEach(d => {
         if (d && d.id) {
           loadedBookings.push(d);
         }
       });
       if (loadedBookings.length > 0) {
         bookings = loadedBookings;
-        console.log("🔥 Loaded " + bookings.length + " bookings from Firebase Cloud.");
+        console.log("🔥 Loaded " + bookings.length + " bookings from Supabase Cloud.");
         injectTestBookings();
         return;
       } else {
-        // Seed Firebase if empty
+        // Seed Supabase if empty
         const batch = db.batch();
         defaultBookings.forEach(demoBk => {
           bookings.push(demoBk);
@@ -3262,13 +3254,13 @@ async function loadAllBookings() {
           batch.set(docRef, demoBk);
         });
         await batch.commit();
-        console.log("🔥 Seeded default bookings to Firebase.");
+        console.log("🔥 Seeded default bookings to Supabase.");
         injectTestBookings();
         return;
       }
     } catch (err) {
-      console.error("🔥 Failed to load bookings from Firebase:", err);
-      isFirebaseOnline = false;
+      console.error("🔥 Failed to load bookings from Supabase:", err);
+      isSupabaseOnline = false;
     }
   }
 
@@ -3351,11 +3343,11 @@ function injectTestBookings() {
     if (!bookings.some(b => b.id === tb.id)) {
       bookings.push(tb);
       modified = true;
-      if (typeof isFirebaseOnline !== "undefined" && isFirebaseOnline) {
+      if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline) {
         try {
-          db.collection("bookings").doc(tb.id).set(tb);
+          supabase.from("bookings").upsert(tb);
         } catch (e) {
-          console.error("Firebase seeding test booking failed", e);
+          console.error("Supabase seeding test booking failed", e);
         }
       }
     }
@@ -3367,13 +3359,13 @@ function injectTestBookings() {
 }
 
 async function saveBooking(bookingData) {
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      await db.collection("bookings").doc(bookingData.id).set(bookingData);
+      await supabase.from("bookings").upsert(bookingData);
       bookings.push(bookingData);
       return true;
     } catch (err) {
-      console.error("🔥 Firebase save booking failed:", err);
+      console.error("🔥 Supabase save booking failed:", err);
       showToast("เกิดข้อผิดพลาดในการบันทึกการจองลงคลาวด์", "error");
       return false;
     }
@@ -3392,13 +3384,13 @@ async function updateBookingStatus(bookingId, status) {
 
   const updatedBooking = { ...bookings[index], status: status };
 
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      await db.collection("bookings").doc(bookingId).set(updatedBooking);
+      await supabase.from("bookings").upsert(updatedBooking);
       bookings[index] = updatedBooking;
       return true;
     } catch (err) {
-      console.error("🔥 Firebase update booking failed:", err);
+      console.error("🔥 Supabase update booking failed:", err);
       showToast("เกิดข้อผิดพลาดในการเปลี่ยนสถานะการจองบนคลาวด์", "error");
       return false;
     }
@@ -3874,9 +3866,9 @@ window.cancelBookingRecord = async function(bookingId) {
 
 // Sync functions to persist local changes to database server
 function syncBudgetToBackend() {
-  if (isFirebaseOnline) {
-    db.collection("system").doc("budget").set({ budget: annualBudget })
-      .catch(e => console.error("Failed to sync budget to Firebase:", e));
+  if (isSupabaseOnline) {
+    supabase.from("system").upsert({ key: "budget", value: { budget: annualBudget } })
+      .catch(e => console.error("Failed to sync budget to Supabase:", e));
   }
   if (isBackendOnline) {
     fetch(`${API_BASE}/budget`, {
@@ -3888,10 +3880,10 @@ function syncBudgetToBackend() {
 }
 
 function syncPurchaseOrdersToBackend() {
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     purchaseOrders.forEach(o => {
-      db.collection("purchase_orders").doc(o.id).set(o)
-        .catch(e => console.error("Failed to sync purchase order to Firebase:", e));
+      supabase.from("purchase_orders").upsert(o)
+        .catch(e => console.error("Failed to sync purchase order to Supabase:", e));
     });
   }
   if (isBackendOnline) {
@@ -3932,21 +3924,21 @@ let annualBudget = 100000;
 let editingPurchaseOrderId = null;
 
 async function loadAnnualBudget() {
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      const doc = await db.collection("system").doc("budget").get();
-      if (doc.exists) {
-        annualBudget = parseFloat(doc.data().budget) || 100000;
+      const { data, error } = await supabase.from("system").select("value").eq("key", "budget").maybeSingle();
+      if (data && data.value) {
+        annualBudget = parseFloat(data.value.budget) || 100000;
         localStorage.setItem("lab_annual_budget", annualBudget.toString());
         return;
       } else {
-        await db.collection("system").doc("budget").set({ budget: 100000 });
+        await supabase.from("system").upsert({ key: "budget", value: { budget: 100000 } });
         annualBudget = 100000;
         localStorage.setItem("lab_annual_budget", "100000");
         return;
       }
     } catch (e) {
-      console.error("Failed to load budget from Firebase:", e);
+      console.error("Failed to load budget from Supabase:", e);
     }
   }
 
@@ -4011,12 +4003,12 @@ async function loadPurchaseOrders() {
     }
   ];
 
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      const snapshot = await db.collection("purchase_orders").get();
+      const { data, error } = await supabase.from("purchase_orders").select('*');
+      if (error) throw error;
       const loadedOrders = [];
-      snapshot.forEach(doc => {
-        const d = doc.data();
+      (data || []).forEach(d => {
         if (d && d.id) loadedOrders.push(d);
       });
       if (loadedOrders.length > 0) {
@@ -4035,7 +4027,7 @@ async function loadPurchaseOrders() {
         return;
       }
     } catch (e) {
-      console.error("Failed to load purchase orders from Firebase:", e);
+      console.error("Failed to load purchase orders from Supabase:", e);
     }
   }
 
@@ -4091,11 +4083,11 @@ async function syncBudgetInRealtime() {
   let changed = false;
 
   // 1. Sync Budget
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      const doc = await db.collection("system").doc("budget").get();
-      if (doc.exists) {
-        const val = parseFloat(doc.data().budget) || 100000;
+      const { data, error } = await supabase.from("system").select("value").eq("key", "budget").maybeSingle();
+      if (data && data.value) {
+        const val = parseFloat(data.value.budget) || 100000;
         if (val !== annualBudget) {
           annualBudget = val;
           localStorage.setItem("lab_annual_budget", annualBudget.toString());
@@ -4103,7 +4095,7 @@ async function syncBudgetInRealtime() {
         }
       }
     } catch (e) {
-      console.error("Firebase budget sync failed:", e);
+      console.error("Supabase budget sync failed:", e);
     }
   } else if (isBackendOnline) {
     try {
@@ -4123,12 +4115,12 @@ async function syncBudgetInRealtime() {
   }
 
   // 2. Sync Purchase Orders
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      const snapshot = await db.collection("purchase_orders").get();
+      const { data, error } = await supabase.from("purchase_orders").select('*');
+      if (error) throw error;
       const loadedOrders = [];
-      snapshot.forEach(doc => {
-        const d = doc.data();
+      (data || []).forEach(d => {
         if (d && d.id) loadedOrders.push(d);
       });
       if (loadedOrders.length !== purchaseOrders.length || JSON.stringify(loadedOrders) !== JSON.stringify(purchaseOrders)) {
@@ -4137,7 +4129,7 @@ async function syncBudgetInRealtime() {
         changed = true;
       }
     } catch (e) {
-      console.error("Firebase purchase orders sync failed:", e);
+      console.error("Supabase purchase orders sync failed:", e);
     }
   } else if (isBackendOnline) {
     try {
@@ -4227,9 +4219,9 @@ function setupPurchaseOrders() {
           
           purchaseOrders[idx] = updatedOrder;
           
-          if (isFirebaseOnline) {
-            db.collection("purchase_orders").doc(editingPurchaseOrderId).set(updatedOrder)
-              .catch(e => console.error("Failed to update purchase order in Firebase:", e));
+          if (isSupabaseOnline) {
+            supabase.from("purchase_orders").upsert(updatedOrder)
+              .catch(e => console.error("Failed to update purchase order in Supabase:", e));
           }
           
           localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
@@ -4589,9 +4581,9 @@ function renderOrdersTable() {
 window.deletePurchaseOrder = function(orderId) {
   if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้?")) return;
   
-  if (isFirebaseOnline) {
-    db.collection("purchase_orders").doc(orderId).delete()
-      .catch(e => console.error("Failed to delete purchase order from Firebase:", e));
+  if (isSupabaseOnline) {
+    supabase.from("purchase_orders").delete().eq("id", orderId)
+      .catch(e => console.error("Failed to delete purchase order from Supabase:", e));
   }
   
   purchaseOrders = purchaseOrders.filter(o => o.id !== orderId);
@@ -5352,11 +5344,11 @@ window.approveBookingRequest = async function(bookingId) {
   bookings[bkIndex].status = "approved";
   localStorage.setItem("lab_bookings", JSON.stringify(bookings));
   syncBookingsToBackend();
-  if (isFirebaseOnline) {
+  if (isSupabaseOnline) {
     try {
-      await db.collection("bookings").doc(bookingId).update({ status: "approved" });
+      await supabase.from("bookings").update({ status: "approved" }).eq("id", bookingId);
     } catch (err) {
-      console.error("Firebase update failed:", err);
+      console.error("Supabase update failed:", err);
     }
   }
   showToast(`อนุมัติการจองห้อง "${getRoomThaiName(bk.room)}" เรียบร้อยแล้ว!`, "success");
@@ -5372,11 +5364,11 @@ window.rejectBookingRequest = async function(bookingId) {
     bookings[bkIndex].status = "rejected";
     localStorage.setItem("lab_bookings", JSON.stringify(bookings));
     syncBookingsToBackend();
-    if (isFirebaseOnline) {
+    if (isSupabaseOnline) {
       try {
-        await db.collection("bookings").doc(bookingId).update({ status: "rejected" });
+        await supabase.from("bookings").update({ status: "rejected" }).eq("id", bookingId);
       } catch (err) {
-        console.error("Firebase update failed:", err);
+        console.error("Supabase update failed:", err);
       }
     }
     showToast("ปฏิเสธคำขอจองห้องแล็บเรียบร้อยแล้ว", "info");
@@ -5409,11 +5401,11 @@ window.approveBorrowRequest = async function(txId) {
     transactions[txIndex].status = "borrowed";
     localStorage.setItem("lab_transactions", JSON.stringify(transactions));
     syncTransactionsToBackend();
-    if (isFirebaseOnline) {
+    if (isSupabaseOnline) {
       try {
-        await db.collection("transactions").doc(txId).update({ status: "borrowed" });
+        await supabase.from("transactions").update({ status: "borrowed" }).eq("id", txId);
       } catch (err) {
-        console.error("Firebase update failed:", err);
+        console.error("Supabase update failed:", err);
       }
     }
     showToast(`อนุมัติคำขอยืม "${tx.itemName}" เรียบร้อยแล้ว!`, "success");
@@ -5430,11 +5422,11 @@ window.rejectBorrowRequest = async function(txId) {
     transactions[txIndex].status = "rejected";
     localStorage.setItem("lab_transactions", JSON.stringify(transactions));
     syncTransactionsToBackend();
-    if (isFirebaseOnline) {
+    if (isSupabaseOnline) {
       try {
-        await db.collection("transactions").doc(txId).update({ status: "rejected" });
+        await supabase.from("transactions").update({ status: "rejected" }).eq("id", txId);
       } catch (err) {
-        console.error("Firebase update failed:", err);
+        console.error("Supabase update failed:", err);
       }
     }
     showToast("ปฏิเสธคำขอยืมเรียบร้อยแล้ว", "info");
@@ -11048,12 +11040,12 @@ function setupAdminClearHandlers() {
           items = [];
           saveItemsToLocal();
           
-          if (isFirebaseOnline) {
+          if (isSupabaseOnline) {
             for (const item of itemsToDelete) {
               try {
-                await db.collection("items").doc(item.code).delete();
+                await supabase.from("items").delete().eq("code", item.code);
               } catch (e) {
-                console.error("Firebase clear doc failed:", item.code, e);
+                console.error("Supabase clear doc failed:", item.code, e);
               }
             }
           } else if (isBackendOnline) {
@@ -11072,12 +11064,12 @@ function setupAdminClearHandlers() {
           transactions = [];
           localStorage.setItem("lab_transactions", JSON.stringify(transactions));
           
-          if (isFirebaseOnline) {
+          if (isSupabaseOnline) {
             for (const tx of txsToDelete) {
               try {
-                await db.collection("transactions").doc(tx.id).delete();
+                await supabase.from("transactions").delete().eq("id", tx.id);
               } catch (e) {
-                console.error("Firebase clear tx failed:", tx.id, e);
+                console.error("Supabase clear tx failed:", tx.id, e);
               }
             }
           } else if (isBackendOnline) {
@@ -11096,12 +11088,12 @@ function setupAdminClearHandlers() {
           bookings = [];
           localStorage.setItem("lab_bookings", JSON.stringify(bookings));
           
-          if (isFirebaseOnline) {
+          if (isSupabaseOnline) {
             for (const bk of bookingsToDelete) {
               try {
-                await db.collection("bookings").doc(bk.id).delete();
+                await supabase.from("bookings").delete().eq("id", bk.id);
               } catch (e) {
-                console.error("Firebase clear booking failed:", bk.id, e);
+                console.error("Supabase clear booking failed:", bk.id, e);
               }
             }
           } else if (isBackendOnline) {
@@ -11120,12 +11112,12 @@ function setupAdminClearHandlers() {
           purchaseOrders = [];
           localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
           
-          if (isFirebaseOnline) {
+          if (isSupabaseOnline) {
             for (const po of poToDelete) {
               try {
-                await db.collection("purchase_orders").doc(po.id).delete();
+                await supabase.from("purchase_orders").delete().eq("id", po.id);
               } catch (e) {
-                console.error("Firebase clear PO failed:", po.id, e);
+                console.error("Supabase clear PO failed:", po.id, e);
               }
             }
           } else if (isBackendOnline) {
