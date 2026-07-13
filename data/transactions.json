@@ -1,0 +1,19 @@
+[
+  {
+    "id": "tx-test-correct-12345",
+    "code": "CHEM-001",
+    "itemCode": "CHEM-001",
+    "itemName": "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
+    "qty": 1,
+    "unit": "ขวด",
+    "borrower": "สมชาย มีความรู้ (นักเรียน)",
+    "room": "Lab 1",
+    "date": "2026-07-06",
+    "slot": "คาb 3",
+    "notes": "ใช้ทำแล็บวิชาเคมี เรื่อง กรด-เบส",
+    "status": "pending",
+    "type": "borrow",
+    "timestamp": "2026-07-05T07:52:27.258Z",
+    "createdAt": "2026-07-05T07:52:27.258Z"
+  }
+]

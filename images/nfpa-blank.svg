@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <!-- Top Quadrant (Flammability - Red) -->
+  <polygon points="50,2.5 73.75,26.25 50,50 26.25,26.25" fill="#ff6666" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+  <!-- Right Quadrant (Instability - Yellow) -->
+  <polygon points="73.75,26.25 97.5,50 73.75,73.75 50,50" fill="#ffff66" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+  <!-- Bottom Quadrant (Special - White) -->
+  <polygon points="50,50 73.75,73.75 50,97.5 26.25,73.75" fill="#ffffff" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+  <!-- Left Quadrant (Health - Blue) -->
+  <polygon points="26.25,26.25 50,50 26.25,73.75 2.5,50" fill="#6699ff" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
+</svg>

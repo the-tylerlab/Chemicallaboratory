@@ -3,7 +3,7 @@
     "code": "CHEM-001",
     "name": "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
     "category": "สารเคมี",
-    "qty": 5,
+    "qty": 3,
     "unit": "ขวด",
     "minAlert": 2,
     "expiry": "2027-12-31",
@@ -29,7 +29,7 @@
     "code": "CHEM-003",
     "name": "โซเดียมไฮดรอกไซด์ (Sodium Hydroxide)",
     "category": "สารเคมี",
-    "qty": 3,
+    "qty": 2,
     "unit": "ขวด",
     "minAlert": 1,
     "expiry": "2026-04-12",
@@ -55,7 +55,8 @@
     "code": "GW-001",
     "name": "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
     "category": "เครื่องแก้ว",
-    "qty": 12,
+    "qty": 11,
+    "damagedQty": 1,
     "unit": "ชิ้น",
     "minAlert": 5,
     "expiry": "",
@@ -89,18 +90,5 @@
     "cabinet": "ตู้ B",
     "shelf": "ชั้น 1",
     "createdAt": "2026-05-18T10:45:00.000Z"
-  },
-  {
-    "code": "CHEM-200",
-    "name": "Methanol 99%",
-    "category": "สารเคมี",
-    "qty": 15,
-    "unit": "ขวด",
-    "minAlert": 2,
-    "expiry": "",
-    "room": "Lab 3",
-    "cabinet": "ตู้ A",
-    "shelf": "ชั้น 1",
-    "createdAt": "2026-05-28T12:47:16.298Z"
   }
 ]
