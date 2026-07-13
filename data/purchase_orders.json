@@ -1,0 +1,22 @@
+[
+  {
+    "id": "ord-mock-001",
+    "code": "CHEM-001",
+    "name": "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
+    "unitPrice": 350,
+    "quantity": 5,
+    "totalPrice": 1750,
+    "budget": 2000,
+    "discount": 5
+  },
+  {
+    "id": "ord-mock-002",
+    "code": "EQ-005",
+    "name": "เครื่องชั่งดิจิตอล 2 ตำแหน่ง",
+    "unitPrice": 2400,
+    "quantity": 2,
+    "totalPrice": 4800,
+    "budget": 5000,
+    "discount": 10
+  }
+]
