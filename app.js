@@ -4293,11 +4293,19 @@ function setupPurchaseOrders() {
       annualBudget = newBudget;
       localStorage.setItem("lab_annual_budget", annualBudget.toString());
       syncBudgetToBackend();
-      containerAnnualBudget.style.display = "flex";
+      
+      // Hide form FIRST to guarantee it closes even if updateUI crashes
       annualBudgetEditForm.style.display = "none";
+      containerAnnualBudget.style.display = "flex";
       showToast("แก้ไขงบประมาณประจำปีสำเร็จ", "success");
-      updateUI();
-      if (typeof updateBudgetUI === "function") updateBudgetUI();
+      
+      try {
+        if (typeof updateBudgetUI === "function") updateBudgetUI();
+      } catch (e) { console.error("Error in updateBudgetUI:", e); }
+      
+      try {
+        updateUI();
+      } catch (e) { console.error("Error in updateUI:", e); }
     });
   }
 
