@@ -327,14 +327,9 @@ async function loadAllItems() {
         console.log("🔥 Loaded " + items.length + " items from Supabase Cloud Firestore.");
         return;
       } else {
-        // Seed Firestore if empty
-        console.log("🔥 Firestore collection is empty. Seeding with DEMO_DATA...");
-        const batch = db.batch();
-        DEMO_DATA.forEach(item => {
-          const docRef = db.collection("items").doc(item.code);
-          batch.set(docRef, item);
-        });
-        await batch.commit();
+        // Seed Supabase if empty
+        console.log("🔥 Supabase collection is empty. Seeding with DEMO_DATA...");
+        await supabase.from("items").insert(DEMO_DATA);
         items = [...DEMO_DATA];
         return;
       }
@@ -1968,19 +1963,12 @@ async function parseCSVAndImport(csvText) {
     try {
       let importedCount = 0;
       
-      // Perform batch writes in chunks of 500 (Firestore batch size limit)
+      // Perform batch writes in chunks of 500
       const batchLimit = 500;
       for (let i = 0; i < importList.length; i += batchLimit) {
         const chunk = importList.slice(i, i + batchLimit);
-        const batch = db.batch();
-        
-        chunk.forEach(newItem => {
-          const docRef = db.collection("items").doc(newItem.code);
-          batch.set(docRef, newItem);
-          importedCount++;
-        });
-        
-        await batch.commit();
+        await supabase.from("items").upsert(chunk);
+        importedCount += chunk.length;
       }
       
       await loadAllItems();
@@ -2076,6 +2064,21 @@ function setupDashboardCards() {
 // Load transactions from Supabase or LocalStorage
 async function loadAllTransactions() {
   const defaultTrans = [
+    {
+      id: "tx-mock-pending-001",
+      itemCode: "EQ-001",
+      itemName: "เครื่องชั่งดิจิตอล 4 ตำแหน่ง (Digital Balance)",
+      qty: 1,
+      borrower: "ด.ช. ทดสอบ ระบบ",
+      date: new Date().toISOString().split('T')[0],
+      type: "borrow",
+      status: "pending",
+      notes: "ขอยืมไปใช้ในโครงงานวิทยาศาสตร์",
+      expectedReturnDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      room: "Lab 1",
+      supervisingTeacher: "อาจารย์ทดสอบ",
+      createdAt: new Date().toISOString()
+    },
     {
       id: "tx-mock-001",
       itemCode: "CHEM-001",
@@ -2199,13 +2202,8 @@ async function loadAllTransactions() {
         return;
       } else {
         // Seed Supabase if empty
-        const batch = db.batch();
-        defaultTrans.forEach(demoTx => {
-          transactions.push(demoTx);
-          const docRef = db.collection("transactions").doc(demoTx.id);
-          batch.set(docRef, demoTx);
-        });
-        await batch.commit();
+        defaultTrans.forEach(demoTx => transactions.push(demoTx));
+        await supabase.from("transactions").insert(defaultTrans);
         console.log("🔥 Seeded default transactions to Supabase.");
         return;
       }
@@ -3149,6 +3147,20 @@ window.returnBorrowedItem = async function(transId) {
 async function loadAllBookings() {
   const defaultBookings = [
     {
+      id: "book_mock_pending_001",
+      room: "Lab 2",
+      date: new Date().toISOString().split('T')[0],
+      slot: "6, 7",
+      bookerName: "นางสาวสมหญิง ทดสอบจอง",
+      purpose: "เพื่อทดสอบการทำปฏิกิริยาเคมีเบื้องต้น",
+      prepItems: [
+        { code: "CHEM-002", qty: 1 },
+        { code: "GW-001", qty: 2 }
+      ],
+      status: "pending",
+      createdAt: new Date().toISOString()
+    },
+    {
       id: "book_mock_001",
       room: "Lab 1",
       date: new Date().toISOString().split('T')[0],
@@ -3247,13 +3259,8 @@ async function loadAllBookings() {
         return;
       } else {
         // Seed Supabase if empty
-        const batch = db.batch();
-        defaultBookings.forEach(demoBk => {
-          bookings.push(demoBk);
-          const docRef = db.collection("bookings").doc(demoBk.id);
-          batch.set(docRef, demoBk);
-        });
-        await batch.commit();
+        defaultBookings.forEach(demoBk => bookings.push(demoBk));
+        await supabase.from("bookings").insert(defaultBookings);
         console.log("🔥 Seeded default bookings to Supabase.");
         injectTestBookings();
         return;
@@ -4016,12 +4023,7 @@ async function loadPurchaseOrders() {
         localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
         return;
       } else {
-        const batch = db.batch();
-        defaultOrders.forEach(o => {
-          const docRef = db.collection("purchase_orders").doc(o.id);
-          batch.set(docRef, o);
-        });
-        await batch.commit();
+        await supabase.from("purchase_orders").insert(defaultOrders);
         purchaseOrders = [...defaultOrders];
         localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
         return;
