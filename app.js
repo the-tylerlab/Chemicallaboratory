@@ -3873,9 +3873,25 @@ window.cancelBookingRecord = async function(bookingId) {
 
 // Sync functions to persist local changes to database server
 function syncBudgetToBackend() {
+  window.isSavingBudget = true;
   if (isSupabaseOnline) {
     supabase.from("system").upsert({ key: "budget", value: { budget: annualBudget } })
-      .catch(e => console.error("Failed to sync budget to Supabase:", e));
+      .then(({ data, error }) => {
+        window.isSavingBudget = false;
+        if (error) {
+          console.error("Supabase upsert error:", error);
+          showToast("ไม่สามารถอัปเดตข้อมูลบนเซิร์ฟเวอร์ได้: " + error.message, "error");
+        } else {
+          console.log("Budget synced to Supabase successfully.");
+        }
+      })
+      .catch(e => {
+        window.isSavingBudget = false;
+        console.error("Failed to sync budget to Supabase:", e);
+        showToast("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
+      });
+  } else {
+    window.isSavingBudget = false;
   }
   if (isBackendOnline) {
     fetch(`${API_BASE}/budget`, {
@@ -4082,6 +4098,8 @@ async function loadPurchaseOrders() {
 
 // Background synchronization for budget and purchase orders (multi-admin sync)
 async function syncBudgetInRealtime() {
+  if (window.isSavingBudget) return; // Prevent overwriting while saving
+  
   let changed = false;
 
   // 1. Sync Budget
@@ -4285,16 +4303,26 @@ function setupPurchaseOrders() {
 
   if (btnSaveAnnualBudget && containerAnnualBudget && annualBudgetEditForm && txtAnnualBudget) {
     btnSaveAnnualBudget.addEventListener("click", () => {
-      const newBudget = parseFloat(txtAnnualBudget.value);
-      if (isNaN(newBudget) || newBudget < 0) {
-        showToast("กรุณากรอกงบประมาณที่ถูกต้อง", "error");
-        return;
+      try {
+        const newBudget = parseFloat(txtAnnualBudget.value);
+        if (isNaN(newBudget) || newBudget < 0) {
+          showToast("กรุณากรอกงบประมาณที่ถูกต้อง", "error");
+          return;
+        }
+        annualBudget = newBudget;
+        localStorage.setItem("lab_annual_budget", annualBudget.toString());
+        
+        try {
+          syncBudgetToBackend();
+        } catch (syncErr) {
+          console.error("Sync error:", syncErr);
+        }
+        
+      } catch (mainErr) {
+        console.error("Main logic error:", mainErr);
       }
-      annualBudget = newBudget;
-      localStorage.setItem("lab_annual_budget", annualBudget.toString());
-      syncBudgetToBackend();
       
-      // Hide form FIRST to guarantee it closes even if updateUI crashes
+      // ALWAYs hide form, no matter what
       annualBudgetEditForm.style.display = "none";
       containerAnnualBudget.style.display = "flex";
       showToast("แก้ไขงบประมาณประจำปีสำเร็จ", "success");
