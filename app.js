@@ -3903,12 +3903,23 @@ function syncBudgetToBackend() {
 }
 
 function syncPurchaseOrdersToBackend() {
+  window.isSavingPurchaseOrders = true;
   if (isSupabaseOnline) {
-    purchaseOrders.forEach(o => {
-      supabase.from("purchase_orders").upsert(o)
-        .catch(e => console.error("Failed to sync purchase order to Supabase:", e));
+    let promises = purchaseOrders.map(o => {
+      return supabase.from("purchase_orders").upsert(o).then(({error}) => {
+        if (error) {
+          console.error("Supabase upsert PO error:", error);
+          showToast("ไม่สามารถบันทึกรายการสั่งซื้อ: " + error.message, "error");
+        }
+      }).catch(e => console.error("Failed to sync purchase order:", e));
     });
+    Promise.all(promises).finally(() => {
+      setTimeout(() => { window.isSavingPurchaseOrders = false; }, 2000);
+    });
+  } else {
+    setTimeout(() => { window.isSavingPurchaseOrders = false; }, 2000);
   }
+  
   if (isBackendOnline) {
     fetch(`${API_BASE}/purchase-orders`, {
       method: 'POST',
@@ -4135,35 +4146,37 @@ async function syncBudgetInRealtime() {
   }
 
   // 2. Sync Purchase Orders
-  if (isSupabaseOnline) {
-    try {
-      const { data, error } = await supabase.from("purchase_orders").select('*');
-      if (error) throw error;
-      const loadedOrders = [];
-      (data || []).forEach(d => {
-        if (d && d.id) loadedOrders.push(d);
-      });
-      if (loadedOrders.length !== purchaseOrders.length || JSON.stringify(loadedOrders) !== JSON.stringify(purchaseOrders)) {
-        purchaseOrders = loadedOrders;
-        localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
-        changed = true;
-      }
-    } catch (e) {
-      console.error("Supabase purchase orders sync failed:", e);
-    }
-  } else if (isBackendOnline) {
-    try {
-      const response = await fetch(`${API_BASE}/purchase-orders`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.length !== purchaseOrders.length || JSON.stringify(data) !== JSON.stringify(purchaseOrders)) {
-          purchaseOrders = data;
+  if (!window.isSavingPurchaseOrders) {
+    if (isSupabaseOnline) {
+      try {
+        const { data, error } = await supabase.from("purchase_orders").select('*');
+        if (error) throw error;
+        const loadedOrders = [];
+        (data || []).forEach(d => {
+          if (d && d.id) loadedOrders.push(d);
+        });
+        if (loadedOrders.length !== purchaseOrders.length || JSON.stringify(loadedOrders) !== JSON.stringify(purchaseOrders)) {
+          purchaseOrders = loadedOrders;
           localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
           changed = true;
         }
+      } catch (e) {
+        console.error("Supabase purchase orders sync failed:", e);
       }
-    } catch (e) {
-      console.error("Backend purchase orders sync failed:", e);
+    } else if (isBackendOnline) {
+      try {
+        const response = await fetch(`${API_BASE}/purchase-orders`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.length !== purchaseOrders.length || JSON.stringify(data) !== JSON.stringify(purchaseOrders)) {
+            purchaseOrders = data;
+            localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+            changed = true;
+          }
+        }
+      } catch (e) {
+        console.error("Backend purchase orders sync failed:", e);
+      }
     }
   }
 
@@ -4629,9 +4642,20 @@ function renderOrdersTable() {
 window.deletePurchaseOrder = function(orderId) {
   if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้?")) return;
   
+  window.isSavingPurchaseOrders = true;
   if (isSupabaseOnline) {
     supabase.from("purchase_orders").delete().eq("id", orderId)
-      .catch(e => console.error("Failed to delete purchase order from Supabase:", e));
+      .then(({error}) => {
+        if (error) {
+          showToast("ไม่สามารถลบข้อมูลบนเซิร์ฟเวอร์: " + error.message, "error");
+        }
+      })
+      .catch(e => console.error("Failed to delete purchase order from Supabase:", e))
+      .finally(() => {
+        setTimeout(() => { window.isSavingPurchaseOrders = false; }, 2000);
+      });
+  } else {
+    setTimeout(() => { window.isSavingPurchaseOrders = false; }, 2000);
   }
   
   purchaseOrders = purchaseOrders.filter(o => o.id !== orderId);
