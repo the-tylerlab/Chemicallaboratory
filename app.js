@@ -2606,7 +2606,7 @@ function setupBorrowForm() {
             borrowRoomSelect.disabled = true;
           }
           if (borrowSlotSelect) {
-            const slotMatch = booking.slot.match(/คาบ \d+|พักกลางวัน/);
+            const slotMatch = booking.slot ? booking.slot.match(/คาบ \d+|พักกลางวัน/) : null;
             borrowSlotSelect.value = slotMatch ? slotMatch[0] : "None";
             borrowSlotSelect.disabled = true;
           }
@@ -3437,7 +3437,7 @@ function renderBookingSlots() {
   let html = "";
   BOOKING_SLOTS.forEach(slot => {
     // Check if slot is booked
-    const slotBooking = activeBookings.find(b => b.slot.split(", ").includes(slot));
+    const slotBooking = activeBookings.find(b => b.slot && typeof b.slot === "string" && b.slot.split(", ").includes(slot));
     const isBooked = !!slotBooking;
     const isSelected = selectedSlots.includes(slot);
 
@@ -3612,7 +3612,7 @@ function setupBookingForm() {
     // Defensive double-booking check (check if any of the selected slots are already booked or pending approval)
     const isAlreadyBooked = bookings.some(b => {
       if (b.room !== room || b.date !== date || (b.status !== "approved" && b.status !== "pending")) return false;
-      const bookedSlots = b.slot.split(", ");
+      const bookedSlots = b.slot && typeof b.slot === "string" ? b.slot.split(", ") : [];
       return slotsToBook.some(s => bookedSlots.includes(s));
     });
 
@@ -4297,6 +4297,16 @@ function setupPurchaseOrders() {
       annualBudgetEditForm.style.display = "none";
       showToast("แก้ไขงบประมาณประจำปีสำเร็จ", "success");
       updateUI();
+      if (typeof updateBudgetUI === "function") updateBudgetUI();
+    });
+  }
+
+  // Allow pressing Enter to save budget
+  if (txtAnnualBudget && btnSaveAnnualBudget) {
+    txtAnnualBudget.addEventListener("keyup", (e) => {
+      if (e.key === "Enter") {
+        btnSaveAnnualBudget.click();
+      }
     });
   }
 
