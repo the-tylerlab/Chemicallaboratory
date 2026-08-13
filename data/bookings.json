@@ -1,13 +1,168 @@
 [
   {
-    "id": "bk-test-correct-12345",
-    "room": "Lab 1",
-    "date": "2026-07-06",
-    "slot": "คาบ 3, คาบ 4",
-    "bookerName": "สมชาย มีความรู้ (นักเรียน)",
-    "purpose": "ทดสอบการทำแล็บวิเคราะห์กรดเบส",
+    "id": "book_mock_pending_001",
+    "room": "Lab 2",
+    "date": "2026-07-13",
+    "slot": "6, 7",
+    "bookerName": "นางสาวสมหญิง ทดสอบจอง",
+    "purpose": "เพื่อทดสอบการทำปฏิกิริยาเคมีเบื้องต้น",
+    "prepItems": [
+      {
+        "qty": 1,
+        "code": "CHEM-002"
+      },
+      {
+        "qty": 2,
+        "code": "GW-001"
+      }
+    ],
     "status": "pending",
-    "createdAt": "2026-07-05T07:52:27.258Z",
-    "prepItems": []
+    "createdAt": "2026-07-13T14:12:05.188Z"
+  },
+  {
+    "id": "book_mock_001",
+    "room": "Lab 1",
+    "date": "2026-07-13",
+    "slot": "3",
+    "bookerName": "นายสมชาย เรียนดี",
+    "purpose": "เพื่อทดสอบกระบวนการทำแล็บเคมีเบื้องต้น",
+    "prepItems": [
+      {
+        "qty": 2,
+        "code": "CHEM-001"
+      }
+    ],
+    "status": "approved",
+    "createdAt": "2026-07-13T14:12:05.188Z"
+  },
+  {
+    "id": "book_mock_002",
+    "room": "Lab 2",
+    "date": "2026-07-14",
+    "slot": "4, 5",
+    "bookerName": "นางสาวสมหญิง ใจดี",
+    "purpose": "ทดลองเรื่องกลศาสตร์แรงและการหมุน",
+    "prepItems": [
+      {
+        "qty": 1,
+        "code": "CHEM-003"
+      }
+    ],
+    "status": "approved",
+    "createdAt": "2026-07-13T14:12:05.188Z"
+  },
+  {
+    "id": "book_mock_003",
+    "room": "Lab 3",
+    "date": "2026-07-15",
+    "slot": "1, 2",
+    "bookerName": "นายมานะ ขยันเรียน",
+    "purpose": "ศึกษาการดูดจ่ายสารเคมีและเซลล์พืชด้วยกล้องจุลทรรศน์",
+    "prepItems": [
+      {
+        "qty": 2,
+        "code": "GW-002"
+      }
+    ],
+    "status": "approved",
+    "createdAt": "2026-07-13T14:12:05.188Z"
+  },
+  {
+    "id": "book_mock_004",
+    "room": "Lab 1",
+    "date": "2026-07-16",
+    "slot": "5, 6",
+    "bookerName": "นางสาววิภา ใฝ่เรียน",
+    "purpose": "สกัดคลอโรฟิลล์เพื่อวัดอัตราการสังเคราะห์แสง",
+    "prepItems": [
+      {
+        "qty": 1,
+        "code": "CHEM-002"
+      }
+    ],
+    "status": "pending",
+    "createdAt": "2026-07-13T14:12:05.188Z"
+  },
+  {
+    "id": "book_mock_005",
+    "room": "Lab 2",
+    "date": "2026-07-11",
+    "slot": "3",
+    "bookerName": "นายชูชาติ รักชาติ",
+    "purpose": "ทดสอบแรงลอยตัวและกระแสไฟฟ้าเบื้องต้น",
+    "prepItems": [
+      {
+        "qty": 1,
+        "code": "EQ-001"
+      }
+    ],
+    "status": "approved",
+    "createdAt": "2026-07-11T14:12:05.188Z"
+  },
+  {
+    "id": "book_1783951939965_vynza",
+    "room": "Lab 4",
+    "date": "2026-07-13",
+    "slot": "คาบ 6: 13:20 - 14:10, คาบ 7: 14:10 - 15:00",
+    "bookerName": "Wongsakorn",
+    "purpose": "The",
+    "prepItems": [],
+    "status": "pending",
+    "createdAt": "2026-07-13T14:12:19.965Z"
+  },
+  {
+    "id": "book_1783951959439_qyd4z",
+    "room": "Lab 4",
+    "date": "2026-07-13",
+    "slot": "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
+    "bookerName": "Wongsakorn",
+    "purpose": "I",
+    "prepItems": [],
+    "status": "rejected",
+    "createdAt": "2026-07-13T14:12:39.439Z"
+  },
+  {
+    "id": "test_booking_001",
+    "room": "Lab 1",
+    "date": "2026-07-08",
+    "slot": "1, 2",
+    "bookerName": "อ.สมศักดิ์ รักเรียน",
+    "purpose": "การไทเทรตหาความเข้มข้นของสารละลายกรด-เบส",
+    "prepItems": [],
+    "status": "approved",
+    "createdAt": "2026-07-13T14:12:42.178Z"
+  },
+  {
+    "id": "test_booking_002",
+    "room": "Lab 2",
+    "date": "2026-07-08",
+    "slot": "3, 4",
+    "bookerName": "อ.วีระ ชนะศึก",
+    "purpose": "การวัดสนามแม่เหล็กและการทดลองวงจรไฟฟ้า",
+    "prepItems": [],
+    "status": "approved",
+    "createdAt": "2026-07-13T14:12:42.178Z"
+  },
+  {
+    "id": "test_booking_003",
+    "room": "Lab 3",
+    "date": "2026-07-08",
+    "slot": "5, 6",
+    "bookerName": "อ.สิริมา นามดี",
+    "purpose": "ศึกษากระบวนการแบ่งเซลล์พืชและการส่องกล้องจุลทรรศน์",
+    "prepItems": [],
+    "status": "approved",
+    "createdAt": "2026-07-13T14:12:42.178Z"
+  },
+  {
+    "id": "test_booking_004",
+    "room": "Lab 7",
+    "date": "2026-07-08",
+    "slot": "7, 8",
+    "bookerName": "อ.พรเทพ เกียรติดี",
+    "purpose": "คลาส STEM: การจำลองการทำงานและต่อระบบเซนเซอร์",
+    "prepItems": [],
+    "status": "approved",
+    "createdAt": "2026-07-13T14:12:42.178Z"
   }
 ]

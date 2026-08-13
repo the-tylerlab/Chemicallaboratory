@@ -325,12 +325,18 @@ async function loadAllItems() {
       if (loadedItems.length > 0) {
         items = loadedItems;
         console.log("🔥 Loaded " + items.length + " items from Supabase Cloud Firestore.");
+        localStorage.setItem("has_seeded_items", "true");
         return;
       } else {
-        // Seed Supabase if empty
-        console.log("🔥 Supabase collection is empty. Seeding with DEMO_DATA...");
-        await supabase.from("items").insert(DEMO_DATA);
-        items = [...DEMO_DATA];
+        if (!localStorage.getItem("has_seeded_items")) {
+          // Seed Supabase if empty
+          console.log("🔥 Supabase collection is empty. Seeding with DEMO_DATA...");
+          await supabase.from("items").insert(DEMO_DATA);
+          items = [...DEMO_DATA];
+          localStorage.setItem("has_seeded_items", "true");
+        } else {
+          items = [];
+        }
         return;
       }
     } catch (err) {
@@ -4048,11 +4054,18 @@ async function loadPurchaseOrders() {
       if (loadedOrders.length > 0) {
         purchaseOrders = loadedOrders;
         localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+        localStorage.setItem("has_seeded_po", "true");
         return;
       } else {
-        await supabase.from("purchase_orders").insert(defaultOrders);
-        purchaseOrders = [...defaultOrders];
-        localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+        if (!localStorage.getItem("has_seeded_po")) {
+          await supabase.from("purchase_orders").insert(defaultOrders);
+          purchaseOrders = [...defaultOrders];
+          localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+          localStorage.setItem("has_seeded_po", "true");
+        } else {
+          purchaseOrders = [];
+          localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+        }
         return;
       }
     } catch (e) {
@@ -4596,10 +4609,10 @@ function renderOrdersTable() {
         ${isBackoffice ? `
           <td data-label="จัดการ" style="text-align: center; white-space: nowrap;">
             <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
-              <button class="action-icon-btn edit" onclick="editPurchaseOrder('${order.id}')" title="แก้ไขรายการสั่งซื้อ" style="color: var(--primary-purple); background: rgba(139, 92, 246, 0.1); border: none; padding: 6px; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;" onmouseover="this.style.background='rgba(139, 92, 246, 0.25)';" onmouseout="this.style.background='rgba(139, 92, 246, 0.1)';">
+              <button class="action-icon-btn edit" onclick="editPurchaseOrder('${order.id}')" title="แก้ไขรายการสั่งซื้อ" style="color: var(--primary-purple); background: rgba(139, 92, 246, 0.1); border: none; padding: 6px; border-radius: 4px; cursor: pointer; transition: background-color var(--transition-fast); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;" onmouseover="this.style.background='rgba(139, 92, 246, 0.25)';" onmouseout="this.style.background='rgba(139, 92, 246, 0.1)';">
                 <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
               </button>
-              <button class="action-icon-btn delete" onclick="deletePurchaseOrder('${order.id}')" title="ลบรายการสั่งซื้อ" style="color: var(--accent-red); background: rgba(239, 68, 68, 0.1); border: none; padding: 6px; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)';">
+              <button class="action-icon-btn delete" onclick="deletePurchaseOrder('${order.id}')" title="ลบรายการสั่งซื้อ" style="color: var(--accent-red); background: rgba(239, 68, 68, 0.1); border: none; padding: 6px; border-radius: 4px; cursor: pointer; transition: background-color var(--transition-fast); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)';">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
               </button>
             </div>
@@ -4727,16 +4740,25 @@ function updateLoginUI() {
   // Redirect if on admin panel or purchase orders panel and not backoffice
   if (!isBackoffice) {
     const activePanel = document.querySelector(".panel.active");
-    if (activePanel && (activePanel.id === "panel-add-item" || activePanel.id === "panel-purchase-orders" || activePanel.id === "panel-reports")) {
+    if (activePanel && (activePanel.id === "panel-add-item" || activePanel.id === "panel-purchase-orders" || activePanel.id === "panel-reports" || activePanel.id === "panel-admin")) {
       navigateToPanel("dashboard");
     }
   }
 
-  // Show/Hide Admin-Only navigation items
+  // Redirect non-admins away from admin panel
+  if (userRole !== "admin") {
+    const activePanel = document.querySelector(".panel.active");
+    if (activePanel && activePanel.id === "panel-admin") {
+      navigateToPanel("dashboard");
+    }
+  }
+
   const menuItemAddItem = document.getElementById("menuItemAddItem");
   const menuItemImport = document.getElementById("menuItemImport");
   const menuItemPurchaseOrders = document.getElementById("menuItemPurchaseOrders");
   const menuItemReports = document.getElementById("menuItemReports");
+  const menuItemAdmin = document.getElementById("menuItemAdmin");
+  
   if (menuItemAddItem) {
     menuItemAddItem.style.display = "block";
   }
@@ -4748,6 +4770,9 @@ function updateLoginUI() {
   }
   if (menuItemReports) {
     menuItemReports.style.display = isBackoffice ? "block" : "none";
+  }
+  if (menuItemAdmin) {
+    menuItemAdmin.style.display = (userRole === "admin") ? "block" : "none";
   }
   
   // Update role switcher toggle state visual representation
@@ -5323,7 +5348,7 @@ function renderPendingRequests() {
     }
 
     html += `
-      <div class="pending-request-item" style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: all var(--transition-fast);">
+      <div class="pending-request-item" style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; cursor: pointer;" onclick="togglePendingRequestDetails(this)">
           <div>
             <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 5px;">
@@ -5361,7 +5386,7 @@ function renderPendingRequests() {
   // Render pending equipment borrows
   filteredTx.forEach(tx => {
     html += `
-      <div class="pending-request-item" style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: all var(--transition-fast);">
+      <div class="pending-request-item" style="display: flex; flex-direction: column; gap: 6px; padding: 10px; background-color: rgba(139, 92, 246, 0.03); border: 1px solid rgba(139, 92, 246, 0.12); border-radius: var(--border-radius-md); font-size: 12px; transition: background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; cursor: pointer;" onclick="togglePendingRequestDetails(this)">
           <div>
             <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 5px;">
@@ -7328,7 +7353,7 @@ function setupWasteClassificationWizard() {
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px;">
           ${choices.map((choice) => `
-            <button type="button" class="waste-choice-btn" data-next="${choice.next}" style="text-align: left; background: #ffffff; border: 1px solid var(--border-color); padding: 12px 16px; border-radius: var(--border-radius-sm); font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; transition: all 0.2s ease; font-family: 'Prompt', sans-serif;">
+            <button type="button" class="waste-choice-btn" data-next="${choice.next}" style="text-align: left; background: #ffffff; border: 1px solid var(--border-color); padding: 12px 16px; border-radius: var(--border-radius-sm); font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; transition: background-color var(--transition-fast), border-color var(--transition-fast); font-family: 'Prompt', sans-serif;">
               ${choice.label}
             </button>
           `).join("")}
@@ -11890,5 +11915,28 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+// ==========================================
+// ADMIN PANEL TAB SWITCHING LOGIC
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  const adminMenuItems = document.querySelectorAll(".admin-menu-item");
+  const adminTabs = document.querySelectorAll(".admin-tab");
 
+  adminMenuItems.forEach(item => {
+    item.addEventListener("click", () => {
+      // Remove active class from all items
+      adminMenuItems.forEach(menuItem => menuItem.classList.remove("active"));
+      item.classList.add("active");
 
+      // Hide all tabs
+      adminTabs.forEach(tab => tab.style.display = "none");
+      
+      // Show the selected tab
+      const targetTabId = item.getAttribute("data-tab");
+      const targetTab = document.getElementById(targetTabId);
+      if (targetTab) {
+        targetTab.style.display = "block";
+      }
+    });
+  });
+});
