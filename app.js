@@ -4243,6 +4243,8 @@ function setupPurchaseOrders() {
  
       const code = document.getElementById("poProductCode").value.trim();
       const name = document.getElementById("poProductName").value.trim();
+      const academicYear = document.getElementById("poAcademicYear").value.trim() || "2567";
+      const semester = document.getElementById("poSemester").value || "1";
       const unitPrice = parseFloat(document.getElementById("poUnitPrice").value) || 0;
       const quantity = parseInt(document.getElementById("poQuantity").value) || 1;
       const discount = parseFloat(document.getElementById("poDiscount").value) || 0;
@@ -4257,6 +4259,8 @@ function setupPurchaseOrders() {
             ...oldOrder,
             code,
             name,
+            academicYear,
+            semester,
             unitPrice,
             quantity,
             totalPrice,
@@ -4291,6 +4295,8 @@ function setupPurchaseOrders() {
         id: "draft-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
         code,
         name,
+        academicYear,
+        semester,
         unitPrice,
         quantity,
         totalPrice,
@@ -4309,6 +4315,12 @@ function setupPurchaseOrders() {
       if (firstInput) firstInput.focus();
     });
   }
+
+  // Setup PO Filters
+  const filterPoYear = document.getElementById("filterPoYear");
+  const filterPoSemester = document.getElementById("filterPoSemester");
+  if (filterPoYear) filterPoYear.addEventListener("change", renderOrdersTable);
+  if (filterPoSemester) filterPoSemester.addEventListener("change", renderOrdersTable);
 
   // Setup Budget Inline Editor
   const btnEditAnnualBudget = document.getElementById("btnEditAnnualBudget");
@@ -4577,12 +4589,36 @@ function renderOrdersTable() {
   const actionHeaders = document.querySelectorAll(".po-action-header");
   actionHeaders.forEach(th => th.style.display = isBackoffice ? "" : "none");
 
+  // Setup dynamic year filter options
+  const filterPoYear = document.getElementById("filterPoYear");
+  if (filterPoYear && purchaseOrders.length > 0) {
+    const currentVal = filterPoYear.value;
+    const years = [...new Set(purchaseOrders.map(o => o.academicYear).filter(Boolean))].sort((a, b) => b - a);
+    let optionsHtml = `<option value="all">ทุกปีการศึกษา</option>`;
+    years.forEach(y => {
+      optionsHtml += `<option value="${y}">${y}</option>`;
+    });
+    filterPoYear.innerHTML = optionsHtml;
+    filterPoYear.value = currentVal; // Restore selection if it exists
+    if (!filterPoYear.value) filterPoYear.value = "all";
+  }
+
+  let filteredOrders = purchaseOrders;
+  if (filterPoYear && filterPoYear.value !== "all") {
+    filteredOrders = filteredOrders.filter(o => o.academicYear === filterPoYear.value);
+  }
+  
+  const filterPoSemester = document.getElementById("filterPoSemester");
+  if (filterPoSemester && filterPoSemester.value !== "all") {
+    filteredOrders = filteredOrders.filter(o => String(o.semester) === String(filterPoSemester.value));
+  }
+
   let html = "";
   let totalBeforeDiscount = 0;
   let totalDiscountAmount = 0;
   let grandTotal = 0;
 
-  purchaseOrders.forEach(order => {
+  filteredOrders.forEach(order => {
     const rawTotal = order.unitPrice * order.quantity;
     const discountPercent = typeof order.discount === 'number' ? order.discount : 0;
     const discountAmt = rawTotal * (discountPercent / 100);
@@ -4602,6 +4638,7 @@ function renderOrdersTable() {
       <tr>
         <td data-label="รหัสสินค้า" style="font-weight: 500;"><span style="font-family: monospace;">${escapeHTML(order.code)}</span></td>
         <td data-label="ชื่อสินค้า">${escapeHTML(order.name)}</td>
+        <td data-label="ปี/เทอม" style="text-align: center;">${escapeHTML(order.academicYear || "-")} / ${escapeHTML(order.semester || "-")}</td>
         <td data-label="ราคา/หน่วย" style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         <td data-label="จำนวน" style="text-align: center;">${order.quantity}</td>
         <td data-label="ราคารวม" style="text-align: right; font-weight: 600;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -4687,6 +4724,8 @@ window.editPurchaseOrder = function(orderId) {
   
   document.getElementById("poProductCode").value = order.code || "";
   document.getElementById("poProductName").value = order.name || "";
+  document.getElementById("poAcademicYear").value = order.academicYear || "";
+  document.getElementById("poSemester").value = order.semester || "1";
   document.getElementById("poUnitPrice").value = order.unitPrice || 0;
   document.getElementById("poQuantity").value = order.quantity || 1;
   document.getElementById("poDiscount").value = order.discount || 0;
@@ -11939,4 +11978,275 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
+});
+
+// ==========================================
+// ADMIN PANEL LOGIC (DYNAMIC)
+// ==========================================
+
+let adminUsers = [];
+let adminAuditLogs = [];
+
+// Load all admin data
+async function loadAdminData() {
+  try {
+    const resUsers = await fetch('/api/users');
+    if (resUsers.ok) adminUsers = await resUsers.json();
+    
+    const resAudit = await fetch('/api/audit-logs');
+    if (resAudit.ok) adminAuditLogs = await resAudit.json();
+    
+    renderAdminUsers();
+    renderAuditLogs();
+    updateAdminStats();
+  } catch (err) {
+    console.error("Failed to load admin data:", err);
+  }
+}
+
+function renderAdminUsers() {
+  const tbody = document.getElementById("adminUsersTableBody");
+  if (!tbody) return;
+  
+  tbody.innerHTML = "";
+  
+  adminUsers.forEach(user => {
+    const roleBadge = user.role === 'admin' 
+      ? '<span class="badge badge-purple" style="font-size: 12px; padding: 2px 8px; border-radius: 12px;">แอดมิน</span>'
+      : '<span class="badge" style="background:#dbeafe; color:#1e40af; font-size: 12px; padding: 2px 8px; border-radius: 12px;">สมาชิก</span>';
+      
+    const tr = document.createElement("tr");
+    tr.style.borderBottom = "1px solid var(--border-color)";
+    tr.innerHTML = `
+      <td style="padding: 12px 16px; display: flex; align-items: center; gap: 8px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:${user.color || '#3b82f6'};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;">${user.initials || 'U'}</div>
+        ${user.name}
+      </td>
+      <td style="padding: 12px 16px; color: var(--text-muted);">${user.email}</td>
+      <td style="padding: 12px 16px;">${roleBadge}</td>
+      <td style="padding: 12px 16px;">
+        <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: white; border: 1px solid var(--border-color); cursor: pointer; padding: 4px 8px; border-radius: 4px;">แก้ไข</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderAuditLogs() {
+  const container = document.getElementById("adminAuditList");
+  if (!container) return;
+  
+  container.innerHTML = "";
+  
+  if (adminAuditLogs.length === 0) {
+    container.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-muted);">ไม่มีบันทึกกิจกรรม</div>';
+    return;
+  }
+  
+  adminAuditLogs.forEach(log => {
+    const date = new Date(log.timestamp);
+    const dateStr = date.toLocaleDateString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    
+    const div = document.createElement("div");
+    div.style.padding = "12px 16px";
+    div.style.borderBottom = "1px solid var(--border-color)";
+    div.style.display = "flex";
+    div.style.gap = "16px";
+    div.style.alignItems = "flex-start";
+    div.style.background = "white";
+    
+    div.innerHTML = `
+      <div style="color: var(--text-muted); font-size: 12px; width: 120px; flex-shrink: 0;">${dateStr}</div>
+      <div>
+        <div style="font-weight: 500;">${log.action}</div>
+        <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">${log.details} <br><small>โดย: ${log.user || 'System'}</small></div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function updateAdminStats() {
+  const usersCount = document.getElementById("adminUsersCount");
+  const bookingsCount = document.getElementById("adminBookingsCount");
+  const storageCount = document.getElementById("adminStorageCount");
+  
+  if (usersCount) usersCount.innerText = adminUsers.length;
+  // Get bookings count from existing global state 'bookings'
+  if (bookingsCount && typeof bookings !== 'undefined') bookingsCount.innerText = bookings.length;
+  // Mock storage 
+  if (storageCount) {
+    const usage = Math.floor(Math.random() * 20) + 30; // Random 30-50%
+    storageCount.innerText = usage + "%";
+  }
+}
+
+// LOG ACTION HELPER
+async function logAuditAction(action, details) {
+  try {
+    await fetch('/api/audit-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action,
+        details,
+        user: "Admin (Current User)"
+      })
+    });
+    // Reload silently
+    const resAudit = await fetch('/api/audit-logs');
+    if (resAudit.ok) adminAuditLogs = await resAudit.json();
+    renderAuditLogs();
+  } catch (err) {
+    console.error("Audit log failed", err);
+  }
+}
+
+// INVITE USER
+function openInviteUserModal() {
+  document.getElementById("modalInviteUser").style.display = "flex";
+  document.getElementById("formInviteUser").reset();
+}
+
+function closeInviteUserModal() {
+  document.getElementById("modalInviteUser").style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const formInviteUser = document.getElementById("formInviteUser");
+  if (formInviteUser) {
+    formInviteUser.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("inviteUserName").value;
+      const email = document.getElementById("inviteUserEmail").value;
+      const role = document.getElementById("inviteUserRole").value;
+      
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, role })
+        });
+        
+        if (res.ok) {
+          showToast("ส่งคำเชิญสำเร็จ", "success");
+          closeInviteUserModal();
+          await logAuditAction("เชิญผู้ใช้ใหม่", `เชิญผู้ใช้ ${email} ในฐานะ ${role}`);
+          await loadAdminData();
+        }
+      } catch (err) {
+        showToast("เกิดข้อผิดพลาด", "error");
+      }
+    });
+  }
+});
+
+// EDIT USER
+function openEditUserModal(id) {
+  const user = adminUsers.find(u => u.id === id);
+  if (!user) return;
+  
+  document.getElementById("editUserId").value = user.id;
+  document.getElementById("editUserName").value = user.name;
+  document.getElementById("editUserRole").value = user.role;
+  
+  document.getElementById("modalEditUser").style.display = "flex";
+}
+
+function closeEditUserModal() {
+  document.getElementById("modalEditUser").style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const formEditUser = document.getElementById("formEditUser");
+  if (formEditUser) {
+    formEditUser.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("editUserId").value;
+      const name = document.getElementById("editUserName").value;
+      const role = document.getElementById("editUserRole").value;
+      
+      try {
+        const res = await fetch(`/api/users/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, role })
+        });
+        
+        if (res.ok) {
+          showToast("อัปเดตข้อมูลผู้ใช้สำเร็จ", "success");
+          closeEditUserModal();
+          await logAuditAction("อัปเดตสิทธิ์ผู้ใช้", `แก้ไขข้อมูล/สิทธิ์ของผู้ใช้ ${name}`);
+          await loadAdminData();
+        }
+      } catch (err) {
+        showToast("เกิดข้อผิดพลาด", "error");
+      }
+    });
+  }
+});
+
+async function deleteAdminUser() {
+  const id = document.getElementById("editUserId").value;
+  if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?")) return;
+  
+  try {
+    const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast("ลบผู้ใช้สำเร็จ", "success");
+      closeEditUserModal();
+      await logAuditAction("ลบผู้ใช้งาน", `ระบบได้ลบผู้ใช้งาน ID: ${id}`);
+      await loadAdminData();
+    }
+  } catch (err) {
+    showToast("เกิดข้อผิดพลาด", "error");
+  }
+}
+
+// REPORT EXPORT
+function exportAdminReport() {
+  showToast("กำลังส่งออกรายงานเป็น CSV...", "info");
+  
+  // Dummy CSV generation
+  let csv = "ID,Name,Email,Role\n";
+  adminUsers.forEach(u => {
+    csv += `${u.id},${u.name},${u.email},${u.role}\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", "admin_report.csv");
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  logAuditAction("ดาวน์โหลดรายงาน", "ผู้ดูแลระบบส่งออกรายงานข้อมูลการใช้งาน");
+}
+
+// RESET WORKSPACE
+async function triggerAdminWorkspaceReset() {
+  if (confirm("🚨 คำเตือน: คุณกำลังจะลบข้อมูลทั้งหมดในพื้นที่ทำงานนี้ ข้อมูลจะไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่?")) {
+    const validation = prompt("กรุณาพิมพ์คำว่า 'DELETE' เพื่อยืนยัน:");
+    if (validation === "DELETE") {
+      try {
+        const res = await fetch('/api/workspace', { method: 'DELETE' });
+        if (res.ok) {
+          alert("ลบพื้นที่ทำงานเรียบร้อยแล้ว ระบบจะทำการรีสตาร์ท");
+          window.location.reload();
+        }
+      } catch (err) {
+        showToast("เกิดข้อผิดพลาดในการลบข้อมูล", "error");
+      }
+    } else {
+      showToast("ยกเลิกการดำเนินการ", "info");
+    }
+  }
+}
+
+// Initialize on load
+document.addEventListener("DOMContentLoaded", () => {
+  loadAdminData();
 });

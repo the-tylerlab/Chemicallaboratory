@@ -19,6 +19,8 @@ const BUDGET_FILE = path.join(DB_DIR, 'budget.json');
 const PURCHASE_ORDERS_FILE = path.join(DB_DIR, 'purchase_orders.json');
 const BOOKINGS_FILE = path.join(DB_DIR, 'bookings.json');
 const TRANSACTIONS_FILE = path.join(DB_DIR, 'transactions.json');
+const USERS_FILE = path.join(DB_DIR, 'users.json');
+const AUDIT_LOGS_FILE = path.join(DB_DIR, 'audit_logs.json');
 
 // Default Demo Data to seed the database if it doesn't exist
 const DEFAULT_SEEDS = [
@@ -270,6 +272,56 @@ function writeTransactions(transactions) {
   }
 }
 
+// Helper: Read users
+function readUsers() {
+  try {
+    if (!fs.existsSync(USERS_FILE)) {
+      const defaultUsers = [
+        { id: "u1", name: "Admin User", email: "admin@organisation.com", role: "admin", initials: "A", color: "var(--primary-purple)" },
+        { id: "u2", name: "Staff Member", email: "staff@organisation.com", role: "staff", initials: "S", color: "#3b82f6" }
+      ];
+      fs.writeFileSync(USERS_FILE, JSON.stringify(defaultUsers, null, 2), 'utf-8');
+      return defaultUsers;
+    }
+    const data = fs.readFileSync(USERS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+function writeUsers(users) {
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Helper: Read audit logs
+function readAuditLogs() {
+  try {
+    if (!fs.existsSync(AUDIT_LOGS_FILE)) {
+      fs.writeFileSync(AUDIT_LOGS_FILE, JSON.stringify([], null, 2), 'utf-8');
+      return [];
+    }
+    const data = fs.readFileSync(AUDIT_LOGS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+function writeAuditLogs(logs) {
+  try {
+    fs.writeFileSync(AUDIT_LOGS_FILE, JSON.stringify(logs, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 // ==========================================================================
 // HTTP API ENDPOINTS
 // ==========================================================================
@@ -427,6 +479,89 @@ app.post('/api/transactions', (req, res) => {
   const transactions = req.body;
   writeTransactions(transactions);
   res.json({ success: true });
+});
+
+// ==========================================
+// ADMIN PANEL ENDPOINTS
+// ==========================================
+
+// USERS
+app.get('/api/users', (req, res) => {
+  res.json(readUsers());
+});
+
+app.post('/api/users', (req, res) => {
+  const users = readUsers();
+  const newUser = req.body;
+  newUser.id = "u" + Date.now();
+  
+  // Assign random color/initials for mockup
+  const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#d946ef"];
+  newUser.color = colors[Math.floor(Math.random() * colors.length)];
+  newUser.initials = newUser.name ? newUser.name.charAt(0).toUpperCase() : "U";
+  
+  users.push(newUser);
+  writeUsers(users);
+  res.json({ success: true, user: newUser });
+});
+
+app.put('/api/users/:id', (req, res) => {
+  const users = readUsers();
+  const index = users.findIndex(u => u.id === req.params.id);
+  if (index !== -1) {
+    users[index] = { ...users[index], ...req.body };
+    writeUsers(users);
+    res.json({ success: true, user: users[index] });
+  } else {
+    res.status(404).json({ error: "User not found" });
+  }
+});
+
+app.delete('/api/users/:id', (req, res) => {
+  let users = readUsers();
+  users = users.filter(u => u.id !== req.params.id);
+  writeUsers(users);
+  res.json({ success: true });
+});
+
+// AUDIT LOGS
+app.get('/api/audit-logs', (req, res) => {
+  res.json(readAuditLogs());
+});
+
+app.post('/api/audit-logs', (req, res) => {
+  const logs = readAuditLogs();
+  const newLog = req.body;
+  newLog.id = "log-" + Date.now();
+  newLog.timestamp = new Date().toISOString();
+  logs.unshift(newLog); // prepend to top
+  
+  // Keep only last 100 logs
+  if (logs.length > 100) logs.pop();
+  
+  writeAuditLogs(logs);
+  res.json({ success: true, log: newLog });
+});
+
+// DANGER ZONE (Clear Workspace)
+app.delete('/api/workspace', (req, res) => {
+  try {
+    // Clear the core arrays but keep the files
+    fs.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf-8');
+    fs.writeFileSync(BOOKINGS_FILE, JSON.stringify([], null, 2), 'utf-8');
+    fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify([], null, 2), 'utf-8');
+    fs.writeFileSync(PURCHASE_ORDERS_FILE, JSON.stringify([], null, 2), 'utf-8');
+    // Audit logs remain for compliance, or clear them too depending on requirement. Let's clear them too for this demo.
+    fs.writeFileSync(AUDIT_LOGS_FILE, JSON.stringify([], null, 2), 'utf-8');
+    
+    // Add a final audit log for the reset action itself
+    const finalLog = [{ id: "log-reset", action: "RESET_WORKSPACE", details: "Workspace was completely reset.", timestamp: new Date().toISOString(), user: "Admin" }];
+    fs.writeFileSync(AUDIT_LOGS_FILE, JSON.stringify(finalLog, null, 2), 'utf-8');
+    
+    res.json({ success: true, message: "Workspace has been completely cleared." });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to reset workspace." });
+  }
 });
 
 // Start Express Web Server
