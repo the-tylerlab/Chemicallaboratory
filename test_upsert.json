@@ -1,0 +1,9 @@
+{
+  "id": "ord-test-123",
+  "code": "TEST-001",
+  "name": "Test Item",
+  "unitPrice": 100,
+  "quantity": 2,
+  "totalPrice": 200,
+  "discount": 0
+}
