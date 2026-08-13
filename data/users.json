@@ -1,0 +1,18 @@
+[
+  {
+    "id": "u1",
+    "name": "Admin User",
+    "email": "admin@organisation.com",
+    "role": "admin",
+    "initials": "A",
+    "color": "var(--primary-purple)"
+  },
+  {
+    "id": "u2",
+    "name": "Staff Member",
+    "email": "staff@organisation.com",
+    "role": "staff",
+    "initials": "S",
+    "color": "#3b82f6"
+  }
+]
