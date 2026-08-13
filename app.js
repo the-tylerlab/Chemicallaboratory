@@ -4638,7 +4638,6 @@ function renderOrdersTable() {
       <tr>
         <td data-label="รหัสสินค้า" style="font-weight: 500;"><span style="font-family: monospace;">${escapeHTML(order.code)}</span></td>
         <td data-label="ชื่อสินค้า">${escapeHTML(order.name)}</td>
-        <td data-label="ปี/เทอม" style="text-align: center;">${escapeHTML(order.academicYear || "-")} / ${escapeHTML(order.semester || "-")}</td>
         <td data-label="ราคา/หน่วย" style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         <td data-label="จำนวน" style="text-align: center;">${order.quantity}</td>
         <td data-label="ราคารวม" style="text-align: right; font-weight: 600;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
