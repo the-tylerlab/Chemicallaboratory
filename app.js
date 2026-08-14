@@ -279,6 +279,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 400); // Match transition duration (0.4s) in CSS
   }
 
+  // Set up Supabase Realtime Subscriptions
+  if (isSupabaseOnline) {
+    setupRealtimeSubscriptions();
+  }
+
   // Background synchronization for budget and purchase orders (multi-admin sync)
   setInterval(() => {
     if (typeof syncBudgetInRealtime === "function") {
@@ -4118,6 +4123,30 @@ async function loadPurchaseOrders() {
     purchaseOrders = [...defaultOrders];
     localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
   }
+}
+
+// Setup Realtime subscriptions for multi-device sync
+function setupRealtimeSubscriptions() {
+  if (!supabase) return;
+  
+  supabase
+    .channel('public:purchase_orders')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'purchase_orders' },
+      (payload) => {
+        console.log('Realtime change received for purchase_orders!', payload);
+        // Force a sync immediately when a change is detected
+        if (typeof syncBudgetInRealtime === "function") {
+          syncBudgetInRealtime();
+        }
+      }
+    )
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log('Successfully subscribed to realtime purchase_orders changes');
+      }
+    });
 }
 
 // Background synchronization for budget and purchase orders (multi-admin sync)
