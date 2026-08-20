@@ -3301,8 +3301,10 @@ function removeLayoutElement(id) {
   
   if (labLayouts[activeRoom]) {
     labLayouts[activeRoom] = labLayouts[activeRoom].filter(el => el.id !== id);
-    renderCabinetMap();
   }
+  
+  const wrapper = document.querySelector(`.layout-element[data-id="${id}"]`);
+  if (wrapper) wrapper.remove();
 }
 
 function rotateLayoutElement(id) {
@@ -8553,12 +8555,25 @@ function setupChatbot() {
   const input = document.getElementById("chatbotInput");
   const body = document.getElementById("chatbotBody");
   const suggestionsContainer = document.getElementById("chatSuggestions");
+  const headerIcon = document.getElementById("chatbotHeaderIcon");
 
   if (!fab || !panel || !closeBtn || !sendBtn || !input || !body) return;
+  
+  const setChatbotIconState = (state) => {
+    if (!headerIcon) return;
+    if (state === "thinking") {
+      headerIcon.src = "bloub-default-cycle-thinking.gif";
+    } else if (state === "notification") {
+      headerIcon.src = "bloub-default-cycle-notification.gif";
+    } else {
+      headerIcon.src = "bloub-triangle-attentif-violet-anime.svg";
+    }
+  };
 
   const openChatbot = () => {
     panel.classList.add("active");
     if (overlay) overlay.classList.add("active");
+    setChatbotIconState("default");
     
     // Remove pulse dot after opening once
     const pulseDot = fab.querySelector(".chatbot-pulse-dot");
@@ -8599,12 +8614,14 @@ function setupChatbot() {
 
     // Show bot thinking/typing indicator
     const typingIndicator = appendChatTypingIndicator();
+    setChatbotIconState("thinking");
 
     setTimeout(() => {
       // Remove typing indicator and append bot response
       typingIndicator.remove();
       const botResponse = generateBotResponse(text);
       appendChatMessage("bot", botResponse);
+      setChatbotIconState("notification");
     }, 600);
   };
 
@@ -8625,11 +8642,13 @@ function setupChatbot() {
       // Simulate user clicking / typing query
       appendChatMessage("user", query);
       const typingIndicator = appendChatTypingIndicator();
+      setChatbotIconState("thinking");
 
       setTimeout(() => {
         typingIndicator.remove();
         const botResponse = generateBotResponse(query);
         appendChatMessage("bot", botResponse);
+        setChatbotIconState("notification");
       }, 500);
     });
   }
