@@ -3152,13 +3152,15 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chatbot-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--border-radius-sm);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .chatbot-close-btn {
