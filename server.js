@@ -21,6 +21,7 @@ const BOOKINGS_FILE = path.join(DB_DIR, 'bookings.json');
 const TRANSACTIONS_FILE = path.join(DB_DIR, 'transactions.json');
 const USERS_FILE = path.join(DB_DIR, 'users.json');
 const AUDIT_LOGS_FILE = path.join(DB_DIR, 'audit_logs.json');
+const LAYOUTS_FILE = path.join(DB_DIR, 'layouts.json');
 
 // Default Demo Data to seed the database if it doesn't exist
 const DEFAULT_SEEDS = [
@@ -242,6 +243,30 @@ function readBookings() {
 function writeBookings(bookings) {
   try {
     fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(bookings, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Helper: Read layouts from database
+function readLayouts() {
+  try {
+    if (!fs.existsSync(LAYOUTS_FILE)) {
+      fs.writeFileSync(LAYOUTS_FILE, JSON.stringify({}, null, 2), 'utf-8');
+      return {};
+    }
+    const data = fs.readFileSync(LAYOUTS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return {};
+  }
+}
+
+// Helper: Save layouts to database
+function writeLayouts(layouts) {
+  try {
+    fs.writeFileSync(LAYOUTS_FILE, JSON.stringify(layouts, null, 2), 'utf-8');
     return true;
   } catch (err) {
     return false;
@@ -541,6 +566,21 @@ app.post('/api/audit-logs', (req, res) => {
   
   writeAuditLogs(logs);
   res.json({ success: true, log: newLog });
+});
+
+// GET /api/layouts
+app.get('/api/layouts', (req, res) => {
+  res.json(readLayouts());
+});
+
+// POST /api/layouts
+app.post('/api/layouts', (req, res) => {
+  const success = writeLayouts(req.body);
+  if (success) {
+    res.json({ success: true });
+  } else {
+    res.status(500).json({ error: "Failed to save layouts" });
+  }
 });
 
 // DANGER ZONE (Clear Workspace)

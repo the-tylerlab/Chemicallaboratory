@@ -1,0 +1,44 @@
+{
+  "Lab 1": [
+    {
+      "id": "cab_1787214123445_364",
+      "type": "cabinet",
+      "name": "ตู้ A",
+      "rotation": 0,
+      "scale": 1,
+      "left": 0,
+      "top": 0,
+      "isPercent": true
+    },
+    {
+      "id": "cab_1787214123445_950",
+      "type": "cabinet",
+      "name": "ตู้ B",
+      "rotation": 0,
+      "scale": 1,
+      "left": 0,
+      "top": 0,
+      "isPercent": true
+    },
+    {
+      "id": "cab_1787214123445_763",
+      "type": "cabinet",
+      "name": "ตู้เก็บเครื่องแก้ว",
+      "rotation": 0,
+      "scale": 1,
+      "left": 0,
+      "top": 0,
+      "isPercent": true
+    },
+    {
+      "id": "cab_1787214123445_949",
+      "type": "cabinet",
+      "name": "โต๊ะชั่งน้ำหนัก",
+      "rotation": 0,
+      "scale": 0.7000000000000001,
+      "left": 40.367,
+      "top": 7.5,
+      "isPercent": true
+    }
+  ]
+}

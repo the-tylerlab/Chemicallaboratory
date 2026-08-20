@@ -888,6 +888,36 @@
                 <span>จัดเก็บสารเคมีปลอดภัยถูกต้อง</span>
               </div>
             </div>
+            <button id="btnEditLayout" class="btn btn-outline" style="margin-left: auto; display: none;" onclick="toggleLayoutEditMode()">
+              <i data-lucide="layout-dashboard" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+              แก้ไขแผนผัง
+            </button>
+          </div>
+
+          <!-- Layout Edit Toolbox -->
+          <div id="layoutEditToolbox" class="layout-toolbox" style="display: none; padding: 16px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); margin-bottom: 20px; box-shadow: var(--shadow-md);">
+            <div style="font-weight: 600; margin-bottom: 12px; color: var(--text-dark);">
+              <i data-lucide="edit-3" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+              เครื่องมือปรับแต่งแผนผัง (ลากเพื่อย้ายตำแหน่ง)
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+              <button class="btn btn-secondary btn-sm" onclick="addLayoutElement('table')">
+                <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มโต๊ะปฏิบัติการ
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="addLayoutElement('door')">
+                <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มประตู
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="addLayoutElement('whiteboard')">
+                <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มกระดาน
+              </button>
+              <div style="flex-grow: 1;"></div>
+              <button class="btn btn-primary btn-sm" onclick="saveLayout()">
+                <i data-lucide="save" style="width: 14px; height: 14px; margin-right: 4px;"></i> บันทึกแผนผัง
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="toggleLayoutEditMode()">
+                ยกเลิก
+              </button>
+            </div>
           </div>
 
           <!-- Grid of Cabinets in Room -->
