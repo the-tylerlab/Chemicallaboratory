@@ -4,6 +4,7 @@
 
 // Global state variable
 let items = [];
+let labLayouts = {};
 let currentPage = 1;
 const itemsPerPage = 10;
 let fileToImport = null;
@@ -232,6 +233,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load room bookings
   await loadAllBookings();
+  
+  // Load lab layouts
+  await loadLabLayouts();
   
   // Load purchase orders
   await loadPurchaseOrders();
@@ -3152,8 +3156,228 @@ window.returnBorrowedItem = async function(transId) {
 };
 
 // ==========================================================================
+// LABORATORY LAYOUT SYSTEM (DRAG & DROP)
+// ==========================================================================
+async function loadLabLayouts() {
+  if (isBackendOnline) {
+    try {
+      const response = await fetch(`${API_BASE}/layouts`);
+      if (response.ok) {
+        labLayouts = await response.json();
+      }
+    } catch (err) {
+      console.error("Failed to load lab layouts", err);
+    }
+  } else {
+    const local = localStorage.getItem("labLayouts");
+    if (local) labLayouts = JSON.parse(local);
+  }
+}
+
+async function saveLabLayoutsToServer() {
+  if (isBackendOnline) {
+    try {
+      await fetch(`${API_BASE}/layouts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(labLayouts)
+      });
+    } catch (err) {
+      console.error("Failed to save lab layouts", err);
+    }
+  } else {
+    localStorage.setItem("labLayouts", JSON.stringify(labLayouts));
+  }
+}
+
+let isLayoutEditMode = false;
+let draggedElement = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+function toggleLayoutEditMode() {
+  isLayoutEditMode = !isLayoutEditMode;
+  const grid = document.getElementById("cabinetMapGrid");
+  const toolbox = document.getElementById("layoutEditToolbox");
+  const btnEdit = document.getElementById("btnEditLayout");
+  
+  if (isLayoutEditMode) {
+    grid.classList.add("layout-edit-mode");
+    toolbox.style.display = "block";
+    btnEdit.style.display = "none";
+    showToast("เข้าสู่โหมดแก้ไขแผนผัง สามารถลากย้ายตู้หรือเพิ่มสิ่งของได้", "info");
+    
+    // Enable dragging
+    const elements = grid.querySelectorAll('.layout-element');
+    elements.forEach(el => {
+      el.classList.add("draggable");
+      el.addEventListener('mousedown', handleDragStart);
+    });
+  } else {
+    grid.classList.remove("layout-edit-mode");
+    toolbox.style.display = "none";
+    if (isAdminLoggedIn) btnEdit.style.display = "block";
+    
+    // Disable dragging
+    const elements = grid.querySelectorAll('.layout-element');
+    elements.forEach(el => {
+      el.classList.remove("draggable");
+      el.removeEventListener('mousedown', handleDragStart);
+    });
+  }
+}
+
+function handleDragStart(e) {
+  if (!isLayoutEditMode || e.target.closest('button')) return;
+  draggedElement = e.currentTarget;
+  draggedElement.classList.add("dragging");
+  
+  const rect = draggedElement.getBoundingClientRect();
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
+  
+  document.addEventListener('mousemove', handleDragMove);
+  document.addEventListener('mouseup', handleDragEnd);
+}
+
+function handleDragMove(e) {
+  if (!draggedElement) return;
+  const grid = document.getElementById("cabinetMapGrid");
+  const gridRect = grid.getBoundingClientRect();
+  
+  let left = e.clientX - gridRect.left - dragOffsetX;
+  let top = e.clientY - gridRect.top - dragOffsetY;
+  
+  // Constrain to grid boundaries
+  left = Math.max(0, Math.min(left, gridRect.width - draggedElement.offsetWidth));
+  top = Math.max(0, Math.min(top, gridRect.height - draggedElement.offsetHeight));
+  
+  // Calculate percentage
+  const leftPct = (left / gridRect.width) * 100;
+  const topPct = (top / gridRect.height) * 100;
+  
+  draggedElement.style.left = `${leftPct}%`;
+  draggedElement.style.top = `${topPct}%`;
+}
+
+function handleDragEnd() {
+  if (!draggedElement) return;
+  draggedElement.classList.remove("dragging");
+  draggedElement = null;
+  document.removeEventListener('mousemove', handleDragMove);
+  document.removeEventListener('mouseup', handleDragEnd);
+}
+
+function addLayoutElement(type) {
+  const roomFilter = document.getElementById("cabinetMapRoomFilter");
+  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  
+  if (!labLayouts[activeRoom]) labLayouts[activeRoom] = [];
+  
+  const id = `${type}_${Date.now()}`;
+  let newEl = { id, type, left: 10, top: 10, rotation: 0, scale: 1.0 };
+  
+  if (type === 'table') {
+    newEl.name = "โต๊ะปฏิบัติการ";
+    newEl.width = 15;
+    newEl.height = 10;
+  } else if (type === 'door') {
+    newEl.name = "ประตู";
+    newEl.width = 10;
+    newEl.height = 2;
+  } else if (type === 'whiteboard') {
+    newEl.name = "กระดาน";
+    newEl.width = 20;
+    newEl.height = 2;
+  }
+  
+  labLayouts[activeRoom].push(newEl);
+  renderCabinetMap(); // re-render to show new element
+}
+
+function removeLayoutElement(id) {
+  const roomFilter = document.getElementById("cabinetMapRoomFilter");
+  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  
+  if (labLayouts[activeRoom]) {
+    labLayouts[activeRoom] = labLayouts[activeRoom].filter(el => el.id !== id);
+    renderCabinetMap();
+  }
+}
+
+function rotateLayoutElement(id) {
+  const wrapper = document.querySelector(`.layout-element[data-id="${id}"]`);
+  if (wrapper) {
+    const currentRot = parseInt(wrapper.getAttribute('data-rotation') || "0");
+    const newRot = (currentRot + 90) % 360;
+    wrapper.setAttribute('data-rotation', newRot);
+    
+    const currentScale = parseFloat(wrapper.getAttribute('data-scale') || "1.0");
+    wrapper.style.transform = `rotate(${newRot}deg) scale(${currentScale})`;
+  }
+}
+
+function scaleLayoutElement(id, direction) {
+  const wrapper = document.querySelector(`.layout-element[data-id="${id}"]`);
+  if (wrapper) {
+    const currentScale = parseFloat(wrapper.getAttribute('data-scale') || "1.0");
+    let newScale = currentScale;
+    if (direction === 'up') {
+      newScale = Math.min(currentScale + 0.1, 2.0);
+    } else if (direction === 'down') {
+      newScale = Math.max(currentScale - 0.1, 0.5);
+    }
+    wrapper.setAttribute('data-scale', newScale);
+    
+    const currentRot = parseInt(wrapper.getAttribute('data-rotation') || "0");
+    wrapper.style.transform = `rotate(${currentRot}deg) scale(${newScale})`;
+  }
+}
+
+async function saveLayout() {
+  const grid = document.getElementById("cabinetMapGrid");
+  const roomFilter = document.getElementById("cabinetMapRoomFilter");
+  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  
+  const elements = grid.querySelectorAll('.layout-element');
+  
+  if (!labLayouts[activeRoom]) labLayouts[activeRoom] = [];
+  
+  elements.forEach(el => {
+    const id = el.getAttribute('data-id');
+    const type = el.getAttribute('data-type');
+    
+    // Parse left and top (could be in px from initial render, or % from dragging)
+    const leftStr = el.style.left;
+    const topStr = el.style.top;
+    
+    // Update layout data
+    let layoutEl = labLayouts[activeRoom].find(item => item.id === id);
+    if (!layoutEl) {
+      layoutEl = { id, type, name: el.getAttribute('data-name'), rotation: 0, scale: 1.0 };
+      labLayouts[activeRoom].push(layoutEl);
+    }
+    
+    layoutEl.left = parseFloat(leftStr);
+    layoutEl.top = parseFloat(topStr);
+    layoutEl.isPercent = leftStr.includes('%');
+    
+    const rotationStr = el.getAttribute('data-rotation');
+    layoutEl.rotation = rotationStr ? parseInt(rotationStr) : 0;
+
+    const scaleStr = el.getAttribute('data-scale');
+    layoutEl.scale = scaleStr ? parseFloat(scaleStr) : 1.0;
+  });
+  
+  await saveLabLayoutsToServer();
+  showToast("บันทึกแผนผังห้องเรียบร้อยแล้ว!", "success");
+  toggleLayoutEditMode();
+}
+
+// ==========================================================================
 // LABORATORY ROOM BOOKING SYSTEM
 // ==========================================================================
+
 
 async function loadAllBookings() {
   const defaultBookings = [
@@ -4338,6 +4562,7 @@ function setupPurchaseOrders() {
       if (poTotalPrice) poTotalPrice.value = "0.00";
  
       showToast("เพิ่มรายการสินค้าลงตารางชั่วคราวสำเร็จ", "success");
+      showAddedAnimation("Added");
       renderPoDrafts();
       
       const firstInput = document.getElementById("poProductCode");
@@ -4345,9 +4570,38 @@ function setupPurchaseOrders() {
     });
   }
 
-  // Setup PO Filters
+  // Setup PO Filters & Global Academic Context
   const filterPoYear = document.getElementById("filterPoYear");
   const filterPoSemester = document.getElementById("filterPoSemester");
+  const poAcademicYear = document.getElementById("poAcademicYear");
+  const poSemester = document.getElementById("poSemester");
+
+  // Load saved context from localStorage
+  if (poAcademicYear && localStorage.getItem("po_context_year")) {
+    poAcademicYear.value = localStorage.getItem("po_context_year");
+  }
+  if (poSemester && localStorage.getItem("po_context_semester")) {
+    poSemester.value = localStorage.getItem("po_context_semester");
+  }
+
+  // Sync global context with table filters
+  const syncContextToFilters = () => {
+    if (poAcademicYear) localStorage.setItem("po_context_year", poAcademicYear.value);
+    if (poSemester) localStorage.setItem("po_context_semester", poSemester.value);
+    
+    if (filterPoYear && poAcademicYear) {
+      // Check if the option exists, if not, we still set it but it might fallback
+      // `renderOrdersTable` dynamically rebuilds options anyway, so we just set the filter
+      filterPoYear.value = poAcademicYear.value; 
+    }
+    if (filterPoSemester && poSemester) filterPoSemester.value = poSemester.value;
+    
+    renderOrdersTable();
+  };
+
+  if (poAcademicYear) poAcademicYear.addEventListener("input", syncContextToFilters);
+  if (poSemester) poSemester.addEventListener("change", syncContextToFilters);
+
   if (filterPoYear) filterPoYear.addEventListener("change", renderOrdersTable);
   if (filterPoSemester) filterPoSemester.addEventListener("change", renderOrdersTable);
 
@@ -4454,13 +4708,25 @@ function setupPurchaseOrders() {
         purchaseOrders.push(draft);
       });
 
-      localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      try {
+        localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      } catch (e) {
+        console.warn("Failed to save to localStorage", e);
+      }
+      
       syncPurchaseOrdersToBackend();
       purchaseOrderDrafts = [];
+
+      // Reset filters so the user can see the newly added items
+      const filterYear = document.getElementById("filterPoYear");
+      const filterSemester = document.getElementById("filterPoSemester");
+      if (filterYear) filterYear.value = "all";
+      if (filterSemester) filterSemester.value = "all";
 
       renderPoDrafts();
       updateUI();
       showToast("บันทึกรายการสั่งซื้อทั้งหมดสำเร็จ", "success");
+      showAddedAnimation("Saved");
     });
   }
 }
@@ -11494,7 +11760,19 @@ function renderCabinetMap() {
   const grid = document.getElementById("cabinetMapGrid");
   if (!grid) return;
 
+  const btnEditLayout = document.getElementById("btnEditLayout");
   const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  
+  if (btnEditLayout) {
+    if (isAdminLoggedIn || (typeof userRole !== 'undefined' && userRole === "teacher")) {
+      btnEditLayout.style.display = isLayoutEditMode ? "none" : "block";
+    } else {
+      btnEditLayout.style.display = "none";
+    }
+  }
+
+  grid.className = "cabinet-grid lab-floor-plan";
+  if (isLayoutEditMode) grid.classList.add("layout-edit-mode");
   grid.innerHTML = "";
 
   const roomItems = (items || []).filter(item => item.room === activeRoom);
@@ -11540,13 +11818,29 @@ function renderCabinetMap() {
     }
   }
 
+  let roomLayout = labLayouts[activeRoom];
+  if (!roomLayout) roomLayout = [];
+
   const cabNames = Object.keys(cabinets).sort();
-  if (cabNames.length === 0) {
+  cabNames.forEach(cabName => {
+    if (!roomLayout.find(el => el.type === 'cabinet' && el.name === cabName)) {
+      roomLayout.push({
+        id: `cab_${Date.now()}_${Math.floor(Math.random()*1000)}`,
+        type: 'cabinet',
+        name: cabName,
+        left: 0,
+        top: 0,
+        isPercent: true
+      });
+    }
+  });
+
+  if (roomLayout.length === 0) {
     grid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg);">
+      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; padding: 40px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); width: 80%; max-width: 400px;">
         <div class="empty-state">
           <div class="empty-state-icon"><i data-lucide="layout" style="width: 48px; height: 48px; color: var(--text-muted);"></i></div>
-          <div class="empty-state-text" style="color: var(--text-muted); margin-top: 12px;">ไม่มีข้อมูลตู้เก็บพัสดุในห้องปฏิบัติการนี้</div>
+          <div class="empty-state-text" style="color: var(--text-muted); margin-top: 12px;">ห้องปฏิบัติการนี้ยังไม่มีแผนผังหรือตู้เก็บสารเคมี</div>
         </div>
       </div>
     `;
@@ -11554,64 +11848,156 @@ function renderCabinetMap() {
     return;
   }
 
-  cabNames.forEach(cabName => {
-    const cab = cabinets[cabName];
-    const chemCount = cab.items.filter(item => item.category === "สารเคมี").length;
-    const equipCount = cab.items.filter(item => item.category === "อุปกรณ์").length;
-
-    let shelvesHtml = "";
-    const shelfNames = Object.keys(cab.shelves).sort();
-    shelfNames.forEach(sName => {
-      const shelfItems = cab.shelves[sName];
-      shelvesHtml += `
-        <div class="shelf-row">
-          <span class="shelf-name">${sName}</span>
-          <span class="shelf-count">${shelfItems.length} รายการ</span>
-        </div>
-      `;
-    });
-
-    const card = document.createElement("div");
-    card.className = "cabinet-card";
-    if (cab.hasIncompatible) {
-      card.classList.add("incompatible-alert");
+  roomLayout.forEach(el => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "layout-element";
+    if (isLayoutEditMode) wrapper.classList.add("draggable");
+    
+    if (el.isPercent) {
+      wrapper.style.left = `${el.left}%`;
+      wrapper.style.top = `${el.top}%`;
+    } else {
+      wrapper.style.left = `${el.left}px`;
+      wrapper.style.top = `${el.top}px`;
     }
+    
+    // Apply rotation and scale
+    wrapper.style.transform = `rotate(${el.rotation || 0}deg) scale(${el.scale || 1.0})`;
+    
+    wrapper.setAttribute("data-id", el.id);
+    wrapper.setAttribute("data-type", el.type);
+    wrapper.setAttribute("data-name", el.name || "");
+    wrapper.setAttribute("data-rotation", el.rotation || 0);
+    wrapper.setAttribute("data-scale", el.scale || 1.0);
+    
+    if (isLayoutEditMode) {
+      wrapper.addEventListener('mousedown', handleDragStart);
+    }
+    
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "delete-btn";
+    deleteBtn.innerHTML = `<i data-lucide="x" style="width: 14px; height: 14px;"></i>`;
+    deleteBtn.onclick = (e) => {
+      e.stopPropagation();
+      removeLayoutElement(el.id);
+    };
+    wrapper.appendChild(deleteBtn);
+    
+    const rotateBtn = document.createElement("button");
+    rotateBtn.className = "rotate-btn";
+    rotateBtn.innerHTML = `<i data-lucide="rotate-cw" style="width: 14px; height: 14px;"></i>`;
+    rotateBtn.onclick = (e) => {
+      e.stopPropagation();
+      rotateLayoutElement(el.id);
+    };
+    wrapper.appendChild(rotateBtn);
 
-    card.innerHTML = `
-      <div class="cabinet-header">
-        <div class="cabinet-title-group">
-          <i data-lucide="layout" style="width: 18px; height: 18px; color: ${cab.hasIncompatible ? '#ef4444' : 'var(--primary-purple)'};"></i>
-          <span class="cabinet-name">${cabName}</span>
-        </div>
-        <span class="cabinet-status-pill ${cab.hasIncompatible ? 'warning' : 'safe'}">
-          ${cab.hasIncompatible ? 'อันตราย: ไม่เข้ากัน' : 'จัดเก็บปลอดภัย'}
-        </span>
-      </div>
+    const scaleUpBtn = document.createElement("button");
+    scaleUpBtn.className = "scale-up-btn";
+    scaleUpBtn.innerHTML = `<i data-lucide="plus" style="width: 14px; height: 14px;"></i>`;
+    scaleUpBtn.onclick = (e) => {
+      e.stopPropagation();
+      scaleLayoutElement(el.id, 'up');
+    };
+    wrapper.appendChild(scaleUpBtn);
+
+    const scaleDownBtn = document.createElement("button");
+    scaleDownBtn.className = "scale-down-btn";
+    scaleDownBtn.innerHTML = `<i data-lucide="minus" style="width: 14px; height: 14px;"></i>`;
+    scaleDownBtn.onclick = (e) => {
+      e.stopPropagation();
+      scaleLayoutElement(el.id, 'down');
+    };
+    wrapper.appendChild(scaleDownBtn);
+
+    if (el.type === 'cabinet') {
+      const cabName = el.name;
+      const cab = cabinets[cabName];
+      const card = document.createElement("div");
+      card.className = "cabinet-card";
+      card.style.width = "320px";
       
-      <div style="font-size: 13px; color: var(--text-muted); text-align: left; display: flex; gap: 12px; margin-top: 4px;">
-        <span>🧪 สารเคมี: <strong>${chemCount}</strong></span>
-        <span>⚙️ อุปกรณ์: <strong>${equipCount}</strong></span>
-      </div>
+      if (!cab) {
+        card.innerHTML = `
+          <div class="cabinet-header">
+            <div class="cabinet-title-group">
+              <i data-lucide="archive" style="width: 18px; height: 18px; color: var(--text-muted);"></i>
+              <span class="cabinet-name">${cabName}</span>
+            </div>
+            <span class="cabinet-status-pill safe">ว่าง</span>
+          </div>
+        `;
+        wrapper.appendChild(card);
+      } else {
+        if (cab.hasIncompatible) {
+          card.classList.add("incompatible-alert");
+        }
+        
+        const chemCount = cab.items.filter(item => item.category === "สารเคมี").length;
+        const equipCount = cab.items.filter(item => item.category === "อุปกรณ์").length;
 
-      ${cab.hasIncompatible ? `
-        <div style="background-color: rgba(239, 68, 68, 0.05); padding: 8px 12px; border-left: 3px solid #ef4444; border-radius: 4px; font-size: 11.5px; color: #dc2626; font-weight: 600; text-align: left; display: flex; align-items: center; gap: 6px;">
-          <i data-lucide="alert-triangle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-          <span>พบสารไม่เข้ากันจัดเก็บร่วมตู้ (Incompatible)</span>
-        </div>
-      ` : ''}
+        let shelvesHtml = "";
+        const shelfNames = Object.keys(cab.shelves).sort();
+        shelfNames.forEach(sName => {
+          const shelfItems = cab.shelves[sName];
+          shelvesHtml += `
+            <div class="shelf-row">
+              <span class="shelf-name">${sName}</span>
+              <span class="shelf-count">${shelfItems.length} รายการ</span>
+            </div>
+          `;
+        });
 
-      <div class="shelf-list" style="margin-top: 8px;">
-        <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: left; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">รายการชั้นวาง:</div>
-        ${shelvesHtml}
-      </div>
+        card.innerHTML = `
+          <div class="cabinet-header">
+            <div class="cabinet-title-group">
+              <i data-lucide="layout" style="width: 18px; height: 18px; color: ${cab.hasIncompatible ? '#ef4444' : 'var(--primary-purple)'};"></i>
+              <span class="cabinet-name">${cabName}</span>
+            </div>
+            <span class="cabinet-status-pill ${cab.hasIncompatible ? 'warning' : 'safe'}">
+              ${cab.hasIncompatible ? 'อันตราย: ไม่เข้ากัน' : 'จัดเก็บปลอดภัย'}
+            </span>
+          </div>
+          
+          <div style="font-size: 13px; color: var(--text-muted); text-align: left; display: flex; gap: 12px; margin-top: 4px;">
+            <span>🧪 สารเคมี: <strong>${chemCount}</strong></span>
+            <span>⚙️ อุปกรณ์: <strong>${equipCount}</strong></span>
+          </div>
 
-      <button type="button" class="btn btn-secondary" style="margin-top: auto; font-size: 12px; font-weight: 600; font-family: 'Prompt', sans-serif; height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')">
-        <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
-        <span>ดูรายละเอียดและชั้นวาง</span>
-      </button>
-    `;
+          ${cab.hasIncompatible ? `
+            <div style="background-color: rgba(239, 68, 68, 0.05); padding: 8px 12px; border-left: 3px solid #ef4444; border-radius: 4px; font-size: 11.5px; color: #dc2626; font-weight: 600; text-align: left; display: flex; align-items: center; gap: 6px; margin-top: 10px;">
+              <i data-lucide="alert-triangle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+              <span>พบสารไม่เข้ากันจัดเก็บร่วมตู้ (Incompatible)</span>
+            </div>
+          ` : ''}
 
-    grid.appendChild(card);
+          <div class="shelf-list" style="margin-top: 8px;">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-align: left; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">รายการชั้นวาง:</div>
+            ${shelvesHtml}
+          </div>
+
+          <button type="button" class="btn btn-secondary" style="margin-top: auto; font-size: 12px; font-weight: 600; font-family: 'Prompt', sans-serif; height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')">
+            <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+            <span>ดูรายละเอียดและชั้นวาง</span>
+          </button>
+        `;
+        wrapper.appendChild(card);
+      }
+      
+    } else if (el.type === 'table') {
+      wrapper.classList.add("lab-table");
+      wrapper.style.width = "180px";
+      wrapper.style.height = "100px";
+      const span = document.createElement("span");
+      span.innerText = el.name;
+      wrapper.appendChild(span);
+    } else if (el.type === 'door') {
+      wrapper.classList.add("lab-door");
+    } else if (el.type === 'whiteboard') {
+      wrapper.classList.add("lab-whiteboard");
+    }
+    
+    grid.appendChild(wrapper);
   });
 
   lucide.createIcons();
@@ -12278,3 +12664,40 @@ async function triggerAdminWorkspaceReset() {
 document.addEventListener("DOMContentLoaded", () => {
   loadAdminData();
 });
+
+// Added Toast Animation (Custom for Purchase Order)
+window.showAddedAnimation = function(text = "Added") {
+  const existing = document.getElementById("addedAnimationToastOverlay");
+  if (existing) {
+    existing.remove();
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "addedAnimationToastOverlay";
+  overlay.className = "added-toast-overlay";
+
+  overlay.innerHTML = `
+    <div class="added-toast">
+      <div style="position: relative; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 4px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <span>${text}</span>
+      
+      <!-- Hidden elements containing the classes provided in the reference image (acp-scan-Led, etc.) just in case they are used elsewhere by an external script -->
+      <div style="display: none;">
+        <div class="acp-scan-Led"></div>
+        <div class="acp-blink"></div>
+        <div class="acp-barcode"></div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  setTimeout(() => {
+    const toastOverlay = document.getElementById("addedAnimationToastOverlay");
+    if (toastOverlay) {
+      toastOverlay.remove();
+    }
+  }, 2200);
+};
