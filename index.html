@@ -852,6 +852,7 @@
                 <div id="columnToggleMenu" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; box-shadow: var(--shadow-md); z-index: 100; min-width: 180px; margin-top: 4px; text-align: left;">
                   <h4 style="margin-top: 0; margin-bottom: 8px; font-size: 13px; color: var(--text-muted);">เลือกแสดงคอลัมน์</h4>
                   <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-qty', this.checked)"> จำนวนคงเหลือ</label>
+                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-cas', this.checked)"> CAS No.</label>
                   <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-expiry', this.checked)"> วันหมดอายุ</label>
                   <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-room', this.checked)"> สถานที่จัดเก็บ</label>
                   <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 0; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-status', this.checked)"> สถานะ</label>
@@ -883,11 +884,12 @@
             <table>
               <thead>
                 <tr>
-                  <th style="width: 30%;" class="col-desc">รายละเอียดสินค้า</th>
-                  <th style="width: 12%;" class="col-qty">จำนวนคงเหลือ</th>
+                  <th style="width: 25%;" class="col-desc">รายละเอียดสินค้า</th>
+                  <th style="width: 10%;" class="col-qty">จำนวนคงเหลือ</th>
+                  <th style="width: 10%;" class="col-cas">CAS No.</th>
                   <th style="width: 12%;" class="col-expiry">วันหมดอายุ</th>
                   <th style="width: 18%;" class="col-room">สถานที่จัดเก็บ</th>
-                  <th style="width: 18%;" class="col-status">สถานะ</th>
+                  <th style="width: 15%;" class="col-status">สถานะ</th>
                   <th id="thActions" style="width: 10%; text-align: center;">จัดการ</th>
                 </tr>
               </thead>
@@ -1410,30 +1412,31 @@
             <h1>รายการสั่งซื้อห้องปฏิบัติการ</h1>
             <p>ประวัติและลิสต์รายการสั่งซื้อวัสดุ สารเคมี และอุปกรณ์ทางวิทยาศาสตร์</p>
           </div>
-          <button type="button" class="btn btn-secondary" onclick="navigateToPanel('add-item')" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 16px; height: 42px; border-radius: var(--border-radius-md); cursor: pointer; border: 1px solid var(--border-color); background-color: white; color: var(--text-main);">
-            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-            <span>กลับหน้าเพิ่มสาร/อุปกรณ์</span>
-          </button>
-        </div>
-
-        <!-- Annual Budget Overview -->
-        <div class="budget-overview-bar" style="margin-bottom: 24px;">
-          <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px;">
             <!-- Global Academic Context -->
-            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px;">
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px; background-color: var(--bg-body); padding: 4px 12px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color); height: 42px; box-sizing: border-box;">
               <div style="display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-weight: 500;">
                 <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
                 <span>ปีการศึกษา:</span>
               </div>
-              <input type="text" id="poAcademicYear" class="form-control" placeholder="2567" style="width: 65px; height: 36px; padding: 4px 8px; font-size: 13px; text-align: center; margin: 0; box-sizing: border-box;" maxlength="4" value="2567" required>
+              <input type="text" id="poAcademicYear" class="form-control" placeholder="2567" style="width: 65px; height: 30px; padding: 2px 8px; font-size: 13px; text-align: center; margin: 0; box-sizing: border-box; border-color: transparent;" maxlength="4" value="2567" required>
               
               <span style="color: var(--text-muted); font-weight: 500; margin-left: 4px;">เทอม:</span>
-              <select id="poSemester" class="form-control" style="width: 65px; height: 36px; padding: 4px 28px 4px 12px !important; font-size: 13px; margin: 0; box-sizing: border-box; cursor: pointer;" required>
+              <select id="poSemester" class="form-control" style="width: 65px; height: 30px; padding: 2px 28px 2px 12px !important; font-size: 13px; margin: 0; box-sizing: border-box; cursor: pointer; border-color: transparent;" required>
                 <option value="1">1</option>
                 <option value="2">2</option>
               </select>
             </div>
+            
+            <button type="button" class="btn btn-secondary" onclick="navigateToPanel('add-item')" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 16px; height: 42px; border-radius: var(--border-radius-md); cursor: pointer; border: 1px solid var(--border-color); background-color: white; color: var(--text-main);">
+              <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+              <span>กลับหน้าเพิ่มสาร/อุปกรณ์</span>
+            </button>
           </div>
+        </div>
+
+        <!-- Annual Budget Overview -->
+        <div class="budget-overview-bar" style="margin-bottom: 24px;">
           <div class="budget-stat-grid" id="budgetStatGrid">
 
             
@@ -1523,7 +1526,10 @@
                 </div>
                 <div class="form-group">
                   <label for="poQuantity" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
-                  <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" required>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" style="flex: 2;" required>
+                    <input type="text" id="poUnit" class="form-control" placeholder="หน่วย (เช่น ขวด)" style="flex: 1;">
+                  </div>
                 </div>
               </div>
 
@@ -1533,8 +1539,9 @@
                   <input type="number" step="any" min="0" max="100" id="poDiscount" class="form-control" placeholder="0" value="0">
                 </div>
                 <div class="form-group">
-                  <label for="poTotalPrice" class="form-label">ราคารวม (บาท)</label>
+                  <label for="poTotalPrice" class="form-label">ราคาสุทธิ (บาท)</label>
                   <input type="text" id="poTotalPrice" class="form-control" placeholder="0.00" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: 700;">
+                  <span id="poNetTotalDetail" style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 6px;">0.00 - ลด 0.00 = 0.00 บาท</span>
                 </div>
               </div>
 
@@ -1619,13 +1626,15 @@
               <table>
                 <thead>
                   <tr>
+                    <th style="width: 10%;">วันที่สั่ง</th>
                     <th style="width: 12%;">รหัสสินค้า</th>
-                    <th style="width: 24%;">ชื่อสินค้า</th>
-                    <th style="width: 14%; text-align: right;">ราคา/หน่วย</th>
-                    <th style="width: 10%; text-align: center;">จำนวน</th>
-                    <th style="width: 16%; text-align: right;">ราคารวม</th>
-                    <th style="width: 12%; text-align: center;">ส่วนลด</th>
-                    <th class="po-action-header" style="width: 12%; text-align: center;">จัดการ</th>
+                    <th style="width: 16%;">ชื่อสินค้า</th>
+                    <th style="width: 12%; text-align: right;">ราคา/หน่วย</th>
+                    <th style="width: 10%; text-align: right;">จำนวน</th>
+                    <th style="width: 12%; text-align: right;">รวมก่อนลด</th>
+                    <th style="width: 10%; text-align: right;">ส่วนลด</th>
+                    <th style="width: 12%; text-align: right;">สุทธิ</th>
+                    <th class="po-action-header" style="width: 6%; text-align: center;">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody id="purchaseOrdersTableBody">
@@ -1633,7 +1642,7 @@
                 </tbody>
                 <tfoot>
                   <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid var(--border-color);">
-                    <td colspan="7" style="padding: 16px 20px;">
+                    <td colspan="9" style="padding: 16px 20px;">
                       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
                         <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">
                           รวมก่อนลดราคา: <span id="poTotalBeforeDiscount" style="color: var(--text-main); font-weight: 600; margin-left: 8px;">0.00 บาท</span>
@@ -2205,6 +2214,76 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" id="btnCancelImport">ยกเลิก</button>
         <button class="btn btn-primary" id="btnConfirmImport" style="background-color: #8b5cf6;" disabled>ยืนยันการนำเข้า</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: AUTO-PO CONFIRMATION DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="autoPoModal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="shopping-cart" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+          ยืนยันการสร้างใบเบิกซื้อ (Auto-PO)
+        </h2>
+        <button class="modal-close-btn" onclick="document.getElementById('autoPoModal').style.display='none'">&times;</button>
+      </div>
+      
+      <div class="modal-body" style="padding: 20px 24px;">
+        <p style="margin-bottom: 16px; color: var(--text-main); font-size: 14px;">
+          ระบบจะทำการสร้างใบสั่งซื้อชั่วคราวสำหรับพัสดุและสารเคมีที่ <span style="font-weight: 600; color: var(--accent-red);">ใกล้หมด</span> หรือ <span style="font-weight: 600; color: var(--accent-red);">ต่ำกว่าจุดสั่งซื้อ</span> อัตโนมัติ กรุณาตรวจสอบและยืนยันการดำเนินการ
+        </p>
+        
+        <div style="background-color: var(--bg-body); border-radius: 8px; padding: 16px; border: 1px solid var(--border-color); margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 13px; color: var(--text-muted);">จำนวนรายการพัสดุ:</span>
+            <span id="autoPoItemCount" style="font-weight: 700; font-size: 14px; color: var(--text-main);">0 รายการ</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 13px; color: var(--text-muted);">ประมาณการมูลค่ารวม:</span>
+            <span id="autoPoEstValue" style="font-weight: 700; font-size: 16px; color: var(--primary-purple);">0.00 บาท</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer" style="display: flex; gap: 12px; padding: 16px 24px; background-color: #f8fafc; border-top: 1px solid var(--border-color); border-radius: 0 0 16px 16px;">
+        <button class="btn btn-secondary" style="flex: 1; justify-content: center;" onclick="document.getElementById('autoPoModal').style.display='none'">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnConfirmAutoPo" style="flex: 1; justify-content: center; background-color: var(--primary-purple);">
+          <i data-lucide="check" style="width: 16px; height: 16px;"></i> ยืนยันการสร้างใบสั่งซื้อ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: CLEAR PO CONFIRMATION DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="clearPoModal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px; color: var(--accent-red);">
+          <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
+          ยืนยันการล้างรายการ
+        </h2>
+        <button class="modal-close-btn" onclick="document.getElementById('clearPoModal').style.display='none'">&times;</button>
+      </div>
+      
+      <div class="modal-body" style="padding: 20px 24px; text-align: center;">
+        <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 8px;">
+          คุณแน่ใจหรือไม่ว่าต้องการล้างรายการสั่งซื้อทั้งหมด?
+        </p>
+        <p style="color: var(--accent-red); font-size: 13px; font-weight: 500;">
+          *การกระทำนี้ไม่สามารถเรียกคืนข้อมูลกลับมาได้
+        </p>
+      </div>
+      
+      <div class="modal-footer" style="display: flex; gap: 12px; padding: 16px 24px; background-color: #fff; border-top: none; justify-content: center;">
+        <button class="btn btn-secondary" style="flex: 1; justify-content: center;" onclick="document.getElementById('clearPoModal').style.display='none'">ยกเลิก</button>
+        <button class="btn" id="btnConfirmClearPo" style="flex: 1; justify-content: center; background-color: var(--accent-red); color: white; border: none; padding: 10px 16px; border-radius: var(--border-radius-md); font-weight: 600; cursor: pointer;">
+          ล้างรายการทั้งหมด
+        </button>
       </div>
     </div>
   </div>
