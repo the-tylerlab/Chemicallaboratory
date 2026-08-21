@@ -279,6 +279,19 @@ button {
   color: var(--primary-purple);
   font-weight: 600;
   box-shadow: none;
+  position: relative;
+}
+
+.menu-item-link.active::before {
+  content: "";
+  position: absolute;
+  left: -8px; /* Assuming some padding on sidebar, this places it at the very edge, or adjust as needed. If left: 0, it's inside the rounded box */
+  top: 50%;
+  transform: translateY(-50%);
+  height: 60%;
+  width: 4px;
+  background-color: var(--primary-purple);
+  border-radius: 0 4px 4px 0;
 }
 
 .menu-item-link svg {
@@ -1222,6 +1235,8 @@ input:focus, select:focus, textarea:focus {
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: calc(100vh - 220px);
   margin-bottom: 24px;
 }
 
@@ -5278,6 +5293,35 @@ body.hide-col-qty .col-qty { display: none !important; }
 body.hide-col-expiry .col-expiry { display: none !important; }
 body.hide-col-room .col-room { display: none !important; }
 body.hide-col-status .col-status { display: none !important; }
+body.hide-col-cas .col-cas { display: none !important; }
+
+/* Table Row Dropdown Menu */
+.dropdown-action-btn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-main);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.dropdown-action-btn:hover {
+  background-color: var(--bg-body);
+}
+
+.dropdown-action-btn.danger {
+  color: var(--accent-red);
+}
+
+.dropdown-action-btn.danger:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
 
 /* Wizard Form */
 .form-wizard-progress {

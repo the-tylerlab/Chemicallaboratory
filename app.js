@@ -582,9 +582,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   // Update sidebar active link
   sidebarLinks.forEach(link => {
     const target = link.getAttribute("data-target");
-    if (panelId === "purchase-orders" && target === "add-item") {
-      link.classList.add("active");
-    } else if (target === panelId) {
+    if (target === panelId) {
       link.classList.add("active");
     } else {
       link.classList.remove("active");
@@ -1132,6 +1130,7 @@ function renderItemsTable() {
           </div>
         </td>
         <td data-label="จำนวนคงเหลือ" class="col-qty" style="font-weight: 600; font-size: 14px;">${item.qty} ${item.unit}</td>
+        <td data-label="CAS No." class="col-cas" style="color: var(--text-muted); font-size: 12px; font-family: monospace;">${item.casNo || '-'}</td>
         <td data-label="วันหมดอายุ" class="col-expiry">
           <span style="${status === 'expired' ? 'color: var(--accent-red); font-weight: 600;' : ''}">
             ${formatThaiDate(item.expiry)}
@@ -1141,13 +1140,21 @@ function renderItemsTable() {
         <td data-label="สถานะ" class="col-status">${getStatusBadgeMarkup(status)}</td>
         ${isAdminLoggedIn ? `
         <td data-label="จัดการ">
-          <div class="table-actions">
-            <button class="action-icon-btn edit" onclick="editItem(${originalIndex})" title="แก้ไขรายการ">
-              <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+          <div class="table-actions" style="position: relative;">
+            <button class="action-icon-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex})" title="ตัวเลือกเพิ่มเติม">
+              <i data-lucide="more-horizontal" style="width: 16px; height: 16px;"></i>
             </button>
-            <button class="action-icon-btn delete" onclick="deleteItem(${originalIndex})" title="ลบรายการ">
-              <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-            </button>
+            <div id="rowDropdown-${originalIndex}" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 50; min-width: 140px; padding: 4px; text-align: left;">
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); showItemDetail(event, '${item.code}')">
+                <i data-lucide="eye" style="width: 14px; height: 14px; margin-right: 8px;"></i> ดูรายละเอียด
+              </button>
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); editItem(${originalIndex})">
+                <i data-lucide="edit-3" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไขรายการ
+              </button>
+              <button class="dropdown-action-btn danger" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); deleteItem(${originalIndex})">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px; margin-right: 8px;"></i> ลบรายการ
+              </button>
+            </div>
           </div>
         </td>
         ` : ""}
@@ -1166,6 +1173,33 @@ window.toggleColumn = function(className, isVisible) {
     document.body.classList.add(`hide-${className}`);
   }
 };
+
+window.toggleRowDropdown = function(index) {
+  // Hide all other dropdowns
+  document.querySelectorAll('.row-dropdown-menu').forEach(menu => {
+    if (menu.id !== `rowDropdown-${index}`) {
+      menu.style.display = 'none';
+    }
+  });
+  
+  const menu = document.getElementById(`rowDropdown-${index}`);
+  if (menu) {
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+};
+
+// Close dropdowns on document click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.table-actions')) {
+    document.querySelectorAll('.row-dropdown-menu').forEach(menu => {
+      menu.style.display = 'none';
+    });
+  }
+  if (!e.target.closest('#btnToggleColumns') && !e.target.closest('#columnToggleMenu')) {
+    const colMenu = document.getElementById('columnToggleMenu');
+    if (colMenu) colMenu.style.display = 'none';
+  }
+});
 
 function setupFilterHandlers() {
   document.getElementById("filterSearch").addEventListener("input", () => {
@@ -4488,8 +4522,17 @@ function setupPurchaseOrders() {
       const price = parseFloat(poUnitPrice.value) || 0;
       const qty = parseInt(poQuantity.value) || 0;
       const discount = poDiscount ? (parseFloat(poDiscount.value) || 0) : 0;
-      const total = price * qty * (1 - discount / 100);
-      poTotalPrice.value = total.toFixed(2);
+      
+      const rawTotal = price * qty;
+      const discountAmt = rawTotal * (discount / 100);
+      const netTotal = rawTotal - discountAmt;
+      
+      poTotalPrice.value = netTotal.toFixed(2);
+      
+      const poNetTotalDetail = document.getElementById("poNetTotalDetail");
+      if (poNetTotalDetail) {
+        poNetTotalDetail.innerText = `${rawTotal.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})} - ลด ${discountAmt.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})} = ${netTotal.toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})} บาท`;
+      }
     };
  
     poUnitPrice.addEventListener("input", calculateTotal);
@@ -4519,6 +4562,7 @@ function setupPurchaseOrders() {
       const semester = document.getElementById("poSemester").value || "1";
       const unitPrice = parseFloat(document.getElementById("poUnitPrice").value) || 0;
       const quantity = parseInt(document.getElementById("poQuantity").value) || 1;
+      const unit = document.getElementById("poUnit") ? document.getElementById("poUnit").value.trim() : "";
       const discount = parseFloat(document.getElementById("poDiscount").value) || 0;
       const totalPrice = unitPrice * quantity * (1 - discount / 100);
  
@@ -4535,6 +4579,7 @@ function setupPurchaseOrders() {
             semester,
             unitPrice,
             quantity,
+            unit,
             totalPrice,
             discount
           };
@@ -4571,6 +4616,7 @@ function setupPurchaseOrders() {
         semester,
         unitPrice,
         quantity,
+        unit,
         totalPrice,
         discount
       };
@@ -4721,6 +4767,23 @@ function setupPurchaseOrders() {
         if (!confirmSave) return;
       }
 
+      // Update Modal details
+      const modalItemCount = document.getElementById('autoPoItemCount');
+      const modalEstValue = document.getElementById('autoPoEstValue');
+      if (modalItemCount) modalItemCount.textContent = `${purchaseOrderDrafts.length} รายการ`;
+      if (modalEstValue) modalEstValue.textContent = `${subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท`;
+
+      // Show Modal
+      document.getElementById('autoPoModal').style.display = 'flex';
+    });
+  }
+
+  // Handle actual confirm from modal
+  const btnConfirmAutoPo = document.getElementById('btnConfirmAutoPo');
+  if (btnConfirmAutoPo) {
+    btnConfirmAutoPo.addEventListener("click", () => {
+      document.getElementById('autoPoModal').style.display = 'none';
+
       purchaseOrderDrafts.forEach(draft => {
         draft.id = "ord-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
         draft.date = new Date().toISOString().split('T')[0];
@@ -4809,7 +4872,12 @@ function updateBudgetUI() {
   // Calculate total spent
   let totalSpent = 0;
   purchaseOrders.forEach(order => {
-    totalSpent += order.totalPrice;
+    const unitPrice = parseFloat(order.unitPrice) || 0;
+    const quantity = parseInt(order.quantity) || 0;
+    const rawTotal = unitPrice * quantity;
+    const discountPercent = typeof order.discount === 'number' ? order.discount : 0;
+    const discountAmt = rawTotal * (discountPercent / 100);
+    totalSpent += (rawTotal - discountAmt);
   });
 
   // Calculate remaining
@@ -4933,29 +5001,45 @@ function renderOrdersTable() {
   let grandTotal = 0;
 
   filteredOrders.forEach(order => {
-    const rawTotal = order.unitPrice * order.quantity;
+    const unitPrice = parseFloat(order.unitPrice) || 0;
+    const quantity = parseInt(order.quantity) || 0;
+    const rawTotal = unitPrice * quantity;
     const discountPercent = typeof order.discount === 'number' ? order.discount : 0;
     const discountAmt = rawTotal * (discountPercent / 100);
+    const netPrice = rawTotal - discountAmt;
 
     totalBeforeDiscount += rawTotal;
     totalDiscountAmount += discountAmt;
-    grandTotal += order.totalPrice;
+    grandTotal += netPrice;
     
     let discountText = "-";
-    if (typeof order.discount === 'number' && order.discount > 0) {
-      discountText = `<span style="font-size: 13px; color: var(--accent-green); font-weight: 500;">ลด ${order.discount}%</span>`;
+    if (discountPercent > 0) {
+      discountText = `<span style="font-size: 13px; color: var(--accent-green); font-weight: 500;">ลด ${discountPercent}%<br><span style="font-size: 11px;">(-${discountAmt.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</span></span>`;
     } else if (order.budgetDiscount) {
       discountText = order.budgetDiscount;
     }
 
+    // Format Date (e.g. 2024-03-12 -> 12/03/2024)
+    let displayDate = "-";
+    if (order.date) {
+      const parts = order.date.split('-');
+      if (parts.length === 3) {
+        displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+    }
+
+    const unitText = order.unit ? ` ${order.unit}` : '';
+
     html += `
       <tr>
+        <td data-label="วันที่สั่ง" style="text-align: center; font-size: 13px;">${displayDate}</td>
         <td data-label="รหัสสินค้า" style="font-weight: 500;"><span style="font-family: monospace;">${escapeHTML(order.code)}</span></td>
         <td data-label="ชื่อสินค้า">${escapeHTML(order.name)}</td>
-        <td data-label="ราคา/หน่วย" style="text-align: right;">${order.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td data-label="จำนวน" style="text-align: center;">${order.quantity}</td>
-        <td data-label="ราคารวม" style="text-align: right; font-weight: 600;">${order.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td data-label="ส่วนลด" style="text-align: center;">${discountText}</td>
+        <td data-label="ราคา/หน่วย" style="text-align: right;">${unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td data-label="จำนวน" style="text-align: right;">${quantity}${unitText}</td>
+        <td data-label="รวมก่อนลด" style="text-align: right; color: var(--text-muted);">${rawTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td data-label="ส่วนลด" style="text-align: right;">${discountText}</td>
+        <td data-label="สุทธิ" style="text-align: right; font-weight: 600; color: var(--primary-purple);">${netPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
         ${isBackoffice ? `
           <td data-label="จัดการ" style="text-align: center; white-space: nowrap;">
             <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
@@ -5041,8 +5125,16 @@ window.editPurchaseOrder = function(orderId) {
   document.getElementById("poSemester").value = order.semester || "1";
   document.getElementById("poUnitPrice").value = order.unitPrice || 0;
   document.getElementById("poQuantity").value = order.quantity || 1;
+  const poUnitEl = document.getElementById("poUnit");
+  if (poUnitEl) poUnitEl.value = order.unit || "";
   document.getElementById("poDiscount").value = order.discount || 0;
-  document.getElementById("poTotalPrice").value = (order.totalPrice || 0).toFixed(2);
+  
+  const poUnitPrice = document.getElementById("poUnitPrice");
+  if (poUnitPrice) {
+    poUnitPrice.dispatchEvent(new Event("input"));
+  } else {
+    document.getElementById("poTotalPrice").value = (order.totalPrice || 0).toFixed(2);
+  }
   
   editingPurchaseOrderId = orderId;
   
@@ -11449,7 +11541,29 @@ function setupAdminClearHandlers() {
         showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
         return;
       }
-      openConfirmModal("purchaseOrders");
+      document.getElementById("clearPoModal").style.display = "flex";
+    });
+  }
+
+  const btnConfirmClearPo = document.getElementById("btnConfirmClearPo");
+  if (btnConfirmClearPo) {
+    btnConfirmClearPo.addEventListener("click", async () => {
+      document.getElementById("clearPoModal").style.display = "none";
+      const poToDelete = [...purchaseOrders];
+      purchaseOrders = [];
+      localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      
+      if (isSupabaseOnline) {
+        for (const po of poToDelete) {
+          try {
+            await supabase.from("purchase_orders").delete().eq("id", po.id);
+          } catch (e) {
+            console.error("Supabase clear PO failed:", po.id, e);
+          }
+        }
+      }
+      showToast("ล้างประวัติการสั่งซื้อทั้งหมดเรียบร้อยแล้ว", "success");
+      updateUI();
     });
   }
 
@@ -11573,30 +11687,7 @@ function setupAdminClearHandlers() {
           }
           showToast("ล้างประวัติการจองห้องปฏิบัติการทั้งหมดเรียบร้อยแล้ว", "success");
         } 
-        else if (pendingClearAction === "purchaseOrders") {
-          const poToDelete = [...purchaseOrders];
-          purchaseOrders = [];
-          localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
-          
-          if (isSupabaseOnline) {
-            for (const po of poToDelete) {
-              try {
-                await supabase.from("purchase_orders").delete().eq("id", po.id);
-              } catch (e) {
-                console.error("Supabase clear PO failed:", po.id, e);
-              }
-            }
-          } else if (isBackendOnline) {
-            for (const po of poToDelete) {
-              try {
-                await fetch(`${API_BASE}/purchase_orders/${encodeURIComponent(po.id)}`, { method: "DELETE" });
-              } catch (e) {
-                // local fallback
-              }
-            }
-          }
-          showToast("ล้างประวัติการสั่งซื้อทั้งหมดเรียบร้อยแล้ว", "success");
-        } 
+
         else if (pendingClearAction === "plans") {
           localStorage.removeItem("saved_lab_plans");
           plannerElements = [];
