@@ -4562,7 +4562,6 @@ function setupPurchaseOrders() {
       const semester = document.getElementById("poSemester").value || "1";
       const unitPrice = parseFloat(document.getElementById("poUnitPrice").value) || 0;
       const quantity = parseInt(document.getElementById("poQuantity").value) || 1;
-      const unit = document.getElementById("poUnit") ? document.getElementById("poUnit").value.trim() : "";
       const discount = parseFloat(document.getElementById("poDiscount").value) || 0;
       const totalPrice = unitPrice * quantity * (1 - discount / 100);
  
@@ -4579,7 +4578,6 @@ function setupPurchaseOrders() {
             semester,
             unitPrice,
             quantity,
-            unit,
             totalPrice,
             discount
           };
@@ -4616,7 +4614,6 @@ function setupPurchaseOrders() {
         semester,
         unitPrice,
         quantity,
-        unit,
         totalPrice,
         discount
       };
@@ -5125,8 +5122,6 @@ window.editPurchaseOrder = function(orderId) {
   document.getElementById("poSemester").value = order.semester || "1";
   document.getElementById("poUnitPrice").value = order.unitPrice || 0;
   document.getElementById("poQuantity").value = order.quantity || 1;
-  const poUnitEl = document.getElementById("poUnit");
-  if (poUnitEl) poUnitEl.value = order.unit || "";
   document.getElementById("poDiscount").value = order.discount || 0;
   
   const poUnitPrice = document.getElementById("poUnitPrice");
