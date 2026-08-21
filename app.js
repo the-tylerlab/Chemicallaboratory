@@ -1050,10 +1050,16 @@ function renderItemsTable() {
     const colSpanVal = isAdminLoggedIn ? 6 : 5;
     tableBody.innerHTML = `
       <tr>
-        <td colspan="${colSpanVal}" style="text-align: center; padding: 48px;">
-          <div class="empty-state">
-            <div class="empty-state-icon"><i data-lucide="package-search"></i></div>
-            <div class="empty-state-text">ไม่พบรายการสินค้าที่ตรงกับเงื่อนไข</div>
+        <td colspan="${colSpanVal}" style="text-align: center; padding: 48px 24px;">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--text-muted);">
+            <div style="background-color: var(--bg-hover); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+              <i data-lucide="search-X" style="width: 32px; height: 32px; color: #94a3b8;"></i>
+            </div>
+            <p style="font-size: 16px; font-weight: 500; color: var(--text-main); margin: 0;">ไม่พบรายการที่ค้นหา</p>
+            <p style="font-size: 14px; margin: 0;">ลองปรับเปลี่ยนเงื่อนไขการค้นหาหรือตัวกรอง</p>
+            <button class="btn btn-secondary" onclick="document.getElementById('filterSearch').value=''; document.getElementById('filterCategory').value='all'; document.getElementById('filterStatus').value='all'; currentPage = 1; renderItemsTable(); lucide.createIcons();" style="margin-top: 12px; display: inline-flex; align-items: center; gap: 6px;">
+              <i data-lucide="x" style="width: 16px; height: 16px;"></i> ล้างตัวกรอง
+            </button>
           </div>
         </td>
       </tr>
@@ -1117,7 +1123,7 @@ function renderItemsTable() {
 
     rowsHtml += `
       <tr class="table-clickable-row" onclick="showItemDetail(event, '${item.code}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียด">
-        <td data-label="รายการ">
+        <td data-label="รายการ" class="col-desc">
           <div class="product-cell">
             <span class="product-code">${item.code}</span>
             <span class="product-name">${formatItemName(item.name)}</span>
@@ -1125,14 +1131,14 @@ function renderItemsTable() {
             ${ghsBadges}
           </div>
         </td>
-        <td data-label="จำนวนคงเหลือ" style="font-weight: 600; font-size: 14px;">${item.qty} ${item.unit}</td>
-        <td data-label="วันหมดอายุ">
+        <td data-label="จำนวนคงเหลือ" class="col-qty" style="font-weight: 600; font-size: 14px;">${item.qty} ${item.unit}</td>
+        <td data-label="วันหมดอายุ" class="col-expiry">
           <span style="${status === 'expired' ? 'color: var(--accent-red); font-weight: 600;' : ''}">
             ${formatThaiDate(item.expiry)}
           </span>
         </td>
-        <td data-label="สถานที่จัดเก็บ" style="color: var(--text-muted); font-size: 12px;">${locationText}</td>
-        <td data-label="สถานะ">${getStatusBadgeMarkup(status)}</td>
+        <td data-label="สถานที่จัดเก็บ" class="col-room" style="color: var(--text-muted); font-size: 12px;">${locationText}</td>
+        <td data-label="สถานะ" class="col-status">${getStatusBadgeMarkup(status)}</td>
         ${isAdminLoggedIn ? `
         <td data-label="จัดการ">
           <div class="table-actions">
@@ -1153,6 +1159,14 @@ function renderItemsTable() {
 }
 
 // Setup pagination controls
+window.toggleColumn = function(className, isVisible) {
+  if (isVisible) {
+    document.body.classList.remove(`hide-${className}`);
+  } else {
+    document.body.classList.add(`hide-${className}`);
+  }
+};
+
 function setupFilterHandlers() {
   document.getElementById("filterSearch").addEventListener("input", () => {
     currentPage = 1;
@@ -1416,6 +1430,7 @@ function setupFormHandlers() {
 
     const code = document.getElementById("itemCode").value.trim();
     const name = document.getElementById("itemName").value.trim();
+    const casNo = document.getElementById("itemCasNo") ? document.getElementById("itemCasNo").value.trim() : "";
     const category = document.getElementById("itemCategory").value;
     const qty = Number(document.getElementById("itemQty").value);
     const unit = document.getElementById("itemUnit").value;
@@ -1500,6 +1515,7 @@ function setupFormHandlers() {
     const itemData = {
       code,
       name,
+      casNo,
       category,
       qty,
       unit,
@@ -1629,6 +1645,7 @@ window.editItem = function(index) {
   document.getElementById("itemCode").value = item.code;
   document.getElementById("itemCode").disabled = true; // Lock code editing
   document.getElementById("itemName").value = item.name;
+  if (document.getElementById("itemCasNo")) document.getElementById("itemCasNo").value = item.casNo || "";
   document.getElementById("itemCategory").value = item.category;
   document.getElementById("itemQty").value = item.qty;
   document.getElementById("itemUnit").value = item.unit;
@@ -12720,3 +12737,71 @@ window.showAddedAnimation = function(text = "Added") {
     }
   }, 2200);
 };
+
+// --- Wizard Form Logic ---
+function updateWizardProgress(currentStep) {
+  const steps = [1, 2, 3];
+  steps.forEach((step, index) => {
+    const indicator = document.getElementById(`step-indicator-${step}`);
+    if (indicator) {
+      indicator.classList.remove('active', 'completed');
+      if (step === currentStep) {
+        indicator.classList.add('active');
+      } else if (step < currentStep) {
+        indicator.classList.add('completed');
+      }
+    }
+    
+    if (index < steps.length - 1) {
+      const line = document.querySelectorAll('.wizard-line')[index];
+      if (line) {
+        if (step < currentStep) {
+          line.classList.add('completed');
+        } else {
+          line.classList.remove('completed');
+        }
+      }
+    }
+  });
+}
+
+window.nextWizardStep = function(targetStep) {
+  // Hide all steps
+  document.querySelectorAll('.wizard-step-content').forEach(el => el.style.display = 'none');
+  // Show target step
+  const targetEl = document.getElementById(`wizard-step-${targetStep}`);
+  if (targetEl) targetEl.style.display = 'block';
+  // Update progress
+  updateWizardProgress(targetStep);
+  lucide.createIcons();
+};
+
+window.prevWizardStep = function(targetStep) {
+  // Hide all steps
+  document.querySelectorAll('.wizard-step-content').forEach(el => el.style.display = 'none');
+  // Show target step
+  const targetEl = document.getElementById(`wizard-step-${targetStep}`);
+  if (targetEl) targetEl.style.display = 'block';
+  // Update progress
+  updateWizardProgress(targetStep);
+  lucide.createIcons();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const originalNavigateToPanel = window.navigateToPanel;
+  if(originalNavigateToPanel) {
+    window.navigateToPanel = function(panelId, hideSidebarMobile = true) {
+      originalNavigateToPanel(panelId, hideSidebarMobile);
+      if (panelId === 'add-item') {
+        window.nextWizardStep(1); // reset to step 1
+      }
+    };
+  }
+
+  const btnReset = document.getElementById('btnResetForm');
+  if(btnReset) {
+    btnReset.addEventListener('click', () => {
+      window.nextWizardStep(1);
+    });
+  }
+});

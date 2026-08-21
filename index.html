@@ -481,12 +481,30 @@
 
         <div class="form-container">
           <form id="itemForm">
-            <!-- Hidden input to track item index when editing -->
             <input type="hidden" id="editItemIndex" value="">
 
-            <div class="form-grid">
-              
-              <!-- Item Code -->
+            <!-- Step Progress Indicator -->
+            <div class="form-wizard-progress">
+              <div class="wizard-step active" id="step-indicator-1">
+                <div class="step-circle">1</div>
+                <div class="step-label">ข้อมูลทั่วไป</div>
+              </div>
+              <div class="wizard-line"></div>
+              <div class="wizard-step" id="step-indicator-2">
+                <div class="step-circle">2</div>
+                <div class="step-label">ความปลอดภัย</div>
+              </div>
+              <div class="wizard-line"></div>
+              <div class="wizard-step" id="step-indicator-3">
+                <div class="step-circle">3</div>
+                <div class="step-label">การจัดเก็บ</div>
+              </div>
+            </div>
+
+            <!-- Step 1: General Info -->
+            <div class="wizard-step-content active" id="wizard-step-1">
+              <div class="form-grid">
+<!-- Item Code -->
               <div class="form-group">
                 <label for="itemCode">รหัสสาร/อุปกรณ์ <span class="required">*</span></label>
                 <input type="text" id="itemCode" placeholder="เช่น CHEM-001" required>
@@ -499,7 +517,14 @@
                 <div id="compatibilityRecBadge" style="display: none; margin-top: 6px; font-size: 12px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 16px; border: 1px solid; transition: all 0.2s; width: fit-content;"></div>
               </div>
 
-              <!-- Category -->
+              <!-- CAS No -->
+              <div class="form-group">
+                <label for="itemCasNo" style="display: flex; align-items: center; gap: 4px;">CAS No. <i data-lucide="info" style="width: 14px; height: 14px; color: var(--text-muted);" title="หมายเลขประจำตัวสารเคมี (Chemical Abstracts Service) สำหรับสารเคมีเท่านั้น"></i></label>
+                <input type="text" id="itemCasNo" placeholder="เช่น 7647-01-0">
+              </div>
+
+              
+<!-- Category -->
               <div class="form-group">
                 <label for="itemCategory">หมวดหมู่ <span class="required">*</span></label>
                 <select id="itemCategory" required>
@@ -511,7 +536,8 @@
                 </select>
               </div>
 
-              <!-- Quantity & Unit -->
+              
+<!-- Quantity & Unit -->
               <div class="form-group">
                 <div class="form-row-multi">
                   <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -532,65 +558,17 @@
                 </div>
               </div>
 
-              <!-- Damaged & Under Repair Quantity -->
-              <div class="form-group">
-                <div class="form-row-2-always">
-                  <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <label for="itemDamagedQty">จำนวนที่ชำรุด</label>
-                    <input type="number" id="itemDamagedQty" value="0" min="0">
-                  </div>
-                  <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <label for="itemRepairQty">จำนวนส่งซ่อม</label>
-                    <input type="number" id="itemRepairQty" value="0" min="0">
-                  </div>
-                </div>
+              
               </div>
-
-              <!-- Min Reorder Alert Point -->
-              <div class="form-group">
-                <label for="itemMinAlert">จุดสั่งซื้อขั้นต่ำ</label>
-                <select id="itemMinAlert">
-                  <option value="" disabled selected>เตือนเมื่อต่ำกว่านี้</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                </select>
+              <div class="form-actions" style="justify-content: flex-end; margin-top: 24px;">
+                <button type="button" class="btn btn-primary" onclick="nextWizardStep(2)">ถัดไป <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i></button>
               </div>
+            </div>
 
-              <!-- Expiry Date -->
-              <div class="form-group">
-                <label for="itemExpiry">วันหมดอายุ</label>
-                <input type="date" id="itemExpiry">
-              </div>
-
-              <!-- Storage Location Sub-box -->
-              <div class="form-group full-width">
-                <div class="location-subbox">
-                  <span class="location-subbox-title">
-                    <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
-                    สถานที่จัดเก็บ (ระบุให้ครบถ้วน)
-                  </span>
-                  
-                  <div class="form-group">
-                    <label for="itemRoom">ห้อง/Lab</label>
-                    <input type="text" id="itemRoom" placeholder="เช่น Lab 1">
-                  </div>
-                  
-                  <div class="form-group">
-                    <label for="itemCabinet">ตู้เก็บของ</label>
-                    <input type="text" id="itemCabinet" placeholder="เช่น ตู้ A">
-                  </div>
-                  
-                  <div class="form-group">
-                    <label for="itemShelf">ชั้นวาง</label>
-                    <input type="text" id="itemShelf" placeholder="เช่น ชั้น 2">
-                  </div>
-                </div>
-              </div>
-
-              <div class="form-group full-width">
+            <!-- Step 2: Safety -->
+            <div class="wizard-step-content" id="wizard-step-2" style="display: none;">
+              <div class="form-grid">
+<div class="form-group full-width">
                 <div class="safety-subbox">
                   <span class="safety-subbox-title">
                     <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i>
@@ -621,7 +599,7 @@
                   </div>
                   
                   <div class="form-group full-width">
-                    <label style="margin-bottom: 8px; display: block; font-weight: 600;">ค่าระดับความเสี่ยง NFPA 704 (สำหรับสารเคมี)</label>
+                    <label style="margin-bottom: 8px; display: flex; align-items: center; gap: 4px; font-weight: 600;">ค่าระดับความเสี่ยง NFPA 704 (สำหรับสารเคมี) <i data-lucide="info" style="width: 14px; height: 14px; color: var(--text-muted);" title="ระบบสัญลักษณ์แสดงอันตรายของสารเคมี (สีน้ำเงิน: สุขภาพ, สีแดง: ไวไฟ, สีเหลือง: ความไวปฏิกิริยา, สีขาว: ข้อควรระวังพิเศษ)"></i></label>
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
                       <div>
                         <label for="itemNfpaHealth" style="font-size: 11px; color: #3b82f6; font-weight: 600; display: block; margin-bottom: 4px;">Health (สุขภาพ)</label>
@@ -716,15 +694,86 @@
                     </div>
                   </div>
                 </div>
+              
               </div>
-
+              </div>
+              <div class="form-actions" style="justify-content: space-between; margin-top: 24px;">
+                <button type="button" class="btn btn-secondary" onclick="prevWizardStep(1)"><i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> ย้อนกลับ</button>
+                <button type="button" class="btn btn-primary" onclick="nextWizardStep(3)">ถัดไป <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i></button>
+              </div>
             </div>
 
-            <!-- Form Buttons -->
-            <div class="form-actions">
-              <button type="submit" class="btn btn-primary" id="btnSubmitForm">บันทึกข้อมูล</button>
-              <button type="button" class="btn btn-secondary" id="btnResetForm">ล้างฟอร์ม</button>
-              <button type="button" class="btn btn-danger" id="btnCancelEdit" style="display: none; margin-left: auto;">ยกเลิกการแก้ไข</button>
+            <!-- Step 3: Stock/Storage -->
+            <div class="wizard-step-content" id="wizard-step-3" style="display: none;">
+              <div class="form-grid">
+<!-- Damaged & Under Repair Quantity -->
+              <div class="form-group">
+                <div class="form-row-2-always">
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="itemDamagedQty">จำนวนที่ชำรุด</label>
+                    <input type="number" id="itemDamagedQty" value="0" min="0">
+                  </div>
+                  <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label for="itemRepairQty">จำนวนส่งซ่อม</label>
+                    <input type="number" id="itemRepairQty" value="0" min="0">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Min Reorder Alert Point -->
+              <div class="form-group">
+                <label for="itemMinAlert">จุดสั่งซื้อขั้นต่ำ</label>
+                <select id="itemMinAlert">
+                  <option value="" disabled selected>เตือนเมื่อต่ำกว่านี้</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                </select>
+              </div>
+
+              <!-- Expiry Date -->
+              <div class="form-group">
+                <label for="itemExpiry">วันหมดอายุ</label>
+                <input type="date" id="itemExpiry">
+              </div>
+
+              <!-- Storage Location Sub-box -->
+              <div class="form-group full-width">
+                <div class="location-subbox">
+                  <span class="location-subbox-title">
+                    <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
+                    สถานที่จัดเก็บ (ระบุให้ครบถ้วน)
+                  </span>
+                  
+                  <div class="form-group">
+                    <label for="itemRoom">ห้อง/Lab</label>
+                    <input type="text" id="itemRoom" placeholder="เช่น Lab 1">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="itemCabinet">ตู้เก็บของ</label>
+                    <input type="text" id="itemCabinet" placeholder="เช่น ตู้ A">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="itemShelf">ชั้นวาง</label>
+                    <input type="text" id="itemShelf" placeholder="เช่น ชั้น 2">
+                  </div>
+                </div>
+              </div>
+
+              
+              </div>
+              <div class="form-actions" style="justify-content: space-between; margin-top: 24px;">
+                <button type="button" class="btn btn-secondary" onclick="prevWizardStep(2)"><i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> ย้อนกลับ</button>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn btn-danger" id="btnCancelEdit" style="display: none;">ยกเลิกการแก้ไข</button>
+                  <button type="button" class="btn btn-secondary" id="btnResetForm">ล้างฟอร์ม</button>
+                  <button type="submit" class="btn btn-primary" id="btnSubmitForm">บันทึกข้อมูล</button>
+                </div>
+              </div>
             </div>
           </form>
         </div>
@@ -803,6 +852,19 @@
             </select>
 
             <div class="filter-buttons-group">
+              <div style="position: relative; display: inline-block;">
+                <button class="btn btn-secondary" id="btnToggleColumns" type="button" onclick="document.getElementById('columnToggleMenu').style.display = document.getElementById('columnToggleMenu').style.display === 'none' ? 'block' : 'none';" style="display: inline-flex; align-items: center; gap: 6px;">
+                  <i data-lucide="columns" style="width: 16px; height: 16px;"></i>
+                  <span>คอลัมน์</span>
+                </button>
+                <div id="columnToggleMenu" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; box-shadow: var(--shadow-md); z-index: 100; min-width: 180px; margin-top: 4px; text-align: left;">
+                  <h4 style="margin-top: 0; margin-bottom: 8px; font-size: 13px; color: var(--text-muted);">เลือกแสดงคอลัมน์</h4>
+                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-qty', this.checked)"> จำนวนคงเหลือ</label>
+                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-expiry', this.checked)"> วันหมดอายุ</label>
+                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-room', this.checked)"> สถานที่จัดเก็บ</label>
+                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 0; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-status', this.checked)"> สถานะ</label>
+                </div>
+              </div>
               <button class="btn btn-secondary" id="btnExportCSV" style="display: inline-flex; align-items: center; gap: 6px;">
                 <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
                 <span>ส่งออก Excel (CSV)</span>
@@ -829,11 +891,11 @@
             <table>
               <thead>
                 <tr>
-                  <th style="width: 30%;">รายละเอียดสินค้า</th>
-                  <th style="width: 12%;">จำนวนคงเหลือ</th>
-                  <th style="width: 12%;">วันหมดอายุ</th>
-                  <th style="width: 18%;">สถานที่จัดเก็บ</th>
-                  <th style="width: 18%;">สถานะ</th>
+                  <th style="width: 30%;" class="col-desc">รายละเอียดสินค้า</th>
+                  <th style="width: 12%;" class="col-qty">จำนวนคงเหลือ</th>
+                  <th style="width: 12%;" class="col-expiry">วันหมดอายุ</th>
+                  <th style="width: 18%;" class="col-room">สถานที่จัดเก็บ</th>
+                  <th style="width: 18%;" class="col-status">สถานะ</th>
                   <th id="thActions" style="width: 10%; text-align: center;">จัดการ</th>
                 </tr>
               </thead>
@@ -900,23 +962,26 @@
               <i data-lucide="edit-3" style="width: 16px; height: 16px; margin-right: 6px;"></i>
               เครื่องมือปรับแต่งแผนผัง (ลากเพื่อย้ายตำแหน่ง)
             </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-              <button class="btn btn-secondary btn-sm" onclick="addLayoutElement('table')">
-                <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มโต๊ะปฏิบัติการ
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="addLayoutElement('door')">
-                <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มประตู
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="addLayoutElement('whiteboard')">
-                <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มกระดาน
-              </button>
-              <div style="flex-grow: 1;"></div>
-              <button class="btn btn-primary btn-sm" onclick="saveLayout()">
-                <i data-lucide="save" style="width: 14px; height: 14px; margin-right: 4px;"></i> บันทึกแผนผัง
-              </button>
-              <button class="btn btn-outline btn-sm" onclick="toggleLayoutEditMode()">
-                ยกเลิก
-              </button>
+            <div class="layout-edit-actions">
+              <div class="add-buttons">
+                <button class="btn btn-secondary btn-sm" onclick="addLayoutElement('table')">
+                  <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มโต๊ะปฏิบัติการ
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="addLayoutElement('door')">
+                  <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มประตู
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="addLayoutElement('whiteboard')">
+                  <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มกระดาน
+                </button>
+              </div>
+              <div class="save-actions">
+                <button class="btn btn-outline btn-sm" onclick="toggleLayoutEditMode()">
+                  ยกเลิก
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="saveLayout()">
+                  <i data-lucide="save" style="width: 14px; height: 14px; margin-right: 4px;"></i> บันทึกแผนผัง
+                </button>
+              </div>
             </div>
           </div>
 

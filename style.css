@@ -275,8 +275,8 @@ button {
 }
 
 .menu-item-link.active {
-  background-color: #f4f4f5; /* Zinc 100 active background */
-  color: var(--text-main);
+  background-color: var(--primary-purple-active);
+  color: var(--primary-purple);
   font-weight: 600;
   box-shadow: none;
 }
@@ -449,7 +449,9 @@ button {
   align-items: center;
   justify-content: space-between;
   border: 1px solid var(--border-color);
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast)
+  border-left-width: 4px;
+  border-left-style: solid;
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
   position: relative;
   overflow: hidden;
 }
@@ -494,33 +496,29 @@ button {
 }
 
 /* Card Accent Varieties */
-.stat-card.blue:hover {
-  border-color: var(--accent-blue);
-}
+.stat-card.blue { border-left-color: var(--accent-blue); }
+.stat-card.blue:hover { border-color: var(--accent-blue); }
 .stat-card.blue .stat-icon {
   background-color: var(--accent-blue-light);
   color: var(--accent-blue);
 }
 
-.stat-card.red:hover {
-  border-color: var(--accent-red);
-}
+.stat-card.red { border-left-color: var(--accent-red); }
+.stat-card.red:hover { border-color: var(--accent-red); }
 .stat-card.red .stat-icon {
   background-color: var(--accent-red-light);
   color: var(--accent-red);
 }
 
-.stat-card.orange:hover {
-  border-color: var(--accent-orange);
-}
+.stat-card.orange { border-left-color: var(--accent-orange); }
+.stat-card.orange:hover { border-color: var(--accent-orange); }
 .stat-card.orange .stat-icon {
   background-color: var(--accent-orange-light);
   color: var(--accent-orange);
 }
 
-.stat-card.yellow:hover {
-  border-color: var(--accent-yellow);
-}
+.stat-card.yellow { border-left-color: var(--accent-yellow); }
+.stat-card.yellow:hover { border-color: var(--accent-yellow); }
 .stat-card.yellow .stat-icon {
   background-color: var(--accent-yellow-light);
   color: var(--accent-yellow);
@@ -1237,6 +1235,9 @@ th {
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 td {
@@ -5266,4 +5267,116 @@ input[type="date"]::-webkit-date-and-time-value {
   padding: 2px 8px;
   border-radius: 12px;
   background-color: var(--bg-main);
+}
+
+/* Dynamic Column Toggle */
+body.hide-col-qty .col-qty { display: none !important; }
+body.hide-col-expiry .col-expiry { display: none !important; }
+body.hide-col-room .col-room { display: none !important; }
+body.hide-col-status .col-status { display: none !important; }
+
+/* Wizard Form */
+.form-wizard-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding: 0 16px;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--bg-hover);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.wizard-step.active .step-circle {
+  background-color: var(--primary-purple);
+  color: white;
+  border-color: var(--primary-purple);
+}
+
+.wizard-step.completed .step-circle {
+  background-color: var(--accent-green);
+  color: white;
+  border-color: var(--accent-green);
+}
+
+.step-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.wizard-step.active .step-label {
+  color: var(--primary-purple);
+  font-weight: 600;
+}
+
+.wizard-step.completed .step-label {
+  color: var(--accent-green);
+}
+
+.wizard-line {
+  flex: 1;
+  height: 2px;
+  background-color: var(--border-color);
+  margin: 0 16px;
+  margin-bottom: 20px; /* Align with circle center */
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.wizard-line.completed {
+  background-color: var(--accent-green);
+}
+
+/* Map Editor Actions Layout */
+.layout-edit-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.layout-edit-actions .add-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.layout-edit-actions .save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .layout-edit-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .layout-edit-actions .save-actions {
+    justify-content: flex-end;
+    margin-top: 8px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 16px;
+  }
 }
