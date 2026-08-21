@@ -12804,4 +12804,22 @@ document.addEventListener('DOMContentLoaded', () => {
       window.nextWizardStep(1);
     });
   }
+
+  // Auto-select unit based on category
+  const itemCategorySelect = document.getElementById("itemCategory");
+  const itemUnitInput = document.getElementById("itemUnit");
+  if (itemCategorySelect && itemUnitInput) {
+    itemCategorySelect.addEventListener("change", (e) => {
+      if (!itemUnitInput.value || itemUnitInput.value === "ชิ้น" || itemUnitInput.value === "ขวด") {
+        const cat = e.target.value;
+        if (cat === "สารเคมี") {
+          itemUnitInput.value = "ขวด";
+        } else if (cat === "อุปกรณ์วิทยาศาสตร์" || cat === "เครื่องแก้ว" || cat === "อื่นๆ") {
+          itemUnitInput.value = "ชิ้น";
+        } else if (cat === "วัสดุสิ้นเปลือง") {
+          itemUnitInput.value = "กล่อง";
+        }
+      }
+    });
+  }
 });
