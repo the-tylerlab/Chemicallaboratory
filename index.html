@@ -2,10 +2,29 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <script>
+    if (window.location.search.includes('hardreset=1')) {
+      localStorage.clear();
+      sessionStorage.clear();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) { registration.unregister(); }
+        });
+      }
+      if (window.caches) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
+      alert('ล้างแคชและข้อมูลเก่าทั้งหมดเรียบร้อยแล้ว! กำลังรีโหลดระบบ...');
+      window.location.href = window.location.pathname;
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
   <title>SciPortal - Science Laboratory & Resource Portal</title>
   <!-- SEO & Meta -->
-  <meta name="description" content="SciPortal: พอร์ทัลจัดการห้องแล็บและวัสดุวิทยาศาสตร์ คลังแล็บอัจฉริยะ รองรับ Responsive">
+  <meta name="description" content="SciPortal: แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ เชื่อมต่อทุกข้อมูลให้เป็นระบบ">
   <!-- Favicon (ไอคอนแท็บเบราว์เซอร์) -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <!-- Google Fonts -->
@@ -13,13 +32,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="style.css?v=1.9.12">
+  <link rel="stylesheet" href="style.css?v=20260824">
   <!-- Lucide Icons Library -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- HTML5 QR Code Scanner Library -->
   <script src="https://unpkg.com/html5-qrcode"></script>
+  <!-- QRCode.js for generating QR Codes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -91,7 +112,7 @@
 
       <!-- Welcome Message Banner -->
       <div class="sidebar-welcome">
-        ยินดีต้อนรับสู่ SciPortal: พอร์ทัลจัดการห้องแล็บและวัสดุวิทยาศาสตร์
+        แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ เชื่อมต่อทุกข้อมูลให้เป็นระบบ
       </div>
 
 
@@ -139,6 +160,12 @@
             <a href="#" class="menu-item-link" data-target="reports">
               <i data-lucide="bar-chart-2"></i>
               <span>รายงานและสถิติ</span>
+            </a>
+          </li>
+          <li id="menuItemActivityLogs" style="display: none;">
+            <a href="#" class="menu-item-link" data-target="activity-logs">
+              <i data-lucide="activity"></i>
+              <span>ประวัติการใช้งาน</span>
             </a>
           </li>
           <!-- <li>
@@ -367,6 +394,16 @@
         </div>
 
         <div class="dashboard-grid">
+          <!-- 3. Lab Booking Stats Card -->
+          <div class="card-container" id="chartBookingCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
+            <div class="card-header">
+              <h2 class="card-title">สถิติการจองใช้งานห้องปฏิบัติการ</h2>
+            </div>
+            <div id="chartBookingContainer" style="width: 100%; min-height: 200px; box-sizing: border-box;">
+              <!-- Dynamic HTML Chart -->
+            </div>
+          </div>
+
           <!-- 1. Report Export Panel -->
           <div class="card-container" id="reportExportCard">
             <div class="card-header">
@@ -431,16 +468,6 @@
             </div>
           </div>
 
-          <!-- 3. Lab Booking Stats Card -->
-          <div class="card-container" id="chartBookingCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
-            <div class="card-header">
-              <h2 class="card-title">สถิติการจองใช้งานห้องปฏิบัติการ</h2>
-            </div>
-            <div id="chartBookingContainer" style="width: 100%; min-height: 200px; box-sizing: border-box;">
-              <!-- Dynamic HTML Chart -->
-            </div>
-          </div>
-
           <!-- 4. Stock Forecast & Auto-PO Card -->
           <div class="card-container" id="stockForecastCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
@@ -462,6 +489,34 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           PANEL: ACTIVITY LOGS
+           ========================================== -->
+      <section class="panel" id="panel-activity-logs">
+        <div class="content-header">
+          <h1>ประวัติการใช้งานระบบ (Activity Log)</h1>
+          <p>ตรวจสอบและติดตามการเปลี่ยนแปลงข้อมูลในระบบ (สงวนสิทธิ์เฉพาะผู้ดูแลระบบ)</p>
+        </div>
+        
+        <div class="card-container" style="padding: 0;">
+          <div style="overflow-x: auto;">
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+              <thead style="background-color: #f1f5f9; border-bottom: 2px solid var(--border-color);">
+                <tr>
+                  <th style="width: 20%; padding: 16px; font-weight: 700; color: #334155; text-align: left;">วันเวลา</th>
+                  <th style="width: 20%; padding: 16px; font-weight: 700; color: #334155; text-align: left;">ผู้ดำเนินการ</th>
+                  <th style="width: 20%; padding: 16px; font-weight: 700; color: #334155; text-align: left;">ประเภทกิจกรรม</th>
+                  <th style="width: 40%; padding: 16px; font-weight: 700; color: #334155; text-align: left;">รายละเอียด</th>
+                </tr>
+              </thead>
+              <tbody id="activityLogsTableBody">
+                <!-- Data populated dynamically via JS -->
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -811,23 +866,22 @@
         <!-- List View Area -->
         <div id="allItemsListViewArea" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
           <!-- Table Filters Section -->
-          <div class="table-filter-bar">
-            <div class="search-scan-group">
-              <div class="search-box-container">
-                <i data-lucide="search"></i>
-                <input type="text" id="filterSearch" placeholder="ค้นหารหัส, ชื่อ, หมวดหมู่...">
-              </div>
-
-              <!-- Barcode/QR Quick Scan box -->
-              <div class="scan-box-container">
-                <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="คลิกเพื่อสแกนด้วยกล้อง">
-                  <i data-lucide="scan" style="color: var(--primary-purple); width: 16px; height: 16px;"></i>
-                </button>
-                <input type="text" id="scanInput" placeholder="สแกนคิวอาร์..." autocomplete="off">
-              </div>
+          <div class="table-filter-bar" style="display: flex; flex-wrap: wrap; gap: 16px; width: 100%;">
+            
+            <div class="search-box-container" style="flex: 1 1 300px; min-width: 250px;">
+              <i data-lucide="search"></i>
+              <input type="text" id="filterSearch" placeholder="ค้นหารหัส, ชื่อ, หมวดหมู่..." style="width: 100%;">
             </div>
 
-            <select id="filterCategory" class="filter-select">
+            <!-- Barcode/QR Quick Scan box -->
+            <div class="scan-box-container" style="flex: 0 0 150px; width: 150px;">
+              <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="คลิกเพื่อสแกนด้วยกล้อง">
+                <i data-lucide="scan" style="color: var(--primary-purple); width: 16px; height: 16px;"></i>
+              </button>
+              <input type="text" id="scanInput" placeholder="สแกนคิวอาร์..." autocomplete="off" style="width: 100%;">
+            </div>
+
+            <select id="filterCategory" class="filter-select" style="flex: 0 0 150px; width: 150px;">
               <option value="all">ทุกหมวดหมู่</option>
               <option value="สารเคมี">สารเคมี</option>
               <option value="อุปกรณ์วิทยาศาสตร์">อุปกรณ์วิทยาศาสตร์</option>
@@ -835,7 +889,7 @@
               <option value="วัสดุสิ้นเปลือง">วัสดุสิ้นเปลือง</option>
             </select>
 
-            <select id="filterStatus" class="filter-select">
+            <select id="filterStatus" class="filter-select" style="flex: 0 0 150px; width: 150px;">
               <option value="all">ทุกสถานะ</option>
               <option value="normal">ปกติ</option>
               <option value="low-stock">ใกล้หมด</option>
@@ -843,30 +897,16 @@
               <option value="expired">หมดอายุแล้ว</option>
             </select>
 
-            <div class="filter-buttons-group">
-              <div style="position: relative; display: inline-block;">
-                <button class="btn btn-secondary" id="btnToggleColumns" type="button" onclick="document.getElementById('columnToggleMenu').style.display = document.getElementById('columnToggleMenu').style.display === 'none' ? 'block' : 'none';" style="display: inline-flex; align-items: center; gap: 6px;">
-                  <i data-lucide="columns" style="width: 16px; height: 16px;"></i>
-                  <span>คอลัมน์</span>
-                </button>
-                <div id="columnToggleMenu" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; box-shadow: var(--shadow-md); z-index: 100; min-width: 180px; margin-top: 4px; text-align: left;">
-                  <h4 style="margin-top: 0; margin-bottom: 8px; font-size: 13px; color: var(--text-muted);">เลือกแสดงคอลัมน์</h4>
-                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-qty', this.checked)"> จำนวนคงเหลือ</label>
-                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-cas', this.checked)"> CAS No.</label>
-                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-expiry', this.checked)"> วันหมดอายุ</label>
-                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-room', this.checked)"> สถานที่จัดเก็บ</label>
-                  <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 0; font-size: 13px; cursor: pointer;"><input type="checkbox" checked onchange="toggleColumn('col-status', this.checked)"> สถานะ</label>
-                </div>
-              </div>
-              <button class="btn btn-secondary" id="btnExportCSV" style="display: inline-flex; align-items: center; gap: 6px;">
+            <div class="filter-buttons-group" style="display: flex; gap: 16px; flex: 1 1 100%; flex-wrap: wrap; margin-left: 0; justify-content: flex-end;">
+              <button class="btn btn-secondary" id="btnExportCSV" style="display: inline-flex; align-items: center; gap: 6px; flex: 0 0 150px; width: 150px; justify-content: center;">
                 <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
-                <span>ส่งออก Excel (CSV)</span>
+                <span>ส่งออก Excel</span>
               </button>
-              <button class="btn btn-secondary" id="btnPrintReport" style="background-color: var(--accent-blue-light); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.2); display: inline-flex; align-items: center; gap: 6px;">
+              <button class="btn btn-secondary" id="btnPrintReport" style="background-color: var(--accent-blue-light); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.2); display: inline-flex; align-items: center; gap: 6px; flex: 0 0 150px; width: 150px; justify-content: center;" onclick="window.print()">
                 <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
-                <span>พิมพ์รายงาน (PDF)</span>
+                <span>พิมพ์รายงาน</span>
               </button>
-              <button class="btn btn-secondary admin-clear-btn" id="btnClearInventory" style="display: none; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border-color: rgba(239, 68, 68, 0.2); align-items: center; gap: 6px; font-weight: 600;">
+              <button class="btn btn-secondary admin-clear-btn" id="btnClearInventory" style="display: none; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border-color: rgba(239, 68, 68, 0.2); align-items: center; gap: 6px; font-weight: 600; flex: 0 0 150px; width: 150px; justify-content: center;" onclick="openClearPoModal()">
                 <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
                 <span>ล้างคลังพัสดุ</span>
               </button>
@@ -878,25 +918,45 @@
             <div>พบข้อมูลทั้งหมด <span id="tableTotalCount" style="font-weight: 700; color: var(--primary-purple);">0</span> รายการ</div>
             <div id="tableFilteredInfo">กำลังแสดงข้อมูลที่ฟิลเตอร์</div>
           </div>
+          
+          <!-- Batch Action Toolbar -->
+          <div id="batchActionToolbar" style="display: none; background-color: var(--primary-light); border-left: 4px solid var(--primary-purple); padding: 12px 16px; margin-bottom: 16px; border-radius: var(--border-radius-md); align-items: center; justify-content: space-between;">
+            <div style="font-weight: 600; color: var(--primary-purple);">
+              เลือกแล้ว <span id="batchSelectedCount">0</span> รายการ
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-secondary" onclick="batchPrintQR()" style="background-color: white; border-color: var(--border-color); display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="qr-code" style="width: 16px; height: 16px;"></i> พิมพ์ QR Code
+              </button>
+              <button class="btn btn-secondary" onclick="openBatchUpdateLocationModal()" style="background-color: white; border-color: var(--border-color); display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i> ย้ายสถานที่
+              </button>
+              <button class="btn btn-secondary" onclick="batchDeleteItems()" style="background-color: white; border-color: rgba(239, 68, 68, 0.3); color: var(--accent-red); display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i> ลบรายการ
+              </button>
+            </div>
+          </div>
+
 
           <!-- Main Items Table -->
           <div class="table-container">
             <table>
               <thead>
                 <tr>
+                  <th id="thBatchAction" style="width: 4%; text-align: center;"><input type="checkbox" id="selectAllBatch" onclick="toggleSelectAllBatch(this)"></th>
                   <th style="width: 25%;" class="col-desc">รายละเอียดสินค้า</th>
                   <th style="width: 10%;" class="col-qty">จำนวนคงเหลือ</th>
                   <th style="width: 10%;" class="col-cas">CAS No.</th>
                   <th style="width: 12%;" class="col-expiry">วันหมดอายุ</th>
                   <th style="width: 18%;" class="col-room">สถานที่จัดเก็บ</th>
                   <th style="width: 15%;" class="col-status">สถานะ</th>
-                  <th id="thActions" style="width: 10%; text-align: center;">จัดการ</th>
+                  <th id="thActions" style="width: 6%; text-align: center;">จัดการ</th>
                 </tr>
               </thead>
               <tbody id="itemsTableBody">
                 <!-- Dynamically populated or empty state -->
                 <tr>
-                  <td colspan="6" style="text-align: center; padding: 40px;">
+                  <td id="emptyStateColspan" colspan="7" style="text-align: center; padding: 40px;">
                     <div class="empty-state">
                       <div class="empty-state-icon"><i data-lucide="package-search"></i></div>
                       <div class="empty-state-text">ไม่พบรายการสินค้า</div>
@@ -2665,6 +2725,12 @@
       opacity: 1 !important;
       cursor: pointer !important;
     }
+    .table-clickable-row.status-expired { background-color: rgba(239, 68, 68, 0.05); }
+    .table-clickable-row.status-expired:hover { background-color: rgba(239, 68, 68, 0.1) !important; }
+    .table-clickable-row.status-near-expiry { background-color: rgba(245, 158, 11, 0.05); }
+    .table-clickable-row.status-near-expiry:hover { background-color: rgba(245, 158, 11, 0.1) !important; }
+    .table-clickable-row.status-low-stock { background-color: rgba(249, 115, 22, 0.05); }
+    .table-clickable-row.status-low-stock:hover { background-color: rgba(249, 115, 22, 0.1) !important; }
   </style>
 
   <!-- ==========================================
@@ -2866,7 +2932,7 @@
               <!-- Tear line & notches -->
               <div class="label-sticker-tear-line"></div>
               <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
-                <img id="lpQrImg" src="" style="width: 70px; height: 70px; border: 1px solid var(--border-color); border-radius: 4px; padding: 2px; background: white;" alt="QR Code">
+                <div id="lpQrCode" style="width: 70px; height: 70px; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; background: white; flex-shrink: 0;"></div>
                 <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; text-align: left;">
                   <span id="lpStickerName" style="font-size: 11px; font-weight: bold; line-height: 1.2; max-height: 2.4em; overflow: hidden; color: #000; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;">-</span>
                   <span id="lpStickerCode" style="font-family: monospace; font-size: 9.5px; font-weight: bold; color: #333;">CODE: -</span>
@@ -2919,6 +2985,56 @@
   </div>
 
   <!-- ==========================================
+       SIDE DRAWER: BATCH UPDATE LOCATION
+       ========================================== -->
+  <div class="side-drawer-overlay" id="batchUpdateLocationModal">
+    <div class="side-drawer">
+      <div class="drawer-header">
+        <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.25rem;">
+          <i data-lucide="map-pin" style="color: var(--primary-purple);"></i>
+          เปลี่ยนสถานที่จัดเก็บ (แบบกลุ่ม)
+        </h2>
+        <button class="close-modal" onclick="closeBatchUpdateLocationModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="drawer-body" style="padding: 24px; flex-grow: 1; overflow-y: auto;">
+        <p style="margin-top: 0; color: var(--text-muted);">
+          ระบุสถานที่จัดเก็บใหม่สำหรับพัสดุที่เลือกจำนวน <strong id="batchUpdateCount" style="color: var(--primary-purple);">0</strong> รายการ
+        </p>
+        <div class="form-group">
+          <label>ห้องเก็บสารเคมี/อุปกรณ์ <span class="required">*</span></label>
+          <select id="batchItemRoom" class="form-control" required>
+            <option value="" disabled selected>เลือกห้อง...</option>
+            <option value="ห้อง 131">ห้อง 131</option>
+            <option value="ห้อง 132">ห้อง 132</option>
+            <option value="ห้อง 133">ห้อง 133</option>
+            <option value="ห้อง 134">ห้อง 134</option>
+            <option value="ห้องพักครู">ห้องพักครู</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>ตู้หมายเลข</label>
+            <input type="text" id="batchItemCabinet" class="form-control" placeholder="เช่น 01 หรือ A">
+          </div>
+          <div class="form-group">
+            <label>ชั้นที่</label>
+            <input type="text" id="batchItemShelf" class="form-control" placeholder="เช่น 2">
+          </div>
+        </div>
+      </div>
+      <div class="drawer-footer" style="display: flex; justify-content: flex-end; gap: 12px; padding: 24px; border-top: 1px solid var(--border-color); background: #f8fafc;">
+        <button type="button" class="btn btn-secondary" onclick="closeBatchUpdateLocationModal()">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" onclick="submitBatchUpdateLocation()">
+          บันทึกสถานที่ใหม่
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
        MODAL: CABINET DETAILS OVERLAY
        ========================================== -->
   <div class="modal-overlay" id="cabinetDetailModal">
@@ -2955,6 +3071,6 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Application Logic -->
-  <script src="app.js"></script>
+  <script src="app.js?v=20260824"></script>
 </body>
 </html>
