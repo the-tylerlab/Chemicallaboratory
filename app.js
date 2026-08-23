@@ -32,6 +32,13 @@ const UNITS = ["ขวด", "หลอด", "ชิ้น", "อัน", "เค
 // Today's date reference: 2026-05-28
 const TODAY = new Date('2026-05-28');
 
+// Helper to format currency
+function formatCurrency(val) {
+  const num = parseFloat(val);
+  if (isNaN(num)) return "0.00";
+  return num.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 // Default Demo Data to populate LocalStorage if empty
 const DEMO_DATA = [
   {
@@ -4626,6 +4633,8 @@ function setupPurchaseOrders() {
       const netTotal = rawTotal - discountAmt;
       
       poTotalPrice.value = netTotal.toFixed(2);
+      // Format visually if we have a display field, but for input it should just be number.
+      // We will ensure formatCurrency is used in rendering instead.
       
       const poNetTotalDetail = document.getElementById("poNetTotalDetail");
       if (poNetTotalDetail) {
@@ -4722,8 +4731,9 @@ function setupPurchaseOrders() {
       if (poTotalPrice) poTotalPrice.value = "0.00";
  
       showToast("เพิ่มรายการสินค้าลงตารางชั่วคราวสำเร็จ", "success");
-      showAddedAnimation("Added");
-      renderPoDrafts();
+      
+      if (typeof showAddedAnimation === "function") showAddedAnimation("Added");
+      if (typeof renderPoDrafts === "function") renderPoDrafts();
       
       const firstInput = document.getElementById("poProductCode");
       if (firstInput) firstInput.focus();
@@ -5050,13 +5060,13 @@ function renderOrdersTable() {
       </tr>
     `;
     const grandTotalEl = document.getElementById("poGrandTotal");
-    if (grandTotalEl) grandTotalEl.innerText = "0.00 บาท";
+    if (grandTotalEl) grandTotalEl.innerText = formatCurrency(0) + " บาท";
     const totalBeforeDiscountEl = document.getElementById("poTotalBeforeDiscount");
-    if (totalBeforeDiscountEl) totalBeforeDiscountEl.innerText = "0.00 บาท";
+    if (totalBeforeDiscountEl) totalBeforeDiscountEl.innerText = formatCurrency(0) + " บาท";
     const overallDiscountPercentEl = document.getElementById("poOverallDiscountPercent");
     if (overallDiscountPercentEl) overallDiscountPercentEl.innerText = "0.00";
     const totalDiscountAmountEl = document.getElementById("poTotalDiscountAmount");
-    if (totalDiscountAmountEl) totalDiscountAmountEl.innerText = "-0.00 บาท";
+    if (totalDiscountAmountEl) totalDiscountAmountEl.innerText = "-" + formatCurrency(0) + " บาท";
     
     const actionHeaders = document.querySelectorAll(".po-action-header");
     actionHeaders.forEach(th => th.style.display = isBackoffice ? "" : "none");
@@ -5130,11 +5140,11 @@ function renderOrdersTable() {
         <td data-label="วันที่สั่ง" style="text-align: center; font-size: 13px;">${displayDate}</td>
         <td data-label="รหัสสินค้า" style="font-weight: 500;"><span style="font-family: monospace;">${escapeHTML(order.code)}</span></td>
         <td data-label="ชื่อสินค้า">${escapeHTML(order.name)}</td>
-        <td data-label="ราคา/หน่วย" style="text-align: right;">${unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td data-label="ราคา/หน่วย" style="text-align: right;">${formatCurrency(unitPrice)}</td>
         <td data-label="จำนวน" style="text-align: right;">${quantity}${unitText}</td>
-        <td data-label="รวมก่อนลด" style="text-align: right; color: var(--text-muted);">${rawTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td data-label="รวมก่อนลด" style="text-align: right; color: var(--text-muted);">${formatCurrency(rawTotal)}</td>
         <td data-label="ส่วนลด" style="text-align: right;">${discountText}</td>
-        <td data-label="สุทธิ" style="text-align: right; font-weight: 600; color: var(--primary-purple);">${netPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td data-label="สุทธิ" style="text-align: right; font-weight: 600; color: var(--primary-purple);">${formatCurrency(netPrice)}</td>
         ${isBackoffice ? `
           <td data-label="จัดการ" style="text-align: center; white-space: nowrap;">
             <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
@@ -5157,7 +5167,7 @@ function renderOrdersTable() {
 
   const totalBeforeDiscountEl = document.getElementById("poTotalBeforeDiscount");
   if (totalBeforeDiscountEl) {
-    totalBeforeDiscountEl.innerText = totalBeforeDiscount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
+    totalBeforeDiscountEl.innerText = formatCurrency(totalBeforeDiscount) + " บาท";
   }
 
   const overallDiscountPercent = totalBeforeDiscount > 0 ? (totalDiscountAmount / totalBeforeDiscount) * 100 : 0;
@@ -5168,12 +5178,12 @@ function renderOrdersTable() {
 
   const totalDiscountAmountEl = document.getElementById("poTotalDiscountAmount");
   if (totalDiscountAmountEl) {
-    totalDiscountAmountEl.innerText = "-" + totalDiscountAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
+    totalDiscountAmountEl.innerText = "-" + formatCurrency(totalDiscountAmount) + " บาท";
   }
 
   const grandTotalEl = document.getElementById("poGrandTotal");
   if (grandTotalEl) {
-    grandTotalEl.innerText = grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
+    grandTotalEl.innerText = formatCurrency(grandTotal) + " บาท";
   }
   
   if (typeof lucide !== "undefined" && lucide.createIcons) {
@@ -12900,7 +12910,7 @@ function exportAdminReport() {
 
 // RESET WORKSPACE
 async function triggerAdminWorkspaceReset() {
-  if (confirm("🚨 คำเตือน: คุณกำลังจะลบข้อมูลทั้งหมดในพื้นที่ทำงานนี้ ข้อมูลจะไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่?")) {
+  showConfirmModal("ยืนยันการล้างข้อมูลอย่างถาวร", "🚨 คำเตือน: คุณกำลังจะลบข้อมูลทั้งหมดในพื้นที่ทำงานนี้ ข้อมูลจะไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่?", async () => {
     const validation = prompt("กรุณาพิมพ์คำว่า 'DELETE' เพื่อยืนยัน:");
     if (validation === "DELETE") {
       try {
@@ -12915,7 +12925,7 @@ async function triggerAdminWorkspaceReset() {
     } else {
       showToast("ยกเลิกการดำเนินการ", "info");
     }
-  }
+  });
 }
 
 // Initialize on load
@@ -13228,3 +13238,37 @@ if ('serviceWorker' in navigator) {
     setTimeout(() => window.location.reload(), 500);
   }
 })();
+
+// ==========================================================================
+// CONFIRMATION MODAL LOGIC
+// ==========================================================================
+let currentConfirmCallback = null;
+
+window.showConfirmModal = function(title, text, callback) {
+  const modal = document.getElementById("confirmModal");
+  if (!modal) return;
+  
+  document.getElementById("confirmModalTitle").innerText = title;
+  document.getElementById("confirmModalText").innerText = text;
+  
+  const confirmBtn = document.getElementById("btnConfirmAction");
+  
+  // Clone to remove old event listeners
+  const newConfirmBtn = confirmBtn.cloneNode(true);
+  confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+  
+  newConfirmBtn.addEventListener("click", () => {
+    closeConfirmModal();
+    if (typeof callback === 'function') {
+      callback();
+    }
+  });
+  
+  modal.classList.add("active");
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.closeConfirmModal = function() {
+  const modal = document.getElementById("confirmModal");
+  if (modal) modal.classList.remove("active");
+};
