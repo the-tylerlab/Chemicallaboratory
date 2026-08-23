@@ -1248,11 +1248,12 @@ table {
 }
 
 th {
-  background-color: #f8fafc;
-  color: var(--text-muted);
-  font-weight: 600;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-weight: 700;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
+  text-align: left;
   white-space: nowrap;
   position: sticky;
   top: 0;
@@ -1858,6 +1859,53 @@ tr:hover td {
   text-align: center;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+/* ==========================================================================
+   SIDE DRAWER
+   ========================================================================== */
+.side-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.side-drawer-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.side-drawer {
+  background: #ffffff;
+  width: 450px;
+  max-width: 90vw;
+  height: 100vh;
+  box-shadow: -8px 0 32px rgba(0,0,0,0.1);
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.side-drawer-overlay.active .side-drawer {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
 }
 
 /* ==========================================================================

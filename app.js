@@ -5,6 +5,7 @@
 // Global state variable
 let items = [];
 let labLayouts = {};
+let activityLogs = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let fileToImport = null;
@@ -240,6 +241,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Load purchase orders
   await loadPurchaseOrders();
   
+  // Load activity logs
+  loadActivityLogs();
+  
   // Set up event listeners
   setupNavigation();
   setupFormHandlers();
@@ -383,6 +387,81 @@ function saveItemsToLocal() {
   localStorage.setItem("lab_items", JSON.stringify(items));
 }
 
+// Activity Log System
+function loadActivityLogs() {
+  const localLogs = localStorage.getItem("lab_activity_logs");
+  if (localLogs) {
+    activityLogs = JSON.parse(localLogs);
+  } else {
+    activityLogs = [];
+  }
+}
+
+function saveActivityLogs() {
+  localStorage.setItem("lab_activity_logs", JSON.stringify(activityLogs));
+}
+
+function logActivity(actor, action, details) {
+  const log = {
+    id: "log-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
+    timestamp: new Date().toISOString(),
+    actor: actor || "System",
+    action: action,
+    details: details
+  };
+  activityLogs.unshift(log); // Add to beginning
+  if (activityLogs.length > 2000) activityLogs.pop(); // limit to 2000 records
+  saveActivityLogs();
+  
+  if (typeof renderActivityLogs === "function") {
+    renderActivityLogs();
+  }
+}
+
+window.renderActivityLogs = function() {
+  const tableBody = document.getElementById("activityLogsTableBody");
+  if (!tableBody) return;
+
+  if (activityLogs.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="4" style="text-align: center; padding: 64px 24px;">
+          <div class="empty-state" style="display: flex; flex-direction: column; align-items: center; gap: 12px; color: #64748b;">
+            <div class="empty-state-icon" style="opacity: 0.5; font-size: 32px;"><i data-lucide="activity" style="width: 48px; height: 48px; color: #94a3b8;"></i></div>
+            <div class="empty-state-text" style="font-size: 16px; font-weight: 500;">ยังไม่มีประวัติการใช้งานในระบบ</div>
+          </div>
+        </td>
+      </tr>
+    `;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+    return;
+  }
+
+  let html = "";
+  // Show top 100 max for performance
+  const logsToShow = activityLogs.slice(0, 100);
+  
+  logsToShow.forEach(log => {
+    if (!log || typeof log !== 'object') return; // Skip corrupted data
+    const d = new Date(log.timestamp || Date.now());
+    const dateStr = d.toLocaleDateString("th-TH") + " " + d.toLocaleTimeString("th-TH");
+    let badgeClass = "badge-gray";
+    if (log.actor === "Admin") badgeClass = "badge-red";
+    else if (log.actor === "Teacher") badgeClass = "badge-blue";
+    else if (log.actor === "Student") badgeClass = "badge-green";
+    
+    html += `
+      <tr>
+        <td>${dateStr}</td>
+        <td><span class="badge ${badgeClass}">${log.actor}</span></td>
+        <td><strong>${log.action}</strong></td>
+        <td>${log.details}</td>
+      </tr>
+    `;
+  });
+  tableBody.innerHTML = html;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+};
 
 // Show Toast message
 function showToast(message, type = "success") {
@@ -606,6 +685,10 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
     if (filterSearch) {
       setTimeout(() => filterSearch.focus(), 50);
     }
+  }
+  
+  if (panelId === "activity-logs") {
+    if (typeof renderActivityLogs === "function") renderActivityLogs();
   }
 
   currentPage = 1;
@@ -999,8 +1082,12 @@ function renderItemsTable() {
   if (!tableBody) return;
 
   const thActions = document.getElementById("thActions");
+  const thBatchAction = document.getElementById("thBatchAction");
   if (thActions) {
     thActions.style.display = isAdminLoggedIn ? "" : "none";
+  }
+  if (thBatchAction) {
+    thBatchAction.style.display = isAdminLoggedIn ? "" : "none";
   }
 
   const filterSearch = document.getElementById("filterSearch").value.toLowerCase().trim();
@@ -1120,7 +1207,12 @@ function renderItemsTable() {
     }
 
     rowsHtml += `
-      <tr class="table-clickable-row" onclick="showItemDetail(event, '${item.code}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียด">
+      <tr class="table-clickable-row status-${status}" onclick="showItemDetail(event, '${item.code}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียด">
+        ${isAdminLoggedIn ? `
+        <td data-label="เลือก" class="col-batch" style="text-align: center;" onclick="event.stopPropagation();">
+          <input type="checkbox" class="batch-checkbox" data-code="${item.code}" onchange="updateBatchToolbar()">
+        </td>
+        ` : ""}
         <td data-label="รายการ" class="col-desc">
           <div class="product-cell">
             <span class="product-code">${item.code}</span>
@@ -1573,6 +1665,7 @@ function setupFormHandlers() {
       const success = await updateItemBackend(code, itemData, editIndex);
       if (!success) return;
       showToast(`อัปเดตข้อมูล "${name}" เรียบร้อยแล้ว!`);
+      logActivity(userRole === "admin" ? "Admin" : "Teacher", "แก้ไขข้อมูลพัสดุ", `อัปเดตข้อมูล: ${name} (รหัส: ${code})`);
       
       // Reset Form status to Create Mode
       document.getElementById("editItemIndex").value = "";
@@ -1586,6 +1679,7 @@ function setupFormHandlers() {
       const success = await createItemBackend(itemData);
       if (!success) return;
       showToast(`บันทึกข้อมูล "${name}" เข้าสู่ระบบแล้ว!`);
+      logActivity(userRole === "admin" ? "Admin" : "Teacher", "เพิ่มรายการใหม่", `เพิ่ม ${name} จำนวน ${qty} ${unit}`);
     }
 
     // Reset Form safety elements
@@ -1764,6 +1858,7 @@ window.deleteItem = async function(index) {
       saveItemsToLocal();
       showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
     }
+    logActivity(userRole === "admin" ? "Admin" : "Teacher", "ลบข้อมูลพัสดุ", `ลบรายการ: ${getItemDisplayName(item)}`);
     updateUI();
   }
 };
@@ -2972,6 +3067,7 @@ function setupBorrowForm() {
 
         if (successCount > 0) {
           showToast(`คืนพัสดุสำเร็จทั้งหมด ${successCount} รายการ!`, "success");
+          logActivity(userRole === "admin" ? "Admin" : "Teacher", "คืนพัสดุ", `รับคืนพัสดุ ${successCount} รายการ จาก ${borrowerName}`);
           
           // Clear selection and reset form
           selectedBorrowItems = [];
@@ -3096,8 +3192,10 @@ function setupBorrowForm() {
     if (processedCount > 0) {
       if (userRole === "student") {
         showToast(`ส่งคำขออนุมัติยืม ${processedCount} รายการเรียบร้อยแล้ว!`, "info");
+        logActivity("Student", "คำขอยืมพัสดุ", `ส่งคำขอยืมพัสดุ ${processedCount} รายการ โดย ${borrowerName}`);
       } else {
         showToast(`ทำรายการยืม ${processedCount} รายการสำเร็จ!`, "success");
+        logActivity(userRole === "admin" ? "Admin" : "Teacher", "ยืมพัสดุ", `ให้ยืมพัสดุ ${processedCount} รายการ แก่ ${borrowerName}`);
       }
       
       // Clear selection and reset form
@@ -5196,6 +5294,7 @@ function updateLoginUI() {
   const menuItemImport = document.getElementById("menuItemImport");
   const menuItemPurchaseOrders = document.getElementById("menuItemPurchaseOrders");
   const menuItemReports = document.getElementById("menuItemReports");
+  const menuItemActivityLogs = document.getElementById("menuItemActivityLogs");
   const menuItemAdmin = document.getElementById("menuItemAdmin");
   
   if (menuItemAddItem) {
@@ -5209,6 +5308,9 @@ function updateLoginUI() {
   }
   if (menuItemReports) {
     menuItemReports.style.display = isBackoffice ? "block" : "none";
+  }
+  if (menuItemActivityLogs) {
+    menuItemActivityLogs.style.display = (userRole === "admin") ? "block" : "none";
   }
   if (menuItemAdmin) {
     menuItemAdmin.style.display = (userRole === "admin") ? "block" : "none";
@@ -6328,15 +6430,13 @@ window.printItemLabel = function(itemCode) {
   const item = items.find(i => i.code === itemCode);
   if (!item) return;
 
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.code)}`;
-
   const lpItemName = document.getElementById("lpItemName");
   const lpStickerName = document.getElementById("lpStickerName");
   const lpItemCode = document.getElementById("lpItemCode");
   const lpStickerCode = document.getElementById("lpStickerCode");
   const lpItemLocation = document.getElementById("lpItemLocation");
   const lpStickerLoc = document.getElementById("lpStickerLoc");
-  const lpQrImg = document.getElementById("lpQrImg");
+  const lpQrCode = document.getElementById("lpQrCode");
   const lpPrintRealBtn = document.getElementById("lpPrintRealBtn");
 
   const displayName = getItemDisplayName(item);
@@ -6348,7 +6448,27 @@ window.printItemLabel = function(itemCode) {
   if (lpStickerCode) lpStickerCode.textContent = `CODE: ${item.code}`;
   if (lpItemLocation) lpItemLocation.textContent = locationText;
   if (lpStickerLoc) lpStickerLoc.textContent = locationText;
-  if (lpQrImg) lpQrImg.src = qrUrl;
+  
+  if (lpQrCode) {
+    lpQrCode.innerHTML = "";
+    try {
+      new QRCode(lpQrCode, {
+        text: item.code,
+        width: 60,
+        height: 60,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.L
+      });
+      // Find the generated img/canvas and apply styles
+      setTimeout(() => {
+        const qrCanvas = lpQrCode.querySelector('canvas');
+        const qrImg = lpQrCode.querySelector('img');
+        if (qrCanvas) qrCanvas.style.width = '100%';
+        if (qrImg) qrImg.style.width = '100%';
+      }, 50);
+    } catch(e) { console.error("QR Code generation failed", e); }
+  }
 
   if (lpPrintRealBtn) {
     lpPrintRealBtn.onclick = function() {
@@ -6384,8 +6504,6 @@ window.closeLabelPrinterModal = function() {
 window.triggerPhysicalLabelPrint = function(itemCode) {
   const item = items.find(i => i.code === itemCode);
   if (!item) return;
-
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.code)}`;
 
   const printWindow = window.open("", "_blank", "width=600,height=400");
   if (!printWindow) {
@@ -6461,6 +6579,7 @@ window.triggerPhysicalLabelPrint = function(itemCode) {
     <html>
       <head>
         <title>พิมพ์สติกเกอร์บาร์โค้ด - ${item.code}</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
         <style>
           body {
             font-family: 'Inter', 'Sarabun', sans-serif;
@@ -6484,6 +6603,13 @@ window.triggerPhysicalLabelPrint = function(itemCode) {
           .qr-img {
             width: 100px;
             height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .qr-img img, .qr-img canvas {
+            width: 100%;
+            height: 100%;
           }
           .info {
             display: flex;
@@ -6579,7 +6705,7 @@ window.triggerPhysicalLabelPrint = function(itemCode) {
       <body>
         <div class="label-card">
           <div style="display: flex; align-items: center; gap: 16px; width: 100%;">
-            <img class="qr-img" src="${qrUrl}" alt="QR Code">
+            <div class="qr-img" id="qrcode"></div>
             <div class="info">
               <h3 class="title">${getItemDisplayName(item)}</h3>
               <span class="code">CODE: ${item.code}</span>
@@ -6590,8 +6716,18 @@ window.triggerPhysicalLabelPrint = function(itemCode) {
         </div>
         <script>
           window.onload = function() {
-            window.print();
-            setTimeout(function() { window.close(); }, 500);
+            new QRCode(document.getElementById("qrcode"), {
+              text: "${item.code}",
+              width: 100,
+              height: 100,
+              colorDark : "#000000",
+              colorLight : "#ffffff",
+              correctLevel : QRCode.CorrectLevel.M
+            });
+            setTimeout(function() { 
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            }, 300);
           }
         </script>
       </body>
@@ -12909,3 +13045,186 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ==========================================
+// BATCH ACTIONS
+// ==========================================
+window.toggleSelectAllBatch = function(checkbox) {
+  const isChecked = checkbox.checked;
+  const rowCheckboxes = document.querySelectorAll('.batch-checkbox');
+  rowCheckboxes.forEach(cb => {
+    cb.checked = isChecked;
+  });
+  updateBatchToolbar();
+};
+
+window.updateBatchToolbar = function() {
+  const rowCheckboxes = document.querySelectorAll('.batch-checkbox:checked');
+  const count = rowCheckboxes.length;
+  const toolbar = document.getElementById('batchActionToolbar');
+  const countSpan = document.getElementById('batchSelectedCount');
+  
+  // Only show if items are selected and user has permission
+  if (count > 0 && isAdminLoggedIn) {
+    toolbar.style.display = 'flex';
+    countSpan.textContent = count;
+  } else {
+    toolbar.style.display = 'none';
+  }
+};
+
+window.getSelectedBatchCodes = function() {
+  const checkboxes = document.querySelectorAll('.batch-checkbox:checked');
+  return Array.from(checkboxes).map(cb => cb.getAttribute('data-code'));
+};
+
+window.batchDeleteItems = function() {
+  const codes = getSelectedBatchCodes();
+  if (codes.length === 0) return;
+  
+  if (confirm(`คุณต้องการลบรายการที่เลือกจำนวน ${codes.length} รายการใช่หรือไม่? (การกระทำนี้ไม่สามารถกู้คืนได้)`)) {
+    const actor = userRole === 'admin' ? 'Admin' : (userRole === 'teacher' ? 'Teacher' : 'Student');
+    
+    codes.forEach(code => {
+      const index = items.findIndex(i => i.code === code);
+      if (index !== -1) {
+        const itemName = items[index].name;
+        items.splice(index, 1);
+        if (typeof logActivity === "function") {
+          logActivity(actor, "Batch Delete", `ลบรายการสินค้า: [${code}] ${itemName}`);
+        }
+      }
+    });
+    
+    saveData();
+    renderItemsTable();
+    showToast(`ลบรายการสำเร็จ ${codes.length} รายการ`, "success");
+    
+    const selectAllCb = document.getElementById('selectAllBatch');
+    if (selectAllCb) selectAllCb.checked = false;
+    updateBatchToolbar();
+  }
+};
+
+// Placeholder for other batch actions to be implemented in next tasks
+
+window.openBatchUpdateLocationModal = function() {
+  const codes = getSelectedBatchCodes();
+  if (codes.length === 0) return;
+  
+  document.getElementById("batchUpdateCount").textContent = codes.length;
+  document.getElementById("batchItemRoom").value = "";
+  document.getElementById("batchItemCabinet").value = "";
+  document.getElementById("batchItemShelf").value = "";
+  
+  document.getElementById("batchUpdateLocationModal").classList.add("active");
+  lucide.createIcons();
+};
+
+window.closeBatchUpdateLocationModal = function() {
+  document.getElementById("batchUpdateLocationModal").classList.remove("active");
+};
+
+window.submitBatchUpdateLocation = function() {
+  const codes = getSelectedBatchCodes();
+  const room = document.getElementById("batchItemRoom").value;
+  const cabinet = document.getElementById("batchItemCabinet").value.trim();
+  const shelf = document.getElementById("batchItemShelf").value.trim();
+  
+  if (!room) {
+    showToast("กรุณาเลือกห้องจัดเก็บ", "error");
+    return;
+  }
+  
+  const actor = userRole === 'admin' ? 'Admin' : (userRole === 'teacher' ? 'Teacher' : 'Student');
+  
+  codes.forEach(code => {
+    const item = items.find(i => i.code === code);
+    if (item) {
+      const oldLoc = `${item.room || '-'} > ${item.cabinet || '-'} > ${item.shelf || '-'}`;
+      item.room = room;
+      item.cabinet = cabinet;
+      item.shelf = shelf;
+      const newLoc = `${room} > ${cabinet || '-'} > ${shelf || '-'}`;
+      
+      if (typeof logActivity === "function") {
+        logActivity(actor, "Batch Update Location", `ย้ายพัสดุ [${code}]: จาก (${oldLoc}) ไปยัง (${newLoc})`);
+      }
+    }
+  });
+  
+  saveData();
+  renderItemsTable();
+  closeBatchUpdateLocationModal();
+  showToast(`ย้ายสถานที่จัดเก็บสำเร็จ ${codes.length} รายการ`, "success");
+  
+  const selectAllCb = document.getElementById('selectAllBatch');
+  if (selectAllCb) selectAllCb.checked = false;
+  updateBatchToolbar();
+};
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(registration => {
+        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+      }, err => {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+  });
+}
+
+// --- AUTO SEED MOCK DATA FOR ALL SYSTEMS ---
+(function seedAllMockData() {
+  if (!localStorage.getItem("full_mock_v1")) {
+    
+    // 1. Activity Logs
+    let logs = JSON.parse(localStorage.getItem("lab_activity_logs") || "[]");
+    if (logs.length === 0) {
+      logs = [
+        { id: "log-1", timestamp: new Date(Date.now() - 1000*60*30).toISOString(), actor: "Admin", action: "เพิ่มสารเคมีใหม่", details: "เพิ่ม เอทานอล 95% (CHEM-010) เข้าระบบจำนวน 5 ขวด" },
+        { id: "log-2", timestamp: new Date(Date.now() - 1000*60*120).toISOString(), actor: "Teacher", action: "อนุมัติการยืม", details: "อนุมัติคำขอยืม บีกเกอร์ 250ml ของ นายนภัทร" },
+        { id: "log-3", timestamp: new Date(Date.now() - 1000*60*60*24).toISOString(), actor: "Student", action: "จองห้องปฏิบัติการ", details: "จองห้อง Lab 1 สำหรับวิชาเคมีอินทรีย์" }
+      ];
+      localStorage.setItem("lab_activity_logs", JSON.stringify(logs));
+    }
+
+    // 2. Transactions (Borrow/Return)
+    let trans = JSON.parse(localStorage.getItem("lab_transactions") || "[]");
+    if (trans.length === 0) {
+      trans = [
+        { id: "txn-1", type: "borrow", code: "EQ-001", itemName: "กล้องจุลทรรศน์", quantity: 1, borrowerName: "สมชาย รักดี", date: new Date().toISOString().split('T')[0], expectedReturnDate: new Date(Date.now() + 1000*60*60*24*3).toISOString().split('T')[0], status: "approved" },
+        { id: "txn-2", type: "borrow", code: "GW-005", itemName: "กระบอกตวง 100ml", quantity: 2, borrowerName: "นภัทร ใจมั่น", date: new Date(Date.now() - 1000*60*60*24).toISOString().split('T')[0], expectedReturnDate: new Date().toISOString().split('T')[0], status: "pending" },
+        { id: "txn-3", type: "return", code: "EQ-002", itemName: "เครื่องชั่งดิจิทัล", quantity: 1, borrowerName: "วิภาดา สุขใจ", date: new Date(Date.now() - 1000*60*60*48).toISOString().split('T')[0], expectedReturnDate: new Date(Date.now() - 1000*60*60*24).toISOString().split('T')[0], status: "returned" }
+      ];
+      localStorage.setItem("lab_transactions", JSON.stringify(trans));
+    }
+
+    // 3. Bookings
+    let bookings = JSON.parse(localStorage.getItem("lab_bookings") || "[]");
+    if (bookings.length === 0) {
+      bookings = [
+        { id: "bk-1", room: "Lab 1", title: "ทดลองเคมี ม.4", date: new Date().toISOString().split('T')[0], timeStart: "09:00", timeEnd: "12:00", user: "ครูสมหญิง", status: "approved" },
+        { id: "bk-2", room: "Lab 2", title: "ทำโครงงานวิทยาศาสตร์", date: new Date(Date.now() + 1000*60*60*24).toISOString().split('T')[0], timeStart: "13:00", timeEnd: "16:00", user: "ด.ช. นพดล", status: "pending" },
+        { id: "bk-3", room: "Lab 3", title: "ชมรมวิทยาศาสตร์", date: new Date().toISOString().split('T')[0], timeStart: "15:30", timeEnd: "17:30", user: "ด.ญ. มานี", status: "approved" }
+      ];
+      localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+    }
+
+    // 4. Purchase Orders
+    let pos = JSON.parse(localStorage.getItem("lab_purchase_orders") || "[]");
+    if (pos.length === 0) {
+      pos = [
+        { id: "po-1", poNumber: "PO-2026-001", title: "สั่งซื้อสารเคมีประจำเทอม 1", date: new Date().toISOString().split('T')[0], status: "approved", totalAmount: 15000, supplier: "บริษัท ไซเอนซ์ จำกัด", academicYear: "2569", semester: "1", items: [] },
+        { id: "po-2", poNumber: "PO-2026-002", title: "ซื้ออุปกรณ์เครื่องแก้วทดแทน", date: new Date().toISOString().split('T')[0], status: "pending", totalAmount: 4500, supplier: "ร้านศึกษาภัณฑ์", academicYear: "2569", semester: "1", items: [] },
+        { id: "po-3", poNumber: "PO-2026-003", title: "วัสดุสิ้นเปลือง (ถุงมือ, แมสก์)", date: new Date(Date.now() - 1000*60*60*24*5).toISOString().split('T')[0], status: "completed", totalAmount: 2200, supplier: "เมดิคอล ซัพพลาย", academicYear: "2569", semester: "1", items: [] }
+      ];
+      localStorage.setItem("lab_purchase_orders", JSON.stringify(pos));
+    }
+
+    localStorage.setItem("full_mock_v1", "true");
+    console.log("Seeded full mock data!");
+    setTimeout(() => window.location.reload(), 500);
+  }
+})();
