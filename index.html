@@ -3,14 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <script>
+    // Forcefully unregister service workers to disable PWA/Offline caching
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) { registration.unregister(); }
+      });
+    }
+
     if (window.location.search.includes('hardreset=1')) {
       localStorage.clear();
       sessionStorage.clear();
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          for(let registration of registrations) { registration.unregister(); }
-        });
-      }
       if (window.caches) {
         caches.keys().then(function(names) {
           for (let name of names) caches.delete(name);
@@ -20,8 +22,14 @@
       window.location.href = window.location.pathname;
     }
   </script>
+  
+  <!-- Disable Browser Cache -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="manifest" href="manifest.json">
+  <!-- PWA Disabled -->
   <title>SciPortal - Science Laboratory & Resource Portal</title>
   <!-- SEO & Meta -->
   <meta name="description" content="SciPortal: แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ เชื่อมต่อทุกข้อมูลให้เป็นระบบ">
@@ -106,7 +114,7 @@
         <div class="logo-text">
           <span class="logo-title">SciPortal</span>
           <span class="logo-subtitle">Science Laboratory & Resource Portal</span>
-          <span id="versionBadge" style="font-size: 10.5px; background: #f4f4f5; padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: #27272a; width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#e4e4e7';" onmouseout="this.style.background='#f4f4f5';">v1.9.6</span>
+          <span id="versionBadge" style="font-size: 10.5px; background: #f4f4f5; padding: 1px 6px; border-radius: 10px; margin-top: 4px; display: inline-block; font-weight: 500; font-family: 'Sora', sans-serif; color: #27272a; width: fit-content; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#e4e4e7';" onmouseout="this.style.background='#f4f4f5';">v1.9.7</span>
         </div>
       </div>
 
@@ -2807,11 +2815,23 @@
       </div>
       
       <div class="modal-body" style="padding: 24px; max-height: 400px; overflow-y: auto; font-family: 'Prompt', sans-serif;">
+        <!-- v1.9.7 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.9.7</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">24 สิงหาคม 2569 (ล่าสุด)</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ปิดระบบ PWA และ Offline Cache:</b> ยกเลิกการใช้งาน Service Worker และ Manifest เพื่อลดปัญหาแคชสะสม และบังคับให้เบราว์เซอร์ดึงข้อมูลใหม่เสมอ (Cache-Control)</li>
+            <li><b>แก้ไขการแสดงผลแถบเมนู (Sidebar Active UI):</b> แก้ไขปัญหาการชนกันของคลาส CSS ที่ทำให้แถบเมนูด้านซ้ายแสดงสีเข้ม/อ่อนไม่สม่ำเสมอกัน</li>
+          </ul>
+        </div>
+
         <!-- v1.9.1 -->
         <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.9.1</span>
-            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">1 กรกฎาคม 2569 (ล่าสุด)</span>
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px; font-family: 'Sora', sans-serif;">v1.9.1</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">1 กรกฎาคม 2569</span>
           </div>
           <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
             <li><b>ระบบพิมพ์สติกเกอร์บาร์โค้ด QR Code แบบแอนิเมชันพร้อมเสียง (Animated QR Code Label Printer):</b> เพิ่มป๊อปอัพและเสียงจำลองเครื่องพิมพ์สติกเกอร์ฉลากติดขวดสารเคมีและอุปกรณ์เมื่อกดสั่งพิมพ์</li>
