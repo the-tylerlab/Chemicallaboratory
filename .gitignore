@@ -14,7 +14,7 @@ yarn-error.log*
 
 # Local Database (หากต้องการให้ข้อมูลในเครื่องเป็นส่วนตัว ไม่ให้อัปเดตทับกันบน GitHub)
 # ปลดคอมเมนต์ด้านล่างนี้หากไม่อยากให้เอาไฟล์ข้อมูลขึ้นไป
-# data/database.json
+data/*.json
 
 .gemini/
 .cursor/
