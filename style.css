@@ -729,16 +729,6 @@ button {
    FORM VALIDATION & ACTIVE STATES
    ========================================================================== */
 
-/* Active Sidebar Menu */
-.menu-item-link.active {
-  background-color: rgba(30, 41, 59, 0.5);
-  border-left: 4px solid var(--primary-purple);
-  color: #fff;
-  font-weight: 500;
-}
-.menu-item-link.active i {
-  color: var(--primary-purple);
-}
 
 /* Form Validation */
 .form-control.is-invalid {
