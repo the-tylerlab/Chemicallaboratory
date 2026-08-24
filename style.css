@@ -143,7 +143,7 @@ button {
   color: var(--text-dark);
   cursor: pointer;
   box-shadow: var(--shadow-sm);
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast)
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
   margin-bottom: 20px;
   padding: 0;
 }
@@ -596,7 +596,7 @@ button {
   cursor: pointer;
   outline: none;
   font-family: inherit;
-  transition: background-color var(--transition-fast) ease-in-out, color var(--transition-fast) ease-in-out, border-color var(--transition-fast) ease-in-out, box-shadow var(--transition-fast) ease-in-out, opacity var(--transition-fast) ease-in-out, transform var(--transition-fast) ease-in-out
+  transition: background-color var(--transition-fast) ease-in-out, color var(--transition-fast) ease-in-out, border-color var(--transition-fast) ease-in-out, box-shadow var(--transition-fast) ease-in-out, opacity var(--transition-fast) ease-in-out, transform var(--transition-fast) ease-in-out;
 }
 .alert-tab-btn:hover {
   background-color: var(--bg-body);
@@ -810,7 +810,7 @@ button {
   border-radius: var(--border-radius-md);
   border: 1.5px solid var(--border-color);
   background-color: var(--bg-card);
-  transition: background-color var(--transition-normal), color var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal), opacity var(--transition-normal), transform var(--transition-normal)
+  transition: background-color var(--transition-normal), color var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal), opacity var(--transition-normal), transform var(--transition-normal);
   height: 100%;
 }
 
@@ -1030,7 +1030,7 @@ input:focus, select:focus, textarea:focus {
   background: #ffffff !important;
   border: 1px solid var(--border-color) !important;
   border-radius: var(--border-radius-md) !important;
-  transition: background-color 0.2s ease !important, color 0.2s ease !important, border-color 0.2s ease !important, box-shadow 0.2s ease !important, opacity 0.2s ease !important, transform 0.2s ease !important
+ transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease  !important;
   box-shadow: 0 1px 2px rgba(0,0,0,0.02) !important;
   user-select: none !important;
 }
@@ -1058,15 +1058,9 @@ input:focus, select:focus, textarea:focus {
   margin: 0 !important;
 }
 
-.ghs-grid label img {
-  width: 22px !important;
-  height: 22px !important;
-  transition: transform 0.2s ease !important;
-}
 
-.ghs-grid label:hover img {
-  transform: scale(1.1) !important;
-}
+
+
 
 /* Buttons Section */
 .form-actions {
@@ -1084,7 +1078,7 @@ input:focus, select:focus, textarea:focus {
   font-size: 13.5px;
   font-weight: 500;
   border-radius: var(--border-radius-md);
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast)
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
 }
 
 .btn-primary {
@@ -1128,6 +1122,48 @@ input:focus, select:focus, textarea:focus {
   gap: 16px;
   margin-bottom: 20px;
   flex-wrap: wrap;
+}
+
+
+.table-filter-bar .search-scan-group {
+  display: flex;
+  gap: 16px;
+  flex: 1 1 300px;
+  min-width: 300px;
+}
+
+.table-filter-bar .search-box-container {
+  flex: 1 1 200px;
+  position: relative;
+  min-width: 0;
+}
+
+.table-filter-bar .scan-box-container {
+  flex: 0 0 150px;
+  width: 150px;
+  position: relative;
+}
+
+.table-filter-bar .filter-select {
+  flex: 0 0 150px;
+  width: 150px;
+}
+
+.table-filter-bar .filter-buttons-group {
+  display: flex;
+  gap: 16px;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.table-filter-bar .filter-buttons-group .btn {
+  flex: 0 0 150px;
+  width: 150px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
 }
 
 .table-filter-bar select,
@@ -1203,7 +1239,59 @@ input:focus, select:focus, textarea:focus {
   }
 }
 
+
 @media (max-width: 640px) {
+  .booking-grid-layout {
+    display: flex !important;
+    flex-direction: column-reverse;
+  }
+
+  .table-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .table-filter-bar .search-scan-group {
+    flex-direction: row;
+    min-width: 0;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .table-filter-bar .search-box-container {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .table-filter-bar .scan-box-container {
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+  }
+
+  .table-filter-bar .scan-box-container input {
+    display: none !important;
+  }
+  
+  .table-filter-bar #btnTriggerCameraScan {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .table-filter-bar .filter-select {
+    width: 100%;
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
   .filter-buttons-group {
     display: grid !important;
     grid-template-columns: 1fr 1fr;
@@ -1387,7 +1475,7 @@ tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast)
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
   border: 1px solid var(--border-color);
 }
 
@@ -1990,7 +2078,7 @@ tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast)
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
 }
 
 .modal-close-btn:hover {
@@ -2047,7 +2135,7 @@ tr:hover td {
   padding: 6px 12px;
   border-radius: var(--border-radius-sm);
   border: 1px solid #bfdbfe;
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast)
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
 }
 
 .template-download-btn:hover {
@@ -2079,7 +2167,7 @@ tr:hover td {
   cursor: pointer;
   font-size: 13px;
   font-weight: 600;
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast)
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
 }
 
 .file-upload-label:hover {
@@ -2794,7 +2882,7 @@ tr:hover td {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast)
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
   user-select: none;
 }
 
@@ -3111,7 +3199,7 @@ input[type="date"]::-webkit-date-and-time-value {
   align-items: center !important;
   justify-content: center !important;
   gap: 8px;
-  transition: background-color 0.2s ease !important, color 0.2s ease !important, border-color 0.2s ease !important, box-shadow 0.2s ease !important, opacity 0.2s ease !important, transform 0.2s ease !important
+ transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease  !important;
   border: none;
   cursor: pointer;
   font-family: inherit;
@@ -3164,7 +3252,7 @@ input[type="date"]::-webkit-date-and-time-value {
   align-items: center;
   justify-content: center;
   z-index: 999;
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .chatbot-fab:hover {
@@ -3311,7 +3399,7 @@ input[type="date"]::-webkit-date-and-time-value {
   padding: 6px 12px;
   font-size: 12px;
   cursor: pointer;
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, opacity 0.2s, transform 0.2s
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, opacity 0.2s, transform 0.2s;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   font-family: inherit;
 }
@@ -3517,7 +3605,7 @@ input[type="date"]::-webkit-date-and-time-value {
   border-radius: var(--border-radius-md);
   font-size: 13px;
   box-shadow: var(--shadow-sm);
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .draft-item:hover {
@@ -3552,7 +3640,7 @@ input[type="date"]::-webkit-date-and-time-value {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
   min-height: 80px;
 }
 
@@ -3680,7 +3768,7 @@ input[type="date"]::-webkit-date-and-time-value {
   font-weight: 500;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
   box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 }
 
@@ -4071,7 +4159,7 @@ input[type="date"]::-webkit-date-and-time-value {
   font-weight: 600;
   cursor: pointer;
   border-radius: var(--border-radius-sm);
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .view-toggle-btn.active {
@@ -4138,7 +4226,7 @@ input[type="date"]::-webkit-date-and-time-value {
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
   position: relative;
   text-align: center;
 }
@@ -4230,7 +4318,7 @@ input[type="date"]::-webkit-date-and-time-value {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
   position: relative;
 }
 
@@ -4297,7 +4385,7 @@ input[type="date"]::-webkit-date-and-time-value {
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .shelf-row:hover {
@@ -4346,7 +4434,7 @@ input[type="date"]::-webkit-date-and-time-value {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .forecast-item:hover {
@@ -4417,7 +4505,7 @@ input[type="date"]::-webkit-date-and-time-value {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 .btn-auto-po:hover {

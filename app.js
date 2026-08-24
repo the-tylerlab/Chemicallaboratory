@@ -515,45 +515,7 @@ function setupNavigation() {
       e.preventDefault();
       
       const targetPanelId = link.getAttribute("data-target");
-
-      // Authorization check for sidebar navigation
-      const isBackoffice = (userRole === "admin" || userRole === "teacher");
-      if ((targetPanelId === "add-item" || targetPanelId === "purchase-orders" || targetPanelId === "reports") && !isBackoffice) {
-        showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเข้าใช้งานหน้านี้", "error");
-        document.getElementById("loginModal").classList.add("active");
-        lucide.createIcons();
-        return;
-      }
-      
-      // Update Active Navigation Item class
-      sidebarLinks.forEach(l => l.classList.remove("active"));
-      link.classList.add("active");
-      
-      // Show Target Panel and Hide others
-      panels.forEach(panel => {
-        if (panel.id === `panel-${targetPanelId}`) {
-          panel.classList.add("active");
-        } else {
-          panel.classList.remove("active");
-        }
-      });
-
-      // On Mobile: Close sidebar after navigating
-      if (window.innerWidth <= 1024) {
-        sidebar.classList.remove("active");
-      }
-
-      // Reset page back to 1 when changing panels
-      currentPage = 1;
-      updateUI();
-
-      // Auto-focus search input if navigating to all-items
-      if (targetPanelId === "all-items") {
-        const filterSearch = document.getElementById("filterSearch");
-        if (filterSearch) {
-          setTimeout(() => filterSearch.focus(), 50);
-        }
-      }
+      navigateToPanel(targetPanelId);
     });
   });
 
@@ -657,7 +619,8 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   // Authorization check for admin page
   const isBackoffice = (userRole === "admin" || userRole === "teacher");
   if ((panelId === "add-item" || panelId === "purchase-orders" || panelId === "reports") && !isBackoffice) {
-    document.getElementById("accessDeniedModal").classList.add("active");
+    showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเข้าใช้งานหน้านี้", "error");
+    document.getElementById("loginModal").classList.add("active");
     lucide.createIcons();
     return;
   }
@@ -683,6 +646,12 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
       panel.classList.remove("active");
     }
   });
+
+  // On Mobile: Close sidebar after navigating
+  const sidebar = document.getElementById("sidebar");
+  if (window.innerWidth <= 1024 && sidebar) {
+    sidebar.classList.remove("active");
+  }
 
   // Set filters if navigating to All Items
   if (panelId === "all-items") {
@@ -1228,7 +1197,7 @@ function renderItemsTable() {
             ${ghsBadges}
           </div>
         </td>
-        <td data-label="จำนวนคงเหลือ" class="col-qty" style="font-weight: 600; font-size: 14px;">${item.qty} ${item.unit}</td>
+        <td data-label="จำนวนคงเหลือ" class="col-qty text-right" style="font-weight: 600; font-size: 14px;">${item.qty} ${item.unit}</td>
         <td data-label="CAS No." class="col-cas" style="color: var(--text-muted); font-size: 12px; font-family: monospace;">${item.casNo || '-'}</td>
         <td data-label="วันหมดอายุ" class="col-expiry">
           <span style="${status === 'expired' ? 'color: var(--accent-red); font-weight: 600;' : ''}">
@@ -5140,11 +5109,11 @@ function renderOrdersTable() {
         <td data-label="วันที่สั่ง" style="text-align: center; font-size: 13px;">${displayDate}</td>
         <td data-label="รหัสสินค้า" style="font-weight: 500;"><span style="font-family: monospace;">${escapeHTML(order.code)}</span></td>
         <td data-label="ชื่อสินค้า">${escapeHTML(order.name)}</td>
-        <td data-label="ราคา/หน่วย" style="text-align: right;">${formatCurrency(unitPrice)}</td>
-        <td data-label="จำนวน" style="text-align: right;">${quantity}${unitText}</td>
-        <td data-label="รวมก่อนลด" style="text-align: right; color: var(--text-muted);">${formatCurrency(rawTotal)}</td>
-        <td data-label="ส่วนลด" style="text-align: right;">${discountText}</td>
-        <td data-label="สุทธิ" style="text-align: right; font-weight: 600; color: var(--primary-purple);">${formatCurrency(netPrice)}</td>
+        <td data-label="ราคา/หน่วย" class="text-right">${formatCurrency(unitPrice)}</td>
+        <td data-label="จำนวน" class="text-right">${quantity}${unitText}</td>
+        <td data-label="รวมก่อนลด" class="text-right" style="color: var(--text-muted);">${formatCurrency(rawTotal)}</td>
+        <td data-label="ส่วนลด" class="text-right">${discountText}</td>
+        <td data-label="สุทธิ" class="text-right" style="font-weight: 600; color: var(--primary-purple);">${formatCurrency(netPrice)}</td>
         ${isBackoffice ? `
           <td data-label="จัดการ" style="text-align: center; white-space: nowrap;">
             <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
@@ -5192,29 +5161,33 @@ function renderOrdersTable() {
 }
 
 window.deletePurchaseOrder = function(orderId) {
-  if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้?")) return;
-  
-  window.isSavingPurchaseOrders = true;
-  if (isSupabaseOnline) {
-    supabase.from("purchase_orders").delete().eq("id", orderId)
-      .then(({error}) => {
-        if (error) {
-          showToast("ไม่สามารถลบข้อมูลบนเซิร์ฟเวอร์: " + error.message, "error");
-        }
-      })
-      .catch(e => console.error("Failed to delete purchase order from Supabase:", e))
-      .finally(() => {
+  showConfirmModal(
+    "ยืนยันการลบข้อมูล",
+    "คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
+    () => {
+      window.isSavingPurchaseOrders = true;
+      if (isSupabaseOnline) {
+        supabase.from("purchase_orders").delete().eq("id", orderId)
+          .then(({error}) => {
+            if (error) {
+              showToast("ไม่สามารถลบข้อมูลบนเซิร์ฟเวอร์: " + error.message, "error");
+            }
+          })
+          .catch(e => console.error("Failed to delete purchase order from Supabase:", e))
+          .finally(() => {
+            setTimeout(() => { window.isSavingPurchaseOrders = false; }, 2000);
+          });
+      } else {
         setTimeout(() => { window.isSavingPurchaseOrders = false; }, 2000);
-      });
-  } else {
-    setTimeout(() => { window.isSavingPurchaseOrders = false; }, 2000);
-  }
-  
-  purchaseOrders = purchaseOrders.filter(o => o.id !== orderId);
-  localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
-  syncPurchaseOrdersToBackend();
-  showToast("ลบรายการสั่งซื้อสำเร็จ", "success");
-  updateUI();
+      }
+      
+      purchaseOrders = purchaseOrders.filter(o => o.id !== orderId);
+      localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      syncPurchaseOrdersToBackend();
+      showToast("ลบรายการสั่งซื้อสำเร็จ", "success");
+      updateUI();
+    }
+  );
 };
 
 window.editPurchaseOrder = function(orderId) {
@@ -13022,8 +12995,8 @@ window.prevWizardStep = function(targetStep) {
 document.addEventListener('DOMContentLoaded', () => {
   const originalNavigateToPanel = window.navigateToPanel;
   if(originalNavigateToPanel) {
-    window.navigateToPanel = function(panelId, hideSidebarMobile = true) {
-      originalNavigateToPanel(panelId, hideSidebarMobile);
+    window.navigateToPanel = function(panelId, catFilter = "all", statusFilter = "all") {
+      originalNavigateToPanel(panelId, catFilter, statusFilter);
       if (panelId === 'add-item') {
         window.nextWizardStep(1); // reset to step 1
       }
@@ -13272,3 +13245,35 @@ window.closeConfirmModal = function() {
   const modal = document.getElementById("confirmModal");
   if (modal) modal.classList.remove("active");
 };
+
+// ==========================================================================
+// COLUMN VISIBILITY LOGIC
+// ==========================================================================
+window.toggleColumnVisibilityDropdown = function(event) {
+  if (event) {
+    event.stopPropagation();
+  }
+  const dropdown = document.getElementById("columnVisibilityDropdown");
+  if (dropdown) {
+    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+  }
+};
+
+window.toggleTableColumn = function(columnClass, isVisible) {
+  const cells = document.querySelectorAll(`.${columnClass}`);
+  cells.forEach(cell => {
+    cell.style.display = isVisible ? "" : "none";
+  });
+};
+
+// Close dropdown when clicking outside
+document.addEventListener("click", function(event) {
+  const dropdown = document.getElementById("columnVisibilityDropdown");
+  if (dropdown && dropdown.style.display === "block") {
+    // If the click is not inside the dropdown itself and not on the toggle button
+    if (!dropdown.contains(event.target) && !event.target.closest('button[onclick*="toggleColumnVisibilityDropdown"]')) {
+      dropdown.style.display = "none";
+    }
+  }
+});
+
