@@ -4045,15 +4045,13 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 /* Dashboard Locked Sizes for Student Mode */
-.dashboard-grid.student-mode #quickMenuCard,
-.dashboard-grid.student-mode #unifiedAlertsCard {
-  height: 310px !important;
-  box-sizing: border-box;
-  overflow: hidden;
+.dashboard-grid.student-mode #unifiedAlertsCard,
+.dashboard-grid.student-mode #recentItemsCard {
+  display: none !important;
 }
 
-.dashboard-grid.student-mode #categoryBreakdownCard,
-.dashboard-grid.student-mode #recentItemsCard {
+.dashboard-grid.student-mode #quickMenuCard,
+.dashboard-grid.student-mode #categoryBreakdownCard {
   height: 400px !important;
   box-sizing: border-box;
   overflow: hidden;
