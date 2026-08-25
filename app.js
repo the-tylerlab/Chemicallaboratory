@@ -459,10 +459,10 @@ window.renderActivityLogs = function() {
     
     html += `
       <tr>
-        <td>${dateStr}</td>
-        <td><span class="badge ${badgeClass}">${log.actor}</span></td>
-        <td><strong>${log.action}</strong></td>
-        <td>${log.details}</td>
+        <td data-label="วันเวลา">${dateStr}</td>
+        <td data-label="ผู้ดำเนินการ"><span class="badge ${badgeClass}">${log.actor}</span></td>
+        <td data-label="ประเภทกิจกรรม"><strong>${log.action}</strong></td>
+        <td data-label="รายละเอียด">${log.details}</td>
       </tr>
     `;
   });
