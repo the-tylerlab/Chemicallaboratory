@@ -943,29 +943,7 @@
             </select>
 
             <div class="filter-buttons-group" style="position: relative;">
-              <button class="btn btn-secondary" id="btnColumnVisibility" onclick="document.getElementById('columnVisibilityMenu').style.display = document.getElementById('columnVisibilityMenu').style.display === 'none' ? 'block' : 'none'; event.stopPropagation();">
-                <i data-lucide="columns" style="width: 16px; height: 16px;"></i> แสดงคอลัมน์
-              </button>
-              <div id="columnVisibilityMenu" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 60; min-width: 160px; padding: 12px; text-align: left; margin-top: 8px;">
-                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; cursor: pointer;">
-                  <input type="checkbox" checked onchange="toggleColumnVisibility('col-desc', this.checked)"> รายละเอียดสินค้า
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; cursor: pointer;">
-                  <input type="checkbox" checked onchange="toggleColumnVisibility('col-qty', this.checked)"> จำนวนคงเหลือ
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; cursor: pointer;">
-                  <input type="checkbox" checked onchange="toggleColumnVisibility('col-cas', this.checked)"> CAS No.
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; cursor: pointer;">
-                  <input type="checkbox" checked onchange="toggleColumnVisibility('col-expiry', this.checked)"> วันหมดอายุ
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; cursor: pointer;">
-                  <input type="checkbox" checked onchange="toggleColumnVisibility('col-room', this.checked)"> สถานที่จัดเก็บ
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; cursor: pointer;">
-                  <input type="checkbox" checked onchange="toggleColumnVisibility('col-status', this.checked)"> สถานะ
-                </label>
-              </div>
+
               <button class="btn btn-secondary" id="btnExportCSV">
                 <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
                 <span>ส่งออก Excel</span>
@@ -988,21 +966,7 @@
               <div id="tableFilteredInfo" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;"></div>
             </div>
             <div class="table-tools" style="position: relative;">
-              <button class="btn btn-secondary" onclick="toggleColumnVisibilityDropdown(event)" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; height: 32px; font-size: 12px;">
-                <i data-lucide="layout-template" style="width: 14px; height: 14px;"></i> ซ่อน/แสดงคอลัมน์
-              </button>
-              <!-- Column Visibility Dropdown -->
-              <div id="columnVisibilityDropdown" class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 4px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); padding: 8px; width: 180px; z-index: 100;">
-                <label style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
-                  <input type="checkbox" checked onchange="toggleTableColumn('col-cas', this.checked)"> CAS No.
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
-                  <input type="checkbox" checked onchange="toggleTableColumn('col-expiry', this.checked)"> วันหมดอายุ
-                </label>
-                <label style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; cursor: pointer; border-radius: 4px; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
-                  <input type="checkbox" checked onchange="toggleTableColumn('col-room', this.checked)"> สถานที่จัดเก็บ
-                </label>
-              </div>
+            </div>
             </div>
           </div>
           
