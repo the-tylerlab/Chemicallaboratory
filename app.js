@@ -257,7 +257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadPurchaseOrders();
   
   // Load activity logs
-  loadActivityLogs();
+  await loadActivityLogs();
   
   // Set up event listeners
   setupNavigation();
@@ -403,17 +403,39 @@ function saveItemsToLocal() {
 }
 
 // Activity Log System
-function loadActivityLogs() {
-  const localLogs = localStorage.getItem("lab_activity_logs");
-  if (localLogs) {
-    activityLogs = JSON.parse(localLogs);
+async function loadActivityLogs() {
+  if (isSupabaseOnline) {
+    try {
+      const { data, error } = await supabase.from("system").select("value").eq("key", "activityLogs").maybeSingle();
+      if (data && data.value) {
+        activityLogs = data.value;
+      } else {
+        activityLogs = [];
+      }
+    } catch (err) {
+      console.error("Failed to load activity logs from Supabase", err);
+      activityLogs = [];
+    }
   } else {
-    activityLogs = [];
+    const localLogs = localStorage.getItem("lab_activity_logs");
+    if (localLogs) {
+      activityLogs = JSON.parse(localLogs);
+    } else {
+      activityLogs = [];
+    }
   }
 }
 
-function saveActivityLogs() {
-  localStorage.setItem("lab_activity_logs", JSON.stringify(activityLogs));
+async function saveActivityLogs() {
+  if (isSupabaseOnline) {
+    try {
+      await supabase.from("system").upsert({ key: "activityLogs", value: activityLogs });
+    } catch (err) {
+      console.error("Failed to save activity logs to Supabase", err);
+    }
+  } else {
+    localStorage.setItem("lab_activity_logs", JSON.stringify(activityLogs));
+  }
 }
 
 function logActivity(actor, action, details) {
@@ -3292,7 +3314,16 @@ window.returnBorrowedItem = async function(transId) {
 // LABORATORY LAYOUT SYSTEM (DRAG & DROP)
 // ==========================================================================
 async function loadLabLayouts() {
-  if (isBackendOnline) {
+  if (isSupabaseOnline) {
+    try {
+      const { data, error } = await supabase.from("system").select("value").eq("key", "labLayouts").maybeSingle();
+      if (data && data.value) {
+        labLayouts = data.value;
+      }
+    } catch (err) {
+      console.error("Failed to load lab layouts from Supabase", err);
+    }
+  } else if (isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/layouts`);
       if (response.ok) {
@@ -3308,7 +3339,13 @@ async function loadLabLayouts() {
 }
 
 async function saveLabLayoutsToServer() {
-  if (isBackendOnline) {
+  if (isSupabaseOnline) {
+    try {
+      await supabase.from("system").upsert({ key: "labLayouts", value: labLayouts });
+    } catch (err) {
+      console.error("Failed to save lab layouts to Supabase", err);
+    }
+  } else if (isBackendOnline) {
     try {
       await fetch(`${API_BASE}/layouts`, {
         method: "POST",
