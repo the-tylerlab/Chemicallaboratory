@@ -13146,7 +13146,8 @@ window.submitBatchUpdateLocation = function() {
   updateBatchToolbar();
 };
 
-// Register Service Worker for PWA
+// Register Service Worker for PWA (Disabled to prevent cache issues)
+/*
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js')
@@ -13157,6 +13158,7 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+*/
 
 // --- AUTO SEED MOCK DATA FOR ALL SYSTEMS ---
 (function seedAllMockData() {
