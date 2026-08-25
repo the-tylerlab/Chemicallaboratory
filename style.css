@@ -462,9 +462,7 @@ button {
   align-items: center;
   justify-content: space-between;
   border: 1px solid var(--border-color);
-  border-left-width: 4px;
-  border-left-style: solid;
-  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast), transform var(--transition-fast);
+  transition: all var(--transition-fast);
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -472,8 +470,8 @@ button {
 }
 
 .stat-card:hover {
-  border-color: var(--text-muted);
-  box-shadow: var(--shadow-md);
+  border-color: var(--primary-purple);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
 }
 
@@ -486,67 +484,62 @@ button {
 .stat-title {
   font-size: 13px;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.2px;
 }
 
 .stat-value {
-  font-size: 40px;
+  font-size: 36px;
   font-weight: 700;
-  color: var(--text-main);
-  line-height: 1;
-  letter-spacing: -0.5px;
+  color: #111827;
+  line-height: 1.1;
+  letter-spacing: -1px;
 }
 
 .stat-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--border-radius-md);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 20px;
   transition: transform var(--transition-fast);
 }
 
 .stat-card:hover .stat-icon {
-  transform: scale(1.04);
+  transform: scale(1.08) rotate(3deg);
 }
 
-/* Card Accent Varieties (Pastel Semantic Colors) */
-.stat-card.blue { background-color: #f0f7ff; border-left-color: var(--accent-blue); }
-.stat-card.blue:hover { border-color: var(--accent-blue); background-color: #e0efff; }
+/* Card Accent Varieties */
+.stat-card.blue:hover { border-color: var(--accent-blue); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1); }
 .stat-card.blue .stat-icon {
-  background-color: var(--accent-blue-light);
+  background-color: rgba(59, 130, 246, 0.1);
   color: var(--accent-blue);
 }
 
-.stat-card.red { background-color: #fff0f0; border-left-color: var(--accent-red); }
-.stat-card.red:hover { border-color: var(--accent-red); background-color: #ffe0e0; }
+.stat-card.red:hover { border-color: var(--accent-red); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); }
 .stat-card.red .stat-icon {
-  background-color: var(--accent-red-light);
+  background-color: rgba(239, 68, 68, 0.1);
   color: var(--accent-red);
 }
 
-.stat-card.orange { background-color: #fff8e6; border-left-color: var(--accent-orange); }
-.stat-card.orange:hover { border-color: var(--accent-orange); background-color: #ffeed3; }
+.stat-card.orange:hover { border-color: var(--accent-orange); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1); }
 .stat-card.orange .stat-icon {
-  background-color: var(--accent-orange-light);
+  background-color: rgba(245, 158, 11, 0.1);
   color: var(--accent-orange);
 }
 
-.stat-card.yellow { background-color: #fffae6; border-left-color: var(--accent-yellow); }
-.stat-card.yellow:hover { border-color: var(--accent-yellow); background-color: #fff5c2; }
+.stat-card.yellow:hover { border-color: #eab308; box-shadow: 0 4px 12px rgba(234, 179, 8, 0.1); }
 .stat-card.yellow .stat-icon {
-  background-color: var(--accent-yellow-light);
-  color: var(--accent-yellow);
+  background-color: rgba(234, 179, 8, 0.1);
+  color: #eab308;
 }
 
-/* For green, we add a new class if needed, or modify existing */
-.stat-card.green { background-color: #e8f5e9; border-left-color: #4caf50; }
-.stat-card.green:hover { border-color: #4caf50; background-color: #c8e6c9; }
+.stat-card.green:hover { border-color: #10b981; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1); }
 .stat-card.green .stat-icon {
-  background-color: #c8e6c9;
-  color: #4caf50;
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
 }
 
 /* Dashboard Bottom Grid */
