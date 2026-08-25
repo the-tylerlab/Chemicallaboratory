@@ -3537,8 +3537,8 @@ input[type="date"]::-webkit-date-and-time-value {
 /* Annual Budget Stat Grid */
 .budget-stat-grid {
   display: grid;
-  grid-template-columns: 380px 1fr 1fr;
-  gap: 30px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
   margin-bottom: 24px;
   align-items: stretch;
 }
