@@ -769,6 +769,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   if (panelId === "all-items") {
     document.getElementById("filterCategory").value = catFilter;
     document.getElementById("filterStatus").value = statusFilter;
+    if (typeof renderItemsTable === "function") renderItemsTable();
     const filterSearch = document.getElementById("filterSearch");
     if (filterSearch) {
       setTimeout(() => filterSearch.focus(), 50);
@@ -1322,7 +1323,7 @@ function renderItemsTable() {
         <td data-label="จัดการ">
           <div class="table-actions" style="position: relative;">
             <button class="action-icon-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex})" title="ตัวเลือกเพิ่มเติม">
-              <i data-lucide="more-horizontal" style="width: 16px; height: 16px;"></i>
+              <i data-lucide="more-vertical" style="width: 16px; height: 16px;"></i>
             </button>
             <div id="rowDropdown-${originalIndex}" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 50; min-width: 140px; padding: 4px; text-align: left;">
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); showItemDetail(event, '${item.code}')">
@@ -1330,6 +1331,9 @@ function renderItemsTable() {
               </button>
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); editItem(${originalIndex})">
                 <i data-lucide="edit-3" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไขรายการ
+              </button>
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); generateQR('${item.code}')">
+                <i data-lucide="qr-code" style="width: 14px; height: 14px; margin-right: 8px;"></i> สแกน QR
               </button>
               <button class="dropdown-action-btn danger" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); deleteItem(${originalIndex})">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px; margin-right: 8px;"></i> ลบรายการ
@@ -1911,7 +1915,17 @@ window.deleteItem = async function(index) {
   const item = items[index];
   if (!item) return;
 
-  if (confirm(`คุณต้องการลบรายการ "${getItemDisplayName(item)}" (${item.code}) ออกจากระบบใช่หรือไม่?`)) {
+  const result = await Swal.fire({
+    title: 'ยืนยันการลบ?',
+    text: `คุณต้องการลบรายการ "${getItemDisplayName(item)}" (${item.code}) ออกจากระบบใช่หรือไม่?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'ใช่, ลบเลย',
+    cancelButtonText: 'ยกเลิก'
+  });
+  if (result.isConfirmed) {
     if (isSupabaseOnline) {
       try {
         await supabase.from("items").delete().eq("code", item.code);
@@ -13406,3 +13420,43 @@ document.addEventListener("click", function(event) {
   }
 });
 
+
+// Close column visibility menu when clicking outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('columnVisibilityMenu');
+  const btn = document.getElementById('btnColumnVisibility');
+  if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
+function toggleColumnVisibility(colClass, isVisible) {
+  const elements = document.querySelectorAll('.' + colClass);
+  elements.forEach(el => {
+    el.style.display = isVisible ? '' : 'none';
+  });
+}
+
+// Auto-calculate Net Price for Purchase Orders
+function calculatePONetPrice() {
+  const unitPrice = parseFloat(document.getElementById('poUnitPrice').value) || 0;
+  const quantity = parseFloat(document.getElementById('poQuantity').value) || 0;
+  const discountPct = parseFloat(document.getElementById('poDiscount').value) || 0;
+
+  const grossTotal = unitPrice * quantity;
+  const discountAmount = grossTotal * (discountPct / 100);
+  const netTotal = grossTotal - discountAmount;
+
+  document.getElementById('poTotalPrice').value = netTotal.toFixed(2);
+  document.getElementById('poNetTotalDetail').innerText = `${grossTotal.toFixed(2)} - ลด ${discountAmount.toFixed(2)} = ${netTotal.toFixed(2)} บาท`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const poInputs = ['poUnitPrice', 'poQuantity', 'poDiscount'];
+  poInputs.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', calculatePONetPrice);
+    }
+  });
+});
