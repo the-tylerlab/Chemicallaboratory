@@ -512,33 +512,41 @@ button {
   transform: scale(1.04);
 }
 
-/* Card Accent Varieties */
-.stat-card.blue { border-left-color: var(--accent-blue); }
-.stat-card.blue:hover { border-color: var(--accent-blue); }
+/* Card Accent Varieties (Pastel Semantic Colors) */
+.stat-card.blue { background-color: #f0f7ff; border-left-color: var(--accent-blue); }
+.stat-card.blue:hover { border-color: var(--accent-blue); background-color: #e0efff; }
 .stat-card.blue .stat-icon {
   background-color: var(--accent-blue-light);
   color: var(--accent-blue);
 }
 
-.stat-card.red { border-left-color: var(--accent-red); }
-.stat-card.red:hover { border-color: var(--accent-red); }
+.stat-card.red { background-color: #fff0f0; border-left-color: var(--accent-red); }
+.stat-card.red:hover { border-color: var(--accent-red); background-color: #ffe0e0; }
 .stat-card.red .stat-icon {
   background-color: var(--accent-red-light);
   color: var(--accent-red);
 }
 
-.stat-card.orange { border-left-color: var(--accent-orange); }
-.stat-card.orange:hover { border-color: var(--accent-orange); }
+.stat-card.orange { background-color: #fff8e6; border-left-color: var(--accent-orange); }
+.stat-card.orange:hover { border-color: var(--accent-orange); background-color: #ffeed3; }
 .stat-card.orange .stat-icon {
   background-color: var(--accent-orange-light);
   color: var(--accent-orange);
 }
 
-.stat-card.yellow { border-left-color: var(--accent-yellow); }
-.stat-card.yellow:hover { border-color: var(--accent-yellow); }
+.stat-card.yellow { background-color: #fffae6; border-left-color: var(--accent-yellow); }
+.stat-card.yellow:hover { border-color: var(--accent-yellow); background-color: #fff5c2; }
 .stat-card.yellow .stat-icon {
   background-color: var(--accent-yellow-light);
   color: var(--accent-yellow);
+}
+
+/* For green, we add a new class if needed, or modify existing */
+.stat-card.green { background-color: #e8f5e9; border-left-color: #4caf50; }
+.stat-card.green:hover { border-color: #4caf50; background-color: #c8e6c9; }
+.stat-card.green .stat-icon {
+  background-color: #c8e6c9;
+  color: #4caf50;
 }
 
 /* Dashboard Bottom Grid */
@@ -5598,3 +5606,77 @@ body.hide-col-cas .col-cas { display: none !important; }
   }
 }
 
+
+/* Sticky Header for Data Tables */
+.table-container {
+  overflow-y: auto;
+  max-height: calc(100vh - 200px); /* Or any suitable value */
+}
+.table-container table th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--bg-card); /* To prevent transparency issues when scrolling */
+}
+
+/* Right-align numbers */
+.text-right {
+  text-align: right !important;
+}
+.col-qty, .col-price, .col-discount {
+  text-align: right !important;
+}
+
+/* Touch-Friendly Targets on Mobile */
+@media (max-width: 768px) {
+  button.action-icon-btn,
+  button.dropdown-action-btn,
+  button.btn {
+    min-height: 44px;
+  }
+}
+
+/* Visual Time Slot Calendar highlighting */
+.booking-slot-card {
+  transition: all 0.2s ease-in-out;
+  border: 2px solid transparent;
+}
+.booking-slot-card.vacant {
+  background-color: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.booking-slot-card.vacant:hover {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+.booking-slot-card.booked {
+  background-color: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+  opacity: 0.7;
+}
+.booking-slot-card.pending-booked {
+  background-color: rgba(245, 158, 11, 0.05);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+.booking-slot-card.selected {
+  background-color: rgba(139, 92, 246, 0.1);
+  border-color: var(--primary-purple);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.booking-slot-status.vacant {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+.booking-slot-status.booked {
+  color: var(--accent-red);
+  font-weight: 600;
+}
+.booking-slot-status.pending-booked {
+  color: var(--accent-orange);
+  font-weight: 600;
+}
+.booking-slot-status.selected {
+  color: var(--primary-purple);
+  font-weight: 700;
+}
