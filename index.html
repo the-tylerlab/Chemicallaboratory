@@ -852,9 +852,15 @@
            PANEL: ALL ITEMS LIST
            ========================================== -->
       <section class="panel" id="panel-all-items">
-        <div class="content-header">
-          <h1>รายการทั้งหมด</h1>
-          <p>แสดงสารเคมีและอุปกรณ์วิทยาศาสตร์ในระบบพร้อมฟิลเตอร์ค้นหาและการจัดการ</p>
+        <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h1>รายการทั้งหมด</h1>
+            <p>แสดงสารเคมีและอุปกรณ์วิทยาศาสตร์ในระบบพร้อมฟิลเตอร์ค้นหาและการจัดการ</p>
+          </div>
+          <button class="btn btn-secondary" onclick="navigateToPanel('panel-dashboard')" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+            กลับหน้าแดชบอร์ด
+          </button>
         </div>
 
         <!-- View Toggle Bar -->
