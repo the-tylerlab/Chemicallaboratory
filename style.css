@@ -5337,12 +5337,11 @@ input[type="date"]::-webkit-date-and-time-value {
 
 @media (max-width: 1024px) {
   .lab-floor-plan {
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
+    overflow-x: auto;
+    min-width: 800px;
   }
   .pos-table { margin-top: 0; }
-  .lab-door, .lab-whiteboard { display: none; }
+  .lab-door, .lab-whiteboard { display: block; }
 }
 
 
