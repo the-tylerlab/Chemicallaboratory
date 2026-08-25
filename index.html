@@ -595,18 +595,10 @@
                 <div id="compatibilityRecBadge" style="display: none; margin-top: 6px; font-size: 12px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 16px; border: 1px solid; transition: all 0.2s; width: fit-content;"></div>
               </div>
 
-              <!-- Toggle Advanced Step 1 -->
-              <div class="form-group full-width" style="margin-bottom: 8px;">
-                <button type="button" class="btn" onclick="document.getElementById('advancedStep1').style.display = document.getElementById('advancedStep1').style.display === 'none' ? 'block' : 'none';" style="background: none; border: none; color: var(--primary-purple); font-weight: 600; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 14px;">
-                  <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i> More details (ข้อมูลเพิ่มเติม)
-                </button>
-              </div>
-              <div id="advancedStep1" class="form-group full-width" style="display: none;">
-                <!-- CAS No -->
-                <div class="form-group">
-                  <label for="itemCasNo" style="display: flex; align-items: center; gap: 4px;">CAS No. <i data-lucide="info" style="width: 14px; height: 14px; color: var(--text-muted);" title="หมายเลขประจำตัวสารเคมี (Chemical Abstracts Service) สำหรับสารเคมีเท่านั้น"></i></label>
-                  <input type="text" id="itemCasNo" placeholder="เช่น 7647-01-0">
-                </div>
+              <!-- CAS No -->
+              <div class="form-group">
+                <label for="itemCasNo" style="display: flex; align-items: center; gap: 4px;">CAS No. <i data-lucide="info" style="width: 14px; height: 14px; color: var(--text-muted);" title="หมายเลขประจำตัวสารเคมี (Chemical Abstracts Service) สำหรับสารเคมีเท่านั้น"></i></label>
+                <input type="text" id="itemCasNo" placeholder="เช่น 7647-01-0">
               </div>
 
               
@@ -679,17 +671,9 @@
                     </select>
                   </div>
                   
-                  <!-- Toggle Advanced Step 2 -->
-                  <div class="form-group full-width" style="margin-top: 12px;">
-                    <button type="button" class="btn" onclick="document.getElementById('advancedStep2').style.display = document.getElementById('advancedStep2').style.display === 'none' ? 'block' : 'none';" style="background: none; border: none; color: var(--primary-purple); font-weight: 600; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 4px; font-size: 14px;">
-                      <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i> More details (ข้อมูลเพิ่มเติม)
-                    </button>
-                  </div>
-                  <div id="advancedStep2" style="display: none; width: 100%;">
-                    <div class="form-group">
-                      <label for="itemSdsUrl">ลิงก์ SDS</label>
-                      <input type="url" id="itemSdsUrl" placeholder="เช่น https://example.com/sds/acid.pdf">
-                    </div>
+                  <div class="form-group full-width">
+                    <label for="itemSdsUrl">ลิงก์ SDS</label>
+                    <input type="url" id="itemSdsUrl" placeholder="เช่น https://example.com/sds/acid.pdf">
                   </div>
                   
                   <div class="form-group full-width">
