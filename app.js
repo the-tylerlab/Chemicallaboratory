@@ -11,6 +11,14 @@ const itemsPerPage = 10;
 let fileToImport = null;
 let userRole = localStorage.getItem("userRole") || (localStorage.getItem("isAdminLoggedIn") === "true" ? "admin" : "student");
 
+// TEMPORARY: Force restore mock data on next reload for user testing
+if (localStorage.getItem("force_restore_mock") !== "done_v1") {
+  localStorage.removeItem("lab_items");
+  localStorage.removeItem("has_seeded_items");
+  localStorage.removeItem("lab_transactions");
+  localStorage.removeItem("lab_purchase_orders");
+  localStorage.setItem("force_restore_mock", "done_v1");
+}
 
 // Configuration for login credentials (edit here to change username and password)
 const USER_CREDENTIALS = {
