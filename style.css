@@ -5340,7 +5340,8 @@ input[type="date"]::-webkit-date-and-time-value {
     display: flex !important;
     flex-direction: column;
     gap: 16px;
-    padding: 16px;
+    padding: 0 !important;
+    margin: 0;
     background-color: transparent;
     border: none;
     min-height: auto;
