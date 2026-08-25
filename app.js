@@ -238,9 +238,91 @@ const BOOKING_SLOTS = [
 ];
 
 // Initialize application on DOM ready
+// ==========================================================================
+// SUPABASE REALTIME SUBSCRIPTIONS
+// ==========================================================================
+function setupRealtimeSubscriptions() {
+  if (!isSupabaseOnline) return;
+
+  // 1. Subscribe to items table
+  supabase.channel('public:items')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async (payload) => {
+      console.log('Realtime change received for items:', payload);
+      await loadAllItems();
+      const currentPanel = document.querySelector('.panel.active');
+      if (currentPanel && currentPanel.id === 'items') renderItemsTable();
+      else if (currentPanel && currentPanel.id === 'dashboard') updateUI();
+      else if (currentPanel && currentPanel.id === 'shecu') renderCabinetMap();
+    })
+    .subscribe();
+
+  // 2. Subscribe to transactions table
+  supabase.channel('public:transactions')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, async (payload) => {
+      console.log('Realtime change received for transactions:', payload);
+      await loadAllTransactions();
+      const currentPanel = document.querySelector('.panel.active');
+      if (currentPanel && currentPanel.id === 'borrow') renderTransactionsTable();
+      renderPendingRequests();
+    })
+    .subscribe();
+
+  // 3. Subscribe to bookings table
+  supabase.channel('public:bookings')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, async (payload) => {
+      console.log('Realtime change received for bookings:', payload);
+      await loadAllBookings();
+      const currentPanel = document.querySelector('.panel.active');
+      if (currentPanel && currentPanel.id === 'rooms') {
+        renderBookingsTable();
+        renderBookingSlots();
+      }
+      renderPendingRequests();
+    })
+    .subscribe();
+
+  // 4. Subscribe to purchase_orders table
+  supabase.channel('public:purchase_orders')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'purchase_orders' }, async (payload) => {
+      console.log('Realtime change received for purchase_orders:', payload);
+      await loadPurchaseOrders();
+      const currentPanel = document.querySelector('.panel.active');
+      if (currentPanel && currentPanel.id === 'orders') renderOrdersTable();
+    })
+    .subscribe();
+
+  // 5. Subscribe to system table (for labLayouts, activityLogs, budget)
+  supabase.channel('public:system')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'system' }, async (payload) => {
+      console.log('Realtime change received for system:', payload);
+      const key = payload.new ? payload.new.key : (payload.old ? payload.old.key : null);
+      
+      if (key === 'labLayouts') {
+        await loadLabLayouts();
+        const currentPanel = document.querySelector('.panel.active');
+        if (currentPanel && currentPanel.id === 'shecu') renderCabinetMap();
+      } else if (key === 'activityLogs') {
+        await loadActivityLogs();
+        if (typeof renderActivityLogs === "function") renderActivityLogs();
+      } else if (key === 'budget') {
+        const { data } = await supabase.from("system").select("value").eq("key", "budget").maybeSingle();
+        if (data && data.value && data.value.budget) {
+          annualBudget = parseFloat(data.value.budget) || 100000;
+          localStorage.setItem("lab_annual_budget", annualBudget.toString());
+          if (typeof updateBudgetDisplay === "function") updateBudgetDisplay();
+        }
+      }
+    })
+    .subscribe();
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   // First, check backend online status
   await checkBackendStatus();
+  
+  // Setup Realtime Subscriptions
+  setupRealtimeSubscriptions();
+
   // Load data
   await loadAllItems();
   
