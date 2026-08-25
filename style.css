@@ -5337,13 +5337,30 @@ input[type="date"]::-webkit-date-and-time-value {
 
 @media (max-width: 1024px) {
   .lab-floor-plan {
-    overflow-x: auto;
-    overflow-y: auto;
-    min-width: 1200px;
-    min-height: 800px;
+    display: flex !important;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    background-color: transparent;
+    border: none;
+    min-height: auto;
+    min-width: 100%;
+    overflow: visible;
   }
+  
+  .lab-floor-plan .layout-element {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    margin-bottom: 12px;
+  }
+  
   .pos-table { margin-top: 0; }
-  .lab-door, .lab-whiteboard { display: block; }
+  .lab-door, .lab-whiteboard, .layout-element[data-type="door"], .layout-element[data-type="whiteboard"], .layout-element[data-type="table"] { 
+    display: none !important; 
+  }
 }
 
 
