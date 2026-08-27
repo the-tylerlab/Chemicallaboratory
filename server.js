@@ -22,6 +22,7 @@ const TRANSACTIONS_FILE = path.join(DB_DIR, 'transactions.json');
 const USERS_FILE = path.join(DB_DIR, 'users.json');
 const AUDIT_LOGS_FILE = path.join(DB_DIR, 'audit_logs.json');
 const LAYOUTS_FILE = path.join(DB_DIR, 'layouts.json');
+const FEEDBACKS_FILE = path.join(DB_DIR, 'feedbacks.json');
 
 // Default Demo Data to seed the database if it doesn't exist
 const DEFAULT_SEEDS = [
@@ -347,6 +348,29 @@ function writeAuditLogs(logs) {
   }
 }
 
+// Helper: Read feedbacks
+function readFeedbacks() {
+  try {
+    if (!fs.existsSync(FEEDBACKS_FILE)) {
+      fs.writeFileSync(FEEDBACKS_FILE, JSON.stringify([], null, 2), 'utf-8');
+      return [];
+    }
+    const data = fs.readFileSync(FEEDBACKS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+function writeFeedbacks(feedbacks) {
+  try {
+    fs.writeFileSync(FEEDBACKS_FILE, JSON.stringify(feedbacks, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 // ==========================================================================
 // HTTP API ENDPOINTS
 // ==========================================================================
@@ -583,6 +607,36 @@ app.post('/api/layouts', (req, res) => {
   }
 });
 
+// FEEDBACKS
+app.get('/api/feedbacks', (req, res) => {
+  res.json(readFeedbacks());
+});
+
+app.post('/api/feedbacks', (req, res) => {
+  const feedbacks = readFeedbacks();
+  const newFeedback = req.body;
+  newFeedback.id = newFeedback.id || "fb-" + Date.now();
+  newFeedback.timestamp = newFeedback.timestamp || new Date().toISOString();
+  newFeedback.status = newFeedback.status || "unread";
+  
+  feedbacks.unshift(newFeedback);
+  
+  writeFeedbacks(feedbacks);
+  res.json({ success: true, feedback: newFeedback });
+});
+
+app.put('/api/feedbacks/:id', (req, res) => {
+  const feedbacks = readFeedbacks();
+  const index = feedbacks.findIndex(f => f.id === req.params.id);
+  if (index !== -1) {
+    feedbacks[index] = { ...feedbacks[index], ...req.body };
+    writeFeedbacks(feedbacks);
+    res.json({ success: true, feedback: feedbacks[index] });
+  } else {
+    res.status(404).json({ error: "Feedback not found" });
+  }
+});
+
 // DANGER ZONE (Clear Workspace)
 app.delete('/api/workspace', (req, res) => {
   try {
@@ -591,6 +645,7 @@ app.delete('/api/workspace', (req, res) => {
     fs.writeFileSync(BOOKINGS_FILE, JSON.stringify([], null, 2), 'utf-8');
     fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify([], null, 2), 'utf-8');
     fs.writeFileSync(PURCHASE_ORDERS_FILE, JSON.stringify([], null, 2), 'utf-8');
+    fs.writeFileSync(FEEDBACKS_FILE, JSON.stringify([], null, 2), 'utf-8');
     // Audit logs remain for compliance, or clear them too depending on requirement. Let's clear them too for this demo.
     fs.writeFileSync(AUDIT_LOGS_FILE, JSON.stringify([], null, 2), 'utf-8');
     
