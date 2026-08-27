@@ -5549,10 +5549,10 @@ function updateLoginUI() {
     }
   }
 
-  // Redirect non-admins away from admin panel
+  // Redirect non-admins away from admin panel and notifications panel
   if (userRole !== "admin") {
     const activePanel = document.querySelector(".panel.active");
-    if (activePanel && activePanel.id === "panel-admin") {
+    if (activePanel && (activePanel.id === "panel-admin" || activePanel.id === "panel-notifications")) {
       navigateToPanel("dashboard");
     }
   }
@@ -5563,6 +5563,8 @@ function updateLoginUI() {
   const menuItemReports = document.getElementById("menuItemReports");
   const menuItemActivityLogs = document.getElementById("menuItemActivityLogs");
   const menuItemAdmin = document.getElementById("menuItemAdmin");
+  const menuItemNotifications = document.getElementById("menuItemNotifications");
+  const unifiedAlertsCard = document.getElementById("unifiedAlertsCard");
   
   if (menuItemAddItem) {
     menuItemAddItem.style.display = "block";
@@ -5581,6 +5583,12 @@ function updateLoginUI() {
   }
   if (menuItemAdmin) {
     menuItemAdmin.style.display = (userRole === "admin") ? "block" : "none";
+  }
+  if (menuItemNotifications) {
+    menuItemNotifications.style.display = (userRole === "admin") ? "block" : "none";
+  }
+  if (unifiedAlertsCard) {
+    unifiedAlertsCard.style.display = (userRole === "admin") ? "flex" : "none";
   }
   
   // Update role switcher toggle state visual representation
