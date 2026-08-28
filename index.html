@@ -1803,10 +1803,20 @@
            PANEL: CABINET & STORAGE GRID (DIRECTORY)
            ========================================== -->
       <section class="panel" id="panel-cabinet-layout">
+        <div class="desktop-back-btn" style="margin-bottom: 16px;">
+          <button class="btn btn-secondary" onclick="navigateToPanel('dashboard')" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> กลับหน้าแดชบอร์ด
+          </button>
+        </div>
         <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <h1>ผังตู้ SHECU และโต๊ะปฏิบัติการ</h1>
-            <p class="shecu-subtitle">สารบัญจัดเก็บสารเคมี อุปกรณ์ และจุดปฏิบัติการในห้องทดลอง (Interactive Directory)</p>
+          <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <button class="mobile-back-btn" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" style="padding: 0; width: 40px; height: 40px; border-radius: 50%; border: 2px solid #e2e8f0; background: transparent; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+              <i data-lucide="arrow-left" style="width: 20px; height: 20px; color: #1e293b;"></i>
+            </button>
+            <div>
+              <h1>ผังตู้ SHECU และโต๊ะปฏิบัติการ</h1>
+              <p class="shecu-subtitle">สารบัญจัดเก็บสารเคมี อุปกรณ์ และจุดปฏิบัติการในห้องทดลอง (Interactive Directory)</p>
+            </div>
           </div>
           <div style="display: flex; gap: 12px; align-items: center;">
             <button class="btn btn-primary" style="background: var(--primary-color);" onclick="openAddCabinetModal()">
