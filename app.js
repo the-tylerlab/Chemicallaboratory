@@ -625,8 +625,8 @@ function setupNavigation() {
   const sidebar = document.getElementById("sidebar");
 
   sidebarLinks.forEach(link => {
-    // Skip if it's the Import or Login link which opens modal instead of navigating
-    if (link.id === "btnSidebarImport" || link.id === "btnSidebarLogin") return;
+    // Skip if it's the Import, Login, or Help Modal link which opens modal instead of navigating
+    if (link.id === "btnSidebarImport" || link.id === "btnSidebarLogin" || link.id === "btnHelpSafetyModal") return;
 
     link.addEventListener("click", (e) => {
       e.preventDefault();
@@ -797,6 +797,8 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   const sidebar = document.getElementById("sidebar");
   if (window.innerWidth <= 1024 && sidebar) {
     sidebar.classList.remove("active");
+    const mobileOverlay = document.getElementById("mobile-overlay");
+    if (mobileOverlay) mobileOverlay.classList.remove("active");
   }
 
   // Set filters if navigating to All Items
@@ -13629,10 +13631,31 @@ function calculatePONetPrice() {
 // HELP & SAFETY MODAL LOGIC
 // ==========================================
 
-function openHelpSafetyModal() {
+function openHelpSafetyModal(tabId = null) {
   const modal = document.getElementById('helpSafetyModal');
   if (modal) {
     modal.classList.add('active');
+    
+    // Switch to a specific tab if requested
+    if (tabId) {
+      const targetTab = document.querySelector(`.help-tab[data-target="${tabId}"]`);
+      if (targetTab) {
+        // Find existing click event logic
+        const tabs = document.querySelectorAll('.help-tab');
+        const contents = document.querySelectorAll('.help-content');
+        
+        // Remove active class from all
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.style.display = 'none');
+        
+        // Add active class to target
+        targetTab.classList.add('active');
+        const targetContent = document.getElementById(tabId);
+        if (targetContent) {
+          targetContent.style.display = 'block';
+        }
+      }
+    }
   }
 }
 
