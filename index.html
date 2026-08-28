@@ -889,21 +889,17 @@
            PANEL: ALL ITEMS LIST
            ========================================== -->
       <section class="panel" id="panel-all-items">
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <button class="mobile-back-btn header-back-btn" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
               <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
             </button>
-            <div>
-              <h1>รายการทั้งหมด</h1>
-              <p>แสดงสารเคมีและอุปกรณ์วิทยาศาสตร์ในระบบพร้อมฟิลเตอร์ค้นหาและการจัดการ</p>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">รายการทั้งหมด</h1>
+              <p class="header-subtitle">แสดงสารเคมีและอุปกรณ์วิทยาศาสตร์ในระบบพร้อมฟิลเตอร์ค้นหาและการจัดการ</p>
             </div>
           </div>
-          <button class="btn btn-secondary desktop-back-btn" onclick="navigateToPanel('dashboard')" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
-            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-            กลับหน้าแดชบอร์ด
-          </button>
-        </div>
+        </header>
 
 
 
@@ -1036,21 +1032,17 @@
            PANEL: BORROW / RETURN
            ========================================== -->
       <section class="panel" id="panel-borrow-return">
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <button class="mobile-back-btn header-back-btn" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
               <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
             </button>
-            <div>
-              <h1>ยืม-คืนพัสดุและเคมี</h1>
-              <p>ระบบบันทึกรายการยืม-คืนสารเคมีและอุปกรณ์วิทยาศาสตร์ พร้อมตัดสต็อกอัตโนมัติ</p>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">ยืม-คืนพัสดุและเคมี</h1>
+              <p class="header-subtitle">ระบบบันทึกรายการยืม-คืนสารเคมีและอุปกรณ์วิทยาศาสตร์ พร้อมตัดสต็อกอัตโนมัติ</p>
             </div>
           </div>
-          <button class="btn btn-secondary desktop-back-btn" onclick="navigateToPanel('dashboard')" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
-            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-            กลับหน้าแดชบอร์ด
-          </button>
-        </div>
+        </header>
 
         <div class="borrow-grid">
           <!-- Left Column: Form -->
@@ -1255,21 +1247,17 @@
            PANEL: LAB BOOKING
            ========================================== -->
       <section class="panel" id="panel-lab-booking">
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <button class="mobile-back-btn header-back-btn" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
               <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
             </button>
-            <div>
-              <h1>จองห้องปฏิบัติการ</h1>
-              <p>ระบบตรวจสอบความว่างและบันทึกจองห้องปฏิบัติการแบบเรียลไทม์</p>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">จองห้องปฏิบัติการ</h1>
+              <p class="header-subtitle">ระบบตรวจสอบความว่างและบันทึกจองห้องปฏิบัติการแบบเรียลไทม์</p>
             </div>
           </div>
-          <button class="btn btn-secondary desktop-back-btn" onclick="navigateToPanel('dashboard')" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
-            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-            กลับหน้าแดชบอร์ด
-          </button>
-        </div>
+        </header>
 
         <div class="borrow-grid booking-grid-layout">
           <!-- Left Column: Form & Grid -->
@@ -1423,21 +1411,17 @@
            PANEL: NOTIFICATIONS / ALERTS
            ========================================== -->
       <section class="panel" id="panel-notifications">
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <button class="mobile-back-btn header-back-btn" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
               <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
             </button>
-            <div>
-              <h1>การแจ้งเตือน</h1>
-              <p>ระบบตรวจสอบวันหมดอายุและสถานะสินค้าคงคลังอัตโนมัติ</p>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">การแจ้งเตือน</h1>
+              <p class="header-subtitle">ระบบตรวจสอบวันหมดอายุและสถานะสินค้าคงคลังอัตโนมัติ</p>
             </div>
           </div>
-          <button class="btn btn-secondary desktop-back-btn" onclick="navigateToPanel('dashboard')" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
-            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-            กลับหน้าแดชบอร์ด
-          </button>
-        </div>
+        </header>
 
         <!-- TABS FOR NOTIFICATIONS -->
         <div class="alert-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
@@ -1546,12 +1530,17 @@
            PANEL: PURCHASE ORDERS
            ========================================== -->
       <section class="panel" id="panel-purchase-orders">
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-          <div>
-            <h1>รายการสั่งซื้อห้องปฏิบัติการ</h1>
-            <p>ประวัติและลิสต์รายการสั่งซื้อวัสดุ สารเคมี และอุปกรณ์ทางวิทยาศาสตร์</p>
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
+              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">รายการสั่งซื้อห้องปฏิบัติการ</h1>
+              <p class="header-subtitle">ประวัติและลิสต์รายการสั่งซื้อวัสดุ สารเคมี และอุปกรณ์ทางวิทยาศาสตร์</p>
+            </div>
           </div>
-          <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div class="unified-page-header-right">
             <!-- Global Academic Context -->
             <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; background-color: var(--bg-body); padding: 6px 12px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color); min-height: 42px; flex-wrap: wrap; box-sizing: border-box;">
               <div style="display: flex; align-items: center; gap: 4px; color: var(--text-muted); font-weight: 500; white-space: nowrap;">
@@ -1572,7 +1561,7 @@
               <span>กลับหน้าเพิ่มสาร/อุปกรณ์</span>
             </button>
           </div>
-        </div>
+        </header>
 
         <!-- Annual Budget Overview -->
         <div class="budget-overview-bar" style="margin-bottom: 24px;">
@@ -1803,22 +1792,17 @@
            PANEL: CABINET & STORAGE GRID (DIRECTORY)
            ========================================== -->
       <section class="panel" id="panel-cabinet-layout">
-        <div class="desktop-back-btn" style="margin-bottom: 16px;">
-          <button class="btn btn-secondary" onclick="navigateToPanel('dashboard')" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
-            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> กลับหน้าแดชบอร์ด
-          </button>
-        </div>
-        <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <button class="mobile-back-btn header-back-btn" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
               <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
             </button>
-            <div>
-              <h1>ผังตู้ SHECU และโต๊ะปฏิบัติการ</h1>
-              <p class="shecu-subtitle">สารบัญจัดเก็บสารเคมี อุปกรณ์ และจุดปฏิบัติการในห้องทดลอง (Interactive Directory)</p>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">ผังตู้ SHECU และโต๊ะปฏิบัติการ</h1>
+              <p class="header-subtitle">สารบัญจัดเก็บสารเคมี อุปกรณ์ และจุดปฏิบัติการในห้องทดลอง (Interactive Directory)</p>
             </div>
           </div>
-          <div style="display: flex; gap: 12px; align-items: center;">
+          <div class="unified-page-header-right">
             <button class="btn btn-primary" style="background: var(--primary-color);" onclick="openAddCabinetModal()">
               <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 6px;"></i> เพิ่มตู้ / จุดปฏิบัติการ
             </button>
@@ -1826,7 +1810,7 @@
               <i data-lucide="layout-dashboard" style="width: 14px; height: 14px; margin-right: 6px;"></i>
               แก้ไขแผนผัง
             </button>
-          </div>
+          </header>
         </div>
 
         <!-- Layout Edit Toolbox -->
@@ -2127,14 +2111,14 @@
        PANEL: ADMIN SETTINGS
        ========================================== -->
   <section class="panel" id="panel-admin" style="padding-bottom: 40px;">
-    <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 32px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="mobile-back-btn header-back-btn" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด">
+    <header class="unified-page-header">
+      <div class="unified-page-header-left">
+        <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
           <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
         </button>
-        <div>
-          <h1 style="display: flex; align-items: center; gap: 12px;">ตั้งค่าผู้ดูแลระบบ (Admin Panel)</h1>
-          <p style="font-size: 15px;">พื้นที่สำหรับผู้ดูแลระบบในการจัดการผู้ใช้งาน ตั้งค่าระบบ และดูภาพรวมการใช้งานขององค์กร</p>
+        <div class="header-title-wrapper">
+          <h1 class="header-title" style="display: flex; align-items: center; gap: 12px;">ตั้งค่าผู้ดูแลระบบ (Admin Panel)</h1>
+          <p class="header-subtitle">พื้นที่สำหรับผู้ดูแลระบบในการจัดการผู้ใช้งาน ตั้งค่าระบบ และดูภาพรวมการใช้งานขององค์กร</p>
         </div>
       </div>
       <button class="btn btn-secondary desktop-back-btn" onclick="navigateToPanel('dashboard')" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
