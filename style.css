@@ -6275,3 +6275,20 @@ body.hide-col-cas .col-cas { display: none !important; }
     justify-content: flex-start;
   }
 }
+
+/* Mobile optimizations for Alert Tabs to keep text on one line */
+.alert-tab-btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .alert-tab-btn {
+    font-size: 13px !important;
+    padding: 8px 6px !important;
+    gap: 6px !important;
+  }
+  .alert-tab-btn i {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
