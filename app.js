@@ -12438,7 +12438,7 @@ function renderCabinetMap() {
             </div>
           </div>
           <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; font-size: 12px; color: var(--text-muted); background: #f8fafc; gap: 8px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
               <div style="display: flex; gap: 12px;">
                 <span>🧪 0 สารเคมี</span>
                 <span>⚙️ 0 อุปกรณ์</span>
@@ -12517,7 +12517,7 @@ function renderCabinetMap() {
             </div>
           </div>
           <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; font-size: 12px; color: var(--text-muted); background: #f8fafc; gap: 8px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
               <div style="display: flex; gap: 12px;">
                 <span style="font-weight: 600; color: #0284c7;">🧪 ${chemCount} สารเคมี</span>
                 <span style="color: #475569;">⚙️ ${equipCount} อุปกรณ์</span>
