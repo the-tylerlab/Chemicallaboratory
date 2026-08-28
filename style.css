@@ -2385,7 +2385,7 @@ tr:hover td {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
+    width: 100%;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.6);
     z-index: 1500;
@@ -5203,7 +5203,7 @@ input[type="date"]::-webkit-date-and-time-value {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   display: flex;
   align-items: center;
