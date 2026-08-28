@@ -1806,9 +1806,12 @@
         <div class="content-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px;">
           <div>
             <h1>ผังตู้ SHECU และโต๊ะปฏิบัติการ</h1>
-            <p>สารบัญจัดเก็บสารเคมี อุปกรณ์ และจุดปฏิบัติการในห้องทดลอง (Interactive Directory)</p>
+            <p class="shecu-subtitle">สารบัญจัดเก็บสารเคมี อุปกรณ์ และจุดปฏิบัติการในห้องทดลอง (Interactive Directory)</p>
           </div>
           <div style="display: flex; gap: 12px; align-items: center;">
+            <button class="btn btn-primary" style="background: var(--primary-color);" onclick="openAddCabinetModal()">
+              <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 6px;"></i> เพิ่มตู้ / จุดปฏิบัติการ
+            </button>
             <button id="btnEditLayout" class="btn btn-outline" onclick="toggleLayoutEditMode()">
               <i data-lucide="layout-dashboard" style="width: 14px; height: 14px; margin-right: 6px;"></i>
               แก้ไขแผนผัง
@@ -1874,7 +1877,18 @@
                     <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">ตู้ A</h3>
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">สารเคมีของเหลว</div>
                   </div>
-                  <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-A', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-A" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('ตู้ A'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('ตู้ A'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
@@ -1919,7 +1933,18 @@
                     <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">ตู้ B</h3>
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">สารเคมีอันตราย</div>
                   </div>
-                  <span class="shecu-badge badge-warning" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fef2f2; color: #e11d48; font-weight: 600;">🔴 พบสารไม่เข้ากัน</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-badge badge-warning" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fef2f2; color: #e11d48; font-weight: 600;">🔴 พบสารไม่เข้ากัน</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-B', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-B" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('ตู้ B'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('ตู้ B'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
@@ -1957,7 +1982,18 @@
                     <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">ตู้เก็บเครื่องแก้ว</h3>
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">เครื่องแก้ว</div>
                   </div>
-                  <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-C', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-C" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('ตู้ C'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('ตู้ C'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
@@ -1988,7 +2024,18 @@
                     <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">โต๊ะชั่งน้ำหนัก</h3>
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">จุดปฏิบัติงาน</div>
                   </div>
-                  <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 พร้อมใช้งาน</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 พร้อมใช้งาน</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-S1', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-S1" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('ตู้ดูดควัน (Fume Hood)'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('ตู้ดูดควัน (Fume Hood)'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
@@ -2019,7 +2066,18 @@
                     <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">โต๊ะปฏิบัติการ 1</h3>
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">พื้นที่ทั่วไป</div>
                   </div>
-                  <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 พร้อมใช้งาน</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 พร้อมใช้งาน</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-S2', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-S2" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('โต๊ะปฏิบัติการ 1'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('โต๊ะปฏิบัติการ 1'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
@@ -2040,6 +2098,15 @@
                 </div>
                 <span style="font-weight: 500; color: #64748b;">ความจุ: 3/5</span>
               </div>
+            </div>
+
+            <!-- Placeholder Add Card -->
+            <div class="cabinet-card add-new-card" onclick="openAddCabinetModal()" style="border: 2px dashed var(--border-color); border-radius: var(--border-radius-lg); background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 240px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary-color)'; this.style.backgroundColor='#f8fafc';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent';">
+              <div style="background: white; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); margin-bottom: 16px;">
+                <i data-lucide="plus" style="width: 24px; height: 24px; color: var(--primary-color);"></i>
+              </div>
+              <span style="font-weight: 600; color: var(--text-dark);">เพิ่มตู้หรือจุดปฏิบัติการใหม่</span>
+              <span style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">คลิกเพื่อสร้างรายการ</span>
             </div>
 
           </div>
@@ -3123,6 +3190,56 @@
       </div>
     </div>
   </div>
+  <!-- Add/Edit Cabinet & Station Modal -->
+  <div id="addCabinetModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="addCabinetModalTitle">เพิ่มตู้ / จุดปฏิบัติการ</h3>
+        <button class="modal-close" onclick="closeAddCabinetModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ประเภท (Type)</label>
+          <select id="addCabinetType" class="input" style="width: 100%;">
+            <option value="cabinet">ตู้เก็บสารเคมี / พัสดุ (Cabinet)</option>
+            <option value="station">โต๊ะปฏิบัติการ (Lab Station)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ชื่อ / รหัส (Name / ID)</label>
+          <input type="text" id="addCabinetName" class="input" style="width: 100%;" placeholder="เช่น ตู้ A, โต๊ะปฏิบัติการ 1">
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">จำนวนชั้นวาง (Number of Shelves)</label>
+          <input type="number" id="addCabinetShelves" class="input" style="width: 100%;" placeholder="ระบุจำนวนชั้น" min="1" value="1">
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ความจุสุทธิ (Total Capacity)</label>
+          <input type="number" id="addCabinetCapacity" class="input" style="width: 100%;" placeholder="ความจุสูงสุด (รายการ)" min="0" value="50">
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+        <button class="btn btn-outline" onclick="closeAddCabinetModal()">ยกเลิก</button>
+        <button class="btn btn-primary" style="background: var(--primary-color);" onclick="saveCabinetData()">บันทึกข้อมูล</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Cabinet Confirmation Modal -->
+  <div id="deleteCabinetModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <div style="margin-bottom: 16px; color: var(--accent-red);">
+        <i data-lucide="alert-triangle" style="width: 48px; height: 48px; margin: 0 auto;"></i>
+      </div>
+      <h3 style="margin-bottom: 12px; font-size: 18px;">ยืนยันการลบตู้จัดเก็บ</h3>
+      <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 14px;">คุณต้องการลบ "<span id="deleteCabinetNameDisplay" style="font-weight: 600; color: var(--text-dark);"></span>" ออกจากระบบใช่หรือไม่? ข้อมูลทั้งหมดที่เกี่ยวข้องจะถูกลบอย่างถาวร</p>
+      <div style="display: flex; justify-content: center; gap: 12px;">
+        <button class="btn btn-outline" onclick="closeDeleteCabinetModal()">ยกเลิก</button>
+        <button class="btn btn-danger" onclick="confirmDeleteCabinet()">ลบตู้จัดเก็บ</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: HELP & SAFETY -->
   <div id="helpSafetyModal" class="modal-overlay">
     <div class="modal-content modal-lg" style="max-width: 700px; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
