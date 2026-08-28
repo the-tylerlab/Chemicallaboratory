@@ -143,7 +143,7 @@
           
           <li>
             <a href="#" class="menu-item-link" data-target="all-items">
-              <i data-lucide="boxes"></i>
+              <i data-lucide="box"></i>
               <span>รายการทั้งหมด</span>
             </a>
           </li>
@@ -247,6 +247,7 @@
             <div class="stat-info">
               <span class="stat-title nobrk">รายการทั้งหมด</span>
               <span class="stat-value" id="dashboardValTotal">0</span>
+              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">รายการ</span>
             </div>
             <div class="stat-icon">
               <i data-lucide="box"></i>
@@ -256,6 +257,7 @@
             <div class="stat-info">
               <span class="stat-title nobrk">หมดอายุแล้ว</span>
               <span class="stat-value" id="dashboardValExpired">0</span>
+              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">รายการ</span>
             </div>
             <div class="stat-icon">
               <i data-lucide="alert-triangle"></i>
@@ -265,15 +267,17 @@
             <div class="stat-info">
               <span class="stat-title nobrk">ใกล้หมด (Stock)</span>
               <span class="stat-value" id="dashboardValLowStock">0</span>
+              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">รายการ</span>
             </div>
             <div class="stat-icon">
-              <i data-lucide="mail-warning"></i>
+              <i data-lucide="boxes"></i>
             </div>
           </div>
           <div class="stat-card yellow" id="statCardNearExpiry" onclick="navigateToPanel('all-items', 'all', 'near_expiry')">
             <div class="stat-info">
               <span class="stat-title nobrk">ใกล้หมดอายุ</span>
               <span class="stat-value" id="dashboardValNearExpiry">0</span>
+              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">รายการ</span>
             </div>
             <div class="stat-icon">
               <i data-lucide="clock"></i>
@@ -284,7 +288,7 @@
         <!-- Dashboard Split Layout -->
         <div class="dashboard-grid">
           <!-- 1. Quick Menu Panel -->
-          <div class="card-container" id="quickMenuCard">
+          <div class="card-container" id="quickMenuCard" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
             <div class="card-header">
               <h2 class="card-title">เมนูด่วน</h2>
             </div>
@@ -379,7 +383,7 @@
           </div>
 
           <!-- 3. Category Breakdown Panel -->
-          <div class="card-container" id="categoryBreakdownCard">
+          <div class="card-container" id="categoryBreakdownCard" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
             <div class="card-header">
               <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
                 <span>สัดส่วนหมวดหมู่พัสดุ</span>
@@ -1405,61 +1409,107 @@
           </button>
         </div>
 
-        <!-- EXPIRED ALERTS SECTION -->
-        <div class="alert-section expired">
-          <div class="alert-section-header">
-            <span>หมดอายุแล้ว</span>
-            <span class="alert-count-badge" id="alertCountExpired">0</span>
-          </div>
-          <div class="alert-section-content" id="alertListExpired">
-            <!-- Dynamically loaded list of expired items or empty state -->
-            <div class="empty-state" style="padding: 24px;">
-              <div class="empty-state-text">ไม่มีรายการ</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- NEAR EXPIRY ALERTS SECTION -->
-        <div class="alert-section near-expiry">
-          <div class="alert-section-header">
-            <span>ใกล้หมดอายุ (30 วัน)</span>
-            <span class="alert-count-badge" id="alertCountNearExpiry">0</span>
-          </div>
-          <div class="alert-section-content" id="alertListNearExpiry">
-            <!-- Dynamically loaded near expiry items or empty state -->
-            <div class="empty-state" style="padding: 24px;">
-              <div class="empty-state-text">ไม่มีรายการ</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- LOW STOCK ALERTS SECTION -->
-        <div class="alert-section low-stock">
-          <div class="alert-section-header">
-            <span>ใกล้หมด (ต่ำกว่าขั้นต่ำ)</span>
-            <span class="alert-count-badge" id="alertCountLowStock">0</span>
-          </div>
-          <div class="alert-section-content" id="alertListLowStock">
-            <!-- Dynamically loaded low stock items or empty state -->
-            <div class="empty-state" style="padding: 24px;">
-              <div class="empty-state-text">ไม่มีรายการ</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- FEEDBACK / REPORTS SECTION -->
-        <div class="alert-section near-expiry" style="border-left-color: var(--primary-purple); background-color: var(--primary-purple-light);">
-          <div class="alert-section-header" style="color: var(--primary-purple);">
+        <!-- TABS FOR NOTIFICATIONS -->
+        <div class="alert-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+          <button type="button" class="alert-tab-btn active" id="btnTabNotifInventory" onclick="switchNotifTab('inventory')" style="flex: 1; padding: 12px; font-size: 14.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            <i data-lucide="package" style="width: 18px; height: 18px;"></i>
+            <span>แจ้งเตือนคลังพัสดุ</span>
+          </button>
+          <button type="button" class="alert-tab-btn" id="btnTabNotifFeedback" onclick="switchNotifTab('feedback')" style="flex: 1; padding: 12px; font-size: 14.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
             <span>ปัญหาและข้อเสนอแนะ</span>
-            <span class="alert-count-badge" id="alertCountFeedback" style="background-color: var(--primary-purple);">0</span>
+            <span class="badge badge-purple" id="badgeNotifFeedbackCount" style="padding: 2px 6px; font-size: 11px; display: none;">0</span>
+          </button>
+        </div>
+
+        <!-- TAB CONTENT: INVENTORY ALERTS -->
+        <div id="tabContentNotifInventory" style="display: block;">
+          <!-- EXPIRED ALERTS SECTION -->
+          <div class="alert-section expired">
+            <div class="alert-section-header">
+              <span>หมดอายุแล้ว</span>
+              <span class="alert-count-badge" id="alertCountExpired">0</span>
+            </div>
+            <div class="alert-section-content" id="alertListExpired">
+              <!-- Dynamically loaded list of expired items or empty state -->
+              <div class="empty-state" style="padding: 24px;">
+                <div class="empty-state-text">ไม่มีรายการ</div>
+              </div>
+            </div>
           </div>
-          <div class="alert-section-content" id="alertListFeedback">
-            <!-- Dynamically loaded feedbacks or empty state -->
-            <div class="empty-state" style="padding: 24px;">
-              <div class="empty-state-text">ไม่มีรายการ</div>
+
+          <!-- NEAR EXPIRY ALERTS SECTION -->
+          <div class="alert-section near-expiry">
+            <div class="alert-section-header">
+              <span>ใกล้หมดอายุ (30 วัน)</span>
+              <span class="alert-count-badge" id="alertCountNearExpiry">0</span>
+            </div>
+            <div class="alert-section-content" id="alertListNearExpiry">
+              <!-- Dynamically loaded near expiry items or empty state -->
+              <div class="empty-state" style="padding: 24px;">
+                <div class="empty-state-text">ไม่มีรายการ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOW STOCK ALERTS SECTION -->
+          <div class="alert-section low-stock">
+            <div class="alert-section-header">
+              <span>ใกล้หมด (ต่ำกว่าขั้นต่ำ)</span>
+              <span class="alert-count-badge" id="alertCountLowStock">0</span>
+            </div>
+            <div class="alert-section-content" id="alertListLowStock">
+              <!-- Dynamically loaded low stock items or empty state -->
+              <div class="empty-state" style="padding: 24px;">
+                <div class="empty-state-text">ไม่มีรายการ</div>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- TAB CONTENT: FEEDBACK & REPORTS -->
+        <div id="tabContentNotifFeedback" style="display: none;">
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 12px;">
+             <button class="btn btn-primary" onclick="openHelpSafetyModal('help-tab-5')" style="background-color: var(--primary-purple); color: white; display: inline-flex; align-items: center; gap: 6px; border: none; padding: 8px 16px; border-radius: var(--border-radius-md); font-weight: 600; cursor: pointer; transition: opacity 0.2s;">
+               <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i> แจ้งปัญหาใหม่
+             </button>
+          </div>
+          
+          <div class="alert-section feedback" style="border-left-color: var(--primary-purple); background-color: var(--bg-body); border-left-width: 4px; border-left-style: solid; box-shadow: var(--shadow-sm); border-radius: var(--border-radius-lg); padding: 16px; margin-bottom: 16px;">
+            <div class="alert-section-header" style="color: var(--primary-purple); display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 700; font-size: 15px;">
+              <i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i>
+              <span>รายการแจ้งปัญหาล่าสุด</span>
+              <span class="alert-count-badge" id="alertCountFeedback" style="background-color: var(--primary-purple); margin-left: auto;">0</span>
+            </div>
+            <div class="alert-section-content" id="alertListFeedback">
+              <!-- Dynamically loaded feedbacks or empty state -->
+              <div class="empty-state" style="padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; background-color: #faf5ff; border-radius: var(--border-radius-md);">
+                <div style="color: var(--primary-purple); opacity: 0.3;">
+                  <i data-lucide="smile" style="width: 54px; height: 54px;"></i>
+                </div>
+                <div class="empty-state-text" style="font-size: 15px; font-weight: 600; color: #4b5563;">ยังไม่มีการแจ้งปัญหาหรือข้อเสนอแนะในขณะนี้</div>
+                <div style="font-size: 13px; color: var(--text-muted);">ระบบทำงานปกติ ไม่มีรายงานข้อผิดพลาดใดๆ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          function switchNotifTab(tabId) {
+            document.getElementById('btnTabNotifInventory').classList.remove('active');
+            document.getElementById('btnTabNotifFeedback').classList.remove('active');
+            document.getElementById('tabContentNotifInventory').style.display = 'none';
+            document.getElementById('tabContentNotifFeedback').style.display = 'none';
+            
+            if (tabId === 'inventory') {
+              document.getElementById('btnTabNotifInventory').classList.add('active');
+              document.getElementById('tabContentNotifInventory').style.display = 'block';
+            } else {
+              document.getElementById('btnTabNotifFeedback').classList.add('active');
+              document.getElementById('tabContentNotifFeedback').style.display = 'block';
+            }
+          }
+        </script>
       </section>
 
       <!-- ==========================================
