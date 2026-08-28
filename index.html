@@ -1488,20 +1488,47 @@
              </button>
           </div>
           
-          <div class="alert-section feedback" style="border-left-color: var(--primary-purple); background-color: var(--bg-body); border-left-width: 4px; border-left-style: solid; box-shadow: var(--shadow-sm); border-radius: var(--border-radius-lg); padding: 16px; margin-bottom: 16px;">
-            <div class="alert-section-header" style="color: var(--primary-purple); display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 700; font-size: 15px;">
-              <i data-lucide="alert-circle" style="width: 18px; height: 18px;"></i>
-              <span>รายการแจ้งปัญหาล่าสุด</span>
-              <span class="alert-count-badge" id="alertCountFeedback" style="background-color: var(--primary-purple); margin-left: auto;">0</span>
+          <div class="alert-section feedback" style="background-color: rgba(255, 241, 242, 0.5); border: 1px solid #ffe4e6; border-radius: 24px; padding: 20px; margin-bottom: 24px;">
+            <div class="alert-section-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+              <div style="color: #4c0519; font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="alert-circle" style="width: 20px; height: 20px;"></i>
+                <span>รายการแจ้งปัญหาล่าสุด</span>
+              </div>
+              <span class="alert-count-badge" id="alertCountFeedback" style="background-color: #e11d48; color: white; font-size: 12px; font-weight: 600; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">0</span>
             </div>
             <div class="alert-section-content" id="alertListFeedback">
-              <!-- Dynamically loaded feedbacks or empty state -->
-              <div class="empty-state" style="padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; background-color: #faf5ff; border-radius: var(--border-radius-md);">
-                <div style="color: var(--primary-purple); opacity: 0.3;">
-                  <i data-lucide="smile" style="width: 54px; height: 54px;"></i>
+              <!-- Example Issue Card (Uncomment or generate via JS to see)
+              <div class="issue-card" style="background-color: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 12px;">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px;">
+                  <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-weight: 700; color: #0f172a; font-size: 15px;">ก๊อกน้ำอ่างล้างตารั่วซึม</span>
+                      <span style="background-color: #f1f5f9; color: #475569; font-size: 11px; padding: 2px 6px; border-radius: 6px; font-family: monospace;">ISSUE-001</span>
+                    </div>
+                    <div style="font-size: 12px; color: #64748b;">
+                      📍 จัดเก็บ / ตำแหน่ง: โซนล้างอุปกรณ์
+                    </div>
+                    <div style="font-size: 12px; color: #94a3b8;">
+                      👤 ผู้แจ้ง: สมชาย ใจดี • 2 ชม. ที่แล้ว
+                    </div>
+                  </div>
+                  <button type="button" style="width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e2e8f0; color: #2563eb; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#f8fafc'" onmouseout="this.style.backgroundColor='white'">
+                    <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+                  </button>
                 </div>
-                <div class="empty-state-text" style="font-size: 15px; font-weight: 600; color: #4b5563;">ยังไม่มีการแจ้งปัญหาหรือข้อเสนอแนะในขณะนี้</div>
-                <div style="font-size: 13px; color: var(--text-muted);">ระบบทำงานปกติ ไม่มีรายงานข้อผิดพลาดใดๆ</div>
+                <div style="background-color: #fff1f2; border: 1px solid rgba(254, 205, 211, 0.7); border-radius: 12px; padding: 10px; font-size: 12px; color: #be123c; font-weight: 500; display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
+                  <span>⚠️ รายละเอียดปัญหา: ก๊อกน้ำอ่างล้างตารั่วซึม (สถานะ: รอช่างซ่อม)</span>
+                </div>
+              </div>
+              -->
+              
+              <!-- Empty state shown when 0 issues -->
+              <div class="empty-state" style="background-color: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                <div style="color: #fda4af;">
+                  <i data-lucide="smile" style="width: 48px; height: 48px;"></i>
+                </div>
+                <div style="font-size: 15px; font-weight: 600; color: #334155;">ไม่มีรายการแจ้งปัญหาในขณะนี้ ระบบทำงานปกติ</div>
               </div>
             </div>
           </div>
