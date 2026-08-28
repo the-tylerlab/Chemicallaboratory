@@ -203,23 +203,23 @@
         </ul>
       </nav>
 
-      <!-- Sidebar Bottom Menu (Login) -->
+      <!-- Sidebar Bottom Menu (Help) -->
       <div class="sidebar-bottom-menu">
         <ul class="sidebar-menu-bottom">
           <li>
-            <a href="#" class="menu-item-link" id="btnSidebarLogin">
-              <i id="sidebarLoginIcon" data-lucide="user"></i>
-              <span id="sidebarLoginText">เข้าสู่ระบบหลังบ้าน</span>
-            </a>
+            <button id="btnHelpSafetyModal" class="menu-item-link" style="width: 100%; border: none; background: transparent; text-align: left; cursor: pointer;">
+              <i data-lucide="book-open"></i> <span>ศูนย์ข้อมูลและความปลอดภัย</span>
+            </button>
           </li>
         </ul>
       </div>
 
-      <!-- Sidebar Footer -->
+      <!-- Sidebar Footer (Login) -->
       <div class="sidebar-footer">
-        <button id="btnHelpSafetyModal" class="menu-item-link" style="width: 100%; border: none; background: transparent; text-align: left; cursor: pointer; margin-bottom: 8px;">
-          <i data-lucide="book-open"></i> <span>ศูนย์ข้อมูลและความปลอดภัย</span>
-        </button>
+        <a href="#" class="menu-item-link" id="btnSidebarLogin" style="margin-bottom: 8px;">
+          <i id="sidebarLoginIcon" data-lucide="user"></i>
+          <span id="sidebarLoginText">เข้าสู่ระบบหลังบ้าน</span>
+        </a>
         <div class="footer-bottom-compact" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
           <span class="status-dot"></span> SciPortal v1.9.8 &bull; &copy; 2026
         </div>
