@@ -6134,3 +6134,49 @@ body.hide-col-cas .col-cas { display: none !important; }
     min-width: calc(50% - 8px);
   }
 }
+
+/* SHECU Mobile Responsiveness (375px/SE) */
+@media (max-width: 640px) {
+  .shecu-subtitle {
+    display: none !important;
+  }
+  .directory-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+  .directory-toolbar > div:first-child {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .directory-toolbar .shecu-badge {
+    width: 100%;
+    text-align: center;
+    display: block;
+    padding: 6px 12px !important;
+    margin-bottom: 0px;
+  }
+  .category-pills {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+  .category-pills::-webkit-scrollbar {
+    display: none;
+  }
+  .search-box {
+    width: 100% !important;
+  }
+  .shecu-unified-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .cabinet-card {
+    height: auto !important;
+  }
+  #panel-cabinet-layout {
+    padding-bottom: 112px !important; /* pb-28 equivalent */
+  }
+}
