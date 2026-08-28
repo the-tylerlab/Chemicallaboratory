@@ -895,6 +895,38 @@ button {
   width: 100%;
 }
 
+@media (max-width: 640px) {
+  .transaction-cards-container {
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: var(--border-radius-md);
+    display: flex;
+  }
+  .transaction-card {
+    flex: 1;
+    margin: 0 !important;
+  }
+  .transaction-card-content {
+    padding: 8px 12px !important;
+    text-align: center;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  .transaction-card-input:checked + .transaction-card-content {
+    background: white !important;
+    box-shadow: var(--shadow-sm) !important;
+    border-radius: 8px !important;
+  }
+  .transaction-card-title {
+    font-size: 13px !important;
+  }
+  .transaction-card-desc {
+    display: none !important;
+  }
+}
+
 .transaction-card {
   position: relative;
   cursor: pointer;
@@ -5028,6 +5060,69 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 /* Pulse Animation */
+@keyframes shine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Global Mobile Layout */
+.pb-24 { padding-bottom: 96px !important; }
+
+/* Hide scrollbar for elements */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Responsive Back Buttons */
+.mobile-back-btn {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .mobile-back-btn {
+    display: flex !important;
+  }
+  .desktop-back-btn {
+    display: none !important;
+  }
+}
+
+/* Help Modal Responsive Layout */
+@media (max-width: 640px) {
+  .help-modal-body {
+    flex-direction: column !important;
+  }
+  .help-modal-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 16px !important;
+  }
+  .help-modal-sidebar .help-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 8px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .help-modal-sidebar .help-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .help-modal-sidebar .help-tabs .help-tab {
+    white-space: nowrap;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  .help-modal-content {
+    padding: 16px !important;
+  }
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
