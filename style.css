@@ -6180,3 +6180,34 @@ body.hide-col-cas .col-cas { display: none !important; }
     padding-bottom: 112px !important; /* pb-28 equivalent */
   }
 }
+
+/* Header Inline Back Button Refinement */
+.header-back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.header-back-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+.header-back-btn:active {
+  transform: scale(0.95);
+}
+@media (max-width: 640px) {
+  .header-back-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
