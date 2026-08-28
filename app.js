@@ -13633,6 +13633,17 @@ function calculatePONetPrice() {
 
 function openHelpSafetyModal(tabId = null) {
   const modal = document.getElementById('helpSafetyModal');
+  
+  // Close mobile sidebar if it's open
+  const sidebar = document.querySelector('.sidebar');
+  const mobileOverlay = document.getElementById('mobile-overlay');
+  if (sidebar && sidebar.classList.contains('active')) {
+    sidebar.classList.remove('active');
+  }
+  if (mobileOverlay && mobileOverlay.classList.contains('active')) {
+    mobileOverlay.classList.remove('active');
+  }
+
   if (modal) {
     modal.classList.add('active');
     
