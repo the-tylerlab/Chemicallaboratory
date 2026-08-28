@@ -6292,3 +6292,21 @@ body.hide-col-cas .col-cas { display: none !important; }
     height: 16px !important;
   }
 }
+
+/* Colors for Feedback Section */
+.alert-section.feedback {
+  border-color: rgba(147, 51, 234, 0.25);
+}
+.alert-section.feedback .alert-section-header {
+  background-color: #f3e8ff; /* purple-100 */
+  color: #581c87; /* purple-900 */
+}
+.alert-section.feedback .alert-count-badge {
+  background-color: #7e22ce; /* purple-700 */
+  color: #ffffff;
+}
+.alert-section.feedback .notification-alert-banner {
+  background-color: #faf5ff; /* purple-50 */
+  border: 1px solid rgba(147, 51, 234, 0.25);
+  color: #6b21a8; /* purple-800 */
+}
