@@ -10,7 +10,11 @@ let currentPage = 1;
 const itemsPerPage = 10;
 let fileToImport = null;
 let userRole = localStorage.getItem("userRole") || (localStorage.getItem("isAdminLoggedIn") === "true" ? "admin" : "student");
-window.feedbacksData = []; // Store user feedbacks
+window.feedbacksData = [
+  { id: "ISSUE-001", message: "ก๊อกน้ำอ่างล้างตารั่วซึม", timestamp: new Date().toISOString(), status: "unread" },
+  { id: "ISSUE-002", message: "หลอดไฟกระพริบและมีเสียงดัง", timestamp: new Date().toISOString(), status: "unread" },
+  { id: "ISSUE-003", message: "อุปกรณ์จับยึด (Clamp) หลวม", timestamp: new Date().toISOString(), status: "unread" }
+]; // Store user feedbacks
 
 // TEMPORARY: Force restore mock data on next reload for user testing
 if (localStorage.getItem("force_restore_mock") !== "done_v1") {
@@ -13969,3 +13973,78 @@ window.editCabinetCapacity = function(room, id, currentCapacity) {
     }
   }
 };
+
+/* =====================================================================
+   SHECU Cabinet Management (Add, Edit, Delete, Dropdown)
+   ===================================================================== */
+function openAddCabinetModal(editName = '') {
+  const modal = document.getElementById('addCabinetModal');
+  const title = document.getElementById('addCabinetModalTitle');
+  const nameInput = document.getElementById('addCabinetName');
+  
+  if (editName) {
+    title.innerText = 'แก้ไขข้อมูล / เพิ่มชั้นวาง';
+    nameInput.value = editName;
+  } else {
+    title.innerText = 'เพิ่มตู้ / จุดปฏิบัติการ';
+    nameInput.value = '';
+    document.getElementById('addCabinetType').value = 'cabinet';
+    document.getElementById('addCabinetShelves').value = '1';
+    document.getElementById('addCabinetCapacity').value = '50';
+  }
+  
+  modal.classList.add('active');
+}
+
+function closeAddCabinetModal() {
+  document.getElementById('addCabinetModal').classList.remove('active');
+}
+
+function saveCabinetData() {
+  const name = document.getElementById('addCabinetName').value;
+  if (!name.trim()) {
+    showToast('กรุณาระบุชื่อตู้หรือจุดปฏิบัติการ', 'error');
+    return;
+  }
+  showToast(`บันทึกข้อมูล "${name}" เรียบร้อยแล้ว`, 'success');
+  closeAddCabinetModal();
+}
+
+function openDeleteCabinetModal(cabinetName) {
+  document.getElementById('deleteCabinetNameDisplay').innerText = cabinetName;
+  document.getElementById('deleteCabinetModal').classList.add('active');
+}
+
+function closeDeleteCabinetModal() {
+  document.getElementById('deleteCabinetModal').classList.remove('active');
+}
+
+function confirmDeleteCabinet() {
+  const name = document.getElementById('deleteCabinetNameDisplay').innerText;
+  showToast(`ลบรายการ "${name}" สำเร็จ`, 'success');
+  closeDeleteCabinetModal();
+}
+
+function toggleCabinetDropdown(id, event) {
+  event.stopPropagation();
+  const dropdown = document.getElementById(id);
+  const isVisible = dropdown.style.display === 'block';
+  
+  // Close all other dropdowns
+  document.querySelectorAll('.dropdown-content').forEach(el => {
+    el.style.display = 'none';
+  });
+  
+  if (!isVisible) {
+    dropdown.style.display = 'block';
+  }
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+  if (!event.target.closest('.dropdown-wrapper')) {
+    document.querySelectorAll('.dropdown-content').forEach(el => {
+      el.style.display = 'none';
+    });
+  }
+});
