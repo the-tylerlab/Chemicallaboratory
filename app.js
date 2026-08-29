@@ -11,9 +11,46 @@ const itemsPerPage = 10;
 let fileToImport = null;
 let userRole = localStorage.getItem("userRole") || (localStorage.getItem("isAdminLoggedIn") === "true" ? "admin" : "student");
 window.feedbacksData = [
-  { id: "ISSUE-001", message: "ก๊อกน้ำอ่างล้างตารั่วซึม", timestamp: new Date().toISOString(), status: "unread" },
-  { id: "ISSUE-002", message: "หลอดไฟกระพริบและมีเสียงดัง", timestamp: new Date().toISOString(), status: "unread" },
-  { id: "ISSUE-003", message: "อุปกรณ์จับยึด (Clamp) หลวม", timestamp: new Date().toISOString(), status: "unread" }
+  {
+    id: "ISSUE-001",
+    title: "1. ก๊อกน้ำอ่างล้างตารั่วซึม",
+    code: "ISSUE-001",
+    location: "จัดเก็บ: Lab 1 > หน้าตู้ A (ผู้แจ้ง: สมชาย)",
+    detail: "น้ำหยดตลอดเวลา",
+    status: "repair",
+    statusText: "รอช่างซ่อม",
+    timestamp: new Date().toISOString()
+  },
+  {
+    id: "ISSUE-002",
+    title: "2. หลอดไฟกระพริบและมีเสียงดัง",
+    code: "ISSUE-002",
+    location: "จัดเก็บ: Lab 2 > โซนเตรียมสาร (ผู้แจ้ง: สมหญิง)",
+    detail: "รบกวนการทำงาน",
+    status: "pending",
+    statusText: "รอดำเนินการ",
+    timestamp: new Date().toISOString()
+  },
+  {
+    id: "ISSUE-003",
+    title: "3. อุปกรณ์จับยึด (Clamp) หลวม",
+    code: "ISSUE-003",
+    location: "จัดเก็บ: Lab 1 > ตู้ C (ผู้แจ้ง: วิชาญ)",
+    detail: "เปลี่ยนชิ้นใหม่แล้ว",
+    status: "resolved",
+    statusText: "แก้ไขแล้ว",
+    timestamp: new Date().toISOString()
+  },
+  {
+    id: "ISSUE-004",
+    title: "4. เครื่องชั่งดิจิตอลแสดงค่าไม่นิ่ง",
+    code: "ISSUE-004",
+    location: "จัดเก็บ: Lab 1 > โซนเครื่องมือวัด (ผู้แจ้ง: สมศรี)",
+    detail: "ปรับเทียบ (Calibrate) ใหม่แล้ว",
+    status: "resolved",
+    statusText: "แก้ไขแล้ว",
+    timestamp: new Date().toISOString()
+  }
 ]; // Store user feedbacks
 
 // TEMPORARY: Force restore mock data on next reload for user testing
@@ -345,6 +382,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Load activity logs
   await loadActivityLogs();
+  
+  // Load feedbacks & issues
+  loadFeedbacksFromStorage();
   
   // Set up event listeners
   setupNavigation();
@@ -1013,6 +1053,21 @@ function updateUI() {
   lucide.createIcons();
 }
 
+// Helper: Auto-increment Issue Code (ISSUE-001, ISSUE-002, ...)
+function getNextIssueCode() {
+  const list = window.feedbacksData || [];
+  let maxNum = 0;
+  list.forEach(item => {
+    const code = item.code || item.id || "";
+    const match = code.match(/ISSUE-(\d+)/i);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxNum) maxNum = num;
+    }
+  });
+  return `ISSUE-${String(maxNum + 1).padStart(3, "0")}`;
+}
+
 // ==========================================================================
 // USER FEEDBACK SYSTEM
 // ==========================================================================
@@ -1024,8 +1079,19 @@ async function submitUserFeedback() {
   }
   
   const feedbackMsg = input.value.trim();
+  const nextCode = getNextIssueCode();
+  const nextNumber = (window.feedbacksData ? window.feedbacksData.length : 0) + 1;
+
   const newFeedback = {
-    message: feedbackMsg
+    id: nextCode,
+    code: nextCode,
+    title: `${nextNumber}. ${feedbackMsg}`,
+    location: "จัดเก็บ: ทั่วไป (ผู้แจ้ง: ผู้ใช้งานระบบ)",
+    detail: feedbackMsg,
+    message: feedbackMsg,
+    status: "pending",
+    statusText: "รอดำเนินการ",
+    timestamp: new Date().toISOString()
   };
   
   // Save to backend via API
@@ -1038,33 +1104,24 @@ async function submitUserFeedback() {
     
     if (response.ok) {
       const data = await response.json();
-      window.feedbacksData.unshift(data.feedback);
+      window.feedbacksData.unshift(data.feedback || newFeedback);
     } else {
-      // Fallback to local array if API fails, just in case
-      window.feedbacksData.unshift({
-        id: "fb-" + Date.now(),
-        message: feedbackMsg,
-        timestamp: new Date().toISOString(),
-        status: "unread"
-      });
+      window.feedbacksData.unshift(newFeedback);
     }
   } catch (err) {
     console.error("Error submitting feedback:", err);
-    window.feedbacksData.unshift({
-      id: "fb-" + Date.now(),
-      message: feedbackMsg,
-      timestamp: new Date().toISOString(),
-      status: "unread"
-    });
+    window.feedbacksData.unshift(newFeedback);
   }
   
+  saveFeedbacksToStorage();
+  
   // Log Activity in History Logs
-  logActivity("ผู้ใช้งานระบบ", "แจ้งปัญหา", feedbackMsg);
+  logActivity("ผู้ใช้งานระบบ", "แจ้งปัญหา", `${nextCode}: ${feedbackMsg}`);
   
   // Refresh UI
   input.value = "";
   closeModal("helpSafetyModal");
-  showToast("ส่งข้อความเรียบร้อยแล้ว", "success");
+  showToast(`บันทึกการแจ้งปัญหา (${nextCode}) เรียบร้อยแล้ว`, "success");
   
   // Re-render dashboard UI to update notifications badge and list
   updateUI();
@@ -1074,6 +1131,342 @@ async function submitUserFeedback() {
     renderActivityLogs();
   }
 }
+
+function loadFeedbacksFromStorage() {
+  const stored = localStorage.getItem("lab_feedbacks");
+  if (stored) {
+    try {
+      window.feedbacksData = JSON.parse(stored);
+    } catch (e) {
+      console.error("Error parsing lab_feedbacks:", e);
+    }
+  } else {
+    saveFeedbacksToStorage();
+  }
+}
+
+function saveFeedbacksToStorage() {
+  localStorage.setItem("lab_feedbacks", JSON.stringify(window.feedbacksData));
+}
+
+function renderFeedbacksList() {
+  const pendingContainer = document.getElementById("alertListFeedback");
+  const resolvedContainer = document.getElementById("alertListResolvedFeedback");
+  if (!pendingContainer && !resolvedContainer) return;
+
+  const allFeedbacks = window.feedbacksData || [];
+  const pendingFeedbacks = allFeedbacks.filter(f => f.status !== "resolved");
+  const resolvedFeedbacks = allFeedbacks.filter(f => f.status === "resolved");
+
+  // Update badge counts
+  const pendingBadge = document.getElementById("alertCountFeedback");
+  if (pendingBadge) pendingBadge.innerText = pendingFeedbacks.length;
+
+  const resolvedBadge = document.getElementById("alertCountResolvedFeedback");
+  if (resolvedBadge) resolvedBadge.innerText = resolvedFeedbacks.length;
+
+  // Helper to render individual card
+  const renderCard = (fb) => {
+    let iconName = "alert-triangle";
+    if (fb.status === "resolved") {
+      iconName = "check-circle";
+    } else if (fb.status === "pending") {
+      iconName = "alert-circle";
+    } else if (fb.status === "repair") {
+      iconName = "alert-triangle";
+    }
+
+    const statusLabel = fb.statusText || (fb.status === "resolved" ? "แก้ไขแล้ว" : (fb.status === "repair" ? "รอช่างซ่อม" : "รอดำเนินการ"));
+    const isResolved = fb.status === "resolved";
+
+    return `
+      <div class="notification-item ${isResolved ? 'status-resolved' : 'status-feedback'}" id="feedback-card-${fb.id}">
+        <div class="notification-header">
+          <div class="notification-title-group">
+            <span class="notification-title">${fb.title || fb.message || 'แจ้งปัญหา'}</span>
+            <span class="notification-code">${fb.code || fb.id}</span>
+          </div>
+          <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('${fb.id}')">
+            <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+          </button>
+        </div>
+        <div class="notification-meta">
+          <span class="notification-location">
+            <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+            ${fb.location || 'จัดเก็บ: ไม่ระบุ'}
+          </span>
+        </div>
+        <div class="notification-alert-banner ${isResolved ? 'resolved' : 'feedback'}" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="${iconName}" style="width: 14px; height: 14px; flex-shrink: 0; ${isResolved ? 'color: #10b981;' : ''}"></i>
+            <span>${fb.detail || fb.message || 'ไม่มีรายละเอียดเพิ่มเติม'}</span>
+          </div>
+          <button type="button" class="status-pill-btn ${isResolved ? 'resolved' : 'feedback'}" onclick="changeFeedbackStatus('${fb.id}')">
+            ${statusLabel} <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  };
+
+  // Render Pending / Repair List
+  if (pendingContainer) {
+    if (pendingFeedbacks.length === 0) {
+      pendingContainer.innerHTML = `
+        <div class="empty-state" style="display: flex; background-color: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 24px 20px; flex-direction: column; align-items: center; gap: 8px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+          <div style="color: #10b981;">
+            <i data-lucide="check-circle" style="width: 36px; height: 36px;"></i>
+          </div>
+          <div style="font-size: 14px; font-weight: 600; color: #334155;">ไม่มีรายการแจ้งปัญหาค้างดำเนินการ ทุกจุดพร้อมใช้งาน</div>
+        </div>
+      `;
+    } else {
+      pendingContainer.innerHTML = pendingFeedbacks.map(renderCard).join("");
+    }
+  }
+
+  // Render Resolved List
+  if (resolvedContainer) {
+    if (resolvedFeedbacks.length === 0) {
+      resolvedContainer.innerHTML = `
+        <div class="empty-state" style="display: flex; background-color: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 24px 20px; flex-direction: column; align-items: center; gap: 8px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+          <div style="color: #94a3b8;">
+            <i data-lucide="inbox" style="width: 36px; height: 36px;"></i>
+          </div>
+          <div style="font-size: 14px; font-weight: 600; color: #64748b;">ยังไม่มีรายการที่ได้รับการแก้ไขในระบบ</div>
+        </div>
+      `;
+    } else {
+      resolvedContainer.innerHTML = resolvedFeedbacks.map(renderCard).join("");
+    }
+  }
+
+  if (window.lucide) lucide.createIcons();
+}
+
+async function editFeedback(id) {
+  const fb = window.feedbacksData.find(f => f.id === id);
+  if (!fb) return;
+
+  const currentTitle = (fb.title || '').replace(/"/g, '&quot;');
+  const currentCode = (fb.code || fb.id || '').replace(/"/g, '&quot;');
+  const currentLocation = (fb.location || '').replace(/"/g, '&quot;');
+  const currentDetail = (fb.detail || '').replace(/"/g, '&quot;');
+
+  const { value: formValues } = await Swal.fire({
+    title: 'แก้ไขรายการแจ้งปัญหา',
+    html: `
+      <div style="text-align: left; display: flex; flex-direction: column; gap: 14px; font-family: var(--font-sans);">
+        <div>
+          <label style="font-size: 13px; font-weight: 600; color: #334155; display: block; margin-bottom: 6px;">ชื่อรายการ / หัวข้อปัญหา</label>
+          <input id="swal-fb-title" class="swal2-input" style="width: 100%; margin: 0; font-size: 14.5px; box-sizing: border-box; height: 44px;" value="${currentTitle}" placeholder="ชื่อรายการปัญหา">
+        </div>
+        <div>
+          <label style="font-size: 13px; font-weight: 600; color: #334155; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span>รหัสปัญหา</span>
+            <span style="font-size: 11.5px; color: #64748b; font-weight: normal;">(ระบบรันเลขอัตโนมัติ หรือแก้ไขเองได้)</span>
+          </label>
+          <input id="swal-fb-code" class="swal2-input" style="width: 100%; margin: 0; font-size: 14.5px; box-sizing: border-box; height: 44px; background-color: #f8fafc; font-family: monospace; font-weight: 600;" value="${currentCode}" placeholder="เช่น ISSUE-001">
+        </div>
+        <div>
+          <label style="font-size: 13px; font-weight: 600; color: #334155; display: block; margin-bottom: 6px;">สถานที่จัดเก็บ / ผู้แจ้ง</label>
+          <input id="swal-fb-location" class="swal2-input" style="width: 100%; margin: 0; font-size: 14.5px; box-sizing: border-box; height: 44px;" value="${currentLocation}" placeholder="เช่น จัดเก็บ: Lab 1 > หน้าตู้ A (ผู้แจ้ง: สมชาย)">
+        </div>
+        <div>
+          <label style="font-size: 13px; font-weight: 600; color: #334155; display: block; margin-bottom: 6px;">รายละเอียดปัญหา / บันทึกอาการ</label>
+          <input id="swal-fb-detail" class="swal2-input" style="width: 100%; margin: 0; font-size: 14.5px; box-sizing: border-box; height: 44px;" value="${currentDetail}" placeholder="เช่น น้ำหยดตลอดเวลา หรือ เปลี่ยนชิ้นใหม่แล้ว">
+        </div>
+        <div>
+          <label style="font-size: 13px; font-weight: 600; color: #334155; display: block; margin-bottom: 6px;">สถานะการดำเนินการ</label>
+          <select id="swal-fb-status" class="swal2-select" style="width: 100%; margin: 0; font-size: 14.5px; display: block; box-sizing: border-box; height: 44px;">
+            <option value="repair" ${fb.status === 'repair' ? 'selected' : ''}>รอช่างซ่อม</option>
+            <option value="pending" ${fb.status === 'pending' ? 'selected' : ''}>รอดำเนินการ</option>
+            <option value="resolved" ${fb.status === 'resolved' ? 'selected' : ''}>แก้ไขแล้ว</option>
+          </select>
+        </div>
+      </div>
+    `,
+    focusConfirm: false,
+    heightAuto: false,
+    scrollbarPadding: false,
+    showCancelButton: true,
+    confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#7c3aed',
+    preConfirm: () => {
+      const title = document.getElementById('swal-fb-title').value.trim();
+      const code = document.getElementById('swal-fb-code').value.trim();
+      const location = document.getElementById('swal-fb-location').value.trim();
+      const detail = document.getElementById('swal-fb-detail').value.trim();
+      const status = document.getElementById('swal-fb-status').value;
+      if (!title) {
+        Swal.showValidationMessage('กรุณากรอกชื่อรายการปัญหา');
+        return false;
+      }
+      return { title, code, location, detail, status };
+    }
+  });
+
+  if (formValues) {
+    fb.title = formValues.title;
+    fb.code = formValues.code;
+    fb.location = formValues.location;
+    fb.detail = formValues.detail;
+    fb.status = formValues.status;
+    fb.statusText = formValues.status === 'repair' ? 'รอช่างซ่อม' : (formValues.status === 'pending' ? 'รอดำเนินการ' : 'แก้ไขแล้ว');
+    
+    saveFeedbacksToStorage();
+    renderFeedbacksList();
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof showToast === 'function') {
+      showToast('บันทึกการแก้ไขปัญหาเรียบร้อยแล้ว', 'success');
+    }
+  }
+}
+
+window.selectStatusOption = function(labelEl, val) {
+  document.querySelectorAll('.status-option-card').forEach(card => {
+    card.style.borderColor = '#e2e8f0';
+    card.style.backgroundColor = '#ffffff';
+    card.classList.remove('selected');
+  });
+  const radio = labelEl.querySelector('input[type="radio"]');
+  if (radio) radio.checked = true;
+  if (val === 'resolved') {
+    labelEl.style.borderColor = '#10b981';
+    labelEl.style.backgroundColor = '#f0fdf4';
+  } else if (val === 'repair') {
+    labelEl.style.borderColor = '#f59e0b';
+    labelEl.style.backgroundColor = '#fffbeb';
+  } else {
+    labelEl.style.borderColor = '#8b5cf6';
+    labelEl.style.backgroundColor = '#faf5ff';
+  }
+  labelEl.classList.add('selected');
+};
+
+async function changeFeedbackStatus(id) {
+  const fb = window.feedbacksData.find(f => f.id === id);
+  if (!fb) return;
+
+  const currentStatus = fb.status || 'pending';
+  const issueCode = fb.code || fb.id;
+  const issueTitle = fb.title || fb.message || 'แจ้งปัญหา';
+
+  const { value: selectedStatus } = await Swal.fire({
+    title: 'เปลี่ยนสถานะปัญหา',
+    html: `
+      <div style="font-family: var(--font-sans, sans-serif); text-align: left; margin-top: 4px;">
+        
+        <!-- Issue Info Badge Header -->
+        <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 14px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
+          <span style="background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 700; font-family: monospace; flex-shrink: 0;">${issueCode}</span>
+          <span style="font-size: 14px; font-weight: 600; color: #1e293b; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${issueTitle}</span>
+        </div>
+
+        <div style="font-size: 12.5px; font-weight: 700; color: #64748b; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">เลือกสถานะที่ต้องการ:</div>
+
+        <!-- Custom Status Option Cards -->
+        <div class="status-options-grid" style="display: flex; flex-direction: column; gap: 10px;">
+          
+          <!-- Option 1: Repair -->
+          <label class="status-option-card ${currentStatus === 'repair' ? 'selected' : ''}" onclick="selectStatusOption(this, 'repair')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 2px solid ${currentStatus === 'repair' ? '#f59e0b' : '#e2e8f0'}; background-color: ${currentStatus === 'repair' ? '#fffbeb' : '#ffffff'}; border-radius: 16px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 12px; background-color: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                🔧
+              </div>
+              <div>
+                <div style="font-size: 14.5px; font-weight: 700; color: #1e293b;">รอช่างซ่อม</div>
+                <div style="font-size: 12px; color: #64748b; font-weight: 500;">แจ้งช่างเข้าตรวจเช็ก/ซ่อมแซม</div>
+              </div>
+            </div>
+            <input type="radio" name="swal-status-choice" value="repair" ${currentStatus === 'repair' ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #f59e0b; cursor: pointer;">
+          </label>
+
+          <!-- Option 2: Pending -->
+          <label class="status-option-card ${currentStatus === 'pending' ? 'selected' : ''}" onclick="selectStatusOption(this, 'pending')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 2px solid ${currentStatus === 'pending' ? '#8b5cf6' : '#e2e8f0'}; background-color: ${currentStatus === 'pending' ? '#faf5ff' : '#ffffff'}; border-radius: 16px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 12px; background-color: #ede9fe; color: #6d28d9; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                ⏳
+              </div>
+              <div>
+                <div style="font-size: 14.5px; font-weight: 700; color: #1e293b;">รอดำเนินการ</div>
+                <div style="font-size: 12px; color: #64748b; font-weight: 500;">อยู่ระหว่างประสานงาน / รอตรวจเช็ก</div>
+              </div>
+            </div>
+            <input type="radio" name="swal-status-choice" value="pending" ${currentStatus === 'pending' ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #7c3aed; cursor: pointer;">
+          </label>
+
+          <!-- Option 3: Resolved -->
+          <label class="status-option-card ${currentStatus === 'resolved' ? 'selected' : ''}" onclick="selectStatusOption(this, 'resolved')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 2px solid ${currentStatus === 'resolved' ? '#10b981' : '#e2e8f0'}; background-color: ${currentStatus === 'resolved' ? '#f0fdf4' : '#ffffff'}; border-radius: 16px; cursor: pointer; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; border-radius: 12px; background-color: #d1fae5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                ✅
+              </div>
+              <div>
+                <div style="font-size: 14.5px; font-weight: 700; color: #065f46;">แก้ไขแล้ว</div>
+                <div style="font-size: 12px; color: #047857; font-weight: 500;">ดำเนินการแก้ไขเรียบร้อย พร้อมใช้งาน</div>
+              </div>
+            </div>
+            <input type="radio" name="swal-status-choice" value="resolved" ${currentStatus === 'resolved' ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #10b981; cursor: pointer;">
+          </label>
+
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    heightAuto: false,
+    scrollbarPadding: false,
+    confirmButtonText: 'อัปเดตสถานะ',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#7c3aed',
+    focusConfirm: false,
+    preConfirm: () => {
+      const selected = document.querySelector('input[name="swal-status-choice"]:checked');
+      if (!selected) {
+        Swal.showValidationMessage('กรุณาเลือกสถานะ!');
+        return false;
+      }
+      return selected.value;
+    }
+  });
+
+  if (selectedStatus) {
+    fb.status = selectedStatus;
+    fb.statusText = selectedStatus === 'repair' ? 'รอช่างซ่อม' : (selectedStatus === 'pending' ? 'รอดำเนินการ' : 'แก้ไขแล้ว');
+    
+    if (selectedStatus === 'resolved' && (!fb.detail || fb.detail === 'น้ำหยดตลอดเวลา' || fb.detail === 'รบกวนการทำงาน')) {
+      const { value: note } = await Swal.fire({
+        title: 'บันทึกผลการแก้ไข',
+        input: 'text',
+        inputLabel: 'ระบุรายละเอียดผลการแก้ไขปัญหา (ถ้ามี)',
+        inputValue: 'ดำเนินการแก้ไขเรียบร้อยแล้ว',
+        heightAuto: false,
+        scrollbarPadding: false,
+        showCancelButton: true,
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ข้าม',
+        confirmButtonColor: '#10b981'
+      });
+      if (note) {
+        fb.detail = note;
+      }
+    }
+
+    saveFeedbacksToStorage();
+    renderFeedbacksList();
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof showToast === 'function') {
+      showToast(`เปลี่ยนสถานะเป็น "${fb.statusText}" เรียบร้อยแล้ว`, 'success');
+    }
+  }
+}
+
+window.editFeedback = editFeedback;
+window.changeFeedbackStatus = changeFeedbackStatus;
+window.renderFeedbacksList = renderFeedbacksList;
+window.loadFeedbacksFromStorage = loadFeedbacksFromStorage;
+window.saveFeedbacksToStorage = saveFeedbacksToStorage;
 
 async function dismissFeedback(id) {
   try {
@@ -1100,6 +1493,7 @@ async function dismissFeedback(id) {
     if (idx !== -1) window.feedbacksData[idx].status = "resolved";
   }
   
+  saveFeedbacksToStorage();
   showToast("รับทราบปัญหาเรียบร้อย", "success");
   updateUI();
 }
@@ -1684,6 +2078,9 @@ function renderNotificationsList(stats) {
       </div>
     `;
   }
+
+  // Render User Feedback & Issues list
+  renderFeedbacksList();
 }
 
 // ==========================================================================
