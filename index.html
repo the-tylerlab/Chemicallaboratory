@@ -1483,21 +1483,24 @@
         <!-- TAB CONTENT: FEEDBACK & REPORTS -->
         <div id="tabContentNotifFeedback" style="display: none;">
 
-          
+          <!-- 1. PENDING / REPAIR ISSUES SECTION -->
           <div class="alert-section feedback">
             <div class="alert-section-header">
-              <span>รายการแจ้งปัญหาล่าสุด</span>
-              <span class="alert-count-badge" id="alertCountFeedback">3</span>
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
+                <span>รายการแจ้งปัญหาล่าสุด</span>
+              </span>
+              <span class="alert-count-badge" id="alertCountFeedback">2</span>
             </div>
             <div class="alert-section-content" id="alertListFeedback">
               <!-- Issue Card 1 -->
-              <div class="notification-item status-feedback">
+              <div class="notification-item status-feedback" id="feedback-card-ISSUE-001">
                 <div class="notification-header">
                   <div class="notification-title-group">
                     <span class="notification-title">1. ก๊อกน้ำอ่างล้างตารั่วซึม</span>
                     <span class="notification-code">ISSUE-001</span>
                   </div>
-                  <button class="action-icon-btn edit" title="แก้ไข"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-001')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
                 </div>
                 <div class="notification-meta">
                   <span class="notification-location">
@@ -1510,20 +1513,20 @@
                     <i data-lucide="alert-triangle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
                     <span>น้ำหยดตลอดเวลา</span>
                   </div>
-                  <button type="button" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <button type="button" onclick="changeFeedbackStatus('ISSUE-001')" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#faf5ff'" onmouseout="this.style.backgroundColor='white'">
                     รอช่างซ่อม <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
                   </button>
                 </div>
               </div>
 
               <!-- Issue Card 2 -->
-              <div class="notification-item status-feedback">
+              <div class="notification-item status-feedback" id="feedback-card-ISSUE-002">
                 <div class="notification-header">
                   <div class="notification-title-group">
                     <span class="notification-title">2. หลอดไฟกระพริบและมีเสียงดัง</span>
                     <span class="notification-code">ISSUE-002</span>
                   </div>
-                  <button class="action-icon-btn edit" title="แก้ไข"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-002')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
                 </div>
                 <div class="notification-meta">
                   <span class="notification-location">
@@ -1536,20 +1539,32 @@
                     <i data-lucide="alert-circle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
                     <span>รบกวนการทำงาน</span>
                   </div>
-                  <button type="button" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <button type="button" onclick="changeFeedbackStatus('ISSUE-002')" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#faf5ff'" onmouseout="this.style.backgroundColor='white'">
                     รอดำเนินการ <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
 
+          <!-- 2. RESOLVED ISSUES SECTION -->
+          <div class="alert-section resolved">
+            <div class="alert-section-header">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="check-circle" style="width: 18px; height: 18px; color: #10b981;"></i>
+                <span>รายการที่ดำเนินการแก้ไขเรียบร้อยแล้ว</span>
+              </span>
+              <span class="alert-count-badge" id="alertCountResolvedFeedback">2</span>
+            </div>
+            <div class="alert-section-content" id="alertListResolvedFeedback">
               <!-- Issue Card 3 -->
-              <div class="notification-item status-feedback">
+              <div class="notification-item status-resolved" id="feedback-card-ISSUE-003">
                 <div class="notification-header">
                   <div class="notification-title-group">
                     <span class="notification-title">3. อุปกรณ์จับยึด (Clamp) หลวม</span>
                     <span class="notification-code">ISSUE-003</span>
                   </div>
-                  <button class="action-icon-btn edit" title="แก้ไข"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-003')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
                 </div>
                 <div class="notification-meta">
                   <span class="notification-location">
@@ -1557,26 +1572,45 @@
                     จัดเก็บ: Lab 1 &gt; ตู้ C (ผู้แจ้ง: วิชาญ)
                   </span>
                 </div>
-                <div class="notification-alert-banner feedback" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
+                <div class="notification-alert-banner resolved" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="check-circle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+                    <i data-lucide="check-circle" style="width: 14px; height: 14px; flex-shrink: 0; color: #10b981;"></i>
                     <span>เปลี่ยนชิ้นใหม่แล้ว</span>
                   </div>
-                  <button type="button" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                  <button type="button" onclick="changeFeedbackStatus('ISSUE-003')" style="background-color: white; border: 1px solid #a7f3d0; color: #065f46; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#f0fdf4'" onmouseout="this.style.backgroundColor='white'">
                     แก้ไขแล้ว <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
                   </button>
                 </div>
               </div>
-              
-              <!-- Empty state shown when 0 issues -->
-              <div class="empty-state" style="display: none; background-color: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 32px 24px; flex-direction: column; align-items: center; gap: 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                <div style="color: #c4b5fd;">
-                  <i data-lucide="smile" style="width: 48px; height: 48px;"></i>
+
+              <!-- Issue Card 4 -->
+              <div class="notification-item status-resolved" id="feedback-card-ISSUE-004">
+                <div class="notification-header">
+                  <div class="notification-title-group">
+                    <span class="notification-title">4. เครื่องชั่งดิจิตอลแสดงค่าไม่นิ่ง</span>
+                    <span class="notification-code">ISSUE-004</span>
+                  </div>
+                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-004')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
                 </div>
-                <div style="font-size: 15px; font-weight: 600; color: #334155;">ไม่มีรายการแจ้งปัญหาในขณะนี้ ระบบทำงานปกติ</div>
+                <div class="notification-meta">
+                  <span class="notification-location">
+                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                    จัดเก็บ: Lab 1 &gt; โซนเครื่องมือวัด (ผู้แจ้ง: สมศรี)
+                  </span>
+                </div>
+                <div class="notification-alert-banner resolved" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="check-circle" style="width: 14px; height: 14px; flex-shrink: 0; color: #10b981;"></i>
+                    <span>ปรับเทียบ (Calibrate) ใหม่แล้ว</span>
+                  </div>
+                  <button type="button" class="status-pill-btn resolved" onclick="changeFeedbackStatus('ISSUE-004')">
+                    แก้ไขแล้ว <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+
         </div>
 
         <script>
