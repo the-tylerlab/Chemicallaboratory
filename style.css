@@ -37,7 +37,7 @@
   --accent-green-light: #f0fdf4;
 
   /* Sizes (Restored original rounded corners) */
-  --sidebar-width: 280px;
+  --sidebar-width: 250px;
   --header-height: 70px;
   --border-radius-xl: 20px;
   --border-radius-lg: 16px;
@@ -136,7 +136,7 @@ button {
   bottom: 0;
   left: 0;
   z-index: 50;
-  padding: 16px 14px 10px 14px;
+  padding: 16px 12px 10px 12px;
   box-shadow: none;
   overflow: hidden;
   height: 100vh;
@@ -430,11 +430,11 @@ button {
 .sidebar-section-title {
   font-size: 13px;
   font-weight: 700;
-  color: var(--text-dark);
-  margin-top: 12px;
-  margin-bottom: 4px;
-  padding: 0 12px;
-  letter-spacing: 0.2px;
+  color: #0f172a; /* Black/Dark text for prominent main headers */
+  margin-top: 14px;
+  margin-bottom: 6px;
+  padding: 0 10px;
+  letter-spacing: -0.1px;
 }
 
 .menu-item-link {
