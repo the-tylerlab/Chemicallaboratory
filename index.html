@@ -130,7 +130,7 @@
       </div>
 
       <!-- Navigation Menu -->
-      <nav style="flex: 1;">
+      <nav class="sidebar-nav" style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; margin-bottom: 6px;">
         <ul class="sidebar-menu">
           <li>
             <a href="#" class="menu-item-link active" data-target="dashboard">
@@ -214,14 +214,15 @@
         </ul>
       </div>
 
-      <!-- Sidebar Footer (Login) -->
+      <!-- Sidebar Footer (Login & Database Status) -->
       <div class="sidebar-footer">
-        <a href="#" class="menu-item-link" id="btnSidebarLogin" style="margin-bottom: 8px;">
+        <a href="#" class="menu-item-link" id="btnSidebarLogin" style="margin-bottom: 4px;">
           <i id="sidebarLoginIcon" data-lucide="user"></i>
           <span id="sidebarLoginText">เข้าสู่ระบบหลังบ้าน</span>
         </a>
-        <div class="footer-bottom-compact" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <span class="status-dot"></span> SciPortal v1.9.8 &bull; &copy; 2026
+        <div class="footer-bottom-compact">
+          <span class="status-dot"></span>
+          <span class="version-text">เชื่อมต่อฐานข้อมูลปกติ &bull; v1.9.8</span>
         </div>
       </div>
 
@@ -526,6 +527,9 @@
       <!-- ==========================================
            PANEL: ACTIVITY LOGS
            ========================================== -->
+      <!-- ==========================================
+           PANEL: ACTIVITY LOGS
+           ========================================== -->
       <section class="panel" id="panel-activity-logs">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
@@ -534,26 +538,128 @@
             </button>
             <div class="header-title-wrapper">
               <h1 class="header-title">ประวัติการใช้งานระบบ (Activity Log)</h1>
-              <p class="header-subtitle">ตรวจสอบและติดตามการเปลี่ยนแปลงข้อมูลในระบบ (สงวนสิทธิ์เฉพาะผู้ดูแลระบบ)</p>
+              <p class="header-subtitle">ตรวจสอบ บันทึก และติดตามทุกกิจกรรมการเปลี่ยนแปลงข้อมูลในระบบ (Audit Trail)</p>
             </div>
           </div>
+          <div class="unified-page-header-right" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline" onclick="exportActivityLogsCSV()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 14px; border-radius: var(--border-radius-md);">
+              <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+              <span>ส่งออก CSV</span>
+            </button>
+            <button type="button" class="btn btn-outline" onclick="renderActivityLogs()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 14px; border-radius: var(--border-radius-md);">
+              <i data-lucide="refresh-cw" style="width: 15px; height: 15px;"></i>
+              <span>รีเฟรช</span>
+            </button>
+            <button type="button" class="btn btn-outline" onclick="clearActivityLogsPrompt()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 14px; border-radius: var(--border-radius-md); color: #ef4444; border-color: #fca5a5;">
+              <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+              <span>ล้างประวัติ</span>
+            </button>
+          </div>
         </header>
-        
-        <div class="card-container" style="padding: 0;">
+
+        <!-- KPI Summary Cards -->
+        <div class="stat-grid" style="margin-top: 16px; margin-bottom: 20px;">
+          <div class="stat-card purple" style="cursor: default;">
+            <div class="stat-info">
+              <span class="stat-title nobrk">บันทึกกิจกรรมทั้งหมด</span>
+              <span class="stat-value" id="logStatTotal">0</span>
+              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">รายการบันทึกล่าสุด</span>
+            </div>
+            <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary-color);">
+              <i data-lucide="activity"></i>
+            </div>
+          </div>
+
+          <div class="stat-card blue" style="cursor: default;">
+            <div class="stat-info">
+              <span class="stat-title nobrk">การจัดการพัสดุ/สารเคมี</span>
+              <span class="stat-value" id="logStatInventory">0</span>
+              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">เพิ่ม / แก้ไข / ลบ</span>
+            </div>
+            <div class="stat-icon" style="background: rgba(37, 99, 235, 0.1); color: #2563eb;">
+              <i data-lucide="box"></i>
+            </div>
+          </div>
+
+          <div class="stat-card green" style="cursor: default;">
+            <div class="stat-info">
+              <span class="stat-title nobrk">รายการยืม-คืนพัสดุ</span>
+              <span class="stat-value" id="logStatBorrow">0</span>
+              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">เบิก ยืม และคืน</span>
+            </div>
+            <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+              <i data-lucide="repeat"></i>
+            </div>
+          </div>
+
+          <div class="stat-card orange" style="cursor: default;">
+            <div class="stat-info">
+              <span class="stat-title nobrk">ดำเนินการโดย Admin/Staff</span>
+              <span class="stat-value" id="logStatAdmin">0</span>
+              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">การจัดการระบบ</span>
+            </div>
+            <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+              <i data-lucide="shield-check"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter and Search Toolbar (Modern Apple/Stripe-Style 1-Line Control Bar) -->
+        <div class="log-filter-toolbar" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; background: #ffffff; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03); flex-wrap: wrap;">
+          
+          <!-- Left Controls: Role Segmented Control & Category Dropdown -->
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            
+            <!-- Segmented Control Group for User Roles -->
+            <div style="display: inline-flex; align-items: center; background: #f1f5f9; padding: 3px; border-radius: 8px; gap: 2px;">
+              <button type="button" class="log-role-btn active" onclick="filterActivityLogsRole('all', this)" style="border: none; background: #ffffff; color: #0f172a; font-weight: 600; font-size: 13.5px; height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06); transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; font-family: inherit;">ทั้งหมด</button>
+              <button type="button" class="log-role-btn" onclick="filterActivityLogsRole('Admin', this)" style="border: none; background: transparent; color: #64748b; font-weight: 500; font-size: 13.5px; height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; font-family: inherit;">Admin</button>
+              <button type="button" class="log-role-btn" onclick="filterActivityLogsRole('Teacher', this)" style="border: none; background: transparent; color: #64748b; font-weight: 500; font-size: 13.5px; height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; font-family: inherit;">Teacher / จนท.</button>
+              <button type="button" class="log-role-btn" onclick="filterActivityLogsRole('Student', this)" style="border: none; background: transparent; color: #64748b; font-weight: 500; font-size: 13.5px; height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; font-family: inherit;">Student / ผู้ใช้</button>
+            </div>
+
+            <!-- Category Filter Dropdown Pill -->
+            <div style="position: relative; display: inline-flex; align-items: center;">
+              <select id="logActionFilter" onchange="filterActivityLogs()" style="appearance: none; -webkit-appearance: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 34px 0 12px; font-size: 13.5px; font-weight: 500; color: #334155; cursor: pointer; outline: none; height: 40px; min-width: 190px; box-sizing: border-box; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s;">
+                <option value="all">📁 ทุกประเภทกิจกรรม</option>
+                <option value="inventory">🧪 จัดการพัสดุ/สารเคมี</option>
+                <option value="borrow">🔄 ยืม - คืนพัสดุ</option>
+                <option value="layout">🗺️ ผังห้องปฏิบัติการ</option>
+                <option value="feedback">💬 การแจ้งปัญหา</option>
+              </select>
+              <i data-lucide="chevron-down" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8; pointer-events: none;"></i>
+            </div>
+
+          </div>
+
+          <!-- Right: Live Search Box -->
+          <div style="position: relative; width: 290px;">
+            <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8; pointer-events: none;"></i>
+            <input type="text" id="logSearchInput" oninput="filterActivityLogs()" placeholder="ค้นหากิจกรรม, ผู้ใช้, รหัสสาร..." style="width: 100%; height: 40px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 14px 0 36px; font-size: 13.5px; color: #1e293b; outline: none; box-sizing: border-box; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s;">
+          </div>
+        </div>
+
+        <!-- Activity Log Table Container -->
+        <div class="card-container" style="padding: 0; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);">
           <div style="overflow-x: auto;">
-            <table class="data-table" style="width: 100%; border-collapse: collapse;">
-              <thead style="background-color: #f1f5f9; border-bottom: 2px solid var(--border-color);">
+            <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead style="background-color: #f8fafc; border-bottom: 1px solid var(--border-color);">
                 <tr>
-                  <th style="width: 20%; padding: 16px; font-weight: 700; color: #334155; text-align: left;">วันเวลา</th>
-                  <th style="width: 20%; padding: 16px; font-weight: 700; color: #334155; text-align: left;">ผู้ดำเนินการ</th>
-                  <th style="width: 20%; padding: 16px; font-weight: 700; color: #334155; text-align: left;">ประเภทกิจกรรม</th>
-                  <th style="width: 40%; padding: 16px; font-weight: 700; color: #334155; text-align: left;">รายละเอียด</th>
+                  <th style="width: 18%; padding: 14px 18px; font-weight: 600; font-size: 13px; color: #475569;">วันและเวลา</th>
+                  <th style="width: 16%; padding: 14px 18px; font-weight: 600; font-size: 13px; color: #475569;">ผู้ดำเนินการ</th>
+                  <th style="width: 22%; padding: 14px 18px; font-weight: 600; font-size: 13px; color: #475569;">ประเภทกิจกรรม</th>
+                  <th style="width: 44%; padding: 14px 18px; font-weight: 600; font-size: 13px; color: #475569;">รายละเอียด</th>
                 </tr>
               </thead>
               <tbody id="activityLogsTableBody">
                 <!-- Data populated dynamically via JS -->
               </tbody>
             </table>
+          </div>
+          <!-- Table Footer / Row counter -->
+          <div id="logTableFooter" style="padding: 12px 18px; background: #fafafa; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted);">
+            <span id="logCountLabel">แสดง 0 รายการ</span>
+            <span>💡 ข้อมูลอัปเดตแบบเรียลไทม์ตามการทำงานในระบบ</span>
           </div>
         </div>
       </section>
@@ -1903,14 +2009,11 @@
               <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
             </button>
             <div class="header-title-wrapper">
-              <h1 class="header-title">ผังตู้ SHECU และโต๊ะปฏิบัติการ</h1>
-              <p class="header-subtitle">สารบัญจัดเก็บสารเคมี อุปกรณ์ และจุดปฏิบัติการในห้องทดลอง (Interactive Directory)</p>
+              <h1 class="header-title">ผังตู้จัดเก็บ SHECU</h1>
+              <p class="header-subtitle">สารบัญจัดเก็บสารเคมี อุปกรณ์ และเครื่องแก้วในห้องทดลอง (Interactive Directory)</p>
             </div>
           </div>
           <div class="unified-page-header-right">
-            <button class="btn btn-primary" style="background: var(--primary-color);" onclick="openAddCabinetModal()">
-              <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 6px;"></i> เพิ่มตู้ / จุดปฏิบัติการ
-            </button>
             <button id="btnEditLayout" class="btn btn-outline" onclick="toggleLayoutEditMode()">
               <i data-lucide="layout-dashboard" style="width: 14px; height: 14px; margin-right: 6px;"></i>
               แก้ไขแผนผัง
@@ -1919,29 +2022,33 @@
         </header>
 
         <!-- Layout Edit Toolbox -->
-        <div id="layoutEditToolbox" class="layout-toolbox" style="display: none; padding: 16px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); margin-top: 16px; box-shadow: var(--shadow-md);">
-          <div style="font-weight: 600; margin-bottom: 12px; color: var(--text-dark); display: flex; align-items: center;">
-            <i data-lucide="edit-3" style="width: 16px; height: 16px; margin-right: 6px;"></i>
-            เครื่องมือเพิ่ม/ลด จำนวนตู้และโต๊ะ
-          </div>
-          <div class="layout-edit-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-            <div class="add-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button class="btn btn-secondary btn-sm" onclick="addNewCabinetCard()">
-                <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มตู้เก็บสารเคมี
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="addNewStationCard()">
-                <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มโต๊ะปฏิบัติการ
-              </button>
-              <button class="btn btn-secondary btn-sm" onclick="addNewBalanceTableCard()">
-                <i data-lucide="plus" style="width: 14px; height: 14px; margin-right: 4px;"></i> เพิ่มโต๊ะตาชั่ง
-              </button>
+        <div id="layoutEditToolbox" class="layout-toolbox" style="display: none; padding: 16px 20px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); margin-top: 16px; box-shadow: var(--shadow-sm);">
+          <div class="layout-edit-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary-color); flex-shrink: 0;">
+                <i data-lucide="move" style="width: 18px; height: 18px;"></i>
+              </div>
+              <div>
+                <div style="font-weight: 600; color: var(--text-dark); font-size: 15px;">
+                  โหมดแก้ไขและจัดเรียงแผนผัง
+                </div>
+                <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--text-muted);">
+                  💡 ลากการ์ดเพื่อสลับตำแหน่ง (Drag & Drop) หรือกดลูกศร ◀ ▶ ที่การ์ดเพื่อย้ายลำดับ และกด ✕ เพื่อลบรายการ
+                </p>
+              </div>
             </div>
-            <div class="save-actions" style="display: flex; gap: 8px; align-items: center;">
-              <button class="btn btn-outline btn-sm" style="border: none;" onclick="toggleLayoutEditMode()">
+            <div class="save-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openAddCabinetModal()" style="display: flex; align-items: center; gap: 6px; font-weight: 500; border: 1px solid var(--border-color); background: #f8fafc; color: var(--text-dark); padding: 8px 14px; border-radius: var(--border-radius-md);">
+                <i data-lucide="plus-circle" style="width: 15px; height: 15px; color: var(--primary-color);"></i>
+                <span>เพิ่มตู้จัดเก็บใหม่</span>
+              </button>
+              <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 4px;"></div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="toggleLayoutEditMode()" style="padding: 8px 14px; color: var(--text-muted); border-color: var(--border-color); border-radius: var(--border-radius-md);">
                 ยกเลิก
               </button>
-              <button class="btn btn-primary btn-sm" onclick="saveLayout()">
-                <i data-lucide="save" style="width: 14px; height: 14px; margin-right: 4px;"></i> บันทึกแผนผัง
+              <button type="button" class="btn btn-primary btn-sm" style="background: var(--primary-color); color: white; display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--border-radius-md); font-weight: 600; box-shadow: var(--shadow-sm);" onclick="saveLayout()">
+                <i data-lucide="save" style="width: 15px; height: 15px;"></i>
+                <span>บันทึกแผนผัง</span>
               </button>
             </div>
           </div>
@@ -1955,7 +2062,6 @@
               <span class="badge map-filter-pill active" style="background: var(--primary-color); color: white; cursor: pointer;" onclick="filterCabinetMap('all', this)">ทั้งหมด</span>
               <span class="badge badge-outline map-filter-pill" style="cursor: pointer;" onclick="filterCabinetMap('chemical', this)">ตู้สารเคมี</span>
               <span class="badge badge-outline map-filter-pill" style="cursor: pointer;" onclick="filterCabinetMap('glassware', this)">ตู้เครื่องแก้ว</span>
-              <span class="badge badge-outline map-filter-pill" style="cursor: pointer;" onclick="filterCabinetMap('table', this)">โต๊ะปฏิบัติการ</span>
             </div>
           </div>
           <div class="search-box" style="position: relative; width: 300px;">
@@ -3285,32 +3391,33 @@
       </div>
     </div>
   </div>
-  <!-- Add/Edit Cabinet & Station Modal -->
+  <!-- Add/Edit Cabinet Modal -->
   <div id="addCabinetModal" class="modal-overlay">
     <div class="modal-content" style="max-width: 500px;">
       <div class="modal-header">
-        <h3 id="addCabinetModalTitle">เพิ่มตู้ / จุดปฏิบัติการ</h3>
+        <h3 id="addCabinetModalTitle">เพิ่มตู้จัดเก็บ</h3>
         <button class="modal-close" onclick="closeAddCabinetModal()"><i data-lucide="x"></i></button>
       </div>
       <div class="modal-body">
         <div class="form-group" style="margin-bottom: 16px;">
           <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ประเภท (Type)</label>
-          <select id="addCabinetType" class="input" style="width: 100%;">
-            <option value="cabinet">ตู้เก็บสารเคมี / พัสดุ (Cabinet)</option>
-            <option value="station">โต๊ะปฏิบัติการ (Lab Station)</option>
+          <select id="addCabinetType" class="input" style="width: 100%;" onchange="onCabinetTypeChange()">
+            <option value="chemical_cabinet">ตู้สารเคมี (Chemical Cabinet)</option>
+            <option value="glassware_cabinet">ตู้เครื่องแก้ว (Glassware Cabinet)</option>
+            <option value="emergency_cabinet">ตู้ฉุกเฉิน / ตู้พักของรอจัดเก็บ (Emergency / Temporary Cabinet)</option>
           </select>
         </div>
         <div class="form-group" style="margin-bottom: 16px;">
           <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ชื่อ / รหัส (Name / ID)</label>
-          <input type="text" id="addCabinetName" class="input" style="width: 100%;" placeholder="เช่น ตู้ A, โต๊ะปฏิบัติการ 1">
+          <input type="text" id="addCabinetName" class="input" style="width: 100%;" placeholder="เช่น ตู้ A, ตู้สารเคมี 1">
         </div>
-        <div class="form-group" style="margin-bottom: 16px;">
+        <div class="form-group" id="addCabinetShelvesGroup" style="margin-bottom: 16px;">
           <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">จำนวนชั้นวาง (Number of Shelves)</label>
-          <input type="number" id="addCabinetShelves" class="input" style="width: 100%;" placeholder="ระบุจำนวนชั้น" min="1" value="1">
+          <input type="number" id="addCabinetShelves" class="input" style="width: 100%;" placeholder="ระบุจำนวนชั้น (เช่น 4)" min="1" max="12" value="4">
         </div>
-        <div class="form-group" style="margin-bottom: 16px;">
+        <div class="form-group" id="addCabinetCapacityGroup" style="margin-bottom: 16px;">
           <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ความจุสุทธิ (Total Capacity)</label>
-          <input type="number" id="addCabinetCapacity" class="input" style="width: 100%;" placeholder="ความจุสูงสุด (รายการ)" min="0" value="50">
+          <input type="number" id="addCabinetCapacity" class="input" style="width: 100%;" placeholder="ความจุสูงสุด (รายการ)" min="1" value="50">
         </div>
       </div>
       <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">

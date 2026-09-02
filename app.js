@@ -586,17 +586,124 @@ function logActivity(actor, action, details) {
   }
 }
 
+let currentLogRoleFilter = 'all';
+
+window.filterActivityLogsRole = function(role, btnEl) {
+  currentLogRoleFilter = role;
+  const btns = document.querySelectorAll('.log-role-btn');
+  btns.forEach(b => {
+    b.classList.remove('active');
+    b.style.background = 'transparent';
+    b.style.color = '#64748b';
+    b.style.fontWeight = '500';
+    b.style.boxShadow = 'none';
+  });
+  if (btnEl) {
+    btnEl.classList.add('active');
+    btnEl.style.background = '#ffffff';
+    btnEl.style.color = '#0f172a';
+    btnEl.style.fontWeight = '600';
+    btnEl.style.boxShadow = '0 1px 2px rgba(0,0,0,0.06)';
+  }
+  filterActivityLogs();
+};
+
+window.filterActivityLogs = function() {
+  renderActivityLogs();
+};
+
 window.renderActivityLogs = function() {
   const tableBody = document.getElementById("activityLogsTableBody");
   if (!tableBody) return;
 
-  if (activityLogs.length === 0) {
+  // Calculate Summary Stats
+  const totalCount = activityLogs.length;
+  let inventoryCount = 0;
+  let borrowCount = 0;
+  let adminCount = 0;
+
+  activityLogs.forEach(log => {
+    if (!log || typeof log !== 'object') return;
+    const act = (log.action || '').toLowerCase();
+    const actor = (log.actor || '').toLowerCase();
+    if (act.includes('เพิ่ม') || act.includes('แก้ไข') || act.includes('ลบ') || act.includes('พัสดุ') || act.includes('สารเคมี') || act.includes('batch')) {
+      inventoryCount++;
+    }
+    if (act.includes('ยืม') || act.includes('คืน') || act.includes('เบิก') || act.includes('จอง') || act.includes('คำขอ')) {
+      borrowCount++;
+    }
+    if (actor === 'admin' || actor.includes('ผู้ดูแล')) {
+      adminCount++;
+    }
+  });
+
+  const elStatTotal = document.getElementById('logStatTotal');
+  const elStatInventory = document.getElementById('logStatInventory');
+  const elStatBorrow = document.getElementById('logStatBorrow');
+  const elStatAdmin = document.getElementById('logStatAdmin');
+
+  if (elStatTotal) elStatTotal.innerText = totalCount;
+  if (elStatInventory) elStatInventory.innerText = inventoryCount;
+  if (elStatBorrow) elStatBorrow.innerText = borrowCount;
+  if (elStatAdmin) elStatAdmin.innerText = adminCount;
+
+  // Apply filters
+  const searchInput = document.getElementById("logSearchInput");
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  const actionFilterEl = document.getElementById("logActionFilter");
+  const actionFilter = actionFilterEl ? actionFilterEl.value : 'all';
+
+  let filtered = activityLogs.filter(log => {
+    if (!log || typeof log !== 'object') return false;
+
+    // Role filter
+    if (currentLogRoleFilter !== 'all') {
+      const actorLower = (log.actor || '').toLowerCase();
+      if (currentLogRoleFilter === 'Admin' && actorLower !== 'admin') return false;
+      if (currentLogRoleFilter === 'Teacher' && actorLower !== 'teacher' && !actorLower.includes('อาจารย์') && !actorLower.includes('จนท')) return false;
+      if (currentLogRoleFilter === 'Student' && actorLower !== 'student' && !actorLower.includes('นักศึกษา') && !actorLower.includes('ผู้ใช้')) return false;
+    }
+
+    // Action filter
+    if (actionFilter !== 'all') {
+      const act = (log.action || '').toLowerCase();
+      if (actionFilter === 'inventory' && !act.includes('เพิ่ม') && !act.includes('แก้ไข') && !act.includes('ลบ') && !act.includes('พัสดุ') && !act.includes('batch')) return false;
+      if (actionFilter === 'borrow' && !act.includes('ยืม') && !act.includes('คืน') && !act.includes('คำขอ')) return false;
+      if (actionFilter === 'layout' && !act.includes('ผัง') && !act.includes('ตู้') && !act.includes('location')) return false;
+      if (actionFilter === 'feedback' && !act.includes('แจ้งปัญหา') && !act.includes('ฟีดแบ็ก') && !act.includes('feedback')) return false;
+    }
+
+    // Search query filter
+    if (query) {
+      const str = `${log.actor || ''} ${log.action || ''} ${log.details || ''}`.toLowerCase();
+      if (!str.includes(query)) return false;
+    }
+
+    return true;
+  });
+
+  const countLabel = document.getElementById('logCountLabel');
+  if (countLabel) {
+    countLabel.innerText = `แสดง ${filtered.length} จากทั้งหมด ${totalCount} รายการ`;
+  }
+
+  if (filtered.length === 0) {
     tableBody.innerHTML = `
       <tr>
         <td colspan="4" style="text-align: center; padding: 64px 24px;">
-          <div class="empty-state" style="display: flex; flex-direction: column; align-items: center; gap: 12px; color: #64748b;">
-            <div class="empty-state-icon" style="opacity: 0.5; font-size: 32px;"><i data-lucide="activity" style="width: 48px; height: 48px; color: #94a3b8;"></i></div>
-            <div class="empty-state-text" style="font-size: 16px; font-weight: 500;">ยังไม่มีประวัติการใช้งานในระบบ</div>
+          <div class="empty-state" style="display: flex; flex-direction: column; align-items: center; gap: 14px; color: #64748b;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+              <i data-lucide="search-x" style="width: 28px; height: 28px;"></i>
+            </div>
+            <div>
+              <div style="font-size: 16px; font-weight: 600; color: #1e293b;">ไม่พบข้อมูลประวัติการใช้งานตามเงื่อนไข</div>
+              <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">ลองเปลี่ยนคำค้นหา หรือรีเซ็ตตัวกรองด้านบน</div>
+            </div>
+            ${totalCount === 0 ? `
+              <button type="button" class="btn btn-primary btn-sm" onclick="seedSampleActivityLogs()" style="margin-top: 8px; background: var(--primary-color);">
+                <i data-lucide="plus-circle" style="width: 14px; height: 14px; margin-right: 6px;"></i> จำลองประวัติกิจกรรมทดสอบ
+              </button>
+            ` : ''}
           </div>
         </td>
       </tr>
@@ -606,29 +713,140 @@ window.renderActivityLogs = function() {
   }
 
   let html = "";
-  // Show top 100 max for performance
-  const logsToShow = activityLogs.slice(0, 100);
-  
+  const logsToShow = filtered.slice(0, 100);
+
   logsToShow.forEach(log => {
-    if (!log || typeof log !== 'object') return; // Skip corrupted data
     const d = new Date(log.timestamp || Date.now());
-    const dateStr = d.toLocaleDateString("th-TH") + " " + d.toLocaleTimeString("th-TH");
-    let badgeClass = "badge-gray";
-    if (log.actor === "Admin") badgeClass = "badge-red";
-    else if (log.actor === "Teacher") badgeClass = "badge-blue";
-    else if (log.actor === "Student") badgeClass = "badge-green";
+    const dateFormatted = d.toLocaleDateString("th-TH", { day: '2-digit', month: 'short', year: 'numeric' });
+    const timeFormatted = d.toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     
+    // Actor Badge Styling
+    let actorBadgeHtml = '';
+    const actorLower = (log.actor || '').toLowerCase();
+    if (actorLower === 'admin') {
+      actorBadgeHtml = `
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8;">
+          <i data-lucide="shield" style="width: 13px; height: 13px;"></i> Admin
+        </span>
+      `;
+    } else if (actorLower === 'teacher' || actorLower.includes('อาจารย์') || actorLower.includes('จนท')) {
+      actorBadgeHtml = `
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
+          <i data-lucide="graduation-cap" style="width: 13px; height: 13px;"></i> Teacher
+        </span>
+      `;
+    } else {
+      actorBadgeHtml = `
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0;">
+          <i data-lucide="user" style="width: 13px; height: 13px;"></i> ${log.actor || 'Student'}
+        </span>
+      `;
+    }
+
+    // Action Category Badge Styling
+    const act = (log.action || '').toLowerCase();
+    let actionBadgeHtml = '';
+    if (act.includes('เพิ่ม') || act.includes('นำเข้า') || act.includes('สร้าง')) {
+      actionBadgeHtml = `
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 600; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;">
+          <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i> ${log.action}
+        </span>
+      `;
+    } else if (act.includes('ลบ') || act.includes('delete')) {
+      actionBadgeHtml = `
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 600; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ${log.action}
+        </span>
+      `;
+    } else if (act.includes('ยืม') || act.includes('คืน') || act.includes('borrow')) {
+      actionBadgeHtml = `
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 600; background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">
+          <i data-lucide="repeat" style="width: 14px; height: 14px;"></i> ${log.action}
+        </span>
+      `;
+    } else if (act.includes('แก้ไข') || act.includes('ย้าย') || act.includes('update')) {
+      actionBadgeHtml = `
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 600; background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;">
+          <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> ${log.action}
+        </span>
+      `;
+    } else {
+      actionBadgeHtml = `
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 600; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0;">
+          <i data-lucide="info" style="width: 14px; height: 14px;"></i> ${log.action}
+        </span>
+      `;
+    }
+
     html += `
-      <tr>
-        <td data-label="วันเวลา">${dateStr}</td>
-        <td data-label="ผู้ดำเนินการ"><span class="badge ${badgeClass}">${log.actor}</span></td>
-        <td data-label="ประเภทกิจกรรม"><strong>${log.action}</strong></td>
-        <td data-label="รายละเอียด">${log.details}</td>
+      <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.15s ease;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+        <td style="padding: 14px 18px; vertical-align: middle;">
+          <div style="font-weight: 600; color: #1e293b; font-size: 13px;">${dateFormatted}</div>
+          <div style="font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+            <i data-lucide="clock" style="width: 12px; height: 12px;"></i> ${timeFormatted}
+          </div>
+        </td>
+        <td style="padding: 14px 18px; vertical-align: middle;">
+          ${actorBadgeHtml}
+        </td>
+        <td style="padding: 14px 18px; vertical-align: middle;">
+          ${actionBadgeHtml}
+        </td>
+        <td style="padding: 14px 18px; vertical-align: middle; color: #334155; font-size: 13.5px; line-height: 1.5;">
+          ${log.details || '-'}
+        </td>
       </tr>
     `;
   });
+
   tableBody.innerHTML = html;
   if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
+window.seedSampleActivityLogs = function() {
+  logActivity("Admin", "เพิ่มรายการใหม่", "เพิ่ม เอทานอล 95% (AR Grade) จำนวน 20 ขวด เข้าสู่ ตู้ A");
+  logActivity("Teacher", "ยืมพัสดุ", "อนุมัติการยืม บีกเกอร์ 250 มล. จำนวน 4 ชิ้น แก่ นศ. สมชาย ใจดี");
+  logActivity("Admin", "แก้ไขข้อมูลพัสดุ", "อัปเดตวันหมดอายุของ กรดไฮโดรคลอริก 37% (HCl-001)");
+  logActivity("Student", "คำขอยืมพัสดุ", "ส่งคำขอยืมพัสดุ กระบอกตวง 100 มล. โดย นศ. กานดา รักเรียน");
+  logActivity("Admin", "จัดผังตู้ SHECU", "ย้ายสารไวไฟทั้งหมดเข้าสู่ ตู้สารเคมีไวไฟ (Flammable Cabinet)");
+  showToast("จำลองข้อมูลกิจกรรมตัวอย่างเรียบร้อยแล้ว", "success");
+  renderActivityLogs();
+};
+
+window.exportActivityLogsCSV = function() {
+  if (!activityLogs || activityLogs.length === 0) {
+    showToast("ไม่มีข้อมูลกิจกรรมสำหรับส่งออก", "error");
+    return;
+  }
+  let csvContent = "\uFEFFวันและเวลา,ผู้ดำเนินการ,ประเภทกิจกรรม,รายละเอียด\n";
+  activityLogs.forEach(log => {
+    const d = new Date(log.timestamp || Date.now());
+    const dateStr = `"${d.toLocaleDateString('th-TH')} ${d.toLocaleTimeString('th-TH')}"`;
+    const actorStr = `"${(log.actor || '').replace(/"/g, '""')}"`;
+    const actionStr = `"${(log.action || '').replace(/"/g, '""')}"`;
+    const detailsStr = `"${(log.details || '').replace(/"/g, '""')}"`;
+    csvContent += `${dateStr},${actorStr},${actionStr},${detailsStr}\n`;
+  });
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `Activity_Logs_${new Date().toISOString().slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("ส่งออกไฟล์ CSV เรียบร้อยแล้ว", "success");
+};
+
+window.clearActivityLogsPrompt = function() {
+  if (!confirm("คุณต้องการล้างประวัติการใช้งานทั้งหมดใช่หรือไม่? (การดำเนินการนี้ไม่สามารถย้อนกลับได้)")) {
+    return;
+  }
+  activityLogs = [];
+  saveActivityLogs();
+  renderActivityLogs();
+  showToast("ล้างประวัติการใช้งานเรียบร้อยแล้ว", "info");
 };
 
 // Show Toast message
@@ -790,8 +1008,9 @@ function setupSidebarCollapse() {
   const appContainer = document.querySelector(".app-container");
   
   if (btnToggleSidebar && appContainer) {
-    btnToggleSidebar.addEventListener("click", () => {
-      appContainer.classList.add("sidebar-collapsed");
+    btnToggleSidebar.addEventListener("click", (e) => {
+      e.stopPropagation();
+      appContainer.classList.toggle("sidebar-collapsed");
     });
   }
   
@@ -3998,194 +4217,207 @@ let draggedElement = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 
+let draggedCardElement = null;
+
+function attachCardDragListeners(card) {
+  card.setAttribute('draggable', 'true');
+  
+  card.addEventListener('dragstart', (e) => {
+    if (!isLayoutEditMode) {
+      e.preventDefault();
+      return;
+    }
+    draggedCardElement = card;
+    card.classList.add('card-dragging');
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.getAttribute('data-id') || '');
+    }
+  });
+
+  card.addEventListener('dragend', () => {
+    card.classList.remove('card-dragging');
+    document.querySelectorAll('.cabinet-card').forEach(c => c.classList.remove('card-drag-over'));
+    draggedCardElement = null;
+  });
+
+  card.addEventListener('dragover', (e) => {
+    if (!isLayoutEditMode || !draggedCardElement || draggedCardElement === card) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    card.classList.add('card-drag-over');
+  });
+
+  card.addEventListener('dragleave', () => {
+    card.classList.remove('card-drag-over');
+  });
+
+  card.addEventListener('drop', (e) => {
+    if (!isLayoutEditMode || !draggedCardElement || draggedCardElement === card) return;
+    e.preventDefault();
+    card.classList.remove('card-drag-over');
+    
+    const grid = card.parentElement;
+    if (!grid) return;
+    
+    const bounding = card.getBoundingClientRect();
+    const offset = e.clientX - bounding.left;
+    if (offset > bounding.width / 2) {
+      grid.insertBefore(draggedCardElement, card.nextSibling);
+    } else {
+      grid.insertBefore(draggedCardElement, card);
+    }
+    showToast("สลับตำแหน่งแล้ว (กดบันทึกแผนผังเพื่อบันทึก)", "info");
+  });
+}
+
+window.moveCardLeft = function(id, event) {
+  if (event) event.stopPropagation();
+  const grid = document.querySelector('.shecu-unified-grid');
+  if (!grid) return;
+  const card = grid.querySelector(`.cabinet-card[data-id="${id}"]`);
+  if (!card) return;
+  const prev = card.previousElementSibling;
+  if (prev && prev.classList.contains('cabinet-card')) {
+    grid.insertBefore(card, prev);
+    showToast("ย้ายลำดับแล้ว (กดบันทึกแผนผังเพื่อบันทึก)", "info");
+  }
+};
+
+window.moveCardRight = function(id, event) {
+  if (event) event.stopPropagation();
+  const grid = document.querySelector('.shecu-unified-grid');
+  if (!grid) return;
+  const card = grid.querySelector(`.cabinet-card[data-id="${id}"]`);
+  if (!card) return;
+  const next = card.nextElementSibling;
+  if (next && next.classList.contains('cabinet-card')) {
+    grid.insertBefore(next, card);
+    showToast("ย้ายลำดับแล้ว (กดบันทึกแผนผังเพื่อบันทึก)", "info");
+  }
+};
+
 function toggleLayoutEditMode() {
   isLayoutEditMode = !isLayoutEditMode;
-  const grid = document.getElementById("cabinetMapGrid");
   const toolbox = document.getElementById("layoutEditToolbox");
   const btnEdit = document.getElementById("btnEditLayout");
   
   if (isLayoutEditMode) {
-    grid.classList.add("layout-edit-mode");
-    toolbox.style.display = "block";
-    btnEdit.style.display = "none";
-    showToast("เข้าสู่โหมดแก้ไขแผนผัง สามารถเพิ่มลบตู้หรือโต๊ะได้ (ไม่สามารถเลื่อนตำแหน่งได้)", "info");
-    
-    // Disable dragging in Grid Layout
-    const elements = grid.querySelectorAll('.layout-element');
-    elements.forEach(el => {
-      el.classList.remove("draggable");
-      
-      // Inject delete button for existing cards if it doesn't exist
-      if (!el.querySelector('.delete-btn')) {
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "delete-btn";
-        deleteBtn.style.cssText = "position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10;";
-        deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
-        deleteBtn.onclick = (e) => {
-          e.stopPropagation();
-          removeLayoutElement(el.getAttribute("data-id"));
-        };
-        el.appendChild(deleteBtn);
-      } else {
-        el.querySelector('.delete-btn').style.display = "flex";
-      }
-    });
+    if (toolbox) toolbox.style.display = "block";
+    if (btnEdit) btnEdit.style.display = "none";
+    showToast("เข้าสู่โหมดแก้ไข: ลากการ์ดหรือกดลูกศร ◀ ▶ เพื่อสลับตำแหน่ง", "info");
   } else {
-    grid.classList.remove("layout-edit-mode");
-    toolbox.style.display = "none";
-    if (isAdminLoggedIn) btnEdit.style.display = "block";
-    
-    // Disable dragging and hide delete buttons
-    const elements = grid.querySelectorAll('.layout-element');
-    elements.forEach(el => {
-      el.classList.remove("draggable");
-      const delBtn = el.querySelector('.delete-btn');
-      if (delBtn) delBtn.style.display = "none";
-    });
+    if (toolbox) toolbox.style.display = "none";
+    if (btnEdit && isAdminLoggedIn) btnEdit.style.display = "block";
+    showToast("ออกจากโหมดแก้ไขแผนผังแล้ว", "info");
   }
+  
+  renderCabinetMap();
 }
 
-function handleDragStart(e) {
-  if (!isLayoutEditMode || e.target.closest('button')) return;
-  draggedElement = e.currentTarget;
-  draggedElement.classList.add("dragging");
-  
-  const rect = draggedElement.getBoundingClientRect();
-  dragOffsetX = e.clientX - rect.left;
-  dragOffsetY = e.clientY - rect.top;
-  
-  document.addEventListener('mousemove', handleDragMove);
-  document.addEventListener('mouseup', handleDragEnd);
-}
-
-function handleDragMove(e) {
-  if (!draggedElement) return;
-  const grid = document.getElementById("cabinetMapGrid");
-  const gridRect = grid.getBoundingClientRect();
-  
-  let left = e.clientX - gridRect.left - dragOffsetX;
-  let top = e.clientY - gridRect.top - dragOffsetY;
-  
-  // Constrain to grid boundaries
-  left = Math.max(0, Math.min(left, gridRect.width - draggedElement.offsetWidth));
-  top = Math.max(0, Math.min(top, gridRect.height - draggedElement.offsetHeight));
-  
-  // Calculate percentage
-  const leftPct = (left / gridRect.width) * 100;
-  const topPct = (top / gridRect.height) * 100;
-  
-  draggedElement.style.left = `${leftPct}%`;
-  draggedElement.style.top = `${topPct}%`;
-}
-
-function handleDragEnd() {
-  if (!draggedElement) return;
-  draggedElement.classList.remove("dragging");
-  draggedElement = null;
-  document.removeEventListener('mousemove', handleDragMove);
-  document.removeEventListener('mouseup', handleDragEnd);
-}
-
-function addLayoutElement(type) {
+function removeLayoutElement(id, event) {
+  if (event) event.stopPropagation();
   const roomFilter = document.getElementById("cabinetMapRoomFilter");
   const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
   
   if (!labLayouts[activeRoom]) labLayouts[activeRoom] = [];
   
-  const id = `${type}_${Date.now()}`;
-  let newEl = { id, type, left: 10, top: 10, rotation: 0, scale: 1.0 };
+  const itemToRemove = labLayouts[activeRoom].find(el => el.id === id);
+  const itemName = itemToRemove ? itemToRemove.name : 'รายการ';
   
-  if (type === 'table') {
-    newEl.name = "โต๊ะปฏิบัติการ";
-    newEl.width = 15;
-    newEl.height = 10;
-  } else if (type === 'door') {
-    newEl.name = "ประตู";
-    newEl.width = 10;
-    newEl.height = 2;
-  } else if (type === 'whiteboard') {
-    newEl.name = "กระดาน";
-    newEl.width = 20;
-    newEl.height = 2;
+  // Find if there are items in this cabinet
+  const itemsInCab = (items || []).filter(it => it.room === activeRoom && it.cabinet === itemName);
+  
+  let confirmMsg = `คุณต้องการลบ "${itemName}" ออกจากแผนผังใช่หรือไม่?`;
+  if (itemsInCab.length > 0) {
+    confirmMsg = `ตู้นี้มีสารเคมี/อุปกรณ์อยู่ ${itemsInCab.length} รายการ เมื่อลบแล้วสิ่งของทั้งหมดจะถูกย้ายไปไว้ที่ "ตู้ฉุกเฉิน" ชั่วคราว ต้องการดำเนินการต่อหรือไม่?`;
   }
   
-  labLayouts[activeRoom].push(newEl);
-  renderCabinetMap(); // re-render to show new element
-}
-
-function removeLayoutElement(id) {
-  const roomFilter = document.getElementById("cabinetMapRoomFilter");
-  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
-  
-  if (labLayouts[activeRoom]) {
-    labLayouts[activeRoom] = labLayouts[activeRoom].filter(el => el.id !== id);
+  if (!confirm(confirmMsg)) {
+    return;
   }
-  
-  const wrapper = document.querySelector(`.layout-element[data-id="${id}"]`);
-  if (wrapper) wrapper.remove();
-}
 
-function rotateLayoutElement(id) {
-  const wrapper = document.querySelector(`.layout-element[data-id="${id}"]`);
-  if (wrapper) {
-    const currentRot = parseInt(wrapper.getAttribute('data-rotation') || "0");
-    const newRot = (currentRot + 90) % 360;
-    wrapper.setAttribute('data-rotation', newRot);
-    
-    const currentScale = parseFloat(wrapper.getAttribute('data-scale') || "1.0");
-    wrapper.style.transform = `rotate(${newRot}deg) scale(${currentScale})`;
-  }
-}
+  // Move items to ตู้ฉุกเฉิน
+  if (itemsInCab.length > 0) {
+    itemsInCab.forEach(it => {
+      it.cabinet = "ตู้ฉุกเฉิน";
+      it.shelf = it.shelf || "ชั้น 1";
+    });
+    saveItemsToLocal();
+    if (typeof saveItemsToServer === 'function') saveItemsToServer();
 
-function scaleLayoutElement(id, direction) {
-  const wrapper = document.querySelector(`.layout-element[data-id="${id}"]`);
-  if (wrapper) {
-    const currentScale = parseFloat(wrapper.getAttribute('data-scale') || "1.0");
-    let newScale = currentScale;
-    if (direction === 'up') {
-      newScale = Math.min(currentScale + 0.1, 2.0);
-    } else if (direction === 'down') {
-      newScale = Math.max(currentScale - 0.1, 0.5);
+    // Ensure "ตู้ฉุกเฉิน" card exists in labLayouts[activeRoom]
+    const hasEmergencyCab = labLayouts[activeRoom].some(el => el.name === "ตู้ฉุกเฉิน");
+    if (!hasEmergencyCab) {
+      labLayouts[activeRoom].push({
+        id: `cab_emergency_${Date.now()}`,
+        type: 'cabinet',
+        subType: 'emergency_cabinet',
+        name: 'ตู้ฉุกเฉิน',
+        shelvesCount: 4,
+        maxCapacity: 100
+      });
     }
-    wrapper.setAttribute('data-scale', newScale);
-    
-    const currentRot = parseInt(wrapper.getAttribute('data-rotation') || "0");
-    wrapper.style.transform = `rotate(${currentRot}deg) scale(${newScale})`;
   }
+
+  labLayouts[activeRoom] = labLayouts[activeRoom].filter(el => el.id !== id);
+
+  const card = document.querySelector(`.cabinet-card[data-id="${id}"]`);
+  if (card) card.remove();
+  
+  saveLabLayoutsToServer().then(() => {
+    if (itemsInCab.length > 0) {
+      showToast(`ลบ "${itemName}" แล้ว ย้ายสิ่งของ ${itemsInCab.length} รายการไปไว้ที่ "ตู้ฉุกเฉิน"`, "info");
+    } else {
+      showToast(`ลบ "${itemName}" ออกจากแผนผังเรียบร้อยแล้ว`, "success");
+    }
+    renderCabinetMap();
+  });
 }
 
 async function saveLayout() {
-  const grid = document.getElementById("cabinetMapGrid");
+  const grid = document.querySelector('.shecu-unified-grid');
   const roomFilter = document.getElementById("cabinetMapRoomFilter");
   const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
   
-  const elements = grid.querySelectorAll('.layout-element');
+  if (!grid) {
+    toggleLayoutEditMode();
+    return;
+  }
   
-  // Re-build labLayouts in their current DOM order
+  const elements = grid.querySelectorAll('.cabinet-card');
   const newLayout = [];
   
   elements.forEach(el => {
     const id = el.getAttribute('data-id');
-    const type = el.getAttribute('data-type');
-    const name = el.getAttribute('data-name');
+    const type = el.getAttribute('data-type') || 'cabinet';
+    const subType = el.getAttribute('data-subtype') || type;
+    const name = el.getAttribute('data-name') || '';
     
-    let maxCap = undefined;
+    let maxCap = 50;
+    let shelvesCount = 4;
     if (labLayouts[activeRoom]) {
-       const existing = labLayouts[activeRoom].find(i => i.id === id);
-       if (existing && existing.maxCapacity !== undefined) maxCap = existing.maxCapacity;
+      const existing = labLayouts[activeRoom].find(i => i.id === id || (i.name === name && name));
+      if (existing) {
+        if (existing.maxCapacity !== undefined) maxCap = existing.maxCapacity;
+        if (existing.shelvesCount !== undefined) shelvesCount = existing.shelvesCount;
+      }
     }
     
-    const newEl = { id, type, name };
-    if (maxCap !== undefined) newEl.maxCapacity = maxCap;
-    
-    newLayout.push(newEl);
+    newLayout.push({ id, type, subType, name, maxCapacity: maxCap, shelvesCount });
   });
   
   labLayouts[activeRoom] = newLayout;
-  
   await saveLabLayoutsToServer();
-  showToast("บันทึกการปรับปรุงแผนผัง (Grid Layout) เรียบร้อยแล้ว!", "success");
-  toggleLayoutEditMode();
+  showToast("บันทึกการจัดเรียงแผนผังเรียบร้อยแล้ว!", "success");
+  
+  isLayoutEditMode = false;
+  const toolbox = document.getElementById("layoutEditToolbox");
+  const btnEdit = document.getElementById("btnEditLayout");
+  if (toolbox) toolbox.style.display = "none";
+  if (btnEdit) btnEdit.style.display = "block";
+  
+  renderCabinetMap();
 }
 
 // ==========================================================================
@@ -12716,7 +12948,10 @@ function renderCabinetMap() {
 
   const cabinets = {};
   roomItems.forEach(item => {
-    const cab = item.cabinet || "ไม่ระบุตู้";
+    let cab = item.cabinet;
+    if (!cab || cab === "ไม่ระบุตู้") {
+      cab = "ตู้ฉุกเฉิน";
+    }
     if (!cabinets[cab]) {
       cabinets[cab] = {
         name: cab,
@@ -12727,7 +12962,7 @@ function renderCabinetMap() {
     }
     cabinets[cab].items.push(item);
 
-    const shelf = item.shelf || "ไม่ระบุชั้น";
+    const shelf = item.shelf || "ชั้น 1";
     if (!cabinets[cab].shelves[shelf]) {
       cabinets[cab].shelves[shelf] = [];
     }
@@ -12756,18 +12991,36 @@ function renderCabinetMap() {
   }
 
   let roomLayout = labLayouts[activeRoom];
-  if (!roomLayout) roomLayout = [];
+  if (!roomLayout) {
+    roomLayout = [];
+    const cabNames = Object.keys(cabinets).sort();
+    cabNames.forEach(cabName => {
+      if (cabName && cabName !== "ไม่ระบุตู้" && !cabName.includes('โต๊ะ')) {
+        roomLayout.push({
+          id: `cab_${Date.now()}_${Math.floor(Math.random()*1000)}`,
+          type: 'cabinet',
+          subType: cabName.includes('เครื่องแก้ว') ? 'glassware_cabinet' : (cabName.includes('ฉุกเฉิน') ? 'emergency_cabinet' : 'chemical_cabinet'),
+          name: cabName
+        });
+      }
+    });
+    labLayouts[activeRoom] = roomLayout;
+  } else {
+    roomLayout = roomLayout.filter(el => el.type !== 'table' && el.type !== 'station' && !(el.name && el.name.includes('โต๊ะ')));
+    labLayouts[activeRoom] = roomLayout;
+  }
 
-  const cabNames = Object.keys(cabinets).sort();
-  cabNames.forEach(cabName => {
-    if (!roomLayout.find(el => el.type === 'cabinet' && el.name === cabName)) {
-      roomLayout.push({
-        id: `cab_${Date.now()}_${Math.floor(Math.random()*1000)}`,
-        type: 'cabinet',
-        name: cabName
-      });
-    }
-  });
+  // Always ensure "ตู้ฉุกเฉิน" is present in roomLayout for every laboratory room
+  if (!roomLayout.some(el => el.name === "ตู้ฉุกเฉิน" || el.subType === "emergency_cabinet")) {
+    roomLayout.push({
+      id: `cab_emergency_${activeRoom.replace(/\s+/g, '_')}`,
+      type: 'cabinet',
+      subType: 'emergency_cabinet',
+      name: 'ตู้ฉุกเฉิน',
+      shelvesCount: 4,
+      maxCapacity: 100
+    });
+  }
 
   if (roomLayout.length === 0) {
     grid.innerHTML = `
@@ -12794,40 +13047,63 @@ function renderCabinetMap() {
     card.style.cssText = 'border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: white; overflow: hidden; display: flex; flex-direction: column; position: relative;';
     card.setAttribute("data-id", el.id);
     card.setAttribute("data-type", el.type);
+    card.setAttribute("data-subtype", el.subType || (el.name && el.name.includes('เครื่องแก้ว') ? 'glassware_cabinet' : (el.type === 'table' || el.type === 'station' ? 'station' : 'chemical_cabinet')));
     card.setAttribute("data-name", el.name || "");
 
-    // Delete Button for edit mode
-    if (isLayoutEditMode) {
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "delete-btn";
-      deleteBtn.style.cssText = "position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10;";
-      deleteBtn.innerHTML = `<i data-lucide="x" style="width: 14px; height: 14px;"></i>`;
-      deleteBtn.onclick = (e) => {
-        e.stopPropagation();
-        removeLayoutElement(el.id);
-      };
-      card.appendChild(deleteBtn);
-    }
+    const editToolbarHtml = isLayoutEditMode ? `
+      <div class="card-edit-toolbar">
+        <div style="display: flex; align-items: center; gap: 6px; color: var(--primary-color); font-weight: 600;">
+          <i data-lucide="grip-vertical" style="width: 14px; height: 14px;"></i>
+          <span>ลากสลับที่</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <button type="button" class="card-move-btn" title="ย้ายไปซ้าย" onclick="moveCardLeft('${el.id}', event)"><i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i></button>
+          <button type="button" class="card-move-btn" title="ย้ายไปขวา" onclick="moveCardRight('${el.id}', event)"><i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></button>
+          <button type="button" class="card-move-btn" title="ลบ" style="color: #ef4444; border-color: #fca5a5;" onclick="removeLayoutElement('${el.id}', event)"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i></button>
+        </div>
+      </div>
+    ` : '';
 
-    if (el.type === 'cabinet' && !(el.name && el.name.includes('โต๊ะ'))) {
+    const isCabinet = (el.type === 'cabinet' || el.type === 'chemical_cabinet' || el.type === 'glassware_cabinet' || el.type === 'emergency_cabinet') && !(el.name && el.name.includes('โต๊ะ'));
+
+    if (isCabinet) {
       const cabName = el.name;
       const cab = cabinets[cabName];
-      const maxCap = el.maxCapacity || 50;
+      const maxCap = el.maxCapacity || (el.subType === 'emergency_cabinet' || cabName.includes('ฉุกเฉิน') ? 100 : 50);
+      const shelvesCount = el.shelvesCount || 4;
+      const isEmergency = el.subType === 'emergency_cabinet' || cabName.includes('ฉุกเฉิน');
+      const isGlassware = el.subType === 'glassware_cabinet' || el.type === 'glassware_cabinet' || cabName.includes('เครื่องแก้ว');
+
+      let subTitleText = 'ตู้สารเคมี/อุปกรณ์';
+      if (isEmergency) {
+        subTitleText = 'ตู้ฉุกเฉิน (พักของรอจัดเก็บ)';
+      } else if (isGlassware) {
+        subTitleText = 'ตู้เครื่องแก้ว';
+      }
+
+      const badgeEmergency = `<span class="shecu-badge" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fffbeb; color: #d97706; font-weight: 600; border: 1px solid #fde68a;">🟠 ตู้พักของรอจัดเก็บ</span>`;
+      const badgeSafe = isEmergency ? badgeEmergency : `<span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>`;
+      const badgeWarning = `<span class="shecu-badge badge-warning" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fef2f2; color: #e11d48; font-weight: 600;">🔴 พบสารไม่เข้ากัน</span>`;
+      const headerBg = isEmergency ? '#fffdf5' : '#f8fafc';
       
       if (!cab) {
+        const shelfArray = Array.from({ length: shelvesCount }, (_, i) => i + 1);
         card.innerHTML += `
-          <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
-            <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
-              <div>
+          ${editToolbarHtml}
+          <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: ${headerBg};">
+            <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+              <div style="flex: 1; min-width: 0; padding-right: 12px;">
                 <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">${cabName}</h3>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">ว่าง</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${subTitleText}</div>
               </div>
-              <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+              <div style="margin-left: auto; flex-shrink: 0;">
+                ${badgeSafe}
+              </div>
             </div>
           </div>
           <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
             <div style="display: flex; flex-direction: column; gap: 6px;">
-              ${[1, 2, 3, 4].map(i => `
+              ${shelfArray.map(i => `
                 <div class="cabinet-shelf-item" data-shelf="ชั้น ${i}" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
                   <span style="font-size: 13px; font-weight: 500; color: #334155;">ชั้น ${i}</span>
                   <div style="display: flex; align-items: center; gap: 8px;">
@@ -12849,7 +13125,7 @@ function renderCabinetMap() {
             <div style="width: 100%; margin-top: 4px;">
               <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
                 <span>ความจุ: 0 / ${maxCap}</span>
-                ${isAdminLoggedIn ? `<span style="color: var(--primary-color); cursor: pointer;" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})"><i data-lucide="edit-2" style="width:12px;height:12px;"></i> แก้ไข</span>` : ''}
+                ${isAdminLoggedIn ? `<span style="color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})"><i data-lucide="edit-2" style="width:12px;height:12px;"></i> แก้ไข</span>` : ''}
               </div>
               <div style="width: 100%; background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden;">
                 <div style="width: 0%; background: #0ea5e9; height: 100%;"></div>
@@ -12867,7 +13143,8 @@ function renderCabinetMap() {
         
         const displayShelves = [];
         let defaultIdx = 1;
-        for (let i = 0; i < 4; i++) {
+        const targetShelves = Math.max(shelvesCount, shelfNames.length, 4);
+        for (let i = 0; i < targetShelves; i++) {
            if (i < shelfNames.length) {
               displayShelves.push(shelfNames[i]);
            } else {
@@ -12892,17 +13169,17 @@ function renderCabinetMap() {
           `;
         });
 
-        const badgeSafe = `<span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>`;
-        const badgeWarning = `<span class="shecu-badge badge-warning" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fef2f2; color: #e11d48; font-weight: 600;">🔴 พบสารไม่เข้ากัน</span>`;
-
         card.innerHTML += `
-          <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
-            <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
-              <div>
+          ${editToolbarHtml}
+          <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: ${headerBg};">
+            <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+              <div style="flex: 1; min-width: 0; padding-right: 12px;">
                 <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">${cabName}</h3>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">ตู้สารเคมี/อุปกรณ์</div>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${subTitleText}</div>
               </div>
-              ${cab.hasIncompatible ? badgeWarning : badgeSafe}
+              <div style="margin-left: auto; flex-shrink: 0;">
+                ${cab.hasIncompatible ? badgeWarning : badgeSafe}
+              </div>
             </div>
             
             ${cab.hasIncompatible ? `
@@ -12937,25 +13214,11 @@ function renderCabinetMap() {
           </div>
         `;
       }
-      
-    } else {
-      // It's a table or workstation - render compact
-      const title = el.name || (el.type === 'table' ? 'โต๊ะปฏิบัติการ' : 'จุดปฏิบัติงาน');
-      card.style.cssText = 'border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: white; overflow: hidden; display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding: 16px 20px; position: relative; height: auto; align-self: start;';
-      card.innerHTML += `
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <div style="width: 40px; height: 40px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #64748b; flex-shrink: 0;">
-            <i data-lucide="${(el.name && el.name.includes('ชั่งน้ำหนัก')) || (title && title.includes('ชั่งน้ำหนัก')) ? 'scale' : 'flask-conical'}" style="width: 20px; height: 20px;"></i>
-          </div>
-          <div>
-            <h3 style="font-size: 15px; font-weight: 600; margin: 0; color: #1e293b;">${title}</h3>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">พื้นที่ปฏิบัติงาน</div>
-          </div>
-        </div>
-        <span class="shecu-badge badge-safe" style="font-size: 10px; padding: 3px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; white-space: nowrap; margin-left: 12px;">🟢 พร้อมใช้งาน</span>
-      `;
     }
     
+    if (isLayoutEditMode) {
+      attachCardDragListeners(card);
+    }
     unifiedGrid.appendChild(card);
   });
 
@@ -14143,7 +14406,9 @@ window.addNewCabinetCard = function() {
           <h3 contenteditable="true" style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b; outline: none; border-bottom: 1px dashed var(--border-color);" onblur="this.closest('.cabinet-card').setAttribute('data-name', this.innerText)">ตู้ใหม่</h3>
           <div contenteditable="true" style="font-size: 12px; color: var(--text-muted); margin-top: 4px; outline: none;">ประเภท...</div>
         </div>
-        <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+        <div style="margin-left: auto; flex-shrink: 0;">
+          <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+        </div>
       </div>
     </div>
     <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
@@ -14216,7 +14481,9 @@ window.addNewStationCard = function() {
         <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">พื้นที่ปฏิบัติงาน</div>
       </div>
     </div>
-    <span class="shecu-badge badge-safe" style="font-size: 10px; padding: 3px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; white-space: nowrap; margin-left: 12px;">🟢 พร้อมใช้งาน</span>
+    <div style="margin-left: auto; flex-shrink: 0;">
+      <span class="shecu-badge badge-safe" style="font-size: 10px; padding: 3px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; white-space: nowrap;">🟢 พร้อมใช้งาน</span>
+    </div>
   `;
   
   // Add delete button for edit mode
@@ -14257,7 +14524,9 @@ window.addNewBalanceTableCard = function() {
         <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">จุดปฏิบัติงาน</div>
       </div>
     </div>
-    <span class="shecu-badge badge-safe" style="font-size: 10px; padding: 3px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; white-space: nowrap; margin-left: 12px;">🟢 พร้อมใช้งาน</span>
+    <div style="margin-left: auto; flex-shrink: 0;">
+      <span class="shecu-badge badge-safe" style="font-size: 10px; padding: 3px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; white-space: nowrap;">🟢 พร้อมใช้งาน</span>
+    </div>
   `;
 
   // Add delete button for edit mode
@@ -14296,24 +14565,22 @@ window.filterCabinetMap = function(category, clickedEl) {
 
   const cards = document.querySelectorAll('.shecu-unified-grid .cabinet-card');
   cards.forEach(card => {
-    const isTable = card.getAttribute('data-type') === 'table';
+    const type = card.getAttribute('data-type') || '';
+    const subType = card.getAttribute('data-subtype') || type;
     const name = card.getAttribute('data-name') || '';
+    const isGlassware = subType === 'glassware_cabinet' || name.includes('เครื่องแก้ว');
+    const isEmergency = subType === 'emergency_cabinet' || name.includes('ฉุกเฉิน');
     
     let show = false;
     if (category === 'all') {
       show = true;
-    } else if (category === 'table') {
-      show = isTable;
     } else if (category === 'chemical') {
-      show = !isTable && !name.includes('เครื่องแก้ว');
+      show = !isGlassware || isEmergency;
     } else if (category === 'glassware') {
-      show = !isTable && name.includes('เครื่องแก้ว');
+      show = isGlassware || isEmergency;
     }
     
     card.style.display = show ? 'flex' : 'none';
-    if (show && !isTable) {
-        card.style.display = 'block';
-    }
   });
   
   // reset search input
@@ -14327,7 +14594,8 @@ window.searchCabinetMap = function(query) {
   
   cards.forEach(card => {
     const name = (card.getAttribute('data-name') || '').toLowerCase();
-    const isTable = card.getAttribute('data-type') === 'table';
+    const type = card.getAttribute('data-type');
+    const isTable = type === 'table' || type === 'station';
     const textContent = card.innerText.toLowerCase();
     
     let hasChemicalMatch = false;
@@ -14342,10 +14610,7 @@ window.searchCabinetMap = function(query) {
     
     const show = name.includes(lowerQuery) || textContent.includes(lowerQuery) || hasChemicalMatch;
     
-    card.style.display = show ? 'flex' : 'none';
-    if (show && !isTable) {
-        card.style.display = 'block';
-    }
+    card.style.display = show ? (isTable ? 'flex' : 'block') : 'none';
   });
 };
 
@@ -14374,37 +14639,109 @@ window.editCabinetCapacity = function(room, id, currentCapacity) {
 /* =====================================================================
    SHECU Cabinet Management (Add, Edit, Delete, Dropdown)
    ===================================================================== */
+function onCabinetTypeChange() {
+  const typeSelect = document.getElementById('addCabinetType');
+  if (!typeSelect) return;
+  const type = typeSelect.value;
+  const nameInput = document.getElementById('addCabinetName');
+  const shelvesGroup = document.getElementById('addCabinetShelvesGroup');
+  const shelvesInput = document.getElementById('addCabinetShelves');
+  
+  if (type === 'chemical_cabinet') {
+    if (nameInput && !nameInput.value) nameInput.placeholder = 'เช่น ตู้ A, ตู้สารเคมี 1';
+  } else if (type === 'glassware_cabinet') {
+    if (nameInput && !nameInput.value) nameInput.placeholder = 'เช่น ตู้เก็บเครื่องแก้ว A, ตู้เครื่องแก้ว 1';
+  } else if (type === 'emergency_cabinet') {
+    if (nameInput && !nameInput.value) nameInput.placeholder = 'เช่น ตู้ฉุกเฉิน, ตู้พักสารเคมีรอจัดเก็บ';
+  }
+  if (shelvesGroup) shelvesGroup.style.display = 'block';
+  if (shelvesInput && (!shelvesInput.value || shelvesInput.value === '1')) shelvesInput.value = '4';
+}
+
 function openAddCabinetModal(editName = '') {
   const modal = document.getElementById('addCabinetModal');
   const title = document.getElementById('addCabinetModalTitle');
   const nameInput = document.getElementById('addCabinetName');
+  const typeSelect = document.getElementById('addCabinetType');
+  const shelvesInput = document.getElementById('addCabinetShelves');
+  const capacityInput = document.getElementById('addCabinetCapacity');
+  
+  const roomFilter = document.getElementById("cabinetMapRoomFilter");
+  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
   
   if (editName) {
     title.innerText = 'แก้ไขข้อมูล / เพิ่มชั้นวาง';
     nameInput.value = editName;
+    const existing = (labLayouts[activeRoom] || []).find(el => el.name === editName);
+    if (existing) {
+      if (typeSelect) typeSelect.value = existing.subType || existing.type || 'chemical_cabinet';
+      if (shelvesInput) shelvesInput.value = existing.shelvesCount || 4;
+      if (capacityInput) capacityInput.value = existing.maxCapacity || 50;
+    }
   } else {
     title.innerText = 'เพิ่มตู้ / จุดปฏิบัติการ';
     nameInput.value = '';
-    document.getElementById('addCabinetType').value = 'cabinet';
-    document.getElementById('addCabinetShelves').value = '1';
-    document.getElementById('addCabinetCapacity').value = '50';
+    if (typeSelect) typeSelect.value = 'chemical_cabinet';
+    if (shelvesInput) shelvesInput.value = '4';
+    if (capacityInput) capacityInput.value = '50';
   }
   
+  if (typeof onCabinetTypeChange === 'function') onCabinetTypeChange();
   modal.classList.add('active');
+  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
 }
 
 function closeAddCabinetModal() {
-  document.getElementById('addCabinetModal').classList.remove('active');
+  const modal = document.getElementById('addCabinetModal');
+  if (modal) modal.classList.remove('active');
 }
 
-function saveCabinetData() {
-  const name = document.getElementById('addCabinetName').value;
-  if (!name.trim()) {
-    showToast('กรุณาระบุชื่อตู้หรือจุดปฏิบัติการ', 'error');
+async function saveCabinetData() {
+  const nameInput = document.getElementById('addCabinetName');
+  const name = nameInput ? nameInput.value.trim() : '';
+  if (!name) {
+    showToast('กรุณาระบุชื่อตู้จัดเก็บ', 'error');
+    if (nameInput) nameInput.focus();
     return;
   }
-  showToast(`บันทึกข้อมูล "${name}" เรียบร้อยแล้ว`, 'success');
+  
+  const typeSelect = document.getElementById('addCabinetType');
+  const type = typeSelect ? typeSelect.value : 'chemical_cabinet';
+  const shelvesInput = document.getElementById('addCabinetShelves');
+  const capacityInput = document.getElementById('addCabinetCapacity');
+  
+  const shelvesCount = shelvesInput ? (parseInt(shelvesInput.value, 10) || 4) : 4;
+  const maxCapacity = capacityInput ? (parseInt(capacityInput.value, 10) || 50) : 50;
+  
+  const roomFilter = document.getElementById("cabinetMapRoomFilter");
+  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  
+  if (!labLayouts[activeRoom]) {
+    labLayouts[activeRoom] = [];
+  }
+  
+  const existingIndex = labLayouts[activeRoom].findIndex(el => el.name === name);
+  if (existingIndex >= 0) {
+    labLayouts[activeRoom][existingIndex].subType = type;
+    labLayouts[activeRoom][existingIndex].type = 'cabinet';
+    labLayouts[activeRoom][existingIndex].shelvesCount = shelvesCount;
+    labLayouts[activeRoom][existingIndex].maxCapacity = maxCapacity;
+  } else {
+    const newEl = {
+      id: `cab_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      type: 'cabinet',
+      subType: type,
+      name: name,
+      shelvesCount: shelvesCount,
+      maxCapacity: maxCapacity
+    };
+    labLayouts[activeRoom].push(newEl);
+  }
+  
+  await saveLabLayoutsToServer();
+  renderCabinetMap();
   closeAddCabinetModal();
+  showToast(`บันทึกข้อมูล "${name}" เรียบร้อยแล้ว`, 'success');
 }
 
 function openDeleteCabinetModal(cabinetName) {
@@ -14416,9 +14753,42 @@ function closeDeleteCabinetModal() {
   document.getElementById('deleteCabinetModal').classList.remove('active');
 }
 
-function confirmDeleteCabinet() {
+async function confirmDeleteCabinet() {
   const name = document.getElementById('deleteCabinetNameDisplay').innerText;
-  showToast(`ลบรายการ "${name}" สำเร็จ`, 'success');
+  const roomFilter = document.getElementById("cabinetMapRoomFilter");
+  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  if (labLayouts[activeRoom]) {
+    const itemsInCab = (items || []).filter(it => it.room === activeRoom && it.cabinet === name);
+    if (itemsInCab.length > 0) {
+      itemsInCab.forEach(it => {
+        it.cabinet = "ตู้ฉุกเฉิน";
+        it.shelf = it.shelf || "ชั้น 1";
+      });
+      saveItemsToLocal();
+      if (typeof saveItemsToServer === 'function') saveItemsToServer();
+
+      // Ensure "ตู้ฉุกเฉิน" card exists
+      const hasEmergencyCab = labLayouts[activeRoom].some(el => el.name === "ตู้ฉุกเฉิน");
+      if (!hasEmergencyCab) {
+        labLayouts[activeRoom].push({
+          id: `cab_emergency_${Date.now()}`,
+          type: 'cabinet',
+          subType: 'emergency_cabinet',
+          name: 'ตู้ฉุกเฉิน',
+          shelvesCount: 4,
+          maxCapacity: 100
+        });
+      }
+    }
+    labLayouts[activeRoom] = labLayouts[activeRoom].filter(el => el.name !== name);
+    await saveLabLayoutsToServer();
+    renderCabinetMap();
+    if (itemsInCab.length > 0) {
+      showToast(`ลบ "${name}" แล้ว ย้ายสิ่งของ ${itemsInCab.length} รายการไปไว้ที่ "ตู้ฉุกเฉิน"`, 'info');
+    } else {
+      showToast(`ลบรายการ "${name}" สำเร็จ`, 'success');
+    }
+  }
   closeDeleteCabinetModal();
 }
 
