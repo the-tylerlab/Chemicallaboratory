@@ -5469,9 +5469,35 @@ input[type="date"]::-webkit-date-and-time-value {
     font-size: 12px !important;
   }
 
-  .help-modal-content p {
+  .help-modal-content h4 {
+    font-size: 13px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .help-modal-content p,
+  .help-modal-content ul,
+  .help-modal-content li {
     font-size: 12px !important;
     line-height: 1.5 !important;
+  }
+
+  .help-modal-content #feedbackInput,
+  .help-modal-content textarea {
+    font-size: 12px !important;
+    font-family: inherit !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+  }
+
+  .help-modal-content #feedbackInput::placeholder,
+  .help-modal-content textarea::placeholder {
+    font-size: 12px !important;
+  }
+
+  .help-modal-content .btn {
+    font-size: 12px !important;
+    padding: 6px 14px !important;
+    border-radius: 8px !important;
   }
 
   /* Compact Mobile Accordions */
