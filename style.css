@@ -7200,19 +7200,33 @@ body.admin-logged-in .public-only-section {
     grid-template-columns: 1fr;
   }
   .announcement-ticker-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 10px 12px;
-    gap: 8px;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 12px;
+    gap: 10px;
+  }
+  .ticker-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+    gap: 4px;
+    flex-shrink: 0;
   }
   .ticker-marquee-wrapper {
-    overflow-x: auto;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to right, transparent, black 2%, black 98%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 2%, black 98%, transparent);
   }
   .ticker-marquee-track {
-    animation: none;
-    width: auto;
-    gap: 12px;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 28px;
+    white-space: nowrap !important;
+    width: max-content !important;
+    animation: tickerContinuousScroll 30s linear infinite !important;
   }
 }
 
