@@ -6953,6 +6953,241 @@ a[href^="tel"]:visited {
   background: #94a3b8;
 }
 
+/* ==========================================================================
+   PUBLIC DASHBOARD: FULL-WIDTH LAB STATUS & ANNOUNCEMENT TICKER
+   ========================================================================== */
+
+.dashboard-public-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+/* 1. Announcement Ticker Bar (Non-clickable Marquee) */
+.announcement-ticker-bar {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 8px 16px;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ticker-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffedd5;
+  color: #c2410c;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ticker-marquee-wrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(to right, transparent, black 1.5%, black 98.5%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 1.5%, black 98.5%, transparent);
+  pointer-events: none;
+  user-select: none;
+}
+
+.ticker-marquee-track {
+  display: inline-flex;
+  align-items: center;
+  gap: 36px;
+  white-space: nowrap;
+  width: max-content;
+  animation: tickerContinuousScroll 35s linear infinite;
+}
+
+@keyframes tickerContinuousScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.ticker-text-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.ticker-text-dot {
+  width: 5px;
+  height: 5px;
+  background: #cbd5e1;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* 2. Today's Lab Status: Full-Width 4-Column Grid */
+.today-labs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding-right: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.today-lab-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  gap: 8px;
+}
+
+.today-lab-item:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.today-lab-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.today-lab-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.today-lab-building {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.today-lab-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge-free {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge-busy {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-badge-booked {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.today-lab-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 6px;
+}
+
+.today-lab-detail {
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-mini-book {
+  background: var(--bg-card);
+  border: 1px solid #cbd5e1;
+  color: var(--primary-color);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.btn-mini-book:hover {
+  background: var(--primary-color);
+  color: #ffffff;
+  border-color: var(--primary-color);
+}
+
+/* Visibility Control for Public vs Backoffice */
+.dashboard-grid.admin-mode ~ .public-only-section,
+.admin-mode .public-only-section,
+body.admin-logged-in .public-only-section {
+  display: none !important;
+}
+
+/* Responsive Grid Breakdown */
+@media (max-width: 1200px) {
+  .today-labs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .today-labs-grid {
+    grid-template-columns: 1fr;
+  }
+  .announcement-ticker-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .ticker-marquee-wrapper {
+    overflow-x: auto;
+    width: 100%;
+  }
+  .ticker-marquee-track {
+    animation: none;
+    width: auto;
+    gap: 12px;
+  }
+}
+
+
 
 
 
