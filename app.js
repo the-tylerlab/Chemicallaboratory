@@ -15171,15 +15171,35 @@ function getAnnouncementData() {
 function renderAnnouncementTicker() {
   const tickerBar = document.getElementById("announcementTickerBar");
   const track = document.getElementById("tickerMarqueeTrack");
+  const btnTickerAdminEdit = document.getElementById("btnTickerAdminEdit");
   if (!tickerBar || !track) return;
 
+  const isBackoffice = (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "teacher"));
   const data = getAnnouncementData();
+
   if (!data.enabled) {
-    tickerBar.style.display = "none";
-    return;
+    if (isBackoffice) {
+      // Show subtle disabled indicator for Admin so they can easily re-enable
+      tickerBar.style.display = "flex";
+      tickerBar.style.opacity = "0.75";
+      tickerBar.style.borderStyle = "dashed";
+      track.innerHTML = `
+        <span class="ticker-text-item" style="color: var(--text-muted); font-style: italic;">
+          🔒 แถบประกาศถูกปิดการแสดงผลอยู่ (ผู้ใช้งานทั่วไปจะไม่เห็นแถบนี้)
+        </span>
+      `;
+      if (btnTickerAdminEdit) btnTickerAdminEdit.style.display = "inline-flex";
+      return;
+    } else {
+      tickerBar.style.display = "none";
+      return;
+    }
   }
 
   tickerBar.style.display = "flex";
+  tickerBar.style.opacity = "1";
+  tickerBar.style.borderStyle = "solid";
+  if (btnTickerAdminEdit) btnTickerAdminEdit.style.display = isBackoffice ? "inline-flex" : "none";
 
   const rawText = data.text || "";
   const messages = rawText
@@ -15188,8 +15208,17 @@ function renderAnnouncementTicker() {
     .filter(m => m.length > 0);
 
   if (messages.length === 0) {
-    tickerBar.style.display = "none";
-    return;
+    if (isBackoffice) {
+      track.innerHTML = `
+        <span class="ticker-text-item" style="color: var(--text-muted); font-style: italic;">
+          ยังไม่มีข้อความประกาศ — คลิกปุ่ม "แก้ไขประกาศ" เพื่อเพิ่มข้อความ
+        </span>
+      `;
+      return;
+    } else {
+      tickerBar.style.display = "none";
+      return;
+    }
   }
 
   // Duplicate items for seamless continuous looping marquee
