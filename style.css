@@ -6963,6 +6963,9 @@ a[href^="tel"]:visited {
   gap: 20px;
   margin-top: 24px;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* 1. Announcement Ticker Bar (Non-clickable Marquee) */
@@ -6978,6 +6981,7 @@ a[href^="tel"]:visited {
   position: relative;
   overflow: hidden;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -6997,6 +7001,8 @@ a[href^="tel"]:visited {
 
 .ticker-marquee-wrapper {
   flex: 1;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
   position: relative;
   mask-image: linear-gradient(to right, transparent, black 1.5%, black 98.5%, transparent);
