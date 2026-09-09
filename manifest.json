@@ -1,6 +1,6 @@
 {
-  "name": "TylerLab Library",
-  "short_name": "TylerLab",
+  "name": "SCI-PORTAL",
+  "short_name": "SCI-PORTAL",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
