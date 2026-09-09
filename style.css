@@ -5409,8 +5409,8 @@ input[type="date"]::-webkit-date-and-time-value {
   #helpSafetyModal .modal-content {
     width: 94% !important;
     max-width: 100% !important;
-    height: 380px !important;
-    max-height: 65vh !important;
+    height: 485px !important;
+    max-height: 85vh !important;
     border-radius: 14px !important;
     margin: auto !important;
   }
