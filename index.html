@@ -417,6 +417,39 @@
             </div>
           </div>
         </div>
+
+        <!-- Bottom Public Section (Public Only) -->
+        <div class="public-only-section dashboard-public-section" id="dashboardPublicSection">
+          <!-- Announcement Ticker Bar (Non-clickable) -->
+          <div class="announcement-ticker-bar" id="announcementTickerBar">
+            <div class="ticker-badge">
+              <i data-lucide="megaphone" style="width: 14px; height: 14px;"></i>
+              <span>ประกาศ & ความปลอดภัย</span>
+            </div>
+            <div class="ticker-marquee-wrapper">
+              <div class="ticker-marquee-track" id="tickerMarqueeTrack">
+                <!-- Dynamically populated from admin announcement settings -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Today's Lab Status Widget (Full Width 4-Column Grid) -->
+          <div class="card-container today-lab-status-card" id="todayLabStatusCard">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="door-open" style="color: var(--primary-color); width: 18px; height: 18px;"></i>
+                <span>สถานะห้องปฏิบัติการวันนี้</span>
+                <span class="badge badge-green" id="todayLabAvailableBadge" style="font-size: 11px;">กำลังโหลด...</span>
+              </h2>
+              <a href="#" onclick="navigateToPanel('lab-booking'); return false;" class="card-link" style="font-size: 12.5px; font-weight: 600; color: var(--primary-color);">
+                จองห้องแล็บ <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+              </a>
+            </div>
+            <div class="today-labs-grid" id="todayLabsGrid">
+              <!-- Populated dynamically by renderTodayLabStatus() -->
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ==========================================
@@ -2353,6 +2386,7 @@
         </div>
         <ul class="admin-menu" id="adminMenu" style="list-style: none; padding: 12px; margin: 0; display: flex; flex-direction: column; gap: 4px;">
           <li class="admin-menu-item active" data-tab="admin-users"><i data-lucide="users"></i> จัดการสิทธิ์ผู้ใช้งาน</li>
+          <li class="admin-menu-item" data-tab="admin-announcement"><i data-lucide="megaphone"></i> จัดการประกาศหน้าแรก</li>
           <li class="admin-menu-item" data-tab="admin-usage"><i data-lucide="activity"></i> ภาพรวมการใช้งาน</li>
           <li class="admin-menu-item" data-tab="admin-audit"><i data-lucide="file-text"></i> บันทึกกิจกรรมระบบ</li>
           <li class="admin-menu-item" data-tab="admin-push"><i data-lucide="bell-ring"></i> การแจ้งเตือน & อนุมัติด่วน</li>
@@ -2386,6 +2420,43 @@
           <button class="btn btn-primary" onclick="openInviteUserModal()" style="margin-top: 16px; display: flex; align-items: center; gap: 8px;"><i data-lucide="user-plus" style="width: 16px; height: 16px;"></i> เชิญผู้ใช้งาน</button>
         </div>
         
+        <!-- Announcement Management Tab -->
+        <div class="admin-tab" id="admin-announcement" style="display: none;">
+          <h2>จัดการประกาศหน้าแรก (Announcement Ticker)</h2>
+          <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">กำหนดข้อความประกาศ ข่าวสาร หรือข้อควรระวังความปลอดภัย ที่จะแสดงบนแถบเลื่อนหน้าแดชบอร์ด</p>
+          
+          <form id="adminAnnouncementForm" onsubmit="saveAdminAnnouncement(event)" style="display: flex; flex-direction: column; gap: 20px; max-width: 720px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border-color);">
+              <div>
+                <div style="font-weight: 600; font-size: 14px; color: var(--text-main);">แสดงแถบประกาศหน้าแดชบอร์ด</div>
+                <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 2px;">เปิดหรือปิดการแสดงแถบประกาศเลื่อนสำหรับผู้ใช้งานทั่วไป</div>
+              </div>
+              <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 24px;">
+                <input type="checkbox" id="adminAnnouncementEnabled" checked style="opacity: 0; width: 0; height: 0;">
+                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4f46e5; transition: .3s; border-radius: 24px;"></span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label for="adminAnnouncementText" class="form-label" style="font-weight: 600; font-size: 13.5px;">ข้อความประกาศ (คั่นแต่ละข้อความด้วยเครื่องหมาย | หรือขึ้นบรรทัดใหม่)</label>
+              <textarea id="adminAnnouncementText" class="form-control" rows="4" placeholder="สวมใส่อุปกรณ์ PPE ทุกครั้งที่เข้าแล็บ | การทดลองที่มีไอระเหยต้องทำในตู้ดูดควัน Fume Hood | ติดต่อฉุกเฉิน ม.วงศกร: 081-4187736" style="font-size: 13px; line-height: 1.6;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <span style="font-size: 12px; color: var(--text-muted); align-self: center;">เทมเพลตแนะนำ:</span>
+              <button type="button" class="btn btn-secondary" onclick="applyAnnouncementPreset('standard')" style="padding: 4px 10px; font-size: 11.5px;">ชุดมาตรฐาน (PPE + Fume Hood + ฉุกเฉิน)</button>
+              <button type="button" class="btn btn-secondary" onclick="applyAnnouncementPreset('maintenance')" style="padding: 4px 10px; font-size: 11.5px;">แจ้งตรวจนับสต็อกประจำสัปดาห์</button>
+            </div>
+
+            <div style="margin-top: 8px;">
+              <button type="submit" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px;">
+                <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+                <span>บันทึกประกาศ</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
         <!-- Usage Tab -->
         <div class="admin-tab" id="admin-usage" style="display: none;">
           <h2>ภาพรวมการใช้งาน</h2>

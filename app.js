@@ -1241,6 +1241,9 @@ function updateUI() {
   renderDashboardOverdueAlerts();
   renderDashboardDamagedStats();
   renderPendingRequests();
+  renderTodayLabStatus();
+  renderAnnouncementTicker();
+  initAdminAnnouncementForm();
   
   // Show/Hide export buttons depending on login status
   const borrowExportActions = document.getElementById("borrowExportActions");
@@ -6183,6 +6186,16 @@ function updateLoginUI() {
       dashboardGrid.classList.add("student-mode");
       dashboardGrid.classList.remove("admin-mode");
     }
+  }
+
+  // Toggle Public-only section on dashboard
+  document.querySelectorAll(".public-only-section").forEach(sec => {
+    sec.style.display = isBackoffice ? "none" : "";
+  });
+
+  if (!isBackoffice) {
+    if (typeof renderTodayLabStatus === "function") renderTodayLabStatus();
+    if (typeof renderAnnouncementTicker === "function") renderAnnouncementTicker();
   }
   
   if (isAdminLoggedIn) {
@@ -15125,3 +15138,194 @@ document.addEventListener('click', function(event) {
     });
   }
 });
+
+// ==========================================================================
+// PUBLIC DASHBOARD: TODAY'S LAB STATUS & ANNOUNCEMENT TICKER
+// ==========================================================================
+
+const DEFAULT_ANNOUNCEMENTS = [
+  "🛡️ การใช้อุปกรณ์คุ้มครองความปลอดภัย (PPE) ต้องสวมเสื้อกาวน์ แว่นตานิรภัย และรองเท้าหุ้มส้นตลอดเวลาที่ปฏิบัติการ",
+  "💨 การทดลองที่มีไอระเหยหรือกรดเข้มข้น กรุณาทำในตู้ดูดควัน (Fume Hood) และเปิดระบบระบายอากาศก่อนเริ่มงาน",
+  "📞 เหตุฉุกเฉินและอุบัติเหตุ ติดต่อแอดมิน (ม.วงศกร) 081-4187736 หรือแจ้งผ่านเมนู 'แจ้งปัญหา'",
+  "📖 ศูนย์ข้อมูลและความปลอดภัย ศึกษากฎระเบียบ SHECU และเอกสาร SDS ได้ที่เมนูศูนย์ข้อมูล"
+];
+
+function getAnnouncementData() {
+  try {
+    const raw = localStorage.getItem("lab_announcement_settings");
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {
+    enabled: true,
+    text: DEFAULT_ANNOUNCEMENTS.join(" | ")
+  };
+}
+
+function renderAnnouncementTicker() {
+  const tickerBar = document.getElementById("announcementTickerBar");
+  const track = document.getElementById("tickerMarqueeTrack");
+  if (!tickerBar || !track) return;
+
+  const data = getAnnouncementData();
+  if (!data.enabled) {
+    tickerBar.style.display = "none";
+    return;
+  }
+
+  tickerBar.style.display = "flex";
+
+  const rawText = data.text || "";
+  const messages = rawText
+    .split(/[\n|]/)
+    .map(m => m.trim())
+    .filter(m => m.length > 0);
+
+  if (messages.length === 0) {
+    tickerBar.style.display = "none";
+    return;
+  }
+
+  // Duplicate items for seamless continuous looping marquee
+  const displayItems = [...messages, ...messages];
+  track.innerHTML = displayItems.map(msg => `
+    <span class="ticker-text-item">
+      <span class="ticker-text-dot"></span>
+      <span>${escapeHTML(msg)}</span>
+    </span>
+  `).join("");
+}
+
+function initAdminAnnouncementForm() {
+  const form = document.getElementById("adminAnnouncementForm");
+  const toggle = document.getElementById("adminAnnouncementEnabled");
+  const textarea = document.getElementById("adminAnnouncementText");
+  if (!form || !toggle || !textarea) return;
+
+  const data = getAnnouncementData();
+  toggle.checked = data.enabled !== false;
+  textarea.value = data.text || DEFAULT_ANNOUNCEMENTS.join(" | \n");
+}
+
+function saveAdminAnnouncement(e) {
+  if (e) e.preventDefault();
+  const toggle = document.getElementById("adminAnnouncementEnabled");
+  const textarea = document.getElementById("adminAnnouncementText");
+  if (!toggle || !textarea) return;
+
+  const newSettings = {
+    enabled: toggle.checked,
+    text: textarea.value.trim()
+  };
+
+  localStorage.setItem("lab_announcement_settings", JSON.stringify(newSettings));
+  
+  // Sync to backend if Supabase is online
+  if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
+    try {
+      supabase.from("system_settings").upsert({
+        key: "lab_announcement_settings",
+        value: newSettings,
+        updated_at: new Date().toISOString()
+      }).catch(err => console.log("Supabase announcement sync ignored:", err));
+    } catch (err) {}
+  }
+
+  renderAnnouncementTicker();
+  showToast("บันทึกการตั้งค่าประกาศหน้าแรกเรียบร้อยแล้ว", "success");
+}
+
+function applyAnnouncementPreset(presetKey) {
+  const textarea = document.getElementById("adminAnnouncementText");
+  if (!textarea) return;
+
+  if (presetKey === "standard") {
+    textarea.value = DEFAULT_ANNOUNCEMENTS.join(" | \n");
+  } else if (presetKey === "maintenance") {
+    textarea.value = "⚠️ แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น. | 📦 กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว";
+  }
+}
+
+function renderTodayLabStatus() {
+  const container = document.getElementById("todayLabsGrid");
+  const badge = document.getElementById("todayLabAvailableBadge");
+  if (!container) return;
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+
+  const labList = [
+    { id: "Lab 1", name: "ห้องแล็บเคมี", building: "อาคารอัสสัมชัญ" },
+    { id: "Lab 2", name: "ห้องแล็บฟิสิกส์", building: "อาคารเซนต์ปีเตอร์" },
+    { id: "Lab 3", name: "ห้องแล็บชีววิทยา", building: "อาคารเซนต์ปีเตอร์" },
+    { id: "Lab 4", name: "ห้องแล็บวิทย์", building: "อาคารราฟาเอล" },
+    { id: "Lab 5", name: "ห้องศูนย์ สสวท.", building: "อาคารราฟาเอล" },
+    { id: "Lab 6", name: "ห้องแล็บวิทย์ ม.ต้น", building: "อาคารอัสสัมชัญ" },
+    { id: "Lab 7", name: "ห้อง STEM CENTER", building: "อาคารเซนต์ปีเตอร์" },
+    { id: "Lab 8", name: "ห้องแล็บวิทย์ (EP)", building: "อาคารยอห์น แมรี่" }
+  ];
+
+  // Filter approved bookings for today
+  const todayBookings = (typeof bookings !== 'undefined' ? bookings : []).filter(
+    b => b.date === todayStr && (b.status === "approved" || b.status === "confirmed")
+  );
+
+  let freeCount = 0;
+
+  const html = labList.map(lab => {
+    const activeBooking = todayBookings.find(b => b.room === lab.id);
+    let statusBadge = '';
+    let detailText = '';
+
+    if (activeBooking) {
+      statusBadge = '<span class="today-lab-status-badge status-badge-busy"><i data-lucide="clock" style="width:10px;height:10px;"></i> มีใช้งาน</span>';
+      detailText = `${activeBooking.slot ? 'คาบ ' + activeBooking.slot : 'มีจองวันนี้'} (${activeBooking.bookerName || 'อาจารย์'})`;
+    } else {
+      freeCount++;
+      statusBadge = '<span class="today-lab-status-badge status-badge-free"><i data-lucide="check-circle" style="width:10px;height:10px;"></i> พร้อมใช้</span>';
+      detailText = 'ว่างตลอดทั้งวัน';
+    }
+
+    return `
+      <div class="today-lab-item">
+        <div class="today-lab-header">
+          <div style="min-width: 0; flex: 1;">
+            <div class="today-lab-name">${lab.id}: ${lab.name}</div>
+            <div class="today-lab-building">${lab.building}</div>
+          </div>
+          ${statusBadge}
+        </div>
+        <div class="today-lab-footer">
+          <span class="today-lab-detail" title="${detailText}">${detailText}</span>
+          <button type="button" class="btn-mini-book" onclick="quickBookRoom('${lab.id}')">จองห้องนี้</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  container.innerHTML = html;
+  if (badge) {
+    badge.textContent = `ว่าง ${freeCount} / ${labList.length} ห้อง`;
+    if (freeCount === 0) {
+      badge.className = "badge badge-red";
+    } else {
+      badge.className = "badge badge-green";
+    }
+  }
+
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+}
+
+function quickBookRoom(roomId) {
+  navigateToPanel('lab-booking');
+  const roomSelect = document.getElementById('bookingRoom');
+  if (roomSelect) {
+    roomSelect.value = roomId;
+    roomSelect.dispatchEvent(new Event('change'));
+  }
+}
+
