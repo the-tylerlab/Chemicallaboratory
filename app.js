@@ -9751,7 +9751,6 @@ function setupChatbot() {
     if (pulseDot) {
       pulseDot.style.display = "none";
     }
-    input.focus();
   };
 
   const closeChatbot = () => {
