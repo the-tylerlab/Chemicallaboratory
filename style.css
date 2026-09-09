@@ -4447,22 +4447,37 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .dashboard-grid.student-mode #quickMenuCard,
 .dashboard-grid.student-mode #categoryBreakdownCard {
-  height: 230px !important;
+  height: 145px !important;
   box-sizing: border-box;
   overflow: hidden;
   padding: 16px 20px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+.dashboard-grid.student-mode .quick-menu-list {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  flex: 1;
+  align-items: stretch;
 }
 
 .dashboard-grid.student-mode .quick-btn {
-  padding: 8px 16px !important;
-  gap: 14px !important;
+  padding: 10px 14px !important;
+  gap: 12px !important;
   border-radius: 10px !important;
+  height: 100% !important;
+  box-sizing: border-box;
+  margin: 0 !important;
 }
 
 .dashboard-grid.student-mode .quick-btn-icon {
   width: 44px !important;
   height: 44px !important;
   border-radius: 8px !important;
+  flex-shrink: 0;
 }
 
 .dashboard-grid.student-mode .quick-btn-icon svg,
@@ -4472,8 +4487,9 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .dashboard-grid.student-mode .quick-btn-title {
-  font-size: 15px !important;
+  font-size: 13.5px !important;
   font-weight: 600 !important;
+  line-height: 1.35;
 }
 
 /* Ensure inner scroll areas fit nicely in Student Mode */
@@ -4491,12 +4507,14 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .dashboard-grid.student-mode #categoryBreakdownContainer {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px 18px !important;
   flex: 1;
   max-height: none !important;
   overflow: hidden;
   padding: 0;
-  gap: 6px !important;
-  justify-content: space-between;
+  align-content: center;
 }
 
 /* Collapsible Pending Request Item styles */
