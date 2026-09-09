@@ -7265,41 +7265,46 @@ body.admin-logged-in .public-only-section {
     width: max-content !important;
     animation: tickerContinuousScroll 60s linear infinite !important;
   }
-/* Minimalist Modern Checkbox & Controls */
+/* Minimalist Modern Checkbox & Controls (Cross-browser pixel-perfect) */
 .minimal-checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 22px;
-  height: 22px;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 6px;
-  outline: none;
-  cursor: pointer;
-  background-color: #ffffff;
-  display: inline-grid;
-  place-content: center;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  margin: 0;
-  position: relative;
-  flex-shrink: 0;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  border: 1.8px solid #94a3b8 !important;
+  border-radius: 5px !important;
+  outline: none !important;
+  cursor: pointer !important;
+  background-color: #ffffff !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  transition: all 0.15s ease-in-out !important;
+  box-shadow: none !important;
 }
 
 .minimal-checkbox:hover {
-  border-color: #3b82f6;
-  background-color: #f8fafc;
+  border-color: #2563eb !important;
+  background-color: #eff6ff !important;
 }
 
 .minimal-checkbox:checked {
-  background-color: #2563eb;
-  border-color: #2563eb;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M13.25 4.75L6.375 11.625L2.75 8' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 14px 14px;
-  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M13.25 4.75L6.375 11.625L2.75 8' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 13px 13px !important;
 }
 
 .minimal-checkbox:focus-visible {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25) !important;
 }
 
