@@ -6193,10 +6193,13 @@ function updateLoginUI() {
     sec.style.display = isBackoffice ? "none" : "";
   });
 
-  if (!isBackoffice) {
-    if (typeof renderTodayLabStatus === "function") renderTodayLabStatus();
-    if (typeof renderAnnouncementTicker === "function") renderAnnouncementTicker();
+  const btnTickerAdminEdit = document.getElementById("btnTickerAdminEdit");
+  if (btnTickerAdminEdit) {
+    btnTickerAdminEdit.style.display = isBackoffice ? "inline-flex" : "none";
   }
+
+  if (typeof renderTodayLabStatus === "function" && !isBackoffice) renderTodayLabStatus();
+  if (typeof renderAnnouncementTicker === "function") renderAnnouncementTicker();
   
   if (isAdminLoggedIn) {
     if (sidebarLoginText) sidebarLoginText.innerText = "ออกจากระบบ";
@@ -15243,6 +15246,72 @@ function applyAnnouncementPreset(presetKey) {
   } else if (presetKey === "maintenance") {
     textarea.value = "⚠️ แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น. | 📦 กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว";
   }
+}
+
+// Quick Announcement Modal for Admin/Teachers
+function openAnnouncementModal() {
+  const modal = document.getElementById("modalAnnouncementEdit");
+  const toggle = document.getElementById("modalAnnouncementEnabled");
+  const textarea = document.getElementById("modalAnnouncementText");
+  if (!modal) return;
+
+  const data = getAnnouncementData();
+  if (toggle) toggle.checked = data.enabled !== false;
+  if (textarea) textarea.value = data.text || DEFAULT_ANNOUNCEMENTS.join(" | \n");
+
+  modal.style.display = "flex";
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeAnnouncementModal() {
+  const modal = document.getElementById("modalAnnouncementEdit");
+  if (modal) modal.style.display = "none";
+}
+
+function applyModalAnnouncementPreset(presetKey) {
+  const textarea = document.getElementById("modalAnnouncementText");
+  if (!textarea) return;
+
+  if (presetKey === "standard") {
+    textarea.value = DEFAULT_ANNOUNCEMENTS.join(" | \n");
+  } else if (presetKey === "maintenance") {
+    textarea.value = "⚠️ แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น. | 📦 กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว";
+  }
+}
+
+function saveModalAnnouncement(e) {
+  if (e) e.preventDefault();
+  const toggle = document.getElementById("modalAnnouncementEnabled");
+  const textarea = document.getElementById("modalAnnouncementText");
+  if (!toggle || !textarea) return;
+
+  const newSettings = {
+    enabled: toggle.checked,
+    text: textarea.value.trim()
+  };
+
+  localStorage.setItem("lab_announcement_settings", JSON.stringify(newSettings));
+  
+  // Sync to Admin Panel tab form as well
+  const adminToggle = document.getElementById("adminAnnouncementEnabled");
+  const adminTextarea = document.getElementById("adminAnnouncementText");
+  if (adminToggle) adminToggle.checked = newSettings.enabled;
+  if (adminTextarea) adminTextarea.value = newSettings.text;
+
+  // Sync to Supabase if available
+  if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
+    try {
+      supabase.from("system_settings").upsert({
+        key: "lab_announcement_settings",
+        value: newSettings,
+        updated_at: new Date().toISOString()
+      }).catch(err => console.log("Supabase announcement sync ignored:", err));
+    } catch (err) {}
+  }
+
+  renderAnnouncementTicker();
+  closeAnnouncementModal();
+  showToast("บันทึกการตั้งค่าประกาศหน้าแรกเรียบร้อยแล้ว", "success");
 }
 
 function renderTodayLabStatus() {
