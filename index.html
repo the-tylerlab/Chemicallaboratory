@@ -2344,6 +2344,7 @@
           <li class="admin-menu-item active" data-tab="admin-users"><i data-lucide="users"></i> จัดการสิทธิ์ผู้ใช้งาน</li>
           <li class="admin-menu-item" data-tab="admin-usage"><i data-lucide="activity"></i> ภาพรวมการใช้งาน</li>
           <li class="admin-menu-item" data-tab="admin-audit"><i data-lucide="file-text"></i> บันทึกกิจกรรมระบบ</li>
+          <li class="admin-menu-item" data-tab="admin-push"><i data-lucide="bell-ring"></i> การแจ้งเตือน & อนุมัติด่วน</li>
           <li style="height: 1px; background: var(--border-color); margin: 8px 0;"></li>
           <li class="admin-menu-item danger" data-tab="admin-danger"><i data-lucide="alert-octagon"></i> พื้นที่อันตราย</li>
         </ul>
@@ -2400,6 +2401,77 @@
           <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">บันทึกประวัติการกระทำสำคัญ เช่น การเข้าสู่ระบบ การเปลี่ยนสิทธิ์ หรือการลบข้อมูล</p>
           <div id="adminAuditList" style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
             <!-- Dynamically populated by app.js -->
+          </div>
+        </div>
+
+        <!-- Web Push Notifications Tab -->
+        <div class="admin-tab" id="admin-push" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div>
+              <h2 style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                <i data-lucide="bell-ring" style="color: var(--primary-color);"></i>
+                การแจ้งเตือน & อนุมัติด่วน (Web Push)
+              </h2>
+              <p style="color: var(--text-muted); font-size: 14px; margin: 0;">รับการแจ้งเตือนคำขอยืมอุปกรณ์และจองห้องแล็บแบบ Real-time พร้อมกดอนุมัติได้ทันทีจากหน้าจอ</p>
+            </div>
+            <span class="badge" id="pushStatusBadge" style="padding: 6px 12px; font-size: 13px; font-weight: 600; border-radius: 20px; background: #f1f5f9; color: #64748b;">
+              ⚪ กำลังตรวจสอบสถานะ
+            </span>
+          </div>
+
+          <!-- Push Subscription Control Card -->
+          <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; background: #f8fafc; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+              <div style="flex: 1;">
+                <div style="font-weight: 700; font-size: 16px; color: var(--text-color); margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                  <span>🔔 แจ้งเตือนบนอุปกรณ์นี้</span>
+                  <span id="pushDeviceTag" style="font-size: 12px; font-weight: normal; color: var(--text-muted); background: white; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border-color);">อุปกรณ์ปัจจุบัน</span>
+                </div>
+                <div style="font-size: 13.5px; color: var(--text-muted);" id="pushStatusDesc">
+                  เปิดใช้งานเพื่อรับข้อความแจ้งเตือนเมื่อนักเรียนยื่นคำขอใหม่ พร้อมปุ่ม [✅ อนุมัติทันที]
+                </div>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <button type="button" class="btn btn-primary" id="btnTogglePush" onclick="togglePushNotifications()" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 18px;">
+                  <i data-lucide="bell" style="width: 16px; height: 16px;"></i>
+                  <span id="btnTogglePushText">เปิดการแจ้งเตือน</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnTestPush" onclick="sendTestPushNotification()" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px;">
+                  <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                  <span>ทดสอบส่ง</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Highlights / Guide -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
+            <div style="border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; background: white;">
+              <div style="font-size: 24px; margin-bottom: 8px;">⚡</div>
+              <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">อนุมัติในคลิกเดียว</div>
+              <div style="font-size: 12.5px; color: var(--text-muted);">กดปุ่ม [✅ อนุมัติทันที] บนข้อความแจ้งเตือนเพื่อตัดสต็อกและอนุมัติในพื้นหลังได้ทันที</div>
+            </div>
+            <div style="border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; background: white;">
+              <div style="font-size: 24px; margin-bottom: 8px;">📱</div>
+              <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">รองรับมือถือ & PWA</div>
+              <div style="font-size: 12.5px; color: var(--text-muted);">ใช้งานได้ทั้งบนคอมพิวเตอร์และโทรศัพท์มือถือ Android และ iOS (Add to Home Screen)</div>
+            </div>
+            <div style="border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; background: white;">
+              <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
+              <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">ปลอดภัยเฉพาะแอดมิน</div>
+              <div style="font-size: 12.5px; color: var(--text-muted);">ระบบเข้ารหัสความปลอดภัยมาตรฐาน VAPID ส่งตรงถึงอุปกรณ์ที่คุณครู/แอดมินอนุญาตเท่านั้น</div>
+            </div>
+          </div>
+
+          <!-- Registered Devices List -->
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h3 style="font-size: 15px; font-weight: 700; margin: 0;">อุปกรณ์แอดมินที่ลงทะเบียนรับแจ้งเตือน (<span id="pushDeviceCount">0</span>)</h3>
+              <button type="button" class="btn btn-text" onclick="loadPushSubscriptionsStatus()" style="font-size: 12px; color: var(--primary-color);">รีเฟรช</button>
+            </div>
+            <div id="pushDevicesList" style="border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; background: white;">
+              <!-- Populated by JS -->
+            </div>
           </div>
         </div>
         

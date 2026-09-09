@@ -4016,7 +4016,19 @@ function setupBorrowForm() {
           createdAt: new Date().toISOString()
         };
         const success = await saveTransaction(transactionData);
-        if (success) processedCount++;
+        if (success) {
+          processedCount++;
+          if (typeof notifyAdminsNewRequest === "function") {
+            notifyAdminsNewRequest({
+              type: "borrow",
+              id: transactionData.id,
+              booker: borrowerName,
+              item: transactionData.itemName,
+              qty: transactionData.qty,
+              unit: item.unit || "ชิ้น"
+            });
+          }
+        }
       } else {
         // Teacher View: Decrement stock immediately and save approved transaction
         const newQty = item.qty - selectedItem.qty;
@@ -4928,6 +4940,15 @@ function setupBookingForm() {
     const success = await saveBooking(bookingData);
     if (success) {
       if (userRole === "student") {
+        if (typeof notifyAdminsNewRequest === "function") {
+          notifyAdminsNewRequest({
+            type: "booking",
+            id: bookingData.id,
+            booker: bookerName,
+            room: getRoomThaiName(room),
+            date: formatThaiDate(date)
+          });
+        }
         showToast(`ส่งคำขอจองห้อง "${getRoomThaiName(room)}" เรียบร้อยแล้ว รอการอนุมัติ`, "info");
       } else {
         showToast(`จองห้อง "${getRoomThaiName(room)}" ช่วงเวลา ${slot} เรียบร้อยแล้ว!`, "success");
@@ -13636,6 +13657,8 @@ async function loadAdminData() {
     renderAdminUsers();
     renderAuditLogs();
     updateAdminStats();
+    loadPushSubscriptionsStatus();
+    checkPushSubscriptionState();
   } catch (err) {
     console.error("Failed to load admin data:", err);
   }
@@ -14128,19 +14151,307 @@ window.submitBatchUpdateLocation = function() {
   updateBatchToolbar();
 };
 
-// Register Service Worker for PWA (Disabled to prevent cache issues)
-/*
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js')
-      .then(registration => {
-        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-      }, err => {
-        console.log('ServiceWorker registration failed: ', err);
+// ==========================================
+// WEB PUSH NOTIFICATIONS MANAGEMENT
+// ==========================================
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+let vapidPublicKey = null;
+let currentPushSubscription = null;
+
+async function getVapidPublicKey() {
+  if (vapidPublicKey) return vapidPublicKey;
+  try {
+    const res = await fetch('/api/push-vapid-public-key');
+    if (res.ok) {
+      const data = await res.json();
+      vapidPublicKey = data.publicKey;
+      return vapidPublicKey;
+    }
+  } catch (err) {
+    console.warn("Could not fetch VAPID key:", err);
+  }
+  return null;
+}
+
+async function getSWRegistration() {
+  if (!('serviceWorker' in navigator)) return null;
+  try {
+    let reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) {
+      reg = await navigator.serviceWorker.register('./service-worker.js');
+    }
+    return reg;
+  } catch (err) {
+    console.error("SW registration error:", err);
+    return null;
+  }
+}
+
+async function checkPushSubscriptionState() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    updatePushUI({ supported: false });
+    return false;
+  }
+
+  const reg = await getSWRegistration();
+  if (!reg) {
+    updatePushUI({ supported: false });
+    return false;
+  }
+
+  try {
+    const sub = await reg.pushManager.getSubscription();
+    currentPushSubscription = sub;
+    updatePushUI({
+      supported: true,
+      permission: typeof Notification !== 'undefined' ? Notification.permission : 'default',
+      subscribed: !!sub
+    });
+    return !!sub;
+  } catch (err) {
+    console.warn("Error checking push subscription:", err);
+    updatePushUI({ supported: true, permission: typeof Notification !== 'undefined' ? Notification.permission : 'default', subscribed: false });
+    return false;
+  }
+}
+
+async function subscribeToPushNotifications() {
+  try {
+    if (typeof Notification === 'undefined') {
+      showToast("เบราว์เซอร์นี้ไม่รองรับ Notifications", "warning");
+      return false;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      showToast("กรุณาอนุญาตการแจ้งเตือน (Notifications) ในเบราว์เซอร์", "warning");
+      checkPushSubscriptionState();
+      return false;
+    }
+
+    const key = await getVapidPublicKey();
+    if (!key) {
+      showToast("ไม่สามารถดึงข้อมูล VAPID Key จากเซิร์ฟเวอร์ได้", "error");
+      return false;
+    }
+
+    const reg = await getSWRegistration();
+    if (!reg) {
+      showToast("ไม่พบ Service Worker", "error");
+      return false;
+    }
+
+    const applicationServerKey = urlBase64ToUint8Array(key);
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: applicationServerKey
+    });
+
+    currentPushSubscription = sub;
+
+    // Detect device name
+    const ua = navigator.userAgent;
+    let deviceName = "Desktop Browser";
+    if (/Android/i.test(ua)) deviceName = "Android Device";
+    else if (/iPhone|iPad|iPod/i.test(ua)) deviceName = "iOS Device (PWA)";
+    else if (/Macintosh/i.test(ua)) deviceName = "Mac Browser";
+    else if (/Windows/i.test(ua)) deviceName = "Windows PC";
+
+    // Send to backend
+    await fetch('/api/push-subscriptions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subscription: sub,
+        userRole: (typeof userRole !== 'undefined' ? userRole : 'admin'),
+        deviceName
+      })
+    });
+
+    showToast("🔔 เปิดรับการแจ้งเตือนและอนุมัติด่วนสำเร็จ!", "success");
+    checkPushSubscriptionState();
+    loadPushSubscriptionsStatus();
+    return true;
+  } catch (err) {
+    console.error("Failed to subscribe push:", err);
+    showToast("เกิดข้อผิดพลาดในการเปิดแจ้งเตือน: " + (err.message || ''), "error");
+    return false;
+  }
+}
+
+async function unsubscribeFromPushNotifications() {
+  try {
+    if (currentPushSubscription) {
+      const endpoint = currentPushSubscription.endpoint;
+      await currentPushSubscription.unsubscribe();
+      currentPushSubscription = null;
+
+      await fetch('/api/push-subscriptions', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint })
       });
+    }
+    showToast("ปิดการแจ้งเตือนบนอุปกรณ์นี้แล้ว", "info");
+    checkPushSubscriptionState();
+    loadPushSubscriptionsStatus();
+    return true;
+  } catch (err) {
+    console.error("Failed to unsubscribe push:", err);
+    showToast("เกิดข้อผิดพลาดในการปิดแจ้งเตือน", "error");
+    return false;
+  }
+}
+
+window.togglePushNotifications = async function() {
+  if (currentPushSubscription) {
+    await unsubscribeFromPushNotifications();
+  } else {
+    await subscribeToPushNotifications();
+  }
+};
+
+window.sendTestPushNotification = async function() {
+  try {
+    const res = await fetch('/api/test-push', { method: 'POST' });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      showToast(`ส่งข้อความแจ้งเตือนทดสอบไปยัง ${data.sentToCount} อุปกรณ์เรียบร้อยแล้ว!`, "success");
+    } else {
+      showToast(data.error || "ไม่สามารถส่งข้อความทดสอบได้", "warning");
+    }
+  } catch (err) {
+    showToast("เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ", "error");
+  }
+};
+
+window.loadPushSubscriptionsStatus = async function() {
+  try {
+    const res = await fetch('/api/push-subscriptions');
+    if (res.ok) {
+      const data = await res.json();
+      const countEl = document.getElementById("pushDeviceCount");
+      if (countEl) countEl.innerText = data.count || 0;
+
+      const listEl = document.getElementById("pushDevicesList");
+      if (listEl) {
+        if (!data.subscriptions || data.subscriptions.length === 0) {
+          listEl.innerHTML = `
+            <div style="padding: 24px; text-align: center; color: var(--text-muted); font-size: 13.5px;">
+              ยังไม่มีอุปกรณ์แอดมินลงทะเบียนรับการแจ้งเตือน
+            </div>
+          `;
+        } else {
+          listEl.innerHTML = data.subscriptions.map((s, idx) => {
+            const dateStr = s.updatedAt ? new Date(s.updatedAt).toLocaleDateString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+            const isCurrent = currentPushSubscription && s.subscription && s.subscription.endpoint === currentPushSubscription.endpoint;
+            return `
+              <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span style="font-size: 18px;">${s.deviceName && s.deviceName.includes('iOS') ? '📱' : s.deviceName && s.deviceName.includes('Android') ? '🤖' : '💻'}</span>
+                  <div>
+                    <div style="font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
+                      <span>${s.deviceName || 'อุปกรณ์ที่ ' + (idx + 1)}</span>
+                      ${isCurrent ? '<span style="background: #e0f2fe; color: #0284c7; font-size: 11px; padding: 1px 6px; border-radius: 4px; font-weight: 600;">อุปกรณ์นี้</span>' : ''}
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-muted);">ลงทะเบียน: ${dateStr}</div>
+                  </div>
+                </div>
+                <span class="badge badge-green" style="font-size: 11.5px; padding: 3px 8px; background: #dcfce7; color: #16a34a; font-weight: 600; border-radius: 12px;">พร้อมรับแจ้งเตือน</span>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to load push subscriptions list:", e);
+  }
+};
+
+function updatePushUI(state) {
+  const badge = document.getElementById("pushStatusBadge");
+  const btn = document.getElementById("btnTogglePush");
+  const btnText = document.getElementById("btnTogglePushText");
+  const desc = document.getElementById("pushStatusDesc");
+
+  if (!badge || !btn || !btnText) return;
+
+  if (!state.supported) {
+    badge.innerHTML = `⚠️ เบราว์เซอร์ไม่รองรับ`;
+    badge.style.background = "#fee2e2";
+    badge.style.color = "#dc2626";
+    btn.disabled = true;
+    if (desc) desc.innerText = "เบราว์เซอร์นี้ไม่รองรับ Web Push Notifications (หากใช้ iOS กรุณากด Add to Home Screen เพื่อใช้งาน)";
+    return;
+  }
+
+  btn.disabled = false;
+
+  if (state.subscribed) {
+    badge.innerHTML = `🟢 เปิดใช้งานแล้ว`;
+    badge.style.background = "#dcfce7";
+    badge.style.color = "#16a34a";
+    btn.className = "btn btn-danger";
+    btnText.innerText = "ปิดการแจ้งเตือน";
+    if (desc) desc.innerText = "อุปกรณ์นี้กำลังรับการแจ้งเตือนคำขอและเปิดใช้งานปุ่มกดอนุมัติ [✅ อนุมัติทันที]";
+  } else {
+    badge.innerHTML = `⚪ ปิดอยู่`;
+    badge.style.background = "#f1f5f9";
+    badge.style.color = "#64748b";
+    btn.className = "btn btn-primary";
+    btnText.innerText = "เปิดการแจ้งเตือน";
+    if (desc) desc.innerText = "เปิดใช้งานเพื่อรับข้อความแจ้งเตือนเมื่อนักเรียนยื่นคำขอใหม่ พร้อมปุ่ม [✅ อนุมัติทันที]";
+  }
+}
+
+async function notifyAdminsNewRequest(requestInfo) {
+  try {
+    await fetch('/api/notify-admins', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestInfo)
+    });
+  } catch (err) {
+    console.warn("Failed to dispatch push notification:", err);
+  }
+}
+
+// Listen to messages from Service Worker (e.g. navigation on notification click)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'NAVIGATE_TO_REQUEST') {
+      if (typeof navigateToPanel === 'function') {
+        navigateToPanel('requests');
+      }
+      if (typeof loadAllData === 'function') {
+        loadAllData();
+      }
+    }
+  });
+
+  // Auto initialize Service Worker registration
+  window.addEventListener('load', () => {
+    getSWRegistration().then(() => {
+      checkPushSubscriptionState();
+    });
   });
 }
-*/
 
 // --- AUTO SEED MOCK DATA FOR ALL SYSTEMS ---
 (function seedAllMockData() {

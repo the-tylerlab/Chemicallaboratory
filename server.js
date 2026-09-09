@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const webpush = require('web-push');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +24,34 @@ const USERS_FILE = path.join(DB_DIR, 'users.json');
 const AUDIT_LOGS_FILE = path.join(DB_DIR, 'audit_logs.json');
 const LAYOUTS_FILE = path.join(DB_DIR, 'layouts.json');
 const FEEDBACKS_FILE = path.join(DB_DIR, 'feedbacks.json');
+const PUSH_SUBSCRIPTIONS_FILE = path.join(DB_DIR, 'push_subscriptions.json');
+const VAPID_KEYS_FILE = path.join(DB_DIR, 'vapid_keys.json');
+
+// Ensure data directory exists
+if (!fs.existsSync(DB_DIR)) {
+  fs.mkdirSync(DB_DIR, { recursive: true });
+}
+
+// Initialize VAPID Keys for Web Push
+function getOrGenerateVapidKeys() {
+  try {
+    if (fs.existsSync(VAPID_KEYS_FILE)) {
+      const keys = JSON.parse(fs.readFileSync(VAPID_KEYS_FILE, 'utf-8'));
+      if (keys.publicKey && keys.privateKey) return keys;
+    }
+  } catch (e) {}
+
+  const newKeys = webpush.generateVAPIDKeys();
+  fs.writeFileSync(VAPID_KEYS_FILE, JSON.stringify(newKeys, null, 2), 'utf-8');
+  return newKeys;
+}
+
+const vapidKeys = getOrGenerateVapidKeys();
+webpush.setVapidDetails(
+  'mailto:admin@chemlab.local',
+  vapidKeys.publicKey,
+  vapidKeys.privateKey
+);
 
 // Default Demo Data to seed the database if it doesn't exist
 const DEFAULT_SEEDS = [
@@ -635,6 +664,252 @@ app.put('/api/feedbacks/:id', (req, res) => {
   } else {
     res.status(404).json({ error: "Feedback not found" });
   }
+});
+
+// ==========================================
+// WEB PUSH NOTIFICATIONS & QUICK APPROVALS
+// ==========================================
+
+// Helper: Read push subscriptions
+function readPushSubscriptions() {
+  try {
+    if (!fs.existsSync(PUSH_SUBSCRIPTIONS_FILE)) {
+      fs.writeFileSync(PUSH_SUBSCRIPTIONS_FILE, JSON.stringify([], null, 2), 'utf-8');
+      return [];
+    }
+    const data = fs.readFileSync(PUSH_SUBSCRIPTIONS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+// Helper: Save push subscriptions
+function writePushSubscriptions(subs) {
+  try {
+    fs.writeFileSync(PUSH_SUBSCRIPTIONS_FILE, JSON.stringify(subs, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// Helper: Broadcast push notification to all admin subscriptions
+async function sendPushToAdmins(payload) {
+  const subscriptions = readPushSubscriptions();
+  if (!subscriptions || subscriptions.length === 0) return;
+
+  const validSubscriptions = [];
+  const stringifiedPayload = JSON.stringify(payload);
+
+  for (const item of subscriptions) {
+    try {
+      if (item && item.subscription) {
+        await webpush.sendNotification(item.subscription, stringifiedPayload);
+        validSubscriptions.push(item);
+      }
+    } catch (err) {
+      console.warn('Push delivery failed for subscription:', err.statusCode || err.message);
+      // Remove subscriptions that are expired or 410/404 Gone
+      if (err.statusCode !== 410 && err.statusCode !== 404) {
+        validSubscriptions.push(item);
+      }
+    }
+  }
+
+  if (validSubscriptions.length !== subscriptions.length) {
+    writePushSubscriptions(validSubscriptions);
+  }
+}
+
+// GET VAPID Public Key
+app.get('/api/push-vapid-public-key', (req, res) => {
+  res.json({ publicKey: vapidKeys.publicKey });
+});
+
+// GET Push Subscriptions status
+app.get('/api/push-subscriptions', (req, res) => {
+  const subs = readPushSubscriptions();
+  res.json({ count: subs.length, subscriptions: subs });
+});
+
+// POST Save Push Subscription
+app.post('/api/push-subscriptions', (req, res) => {
+  const { subscription, userRole, deviceName } = req.body;
+  if (!subscription || !subscription.endpoint) {
+    return res.status(400).json({ error: "Invalid subscription data" });
+  }
+
+  const subs = readPushSubscriptions();
+  const existingIdx = subs.findIndex(s => s.subscription && s.subscription.endpoint === subscription.endpoint);
+  
+  const record = {
+    id: "sub_" + Date.now(),
+    subscription,
+    userRole: userRole || "admin",
+    deviceName: deviceName || "Browser",
+    updatedAt: new Date().toISOString()
+  };
+
+  if (existingIdx !== -1) {
+    subs[existingIdx] = record;
+  } else {
+    subs.push(record);
+  }
+
+  writePushSubscriptions(subs);
+  res.json({ success: true, count: subs.length });
+});
+
+// DELETE Push Subscription
+app.delete('/api/push-subscriptions', (req, res) => {
+  const { endpoint } = req.body;
+  let subs = readPushSubscriptions();
+  subs = subs.filter(s => s.subscription && s.subscription.endpoint !== endpoint);
+  writePushSubscriptions(subs);
+  res.json({ success: true, count: subs.length });
+});
+
+// POST Send Test Push Notification
+app.post('/api/test-push', async (req, res) => {
+  const subs = readPushSubscriptions();
+  if (subs.length === 0) {
+    return res.status(400).json({ error: "ยังไม่มีอุปกรณ์แอดมินลงทะเบียนรับแจ้งเตือน" });
+  }
+
+  const payload = {
+    title: "🔔 ทดสอบการแจ้งเตือนแอดมิน (Web Push)",
+    body: "ระบบพร้อมส่งแจ้งเตือนคำขอและรองรับการกดอนุมัติแล้ว!",
+    icon: "/favicon.svg",
+    badge: "/favicon.svg",
+    data: { type: "test", time: Date.now() },
+    actions: [
+      { action: "view", title: "🔍 เปิดหน้าระบบ" }
+    ]
+  };
+
+  await sendPushToAdmins(payload);
+  res.json({ success: true, sentToCount: subs.length });
+});
+
+// POST Trigger Push Notification for new request
+app.post('/api/notify-admins', async (req, res) => {
+  const { type, id, title, booker, item, date, room, qty, unit } = req.body;
+  
+  let pushTitle = "🔔 มีคำขอใหม่รอการอนุมัติ";
+  let pushBody = "มีรายการคำขอใหม่จากนักเรียนในระบบ";
+
+  if (type === "booking") {
+    pushTitle = "📅 คำขอจองห้องแล็บใหม่!";
+    pushBody = `${booker || 'ผู้ใช้'} ขอจอง ${room || 'ห้องแล็บ'} วันที่ ${date || '-'}`;
+  } else if (type === "borrow") {
+    pushTitle = "🔬 คำขอยืมสารเคมี/อุปกรณ์ใหม่!";
+    pushBody = `${booker || 'ผู้ใช้'} ขอยืม ${item || 'พัสดุ'} (${qty || 1} ${unit || 'ชิ้น'})`;
+  }
+
+  const payload = {
+    title: pushTitle,
+    body: pushBody,
+    icon: "/favicon.svg",
+    badge: "/favicon.svg",
+    tag: `request-${type}-${id || Date.now()}`,
+    data: {
+      id: id,
+      type: type,
+      url: "/#requests"
+    },
+    actions: [
+      { action: "approve", title: "✅ อนุมัติทันที" },
+      { action: "view", title: "🔍 ดูรายละเอียด" }
+    ]
+  };
+
+  await sendPushToAdmins(payload);
+  res.json({ success: true });
+});
+
+// POST Quick-Approve directly from Push Notification action button
+app.post('/api/quick-approve', (req, res) => {
+  const { id, type } = req.body;
+  if (!id) {
+    return res.status(400).json({ error: "Missing request ID" });
+  }
+
+  if (type === "booking") {
+    const bookings = readBookings();
+    const bkIndex = bookings.findIndex(b => b.id === id);
+    if (bkIndex === -1) {
+      return res.status(404).json({ error: "ไม่พบข้อมูลคำขอจองห้องแล็บ" });
+    }
+    if (bookings[bkIndex].status === "approved") {
+      return res.json({ success: true, message: "คำขอนี้ได้รับการอนุมัติไปแล้ว" });
+    }
+
+    bookings[bkIndex].status = "approved";
+    bookings[bkIndex].approvedAt = new Date().toISOString();
+    writeBookings(bookings);
+
+    // Add Audit log
+    const logs = readAuditLogs();
+    logs.unshift({
+      id: "log-" + Date.now(),
+      action: "QUICK_APPROVE_BOOKING",
+      details: `อนุมัติการจองห้อง ${bookings[bkIndex].room} ของ ${bookings[bkIndex].bookerName} ผ่าน Push Notification`,
+      timestamp: new Date().toISOString(),
+      user: "Admin (Push Action)"
+    });
+    writeAuditLogs(logs);
+
+    return res.json({ 
+      success: true, 
+      message: `อนุมัติการจองห้อง "${bookings[bkIndex].room}" เรียบร้อยแล้ว!` 
+    });
+  } 
+  else if (type === "borrow") {
+    const transactions = readTransactions();
+    const txIndex = transactions.findIndex(t => t.id === id);
+    if (txIndex === -1) {
+      return res.status(404).json({ error: "ไม่พบรายการคำขอยืม" });
+    }
+    if (transactions[txIndex].status === "borrowed" || transactions[txIndex].status === "approved") {
+      return res.json({ success: true, message: "คำขอนี้ได้รับการอนุมัติไปแล้ว" });
+    }
+
+    const tx = transactions[txIndex];
+    const items = readDatabase();
+    const itemIndex = items.findIndex(i => i.code === tx.itemCode);
+
+    if (itemIndex !== -1) {
+      const item = items[itemIndex];
+      if (item.qty < (tx.qty || 1)) {
+        return res.status(400).json({ error: `สต็อกคงเหลือไม่พอ (${item.qty} ${item.unit || ''})` });
+      }
+      items[itemIndex].qty = item.qty - (tx.qty || 1);
+      writeDatabase(items);
+    }
+
+    transactions[txIndex].status = "borrowed";
+    transactions[txIndex].approvedAt = new Date().toISOString();
+    writeTransactions(transactions);
+
+    // Add Audit log
+    const logs = readAuditLogs();
+    logs.unshift({
+      id: "log-" + Date.now(),
+      action: "QUICK_APPROVE_BORROW",
+      details: `อนุมัติคำขอยืม ${tx.itemName} จำนวน ${tx.qty} โดย ${tx.borrower} ผ่าน Push Notification`,
+      timestamp: new Date().toISOString(),
+      user: "Admin (Push Action)"
+    });
+    writeAuditLogs(logs);
+
+    return res.json({ 
+      success: true, 
+      message: `อนุมัติคำขอยืม "${tx.itemName}" และตัดสต็อกเรียบร้อยแล้ว!` 
+    });
+  }
+
+  res.status(400).json({ error: "Unknown request type" });
 });
 
 // DANGER ZONE (Clear Workspace)
