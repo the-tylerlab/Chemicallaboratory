@@ -147,10 +147,14 @@ button {
 
 .main-content {
   flex: 1;
+  min-width: 0;
+  max-width: calc(100% - var(--sidebar-width));
+  width: calc(100% - var(--sidebar-width));
   margin-left: var(--sidebar-width);
   padding: 32px 32px 96px 32px;
   min-height: 100vh;
-  transition: margin-left 0.28s cubic-bezier(0.2, 0, 0, 1);
+  box-sizing: border-box;
+  transition: margin-left 0.28s cubic-bezier(0.2, 0, 0, 1), max-width 0.28s cubic-bezier(0.2, 0, 0, 1), width 0.28s cubic-bezier(0.2, 0, 0, 1);
   will-change: margin-left;
 }
 
@@ -160,6 +164,8 @@ button {
 
 .app-container.sidebar-collapsed .main-content {
   margin-left: 72px;
+  max-width: calc(100% - 72px);
+  width: calc(100% - 72px);
 }
 
 /* Directional Smooth Slide for Text: Slides left on collapse, slides right on expand */
@@ -635,57 +641,6 @@ button {
   color: var(--primary-purple);
 }
 
-/* Main Content Area */
-.main-content {
-  flex: 1;
-  margin-left: var(--sidebar-width);
-  padding: 32px 32px 96px 32px;
-  min-height: 100vh;
-  transition: var(--transition-normal);
-}
-
-/* Top Banner Google Apps Script imitation style */
-.banner-gas {
-  background-color: #eff6ff;
-  border-bottom: 1px solid #bfdbfe;
-  padding: 10px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 13px;
-  color: #1e3a8a;
-  border-radius: var(--border-radius-md);
-  margin-bottom: 24px;
-}
-
-.banner-gas-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.banner-gas-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.banner-gas-link {
-  color: #2563eb;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.banner-gas-link:hover {
-  text-decoration: underline;
-}
-
-.banner-gas-close {
-  cursor: pointer;
-  font-size: 16px;
-  opacity: 0.7;
-}
-
 /* Header Content Title */
 .content-header {
   margin-bottom: 28px;
@@ -709,6 +664,9 @@ button {
 .panel {
   display: none;
   animation: fadeIn 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .panel.active {
@@ -728,6 +686,9 @@ button {
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   margin-bottom: 28px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .stat-card {
