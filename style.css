@@ -7066,10 +7066,14 @@ a[href^="tel"]:visited {
 }
 
 /* 2. Today's Lab Status: Full-Width 4-Column Grid */
+.today-lab-status-card {
+  padding: 16px 20px !important;
+}
+
 .today-labs-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 10px;
   padding-right: 0;
   width: 100%;
   box-sizing: border-box;
@@ -7079,12 +7083,12 @@ a[href^="tel"]:visited {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 12px 14px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
   background: #f8fafc;
   transition: all 0.2s ease;
-  gap: 8px;
+  gap: 6px;
 }
 
 .today-lab-item:hover {
@@ -7095,13 +7099,13 @@ a[href^="tel"]:visited {
 
 .today-lab-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 6px;
 }
 
 .today-lab-name {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-main);
   white-space: nowrap;
@@ -7110,7 +7114,7 @@ a[href^="tel"]:visited {
 }
 
 .today-lab-building {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -7120,10 +7124,10 @@ a[href^="tel"]:visited {
 .today-lab-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 11px;
+  gap: 3px;
+  padding: 1.5px 6px;
+  border-radius: 5px;
+  font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -7148,14 +7152,14 @@ a[href^="tel"]:visited {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  font-size: 11px;
+  font-size: 10.5px;
   border-top: 1px dashed #e2e8f0;
-  padding-top: 6px;
+  padding-top: 4px;
 }
 
 .today-lab-detail {
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 10.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -7165,10 +7169,10 @@ a[href^="tel"]:visited {
   background: var(--bg-card);
   border: 1px solid #cbd5e1;
   color: var(--primary-color);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 6px;
+  padding: 2px 8px;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
