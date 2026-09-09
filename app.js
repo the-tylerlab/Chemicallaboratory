@@ -15231,6 +15231,18 @@ function renderAnnouncementTicker() {
   `).join("");
 }
 
+function updateAnnouncementToggleLabel(isChecked, labelId) {
+  const label = document.getElementById(labelId);
+  if (!label) return;
+  if (isChecked) {
+    label.innerText = "เปิดใช้งาน";
+    label.style.color = "#1e293b";
+  } else {
+    label.innerText = "ปิดใช้งาน";
+    label.style.color = "#64748b";
+  }
+}
+
 function initAdminAnnouncementForm() {
   const form = document.getElementById("adminAnnouncementForm");
   const toggle = document.getElementById("adminAnnouncementEnabled");
@@ -15239,6 +15251,7 @@ function initAdminAnnouncementForm() {
 
   const data = getAnnouncementData();
   toggle.checked = data.enabled !== false;
+  updateAnnouncementToggleLabel(toggle.checked, "adminAnnouncementStatusText");
   textarea.value = data.text || DEFAULT_ANNOUNCEMENTS.join(" | \n");
 }
 
@@ -15289,7 +15302,10 @@ function openAnnouncementModal() {
   if (!modal) return;
 
   const data = getAnnouncementData();
-  if (toggle) toggle.checked = data.enabled !== false;
+  if (toggle) {
+    toggle.checked = data.enabled !== false;
+    updateAnnouncementToggleLabel(toggle.checked, "modalAnnouncementStatusText");
+  }
   if (textarea) textarea.value = data.text || DEFAULT_ANNOUNCEMENTS.join(" | \n");
 
   modal.classList.add("active");
@@ -15351,6 +15367,7 @@ function saveModalAnnouncement(e) {
   showToast("บันทึกการตั้งค่าประกาศหน้าแรกเรียบร้อยแล้ว", "success");
 }
 
+window.updateAnnouncementToggleLabel = updateAnnouncementToggleLabel;
 window.openAnnouncementModal = openAnnouncementModal;
 window.closeAnnouncementModal = closeAnnouncementModal;
 window.saveModalAnnouncement = saveModalAnnouncement;
