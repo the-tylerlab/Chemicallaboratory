@@ -3,13 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <script>
-    // Forcefully unregister service workers to disable PWA/Offline caching
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) { registration.unregister(); }
-      });
-    }
-
     if (window.location.search.includes('hardreset=1')) {
       localStorage.clear();
       sessionStorage.clear();
@@ -29,12 +22,27 @@
   <meta http-equiv="Expires" content="0">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- PWA Disabled -->
   <title>SciPortal - Science Laboratory & Resource Portal</title>
+  
   <!-- SEO & Meta -->
   <meta name="description" content="SciPortal: แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ เชื่อมต่อทุกข้อมูลให้เป็นระบบ">
-  <!-- Favicon (ไอคอนแท็บเบราว์เซอร์) -->
+  
+  <!-- Favicon (Browser Tab Icon) -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  
+  <!-- Apple / iOS Home Screen Icons & PWA Settings -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512x512.png">
+  <meta name="apple-mobile-web-app-title" content="TylerLab">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#4b36cc">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
