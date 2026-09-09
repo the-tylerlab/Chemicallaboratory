@@ -253,6 +253,19 @@
           <p>ภาพรวมสถานะคลังพัสดุและสารเคมี</p>
         </div>
 
+        <!-- Top Announcement Ticker Bar (Public Only) -->
+        <div class="public-only-section announcement-ticker-bar" id="announcementTickerBar" style="margin-bottom: 22px;">
+          <div class="ticker-badge">
+            <i data-lucide="megaphone" style="width: 14px; height: 14px;"></i>
+            <span>ประกาศ & ความปลอดภัย</span>
+          </div>
+          <div class="ticker-marquee-wrapper">
+            <div class="ticker-marquee-track" id="tickerMarqueeTrack">
+              <!-- Dynamically populated from admin announcement settings -->
+            </div>
+          </div>
+        </div>
+
         <!-- Stat Cards Grid -->
         <div class="stat-grid">
           <div class="stat-card blue" id="statCardTotal" onclick="navigateToPanel('all-items', 'all', 'all')">
@@ -304,7 +317,7 @@
             <div class="card-header">
               <h2 class="card-title">เมนูด่วน</h2>
             </div>
-            <div class="quick-menu-list" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+            <div class="quick-menu-list" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
               <button class="quick-btn blue" id="quickBtnLabBooking" style="margin: 0; flex: 1;">
                 <div class="quick-btn-icon">
                   <i data-lucide="calendar"></i>
@@ -402,7 +415,7 @@
                 <span class="badge badge-purple" id="categoryBreakdownCount" style="padding: 2px 8px; font-size: 12.5px;">0 รายการ</span>
               </h2>
             </div>
-            <div id="categoryBreakdownContainer" style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 4px 4px; justify-content: space-around;">
+            <div id="categoryBreakdownContainer" style="flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 0; justify-content: space-between;">
               <!-- Dynamically populated -->
             </div>
           </div>
@@ -418,36 +431,20 @@
           </div>
         </div>
 
-        <!-- Bottom Public Section (Public Only) -->
-        <div class="public-only-section dashboard-public-section" id="dashboardPublicSection">
-          <!-- Announcement Ticker Bar (Non-clickable) -->
-          <div class="announcement-ticker-bar" id="announcementTickerBar">
-            <div class="ticker-badge">
-              <i data-lucide="megaphone" style="width: 14px; height: 14px;"></i>
-              <span>ประกาศ & ความปลอดภัย</span>
-            </div>
-            <div class="ticker-marquee-wrapper">
-              <div class="ticker-marquee-track" id="tickerMarqueeTrack">
-                <!-- Dynamically populated from admin announcement settings -->
-              </div>
-            </div>
+        <!-- Today's Lab Status Widget (Full Width 4-Column Grid, Public Only) -->
+        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 24px; width: 100%; box-sizing: border-box;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="door-open" style="color: var(--primary-color); width: 18px; height: 18px;"></i>
+              <span>สถานะห้องปฏิบัติการวันนี้</span>
+              <span class="badge badge-green" id="todayLabAvailableBadge" style="font-size: 11px;">กำลังโหลด...</span>
+            </h2>
+            <a href="#" onclick="navigateToPanel('lab-booking'); return false;" class="card-link" style="font-size: 12.5px; font-weight: 600; color: var(--primary-color);">
+              จองห้องแล็บ <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+            </a>
           </div>
-
-          <!-- Today's Lab Status Widget (Full Width 4-Column Grid) -->
-          <div class="card-container today-lab-status-card" id="todayLabStatusCard">
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="door-open" style="color: var(--primary-color); width: 18px; height: 18px;"></i>
-                <span>สถานะห้องปฏิบัติการวันนี้</span>
-                <span class="badge badge-green" id="todayLabAvailableBadge" style="font-size: 11px;">กำลังโหลด...</span>
-              </h2>
-              <a href="#" onclick="navigateToPanel('lab-booking'); return false;" class="card-link" style="font-size: 12.5px; font-weight: 600; color: var(--primary-color);">
-                จองห้องแล็บ <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
-              </a>
-            </div>
-            <div class="today-labs-grid" id="todayLabsGrid">
-              <!-- Populated dynamically by renderTodayLabStatus() -->
-            </div>
+          <div class="today-labs-grid" id="todayLabsGrid">
+            <!-- Populated dynamically by renderTodayLabStatus() -->
           </div>
         </div>
       </section>
