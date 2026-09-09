@@ -7040,7 +7040,7 @@ a[href^="tel"]:visited {
   gap: 36px;
   white-space: nowrap;
   width: max-content;
-  animation: tickerContinuousScroll 35s linear infinite;
+  animation: tickerContinuousScroll 65s linear infinite;
 }
 
 @keyframes tickerContinuousScroll {
@@ -7226,7 +7226,7 @@ body.admin-logged-in .public-only-section {
     gap: 28px;
     white-space: nowrap !important;
     width: max-content !important;
-    animation: tickerContinuousScroll 30s linear infinite !important;
+    animation: tickerContinuousScroll 60s linear infinite !important;
   }
 }
 
