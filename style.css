@@ -6750,3 +6750,14 @@ body.hide-col-cas .col-cas { display: none !important; }
   box-shadow: 0 4px 14px rgba(124, 58, 237, 0.08);
 }
 
+/* Prevent iOS Safari / Mobile browsers from turning phone numbers blue */
+a[href^="tel"],
+a[href^="tel"]:hover,
+a[href^="tel"]:active,
+a[href^="tel"]:visited {
+  color: inherit !important;
+  text-decoration: none !important;
+  font-weight: inherit !important;
+}
+
+
