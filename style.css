@@ -7265,6 +7265,8 @@ body.admin-logged-in .public-only-section {
     width: max-content !important;
     animation: tickerContinuousScroll 60s linear infinite !important;
   }
+}
+
 /* Minimalist Modern Toggle Switch (Apple / Modern Web standard) */
 .toggle-switch-wrapper {
   display: inline-flex;
