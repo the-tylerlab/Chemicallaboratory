@@ -6196,6 +6196,10 @@ function updateLoginUI() {
   const btnTickerAdminEdit = document.getElementById("btnTickerAdminEdit");
   if (btnTickerAdminEdit) {
     btnTickerAdminEdit.style.display = isBackoffice ? "inline-flex" : "none";
+    btnTickerAdminEdit.onclick = function(e) {
+      if (e) e.stopPropagation();
+      openAnnouncementModal();
+    };
   }
 
   if (typeof renderTodayLabStatus === "function" && !isBackoffice) renderTodayLabStatus();
@@ -15259,13 +15263,17 @@ function openAnnouncementModal() {
   if (toggle) toggle.checked = data.enabled !== false;
   if (textarea) textarea.value = data.text || DEFAULT_ANNOUNCEMENTS.join(" | \n");
 
+  modal.classList.add("active");
   modal.style.display = "flex";
   if (window.lucide) lucide.createIcons();
 }
 
 function closeAnnouncementModal() {
   const modal = document.getElementById("modalAnnouncementEdit");
-  if (modal) modal.style.display = "none";
+  if (modal) {
+    modal.classList.remove("active");
+    modal.style.display = "none";
+  }
 }
 
 function applyModalAnnouncementPreset(presetKey) {
@@ -15313,6 +15321,13 @@ function saveModalAnnouncement(e) {
   closeAnnouncementModal();
   showToast("บันทึกการตั้งค่าประกาศหน้าแรกเรียบร้อยแล้ว", "success");
 }
+
+window.openAnnouncementModal = openAnnouncementModal;
+window.closeAnnouncementModal = closeAnnouncementModal;
+window.saveModalAnnouncement = saveModalAnnouncement;
+window.applyModalAnnouncementPreset = applyModalAnnouncementPreset;
+window.saveAdminAnnouncement = saveAdminAnnouncement;
+window.applyAnnouncementPreset = applyAnnouncementPreset;
 
 function renderTodayLabStatus() {
   const container = document.getElementById("todayLabsGrid");

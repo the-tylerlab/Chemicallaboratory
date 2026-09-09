@@ -7038,6 +7038,10 @@ a[href^="tel"]:visited {
   white-space: nowrap;
   flex-shrink: 0;
   font-family: inherit;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto !important;
+  user-select: none;
 }
 
 .btn-ticker-admin-edit:hover {
