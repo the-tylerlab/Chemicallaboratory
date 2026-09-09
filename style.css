@@ -6780,14 +6780,15 @@ a[href^="tel"]:visited {
 }
 
 .help-accordion-header {
-  padding: 14px 16px;
+  padding: 13px 18px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13.5px;
   color: #1e293b;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   list-style: none;
   user-select: none;
   background: #f8fafc;
@@ -6810,6 +6811,7 @@ a[href^="tel"]:visited {
 .help-accordion-chevron {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
   color: #64748b;
   transition: transform 0.25s ease;
 }
@@ -6820,12 +6822,30 @@ a[href^="tel"]:visited {
 }
 
 .help-accordion-body {
-  padding: 16px;
+  padding: 18px 20px;
   background: #ffffff;
   font-size: 13.5px;
   color: #334155;
   line-height: 1.6;
 }
+
+.help-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.help-modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.help-modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.help-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 
 
 
