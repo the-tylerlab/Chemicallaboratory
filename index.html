@@ -313,12 +313,12 @@
         <!-- Dashboard Split Layout -->
         <div class="dashboard-grid">
           <!-- 1. Quick Menu Panel -->
-          <div class="card-container" id="quickMenuCard" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+          <div class="card-container" id="quickMenuCard">
             <div class="card-header">
               <h2 class="card-title">เมนูด่วน</h2>
             </div>
-            <div class="quick-menu-list" style="flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 10px;">
-              <button class="quick-btn blue" id="quickBtnLabBooking" style="margin: 0; flex: 1;">
+            <div class="quick-menu-list">
+              <button class="quick-btn blue" id="quickBtnLabBooking">
                 <div class="quick-btn-icon">
                   <i data-lucide="calendar"></i>
                 </div>
@@ -328,7 +328,7 @@
                   </span>
                 </div>
               </button>
-              <button class="quick-btn purple" id="quickBtnBorrowReturn" style="margin: 0; flex: 1;">
+              <button class="quick-btn purple" id="quickBtnBorrowReturn">
                 <div class="quick-btn-icon">
                   <i data-lucide="repeat"></i>
                 </div>
@@ -338,7 +338,7 @@
                   </span>
                 </div>
               </button>
-              <button class="quick-btn green" id="quickBtnAddItem" style="margin: 0; flex: 1; display: none;">
+              <button class="quick-btn green" id="quickBtnAddItem" style="display: none;">
                 <div class="quick-btn-icon">
                   <i data-lucide="plus-circle"></i>
                 </div>
@@ -408,14 +408,14 @@
           </div>
 
           <!-- 3. Category Breakdown Panel -->
-          <div class="card-container" id="categoryBreakdownCard" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+          <div class="card-container" id="categoryBreakdownCard">
             <div class="card-header">
               <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
                 <span>สัดส่วนหมวดหมู่พัสดุ</span>
                 <span class="badge badge-purple" id="categoryBreakdownCount" style="padding: 2px 8px; font-size: 12.5px;">0 รายการ</span>
               </h2>
             </div>
-            <div id="categoryBreakdownContainer" style="flex: 1; display: flex; flex-direction: column; gap: 8px; padding: 0; justify-content: space-between;">
+            <div id="categoryBreakdownContainer">
               <!-- Dynamically populated -->
             </div>
           </div>
