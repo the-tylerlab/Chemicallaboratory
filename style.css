@@ -4447,9 +4447,33 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .dashboard-grid.student-mode #quickMenuCard,
 .dashboard-grid.student-mode #categoryBreakdownCard {
-  height: 400px !important;
+  height: 230px !important;
   box-sizing: border-box;
   overflow: hidden;
+  padding: 16px 20px !important;
+}
+
+.dashboard-grid.student-mode .quick-btn {
+  padding: 8px 16px !important;
+  gap: 14px !important;
+  border-radius: 10px !important;
+}
+
+.dashboard-grid.student-mode .quick-btn-icon {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+}
+
+.dashboard-grid.student-mode .quick-btn-icon svg,
+.dashboard-grid.student-mode .quick-btn-icon i {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.dashboard-grid.student-mode .quick-btn-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
 }
 
 /* Ensure inner scroll areas fit nicely in Student Mode */
@@ -4468,9 +4492,11 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .dashboard-grid.student-mode #categoryBreakdownContainer {
   flex: 1;
-  max-height: 280px !important;
-  overflow-y: auto;
-  padding-right: 4px;
+  max-height: none !important;
+  overflow: hidden;
+  padding: 0;
+  gap: 6px !important;
+  justify-content: space-between;
 }
 
 /* Collapsible Pending Request Item styles */
