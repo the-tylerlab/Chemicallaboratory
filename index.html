@@ -2431,10 +2431,10 @@
               </div>
               <label class="toggle-switch-wrapper" for="adminAnnouncementEnabled">
                 <div class="toggle-switch">
-                  <input type="checkbox" id="adminAnnouncementEnabled" checked>
+                  <input type="checkbox" id="adminAnnouncementEnabled" checked onchange="updateAnnouncementToggleLabel(this.checked, 'adminAnnouncementStatusText')">
                   <span class="toggle-slider"></span>
                 </div>
-                <span style="font-size: 13.5px; font-weight: 600; color: #1e293b;">เปิดใช้งาน</span>
+                <span id="adminAnnouncementStatusText" style="font-size: 13.5px; font-weight: 600; color: #1e293b; min-width: 60px;">เปิดใช้งาน</span>
               </label>
             </div>
 
@@ -2679,10 +2679,10 @@
             </div>
             <label class="toggle-switch-wrapper" for="modalAnnouncementEnabled">
               <div class="toggle-switch">
-                <input type="checkbox" id="modalAnnouncementEnabled" checked>
+                <input type="checkbox" id="modalAnnouncementEnabled" checked onchange="updateAnnouncementToggleLabel(this.checked, 'modalAnnouncementStatusText')">
                 <span class="toggle-slider"></span>
               </div>
-              <span style="font-size: 13px; font-weight: 600; color: #1e293b;">เปิดใช้งาน</span>
+              <span id="modalAnnouncementStatusText" style="font-size: 13px; font-weight: 600; color: #1e293b; min-width: 60px;">เปิดใช้งาน</span>
             </label>
           </div>
 
