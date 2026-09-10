@@ -353,6 +353,26 @@ function setupRealtimeSubscriptions() {
           localStorage.setItem("lab_annual_budget", annualBudget.toString());
           if (typeof updateBudgetDisplay === "function") updateBudgetDisplay();
         }
+      } else if (key === 'lab_announcement_settings') {
+        const { data } = await supabase.from("system").select("value").eq("key", "lab_announcement_settings").maybeSingle();
+        if (data && data.value) {
+          localStorage.setItem("lab_announcement_settings", JSON.stringify(data.value));
+          if (typeof renderAnnouncementTicker === "function") renderAnnouncementTicker();
+          const toggle = document.getElementById("modalAnnouncementEnabled");
+          const textarea = document.getElementById("modalAnnouncementText");
+          const adminToggle = document.getElementById("adminAnnouncementEnabled");
+          const adminTextarea = document.getElementById("adminAnnouncementText");
+          if (toggle) {
+            toggle.checked = data.value.enabled !== false;
+            if (typeof updateAnnouncementToggleLabel === "function") updateAnnouncementToggleLabel(toggle.checked, "modalAnnouncementStatusText");
+          }
+          if (textarea) textarea.value = data.value.text || "";
+          if (adminToggle) {
+            adminToggle.checked = data.value.enabled !== false;
+            if (typeof updateAnnouncementToggleLabel === "function") updateAnnouncementToggleLabel(adminToggle.checked, "adminAnnouncementStatusText");
+          }
+          if (adminTextarea) adminTextarea.value = data.value.text || "";
+        }
       }
     })
     .subscribe();
@@ -382,6 +402,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Load activity logs
   await loadActivityLogs();
+  
+  // Load announcements from cloud
+  await loadAnnouncementSettings();
   
   // Load feedbacks & issues
   loadFeedbacksFromStorage();
@@ -15255,6 +15278,20 @@ function initAdminAnnouncementForm() {
   textarea.value = data.text || DEFAULT_ANNOUNCEMENTS.join(" | \n");
 }
 
+async function loadAnnouncementSettings() {
+  if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
+    try {
+      const { data, error } = await supabase.from("system").select("value").eq("key", "lab_announcement_settings").maybeSingle();
+      if (data && data.value) {
+        localStorage.setItem("lab_announcement_settings", JSON.stringify(data.value));
+      }
+    } catch (e) {
+      console.log("Announcement settings cloud load note:", e);
+    }
+  }
+  renderAnnouncementTicker();
+}
+
 function saveAdminAnnouncement(e) {
   if (e) e.preventDefault();
   const toggle = document.getElementById("adminAnnouncementEnabled");
@@ -15271,7 +15308,7 @@ function saveAdminAnnouncement(e) {
   // Sync to backend if Supabase is online
   if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
     try {
-      supabase.from("system_settings").upsert({
+      supabase.from("system").upsert({
         key: "lab_announcement_settings",
         value: newSettings,
         updated_at: new Date().toISOString()
@@ -15354,7 +15391,7 @@ function saveModalAnnouncement(e) {
   // Sync to Supabase if available
   if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
     try {
-      supabase.from("system_settings").upsert({
+      supabase.from("system").upsert({
         key: "lab_announcement_settings",
         value: newSettings,
         updated_at: new Date().toISOString()
