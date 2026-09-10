@@ -4579,6 +4579,47 @@ input[type="date"]::-webkit-date-and-time-value {
   overflow-y: auto;
 }
 
+.dashboard-grid.admin-mode #categoryBreakdownCard {
+  padding: 18px 22px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box;
+}
+
+.dashboard-grid.admin-mode #categoryBreakdownContainer {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-around !important;
+  gap: 12px !important;
+  flex: 1;
+}
+
+.dashboard-grid.admin-mode #unifiedAlertsCard {
+  padding: 18px 22px !important;
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.dashboard-grid.admin-mode #unifiedAlertsCard .alert-tab-content {
+  max-height: 200px !important;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dashboard-grid.admin-mode #recentItemsCard {
+  padding: 18px 22px !important;
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.dashboard-grid.admin-mode #recentItemsContainer {
+  max-height: 220px !important;
+  overflow-y: auto;
+  flex: 1;
+}
+
 /* Collapsible Pending Request Item styles */
 .chevron-icon {
   display: none !important;
