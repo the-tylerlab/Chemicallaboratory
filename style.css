@@ -4522,6 +4522,63 @@ input[type="date"]::-webkit-date-and-time-value {
   align-content: center;
 }
 
+/* Dashboard Locked / Proportional Sizes for Admin Mode */
+.dashboard-grid.admin-mode #quickMenuCard {
+  padding: 18px 22px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  box-sizing: border-box;
+}
+
+.dashboard-grid.admin-mode #quickMenuCard .quick-menu-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  flex: 1;
+}
+
+.dashboard-grid.admin-mode #quickMenuCard .quick-btn {
+  padding: 12px 18px !important;
+  gap: 14px !important;
+  border-radius: 12px !important;
+  flex: 1;
+  min-height: 52px;
+  box-sizing: border-box;
+  margin: 0 !important;
+}
+
+.dashboard-grid.admin-mode #quickMenuCard .quick-btn-icon {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 10px !important;
+  flex-shrink: 0;
+}
+
+.dashboard-grid.admin-mode #quickMenuCard .quick-btn-icon svg,
+.dashboard-grid.admin-mode #quickMenuCard .quick-btn-icon i {
+  width: 22px !important;
+  height: 22px !important;
+}
+
+.dashboard-grid.admin-mode #quickMenuCard .quick-btn-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.35;
+}
+
+.dashboard-grid.admin-mode #pendingRequestsCard {
+  padding: 18px 22px !important;
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.dashboard-grid.admin-mode #pendingRequestsContainer {
+  max-height: 235px !important;
+  overflow-y: auto;
+}
+
 /* Collapsible Pending Request Item styles */
 .chevron-icon {
   display: none !important;
