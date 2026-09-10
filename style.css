@@ -4534,16 +4534,16 @@ input[type="date"]::-webkit-date-and-time-value {
 .dashboard-grid.admin-mode #quickMenuCard .quick-menu-list {
   display: flex !important;
   flex-direction: column !important;
-  gap: 10px !important;
+  gap: 12px !important;
   flex: 1;
 }
 
 .dashboard-grid.admin-mode #quickMenuCard .quick-btn {
-  padding: 12px 18px !important;
+  padding: 14px 18px !important;
   gap: 14px !important;
   border-radius: 12px !important;
   flex: 1;
-  min-height: 52px;
+  min-height: 56px;
   box-sizing: border-box;
   margin: 0 !important;
 }
@@ -4575,8 +4575,9 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .dashboard-grid.admin-mode #pendingRequestsContainer {
-  max-height: 235px !important;
+  max-height: 310px !important;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .dashboard-grid.admin-mode #categoryBreakdownCard {
