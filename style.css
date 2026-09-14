@@ -7108,6 +7108,7 @@ a[href^="tel"]:visited {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ticker-badge {
@@ -7116,12 +7117,50 @@ a[href^="tel"]:visited {
   gap: 6px;
   background: #ffedd5;
   color: #c2410c;
+  border: 1px solid #fed7aa;
   padding: 5px 12px;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
   flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+/* Ticker Color Themes */
+.announcement-ticker-bar.ticker-theme-orange .ticker-badge,
+.ticker-preview-bar.ticker-theme-orange .ticker-badge {
+  background: #ffedd5;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+.announcement-ticker-bar.ticker-theme-blue .ticker-badge,
+.ticker-preview-bar.ticker-theme-blue .ticker-badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+.announcement-ticker-bar.ticker-theme-green .ticker-badge,
+.ticker-preview-bar.ticker-theme-green .ticker-badge {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+.announcement-ticker-bar.ticker-theme-purple .ticker-badge,
+.ticker-preview-bar.ticker-theme-purple .ticker-badge {
+  background: #f3e8ff;
+  color: #7e22ce;
+  border-color: #e9d5ff;
+}
+
+.announcement-ticker-bar.ticker-theme-red .ticker-badge,
+.ticker-preview-bar.ticker-theme-red .ticker-badge {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
 }
 
 .btn-ticker-admin-edit {
@@ -7165,19 +7204,24 @@ body.admin-logged-in .btn-ticker-admin-edit,
   position: relative;
   mask-image: linear-gradient(to right, transparent, black 1.5%, black 98.5%, transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, black 1.5%, black 98.5%, transparent);
-  pointer-events: none;
+  pointer-events: auto;
   user-select: none;
 }
 
 .ticker-marquee-track {
   display: inline-flex;
   align-items: center;
-  gap: 36px;
+  gap: var(--ticker-gap, 36px);
   white-space: nowrap;
   width: max-content;
-  animation: tickerContinuousScroll 65s linear infinite;
+  animation: tickerContinuousScroll var(--ticker-duration, 55s) linear infinite;
   transform: translate3d(0, 0, 0);
   will-change: transform;
+}
+
+.announcement-ticker-bar.ticker-pause-hover:hover .ticker-marquee-track,
+.ticker-preview-bar.ticker-pause-hover:hover .ticker-marquee-track {
+  animation-play-state: paused;
 }
 
 @keyframes tickerContinuousScroll {
@@ -7200,6 +7244,97 @@ body.admin-logged-in .btn-ticker-admin-edit,
   background: #cbd5e1;
   border-radius: 50%;
   display: inline-block;
+}
+
+/* Ticker Admin & Modal Customizer Controls */
+.ticker-theme-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ticker-theme-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.ticker-theme-chip:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.ticker-theme-chip.active {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  color: #0369a1;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px #0284c7;
+}
+
+.ticker-theme-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ticker-slider-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ticker-slider-control input[type="range"] {
+  flex: 1;
+  cursor: pointer;
+  accent-color: #0284c7;
+  height: 6px;
+}
+
+.ticker-slider-val {
+  min-width: 54px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f172a;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.ticker-preview-container {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 4px;
+}
+
+.ticker-preview-bar {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 6px 12px;
+  gap: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* 2. Today's Lab Status: Full-Width 4-Column Grid */

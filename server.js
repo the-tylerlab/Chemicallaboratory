@@ -26,6 +26,7 @@ const LAYOUTS_FILE = path.join(DB_DIR, 'layouts.json');
 const FEEDBACKS_FILE = path.join(DB_DIR, 'feedbacks.json');
 const PUSH_SUBSCRIPTIONS_FILE = path.join(DB_DIR, 'push_subscriptions.json');
 const VAPID_KEYS_FILE = path.join(DB_DIR, 'vapid_keys.json');
+const ANNOUNCEMENTS_FILE = path.join(DB_DIR, 'announcements.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DB_DIR)) {
@@ -400,6 +401,44 @@ function writeFeedbacks(feedbacks) {
   }
 }
 
+// Helper: Read announcements
+function readAnnouncements() {
+  const defaultAnnouncements = {
+    enabled: true,
+    text: "🛡️ การใช้อุปกรณ์คุ้มครองความปลอดภัย (PPE) ต้องสวมเสื้อกาวน์ แว่นตานิรภัย และรองเท้าหุ้มส้นตลอดเวลาที่ปฏิบัติการ | 💨 การทดลองที่มีไอระเหยหรือกรดเข้มข้น กรุณาทำในตู้ดูดควัน (Fume Hood) และเปิดระบบระบายอากาศก่อนเริ่มงาน | 📞 เหตุฉุกเฉินและอุบัติเหตุ ติดต่อแอดมิน (ม.วงศกร) 081-4187736 หรือแจ้งผ่านเมนู 'แจ้งปัญหา' | 📖 ศูนย์ข้อมูลและความปลอดภัย ศึกษากฎระเบียบ SHECU และเอกสาร SDS ได้ที่เมนูศูนย์ข้อมูล",
+    badgeText: "📢 ประกาศ & ความปลอดภัย",
+    speed: 55,
+    gap: 36,
+    theme: "orange",
+    pauseOnHover: true,
+    updatedAt: new Date().toISOString()
+  };
+
+  try {
+    if (!fs.existsSync(ANNOUNCEMENTS_FILE)) {
+      fs.writeFileSync(ANNOUNCEMENTS_FILE, JSON.stringify(defaultAnnouncements, null, 2), 'utf-8');
+      return defaultAnnouncements;
+    }
+    const data = fs.readFileSync(ANNOUNCEMENTS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return defaultAnnouncements;
+  }
+}
+
+function writeAnnouncements(settings) {
+  try {
+    const dataToSave = {
+      ...settings,
+      updatedAt: new Date().toISOString()
+    };
+    fs.writeFileSync(ANNOUNCEMENTS_FILE, JSON.stringify(dataToSave, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 // ==========================================================================
 // HTTP API ENDPOINTS
 // ==========================================================================
@@ -663,6 +702,20 @@ app.put('/api/feedbacks/:id', (req, res) => {
     res.json({ success: true, feedback: feedbacks[index] });
   } else {
     res.status(404).json({ error: "Feedback not found" });
+  }
+});
+
+// ANNOUNCEMENTS
+app.get('/api/announcements', (req, res) => {
+  res.json(readAnnouncements());
+});
+
+app.post('/api/announcements', (req, res) => {
+  const success = writeAnnouncements(req.body);
+  if (success) {
+    res.json({ success: true, settings: req.body });
+  } else {
+    res.status(500).json({ error: "Failed to save announcements" });
   }
 });
 
