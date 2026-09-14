@@ -357,21 +357,8 @@ function setupRealtimeSubscriptions() {
         const { data } = await supabase.from("system").select("value").eq("key", "lab_announcement_settings").maybeSingle();
         if (data && data.value) {
           localStorage.setItem("lab_announcement_settings", JSON.stringify(data.value));
-          if (typeof renderAnnouncementTicker === "function") renderAnnouncementTicker();
-          const toggle = document.getElementById("modalAnnouncementEnabled");
-          const textarea = document.getElementById("modalAnnouncementText");
-          const adminToggle = document.getElementById("adminAnnouncementEnabled");
-          const adminTextarea = document.getElementById("adminAnnouncementText");
-          if (toggle) {
-            toggle.checked = data.value.enabled !== false;
-            if (typeof updateAnnouncementToggleLabel === "function") updateAnnouncementToggleLabel(toggle.checked, "modalAnnouncementStatusText");
-          }
-          if (textarea) textarea.value = data.value.text || "";
-          if (adminToggle) {
-            adminToggle.checked = data.value.enabled !== false;
-            if (typeof updateAnnouncementToggleLabel === "function") updateAnnouncementToggleLabel(adminToggle.checked, "adminAnnouncementStatusText");
-          }
-          if (adminTextarea) adminTextarea.value = data.value.text || "";
+          if (typeof syncAnnouncementFormFields === "function") syncAnnouncementFormFields(data.value);
+          if (typeof renderAnnouncementTicker === "function") renderAnnouncementTicker(data.value);
         }
       }
     })
@@ -457,12 +444,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupRealtimeSubscriptions();
   }
 
-  // Background synchronization for budget and purchase orders (multi-admin sync)
+  // Background synchronization for budget, purchase orders, and announcements (multi-admin sync)
   setInterval(() => {
     if (typeof syncBudgetInRealtime === "function") {
       syncBudgetInRealtime();
     }
-  }, 8000); // Poll every 8 seconds
+    if (typeof syncAnnouncementInRealtime === "function") {
+      syncAnnouncementInRealtime();
+    }
+  }, 7000); // Poll every 7 seconds
 });
 
 // Check if Backend server is active
@@ -13675,6 +13665,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const targetTab = document.getElementById(targetTabId);
       if (targetTab) {
         targetTab.style.display = "block";
+        if (targetTabId === "admin-announcement" && typeof initAdminAnnouncementForm === "function") {
+          initAdminAnnouncementForm();
+        }
       }
     });
   });
@@ -15181,24 +15174,204 @@ const DEFAULT_ANNOUNCEMENTS = [
 ];
 
 function getAnnouncementData() {
+  const defaultSettings = {
+    enabled: true,
+    text: DEFAULT_ANNOUNCEMENTS.join(" | "),
+    badgeText: "📢 ประกาศ & ความปลอดภัย",
+    speed: 55,
+    gap: 36,
+    theme: "orange",
+    pauseOnHover: true
+  };
   try {
     const raw = localStorage.getItem("lab_announcement_settings");
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return { ...defaultSettings, ...parsed };
+    }
   } catch (e) {}
-  return {
-    enabled: true,
-    text: DEFAULT_ANNOUNCEMENTS.join(" | ")
-  };
+  return defaultSettings;
 }
 
-function renderAnnouncementTicker() {
+let currentSelectedAnnouncementTheme = {
+  admin: "orange",
+  modal: "orange"
+};
+
+function selectAnnouncementTheme(theme, context) {
+  currentSelectedAnnouncementTheme[context] = theme;
+  const containerId = context === "admin" ? "adminTickerThemeChips" : "modalTickerThemeChips";
+  const container = document.getElementById(containerId);
+  if (container) {
+    container.querySelectorAll(".ticker-theme-chip").forEach(chip => {
+      chip.classList.toggle("active", chip.getAttribute("data-theme") === theme);
+    });
+  }
+  triggerAnnouncementLivePreview(context);
+}
+
+function onAnnouncementSliderChange(type, value, context) {
+  const valId = context === "admin"
+    ? (type === "speed" ? "adminAnnouncementSpeedVal" : "adminAnnouncementGapVal")
+    : (type === "speed" ? "modalAnnouncementSpeedVal" : "modalAnnouncementGapVal");
+  const el = document.getElementById(valId);
+  if (el) {
+    el.textContent = type === "speed" ? `${value} วินาที` : `${value} px`;
+  }
+  triggerAnnouncementLivePreview(context);
+}
+
+function triggerAnnouncementLivePreview(context) {
+  const prefix = context === "admin" ? "adminAnnouncement" : "modalAnnouncement";
+  const enabledToggle = document.getElementById(`${prefix}Enabled`);
+  const textarea = document.getElementById(`${prefix}Text`);
+  const badgeTextInput = document.getElementById(`${prefix}BadgeText`);
+  const speedSlider = document.getElementById(`${prefix}Speed`);
+  const gapSlider = document.getElementById(`${prefix}Gap`);
+  const pauseHoverToggle = document.getElementById(`${prefix}PauseHover`);
+
+  const previewBar = document.getElementById(`${prefix}PreviewBar`);
+  const previewBadgeText = document.getElementById(`${prefix}PreviewBadgeText`);
+  const previewTrack = document.getElementById(`${prefix}PreviewTrack`);
+
+  if (!previewBar || !previewTrack) return;
+
+  const theme = currentSelectedAnnouncementTheme[context] || "orange";
+  const validThemes = ["orange", "blue", "green", "purple", "red"];
+  validThemes.forEach(t => previewBar.classList.remove(`ticker-theme-${t}`));
+  previewBar.classList.add(`ticker-theme-${theme}`);
+
+  const pauseHover = pauseHoverToggle ? pauseHoverToggle.checked : true;
+  if (pauseHover) {
+    previewBar.classList.add("ticker-pause-hover");
+  } else {
+    previewBar.classList.remove("ticker-pause-hover");
+  }
+
+  const badgeStr = badgeTextInput && badgeTextInput.value.trim() ? badgeTextInput.value.trim() : "📢 ประกาศ & ความปลอดภัย";
+  if (previewBadgeText) previewBadgeText.textContent = badgeStr;
+
+  const speed = speedSlider ? parseInt(speedSlider.value, 10) : 55;
+  const gap = gapSlider ? parseInt(gapSlider.value, 10) : 36;
+  previewTrack.style.setProperty("--ticker-duration", `${speed}s`);
+  previewTrack.style.setProperty("--ticker-gap", `${gap}px`);
+
+  const rawText = textarea ? textarea.value.trim() : "";
+  const isEnabled = enabledToggle ? enabledToggle.checked : true;
+
+  if (!isEnabled) {
+    previewBar.style.opacity = "0.6";
+    previewTrack.innerHTML = `<span class="ticker-text-item" style="color: var(--text-muted); font-style: italic;">🔒 ปิดการแสดงผลอยู่ (ตัวอย่างเมื่อซ่อน)</span>`;
+    return;
+  }
+
+  previewBar.style.opacity = "1";
+  const messages = rawText
+    .split(/[\n|]/)
+    .map(m => m.trim())
+    .filter(m => m.length > 0);
+
+  const displayList = messages.length > 0 ? messages : ["ยังไม่มีข้อความประกาศ"];
+  const displayItems = [...displayList, ...displayList];
+
+  previewTrack.innerHTML = displayItems.map(msg => `
+    <span class="ticker-text-item">
+      <span class="ticker-text-dot"></span>
+      <span>${escapeHTML(msg)}</span>
+    </span>
+  `).join("");
+}
+
+function syncAnnouncementFormFields(data) {
+  if (!data) return;
+  const currentTheme = data.theme || "orange";
+  const speed = data.speed || 55;
+  const gap = data.gap || 36;
+  const badgeText = data.badgeText || "📢 ประกาศ & ความปลอดภัย";
+  const pauseOnHover = data.pauseOnHover !== false;
+  const isEnabled = data.enabled !== false;
+  const text = data.text || "";
+
+  // Update Admin tab
+  const adminToggle = document.getElementById("adminAnnouncementEnabled");
+  const adminText = document.getElementById("adminAnnouncementText");
+  const adminBadge = document.getElementById("adminAnnouncementBadgeText");
+  const adminSpeed = document.getElementById("adminAnnouncementSpeed");
+  const adminSpeedVal = document.getElementById("adminAnnouncementSpeedVal");
+  const adminGap = document.getElementById("adminAnnouncementGap");
+  const adminGapVal = document.getElementById("adminAnnouncementGapVal");
+  const adminPauseHover = document.getElementById("adminAnnouncementPauseHover");
+
+  if (adminToggle) {
+    adminToggle.checked = isEnabled;
+    updateAnnouncementToggleLabel(isEnabled, "adminAnnouncementStatusText");
+  }
+  if (adminText) adminText.value = text;
+  if (adminBadge) adminBadge.value = badgeText;
+  if (adminSpeed) adminSpeed.value = speed;
+  if (adminSpeedVal) adminSpeedVal.textContent = `${speed} วินาที`;
+  if (adminGap) adminGap.value = gap;
+  if (adminGapVal) adminGapVal.textContent = `${gap} px`;
+  if (adminPauseHover) adminPauseHover.checked = pauseOnHover;
+  selectAnnouncementTheme(currentTheme, "admin");
+
+  // Update Modal form
+  const modalToggle = document.getElementById("modalAnnouncementEnabled");
+  const modalText = document.getElementById("modalAnnouncementText");
+  const modalBadge = document.getElementById("modalAnnouncementBadgeText");
+  const modalSpeed = document.getElementById("modalAnnouncementSpeed");
+  const modalSpeedVal = document.getElementById("modalAnnouncementSpeedVal");
+  const modalGap = document.getElementById("modalAnnouncementGap");
+  const modalGapVal = document.getElementById("modalAnnouncementGapVal");
+  const modalPauseHover = document.getElementById("modalAnnouncementPauseHover");
+
+  if (modalToggle) {
+    modalToggle.checked = isEnabled;
+    updateAnnouncementToggleLabel(isEnabled, "modalAnnouncementStatusText");
+  }
+  if (modalText) modalText.value = text;
+  if (modalBadge) modalBadge.value = badgeText;
+  if (modalSpeed) modalSpeed.value = speed;
+  if (modalSpeedVal) modalSpeedVal.textContent = `${speed} วินาที`;
+  if (modalGap) modalGap.value = gap;
+  if (modalGapVal) modalGapVal.textContent = `${gap} px`;
+  if (modalPauseHover) modalPauseHover.checked = pauseOnHover;
+  selectAnnouncementTheme(currentTheme, "modal");
+}
+
+function renderAnnouncementTicker(customData) {
   const tickerBar = document.getElementById("announcementTickerBar");
   const track = document.getElementById("tickerMarqueeTrack");
+  const badgeText = document.getElementById("tickerBadgeText");
   const btnTickerAdminEdit = document.getElementById("btnTickerAdminEdit");
   if (!tickerBar || !track) return;
 
   const isBackoffice = (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "teacher"));
-  const data = getAnnouncementData();
+  const data = customData || getAnnouncementData();
+
+  // Apply Theme Classes (orange, blue, green, purple, red)
+  const validThemes = ["orange", "blue", "green", "purple", "red"];
+  const currentTheme = validThemes.includes(data.theme) ? data.theme : "orange";
+  validThemes.forEach(t => tickerBar.classList.remove(`ticker-theme-${t}`));
+  tickerBar.classList.add(`ticker-theme-${currentTheme}`);
+
+  // Apply Pause on Hover class
+  if (data.pauseOnHover !== false) {
+    tickerBar.classList.add("ticker-pause-hover");
+  } else {
+    tickerBar.classList.remove("ticker-pause-hover");
+  }
+
+  // Update Badge Label
+  if (badgeText) {
+    badgeText.textContent = data.badgeText || "📢 ประกาศ & ความปลอดภัย";
+  }
+
+  // Apply Speed (Animation Duration) and Gap (Item Spacing)
+  const speed = parseInt(data.speed, 10) || 55;
+  const gap = parseInt(data.gap, 10) || 36;
+  track.style.setProperty("--ticker-duration", `${speed}s`);
+  track.style.setProperty("--ticker-gap", `${gap}px`);
 
   if (!data.enabled) {
     if (isBackoffice) {
@@ -15267,45 +15440,84 @@ function updateAnnouncementToggleLabel(isChecked, labelId) {
 }
 
 function initAdminAnnouncementForm() {
-  const form = document.getElementById("adminAnnouncementForm");
-  const toggle = document.getElementById("adminAnnouncementEnabled");
-  const textarea = document.getElementById("adminAnnouncementText");
-  if (!form || !toggle || !textarea) return;
-
   const data = getAnnouncementData();
-  toggle.checked = data.enabled !== false;
-  updateAnnouncementToggleLabel(toggle.checked, "adminAnnouncementStatusText");
-  textarea.value = data.text || DEFAULT_ANNOUNCEMENTS.join(" | \n");
+  syncAnnouncementFormFields(data);
+  triggerAnnouncementLivePreview("admin");
 }
 
 async function loadAnnouncementSettings() {
+  let loadedSettings = null;
+
+  // 1. Try Supabase Cloud Firestore
   if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
     try {
       const { data, error } = await supabase.from("system").select("value").eq("key", "lab_announcement_settings").maybeSingle();
       if (data && data.value) {
-        localStorage.setItem("lab_announcement_settings", JSON.stringify(data.value));
+        loadedSettings = data.value;
       }
     } catch (e) {
       console.log("Announcement settings cloud load note:", e);
     }
   }
-  renderAnnouncementTicker();
+
+  // 2. Fallback to Express Backend Server (/api/announcements)
+  if (!loadedSettings) {
+    try {
+      const response = await fetch(`${API_BASE}/announcements`, { headers: { 'Cache-Control': 'no-cache' } });
+      if (response.ok) {
+        const serverData = await response.json();
+        if (serverData && (serverData.text || serverData.enabled !== undefined)) {
+          loadedSettings = serverData;
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (loadedSettings) {
+    localStorage.setItem("lab_announcement_settings", JSON.stringify(loadedSettings));
+    syncAnnouncementFormFields(loadedSettings);
+    renderAnnouncementTicker(loadedSettings);
+  } else {
+    const local = getAnnouncementData();
+    syncAnnouncementFormFields(local);
+    renderAnnouncementTicker(local);
+  }
 }
 
-function saveAdminAnnouncement(e) {
-  if (e) e.preventDefault();
-  const toggle = document.getElementById("adminAnnouncementEnabled");
-  const textarea = document.getElementById("adminAnnouncementText");
-  if (!toggle || !textarea) return;
+async function syncAnnouncementInRealtime() {
+  try {
+    let cloudSettings = null;
 
-  const newSettings = {
-    enabled: toggle.checked,
-    text: textarea.value.trim()
-  };
+    if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
+      const { data } = await supabase.from("system").select("value").eq("key", "lab_announcement_settings").maybeSingle();
+      if (data && data.value) cloudSettings = data.value;
+    } else {
+      const res = await fetch(`${API_BASE}/announcements`, { headers: { 'Cache-Control': 'no-cache' } });
+      if (res.ok) {
+        cloudSettings = await res.json();
+      }
+    }
 
+    if (cloudSettings) {
+      const currentRaw = localStorage.getItem("lab_announcement_settings");
+      const currentJson = currentRaw ? JSON.stringify(JSON.parse(currentRaw)) : "";
+      const incomingJson = JSON.stringify(cloudSettings);
+
+      if (currentJson !== incomingJson) {
+        localStorage.setItem("lab_announcement_settings", JSON.stringify(cloudSettings));
+        syncAnnouncementFormFields(cloudSettings);
+        renderAnnouncementTicker(cloudSettings);
+      }
+    }
+  } catch (err) {}
+}
+
+async function saveAnnouncementSettingsData(newSettings) {
   localStorage.setItem("lab_announcement_settings", JSON.stringify(newSettings));
-  
-  // Sync to backend if Supabase is online
+  syncAnnouncementFormFields(newSettings);
+  renderAnnouncementTicker(newSettings);
+
+  // 1. Sync to Supabase
   if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
     try {
       supabase.from("system").upsert({
@@ -15316,34 +15528,69 @@ function saveAdminAnnouncement(e) {
     } catch (err) {}
   }
 
-  renderAnnouncementTicker();
-  showToast("บันทึกการตั้งค่าประกาศหน้าแรกเรียบร้อยแล้ว", "success");
+  // 2. Sync to Express Backend Server (/api/announcements)
+  try {
+    fetch(`${API_BASE}/announcements`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newSettings)
+    }).catch(err => console.log("Backend announcement sync note:", err));
+  } catch (err) {}
+
+  showToast("บันทึกการตั้งค่าแถบประกาศเรียบร้อยแล้ว", "success");
+}
+
+function saveAdminAnnouncement(e) {
+  if (e) e.preventDefault();
+  const toggle = document.getElementById("adminAnnouncementEnabled");
+  const textarea = document.getElementById("adminAnnouncementText");
+  const badgeInput = document.getElementById("adminAnnouncementBadgeText");
+  const speedSlider = document.getElementById("adminAnnouncementSpeed");
+  const gapSlider = document.getElementById("adminAnnouncementGap");
+  const pauseHoverToggle = document.getElementById("adminAnnouncementPauseHover");
+
+  const newSettings = {
+    enabled: toggle ? toggle.checked : true,
+    text: textarea ? textarea.value.trim() : "",
+    badgeText: badgeInput && badgeInput.value.trim() ? badgeInput.value.trim() : "📢 ประกาศ & ความปลอดภัย",
+    speed: speedSlider ? parseInt(speedSlider.value, 10) : 55,
+    gap: gapSlider ? parseInt(gapSlider.value, 10) : 36,
+    theme: currentSelectedAnnouncementTheme.admin || "orange",
+    pauseOnHover: pauseHoverToggle ? pauseHoverToggle.checked : true
+  };
+
+  saveAnnouncementSettingsData(newSettings);
 }
 
 function applyAnnouncementPreset(presetKey) {
   const textarea = document.getElementById("adminAnnouncementText");
+  const badgeText = document.getElementById("adminAnnouncementBadgeText");
   if (!textarea) return;
 
   if (presetKey === "standard") {
     textarea.value = DEFAULT_ANNOUNCEMENTS.join(" | \n");
+    if (badgeText) badgeText.value = "📢 ประกาศ & ความปลอดภัย";
+    selectAnnouncementTheme("orange", "admin");
   } else if (presetKey === "maintenance") {
     textarea.value = "⚠️ แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น. | 📦 กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว";
+    if (badgeText) badgeText.value = "⚠️ แจ้งตรวจนับสต็อก";
+    selectAnnouncementTheme("blue", "admin");
+  } else if (presetKey === "urgent") {
+    textarea.value = "🚨 ประกาศด่วน: ปิดระบบเพื่อปรับปรุงฐานข้อมูลและอัปเกรดความปลอดภัย ในคืนนี้ เวลา 22:00 - 23:00 น. | 🛡️ กรุณาบันทึกข้อมูลการเบิกจ่ายให้เรียบร้อยก่อนเวลาดังกล่าว";
+    if (badgeText) badgeText.value = "🚨 ประกาศด่วน";
+    selectAnnouncementTheme("red", "admin");
   }
+  triggerAnnouncementLivePreview("admin");
 }
 
 // Quick Announcement Modal for Admin/Teachers
 function openAnnouncementModal() {
   const modal = document.getElementById("modalAnnouncementEdit");
-  const toggle = document.getElementById("modalAnnouncementEnabled");
-  const textarea = document.getElementById("modalAnnouncementText");
   if (!modal) return;
 
   const data = getAnnouncementData();
-  if (toggle) {
-    toggle.checked = data.enabled !== false;
-    updateAnnouncementToggleLabel(toggle.checked, "modalAnnouncementStatusText");
-  }
-  if (textarea) textarea.value = data.text || DEFAULT_ANNOUNCEMENTS.join(" | \n");
+  syncAnnouncementFormFields(data);
+  triggerAnnouncementLivePreview("modal");
 
   modal.classList.add("active");
   modal.style.display = "flex";
@@ -15360,49 +15607,58 @@ function closeAnnouncementModal() {
 
 function applyModalAnnouncementPreset(presetKey) {
   const textarea = document.getElementById("modalAnnouncementText");
+  const badgeText = document.getElementById("modalAnnouncementBadgeText");
   if (!textarea) return;
 
   if (presetKey === "standard") {
     textarea.value = DEFAULT_ANNOUNCEMENTS.join(" | \n");
+    if (badgeText) badgeText.value = "📢 ประกาศ & ความปลอดภัย";
+    selectAnnouncementTheme("orange", "modal");
   } else if (presetKey === "maintenance") {
     textarea.value = "⚠️ แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น. | 📦 กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว";
+    if (badgeText) badgeText.value = "⚠️ แจ้งตรวจนับสต็อก";
+    selectAnnouncementTheme("blue", "modal");
+  } else if (presetKey === "urgent") {
+    textarea.value = "🚨 ประกาศด่วน: ปิดระบบเพื่อปรับปรุงฐานข้อมูลและอัปเกรดความปลอดภัย ในคืนนี้ เวลา 22:00 - 23:00 น. | 🛡️ กรุณาบันทึกข้อมูลการเบิกจ่ายให้เรียบร้อยก่อนเวลาดังกล่าว";
+    if (badgeText) badgeText.value = "🚨 ประกาศด่วน";
+    selectAnnouncementTheme("red", "modal");
   }
+  triggerAnnouncementLivePreview("modal");
 }
 
 function saveModalAnnouncement(e) {
   if (e) e.preventDefault();
   const toggle = document.getElementById("modalAnnouncementEnabled");
   const textarea = document.getElementById("modalAnnouncementText");
-  if (!toggle || !textarea) return;
+  const badgeInput = document.getElementById("modalAnnouncementBadgeText");
+  const speedSlider = document.getElementById("modalAnnouncementSpeed");
+  const gapSlider = document.getElementById("modalAnnouncementGap");
+  const pauseHoverToggle = document.getElementById("modalAnnouncementPauseHover");
 
   const newSettings = {
-    enabled: toggle.checked,
-    text: textarea.value.trim()
+    enabled: toggle ? toggle.checked : true,
+    text: textarea ? textarea.value.trim() : "",
+    badgeText: badgeInput && badgeInput.value.trim() ? badgeInput.value.trim() : "📢 ประกาศ & ความปลอดภัย",
+    speed: speedSlider ? parseInt(speedSlider.value, 10) : 55,
+    gap: gapSlider ? parseInt(gapSlider.value, 10) : 36,
+    theme: currentSelectedAnnouncementTheme.modal || "orange",
+    pauseOnHover: pauseHoverToggle ? pauseHoverToggle.checked : true
   };
 
-  localStorage.setItem("lab_announcement_settings", JSON.stringify(newSettings));
-  
-  // Sync to Admin Panel tab form as well
-  const adminToggle = document.getElementById("adminAnnouncementEnabled");
-  const adminTextarea = document.getElementById("adminAnnouncementText");
-  if (adminToggle) adminToggle.checked = newSettings.enabled;
-  if (adminTextarea) adminTextarea.value = newSettings.text;
+  saveAnnouncementSettingsData(newSettings);
+  closeAnnouncementModal();
+}
 
-  // Sync to Supabase if available
-  if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
+// Cross-tab storage synchronization
+window.addEventListener('storage', (e) => {
+  if (e.key === 'lab_announcement_settings' && e.newValue) {
     try {
-      supabase.from("system").upsert({
-        key: "lab_announcement_settings",
-        value: newSettings,
-        updated_at: new Date().toISOString()
-      }).catch(err => console.log("Supabase announcement sync ignored:", err));
+      const data = JSON.parse(e.newValue);
+      syncAnnouncementFormFields(data);
+      renderAnnouncementTicker(data);
     } catch (err) {}
   }
-
-  renderAnnouncementTicker();
-  closeAnnouncementModal();
-  showToast("บันทึกการตั้งค่าประกาศหน้าแรกเรียบร้อยแล้ว", "success");
-}
+});
 
 window.updateAnnouncementToggleLabel = updateAnnouncementToggleLabel;
 window.openAnnouncementModal = openAnnouncementModal;
@@ -15411,6 +15667,12 @@ window.saveModalAnnouncement = saveModalAnnouncement;
 window.applyModalAnnouncementPreset = applyModalAnnouncementPreset;
 window.saveAdminAnnouncement = saveAdminAnnouncement;
 window.applyAnnouncementPreset = applyAnnouncementPreset;
+window.selectAnnouncementTheme = selectAnnouncementTheme;
+window.onAnnouncementSliderChange = onAnnouncementSliderChange;
+window.triggerAnnouncementLivePreview = triggerAnnouncementLivePreview;
+window.syncAnnouncementInRealtime = syncAnnouncementInRealtime;
+window.syncAnnouncementFormFields = syncAnnouncementFormFields;
+window.initAdminAnnouncementForm = initAdminAnnouncementForm;
 
 function renderTodayLabStatus() {
   const container = document.getElementById("todayLabsGrid");
