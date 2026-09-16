@@ -1701,6 +1701,46 @@ async function saveEmergencyContacts() {
   toggleEmergencyContactEdit(false);
 }
 
+window.showContactAdminModal = function() {
+  const adminContact = (typeof emergencyContactsData !== "undefined" && emergencyContactsData.admin) ? emergencyContactsData.admin : "แอดมิน (ม.วงศกร ด้วงเกลี้ยง)";
+  const nurseContact = (typeof emergencyContactsData !== "undefined" && emergencyContactsData.nurse) ? emergencyContactsData.nurse : "ห้องพยาบาล: อาคาร 1 ชั้น 1";
+  const fireContact = (typeof emergencyContactsData !== "undefined" && emergencyContactsData.fire) ? emergencyContactsData.fire : "199";
+
+  Swal.fire({
+    title: '<span style="font-size: 19px; font-weight: 700; color: #1e293b;">ติดต่อผู้ดูแลระบบ (L3 / L4)</span>',
+    html: `
+      <div style="text-align: left; font-size: 13.5px; line-height: 1.6; color: #334155; padding: 4px 2px;">
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; color: #1e40af;">
+          <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>ℹ️ คำแนะนำการแก้ไขข้อมูล</span>
+          </div>
+          <div>การเพิ่ม ลบ หรือแก้ไขข้อมูลสารเคมีและครุภัณฑ์ในระบบ เป็นสิทธิ์เฉพาะระดับ <strong>L3 (ผู้ดูแลระบบ)</strong> และ <strong>L4 (ผู้บริหาร)</strong> หากต้องการอัปเดตข้อมูล กรุณาแจ้งผู้ดูแลตามช่องทางด้านล่างนี้</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
+            <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">👨‍🏫 ผู้ดูแลระบบ / แอดมินหลัก (L3)</div>
+            <div style="color: #7c3aed; font-weight: 600; font-size: 14px;">${adminContact}</div>
+          </div>
+
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
+            <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">🏥 ห้องพยาบาล / หน่วยปฐมพยาบาล</div>
+            <div style="color: #059669; font-weight: 600; font-size: 13.5px;">${nurseContact}</div>
+          </div>
+
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
+            <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">🚒 แจ้งเหตุฉุกเฉิน / ดับเพลิง</div>
+            <div style="color: #dc2626; font-weight: 600; font-size: 13.5px;">${fireContact}</div>
+          </div>
+        </div>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'รับทราบ',
+    confirmButtonColor: '#7c3aed'
+  });
+};
+
 function loadFeedbacksFromStorage() {
   const stored = localStorage.getItem("lab_feedbacks");
   if (stored) {
@@ -2347,13 +2387,31 @@ function renderItemsTable() {
   const tableBody = document.getElementById("itemsTableBody");
   if (!tableBody) return;
 
+  const roleLevel = getCurrentRoleLevel();
+  const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+
   const thActions = document.getElementById("thActions");
   const thBatchAction = document.getElementById("thBatchAction");
   if (thActions) {
-    thActions.style.display = "";
+    thActions.style.display = isL3Plus ? "" : "none";
   }
   if (thBatchAction) {
-    thBatchAction.style.display = isAdminLoggedIn ? "" : "none";
+    thBatchAction.style.display = isL3Plus ? "" : "none";
+  }
+
+  // Non-L3 notice banner
+  const nonL3Banner = document.getElementById("nonL3NoticeBanner");
+  if (nonL3Banner) {
+    if (!isL3Plus) {
+      nonL3Banner.style.display = "flex";
+      const noticeText = document.getElementById("nonL3NoticeText");
+      if (noticeText) {
+        const badgeInfo = getRoleBadgeInfo(roleLevel);
+        noticeText.innerHTML = `ระดับสิทธิ์ของคุณคือ <strong>${badgeInfo.name} (${roleLevel})</strong>: สิทธิ์การแก้ไขและจัดการข้อมูลเปิดให้เฉพาะ <strong>L3 (ผู้ดูแลระบบ)</strong> ขึ้นไป หากต้องการแก้ไขข้อมูล กรุณาติดต่อผู้ดูแลระบบ`;
+      }
+    } else {
+      nonL3Banner.style.display = "none";
+    }
   }
 
   const filterSearch = document.getElementById("filterSearch").value.toLowerCase().trim();
@@ -2375,11 +2433,9 @@ function renderItemsTable() {
     const isAssetTab = filterCategory === "ครุภัณฑ์";
     assetBanner.style.display = isAssetTab ? "flex" : "none";
     if (isAssetTab) {
-      const roleLevel = getCurrentRoleLevel();
-      const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
       const bannerTitle = assetBanner.querySelector(".asset-banner-title");
       const bannerSub = assetBanner.querySelector(".asset-banner-subtitle");
-      if (!isL3L4 && roleLevel === "L2") {
+      if (!isL3Plus && roleLevel === "L2") {
         const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่รับผิดชอบ";
         if (bannerTitle) bannerTitle.innerText = `การตรวจนับครุภัณฑ์ประจำปีงบประมาณ 2569 (${assigned})`;
         if (bannerSub) bannerSub.innerText = `แสดงเฉพาะครุภัณฑ์ในห้องที่คุณรับผิดชอบ สามารถกดบันทึกตรวจนับสภาพ หรือส่งออกรายงานได้`;
@@ -2393,13 +2449,10 @@ function renderItemsTable() {
   // Update Counters on Pills
   updateCategoryTabCounts();
 
-  const roleLevel = getCurrentRoleLevel();
-  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
-
   // Filter the items list
   let filtered = items.filter(item => {
     // RBAC: If viewing ครุภัณฑ์ and user is L2, only show items in their assigned rooms
-    if (filterCategory === "ครุภัณฑ์" && !isL3L4 && roleLevel === "L2") {
+    if (filterCategory === "ครุภัณฑ์" && !isL3Plus && roleLevel === "L2") {
       if (!canManageItemInRoom(item.room)) return false;
     }
 
@@ -2445,7 +2498,7 @@ function renderItemsTable() {
 
   // Handle empty state after filter
   if (filtered.length === 0) {
-    const colSpanVal = isAdminLoggedIn ? 8 : 7;
+    const colSpanVal = isL3Plus ? 8 : 6;
     tableBody.innerHTML = `
       <tr>
         <td colspan="${colSpanVal}" style="text-align: center; padding: 48px 24px;">
@@ -2521,7 +2574,7 @@ function renderItemsTable() {
 
     rowsHtml += `
       <tr class="table-clickable-row status-${status}" onclick="showItemDetail(event, '${item.code}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียด">
-        ${isAdminLoggedIn ? `
+        ${isL3Plus ? `
         <td data-label="เลือก" class="col-batch" style="text-align: center;" onclick="event.stopPropagation();">
           <input type="checkbox" class="batch-checkbox" data-code="${item.code}" onchange="updateBatchToolbar()">
         </td>
@@ -2543,6 +2596,7 @@ function renderItemsTable() {
         </td>
         <td data-label="สถานที่จัดเก็บ" class="col-room" style="color: var(--text-muted); font-size: 12px;">${locationText}</td>
         <td data-label="สถานะ" class="col-status">${getStatusBadgeMarkup(status)}</td>
+        ${isL3Plus ? `
         <td data-label="จัดการ">
           <div class="table-actions" style="position: relative;">
             <button class="action-icon-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex})" title="ตัวเลือกเพิ่มเติม">
@@ -2555,26 +2609,21 @@ function renderItemsTable() {
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); generateQR('${item.code}')">
                 <i data-lucide="qr-code" style="width: 14px; height: 14px; margin-right: 8px;"></i> สแกน QR
               </button>
-              ${(item.category && item.category.includes('ครุภัณฑ์')) || item.isAsset ? `
+              ${((item.category && item.category.includes('ครุภัณฑ์')) || item.isAsset) ? `
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); openAssetAuditModal('${item.code}')" style="color: var(--primary-purple); font-weight: 600;">
                 <i data-lucide="clipboard-check" style="width: 14px; height: 14px; margin-right: 8px;"></i> ตรวจนับครุภัณฑ์
               </button>
               ` : ''}
-              ${canManageItemInRoom(item.room) ? `
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); editItem(${originalIndex})">
                 <i data-lucide="edit-3" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไขรายการ
               </button>
               <button class="dropdown-action-btn danger" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); deleteItem(${originalIndex})">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px; margin-right: 8px;"></i> ลบรายการ
               </button>
-              ` : (getCurrentRoleLevel() === 'L2' ? `
-              <div style="padding: 6px 10px; font-size: 11px; color: #9a3412; background: #fff7ed; border-radius: 4px; margin: 2px;">
-                <i data-lucide="lock" style="width: 11px; height: 11px; display: inline-block; vertical-align: middle;"></i> นอกห้องที่รับผิดชอบ
-              </div>
-              ` : '')}
             </div>
           </div>
         </td>
+        ` : ''}
       </tr>
     `;
   });
@@ -3289,8 +3338,29 @@ function setupFormHandlers() {
 
 // Global Edit Action called from tables
 window.editItem = function(index) {
-  if (!isAdminLoggedIn) {
-    showToast("กรุณาเข้าสู่ระบบในฐานะผู้ดูแลระบบก่อนทำรายการนี้", "error");
+  const roleLevel = getCurrentRoleLevel();
+  const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+
+  if (!isL3Plus) {
+    Swal.fire({
+      icon: 'info',
+      title: 'ต้องใช้สิทธิ์ระดับ L3 ขึ้นไป',
+      html: `
+        <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.6;">
+          <p>ระดับสิทธิ์ปัจจุบันของคุณคือ <b>${getRoleBadgeInfo(roleLevel).name} (${roleLevel})</b></p>
+          <p style="margin-top: 8px;">สิทธิ์การแก้ไขข้อมูลสารเคมี/ครุภัณฑ์เปิดให้เฉพาะระดับ <b>L3 (ผู้ดูแลระบบ)</b> หรือ <b>L4 (ผู้บริหาร)</b> เท่านั้น</p>
+          <p style="margin-top: 8px; color: #64748b;">หากต้องการแก้ไขหรืออัปเดตข้อมูลรายการนี้ กรุณาติดต่อผู้ดูแลระบบ (L3/L4)</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'ติดต่อผู้ดูแลระบบ',
+      cancelButtonText: 'ปิด',
+      confirmButtonColor: '#7c3aed'
+    }).then((res) => {
+      if (res.isConfirmed) {
+        showContactAdminModal();
+      }
+    });
     return;
   }
 
@@ -3349,6 +3419,32 @@ window.editItem = function(index) {
 
 // Global Delete Action
 window.deleteItem = async function(index) {
+  const roleLevel = getCurrentRoleLevel();
+  const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+
+  if (!isL3Plus) {
+    Swal.fire({
+      icon: 'info',
+      title: 'ต้องใช้สิทธิ์ระดับ L3 ขึ้นไป',
+      html: `
+        <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.6;">
+          <p>ระดับสิทธิ์ปัจจุบันของคุณคือ <b>${getRoleBadgeInfo(roleLevel).name} (${roleLevel})</b></p>
+          <p style="margin-top: 8px;">สิทธิ์การลบข้อมูลสารเคมี/ครุภัณฑ์เปิดให้เฉพาะระดับ <b>L3 (ผู้ดูแลระบบ)</b> หรือ <b>L4 (ผู้บริหาร)</b> เท่านั้น</p>
+          <p style="margin-top: 8px; color: #64748b;">หากต้องการลบรายการนี้ กรุณาติดต่อผู้ดูแลระบบ (L3/L4)</p>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'ติดต่อผู้ดูแลระบบ',
+      cancelButtonText: 'ปิด',
+      confirmButtonColor: '#7c3aed'
+    }).then((res) => {
+      if (res.isConfirmed) {
+        showContactAdminModal();
+      }
+    });
+    return;
+  }
+
   if (isExecutiveMode()) {
     showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถลบรายการได้", "warning");
     return;
@@ -8447,12 +8543,26 @@ window.showItemDetail = function(event, itemCode) {
   `;
 
   // Build Footer Actions
+  const roleLevel = getCurrentRoleLevel();
+  const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+
   footer.innerHTML = `
     <button type="button" class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
     <button type="button" class="btn btn-primary" style="background-color: var(--primary-purple); border-color: var(--primary-purple); display: inline-flex; align-items: center; gap: 6px;" onclick="printItemLabel('${item.code}')">
       <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
       <span>พิมพ์บาร์โค้ด / สติกเกอร์</span>
     </button>
+    ${isL3Plus ? `
+    <button type="button" class="btn btn-primary" style="background-color: var(--primary); border-color: var(--primary); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); editItem(items.findIndex(i => i.code === '${item.code}'))">
+      <i data-lucide="edit-3" style="width: 15px; height: 15px;"></i>
+      <span>แก้ไขข้อมูล</span>
+    </button>
+    ` : `
+    <button type="button" class="btn btn-secondary" style="border-color: #93c5fd; color: #1d4ed8; background: #eff6ff; display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); showContactAdminModal()">
+      <i data-lucide="phone" style="width: 15px; height: 15px;"></i>
+      <span>ติดต่อ L3/L4 เพื่อแก้ไข</span>
+    </button>
+    `}
   `;
 
   // Open the modal

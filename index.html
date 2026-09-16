@@ -1356,6 +1356,17 @@
           </div>
 
 
+          <!-- Non-L3 Role Permission Notice Banner -->
+          <div id="nonL3NoticeBanner" style="display: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 16px; margin-bottom: 14px; font-size: 13px; color: #1e40af; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="info" style="width: 17px; height: 17px; color: #2563eb; flex-shrink: 0;"></i>
+              <span id="nonL3NoticeText">คุณกำลังใช้งานในระดับสิทธิ์ L2: หากต้องการแก้ไข เพิ่ม หรือลบข้อมูลสารเคมี/ครุภัณฑ์ กรุณาติดต่อผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4)</span>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="showContactAdminModal()" style="font-size: 12px; padding: 4px 12px; background: #ffffff; border-color: #93c5fd; color: #1d4ed8; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+              <i data-lucide="phone" style="width: 13px; height: 13px;"></i> ติดต่อ L3 / L4
+            </button>
+          </div>
+
           <!-- Main Items Table -->
           <div class="table-container">
             <table>
