@@ -315,46 +315,54 @@
           </button>
         </div>
 
-        <!-- Stat Cards Grid -->
+        <!-- Compact Stat Cards Grid -->
         <div class="stat-grid">
           <div class="stat-card blue" id="statCardTotal" onclick="navigateToPanel('all-items', 'all', 'all')">
             <div class="stat-info">
               <span class="stat-title nobrk">รายการทั้งหมด</span>
-              <span class="stat-value" id="dashboardValTotal">0</span>
-              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">รายการ</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="dashboardValTotal">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
             </div>
             <div class="stat-icon">
-              <i data-lucide="box"></i>
+              <i data-lucide="box" style="width: 17px; height: 17px;"></i>
             </div>
           </div>
           <div class="stat-card red" id="statCardExpired" onclick="navigateToPanel('all-items', 'all', 'expired')">
             <div class="stat-info">
               <span class="stat-title nobrk">หมดอายุแล้ว</span>
-              <span class="stat-value" id="dashboardValExpired">0</span>
-              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">รายการ</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="dashboardValExpired">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
             </div>
             <div class="stat-icon">
-              <i data-lucide="alert-triangle"></i>
+              <i data-lucide="alert-triangle" style="width: 17px; height: 17px;"></i>
             </div>
           </div>
           <div class="stat-card orange" id="statCardLowStock" onclick="navigateToPanel('all-items', 'all', 'low_stock')">
             <div class="stat-info">
               <span class="stat-title nobrk">ใกล้หมด (Stock)</span>
-              <span class="stat-value" id="dashboardValLowStock">0</span>
-              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">รายการ</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="dashboardValLowStock">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
             </div>
             <div class="stat-icon">
-              <i data-lucide="boxes"></i>
+              <i data-lucide="boxes" style="width: 17px; height: 17px;"></i>
             </div>
           </div>
           <div class="stat-card yellow" id="statCardNearExpiry" onclick="navigateToPanel('all-items', 'all', 'near_expiry')">
             <div class="stat-info">
               <span class="stat-title nobrk">ใกล้หมดอายุ</span>
-              <span class="stat-value" id="dashboardValNearExpiry">0</span>
-              <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">รายการ</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="dashboardValNearExpiry">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
             </div>
             <div class="stat-icon">
-              <i data-lucide="clock"></i>
+              <i data-lucide="clock" style="width: 17px; height: 17px;"></i>
             </div>
           </div>
         </div>
