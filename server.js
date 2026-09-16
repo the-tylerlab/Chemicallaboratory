@@ -27,6 +27,7 @@ const FEEDBACKS_FILE = path.join(DB_DIR, 'feedbacks.json');
 const PUSH_SUBSCRIPTIONS_FILE = path.join(DB_DIR, 'push_subscriptions.json');
 const VAPID_KEYS_FILE = path.join(DB_DIR, 'vapid_keys.json');
 const ANNOUNCEMENTS_FILE = path.join(DB_DIR, 'announcements.json');
+const EMERGENCY_CONTACTS_FILE = path.join(DB_DIR, 'emergency_contacts.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DB_DIR)) {
@@ -405,7 +406,7 @@ function writeFeedbacks(feedbacks) {
 function readAnnouncements() {
   const defaultAnnouncements = {
     enabled: true,
-    text: "🛡️ การใช้อุปกรณ์คุ้มครองความปลอดภัย (PPE) ต้องสวมเสื้อกาวน์ แว่นตานิรภัย และรองเท้าหุ้มส้นตลอดเวลาที่ปฏิบัติการ | 💨 การทดลองที่มีไอระเหยหรือกรดเข้มข้น กรุณาทำในตู้ดูดควัน (Fume Hood) และเปิดระบบระบายอากาศก่อนเริ่มงาน | 📞 เหตุฉุกเฉินและอุบัติเหตุ ติดต่อแอดมิน (ม.วงศกร) 081-4187736 หรือแจ้งผ่านเมนู 'แจ้งปัญหา' | 📖 ศูนย์ข้อมูลและความปลอดภัย ศึกษากฎระเบียบ SHECU และเอกสาร SDS ได้ที่เมนูศูนย์ข้อมูล",
+    text: "🛡️ การใช้อุปกรณ์คุ้มครองความปลอดภัย (PPE) ต้องสวมเสื้อกาวน์ แว่นตานิรภัย และรองเท้าหุ้มส้นตลอดเวลาที่ปฏิบัติการ | 💨 การทดลองที่มีไอระเหยหรือกรดเข้มข้น กรุณาทำในตู้ดูดควัน (Fume Hood) และเปิดระบบระบายอากาศก่อนเริ่มงาน | 📞 เหตุฉุกเฉินและอุบัติเหตุ ติดต่อแอดมิน หรือแจ้งผ่านเมนู 'แจ้งปัญหา' | 📖 ศูนย์ข้อมูลและความปลอดภัย ศึกษากฎระเบียบ SHECU และเอกสาร SDS ได้ที่เมนูศูนย์ข้อมูล",
     badgeText: "📢 ประกาศ & ความปลอดภัย",
     speed: 55,
     gap: 36,
@@ -439,9 +440,108 @@ function writeAnnouncements(settings) {
   }
 }
 
+// Emergency Contacts Helpers
+function readEmergencyContacts() {
+  const defaultContacts = {
+    admin: "แอดมิน (ม.วงศกร ด้วงเกลี้ยง): ยังไม่ระบุ",
+    nurse: "ห้องพยาบาล: ยังไม่ระบุ",
+    fire: "แจ้งเหตุเพลิงไหม้: ยังไม่ระบุ"
+  };
+  try {
+    if (!fs.existsSync(EMERGENCY_CONTACTS_FILE)) {
+      fs.writeFileSync(EMERGENCY_CONTACTS_FILE, JSON.stringify(defaultContacts, null, 2), 'utf-8');
+      return defaultContacts;
+    }
+    const data = fs.readFileSync(EMERGENCY_CONTACTS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return defaultContacts;
+  }
+}
+
+function writeEmergencyContacts(contacts) {
+  try {
+    const dataToSave = {
+      ...contacts,
+      updatedAt: new Date().toISOString()
+    };
+    fs.writeFileSync(EMERGENCY_CONTACTS_FILE, JSON.stringify(dataToSave, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+// ==========================================================================
+// GOOGLE SHEETS REAL-TIME BACKUP SYNC DISPATCHER
+// ==========================================================================
+const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
+
+async function syncToGoogleSheets(table, action, data, keyField = 'id') {
+  if (!GOOGLE_SCRIPT_URL) return;
+  try {
+    const payload = {
+      table,
+      action,
+      keyField,
+      data
+    };
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(err => {
+      console.warn(`[GoogleSheetsSync] Sync notice for ${table}:`, err.message);
+    });
+  } catch (e) {
+    console.warn(`[GoogleSheetsSync] Dispatch failed:`, e.message);
+  }
+}
+
 // ==========================================================================
 // HTTP API ENDPOINTS
 // ==========================================================================
+
+// Manual / Full Trigger: Sync All Tables to Google Sheets
+app.post('/api/sync-google-sheets', async (req, res) => {
+  try {
+    const items = readDatabase();
+    const transactions = readTransactions();
+    const bookings = readBookings();
+    const purchaseOrders = readPurchaseOrders();
+    const users = readUsers();
+    const auditLogs = readAuditLogs();
+    const announcements = readAnnouncements();
+
+    items.forEach(item => syncToGoogleSheets('Items', 'UPSERT', item, 'code'));
+    transactions.forEach(tx => syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id'));
+    bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', b, 'id'));
+    purchaseOrders.forEach(po => syncToGoogleSheets('Purchase_Orders', 'UPSERT', po, 'id'));
+    users.forEach(u => {
+      const copy = { ...u };
+      delete copy.password;
+      syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
+    });
+    auditLogs.forEach(log => syncToGoogleSheets('Audit_Logs', 'UPSERT', log, 'id'));
+    if (announcements) {
+      syncToGoogleSheets('Announcements', 'UPSERT', announcements, 'badgeText');
+    }
+
+    res.json({ success: true, message: 'Google Sheets sync dispatched for all records.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/version — Fetch dynamic system version
+app.get('/api/version', (req, res) => {
+  try {
+    const pkg = require('./package.json');
+    res.json({ version: pkg.version || '2.5.0', pwa: true, name: 'Chemical Laboratory System' });
+  } catch (e) {
+    res.json({ version: '2.5.0', pwa: true });
+  }
+});
 
 // 1. GET /api/items — Fetch all items
 app.get('/api/items', (req, res) => {
@@ -469,6 +569,9 @@ app.post('/api/items', (req, res) => {
   
   items.push(newItem);
   writeDatabase(items);
+
+  // Sync to Google Sheets in Real-time
+  syncToGoogleSheets('Items', 'UPSERT', newItem, 'code');
   
   res.status(201).json(newItem);
 });
@@ -490,6 +593,9 @@ app.put('/api/items/:code', (req, res) => {
   
   items[index] = { ...items[index], ...updatedData };
   writeDatabase(items);
+
+  // Sync to Google Sheets in Real-time
+  syncToGoogleSheets('Items', 'UPSERT', items[index], 'code');
   
   res.json(items[index]);
 });
@@ -507,6 +613,10 @@ app.delete('/api/items/:code', (req, res) => {
   }
   
   writeDatabase(filteredItems);
+
+  // Sync to Google Sheets in Real-time
+  syncToGoogleSheets('Items', 'DELETE', { code: codeToDelete }, 'code');
+
   res.json({ success: true, message: `Item ${codeToDelete} removed successfully` });
 });
 
@@ -537,6 +647,9 @@ app.post('/api/items/import', (req, res) => {
     newItem.createdAt = newItem.createdAt || new Date().toISOString();
     items.push(newItem);
     successCount++;
+
+    // Sync to Google Sheets
+    syncToGoogleSheets('Items', 'UPSERT', newItem, 'code');
   });
 
   if (successCount > 0) {
@@ -571,6 +684,9 @@ app.get('/api/purchase-orders', (req, res) => {
 app.post('/api/purchase-orders', (req, res) => {
   const orders = req.body;
   writePurchaseOrders(orders);
+  if (Array.isArray(orders)) {
+    orders.forEach(po => syncToGoogleSheets('Purchase_Orders', 'UPSERT', po, 'id'));
+  }
   res.json({ success: true });
 });
 
@@ -583,6 +699,9 @@ app.get('/api/bookings', (req, res) => {
 app.post('/api/bookings', (req, res) => {
   const bookings = req.body;
   writeBookings(bookings);
+  if (Array.isArray(bookings)) {
+    bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', b, 'id'));
+  }
   res.json({ success: true });
 });
 
@@ -595,6 +714,9 @@ app.get('/api/transactions', (req, res) => {
 app.post('/api/transactions', (req, res) => {
   const transactions = req.body;
   writeTransactions(transactions);
+  if (Array.isArray(transactions)) {
+    transactions.forEach(tx => syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id'));
+  }
   res.json({ success: true });
 });
 
@@ -610,15 +732,37 @@ app.get('/api/users', (req, res) => {
 app.post('/api/users', (req, res) => {
   const users = readUsers();
   const newUser = req.body;
-  newUser.id = "u" + Date.now();
+  newUser.id = "u_" + (newUser.teacherId || Date.now());
   
-  // Assign random color/initials for mockup
-  const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#d946ef"];
-  newUser.color = colors[Math.floor(Math.random() * colors.length)];
-  newUser.initials = newUser.name ? newUser.name.charAt(0).toUpperCase() : "U";
+  // Format role and roleName
+  const roleNames = {
+    'L1': 'Teacher / User',
+    'L2': 'Staff / Operator',
+    'L3': 'Manager / System Manager',
+    'L4': 'Executive / Head of Department'
+  };
+  newUser.role = newUser.role || 'L1';
+  newUser.roleName = roleNames[newUser.role] || 'Teacher / User';
+  newUser.teacherId = (newUser.teacherId || '').trim();
+  newUser.assignedRooms = Array.isArray(newUser.assignedRooms) ? newUser.assignedRooms : [];
+  newUser.isActive = newUser.isActive !== false;
+  newUser.createdAt = newUser.createdAt || new Date().toISOString();
+
+  // If password not set, default password is the teacherId
+  if (!newUser.password) {
+    newUser.password = newUser.teacherId;
+  }
+  
+  // Assign random color/initials for avatar
+  const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#d946ef", "#be185d"];
+  newUser.color = newUser.color || colors[Math.floor(Math.random() * colors.length)];
+  newUser.initials = newUser.name ? newUser.name.trim().substring(0, 2).toUpperCase() : "U";
   
   users.push(newUser);
   writeUsers(users);
+  const copy = { ...newUser };
+  delete copy.password;
+  syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
   res.json({ success: true, user: newUser });
 });
 
@@ -626,8 +770,24 @@ app.put('/api/users/:id', (req, res) => {
   const users = readUsers();
   const index = users.findIndex(u => u.id === req.params.id);
   if (index !== -1) {
-    users[index] = { ...users[index], ...req.body };
+    const roleNames = {
+      'L1': 'Teacher / User',
+      'L2': 'Staff / Operator',
+      'L3': 'Manager / System Manager',
+      'L4': 'Executive / Head of Department'
+    };
+    const updated = { ...users[index], ...req.body };
+    if (req.body.role) {
+      updated.roleName = roleNames[req.body.role] || updated.roleName;
+    }
+    if (req.body.assignedRooms) {
+      updated.assignedRooms = Array.isArray(req.body.assignedRooms) ? req.body.assignedRooms : [];
+    }
+    users[index] = updated;
     writeUsers(users);
+    const copy = { ...users[index] };
+    delete copy.password;
+    syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
     res.json({ success: true, user: users[index] });
   } else {
     res.status(404).json({ error: "User not found" });
@@ -636,9 +796,73 @@ app.put('/api/users/:id', (req, res) => {
 
 app.delete('/api/users/:id', (req, res) => {
   let users = readUsers();
+  const userToDelete = users.find(u => u.id === req.params.id);
   users = users.filter(u => u.id !== req.params.id);
   writeUsers(users);
+  if (userToDelete) {
+    syncToGoogleSheets('Users', 'DELETE', { teacherId: userToDelete.teacherId }, 'teacherId');
+  }
   res.json({ success: true });
+});
+
+// AUTH LOGIN ENDPOINT (Supports Teacher ID as username & password)
+app.post('/api/auth/login', (req, res) => {
+  const { username, password } = req.body;
+  const users = readUsers();
+  
+  const cleanUser = (username || '').trim();
+  const cleanPass = (password || '').trim();
+
+  // Find user by teacherId, email, or id
+  const user = users.find(u => 
+    (u.teacherId && u.teacherId.toLowerCase() === cleanUser.toLowerCase()) ||
+    (u.email && u.email.toLowerCase() === cleanUser.toLowerCase()) ||
+    (u.id && u.id.toLowerCase() === cleanUser.toLowerCase()) ||
+    (cleanUser.toLowerCase() === 'admin' && (u.role === 'L3' || u.role === 'admin'))
+  );
+
+  if (user) {
+    // Check password (default is teacherId if not set, or match explicit password)
+    const expectedPassword = user.password || user.teacherId;
+    if (cleanPass === expectedPassword || (cleanUser.toLowerCase() === 'admin' && cleanPass === 'admin1234')) {
+      return res.json({
+        success: true,
+        user: {
+          id: user.id,
+          teacherId: user.teacherId || user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role || 'L1',
+          roleName: user.roleName || 'Teacher / User',
+          department: user.department || '',
+          assignedRooms: user.assignedRooms || [],
+          initials: user.initials || 'U',
+          color: user.color || '#3b82f6'
+        }
+      });
+    }
+  }
+
+  // Fallback for default hardcoded quick accounts
+  if (cleanUser === 'admin' && (cleanPass === 'admin' || cleanPass === 'admin1234')) {
+    return res.json({
+      success: true,
+      user: {
+        id: "u_admin",
+        teacherId: "admin",
+        name: "ผู้ดูแลระบบ (Admin)",
+        email: "admin@lab.school.ac.th",
+        role: "L3",
+        roleName: "Manager / System Manager",
+        department: "งานบริหารระบบห้องปฏิบัติการ",
+        assignedRooms: [],
+        initials: "AD",
+        color: "#7c3aed"
+      }
+    });
+  }
+
+  return res.status(401).json({ success: false, message: "รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง" });
 });
 
 // AUDIT LOGS
@@ -657,6 +881,7 @@ app.post('/api/audit-logs', (req, res) => {
   if (logs.length > 100) logs.pop();
   
   writeAuditLogs(logs);
+  syncToGoogleSheets('Audit_Logs', 'UPSERT', newLog, 'id');
   res.json({ success: true, log: newLog });
 });
 
@@ -716,6 +941,21 @@ app.post('/api/announcements', (req, res) => {
     res.json({ success: true, settings: req.body });
   } else {
     res.status(500).json({ error: "Failed to save announcements" });
+  }
+});
+
+// EMERGENCY CONTACTS
+app.get('/api/emergency-contacts', (req, res) => {
+  res.json(readEmergencyContacts());
+});
+
+app.post('/api/emergency-contacts', (req, res) => {
+  const success = writeEmergencyContacts(req.body);
+  if (success) {
+    syncToGoogleSheets('Announcements', 'UPSERT', { ...readAnnouncements(), emergencyContacts: req.body }, 'badgeText');
+    res.json({ success: true, contacts: req.body });
+  } else {
+    res.status(500).json({ error: "Failed to save emergency contacts" });
   }
 });
 
