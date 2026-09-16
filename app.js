@@ -1390,6 +1390,20 @@ function getRoomThaiName(room) {
   return room;
 }
 
+function applyDashboardRoleLayout() {
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+  
+  const dashboardPanel = document.getElementById("panel-dashboard");
+  if (dashboardPanel) {
+    if (!isL3Plus) {
+      dashboardPanel.classList.add("role-calendar-top");
+    } else {
+      dashboardPanel.classList.remove("role-calendar-top");
+    }
+  }
+}
+
 // ==========================================================================
 // RENDER VIEWS & DYNAMIC TABLES
 // ==========================================================================
@@ -1464,6 +1478,7 @@ function updateUI() {
   if (typeof updateDashboardCalendarStats === "function") updateDashboardCalendarStats();
   if (typeof renderDashboardCalendar === "function") renderDashboardCalendar();
   if (typeof renderDashboardDailySchedule === "function") renderDashboardDailySchedule();
+  applyDashboardRoleLayout();
   
   // Show/Hide export buttons depending on login status
   const borrowExportActions = document.getElementById("borrowExportActions");

@@ -935,6 +935,39 @@ button {
   margin-bottom: 20px;
 }
 
+/* Dashboard Panel Flex Ordering & Role-based Layout */
+#panel-dashboard {
+  display: flex;
+  flex-direction: column;
+}
+
+#panel-dashboard > .content-header { order: 1; }
+#panel-dashboard > #announcementTickerBar { order: 2; }
+#panel-dashboard > .stat-grid { order: 3; }
+#panel-dashboard > .dashboard-grid { order: 4; }
+#panel-dashboard > #dashboardLabCalendarSection {
+  order: 5;
+  margin-top: 24px;
+}
+#panel-dashboard > #todayLabStatusCard { order: 6; }
+
+/* For users with role lower than L3 (L0, L1, L2): Elevate Calendar & Schedule to the top */
+#panel-dashboard.role-calendar-top > #dashboardLabCalendarSection {
+  order: 3;
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+#panel-dashboard.role-calendar-top > .stat-grid {
+  order: 4;
+  margin-bottom: 16px;
+}
+#panel-dashboard.role-calendar-top > .dashboard-grid {
+  order: 5;
+}
+#panel-dashboard.role-calendar-top > #todayLabStatusCard {
+  order: 6;
+}
+
 .card-container {
   background-color: var(--bg-card);
   border-radius: var(--border-radius-lg);
