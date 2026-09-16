@@ -9,7 +9,109 @@ let activityLogs = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let fileToImport = null;
-let userRole = localStorage.getItem("userRole") || (localStorage.getItem("isAdminLoggedIn") === "true" ? "admin" : "student");
+
+// RBAC State Management (L0 - L4)
+let currentUser = null;
+try {
+  const savedUser = localStorage.getItem("currentUser");
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+  }
+} catch (e) {
+  currentUser = null;
+}
+
+// User role initialization
+let userRole = currentUser ? currentUser.role : (localStorage.getItem("userRole") || "L0");
+let isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+
+// Helper: Normalize and get current user role level (L0, L1, L2, L3, L4)
+function getCurrentRoleLevel() {
+  if (currentUser && currentUser.role) {
+    if (currentUser.role.startsWith("L")) return currentUser.role;
+    if (currentUser.role === "admin") return "L3";
+    if (currentUser.role === "staff") return "L2";
+    if (currentUser.role === "teacher") return "L1";
+    if (currentUser.role === "executive") return "L4";
+  }
+  if (userRole === "admin" || userRole === "L3") return "L3";
+  if (userRole === "staff" || userRole === "L2") return "L2";
+  if (userRole === "teacher" || userRole === "L1") return "L1";
+  if (userRole === "executive" || userRole === "L4") return "L4";
+  return "L0"; // Guest
+}
+
+// Role Badge & Label Helper
+function getRoleBadgeInfo(roleLevel) {
+  const level = roleLevel || getCurrentRoleLevel();
+  switch (level) {
+    case "L1":
+      return { level: "L1", name: "ครูผู้สอน", className: "badge-role-l1", full: "L1 ครูผู้สอน (Teacher / User)" };
+    case "L2":
+      return { level: "L2", name: "เจ้าหน้าที่แล็บ", className: "badge-role-l2", full: "L2 เจ้าหน้าที่ (Staff / Operator)" };
+    case "L3":
+      return { level: "L3", name: "ผู้ดูแลระบบ", className: "badge-role-l3", full: "L3 ผู้ดูแลระบบ (System Manager)" };
+    case "L4":
+      return { level: "L4", name: "ผู้บริหาร (Read Only)", className: "badge-role-l4", full: "L4 ผู้บริหาร (Executive)" };
+    case "L0":
+    default:
+      return { level: "L0", name: "บุคคลทั่วไป (Guest)", className: "badge-role-l0", full: "L0 บุคคลทั่วไป (Guest)" };
+  }
+}
+
+// Permission Helpers
+function isUserLoggedIn() {
+  const r = getCurrentRoleLevel();
+  return r !== "L0";
+}
+
+function isExecutiveMode() {
+  return getCurrentRoleLevel() === "L4";
+}
+
+function canAccessAdminSection() {
+  return getCurrentRoleLevel() === "L3";
+}
+
+function canManageItemInRoom(itemRoom) {
+  const r = getCurrentRoleLevel();
+  if (r === "L3") return true;
+  if (r === "L2") {
+    const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
+    if (assigned.length === 0) return true; // If no restriction specified, allow
+    if (!itemRoom) return true;
+    return assigned.some(ar => itemRoom.toLowerCase().includes(ar.toLowerCase()) || ar.toLowerCase().includes(itemRoom.toLowerCase()));
+  }
+  return false;
+}
+
+function canApproveReturnForRoom(txRoom) {
+  const r = getCurrentRoleLevel();
+  if (r === "L3" || r === "admin") return true;
+  if (r === "L2") {
+    const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
+    if (assigned.length === 0) return true;
+    if (!txRoom) return true;
+    return assigned.some(ar => txRoom.toLowerCase().includes(ar.toLowerCase()) || ar.toLowerCase().includes(txRoom.toLowerCase()));
+  }
+  return false;
+}
+
+function canApproveBookingForRoom(room) {
+  const r = getCurrentRoleLevel();
+  if (r === "L3" || r === "admin") return true;
+  if (r === "L2") {
+    const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
+    if (assigned.length === 0) return true;
+    if (!room) return true;
+    return assigned.some(ar => room.toLowerCase().includes(ar.toLowerCase()) || ar.toLowerCase().includes(room.toLowerCase()));
+  }
+  return false;
+}
+
+function canApproveBorrowForRoom(room) {
+  return canApproveBookingForRoom(room);
+}
 window.feedbacksData = [
   {
     id: "ISSUE-001",
@@ -266,7 +368,7 @@ let transactions = [];
 let bookings = [];
 let selectedSlots = [];
 let selectedBorrowItems = [];
-let isAdminLoggedIn = localStorage.getItem("isAdminLoggedIn") === "true";
+// isAdminLoggedIn is managed by RBAC at the top of app.js
 const BOOKING_SLOTS = [
   "คาบ 1: 08:10 - 09:00",
   "คาบ 2: 09:00 - 09:50",
@@ -365,78 +467,125 @@ function setupRealtimeSubscriptions() {
     .subscribe();
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  // First, check backend online status
-  await checkBackendStatus();
-  
-  // Setup Realtime Subscriptions
-  setupRealtimeSubscriptions();
+// Dynamic System Version Auto-Updater
+const APP_SYSTEM_VERSION = "2.5.0";
 
-  // Load data
-  await loadAllItems();
-  
-  // Load borrowing transactions
-  await loadAllTransactions();
+async function fetchAppVersion() {
+  let version = APP_SYSTEM_VERSION;
+  try {
+    const res = await fetch('/api/version');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.version) {
+        version = data.version;
+      }
+    }
+  } catch (e) {
+    // Fallback to APP_SYSTEM_VERSION
+  }
 
-  // Load room bookings
-  await loadAllBookings();
-  
-  // Load lab layouts
-  await loadLabLayouts();
-  
-  // Load purchase orders
-  await loadPurchaseOrders();
-  
-  // Load activity logs
-  await loadActivityLogs();
-  
-  // Load announcements from cloud
-  await loadAnnouncementSettings();
-  
-  // Load feedbacks & issues
-  loadFeedbacksFromStorage();
-  
-  // Set up event listeners
-  setupNavigation();
-  setupFormHandlers();
-  setupFilterHandlers();
-  setupImportModal();
-  setupDashboardCards();
-  
-  // Set up borrow form handlers
-  setupBorrowForm();
+  const devVersionEl = document.getElementById('devTabSystemVersion');
+  if (devVersionEl) {
+    devVersionEl.textContent = `Version ${version} (PWA)`;
+  }
 
-  // Set up room booking form handlers
-  setupBookingForm();
-  
-  setupCsvExport();
-  setupPrintReport();
-  setupDashboardReports();
-  setupHistoryExports();
-  setupGhsSuggestions();
-  setupWasteClassificationWizard();
-  setupBarcodeScanner();
-  setupCameraScanner();
-  setupLoginHandlers();
-  setupAccessDeniedModal();
-  setupRepairModalHandlers();
-  setupChatbot();
-  setupPurchaseOrders();
-  setupLabPlanner();
-  setupAdminClearHandlers();
-  updateLoginUI();
-  setupSidebarCollapse();
-  
-  // Initialize Lucide icons initially
-  lucide.createIcons();
+  const footerVersionEl = document.getElementById('footerVersionText');
+  if (footerVersionEl) {
+    footerVersionEl.innerHTML = `Database Connected &bull; v${version} (RBAC)`;
+  }
+}
 
-  // Hide the skeleton loading screen smoothly
+function dismissSkeletonLoader() {
   const skeleton = document.getElementById("app-skeleton-loader");
   if (skeleton) {
     skeleton.classList.add("fade-out");
     setTimeout(() => {
-      skeleton.remove();
-    }, 400); // Match transition duration (0.4s) in CSS
+      if (skeleton && skeleton.parentNode) skeleton.remove();
+    }, 350);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    // Update system version dynamically
+    fetchAppVersion();
+
+    // Load Emergency Contacts
+    loadEmergencyContacts();
+
+    // First, check backend online status
+    await checkBackendStatus();
+    
+    // Setup Realtime Subscriptions
+    setupRealtimeSubscriptions();
+
+    // Load data
+    await loadAllItems();
+    
+    // Load borrowing transactions
+    await loadAllTransactions();
+
+    // Load room bookings
+    await loadAllBookings();
+    
+    // Load lab layouts
+    await loadLabLayouts();
+    
+    // Load purchase orders
+    await loadPurchaseOrders();
+    
+    // Load activity logs
+    await loadActivityLogs();
+    
+    // Load announcements from cloud
+    await loadAnnouncementSettings();
+    
+    // Load admin and user list
+    if (typeof loadAdminData === "function") {
+      await loadAdminData();
+    }
+    
+    // Load feedbacks & issues
+    loadFeedbacksFromStorage();
+    
+    // Set up event listeners
+    setupNavigation();
+    setupFormHandlers();
+    setupFilterHandlers();
+    setupImportModal();
+    setupDashboardCards();
+    
+    // Set up borrow form handlers
+    setupBorrowForm();
+
+    // Set up room booking form handlers
+    setupBookingForm();
+    
+    setupCsvExport();
+    setupPrintReport();
+    setupDashboardReports();
+    setupHistoryExports();
+    setupGhsSuggestions();
+    setupWasteClassificationWizard();
+    setupBarcodeScanner();
+    setupCameraScanner();
+    setupLoginHandlers();
+    setupAccessDeniedModal();
+    setupRepairModalHandlers();
+    setupChatbot();
+    setupPurchaseOrders();
+    setupLabPlanner();
+    setupAdminClearHandlers();
+    updateLoginUI();
+    setupSidebarCollapse();
+    
+    // Initialize Lucide icons initially
+    if (window.lucide) lucide.createIcons();
+  } catch (err) {
+    console.error("Application initialization warning:", err);
+  } finally {
+    // Hide the skeleton loading screen smoothly
+    dismissSkeletonLoader();
   }
 
   // Set up Supabase Realtime Subscriptions
@@ -969,18 +1118,23 @@ function setupNavigation() {
     });
   }
 
-  // Sidebar Import Button triggers modal
+  // Sidebar Import Button triggers modal (Strictly L3 and L4 only)
   document.getElementById("btnSidebarImport").addEventListener("click", (e) => {
     e.preventDefault();
-    if (isAdminLoggedIn) {
+    const roleLevel = getCurrentRoleLevel();
+    const canImport = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+    
+    if (canImport) {
       document.getElementById("importModal").classList.add("active");
-    } else {
+    } else if (!loggedIn) {
       document.getElementById("loginModal").classList.add("active");
       setTimeout(() => {
         const usernameInput = document.getElementById("loginUsername");
         if (usernameInput) usernameInput.focus();
       }, 100);
       lucide.createIcons();
+    } else {
+      showToast("เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้นที่มีสิทธิ์นำเข้าข้อมูล", "error");
     }
   });
 
@@ -1038,12 +1192,52 @@ function setupSidebarCollapse() {
 
 // Function to programmatically switch panels
 function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
-  // Authorization check for admin page
-  const isBackoffice = (userRole === "admin" || userRole === "teacher");
-  if ((panelId === "add-item" || panelId === "purchase-orders" || panelId === "reports") && !isBackoffice) {
-    showToast("กรุณาเข้าสู่ระบบหลังบ้านเพื่อเข้าใช้งานหน้านี้", "error");
-    document.getElementById("loginModal").classList.add("active");
-    lucide.createIcons();
+  // Authorization check for admin page & backoffice panels
+  const loggedIn = isUserLoggedIn();
+  const isL3 = canAccessAdminSection();
+  
+  if (panelId === "panel-admin" || panelId === "admin") {
+    if (!isL3) {
+      showToast("เฉพาะผู้ดูแลระบบ (L3 Admin) เท่านั้นที่สามารถเข้าใช้งานหน้านี้ได้", "error");
+      if (!loggedIn && typeof window.openLoginModal === "function") {
+        window.openLoginModal();
+      }
+      return;
+    }
+  }
+
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL2 = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
+  const isL3OrL4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  if (panelId === "reports") {
+    if (!isL3OrL4 && !isL2) {
+      showToast("กรุณาเข้าสู่ระบบด้วยบัญชีเจ้าหน้าที่ หรือผู้ดูแลระบบ", "warning");
+      if (!loggedIn && typeof window.openLoginModal === "function") {
+        window.openLoginModal();
+      }
+      return;
+    }
+    if (typeof applyRoleToReportsPanel === "function") {
+      applyRoleToReportsPanel();
+    }
+  }
+
+  if (panelId === "notifications") {
+    if (!isL3OrL4) {
+      showToast("เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้นที่มีสิทธิ์ดูการแจ้งเตือน", "error");
+      if (!loggedIn && typeof window.openLoginModal === "function") {
+        window.openLoginModal();
+      }
+      return;
+    }
+  }
+
+  if ((panelId === "add-item" || panelId === "purchase-orders") && !loggedIn) {
+    showToast("กรุณาเข้าสู่ระบบด้วยรหัสครูเพื่อเข้าใช้งานหน้านี้", "warning");
+    if (typeof window.openLoginModal === "function") {
+      window.openLoginModal();
+    }
     return;
   }
 
@@ -1090,6 +1284,14 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   
   if (panelId === "activity-logs") {
     if (typeof renderActivityLogs === "function") renderActivityLogs();
+  }
+
+  if (panelId === "assets") {
+    navigateToPanel("all-items", "ครุภัณฑ์", "all");
+    if (typeof selectCategoryTab === "function") {
+      selectCategoryTab("ครุภัณฑ์");
+    }
+    return;
   }
 
   currentPage = 1;
@@ -1257,17 +1459,28 @@ function updateUI() {
   renderTodayLabStatus();
   renderAnnouncementTicker();
   initAdminAnnouncementForm();
+
+  // Render Dashboard Lab Usage Calendar & Schedule Overview
+  if (typeof updateDashboardCalendarStats === "function") updateDashboardCalendarStats();
+  if (typeof renderDashboardCalendar === "function") renderDashboardCalendar();
+  if (typeof renderDashboardDailySchedule === "function") renderDashboardDailySchedule();
   
   // Show/Hide export buttons depending on login status
   const borrowExportActions = document.getElementById("borrowExportActions");
   const quickBtnAddItem = document.getElementById("quickBtnAddItem");
-  const isBackoffice = (userRole === "admin" || userRole === "teacher");
-  if (borrowExportActions) borrowExportActions.style.display = isBackoffice ? "inline-flex" : "none";
-  if (quickBtnAddItem) quickBtnAddItem.style.display = isBackoffice ? "flex" : "none";
+  const quickBtnAdmin = document.getElementById("quickBtnAdmin");
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL3Admin = (roleLevel === "L3" || (typeof userRole !== "undefined" && userRole === "admin"));
+  const isL2Staff = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
+  const isL4Executive = (roleLevel === "L4" || (typeof userRole !== "undefined" && userRole === "executive"));
+  
+  if (borrowExportActions) borrowExportActions.style.display = (isL3Admin || isL2Staff || isL4Executive) ? "inline-flex" : "none";
+  if (quickBtnAddItem) quickBtnAddItem.style.display = (isL3Admin || isL2Staff) ? "flex" : "none";
+  if (quickBtnAdmin) quickBtnAdmin.style.display = isL3Admin ? "flex" : "none";
 
   // Toggle display of admin-only clear data buttons
   document.querySelectorAll(".admin-clear-btn").forEach(btn => {
-    btn.style.display = (userRole === "admin") ? "inline-flex" : "none";
+    btn.style.display = isL3Admin ? "inline-flex" : "none";
   });
   
   // Trigger Lucide updates for newly rendered icon containers
@@ -1278,8 +1491,19 @@ function updateUI() {
   if (typeof renderBookingCalendar === "function") {
     renderBookingCalendar();
   }
+
+  // Apply Role Restrictions to Add/Edit Item Form (L2 Auto-Assigned Rooms)
+  if (typeof applyRoleRestrictionsToItemForm === "function") {
+    applyRoleRestrictionsToItemForm();
+  }
+  if (typeof applyRoleToReportsPanel === "function") {
+    applyRoleToReportsPanel();
+  }
   if (typeof renderCabinetMap === "function") {
     renderCabinetMap();
+  }
+  if (typeof renderAssetsTable === "function") {
+    renderAssetsTable();
   }
   if (typeof renderStockForecast === "function") {
     renderStockForecast();
@@ -1365,6 +1589,116 @@ async function submitUserFeedback() {
   if (currentView === "activity") {
     renderActivityLogs();
   }
+}
+
+// ==========================================================================
+// EMERGENCY CONTACTS MANAGEMENT
+// ==========================================================================
+let emergencyContactsData = {
+  admin: "แอดมิน (ม.วงศกร ด้วงเกลี้ยง): ยังไม่ระบุ",
+  nurse: "ห้องพยาบาล: ยังไม่ระบุ",
+  fire: "แจ้งเหตุเพลิงไหม้: ยังไม่ระบุ"
+};
+
+async function loadEmergencyContacts() {
+  try {
+    const res = await fetch(`${API_BASE}/emergency-contacts`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && (data.admin || data.nurse || data.fire)) {
+        emergencyContactsData = data;
+        localStorage.setItem("lab_emergency_contacts", JSON.stringify(data));
+      }
+    }
+  } catch (e) {
+    const local = localStorage.getItem("lab_emergency_contacts");
+    if (local) {
+      try { emergencyContactsData = JSON.parse(local); } catch (err) {}
+    }
+  }
+
+  const dispAdmin = document.getElementById("dispContactAdmin");
+  const dispNurse = document.getElementById("dispContactNurse");
+  const dispFire = document.getElementById("dispContactFire");
+
+  if (dispAdmin) dispAdmin.textContent = emergencyContactsData.admin || "แอดมิน (ม.วงศกร ด้วงเกลี้ยง): ยังไม่ระบุ";
+  if (dispNurse) dispNurse.textContent = emergencyContactsData.nurse || "ห้องพยาบาล: ยังไม่ระบุ";
+  if (dispFire) dispFire.textContent = emergencyContactsData.fire || "แจ้งเหตุเพลิงไหม้: ยังไม่ระบุ";
+
+  const inputAdmin = document.getElementById("inputContactAdmin");
+  const inputNurse = document.getElementById("inputContactNurse");
+  const inputFire = document.getElementById("inputContactFire");
+
+  if (inputAdmin) inputAdmin.value = emergencyContactsData.admin || "";
+  if (inputNurse) inputNurse.value = emergencyContactsData.nurse || "";
+  if (inputFire) inputFire.value = emergencyContactsData.fire || "";
+}
+
+function toggleEmergencyContactEdit(isEditing) {
+  const viewEl = document.getElementById("emergencyContactsView");
+  const editEl = document.getElementById("emergencyContactsEdit");
+  const btnEdit = document.getElementById("btnEditEmergencyContacts");
+
+  if (isEditing) {
+    if (viewEl) viewEl.style.display = "none";
+    if (editEl) editEl.style.display = "block";
+    if (btnEdit) btnEdit.style.display = "none";
+
+    const inputAdmin = document.getElementById("inputContactAdmin");
+    const inputNurse = document.getElementById("inputContactNurse");
+    const inputFire = document.getElementById("inputContactFire");
+
+    if (inputAdmin) inputAdmin.value = emergencyContactsData.admin || "";
+    if (inputNurse) inputNurse.value = emergencyContactsData.nurse || "";
+    if (inputFire) inputFire.value = emergencyContactsData.fire || "";
+  } else {
+    if (viewEl) viewEl.style.display = "block";
+    if (editEl) editEl.style.display = "none";
+    if (btnEdit) btnEdit.style.display = "inline-flex";
+  }
+
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+}
+
+async function saveEmergencyContacts() {
+  const inputAdmin = document.getElementById("inputContactAdmin");
+  const inputNurse = document.getElementById("inputContactNurse");
+  const inputFire = document.getElementById("inputContactFire");
+
+  const newContacts = {
+    admin: inputAdmin && inputAdmin.value.trim() ? inputAdmin.value.trim() : "แอดมิน (ม.วงศกร ด้วงเกลี้ยง): ยังไม่ระบุ",
+    nurse: inputNurse && inputNurse.value.trim() ? inputNurse.value.trim() : "ห้องพยาบาล: ยังไม่ระบุ",
+    fire: inputFire && inputFire.value.trim() ? inputFire.value.trim() : "แจ้งเหตุเพลิงไหม้: ยังไม่ระบุ"
+  };
+
+  emergencyContactsData = newContacts;
+  localStorage.setItem("lab_emergency_contacts", JSON.stringify(newContacts));
+
+  const dispAdmin = document.getElementById("dispContactAdmin");
+  const dispNurse = document.getElementById("dispContactNurse");
+  const dispFire = document.getElementById("dispContactFire");
+
+  if (dispAdmin) dispAdmin.textContent = newContacts.admin;
+  if (dispNurse) dispNurse.textContent = newContacts.nurse;
+  if (dispFire) dispFire.textContent = newContacts.fire;
+
+  try {
+    const res = await fetch(`${API_BASE}/emergency-contacts`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newContacts)
+    });
+    if (res.ok) {
+      showToast("บันทึกเบอร์ติดต่อฉุกเฉินเรียบร้อยแล้ว", "success");
+    }
+  } catch (err) {
+    console.error("Error saving emergency contacts to backend:", err);
+    showToast("บันทึกข้อมูลในเครื่องเรียบร้อยแล้ว", "info");
+  }
+
+  toggleEmergencyContactEdit(false);
 }
 
 function loadFeedbacksFromStorage() {
@@ -1929,6 +2263,85 @@ function renderDashboardUrgentAlerts() {
   container.innerHTML = html;
 }
 
+// Category Pill Tabs Filtering & Counts (with L2 Room Isolation RBAC)
+function updateCategoryTabCounts() {
+  const roleLevel = getCurrentRoleLevel();
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  const allCount = items.length;
+  const assetCount = items.filter(i => {
+    const isAsset = (i.category || "").toLowerCase().includes("ครุภัณฑ์") || (typeof isAssetItem === "function" && isAssetItem(i));
+    if (!isAsset) return false;
+    if (!isL3L4 && roleLevel === "L2") {
+      return canManageItemInRoom(i.room);
+    }
+    return true;
+  }).length;
+
+  const chemCount = items.filter(i => (i.category || "").toLowerCase().includes("สารเคมี")).length;
+  const eqCount = items.filter(i => (i.category || "").toLowerCase().includes("อุปกรณ์")).length;
+  const glassCount = items.filter(i => (i.category || "").toLowerCase().includes("เครื่องแก้ว")).length;
+  const consumableCount = items.filter(i => (i.category || "").toLowerCase().includes("สิ้นเปลือง")).length;
+
+  const elAll = document.getElementById("tabCount-all");
+  const elAsset = document.getElementById("tabCount-ครุภัณฑ์");
+  const elChem = document.getElementById("tabCount-สารเคมี");
+  const elEq = document.getElementById("tabCount-อุปกรณ์วิทยาศาสตร์");
+  const elGlass = document.getElementById("tabCount-เครื่องแก้ว");
+  const elConsumable = document.getElementById("tabCount-วัสดุสิ้นเปลือง");
+
+  if (elAll) elAll.innerText = allCount;
+  if (elAsset) elAsset.innerText = assetCount;
+  if (elChem) elChem.innerText = chemCount;
+  if (elEq) elEq.innerText = eqCount;
+  if (elGlass) elGlass.innerText = glassCount;
+  if (elConsumable) elConsumable.innerText = consumableCount;
+}
+
+function selectCategoryTab(category) {
+  const catSelect = document.getElementById("filterCategory");
+  if (catSelect) {
+    catSelect.value = category;
+  }
+  
+  // Update active pill button state
+  const pillBtns = document.querySelectorAll(".category-pill-btn");
+  pillBtns.forEach(btn => {
+    if (btn.getAttribute("data-category") === category) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  // Toggle Asset Audit Quick Action Banner
+  const assetBanner = document.getElementById("assetAuditQuickBanner");
+  if (assetBanner) {
+    const isAssetTab = category === "ครุภัณฑ์";
+    assetBanner.style.display = isAssetTab ? "flex" : "none";
+    if (isAssetTab) {
+      const roleLevel = getCurrentRoleLevel();
+      const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+      const bannerTitle = assetBanner.querySelector(".asset-banner-title");
+      const bannerSub = assetBanner.querySelector(".asset-banner-subtitle");
+      if (!isL3L4 && roleLevel === "L2") {
+        const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่รับผิดชอบ";
+        if (bannerTitle) bannerTitle.innerText = `การตรวจนับครุภัณฑ์ประจำปีงบประมาณ 2569 (${assigned})`;
+        if (bannerSub) bannerSub.innerText = `แสดงเฉพาะครุภัณฑ์ในห้องที่คุณรับผิดชอบ สามารถกดบันทึกตรวจนับสภาพ หรือส่งออกรายงานได้`;
+      } else {
+        if (bannerTitle) bannerTitle.innerText = `การตรวจนับครุภัณฑ์ประจำปีงบประมาณ 2569 (ภาพรวมทั้งระบบ)`;
+        if (bannerSub) bannerSub.innerText = `แสดงครุภัณฑ์ทุกห้องปฏิบัติการ สามารถตรวจนับ บันทึกสภาพ และพิมพ์รายงานเสนอผู้บริหารได้`;
+      }
+    }
+  }
+
+  currentPage = 1;
+  renderItemsTable();
+}
+
+window.selectCategoryTab = selectCategoryTab;
+window.updateCategoryTabCounts = updateCategoryTabCounts;
+
 // 2. All Items Panel: Filters, Search, Table Rendering and Pagination
 function renderItemsTable() {
   const tableBody = document.getElementById("itemsTableBody");
@@ -1937,7 +2350,7 @@ function renderItemsTable() {
   const thActions = document.getElementById("thActions");
   const thBatchAction = document.getElementById("thBatchAction");
   if (thActions) {
-    thActions.style.display = isAdminLoggedIn ? "" : "none";
+    thActions.style.display = "";
   }
   if (thBatchAction) {
     thBatchAction.style.display = isAdminLoggedIn ? "" : "none";
@@ -1947,8 +2360,49 @@ function renderItemsTable() {
   const filterCategory = document.getElementById("filterCategory").value;
   const filterStatus = document.getElementById("filterStatus").value;
 
+  // Sync Pill Tabs Active State
+  const pillBtns = document.querySelectorAll(".category-pill-btn");
+  pillBtns.forEach(btn => {
+    if (btn.getAttribute("data-category") === filterCategory) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  const assetBanner = document.getElementById("assetAuditQuickBanner");
+  if (assetBanner) {
+    const isAssetTab = filterCategory === "ครุภัณฑ์";
+    assetBanner.style.display = isAssetTab ? "flex" : "none";
+    if (isAssetTab) {
+      const roleLevel = getCurrentRoleLevel();
+      const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+      const bannerTitle = assetBanner.querySelector(".asset-banner-title");
+      const bannerSub = assetBanner.querySelector(".asset-banner-subtitle");
+      if (!isL3L4 && roleLevel === "L2") {
+        const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่รับผิดชอบ";
+        if (bannerTitle) bannerTitle.innerText = `การตรวจนับครุภัณฑ์ประจำปีงบประมาณ 2569 (${assigned})`;
+        if (bannerSub) bannerSub.innerText = `แสดงเฉพาะครุภัณฑ์ในห้องที่คุณรับผิดชอบ สามารถกดบันทึกตรวจนับสภาพ หรือส่งออกรายงานได้`;
+      } else {
+        if (bannerTitle) bannerTitle.innerText = `การตรวจนับครุภัณฑ์ประจำปีงบประมาณ 2569 (ภาพรวมทั้งระบบ)`;
+        if (bannerSub) bannerSub.innerText = `แสดงครุภัณฑ์ทุกห้องปฏิบัติการ สามารถตรวจนับ บันทึกสภาพ และพิมพ์รายงานเสนอผู้บริหารได้`;
+      }
+    }
+  }
+
+  // Update Counters on Pills
+  updateCategoryTabCounts();
+
+  const roleLevel = getCurrentRoleLevel();
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
   // Filter the items list
   let filtered = items.filter(item => {
+    // RBAC: If viewing ครุภัณฑ์ and user is L2, only show items in their assigned rooms
+    if (filterCategory === "ครุภัณฑ์" && !isL3L4 && roleLevel === "L2") {
+      if (!canManageItemInRoom(item.room)) return false;
+    }
+
     // 1. Search Query
     const itemCode = item.code || "";
     const itemName = item.name || "";
@@ -1971,8 +2425,14 @@ function renderItemsTable() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  // Sort filtered items by creation date (newest first)
-  filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  // Sort filtered items: first item / code in natural ascending order at the top
+  filtered.sort((a, b) => {
+    if (a.code && b.code) {
+      const codeCompare = a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' });
+      if (codeCompare !== 0) return codeCompare;
+    }
+    return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+  });
 
   // Render Table Count header
   document.getElementById("tableTotalCount").innerText = filtered.length;
@@ -1985,7 +2445,7 @@ function renderItemsTable() {
 
   // Handle empty state after filter
   if (filtered.length === 0) {
-    const colSpanVal = isAdminLoggedIn ? 6 : 5;
+    const colSpanVal = isAdminLoggedIn ? 8 : 7;
     tableBody.innerHTML = `
       <tr>
         <td colspan="${colSpanVal}" style="text-align: center; padding: 48px 24px;">
@@ -2083,29 +2543,38 @@ function renderItemsTable() {
         </td>
         <td data-label="สถานที่จัดเก็บ" class="col-room" style="color: var(--text-muted); font-size: 12px;">${locationText}</td>
         <td data-label="สถานะ" class="col-status">${getStatusBadgeMarkup(status)}</td>
-        ${isAdminLoggedIn ? `
         <td data-label="จัดการ">
           <div class="table-actions" style="position: relative;">
             <button class="action-icon-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex})" title="ตัวเลือกเพิ่มเติม">
               <i data-lucide="more-vertical" style="width: 16px; height: 16px;"></i>
             </button>
-            <div id="rowDropdown-${originalIndex}" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 50; min-width: 140px; padding: 4px; text-align: left;">
+            <div id="rowDropdown-${originalIndex}" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 50; min-width: 150px; padding: 4px; text-align: left;">
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); showItemDetail(event, '${item.code}')">
                 <i data-lucide="eye" style="width: 14px; height: 14px; margin-right: 8px;"></i> ดูรายละเอียด
-              </button>
-              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); editItem(${originalIndex})">
-                <i data-lucide="edit-3" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไขรายการ
               </button>
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); generateQR('${item.code}')">
                 <i data-lucide="qr-code" style="width: 14px; height: 14px; margin-right: 8px;"></i> สแกน QR
               </button>
+              ${(item.category && item.category.includes('ครุภัณฑ์')) || item.isAsset ? `
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); openAssetAuditModal('${item.code}')" style="color: var(--primary-purple); font-weight: 600;">
+                <i data-lucide="clipboard-check" style="width: 14px; height: 14px; margin-right: 8px;"></i> ตรวจนับครุภัณฑ์
+              </button>
+              ` : ''}
+              ${canManageItemInRoom(item.room) ? `
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); editItem(${originalIndex})">
+                <i data-lucide="edit-3" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไขรายการ
+              </button>
               <button class="dropdown-action-btn danger" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); deleteItem(${originalIndex})">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px; margin-right: 8px;"></i> ลบรายการ
               </button>
+              ` : (getCurrentRoleLevel() === 'L2' ? `
+              <div style="padding: 6px 10px; font-size: 11px; color: #9a3412; background: #fff7ed; border-radius: 4px; margin: 2px;">
+                <i data-lucide="lock" style="width: 11px; height: 11px; display: inline-block; vertical-align: middle;"></i> นอกห้องที่รับผิดชอบ
+              </div>
+              ` : '')}
             </div>
           </div>
         </td>
-        ` : ""}
       </tr>
     `;
   });
@@ -2403,18 +2872,208 @@ async function updateItemBackend(code, itemData, index) {
 }
 
 // ==========================================================================
+// ROLE-BASED FORM RESTRICTIONS (L2 AUTO-ASSIGNED ROOMS)
+// ==========================================================================
+function applyRoleRestrictionsToItemForm(overrideRoom = null) {
+  const roomWrap = document.getElementById("itemRoomControlWrap");
+  const cabinetInput = document.getElementById("itemCabinet");
+  const shelfInput = document.getElementById("itemShelf");
+  if (!roomWrap) return;
+
+  const roleLevel = getCurrentRoleLevel();
+  const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
+
+  // Remove previous lock notice if exists
+  const oldNotice = document.getElementById("l2RoomLockNotice");
+  if (oldNotice) oldNotice.remove();
+
+  if (roleLevel === "L2") {
+    // L2 Staff role: strictly bound to assigned rooms
+    if (assigned.length === 1) {
+      const roomVal = assigned[0];
+      roomWrap.innerHTML = `
+        <input type="text" id="itemRoom" value="${roomVal}" readonly 
+          style="background-color: #f1f5f9; cursor: not-allowed; color: #334155; border: 1px solid #cbd5e1; font-weight: 600;" 
+          title="ห้องนี้ถูกกำหนดตามสิทธิ์ L2 ที่ได้รับมอบหมาย (${roomVal})">
+      `;
+
+      const notice = document.createElement("div");
+      notice.id = "l2RoomLockNotice";
+      notice.style.fontSize = "11.5px";
+      notice.style.color = "#7c3aed";
+      notice.style.marginTop = "5px";
+      notice.style.fontWeight = "500";
+      notice.style.display = "flex";
+      notice.style.alignItems = "center";
+      notice.style.gap = "4px";
+      notice.innerHTML = `<i data-lucide="lock" style="width: 12px; height: 12px;"></i> กำหนดห้องอัตโนมัติตามสิทธิ์ L2 (${roomVal})`;
+      roomWrap.parentElement.appendChild(notice);
+    } else if (assigned.length > 1) {
+      const currentSelected = overrideRoom && assigned.includes(overrideRoom) ? overrideRoom : assigned[0];
+      const optionsHtml = assigned.map(r => `<option value="${r}" ${r === currentSelected ? 'selected' : ''}>${r}</option>`).join("");
+      
+      roomWrap.innerHTML = `
+        <select id="itemRoom" class="form-control" style="font-weight: 500; color: #1e293b; background-color: #ffffff; cursor: pointer; border: 1px solid #cbd5e1;">
+          ${optionsHtml}
+        </select>
+      `;
+
+      const notice = document.createElement("div");
+      notice.id = "l2RoomLockNotice";
+      notice.style.fontSize = "11.5px";
+      notice.style.color = "#7c3aed";
+      notice.style.marginTop = "5px";
+      notice.style.fontWeight = "500";
+      notice.style.display = "flex";
+      notice.style.alignItems = "center";
+      notice.style.gap = "4px";
+      notice.innerHTML = `<i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> เลือกได้เฉพาะห้องที่ได้รับมอบหมาย (${assigned.join(", ")})`;
+      roomWrap.parentElement.appendChild(notice);
+    } else {
+      roomWrap.innerHTML = `
+        <input type="text" id="itemRoom" value="" readonly placeholder="ไม่มีห้องที่ได้รับมอบหมาย" 
+          style="background-color: #f1f5f9; cursor: not-allowed; color: #94a3b8; border: 1px solid #cbd5e1;">
+      `;
+    }
+
+    // Ensure Cabinet and Shelf remain freely editable
+    if (cabinetInput) {
+      cabinetInput.readOnly = false;
+      cabinetInput.disabled = false;
+      cabinetInput.style.backgroundColor = "#ffffff";
+      cabinetInput.style.cursor = "text";
+    }
+    if (shelfInput) {
+      shelfInput.readOnly = false;
+      shelfInput.disabled = false;
+      shelfInput.style.backgroundColor = "#ffffff";
+      shelfInput.style.cursor = "text";
+    }
+  } else {
+    // L3, L4, Admin: free editable input
+    const existingVal = overrideRoom || (document.getElementById("itemRoom") ? document.getElementById("itemRoom").value : "");
+    roomWrap.innerHTML = `
+      <input type="text" id="itemRoom" placeholder="เช่น Lab 1" value="${existingVal}">
+    `;
+
+    if (cabinetInput) {
+      cabinetInput.readOnly = false;
+      cabinetInput.disabled = false;
+      cabinetInput.style.backgroundColor = "#ffffff";
+      cabinetInput.style.cursor = "text";
+    }
+    if (shelfInput) {
+      shelfInput.readOnly = false;
+      shelfInput.disabled = false;
+      shelfInput.style.backgroundColor = "#ffffff";
+      shelfInput.style.cursor = "text";
+    }
+  }
+
+  if (window.lucide) {
+    window.lucide.createIcons();
+  }
+}
+
+// ==========================================================================
+// AUTO-INCREMENT ITEM CODE GENERATOR BY CATEGORY
+// ==========================================================================
+const CATEGORY_CODE_PREFIXES = {
+  "ครุภัณฑ์": "AST-",           // Assets (หรือ EQ-)
+  "สารเคมี": "CHEM-",          // Chemicals
+  "อุปกรณ์วิทยาศาสตร์": "SC-",    // Scientific Tools (หรือ TOOL-)
+  "เครื่องแก้ว": "GW-",         // Glassware
+  "วัสดุสิ้นเปลือง": "CS-"       // Consumables (หรือ MAT-)
+};
+
+function generateNextItemCode(category) {
+  const cat = (category || "").trim();
+  const prefix = CATEGORY_CODE_PREFIXES[cat] || "ITEM-";
+
+  let prefixesToMatch = [prefix];
+  if (cat === "ครุภัณฑ์") prefixesToMatch.push("AST-", "EQ-");
+  else if (cat === "สารเคมี") prefixesToMatch.push("CHEM-", "CH-");
+  else if (cat === "อุปกรณ์วิทยาศาสตร์") prefixesToMatch.push("SC-", "TOOL-", "EQ-");
+  else if (cat === "เครื่องแก้ว") prefixesToMatch.push("GW-", "GL-");
+  else if (cat === "วัสดุสิ้นเปลือง") prefixesToMatch.push("CS-", "CON-", "MAT-");
+
+  let maxNum = 0;
+  if (Array.isArray(items)) {
+    items.forEach(item => {
+      if (!item || !item.code) return;
+      const code = item.code.trim().toUpperCase();
+      for (const p of prefixesToMatch) {
+        if (code.startsWith(p)) {
+          const numPart = code.substring(p.length);
+          const parsed = parseInt(numPart, 10);
+          if (!isNaN(parsed) && parsed > maxNum) {
+            maxNum = parsed;
+          }
+          break;
+        }
+      }
+    });
+  }
+
+  const nextNum = maxNum + 1;
+  const padded = String(nextNum).padStart(3, '0');
+  return `${prefix}${padded}`;
+}
+
+function autoGenerateCurrentCode(force = true) {
+  const editIndex = document.getElementById("editItemIndex")?.value;
+  if (editIndex !== "" && editIndex !== undefined && !force) return; // Don't overwrite if editing existing item
+
+  const categorySelect = document.getElementById("itemCategory");
+  const codeInput = document.getElementById("itemCode");
+  if (!codeInput) return;
+
+  const cat = categorySelect ? categorySelect.value : "";
+  if (!cat) {
+    if (force) showToast("กรุณาเลือกหมวดหมู่ก่อนรันรหัสอัตโนมัติ", "warning");
+    return;
+  }
+
+  const nextCode = generateNextItemCode(cat);
+  codeInput.value = nextCode;
+}
+
+window.generateNextItemCode = generateNextItemCode;
+window.autoGenerateCurrentCode = autoGenerateCurrentCode;
+
+// ==========================================================================
 // FORM SUBMIT / CREATE / UPDATE / DELETE HANDLERS
 // ==========================================================================
 function setupFormHandlers() {
   const form = document.getElementById("itemForm");
   const btnReset = document.getElementById("btnResetForm");
   const btnCancelEdit = document.getElementById("btnCancelEdit");
+  const itemCategorySelect = document.getElementById("itemCategory");
+
+  // Auto-generate code when category changes
+  if (itemCategorySelect) {
+    itemCategorySelect.addEventListener("change", () => {
+      const editIndex = document.getElementById("editItemIndex")?.value;
+      if (!editIndex) {
+        autoGenerateCurrentCode(false);
+      }
+    });
+  }
+
+  // Initial check
+  applyRoleRestrictionsToItemForm();
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    if (!isAdminLoggedIn) {
-      showToast("กรุณาเข้าสู่ระบบในฐานะผู้ดูแลระบบก่อนบันทึกข้อมูล", "error");
+    if (isExecutiveMode()) {
+      showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถเพิ่มหรือแก้ไขรายการได้", "warning");
+      return;
+    }
+
+    const roleLevel = getCurrentRoleLevel();
+    if (roleLevel !== "L3" && roleLevel !== "L2" && roleLevel !== "admin") {
+      showToast("เฉพาะผู้ดูแลระบบ (L3) หรือเจ้าหน้าที่ประจำห้องปฏิบัติการ (L2) เท่านั้นที่มีสิทธิ์บันทึกข้อมูล", "error");
       return;
     }
 
@@ -2429,6 +3088,12 @@ function setupFormHandlers() {
     const room = document.getElementById("itemRoom").value.trim();
     const cabinet = document.getElementById("itemCabinet").value.trim();
     const shelf = document.getElementById("itemShelf").value.trim();
+
+    // Check Room Permission for L2 Staff
+    if (!canManageItemInRoom(room)) {
+      showToast(`คุณไม่มีสิทธิ์จัดการข้อมูลในห้อง "${room || 'อื่นๆ'}" (ได้รับมอบหมายเฉพาะ: ${(currentUser?.assignedRooms || []).join(", ")})`, "error");
+      return;
+    }
     
     // v1.6.0 upgrades
     const chemicalType = document.getElementById("itemChemicalType").value;
@@ -2567,6 +3232,7 @@ function setupFormHandlers() {
     // Set default value back to "ขวด" after reset
     document.getElementById("itemUnit").value = "ขวด";
     document.getElementById("itemMinAlert").value = "";
+    applyRoleRestrictionsToItemForm();
 
     // Navigate to all items to view
     navigateToPanel("all-items");
@@ -2589,6 +3255,7 @@ function setupFormHandlers() {
     if (typeof window.clearCompatibilityRecommendation === "function") {
       window.clearCompatibilityRecommendation();
     }
+    applyRoleRestrictionsToItemForm();
   });
 
   // Cancel edit handler
@@ -2615,6 +3282,7 @@ function setupFormHandlers() {
     if (typeof window.clearCompatibilityRecommendation === "function") {
       window.clearCompatibilityRecommendation();
     }
+    applyRoleRestrictionsToItemForm();
     navigateToPanel("all-items");
   });
 }
@@ -2646,6 +3314,8 @@ window.editItem = function(index) {
   document.getElementById("itemRoom").value = item.room || "";
   document.getElementById("itemCabinet").value = item.cabinet || "";
   document.getElementById("itemShelf").value = item.shelf || "";
+  
+  applyRoleRestrictionsToItemForm(item.room);
   
   // v1.6.0 safety properties populating
   document.getElementById("itemChemicalType").value = item.chemicalType || "";
@@ -2679,13 +3349,18 @@ window.editItem = function(index) {
 
 // Global Delete Action
 window.deleteItem = async function(index) {
-  if (!isAdminLoggedIn) {
-    showToast("กรุณาเข้าสู่ระบบในฐานะผู้ดูแลระบบก่อนทำรายการนี้", "error");
+  if (isExecutiveMode()) {
+    showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถลบรายการได้", "warning");
     return;
   }
 
   const item = items[index];
   if (!item) return;
+
+  if (!canManageItemInRoom(item.room)) {
+    showToast(`คุณไม่มีสิทธิ์ลบรายการในห้อง "${item.room || 'อื่นๆ'}" (เฉพาะห้องที่ได้รับมอบหมายเท่านั้น)`, "error");
+    return;
+  }
 
   const result = await Swal.fire({
     title: 'ยืนยันการลบ?',
@@ -2788,6 +3463,15 @@ function setupImportModal() {
 
   // Handle Import Submission (Read & Parse CSV)
   btnConfirm.addEventListener("click", () => {
+    const roleLevel = getCurrentRoleLevel();
+    const canImport = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+    
+    if (!canImport) {
+      showToast("เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้นที่มีสิทธิ์นำเข้าข้อมูล", "error");
+      closeModalFunc();
+      return;
+    }
+
     if (!fileToImport) return;
 
     const reader = new FileReader();
@@ -4143,18 +4827,31 @@ function renderTransactionsTable() {
 }
 // Quick click action to Return currently borrowed item
 window.returnBorrowedItem = async function(transId) {
+  if (isExecutiveMode()) {
+    showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถทำรายการคืนพัสดุได้", "warning");
+    return;
+  }
+
   const txIndex = transactions.findIndex(t => t.id === transId);
   if (txIndex === -1) return;
   const tx = transactions[txIndex];
 
+  // Find the item
+  const itemIndex = items.findIndex(i => i.code === tx.itemCode);
+  const item = itemIndex !== -1 ? items[itemIndex] : null;
+  const itemRoom = item ? item.room : tx.room;
+
+  // Check L2 Room Permission
+  if (!canApproveReturnForRoom(itemRoom)) {
+    showToast(`คุณไม่มีสิทธิ์ตรวจรับคืนพัสดุของห้อง "${itemRoom || 'อื่นๆ'}" (เฉพาะห้องที่ได้รับมอบหมายเท่านั้น)`, "error");
+    return;
+  }
+
   if (confirm(`คุณต้องการยืนยันการคืนพัสดุ "${tx.itemName}" จำนวน ${tx.qty} หน่วย จากผู้ยืม "${tx.borrower}" ใช่หรือไม่?`)) {
-    // Find the item
-    const itemIndex = items.findIndex(i => i.code === tx.itemCode);
-    if (itemIndex === -1) {
+    if (!item) {
       showToast("ไม่พบพัสดุนี้ในระบบคลัง (อาจถูกลบไปแล้ว)", "error");
       return;
     }
-    const item = items[itemIndex];
 
     // Calculate new stock quantity
     const newQty = item.qty + tx.qty;
@@ -4454,100 +5151,242 @@ async function saveLayout() {
 
 
 async function loadAllBookings() {
+  const todayDate = new Date();
+  const y = todayDate.getFullYear();
+  const m = String(todayDate.getMonth() + 1).padStart(2, '0');
+  
+  const getIsoDay = (dayNum) => `${y}-${m}-${String(dayNum).padStart(2, '0')}`;
+
   const defaultBookings = [
     {
-      id: "book_mock_pending_001",
-      room: "Lab 2",
-      date: new Date().toISOString().split('T')[0],
-      slot: "6, 7",
-      bookerName: "นางสาวสมหญิง ทดสอบจอง",
-      purpose: "เพื่อทดสอบการทำปฏิกิริยาเคมีเบื้องต้น",
-      prepItems: [
-        { code: "CHEM-002", qty: 1 },
-        { code: "GW-001", qty: 2 }
-      ],
-      status: "pending",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_001",
+      id: "book_mock_today_01",
       room: "Lab 1",
-      date: new Date().toISOString().split('T')[0],
-      slot: "3",
-      bookerName: "นายสมชาย เรียนดี",
-      purpose: "เพื่อทดสอบกระบวนการทำแล็บเคมีเบื้องต้น",
-      prepItems: [
-        {
-          code: "CHEM-001",
-          qty: 2
-        }
-      ],
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_002",
-      room: "Lab 2",
-      date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      slot: "4, 5",
-      bookerName: "นางสาวสมหญิง ใจดี",
-      purpose: "ทดลองเรื่องกลศาสตร์แรงและการหมุน",
-      prepItems: [
-        {
-          code: "CHEM-003",
-          qty: 1
-        }
-      ],
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_003",
-      room: "Lab 3",
-      date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      date: getIsoDay(todayDate.getDate()),
       slot: "1, 2",
-      bookerName: "นายมานะ ขยันเรียน",
-      purpose: "ศึกษาการดูดจ่ายสารเคมีและเซลล์พืชด้วยกล้องจุลทรรศน์",
-      prepItems: [
-        {
-          code: "GW-002",
-          qty: 2
-        }
-      ],
+      bookerName: "แก้วกาญจน์ เฮงทองเลิศ",
+      purpose: "Present Project การทดลองเคมี ม.5",
       status: "approved",
       createdAt: new Date().toISOString()
     },
     {
-      id: "book_mock_004",
-      room: "Lab 1",
-      date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      slot: "5, 6",
-      bookerName: "นางสาววิภา ใฝ่เรียน",
-      purpose: "สกัดคลอโรฟิลล์เพื่อวัดอัตราการสังเคราะห์แสง",
-      prepItems: [
-        {
-          code: "CHEM-002",
-          qty: 1
-        }
-      ],
+      id: "book_mock_today_02",
+      room: "Lab 2",
+      date: getIsoDay(todayDate.getDate()),
+      slot: "4, 5",
+      bookerName: "ชุติมา ผาสุข",
+      purpose: "นวัตกรรม ม.รัชกฤช ฟิสิกส์การเคลื่อนที่",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_today_03",
+      room: "Lab 7",
+      date: getIsoDay(todayDate.getDate()),
+      slot: "6, 7",
+      bookerName: "ภัสสร โชวเซ็ง",
+      purpose: "สอบวิชา STEM Activity ม.2/3",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_today_04",
+      room: "Lab 4",
+      date: getIsoDay(todayDate.getDate()),
+      slot: "7, 8",
+      bookerName: "ชุติมา ผาสุข",
+      purpose: "นวัตกรรม ม.2/2 มิสปริญา",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_today_05",
+      room: "Lab 6",
+      date: getIsoDay(todayDate.getDate()),
+      slot: "8",
+      bookerName: "อาจารย์กฤษณะ รุ่งเรือง",
+      purpose: "เตรียมความพร้อมแล็บวิทย์ ม.ต้น",
       status: "pending",
       createdAt: new Date().toISOString()
     },
     {
-      id: "book_mock_005",
-      room: "Lab 2",
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      slot: "3",
-      bookerName: "นายชูชาติ รักชาติ",
-      purpose: "ทดสอบแรงลอยตัวและกระแสไฟฟ้าเบื้องต้น",
-      prepItems: [
-        {
-          code: "EQ-001",
-          qty: 1
-        }
-      ],
+      id: "book_mock_01",
+      room: "Lab 4",
+      date: getIsoDay(1),
+      slot: "2, 3",
+      bookerName: "ม.รัชกฤช สุขใจ",
+      purpose: "working จัดเตรียมโครงงานวิทยาศาสตร์",
       status: "approved",
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_02",
+      room: "Lab 1",
+      date: getIsoDay(2),
+      slot: "1, 2",
+      bookerName: "อ.พรทิพย์ มั่งมี",
+      purpose: "ใช้ในการแข่งขันโอลิมปิกวิชาการ",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_03",
+      room: "Lab 3",
+      date: getIsoDay(3),
+      slot: "2, 3",
+      bookerName: "ครูสมชาย รักการสอน",
+      purpose: "working สังเกตการแบ่งเซลล์พืช",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_04",
+      room: "Lab 5",
+      date: getIsoDay(4),
+      slot: "1, 2",
+      bookerName: "มิสปริยากรณ์ ใจงาม",
+      purpose: "จัดการเรียนการสอนศูนย์ สสวท.",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_05",
+      room: "Lab 8",
+      date: getIsoDay(7),
+      slot: "2, 3",
+      bookerName: "Teacher David",
+      purpose: "เรียนวิชาเลือกเสรี Science Lab EP",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_06",
+      room: "Lab 1",
+      date: getIsoDay(8),
+      slot: "1, 2",
+      bookerName: "มิสปริยากรณ์",
+      purpose: "มิสปริยากรณ์ (เคมีปฏิบัติการ)",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_07",
+      room: "Lab 7",
+      date: getIsoDay(9),
+      slot: "3, 4",
+      bookerName: "ครูวิภาดา ใฝ่รู้",
+      purpose: "Students Presentation STEM",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_08",
+      room: "Lab 5",
+      date: getIsoDay(10),
+      slot: "1, 2",
+      bookerName: "เจ้าหน้าที่ทรงศักดิ์",
+      purpose: "จัดกิจกรรมอบรมสะเต็ม",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_09",
+      room: "Lab 8",
+      date: getIsoDay(11),
+      slot: "1",
+      bookerName: "Teacher Sarah",
+      purpose: "Present Gr.5-6 Science Expo",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_10",
+      room: "Lab 5",
+      date: getIsoDay(14),
+      slot: "1, 2",
+      bookerName: "Mr. Robert",
+      purpose: "Eng Lab IEP Program",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_11",
+      room: "Lab 1",
+      date: getIsoDay(15),
+      slot: "1, 2",
+      bookerName: "มิสปริยากรณ์",
+      purpose: "มิสปริยากรณ์ (เคมีทดลอง)",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_12",
+      room: "Lab 4",
+      date: getIsoDay(16),
+      slot: "1, 2",
+      bookerName: "แก้วกาญจน์ เฮงทองเลิศ",
+      purpose: "Present Project การทดลองเคมี ม.5",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_13",
+      room: "Lab 5",
+      date: getIsoDay(17),
+      slot: "1, 2",
+      bookerName: "มิสปริยากรณ์",
+      purpose: "จัดการเรียนการสอนวิทยาศาสตร์",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_14",
+      room: "Lab 2",
+      date: getIsoDay(18),
+      slot: "2",
+      bookerName: "ม.รัชกฤช",
+      purpose: "ม.รัชกฤช: 3/5",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_15",
+      room: "Lab 6",
+      date: getIsoDay(18),
+      slot: "2",
+      bookerName: "อาจารย์กฤษณะ",
+      purpose: "กิจกรรม board game ป.6",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_16",
+      room: "Lab 1",
+      date: getIsoDay(18),
+      slot: "3",
+      bookerName: "มิสปริยากรณ์",
+      purpose: "มิสปริยากรณ์ (ไทย): 1/6",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_17",
+      room: "Lab 7",
+      date: getIsoDay(18),
+      slot: "7",
+      bookerName: "ครูวิภาดา ใฝ่รู้",
+      purpose: "การเรียนการสอน Innovative",
+      status: "approved",
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: "book_mock_18",
+      room: "Lab 5",
+      date: getIsoDay(18),
+      slot: "8",
+      bookerName: "TED Club Advisor",
+      purpose: "TED Club กิจกรรมวิทย์",
+      status: "approved",
+      createdAt: new Date().toISOString()
     }
   ];
 
@@ -4899,6 +5738,17 @@ function setupBookingForm() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const roleLevel = getCurrentRoleLevel();
+    if (roleLevel === "L0") {
+      showToast("บุคคลทั่วไปไม่สามารถทำการจองห้องปฏิบัติการได้ กรุณาเข้าสู่ระบบด้วย Teacher ID", "warning");
+      if (typeof window.openLoginModal === "function") window.openLoginModal();
+      return;
+    }
+    if (roleLevel === "L4") {
+      showToast("โหมดผู้บริหาร (Read Only): ไม่สามารถทำรายการจองห้องได้", "warning");
+      return;
+    }
+
     const room = document.getElementById("bookingRoom").value;
     const date = document.getElementById("bookingDate").value;
     const slot = document.getElementById("selectedBookingSlot").value;
@@ -4941,6 +5791,9 @@ function setupBookingForm() {
       };
     });
 
+    const isAutoApproved = (roleLevel === "L2" || roleLevel === "L3" || roleLevel === "admin");
+    const bookingStatus = isAutoApproved ? "approved" : "pending";
+
     const bookingData = {
       id: "book_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
       room,
@@ -4949,13 +5802,13 @@ function setupBookingForm() {
       bookerName,
       purpose,
       prepItems,
-      status: (userRole === "student") ? "pending" : "approved",
+      status: bookingStatus,
       createdAt: new Date().toISOString()
     };
 
     const success = await saveBooking(bookingData);
     if (success) {
-      if (userRole === "student") {
+      if (bookingStatus === "pending") {
         if (typeof notifyAdminsNewRequest === "function") {
           notifyAdminsNewRequest({
             type: "booking",
@@ -4965,7 +5818,7 @@ function setupBookingForm() {
             date: formatThaiDate(date)
           });
         }
-        showToast(`ส่งคำขอจองห้อง "${getRoomThaiName(room)}" เรียบร้อยแล้ว รอการอนุมัติ`, "info");
+        showToast(`ส่งคำขอจองห้อง "${getRoomThaiName(room)}" เรียบร้อยแล้ว (รอเจ้าหน้าที่/ผู้ดูแลอนุมัติ)`, "info");
       } else {
         showToast(`จองห้อง "${getRoomThaiName(room)}" ช่วงเวลา ${slot} เรียบร้อยแล้ว!`, "success");
       }
@@ -5005,7 +5858,7 @@ function setupBookingForm() {
         if (bookingSuccessModalHeader) bookingSuccessModalHeader.style.background = "#f59e0b"; // Orange
         if (bookingSuccessModalTitle) bookingSuccessModalTitle.textContent = "ส่งคำขอจองห้องแล็บแล้ว";
         if (bookingSuccessModalWarnText) {
-          bookingSuccessModalWarnText.innerHTML = "กรุณา<b>แคปภาพหน้าจอนี้ไว้</b> เพื่อใช้ติดตามสถานะการอนุมัติการจองห้องปฏิบัติการกับอาจารย์หรือผู้ดูแล";
+          bookingSuccessModalWarnText.innerHTML = "กรุณา<b>แคปภาพหน้าจอนี้ไว้</b> เพื่อใช้ติดตามสถานะการอนุมัติการจองห้องปฏิบัติการกับเจ้าหน้าที่หรือผู้ดูแล";
         }
         if (bookingSuccessModalIconWrapper) {
           bookingSuccessModalIconWrapper.innerHTML = `<i data-lucide="clock" style="width: 20px; height: 20px;"></i>`;
@@ -6183,13 +7036,112 @@ window.editPurchaseOrder = function(orderId) {
 };
 
 // ==========================================================================
-// ADMIN LOGIN SYSTEM
+// ROLE-BASED ACCESS CONTROL (RBAC: L0 - L4) LOGIN SYSTEM
 // ==========================================================================
-function updateLoginUI() {
-  const sidebarLoginText = document.getElementById("sidebarLoginText");
-  const sidebarLoginIcon = document.getElementById("sidebarLoginIcon");
-  const isBackoffice = (userRole === "admin" || userRole === "teacher");
+function fillLoginPreset(teacherId, password) {
+  const usernameInput = document.getElementById("loginUsername");
+  const loginPasswordInput = document.getElementById("loginPassword");
+  const errorMsg = document.getElementById("loginErrorMsg");
+  const adminLoginForm = document.getElementById("adminLoginForm");
   
+  if (usernameInput) usernameInput.value = teacherId;
+  if (loginPasswordInput) loginPasswordInput.value = password;
+  if (errorMsg) errorMsg.style.display = "none";
+
+  // Auto-submit login form immediately
+  if (adminLoginForm) {
+    adminLoginForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+  }
+}
+
+// Role-based visibility for reports panel (L2 can only view PO section)
+function applyRoleToReportsPanel() {
+  const chartBookingCard = document.getElementById("chartBookingCard");
+  const reportExportCard = document.getElementById("reportExportCard");
+  const labBookingReportCard = document.getElementById("labBookingReportCard");
+  const stockForecastCard = document.getElementById("stockForecastCard");
+  const reportsSubtitle = document.querySelector("#panel-reports .header-subtitle");
+
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL2 = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
+  const isL3OrL4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  if (isL2 && !isL3OrL4) {
+    // L2 Staff: Can only view PO section (Stock Forecast & Auto-PO)
+    if (chartBookingCard) chartBookingCard.style.display = "none";
+    if (reportExportCard) reportExportCard.style.display = "none";
+    if (labBookingReportCard) labBookingReportCard.style.display = "none";
+    if (stockForecastCard) stockForecastCard.style.display = "flex";
+    if (reportsSubtitle) reportsSubtitle.innerText = "พยากรณ์ความต้องการสต็อกและรายการสั่งซื้อพัสดุ (Auto-PO)";
+  } else {
+    // L3 Admin & L4 Executive: Can view all report cards
+    if (chartBookingCard) chartBookingCard.style.display = "flex";
+    if (reportExportCard) reportExportCard.style.display = "flex";
+    if (labBookingReportCard) labBookingReportCard.style.display = "flex";
+    if (stockForecastCard) stockForecastCard.style.display = "flex";
+    if (reportsSubtitle) reportsSubtitle.innerText = "ส่งออกข้อมูลรายงานคลังพัสดุและวิเคราะห์ประวัติการใช้งานห้องปฏิบัติการ";
+  }
+}
+
+function updateLoginUI() {
+  const roleLevel = getCurrentRoleLevel();
+  const loggedIn = isUserLoggedIn();
+  const isL3Admin = (roleLevel === "L3");
+  const isL2Staff = (roleLevel === "L2");
+  const isL1Teacher = (roleLevel === "L1");
+  const isL4Executive = (roleLevel === "L4");
+  const isBackoffice = (isL3Admin || isL2Staff || isL1Teacher || isL4Executive);
+
+  // Update Global variable
+  isAdminLoggedIn = isL3Admin;
+  userRole = roleLevel;
+
+  // 1. Update Sidebar Profile Card
+  const userSessionCard = document.getElementById("userSessionCard");
+  const sidebarUserAvatar = document.getElementById("sidebarUserAvatar");
+  const sidebarUserName = document.getElementById("sidebarUserName");
+  const sidebarUserRoleBadge = document.getElementById("sidebarUserRoleBadge");
+  const btnSidebarLogin = document.getElementById("btnSidebarLogin");
+
+  if (loggedIn && currentUser) {
+    if (userSessionCard) userSessionCard.style.display = "flex";
+    if (btnSidebarLogin) btnSidebarLogin.style.display = "none";
+
+    if (sidebarUserAvatar) {
+      sidebarUserAvatar.innerText = currentUser.initials || (currentUser.name ? currentUser.name.substring(0, 2) : "U");
+      sidebarUserAvatar.style.background = currentUser.color || "linear-gradient(135deg, #8b5cf6, #6366f1)";
+    }
+    if (sidebarUserName) {
+      sidebarUserName.innerText = currentUser.name || "ผู้ใช้งาน";
+    }
+    
+    const badgeInfo = getRoleBadgeInfo(roleLevel);
+    if (sidebarUserRoleBadge) {
+      sidebarUserRoleBadge.className = `badge-role ${badgeInfo.className}`;
+      sidebarUserRoleBadge.innerText = `${badgeInfo.level} ${badgeInfo.name}`;
+    }
+    if (userSessionCard) {
+      userSessionCard.title = `${currentUser.name || 'ผู้ใช้งาน'} (${badgeInfo.full}) - คลิกเพื่อออกจากระบบ`;
+    }
+  } else {
+    // Guest L0
+    if (userSessionCard) userSessionCard.style.display = "none";
+    if (btnSidebarLogin) {
+      btnSidebarLogin.style.display = "flex";
+      const sidebarLoginText = document.getElementById("sidebarLoginText");
+      const sidebarLoginIcon = document.getElementById("sidebarLoginIcon");
+      if (sidebarLoginText) sidebarLoginText.innerText = "เข้าสู่ระบบด้วยรหัสครู";
+      if (sidebarLoginIcon) sidebarLoginIcon.setAttribute("data-lucide", "log-in");
+    }
+  }
+
+  // 2. Executive Read-Only Banner (L4)
+  const executiveBanner = document.getElementById("executiveReadOnlyBanner");
+  if (executiveBanner) {
+    executiveBanner.style.display = isL4Executive ? "flex" : "none";
+  }
+
+  // 3. Dashboard Modes
   const dashboardGrid = document.querySelector(".dashboard-grid");
   if (dashboardGrid) {
     if (isBackoffice) {
@@ -6208,7 +7160,7 @@ function updateLoginUI() {
 
   const btnTickerAdminEdit = document.getElementById("btnTickerAdminEdit");
   if (btnTickerAdminEdit) {
-    btnTickerAdminEdit.style.display = isBackoffice ? "inline-flex" : "none";
+    btnTickerAdminEdit.style.display = isL3Admin ? "inline-flex" : "none";
     btnTickerAdminEdit.onclick = function(e) {
       if (e) e.stopPropagation();
       openAnnouncementModal();
@@ -6217,35 +7169,13 @@ function updateLoginUI() {
 
   if (typeof renderTodayLabStatus === "function" && !isBackoffice) renderTodayLabStatus();
   if (typeof renderAnnouncementTicker === "function") renderAnnouncementTicker();
-  
-  if (isAdminLoggedIn) {
-    if (sidebarLoginText) sidebarLoginText.innerText = "ออกจากระบบ";
-    if (sidebarLoginIcon) {
-      sidebarLoginIcon.setAttribute("data-lucide", "log-out");
-    }
-  } else {
-    if (sidebarLoginText) sidebarLoginText.innerText = "เข้าสู่ระบบหลังบ้าน";
-    if (sidebarLoginIcon) {
-      sidebarLoginIcon.setAttribute("data-lucide", "log-in");
-    }
-  }
 
-  // Redirect if on admin panel or purchase orders panel and not backoffice
-  if (!isBackoffice) {
-    const activePanel = document.querySelector(".panel.active");
-    if (activePanel && (activePanel.id === "panel-add-item" || activePanel.id === "panel-purchase-orders" || activePanel.id === "panel-reports" || activePanel.id === "panel-admin")) {
-      navigateToPanel("dashboard");
-    }
-  }
-
-  // Redirect non-admins away from admin panel and notifications panel
-  if (userRole !== "admin") {
-    const activePanel = document.querySelector(".panel.active");
-    if (activePanel && (activePanel.id === "panel-admin" || activePanel.id === "panel-notifications")) {
-      navigateToPanel("dashboard");
-    }
-  }
-
+  // 4. Sidebar Menu Items Visibility by Role Level:
+  // - L0: หน้าแรก, รายการทั้งหมด, ผังตู้ (View), ศูนย์ข้อมูล SDS
+  // - L1: + ยืม-คืน, จองห้องแล็บ, แจ้งชำรุด
+  // - L2: + เพิ่มรายการ (ห้องตนเอง), นำเข้า, รายงานสถิติ, ซ่อมบำรุง
+  // - L3: + Admin Panel, Activity Logs, Notifications (ทุก Function)
+  // - L4: ดูได้ทุกเมนู ยกเว้น Admin Panel (เป็นโหมด Read-Only)
   const menuItemAddItem = document.getElementById("menuItemAddItem");
   const menuItemImport = document.getElementById("menuItemImport");
   const menuItemPurchaseOrders = document.getElementById("menuItemPurchaseOrders");
@@ -6254,62 +7184,103 @@ function updateLoginUI() {
   const menuItemAdmin = document.getElementById("menuItemAdmin");
   const menuItemNotifications = document.getElementById("menuItemNotifications");
   const unifiedAlertsCard = document.getElementById("unifiedAlertsCard");
-  
+
   if (menuItemAddItem) {
-    menuItemAddItem.style.display = "block";
+    menuItemAddItem.style.display = (isL3Admin || isL2Staff) ? "block" : "none";
   }
   if (menuItemImport) {
-    menuItemImport.style.display = "block";
+    menuItemImport.style.display = (isL3Admin || isL4Executive) ? "block" : "none";
   }
   if (menuItemPurchaseOrders) {
     menuItemPurchaseOrders.style.display = "none";
   }
   if (menuItemReports) {
-    menuItemReports.style.display = isBackoffice ? "block" : "none";
+    menuItemReports.style.display = (isL3Admin || isL2Staff || isL4Executive) ? "block" : "none";
   }
+  applyRoleToReportsPanel();
   if (menuItemActivityLogs) {
-    menuItemActivityLogs.style.display = (userRole === "admin") ? "block" : "none";
+    menuItemActivityLogs.style.display = (isL3Admin || isL4Executive) ? "block" : "none";
   }
   if (menuItemAdmin) {
-    menuItemAdmin.style.display = (userRole === "admin") ? "block" : "none";
+    menuItemAdmin.style.display = isL3Admin ? "block" : "none";
   }
   if (menuItemNotifications) {
-    menuItemNotifications.style.display = (userRole === "admin") ? "block" : "none";
+    menuItemNotifications.style.display = (isL3Admin || isL4Executive) ? "block" : "none";
   }
   if (unifiedAlertsCard) {
-    unifiedAlertsCard.style.display = (userRole === "admin") ? "flex" : "none";
+    unifiedAlertsCard.style.display = isL3Admin ? "flex" : "none";
   }
-  
-  // Update role switcher toggle state visual representation
-  const btnStudent = document.getElementById("roleBtnStudent");
-  const btnTeacher = document.getElementById("roleBtnTeacher");
-  const btnAdmin = document.getElementById("roleBtnAdmin");
-  
-  if (btnStudent && btnTeacher && btnAdmin) {
-    [btnStudent, btnTeacher, btnAdmin].forEach(btn => {
-      btn.classList.remove("active");
-      btn.style.background = "none";
-      btn.style.color = "rgba(255,255,255,0.6)";
-    });
-    
-    let activeBtn;
-    if (userRole === "admin") activeBtn = btnAdmin;
-    else if (userRole === "teacher") activeBtn = btnTeacher;
-    else activeBtn = btnStudent;
-    
-    if (activeBtn) {
-      activeBtn.classList.add("active");
-      activeBtn.style.background = "rgba(255,255,255,0.15)";
-      activeBtn.style.color = "#ffffff";
+  const quickBtnAdminEl = document.getElementById("quickBtnAdmin");
+  if (quickBtnAdminEl) {
+    quickBtnAdminEl.style.display = isL3Admin ? "flex" : "none";
+  }
+
+  // 4.5. Guest View-Only Lock Banners for Borrow and Booking
+  const borrowGuestLockBanner = document.getElementById("borrowGuestLockBanner");
+  const borrowForm = document.getElementById("borrowForm");
+  const bookingGuestLockBanner = document.getElementById("bookingGuestLockBanner");
+  const bookingSubmitFields = document.getElementById("bookingSubmitFields");
+
+  if (!loggedIn) {
+    // L0 Guest / Public: Lock form and show View-Only notices
+    if (borrowGuestLockBanner) borrowGuestLockBanner.style.display = "block";
+    if (borrowForm) borrowForm.style.display = "none";
+    if (bookingGuestLockBanner) bookingGuestLockBanner.style.display = "block";
+    if (bookingSubmitFields) bookingSubmitFields.style.display = "none";
+  } else {
+    // Logged in (L1 - L4)
+    if (borrowGuestLockBanner) borrowGuestLockBanner.style.display = "none";
+    if (borrowForm) borrowForm.style.display = "block";
+    if (bookingGuestLockBanner) bookingGuestLockBanner.style.display = "none";
+    if (bookingSubmitFields) bookingSubmitFields.style.display = "block";
+
+    // Auto-fill Booker and Borrower names if currently empty
+    const bookerNameInput = document.getElementById("bookerName");
+    if (bookerNameInput && !bookerNameInput.value && currentUser) {
+      bookerNameInput.value = currentUser.name;
+    }
+    const borrowerNameInput = document.getElementById("borrowerName");
+    if (borrowerNameInput && !borrowerNameInput.value && currentUser) {
+      borrowerNameInput.value = currentUser.name;
     }
   }
-  
-  // Update entire UI to apply admin / viewer state
-  updateUI();
+
+  // 5. Panel Navigation Guard
+  const activePanel = document.querySelector(".panel.active");
+  if (activePanel) {
+    if (!isL3Admin && activePanel.id === "panel-admin") {
+      navigateToPanel("dashboard");
+    }
+    if (!loggedIn && (activePanel.id === "panel-add-item" || activePanel.id === "panel-reports")) {
+      navigateToPanel("dashboard");
+    }
+  }
+
+  // Re-render UI elements
+  if (typeof updateUI === "function") updateUI();
+  if (typeof renderItemsTable === "function") renderItemsTable();
 }
+
+window.openLoginModal = function() {
+  const loginModal = document.getElementById("loginModal");
+  if (loginModal) {
+    loginModal.classList.add("active");
+    const usernameInput = document.getElementById("loginUsername");
+    if (usernameInput) {
+      usernameInput.value = "";
+      setTimeout(() => usernameInput.focus(), 50);
+    }
+    const loginPasswordInput = document.getElementById("loginPassword");
+    if (loginPasswordInput) loginPasswordInput.value = "";
+    const errorMsg = document.getElementById("loginErrorMsg");
+    if (errorMsg) errorMsg.style.display = "none";
+    if (window.lucide) lucide.createIcons();
+  }
+};
 
 function setupLoginHandlers() {
   const btnSidebarLogin = document.getElementById("btnSidebarLogin");
+  const btnSidebarLogoutQuick = document.getElementById("btnSidebarLogoutQuick");
   const loginModal = document.getElementById("loginModal");
   const loginModalClose = document.getElementById("loginModalClose");
   const btnCancelLogin = document.getElementById("btnCancelLogin");
@@ -6318,29 +7289,46 @@ function setupLoginHandlers() {
   const loginPasswordInput = document.getElementById("loginPassword");
   const eyeIcon = document.getElementById("eyeIcon");
 
+  const performLogout = () => {
+    currentUser = null;
+    userRole = "L0";
+    isAdminLoggedIn = false;
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("isAdminLoggedIn");
+    showToast("ออกจากระบบเรียบร้อยแล้ว", "info");
+    updateLoginUI();
+    if (window.lucide) lucide.createIcons();
+  };
+
+  if (btnSidebarLogoutQuick) {
+    btnSidebarLogoutQuick.addEventListener("click", (e) => {
+      e.preventDefault();
+      performLogout();
+    });
+  }
+
+  const userSessionCard = document.getElementById("userSessionCard");
+  if (userSessionCard) {
+    userSessionCard.addEventListener("click", (e) => {
+      const appContainer = document.getElementById("appContainer");
+      // When sidebar is collapsed and not clicking a specific child button, clicking avatar logs out
+      if (appContainer && appContainer.classList.contains("sidebar-collapsed")) {
+        e.preventDefault();
+        performLogout();
+      }
+    });
+  }
+
   if (btnSidebarLogin) {
     btnSidebarLogin.addEventListener("click", (e) => {
       e.preventDefault();
-      const isUserLoggedIn = (userRole === "admin" || userRole === "teacher");
-      if (isUserLoggedIn) {
-        // Logout
-        isAdminLoggedIn = false;
-        userRole = "student";
-        localStorage.removeItem("isAdminLoggedIn");
-        localStorage.removeItem("userRole");
-        showToast("ออกจากระบบเรียบร้อยแล้ว", "info");
-        updateLoginUI();
-        lucide.createIcons();
+      if (isUserLoggedIn()) {
+        performLogout();
       } else {
         // Show login modal
-        if (loginModal) {
-          loginModal.classList.add("active");
-          const usernameInput = document.getElementById("loginUsername");
-          if (usernameInput) usernameInput.value = "";
-          if (loginPasswordInput) loginPasswordInput.value = "";
-          const errorMsg = document.getElementById("loginErrorMsg");
-          if (errorMsg) errorMsg.style.display = "none";
-          lucide.createIcons();
+        if (typeof window.openLoginModal === "function") {
+          window.openLoginModal();
         }
       }
     });
@@ -6367,34 +7355,125 @@ function setupLoginHandlers() {
 
   // Submit login form
   if (adminLoginForm) {
-    adminLoginForm.addEventListener("submit", (e) => {
+    adminLoginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const usernameInput = document.getElementById("loginUsername");
       const username = usernameInput ? usernameInput.value.trim() : "";
-      const password = loginPasswordInput ? loginPasswordInput.value : "";
+      const password = loginPasswordInput ? loginPasswordInput.value.trim() : "";
+      const errorMsg = document.getElementById("loginErrorMsg");
+      const errorText = document.getElementById("loginErrorText");
 
-      // Check credentials based on credentials configuration
-      if (username === USER_CREDENTIALS.admin.username && password === USER_CREDENTIALS.admin.password) {
-        isAdminLoggedIn = true;
-        userRole = "admin";
-        localStorage.setItem("isAdminLoggedIn", "true");
-        localStorage.setItem("userRole", "admin");
-        showToast("เข้าสู่ระบบในฐานะ เจ้าหน้าที่แล็บ สำเร็จ!", "success");
-        closeModal();
-        updateLoginUI();
-        lucide.createIcons();
-      } else if (username === USER_CREDENTIALS.teacher.username && password === USER_CREDENTIALS.teacher.password) {
-        isAdminLoggedIn = false;
-        userRole = "teacher";
-        localStorage.setItem("isAdminLoggedIn", "false");
-        localStorage.setItem("userRole", "teacher");
-        showToast("เข้าสู่ระบบในฐานะ ครูผู้สอน สำเร็จ!", "success");
-        closeModal();
-        updateLoginUI();
-        lucide.createIcons();
-      } else {
-        const errorMsg = document.getElementById("loginErrorMsg");
+      if (!username) {
         if (errorMsg) errorMsg.style.display = "flex";
+        if (errorText) errorText.innerText = "กรุณาระบุรหัสประจำตัวครู (Teacher ID)";
+        return;
+      }
+
+      try {
+        // Try backend auth login endpoint
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.user) {
+            currentUser = data.user;
+            userRole = currentUser.role || "L1";
+            isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+            
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            localStorage.setItem("userRole", userRole);
+            localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
+
+            const badgeInfo = getRoleBadgeInfo(userRole);
+            showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
+            closeModal();
+            updateLoginUI();
+            if (window.lucide) lucide.createIcons();
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Backend auth unavailable, trying local fallback credentials:", err);
+      }
+
+      // Local fallback matching
+      let fallbackUser = null;
+      if (typeof adminUsers !== "undefined" && Array.isArray(adminUsers)) {
+        fallbackUser = adminUsers.find(u => 
+          (u.teacherId && u.teacherId.toLowerCase() === username.toLowerCase()) ||
+          (u.email && u.email.toLowerCase() === username.toLowerCase()) ||
+          (username.toLowerCase() === "admin" && (u.role === "L3" || u.role === "admin"))
+        );
+      }
+
+      if (fallbackUser && (password === (fallbackUser.password || fallbackUser.teacherId) || (username === "admin" && password === "admin1234"))) {
+        currentUser = fallbackUser;
+        userRole = fallbackUser.role || "L1";
+        isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+        
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        localStorage.setItem("userRole", userRole);
+        localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
+
+        const badgeInfo = getRoleBadgeInfo(userRole);
+        showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
+        closeModal();
+        updateLoginUI();
+        if (window.lucide) lucide.createIcons();
+      } else if (username === "admin" && (password === "admin" || password === "admin1234")) {
+        // Super admin preset
+        currentUser = {
+          id: "u_admin",
+          teacherId: "admin",
+          name: "ผู้ดูแลระบบ (Admin)",
+          email: "admin@lab.school.ac.th",
+          role: "L3",
+          roleName: "Manager / System Manager",
+          department: "งานบริหารระบบห้องปฏิบัติการ",
+          assignedRooms: [],
+          initials: "AD",
+          color: "#7c3aed"
+        };
+        userRole = "L3";
+        isAdminLoggedIn = true;
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        localStorage.setItem("userRole", "L3");
+        localStorage.setItem("isAdminLoggedIn", "true");
+
+        showToast("เข้าสู่ระบบในฐานะ ผู้ดูแลระบบ (L3) สำเร็จ!", "success");
+        closeModal();
+        updateLoginUI();
+        if (window.lucide) lucide.createIcons();
+      } else if (username === "1001" && password === "1001") {
+        // Teacher preset
+        currentUser = {
+          id: "u_1001",
+          teacherId: "1001",
+          name: "ครูสมชาย รักการสอน",
+          department: "กลุ่มสาระวิทยาศาสตร์",
+          role: "L1",
+          roleName: "Teacher / User",
+          assignedRooms: [],
+          initials: "สช",
+          color: "#0284c7"
+        };
+        userRole = "L1";
+        isAdminLoggedIn = false;
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        localStorage.setItem("userRole", "L1");
+        localStorage.setItem("isAdminLoggedIn", "false");
+
+        showToast("เข้าสู่ระบบในฐานะ ครูผู้สอน (L1) สำเร็จ!", "success");
+        closeModal();
+        updateLoginUI();
+        if (window.lucide) lucide.createIcons();
+      } else {
+        if (errorMsg) errorMsg.style.display = "flex";
+        if (errorText) errorText.innerText = "รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง";
       }
     });
   }
@@ -6410,7 +7489,7 @@ function setupLoginHandlers() {
         loginPasswordInput.type = "password";
         eyeIcon.setAttribute("data-lucide", "eye");
       }
-      lucide.createIcons();
+      if (window.lucide) lucide.createIcons();
     });
   }
 }
@@ -6761,7 +7840,8 @@ function renderDashboardDamagedStats() {
   damagedItems.forEach(item => {
     const dQty = item.damagedQty || 0;
     const rQty = item.repairQty || 0;
-    const isBackoffice = (userRole === "admin" || userRole === "teacher");
+    const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+    const canManageRepair = (roleLevel === "L3" || roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "admin"));
     html += `
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; font-size: 12px;">
         <span style="font-weight: 500; color: #334155;">${getItemDisplayName(item)} (${item.code})</span>
@@ -6770,7 +7850,7 @@ function renderDashboardDamagedStats() {
             ${dQty > 0 ? `<span class="badge badge-red" style="font-size: 10px; padding: 1px 6px;">ชำรุด: ${dQty} ${item.unit}</span>` : ""}
             ${rQty > 0 ? `<span class="badge badge-orange" style="font-size: 10px; padding: 1px 6px;">ส่งซ่อม: ${rQty} ${item.unit}</span>` : ""}
           </div>
-          ${isBackoffice ? `
+          ${canManageRepair ? `
             <button class="btn-manage-repair" data-code="${item.code}" style="background: none; border: none; padding: 4px; cursor: pointer; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-orange)'" onmouseout="this.style.color='var(--text-muted)'" title="จัดการพัสดุชำรุด/ส่งซ่อม">
               <i data-lucide="wrench" style="width: 14px; height: 14px;"></i>
             </button>
@@ -6783,7 +7863,8 @@ function renderDashboardDamagedStats() {
   html += `</div>`;
   container.innerHTML = html;
 
-  if (userRole === "admin" || userRole === "teacher") {
+  const currentRoleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  if (currentRoleLevel === "L3" || currentRoleLevel === "L2" || userRole === "admin") {
     container.querySelectorAll(".btn-manage-repair").forEach(btn => {
       btn.addEventListener("click", () => {
         const code = btn.getAttribute("data-code");
@@ -6805,16 +7886,28 @@ function renderPendingRequests() {
   
   if (!card || !container) return;
 
-  if (userRole !== "teacher" && userRole !== "admin") {
+  const roleLevel = getCurrentRoleLevel();
+  // Only L2 (Staff) and L3 (System Manager / Admin) have approval dashboard rights
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
     card.style.display = "none";
     return;
   }
 
-  // Filter pending requests
-  let filteredTx = transactions.filter(tx => tx.type === "borrow" && tx.status === "pending");
+  // Filter pending borrow requests based on room permissions
+  let filteredTx = transactions.filter(tx => {
+    if (tx.type !== "borrow" || tx.status !== "pending") return false;
+    if (roleLevel === "L3" || roleLevel === "admin") return true;
+    const item = items.find(i => i.code === tx.itemCode);
+    const room = (item ? item.room : tx.room) || "";
+    return canManageItemInRoom(room);
+  });
 
-  // Filter pending bookings
-  const filteredBookings = bookings.filter(b => b.status === "pending");
+  // Filter pending bookings based on room permissions
+  const filteredBookings = bookings.filter(b => {
+    if (b.status !== "pending") return false;
+    if (roleLevel === "L3" || roleLevel === "admin") return true;
+    return canApproveBookingForRoom(b.room);
+  });
 
   const totalCount = filteredTx.length + filteredBookings.length;
 
@@ -6939,9 +8032,19 @@ window.togglePendingRequestDetails = function(headerElement) {
 }
 
 window.approveBookingRequest = async function(bookingId) {
+  const roleLevel = getCurrentRoleLevel();
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
+    showToast("คุณไม่มีสิทธิ์ในการอนุมัติการจองห้องแล็บ", "error");
+    return;
+  }
   const bkIndex = bookings.findIndex(b => b.id === bookingId);
   if (bkIndex === -1) return;
   const bk = bookings[bkIndex];
+
+  if (!canApproveBookingForRoom(bk.room)) {
+    showToast(`คุณไม่มีสิทธิ์อนุมัติห้อง "${getRoomThaiName(bk.room)}" (ได้รับมอบหมายเฉพาะ: ${(currentUser?.assignedRooms || []).join(", ")})`, "error");
+    return;
+  }
 
   bookings[bkIndex].status = "approved";
   localStorage.setItem("lab_bookings", JSON.stringify(bookings));
@@ -6954,13 +8057,24 @@ window.approveBookingRequest = async function(bookingId) {
     }
   }
   showToast(`อนุมัติการจองห้อง "${getRoomThaiName(bk.room)}" เรียบร้อยแล้ว!`, "success");
+  logActivity(roleLevel === "L3" ? "Admin" : "Staff", "อนุมัติการจอง", `อนุมัติการจองห้อง ${getRoomThaiName(bk.room)} (${bk.slot}) สำหรับ ${bk.bookerName}`);
   updateUI();
 };
 
 window.rejectBookingRequest = async function(bookingId) {
+  const roleLevel = getCurrentRoleLevel();
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
+    showToast("คุณไม่มีสิทธิ์ในการปฏิเสธการจองห้องแล็บ", "error");
+    return;
+  }
   const bkIndex = bookings.findIndex(b => b.id === bookingId);
   if (bkIndex === -1) return;
   const bk = bookings[bkIndex];
+
+  if (!canApproveBookingForRoom(bk.room)) {
+    showToast(`คุณไม่มีสิทธิ์ปฏิเสธห้อง "${getRoomThaiName(bk.room)}"`, "error");
+    return;
+  }
 
   if (confirm(`คุณต้องการปฏิเสธคำขอจองห้องปฏิบัติการของ "${bk.bookerName}" ใช่หรือไม่?`)) {
     bookings[bkIndex].status = "rejected";
@@ -6974,11 +8088,17 @@ window.rejectBookingRequest = async function(bookingId) {
       }
     }
     showToast("ปฏิเสธคำขอจองห้องแล็บเรียบร้อยแล้ว", "info");
+    logActivity(roleLevel === "L3" ? "Admin" : "Staff", "ปฏิเสธการจอง", `ปฏิเสธการจองห้อง ${getRoomThaiName(bk.room)} สำหรับ ${bk.bookerName}`);
     updateUI();
   }
 };
 
 window.approveBorrowRequest = async function(txId) {
+  const roleLevel = getCurrentRoleLevel();
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
+    showToast("คุณไม่มีสิทธิ์ในการอนุมัติคำขอยืมพัสดุ", "error");
+    return;
+  }
   const txIndex = transactions.findIndex(t => t.id === txId);
   if (txIndex === -1) return;
   const tx = transactions[txIndex];
@@ -6990,6 +8110,12 @@ window.approveBorrowRequest = async function(txId) {
     return;
   }
   const item = items[itemIndex];
+
+  if (!canManageItemInRoom(item.room || tx.room)) {
+    showToast(`คุณไม่มีสิทธิ์อนุมัติพัสดุในห้อง "${item.room || tx.room}" (ได้รับมอบหมายเฉพาะ: ${(currentUser?.assignedRooms || []).join(", ")})`, "error");
+    return;
+  }
+
   if (tx.qty > item.qty) {
     showToast(`สต็อกคงเหลือไม่พออนุมัติ! (คงเหลือ: ${item.qty} | คำขอ: ${tx.qty})`, "error");
     return;
@@ -7011,11 +8137,17 @@ window.approveBorrowRequest = async function(txId) {
       }
     }
     showToast(`อนุมัติคำขอยืม "${tx.itemName}" เรียบร้อยแล้ว!`, "success");
+    logActivity(roleLevel === "L3" ? "Admin" : "Staff", "อนุมัติการยืม", `อนุมัติการยืม ${tx.itemName} (${tx.qty} ชิ้น) ให้แก่ ${tx.borrower}`);
     updateUI();
   }
 };
 
 window.rejectBorrowRequest = async function(txId) {
+  const roleLevel = getCurrentRoleLevel();
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
+    showToast("คุณไม่มีสิทธิ์ในการปฏิเสธคำขอยืมพัสดุ", "error");
+    return;
+  }
   const txIndex = transactions.findIndex(t => t.id === txId);
   if (txIndex === -1) return;
   const tx = transactions[txIndex];
@@ -7032,6 +8164,7 @@ window.rejectBorrowRequest = async function(txId) {
       }
     }
     showToast("ปฏิเสธคำขอยืมเรียบร้อยแล้ว", "info");
+    logActivity(roleLevel === "L3" ? "Admin" : "Staff", "ปฏิเสธการยืม", `ปฏิเสธคำขอยืม ${tx.itemName} ของ ${tx.borrower}`);
     updateUI();
   }
 };
@@ -13680,22 +14813,146 @@ document.addEventListener("DOMContentLoaded", () => {
 let adminUsers = [];
 let adminAuditLogs = [];
 
+// Default Fallback Users for Offline / Live Server
+const DEFAULT_RBAC_USERS = [
+  {
+    id: "u_admin",
+    teacherId: "admin",
+    name: "อาจารย์ผู้ดูแลระบบ (Admin)",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    email: "admin@lab.school.ac.th",
+    role: "L3",
+    roleName: "Manager / System Manager",
+    assignedRooms: [],
+    password: "admin",
+    initials: "AD",
+    color: "#7c3aed"
+  },
+  {
+    id: "u_1001",
+    teacherId: "1001",
+    name: "ครูสมชาย รักการสอน",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาเคมี)",
+    email: "somchai.t@lab.school.ac.th",
+    role: "L1",
+    roleName: "Teacher / User",
+    assignedRooms: [],
+    password: "1001",
+    initials: "สช",
+    color: "#0284c7"
+  },
+  {
+    id: "u_1002",
+    teacherId: "1002",
+    name: "ครูวิภาดา ใฝ่รู้",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาฟิสิกส์)",
+    email: "wiphada.t@lab.school.ac.th",
+    role: "L1",
+    roleName: "Teacher / User",
+    assignedRooms: [],
+    password: "1002",
+    initials: "วภ",
+    color: "#059669"
+  },
+  {
+    id: "u_2001",
+    teacherId: "2001",
+    name: "เจ้าหน้าที่ทรงศักดิ์ ดูแลแล็บเคมี",
+    department: "งานบริการห้องปฏิบัติการวิทยาศาสตร์",
+    email: "songsak.s@lab.school.ac.th",
+    role: "L2",
+    roleName: "Staff / Operator",
+    assignedRooms: ["Lab 1", "Lab 6"],
+    password: "2001",
+    initials: "ทศ",
+    color: "#ea580c"
+  },
+  {
+    id: "u_2002",
+    teacherId: "2002",
+    name: "เจ้าหน้าที่นฤมล ดูแลแล็บฟิสิกส์-ชีวะ",
+    department: "งานบริการห้องปฏิบัติการวิทยาศาสตร์",
+    email: "narumon.s@lab.school.ac.th",
+    role: "L2",
+    roleName: "Staff / Operator",
+    assignedRooms: ["Lab 2", "Lab 3"],
+    password: "2002",
+    initials: "นม",
+    color: "#d97706"
+  },
+  {
+    id: "u_3001",
+    teacherId: "3001",
+    name: "ดร.นพพร หัวหน้างานบริหารห้องปฏิบัติการ",
+    department: "กลุ่มงานบริหารวิชาการและห้องปฏิบัติการ",
+    email: "nopporn.m@lab.school.ac.th",
+    role: "L3",
+    roleName: "Manager / System Manager",
+    assignedRooms: [],
+    password: "3001",
+    initials: "นพ",
+    color: "#6366f1"
+  },
+  {
+    id: "u_4001",
+    teacherId: "4001",
+    name: "ผอ.เกียรติศักดิ์ วิสัยทัศน์กว้าง (ผู้บริหาร)",
+    department: "คณะกรรมการบริหารสถานศึกษา",
+    email: "director@lab.school.ac.th",
+    role: "L4",
+    roleName: "Executive / Head of Department",
+    assignedRooms: [],
+    password: "4001",
+    initials: "กศ",
+    color: "#be185d"
+  }
+];
+
 // Load all admin data
 async function loadAdminData() {
   try {
-    const resUsers = await fetch('/api/users');
-    if (resUsers.ok) adminUsers = await resUsers.json();
+    let loadedFromApi = false;
+    try {
+      const resUsers = await fetch('/api/users');
+      if (resUsers.ok) {
+        adminUsers = await resUsers.json();
+        localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+        loadedFromApi = true;
+      }
+    } catch (e) {
+      // offline / Live server
+    }
+
+    if (!loadedFromApi) {
+      const localUsers = localStorage.getItem("lab_admin_users");
+      if (localUsers) {
+        adminUsers = JSON.parse(localUsers);
+      } else {
+        adminUsers = [...DEFAULT_RBAC_USERS];
+        localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+      }
+    }
     
-    const resAudit = await fetch('/api/audit-logs');
-    if (resAudit.ok) adminAuditLogs = await resAudit.json();
+    try {
+      const resAudit = await fetch('/api/audit-logs');
+      if (resAudit.ok) adminAuditLogs = await resAudit.json();
+    } catch (e) {}
     
     renderAdminUsers();
     renderAuditLogs();
     updateAdminStats();
-    loadPushSubscriptionsStatus();
-    checkPushSubscriptionState();
+    if (typeof loadPushSubscriptionsStatus === "function") loadPushSubscriptionsStatus();
+    if (typeof checkPushSubscriptionState === "function") checkPushSubscriptionState();
   } catch (err) {
     console.error("Failed to load admin data:", err);
+  }
+}
+
+function toggleAssignedRoomsField(prefix) {
+  const roleSelect = document.getElementById(prefix === 'invite' ? 'inviteUserRole' : 'editUserRole');
+  const container = document.getElementById(prefix === 'invite' ? 'inviteAssignedRoomsContainer' : 'editAssignedRoomsContainer');
+  if (roleSelect && container) {
+    container.style.display = (roleSelect.value === 'L2' || roleSelect.value === 'staff') ? 'block' : 'none';
   }
 }
 
@@ -13705,26 +14962,56 @@ function renderAdminUsers() {
   
   tbody.innerHTML = "";
   
+  if (!adminUsers || adminUsers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--text-muted);">ไม่พบข้อมูลผู้ใช้งาน</td></tr>`;
+    return;
+  }
+  
   adminUsers.forEach(user => {
-    const roleBadge = user.role === 'admin' 
-      ? '<span class="badge badge-purple" style="font-size: 12px; padding: 2px 8px; border-radius: 12px;">แอดมิน</span>'
-      : '<span class="badge" style="background:#dbeafe; color:#1e40af; font-size: 12px; padding: 2px 8px; border-radius: 12px;">สมาชิก</span>';
+    const roleLevel = user.role || 'L1';
+    const badgeInfo = getRoleBadgeInfo(roleLevel);
+    
+    // Assigned rooms display for L2
+    let roomsHtml = '<span style="color: var(--text-muted); font-size: 12px;">-</span>';
+    if ((roleLevel === 'L2' || roleLevel === 'staff') && user.assignedRooms && user.assignedRooms.length > 0) {
+      roomsHtml = user.assignedRooms.map(r => `<span class="room-badge-tag highlight">${r}</span>`).join(" ");
+    } else if (roleLevel === 'L3' || roleLevel === 'admin') {
+      roomsHtml = '<span class="room-badge-tag" style="background:#f5f3ff; color:#7c3aed; border-color:#ddd6fe;">ทุกห้อง (All Labs)</span>';
+    } else if (roleLevel === 'L4' || roleLevel === 'executive') {
+      roomsHtml = '<span class="room-badge-tag" style="background:#fdf2f8; color:#be185d; border-color:#fbcfe8;">ภาพรวมทุกห้อง (Read Only)</span>';
+    }
       
     const tr = document.createElement("tr");
     tr.style.borderBottom = "1px solid var(--border-color)";
     tr.innerHTML = `
-      <td style="padding: 12px 16px; display: flex; align-items: center; gap: 8px;">
-        <div style="width:32px;height:32px;border-radius:50%;background:${user.color || '#3b82f6'};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;">${user.initials || 'U'}</div>
-        ${user.name}
+      <td style="padding: 10px 14px; font-family: monospace; font-weight: 700; color: #1e293b; white-space: nowrap; font-size: 13px;">
+        ${escapeHTML(user.teacherId || user.id || '-')}
       </td>
-      <td style="padding: 12px 16px; color: var(--text-muted);">${user.email}</td>
-      <td style="padding: 12px 16px;">${roleBadge}</td>
-      <td style="padding: 12px 16px;">
-        <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: white; border: 1px solid var(--border-color); cursor: pointer; padding: 4px 8px; border-radius: 4px;">แก้ไข</button>
+      <td style="padding: 10px 14px;">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 180px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:${user.color || '#3b82f6'};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11.5px;flex-shrink:0;">${user.initials || 'U'}</div>
+          <div>
+            <div style="font-weight: 600; color: var(--text-main); font-size: 13px; line-height: 1.3;">${escapeHTML(user.name || '')}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(user.email || '-')}</div>
+          </div>
+        </div>
+      </td>
+      <td style="padding: 10px 14px; color: var(--text-muted); font-size: 12.5px; min-width: 130px; line-height: 1.3;">${escapeHTML(user.department || 'กลุ่มสาระวิทยาศาสตร์')}</td>
+      <td style="padding: 10px 14px; white-space: nowrap;">
+        <span class="badge-role ${badgeInfo.className}">${badgeInfo.level} ${badgeInfo.name}</span>
+      </td>
+      <td style="padding: 10px 14px; min-width: 110px;">${roomsHtml}</td>
+      <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
+        <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: white; border: 1px solid var(--border-color); cursor: pointer; padding: 4px 10px; border-radius: 6px; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+          <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i>
+          <span>แก้ไข</span>
+        </button>
       </td>
     `;
     tbody.appendChild(tr);
   });
+
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderAuditLogs() {
@@ -13785,7 +15072,7 @@ async function logAuditAction(action, details) {
       body: JSON.stringify({
         action,
         details,
-        user: "Admin (Current User)"
+        user: currentUser ? `${currentUser.name} (${currentUser.role})` : "Admin"
       })
     });
     // Reload silently
@@ -13799,12 +15086,21 @@ async function logAuditAction(action, details) {
 
 // INVITE USER
 function openInviteUserModal() {
-  document.getElementById("modalInviteUser").style.display = "flex";
-  document.getElementById("formInviteUser").reset();
+  const modal = document.getElementById("modalInviteUser");
+  const form = document.getElementById("formInviteUser");
+  if (form) form.reset();
+  
+  // Uncheck all room checkboxes
+  document.querySelectorAll('input[name="inviteRoom"]').forEach(cb => cb.checked = false);
+  toggleAssignedRoomsField('invite');
+
+  if (modal) modal.style.display = "flex";
+  if (window.lucide) lucide.createIcons();
 }
 
 function closeInviteUserModal() {
-  document.getElementById("modalInviteUser").style.display = "none";
+  const modal = document.getElementById("modalInviteUser");
+  if (modal) modal.style.display = "none";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -13812,25 +15108,42 @@ document.addEventListener("DOMContentLoaded", () => {
   if (formInviteUser) {
     formInviteUser.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = document.getElementById("inviteUserName").value;
-      const email = document.getElementById("inviteUserEmail").value;
-      const role = document.getElementById("inviteUserRole").value;
+      const teacherId = (document.getElementById("inviteUserTeacherId")?.value || "").trim();
+      const name = (document.getElementById("inviteUserName")?.value || "").trim();
+      const dept = (document.getElementById("inviteUserDept")?.value || "").trim();
+      const email = (document.getElementById("inviteUserEmail")?.value || "").trim();
+      const role = document.getElementById("inviteUserRole")?.value || "L1";
       
+      // Collect checked assigned rooms for L2
+      const assignedRooms = [];
+      if (role === "L2" || role === "staff") {
+        document.querySelectorAll('input[name="inviteRoom"]:checked').forEach(cb => {
+          assignedRooms.push(cb.value);
+        });
+      }
+
       try {
         const res = await fetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, role })
+          body: JSON.stringify({ 
+            teacherId: teacherId || "T" + Date.now().toString().slice(-4), 
+            name, 
+            department: dept, 
+            email, 
+            role, 
+            assignedRooms 
+          })
         });
         
         if (res.ok) {
-          showToast("ส่งคำเชิญสำเร็จ", "success");
+          showToast("เพิ่มผู้ใช้งานใหม่เรียบร้อยแล้ว", "success");
           closeInviteUserModal();
-          await logAuditAction("เชิญผู้ใช้ใหม่", `เชิญผู้ใช้ ${email} ในฐานะ ${role}`);
+          await logAuditAction("เพิ่มผู้ใช้งานใหม่", `เพิ่มผู้ใช้ ${name} (ID: ${teacherId}) สิทธิ์ ${role}`);
           await loadAdminData();
         }
       } catch (err) {
-        showToast("เกิดข้อผิดพลาด", "error");
+        showToast("เกิดข้อผิดพลาดในการเพิ่มผู้ใช้", "error");
       }
     });
   }
@@ -13842,14 +15155,33 @@ function openEditUserModal(id) {
   if (!user) return;
   
   document.getElementById("editUserId").value = user.id;
-  document.getElementById("editUserName").value = user.name;
-  document.getElementById("editUserRole").value = user.role;
+  document.getElementById("editUserTeacherId").value = user.teacherId || user.id || "";
+  document.getElementById("editUserName").value = user.name || "";
+  document.getElementById("editUserDept").value = user.department || "";
+  document.getElementById("editUserEmail").value = user.email || "";
   
+  // Match Role
+  let currentRole = user.role || "L1";
+  if (currentRole === "admin") currentRole = "L3";
+  if (currentRole === "staff") currentRole = "L2";
+  if (currentRole === "teacher") currentRole = "L1";
+  if (currentRole === "executive") currentRole = "L4";
+  document.getElementById("editUserRole").value = currentRole;
+  
+  // Set Checkboxes for assigned rooms
+  const assigned = Array.isArray(user.assignedRooms) ? user.assignedRooms : [];
+  document.querySelectorAll('input[name="editRoom"]').forEach(cb => {
+    cb.checked = assigned.includes(cb.value);
+  });
+
+  toggleAssignedRoomsField('edit');
   document.getElementById("modalEditUser").style.display = "flex";
+  if (window.lucide) lucide.createIcons();
 }
 
 function closeEditUserModal() {
-  document.getElementById("modalEditUser").style.display = "none";
+  const modal = document.getElementById("modalEditUser");
+  if (modal) modal.style.display = "none";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -13858,21 +15190,38 @@ document.addEventListener("DOMContentLoaded", () => {
     formEditUser.addEventListener("submit", async (e) => {
       e.preventDefault();
       const id = document.getElementById("editUserId").value;
-      const name = document.getElementById("editUserName").value;
-      const role = document.getElementById("editUserRole").value;
+      const teacherId = (document.getElementById("editUserTeacherId")?.value || "").trim();
+      const name = (document.getElementById("editUserName")?.value || "").trim();
+      const dept = (document.getElementById("editUserDept")?.value || "").trim();
+      const email = (document.getElementById("editUserEmail")?.value || "").trim();
+      const role = document.getElementById("editUserRole")?.value || "L1";
       
+      const assignedRooms = [];
+      if (role === "L2" || role === "staff") {
+        document.querySelectorAll('input[name="editRoom"]:checked').forEach(cb => {
+          assignedRooms.push(cb.value);
+        });
+      }
+
       try {
         const res = await fetch(`/api/users/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, role })
+          body: JSON.stringify({ teacherId, name, department: dept, email, role, assignedRooms })
         });
         
         if (res.ok) {
-          showToast("อัปเดตข้อมูลผู้ใช้สำเร็จ", "success");
+          showToast("อัปเดตข้อมูลและสิทธิ์ผู้ใช้สำเร็จ", "success");
           closeEditUserModal();
-          await logAuditAction("อัปเดตสิทธิ์ผู้ใช้", `แก้ไขข้อมูล/สิทธิ์ของผู้ใช้ ${name}`);
+          await logAuditAction("อัปเดตสิทธิ์ผู้ใช้", `แก้ไขข้อมูล/สิทธิ์ของผู้ใช้ ${name} (ID: ${teacherId})`);
           await loadAdminData();
+
+          // If current logged-in user is modified, update local state
+          if (currentUser && currentUser.id === id) {
+            currentUser = { ...currentUser, teacherId, name, department: dept, email, role, assignedRooms };
+            localStorage.setItem("currentUser", JSON.stringify(currentUser));
+            updateLoginUI();
+          }
         }
       } catch (err) {
         showToast("เกิดข้อผิดพลาด", "error");
@@ -14018,6 +15367,9 @@ window.nextWizardStep = function(targetStep) {
   if (targetEl) targetEl.style.display = 'block';
   // Update progress
   updateWizardProgress(targetStep);
+  if (typeof applyRoleRestrictionsToItemForm === "function") {
+    applyRoleRestrictionsToItemForm();
+  }
   lucide.createIcons();
 };
 
@@ -14029,6 +15381,9 @@ window.prevWizardStep = function(targetStep) {
   if (targetEl) targetEl.style.display = 'block';
   // Update progress
   updateWizardProgress(targetStep);
+  if (typeof applyRoleRestrictionsToItemForm === "function") {
+    applyRoleRestrictionsToItemForm();
+  }
   lucide.createIcons();
 };
 
@@ -14039,6 +15394,9 @@ document.addEventListener('DOMContentLoaded', () => {
       originalNavigateToPanel(panelId, catFilter, statusFilter);
       if (panelId === 'add-item') {
         window.nextWizardStep(1); // reset to step 1
+        if (typeof applyRoleRestrictionsToItemForm === "function") {
+          applyRoleRestrictionsToItemForm();
+        }
       }
     };
   }
@@ -14656,6 +16014,10 @@ function openHelpSafetyModal(tabId = null) {
 
   if (modal) {
     modal.classList.add('active');
+    loadEmergencyContacts();
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
     
     // Switch to a specific tab if requested
     if (tabId) {
@@ -14715,6 +16077,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (targetContent) {
         targetContent.style.display = 'block';
         targetContent.classList.add('active');
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
       }
     });
   });
@@ -15169,7 +16534,7 @@ document.addEventListener('click', function(event) {
 const DEFAULT_ANNOUNCEMENTS = [
   "🛡️ การใช้อุปกรณ์คุ้มครองความปลอดภัย (PPE) ต้องสวมเสื้อกาวน์ แว่นตานิรภัย และรองเท้าหุ้มส้นตลอดเวลาที่ปฏิบัติการ",
   "💨 การทดลองที่มีไอระเหยหรือกรดเข้มข้น กรุณาทำในตู้ดูดควัน (Fume Hood) และเปิดระบบระบายอากาศก่อนเริ่มงาน",
-  "📞 เหตุฉุกเฉินและอุบัติเหตุ ติดต่อแอดมิน (ม.วงศกร) 081-4187736 หรือแจ้งผ่านเมนู 'แจ้งปัญหา'",
+  "📞 เหตุฉุกเฉินและอุบัติเหตุ ติดต่อแอดมิน หรือแจ้งผ่านเมนู 'แจ้งปัญหา'",
   "📖 ศูนย์ข้อมูลและความปลอดภัย ศึกษากฎระเบียบ SHECU และเอกสาร SDS ได้ที่เมนูศูนย์ข้อมูล"
 ];
 
@@ -15346,7 +16711,9 @@ function renderAnnouncementTicker(customData) {
   const btnTickerAdminEdit = document.getElementById("btnTickerAdminEdit");
   if (!tickerBar || !track) return;
 
-  const isBackoffice = (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "teacher"));
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL3Admin = (roleLevel === "L3" || (typeof userRole !== "undefined" && userRole === "admin"));
+  const isBackoffice = (roleLevel !== "L0");
   const data = customData || getAnnouncementData();
 
   // Apply Theme Classes (orange, blue, green, purple, red)
@@ -15374,7 +16741,7 @@ function renderAnnouncementTicker(customData) {
   track.style.setProperty("--ticker-gap", `${gap}px`);
 
   if (!data.enabled) {
-    if (isBackoffice) {
+    if (isL3Admin) {
       // Show subtle disabled indicator for Admin so they can easily re-enable
       tickerBar.style.display = "flex";
       tickerBar.style.opacity = "0.75";
@@ -15384,7 +16751,13 @@ function renderAnnouncementTicker(customData) {
           🔒 แถบประกาศถูกปิดการแสดงผลอยู่ (ผู้ใช้งานทั่วไปจะไม่เห็นแถบนี้)
         </span>
       `;
-      if (btnTickerAdminEdit) btnTickerAdminEdit.style.display = "inline-flex";
+      if (btnTickerAdminEdit) {
+        btnTickerAdminEdit.style.display = "inline-flex";
+        btnTickerAdminEdit.onclick = function(e) {
+          if (e) e.stopPropagation();
+          openAnnouncementModal();
+        };
+      }
       return;
     } else {
       tickerBar.style.display = "none";
@@ -15395,7 +16768,13 @@ function renderAnnouncementTicker(customData) {
   tickerBar.style.display = "flex";
   tickerBar.style.opacity = "1";
   tickerBar.style.borderStyle = "solid";
-  if (btnTickerAdminEdit) btnTickerAdminEdit.style.display = isBackoffice ? "inline-flex" : "none";
+  if (btnTickerAdminEdit) {
+    btnTickerAdminEdit.style.display = isL3Admin ? "inline-flex" : "none";
+    btnTickerAdminEdit.onclick = function(e) {
+      if (e) e.stopPropagation();
+      openAnnouncementModal();
+    };
+  }
 
   const rawText = data.text || "";
   const messages = rawText
@@ -15404,7 +16783,7 @@ function renderAnnouncementTicker(customData) {
     .filter(m => m.length > 0);
 
   if (messages.length === 0) {
-    if (isBackoffice) {
+    if (isL3Admin) {
       track.innerHTML = `
         <span class="ticker-text-item" style="color: var(--text-muted); font-style: italic;">
           ยังไม่มีข้อความประกาศ — คลิกปุ่ม "แก้ไขประกาศ" เพื่อเพิ่มข้อความ
@@ -15757,4 +17136,1077 @@ function quickBookRoom(roomId) {
     roomSelect.dispatchEvent(new Event('change'));
   }
 }
+
+/* ==========================================================================
+   LAB USAGE CALENDAR & SCHEDULE OVERVIEW SUBSYSTEM (DASHBOARD L0 - L2)
+   ========================================================================== */
+
+let dashCalCurrentDate = new Date();
+let dashCalSelectedDate = new Date();
+let dashCalCurrentView = "month"; // "month" | "week" | "day"
+
+const DASH_LAB_ROOMS = [
+  { id: "Lab 1", name: "ห้องปฏิบัติการเคมี", building: "อาคารอัสสัมชัญ", pillClass: "pill-darkblue", hex: "#2563eb" },
+  { id: "Lab 2", name: "ห้องปฏิบัติการฟิสิกส์", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-green", hex: "#16a34a" },
+  { id: "Lab 3", name: "ห้องปฏิบัติการชีววิทยา", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-blue", hex: "#0284c7" },
+  { id: "Lab 4", name: "ห้องปฏิบัติการวิทยาศาสตร์", building: "อาคารราฟาเอล", pillClass: "pill-orange", hex: "#ea580c" },
+  { id: "Lab 5", name: "ห้องศูนย์ สสวท.", building: "อาคารราฟาเอล", pillClass: "pill-yellow", hex: "#eab308" },
+  { id: "Lab 6", name: "ห้องแล็บวิทย์ ม.ต้น", building: "อาคารอัสสัมชัญ", pillClass: "pill-purple", hex: "#9333ea" },
+  { id: "Lab 7", name: "ห้อง STEM CENTER", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-pink", hex: "#db2777" },
+  { id: "Lab 8", name: "ห้องแล็บวิทย์ (EP)", building: "อาคารยอห์น แมรี่", pillClass: "pill-indigo", hex: "#4f46e5" }
+];
+
+const THAI_MONTH_NAMES_FULL = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+];
+
+const THAI_MONTH_NAMES_SHORT = [
+  "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+  "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+];
+
+const THAI_WEEKDAY_NAMES = [
+  "อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัส", "ศุกร์", "เสาร์"
+];
+
+function formatThaiDateDisplay(dateObj) {
+  if (!dateObj || isNaN(dateObj.getTime())) dateObj = new Date();
+  const d = dateObj.getDate();
+  const m = THAI_MONTH_NAMES_FULL[dateObj.getMonth()];
+  const y = dateObj.getFullYear() + 543;
+  return `${d} ${m} ${y}`;
+}
+
+function formatThaiDateIso(dateObj) {
+  if (!dateObj || isNaN(dateObj.getTime())) dateObj = new Date();
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getDashRoomInfo(roomId) {
+  const room = DASH_LAB_ROOMS.find(r => r.id === roomId || (roomId && roomId.includes(r.id)));
+  if (room) return room;
+  return {
+    id: roomId || "Lab",
+    name: roomId || "ห้องปฏิบัติการ",
+    building: "อาคารวิทยาศาสตร์",
+    pillClass: "pill-purple",
+    hex: "#7c3aed"
+  };
+}
+
+function getDashSlotTimeRange(slot) {
+  if (!slot) return "08:10 - 09:50 น.";
+  const s = String(slot).trim();
+  if (s.includes("1, 2") || s.includes("1,2")) return "08:10 - 09:50 น.";
+  if (s.includes("3, 4") || s.includes("3,4")) return "09:50 - 11:40 น.";
+  if (s.includes("4, 5") || s.includes("4,5")) return "10:50 - 12:30 น.";
+  if (s.includes("6, 7") || s.includes("6,7")) return "13:20 - 15:00 น.";
+  if (s.includes("7, 8") || s.includes("7,8")) return "14:10 - 16:00 น.";
+  if (s === "1") return "08:10 - 09:00 น.";
+  if (s === "2") return "09:00 - 09:50 น.";
+  if (s === "3") return "09:50 - 10:40 น.";
+  if (s === "4") return "10:50 - 11:40 น.";
+  if (s === "5") return "11:40 - 12:30 น.";
+  if (s === "6") return "13:20 - 14:10 น.";
+  if (s === "7") return "14:10 - 15:00 น.";
+  if (s === "8") return "15:10 - 16:00 น.";
+  if (s.toLowerCase().includes("พัก")) return "12:30 - 13:20 น.";
+  return s.includes("น.") ? s : `${s} น.`;
+}
+
+function getDashSlotStartTime(slot) {
+  const full = getDashSlotTimeRange(slot);
+  const parts = full.split("-");
+  if (parts.length > 0) {
+    return parts[0].trim().replace(" น.", "");
+  }
+  return "08:10";
+}
+
+// 1. Update top 3 summary cards
+function updateDashboardCalendarStats() {
+  const pendingEl = document.getElementById("calStatPending");
+  const roomsEl = document.getElementById("calStatRooms");
+  const usersEl = document.getElementById("calStatUsers");
+
+  if (pendingEl) {
+    const pendingCount = (typeof bookings !== "undefined" ? bookings : []).filter(
+      b => b.status === "pending"
+    ).length;
+    pendingEl.textContent = pendingCount;
+  }
+
+  if (roomsEl) {
+    roomsEl.textContent = DASH_LAB_ROOMS.length;
+  }
+
+  if (usersEl) {
+    let userCount = 28;
+    try {
+      if (window.systemUsers && Array.isArray(window.systemUsers)) {
+        userCount = window.systemUsers.length;
+      } else {
+        const storedUsers = localStorage.getItem("system_users");
+        if (storedUsers) {
+          const parsed = JSON.parse(storedUsers);
+          if (Array.isArray(parsed)) userCount = parsed.length;
+        }
+      }
+    } catch (e) {}
+    usersEl.textContent = userCount;
+  }
+}
+
+// 2. Render Main Calendar
+function renderDashboardCalendar() {
+  const monthLabel = document.getElementById("dashCalMonthLabel");
+  const content = document.getElementById("dashCalContent");
+  if (!monthLabel || !content) return;
+
+  const year = dashCalCurrentDate.getFullYear();
+  const month = dashCalCurrentDate.getMonth();
+  const thaiYear = year + 543;
+
+  monthLabel.textContent = `${THAI_MONTH_NAMES_FULL[month]} ${thaiYear}`;
+
+  if (dashCalCurrentView === "month") {
+    renderDashboardMonthView(year, month, content);
+  } else if (dashCalCurrentView === "week") {
+    renderDashboardWeekView(year, month, content);
+  } else if (dashCalCurrentView === "day") {
+    renderDashboardDayView(year, month, content);
+  }
+
+  if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+  }
+}
+
+// Month View Grid
+function renderDashboardMonthView(year, month, container) {
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+  const prevMonthDays = new Date(year, month, 0).getDate();
+  const today = new Date();
+  const selectedDateIso = formatThaiDateIso(dashCalSelectedDate);
+
+  let html = `
+    <div class="dash-cal-month-table">
+      <div class="dash-cal-weekdays">
+        ${THAI_WEEKDAY_NAMES.map(name => `<div>${name}</div>`).join("")}
+      </div>
+      <div class="dash-cal-days-grid">
+  `;
+
+  // Previous month padding days
+  for (let i = firstDayIndex - 1; i >= 0; i--) {
+    const dayVal = prevMonthDays - i;
+    const prevMonthDate = new Date(year, month - 1, dayVal);
+    const dateStr = formatThaiDateIso(prevMonthDate);
+    html += `
+      <div class="dash-cal-day-cell other-month" onclick="selectDashboardCalendarDate('${dateStr}')">
+        <div class="dash-cal-day-header">
+          <span class="dash-cal-day-num">${dayVal}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // Current month days
+  for (let d = 1; d <= totalDays; d++) {
+    const currentDate = new Date(year, month, d);
+    const dateStr = formatThaiDateIso(currentDate);
+    const isToday = currentDate.toDateString() === today.toDateString();
+    const isSelected = dateStr === selectedDateIso;
+
+    const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
+      b => b.date === dateStr && b.status !== "cancelled"
+    );
+
+    let cellClasses = ["dash-cal-day-cell"];
+    if (isToday) cellClasses.push("today");
+    if (isSelected) cellClasses.push("selected");
+
+    let eventPillsHtml = "";
+    const displayLimit = 2;
+    const visibleBookings = dayBookings.slice(0, displayLimit);
+    const remainingCount = dayBookings.length - displayLimit;
+
+    visibleBookings.forEach(b => {
+      const roomInfo = getDashRoomInfo(b.room);
+      const startTime = getDashSlotStartTime(b.slot);
+      const titleText = b.purpose || b.bookerName || roomInfo.name;
+      eventPillsHtml += `
+        <span class="dash-cal-event-pill ${roomInfo.pillClass}" title="${roomInfo.name} | ${b.bookerName || ''} (${b.slot || ''}): ${b.purpose || ''}">
+          ${startTime} น. ${titleText}
+        </span>
+      `;
+    });
+
+    if (remainingCount > 0) {
+      eventPillsHtml += `
+        <button type="button" class="dash-cal-more-btn" onclick="openDashboardDateEventsModal('${dateStr}', event)">
+          +${remainingCount} เพิ่มเติม
+        </button>
+      `;
+    }
+
+    html += `
+      <div class="${cellClasses.join(" ")}" onclick="selectDashboardCalendarDate('${dateStr}')">
+        <div class="dash-cal-day-header">
+          <span class="dash-cal-day-num">${d}</span>
+        </div>
+        <div class="dash-cal-day-events">
+          ${eventPillsHtml}
+        </div>
+      </div>
+    `;
+  }
+
+  // Next month padding days to complete grid (multiples of 7)
+  const totalRenderedCells = firstDayIndex + totalDays;
+  const nextMonthPadding = (7 - (totalRenderedCells % 7)) % 7;
+  for (let i = 1; i <= nextMonthPadding; i++) {
+    const nextMonthDate = new Date(year, month + 1, i);
+    const dateStr = formatThaiDateIso(nextMonthDate);
+    html += `
+      <div class="dash-cal-day-cell other-month" onclick="selectDashboardCalendarDate('${dateStr}')">
+        <div class="dash-cal-day-header">
+          <span class="dash-cal-day-num">${i}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  html += `
+      </div>
+    </div>
+  `;
+
+  container.innerHTML = html;
+}
+
+// Week View
+function renderDashboardWeekView(year, month, container) {
+  const curr = new Date(dashCalSelectedDate);
+  const dayOfWeek = curr.getDay();
+  const startOfWeek = new Date(curr);
+  startOfWeek.setDate(curr.getDate() - dayOfWeek);
+
+  let html = `<div class="dash-cal-week-grid">`;
+
+  for (let i = 0; i < 7; i++) {
+    const dayDate = new Date(startOfWeek);
+    dayDate.setDate(startOfWeek.getDate() + i);
+    const dateStr = formatThaiDateIso(dayDate);
+    const isToday = dayDate.toDateString() === new Date().toDateString();
+    const isSelected = dateStr === formatThaiDateIso(dashCalSelectedDate);
+
+    const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
+      b => b.date === dateStr && b.status !== "cancelled"
+    );
+
+    html += `
+      <div class="dash-cal-week-col ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="selectDashboardCalendarDate('${dateStr}')" style="cursor: pointer;">
+        <div class="dash-cal-week-header">
+          <div class="dash-cal-week-day-name">${THAI_WEEKDAY_NAMES[i]}</div>
+          <div class="dash-cal-week-day-num">${dayDate.getDate()} ${THAI_MONTH_NAMES_SHORT[dayDate.getMonth()]}</div>
+        </div>
+        <div class="dash-cal-day-events">
+          ${dayBookings.length === 0 ? '<span style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 12px;">ว่างตลอดวัน</span>' : ''}
+          ${dayBookings.map(b => {
+            const roomInfo = getDashRoomInfo(b.room);
+            const timeRange = getDashSlotTimeRange(b.slot);
+            return `
+              <div class="dash-schedule-card-item" style="padding: 6px 8px; margin-bottom: 4px; font-size: 11px;">
+                <span class="dash-cal-event-pill ${roomInfo.pillClass}" style="margin-bottom: 2px;">${roomInfo.name}</span>
+                <span style="font-weight: 700; color: var(--accent-blue);">${timeRange}</span>
+                <span style="font-weight: 600; color: var(--text-main);">${b.purpose || 'ใช้งานแล็บ'}</span>
+                <span style="color: var(--text-muted); font-size: 10px;">${b.bookerName || ''}</span>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// Day View
+function renderDashboardDayView(year, month, container) {
+  const dateStr = formatThaiDateIso(dashCalSelectedDate);
+  const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
+    b => b.date === dateStr && b.status !== "cancelled"
+  );
+
+  const slotsList = [
+    { slot: "1", time: "08:10 - 09:00" },
+    { slot: "2", time: "09:00 - 09:50" },
+    { slot: "3", time: "09:50 - 10:40" },
+    { slot: "4", time: "10:50 - 11:40" },
+    { slot: "5", time: "11:40 - 12:30" },
+    { slot: "พัก", time: "12:30 - 13:20" },
+    { slot: "6", time: "13:20 - 14:10" },
+    { slot: "7", time: "14:10 - 15:00" },
+    { slot: "8", time: "15:10 - 16:00" }
+  ];
+
+  let html = `
+    <div style="margin-bottom: 12px; font-weight: 700; font-size: 14.5px; color: var(--text-main);">
+      ตารางใช้งานประจำวัน: ${formatThaiDateDisplay(dashCalSelectedDate)}
+    </div>
+    <div class="dash-cal-day-timeline">
+  `;
+
+  slotsList.forEach(s => {
+    const slotBookings = dayBookings.filter(b => {
+      if (!b.slot) return false;
+      return String(b.slot).includes(s.slot);
+    });
+
+    html += `
+      <div class="dash-cal-time-row">
+        <div class="dash-cal-time-slot">
+          <div>${s.slot.includes('พัก') ? 'พักกลางวัน' : 'คาบ ' + s.slot}</div>
+          <div style="font-size: 10px; font-weight: 500; opacity: 0.8;">${s.time}</div>
+        </div>
+        <div class="dash-cal-time-content">
+          ${slotBookings.length === 0 ? '<span style="font-size: 12px; color: #94a3b8;">ว่าง (ไม่มีการจอง)</span>' : ''}
+          ${slotBookings.map(b => {
+            const roomInfo = getDashRoomInfo(b.room);
+            return `
+              <div class="dash-schedule-card-item" style="padding: 8px 12px; background: #ffffff;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name} (${roomInfo.building})</span>
+                  <span class="badge badge-green" style="font-size: 10px;">${b.status === 'pending' ? 'รออนุมัติ' : 'อนุมัติแล้ว'}</span>
+                </div>
+                <div style="font-weight: 700; font-size: 13px; color: var(--text-main); margin-top: 4px;">${b.purpose || 'ไม่มีระบุหัวข้อ'}</div>
+                <div style="font-size: 11.5px; color: var(--text-muted);">ผู้จอง: ${b.bookerName || '-'}</div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// 3. Render Right-Side Daily Usage Schedule
+function renderDashboardDailySchedule(specificDateStr) {
+  const dateSub = document.getElementById("dashScheduleDateSub");
+  const datePicker = document.getElementById("dashScheduleDatePicker");
+  const body = document.getElementById("dashScheduleBody");
+  if (!body) return;
+
+  const targetDate = specificDateStr ? new Date(specificDateStr) : dashCalSelectedDate;
+  const dateStr = formatThaiDateIso(targetDate);
+
+  if (dateSub) {
+    dateSub.textContent = `ประจำวันที่ ${formatThaiDateDisplay(targetDate)}`;
+  }
+  if (datePicker) {
+    datePicker.value = dateStr;
+  }
+
+  const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
+    b => b.date === dateStr && b.status !== "cancelled"
+  );
+
+  if (dayBookings.length === 0) {
+    body.innerHTML = `
+      <div class="dash-schedule-empty">
+        <i data-lucide="calendar-check" class="dash-schedule-empty-icon"></i>
+        <p class="dash-schedule-empty-text">ไม่มีรายการใช้งานห้องปฏิบัติการในวันนี้</p>
+        <button type="button" class="btn-dash-quick-book" onclick="navigateToPanel('lab-booking')">
+          <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+          <span>จองห้องปฏิบัติการ</span>
+        </button>
+      </div>
+    `;
+    if (typeof lucide !== "undefined") lucide.createIcons();
+    return;
+  }
+
+  // Group by room
+  const grouped = {};
+  dayBookings.forEach(b => {
+    const roomKey = b.room || "Lab 1";
+    if (!grouped[roomKey]) grouped[roomKey] = [];
+    grouped[roomKey].push(b);
+  });
+
+  let html = "";
+  Object.keys(grouped).forEach(roomId => {
+    const roomInfo = getDashRoomInfo(roomId);
+    const roomBookings = grouped[roomId];
+
+    html += `
+      <div class="dash-schedule-group">
+        <div class="dash-schedule-room-header">
+          <i data-lucide="map-pin"></i>
+          <span>${roomInfo.name} (${roomInfo.building})</span>
+        </div>
+        ${roomBookings.map(b => {
+          const timeRange = getDashSlotTimeRange(b.slot);
+          const purpose = b.purpose || "การเรียนการสอน / ทำการทดลอง";
+          const booker = b.bookerName || "อาจารย์ผู้สอน";
+          return `
+            <div class="dash-schedule-card-item">
+              <div class="dash-schedule-item-time">
+                <i data-lucide="clock"></i>
+                <span>${timeRange}</span>
+              </div>
+              <div class="dash-schedule-item-title">${purpose}</div>
+              <div class="dash-schedule-item-booker">
+                <i data-lucide="user"></i>
+                <span>ผู้จอง: ${booker}</span>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  });
+
+  body.innerHTML = html;
+
+  if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+  }
+}
+
+// 4. Select Date Action
+function selectDashboardCalendarDate(dateStr) {
+  if (!dateStr) return;
+  dashCalSelectedDate = new Date(dateStr);
+  dashCalCurrentDate = new Date(dateStr);
+  renderDashboardCalendar();
+  renderDashboardDailySchedule(dateStr);
+}
+
+// 5. Popover Modal for Date with multiple events
+function openDashboardDateEventsModal(dateStr, e) {
+  if (e) e.stopPropagation();
+  const backdrop = document.getElementById("dashCalModalBackdrop");
+  const title = document.getElementById("dashCalPopoverTitle");
+  const body = document.getElementById("dashCalPopoverBody");
+  if (!backdrop || !body) return;
+
+  const dateObj = new Date(dateStr);
+  if (title) {
+    title.textContent = `รายการจองวันที่ ${formatThaiDateDisplay(dateObj)}`;
+  }
+
+  const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
+    b => b.date === dateStr && b.status !== "cancelled"
+  );
+
+  let html = "";
+  if (dayBookings.length === 0) {
+    html = '<p style="color: var(--text-muted); text-align: center; margin: 12px 0;">ไม่มีรายการจอง</p>';
+  } else {
+    html = dayBookings.map(b => {
+      const roomInfo = getDashRoomInfo(b.room);
+      const timeRange = getDashSlotTimeRange(b.slot);
+      return `
+        <div class="dash-schedule-card-item" style="border-left: 4px solid ${roomInfo.hex};">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name}</span>
+            <span style="font-weight: 700; font-size: 12px; color: var(--accent-blue);">${timeRange}</span>
+          </div>
+          <div style="font-weight: 700; font-size: 13.5px; color: var(--text-main); margin-top: 4px;">${b.purpose || 'ใช้งานห้องปฏิบัติการ'}</div>
+          <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+            <i data-lucide="user" style="width: 12px; height: 12px;"></i>
+            <span>ผู้จอง: ${b.bookerName || '-'}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  body.innerHTML = html;
+  backdrop.style.display = "flex";
+
+  if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+  }
+}
+
+function closeDashboardDateEventsModal() {
+  const backdrop = document.getElementById("dashCalModalBackdrop");
+  if (backdrop) backdrop.style.display = "none";
+}
+
+// 6. Init Event Listeners
+function initDashboardCalendar() {
+  const btnPrev = document.getElementById("dashCalBtnPrev");
+  const btnNext = document.getElementById("dashCalBtnNext");
+  const btnToday = document.getElementById("dashCalBtnToday");
+  const datePicker = document.getElementById("dashScheduleDatePicker");
+  const popoverClose = document.getElementById("dashCalPopoverClose");
+  const backdrop = document.getElementById("dashCalModalBackdrop");
+
+  if (btnPrev) {
+    btnPrev.onclick = () => {
+      if (dashCalCurrentView === "month") {
+        dashCalCurrentDate.setMonth(dashCalCurrentDate.getMonth() - 1);
+      } else if (dashCalCurrentView === "week") {
+        dashCalCurrentDate.setDate(dashCalCurrentDate.getDate() - 7);
+        dashCalSelectedDate.setDate(dashCalSelectedDate.getDate() - 7);
+      } else if (dashCalCurrentView === "day") {
+        dashCalCurrentDate.setDate(dashCalCurrentDate.getDate() - 1);
+        dashCalSelectedDate.setDate(dashCalSelectedDate.getDate() - 1);
+      }
+      renderDashboardCalendar();
+      renderDashboardDailySchedule();
+    };
+  }
+
+  if (btnNext) {
+    btnNext.onclick = () => {
+      if (dashCalCurrentView === "month") {
+        dashCalCurrentDate.setMonth(dashCalCurrentDate.getMonth() + 1);
+      } else if (dashCalCurrentView === "week") {
+        dashCalCurrentDate.setDate(dashCalCurrentDate.getDate() + 7);
+        dashCalSelectedDate.setDate(dashCalSelectedDate.getDate() + 7);
+      } else if (dashCalCurrentView === "day") {
+        dashCalCurrentDate.setDate(dashCalCurrentDate.getDate() + 1);
+        dashCalSelectedDate.setDate(dashCalSelectedDate.getDate() + 1);
+      }
+      renderDashboardCalendar();
+      renderDashboardDailySchedule();
+    };
+  }
+
+  if (btnToday) {
+    btnToday.onclick = () => {
+      dashCalCurrentDate = new Date();
+      dashCalSelectedDate = new Date();
+      renderDashboardCalendar();
+      renderDashboardDailySchedule();
+    };
+  }
+
+  if (datePicker) {
+    datePicker.onchange = (e) => {
+      if (e.target.value) {
+        selectDashboardCalendarDate(e.target.value);
+      }
+    };
+  }
+
+  // View switch tabs
+  document.querySelectorAll(".btn-view-tab").forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll(".btn-view-tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      dashCalCurrentView = tab.getAttribute("data-view") || "month";
+      renderDashboardCalendar();
+    };
+  });
+
+  if (popoverClose) {
+    popoverClose.onclick = closeDashboardDateEventsModal;
+  }
+  if (backdrop) {
+    backdrop.onclick = (e) => {
+      if (e.target === backdrop) closeDashboardDateEventsModal();
+    };
+  }
+
+  // Initial render
+  updateDashboardCalendarStats();
+  renderDashboardCalendar();
+  renderDashboardDailySchedule();
+}
+
+window.selectDashboardCalendarDate = selectDashboardCalendarDate;
+window.openDashboardDateEventsModal = openDashboardDateEventsModal;
+window.closeDashboardDateEventsModal = closeDashboardDateEventsModal;
+window.updateDashboardCalendarStats = updateDashboardCalendarStats;
+window.renderDashboardCalendar = renderDashboardCalendar;
+window.renderDashboardDailySchedule = renderDashboardDailySchedule;
+
+// Auto-run init
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initDashboardCalendar);
+} else {
+  initDashboardCalendar();
+}
+
+// ==========================================================================
+// ANNUAL ASSET AUDIT & FIXED EQUIPMENT INVENTORY MODULE (ระบบตรวจนับครุภัณฑ์ประจำปี - RBAC)
+// ==========================================================================
+function isAssetItem(item) {
+  if (!item) return false;
+  const cat = (item.category || "").toLowerCase();
+  return cat.includes("ครุภัณฑ์") || (item.isAsset === true);
+}
+
+function renderAssetsTable() {
+  const tableBody = document.getElementById("assetsTableBody");
+  if (!tableBody) return;
+
+  const currentYear = "2569";
+  const roleLevel = getCurrentRoleLevel();
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  // RBAC: L2 can only see/audit assets in their assigned room(s), L3/L4 see all
+  let allAssetItems = items.filter(isAssetItem);
+  if (!isL3L4 && roleLevel === "L2") {
+    allAssetItems = allAssetItems.filter(item => canManageItemInRoom(item.room));
+  }
+
+  // Compute Statistics
+  let totalCount = allAssetItems.length;
+  let auditedCount = 0;
+  let damagedCount = 0;
+
+  allAssetItems.forEach(item => {
+    const isAudited = item.lastAuditYear === currentYear || (item.lastAuditDate && item.lastAuditDate.includes(currentYear));
+    if (isAudited) auditedCount++;
+    if ((item.damagedQty && item.damagedQty > 0) || (item.repairQty && item.repairQty > 0) || item.assetCondition === "damaged" || item.assetCondition === "repair") {
+      damagedCount++;
+    }
+  });
+
+  const pendingCount = totalCount - auditedCount;
+
+  // Update Stat Card Elements
+  const elTotal = document.getElementById("assetStatTotal");
+  const elAudited = document.getElementById("assetStatAudited");
+  const elPending = document.getElementById("assetStatPending");
+  const elDamaged = document.getElementById("assetStatDamaged");
+
+  if (elTotal) elTotal.innerText = totalCount;
+  if (elAudited) elAudited.innerText = `${auditedCount} (${totalCount > 0 ? Math.round((auditedCount / totalCount) * 100) : 0}%)`;
+  if (elPending) elPending.innerText = pendingCount;
+  if (elDamaged) elDamaged.innerText = damagedCount;
+
+  // Filters
+  const searchVal = (document.getElementById("assetSearchInput")?.value || "").trim().toLowerCase();
+  const roomFilter = document.getElementById("assetRoomFilter")?.value || "all";
+  const statusFilter = document.getElementById("assetAuditStatusFilter")?.value || "all";
+
+  const filteredAssets = allAssetItems.filter(item => {
+    const matchesSearch = !searchVal || 
+      (item.code && item.code.toLowerCase().includes(searchVal)) || 
+      (item.name && item.name.toLowerCase().includes(searchVal)) ||
+      (item.room && item.room.toLowerCase().includes(searchVal));
+
+    const matchesRoom = roomFilter === "all" || item.room === roomFilter;
+
+    const isAudited = item.lastAuditYear === currentYear || (item.lastAuditDate && item.lastAuditDate.includes(currentYear));
+    const isDamaged = (item.damagedQty && item.damagedQty > 0) || (item.repairQty && item.repairQty > 0) || item.assetCondition === "damaged" || item.assetCondition === "repair";
+
+    let matchesStatus = true;
+    if (statusFilter === "audited") matchesStatus = isAudited;
+    else if (statusFilter === "pending") matchesStatus = !isAudited;
+    else if (statusFilter === "damaged") matchesStatus = isDamaged;
+
+    return matchesSearch && matchesRoom && matchesStatus;
+  });
+
+  if (filteredAssets.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+          <i data-lucide="package-search" style="width: 36px; height: 36px; stroke-width: 1.5; margin-bottom: 8px; color: var(--text-muted);"></i>
+          <div>ไม่พบรายการครุภัณฑ์ตามเงื่อนไขที่เลือก</div>
+        </td>
+      </tr>
+    `;
+    if (window.lucide) lucide.createIcons();
+    return;
+  }
+
+  let html = "";
+  filteredAssets.forEach(item => {
+    const isAudited = item.lastAuditYear === currentYear || (item.lastAuditDate && item.lastAuditDate.includes(currentYear));
+    
+    // Condition Badge
+    let conditionBadge = `<span class="badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981; font-weight: 600;">ปกติ (100%)</span>`;
+    if (item.assetCondition === "minor_issue") {
+      conditionBadge = `<span class="badge" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; font-weight: 600;">มีตำหนิเล็กน้อย</span>`;
+    } else if (item.assetCondition === "repair" || (item.repairQty && item.repairQty > 0)) {
+      conditionBadge = `<span class="badge" style="background: rgba(249, 115, 22, 0.1); color: #f97316; font-weight: 600;">อยู่ระหว่างส่งซ่อม</span>`;
+    } else if (item.assetCondition === "damaged" || (item.damagedQty && item.damagedQty > 0)) {
+      conditionBadge = `<span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; font-weight: 600;">ชำรุด</span>`;
+    }
+
+    // Audit Info
+    const auditInfo = isAudited
+      ? `<div style="font-size: 12px; color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+           <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> ตรวจแล้ว (${item.lastAuditYear || currentYear})
+         </div>
+         <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">โดย: ${item.auditedBy || 'เจ้าหน้าที่'} (${item.lastAuditDate || '-'})</div>`
+      : `<div style="font-size: 12px; color: #f59e0b; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+           <i data-lucide="clock" style="width: 14px; height: 14px;"></i> รอตรวจนับปี ${currentYear}
+         </div>`;
+
+    // Action button
+    const canAudit = isL3L4 || canManageItemInRoom(item.room);
+    let actionBtn = "";
+    if (canAudit) {
+      actionBtn = isAudited
+        ? `<button type="button" class="btn btn-outline btn-sm" onclick="openAssetAuditModal('${item.code}')" style="padding: 4px 10px; font-size: 12px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer;">
+             <i data-lucide="edit-3" style="width: 12px; height: 12px; margin-right: 4px;"></i> ปรับปรุง
+           </button>`
+        : `<div style="display: inline-flex; gap: 6px;">
+             <button type="button" class="btn btn-sm" onclick="quickApproveAssetAudit('${item.code}')" style="background: #10b981; color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: var(--border-radius-sm); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+               <i data-lucide="check" style="width: 13px; height: 13px;"></i> เช็กผ่าน
+             </button>
+             <button type="button" class="btn btn-outline btn-sm" onclick="openAssetAuditModal('${item.code}')" style="padding: 5px 8px; font-size: 12px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); cursor: pointer;">
+               <i data-lucide="sliders" style="width: 13px; height: 13px;"></i>
+             </button>
+           </div>`;
+    } else {
+      actionBtn = `<span style="font-size: 11px; color: var(--text-muted);"><i data-lucide="lock" style="width: 12px; height: 12px; vertical-align: middle;"></i> นอกห้องที่ดูแล</span>`;
+    }
+
+    const locationText = `${item.room || '-'} / ${item.cabinet || '-'}${item.shelf ? ' (ชั้น ' + item.shelf + ')' : ''}`;
+
+    html += `
+      <tr style="border-bottom: 1px solid var(--border-color);">
+        <td style="padding: 12px 16px; font-family: monospace; font-weight: 600; color: var(--primary-purple);">${item.code}</td>
+        <td style="padding: 12px 16px;">
+          <div style="font-weight: 600; color: var(--text-main);">${item.name}</div>
+          ${item.category ? `<div style="font-size: 11px; color: var(--text-muted);">${item.category}</div>` : ''}
+        </td>
+        <td style="padding: 12px 16px; font-size: 13px; color: var(--text-muted);">${locationText}</td>
+        <td style="padding: 12px 16px; text-align: center; font-weight: 600;">${item.qty} ${item.unit || 'เครื่อง'}</td>
+        <td style="padding: 12px 16px; text-align: center;">${conditionBadge}</td>
+        <td style="padding: 12px 16px;">${auditInfo}</td>
+        <td style="padding: 12px 16px; text-align: center;">${actionBtn}</td>
+      </tr>
+    `;
+  });
+
+  tableBody.innerHTML = html;
+  if (window.lucide) lucide.createIcons();
+}
+
+// Fast Quick Approve Asset (RBAC Verified)
+async function quickApproveAssetAudit(code) {
+  const item = items.find(i => i.code === code);
+  if (!item) return;
+
+  const roleLevel = getCurrentRoleLevel();
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  // RBAC Check
+  if (!isL3L4 && !canManageItemInRoom(item.room)) {
+    showToast(`คุณไม่มีสิทธิ์ตรวจนับครุภัณฑ์ใน ${item.room || 'ห้องนี้'} (ตรวจนับได้เฉพาะห้องที่ตนเองรับผิดชอบ)`, "error");
+    return;
+  }
+
+  const currentYear = "2569";
+  const todayStr = new Date().toLocaleDateString('th-TH');
+  const auditor = currentUser ? (currentUser.name || currentUser.username) : "เจ้าหน้าที่แล็บ";
+
+  item.lastAuditDate = todayStr;
+  item.lastAuditYear = currentYear;
+  item.auditedBy = auditor;
+  item.actualQty = item.qty;
+  if (!item.assetCondition) item.assetCondition = "normal";
+
+  if (typeof saveItemToStorage === "function") {
+    await saveItemToStorage(item);
+  } else if (typeof saveItemsToLocal === "function") {
+    saveItemsToLocal();
+  }
+
+  showToast(`✅ บันทึกตรวจนับ ${item.name} (ปีงบ ${currentYear}) สำเร็จ!`, "success");
+  if (typeof renderItemsTable === "function") renderItemsTable();
+  if (typeof renderAssetsTable === "function") renderAssetsTable();
+}
+
+// Open Detail Audit Modal (RBAC Verified)
+function openAssetAuditModal(code) {
+  const item = items.find(i => i.code === code);
+  if (!item) return;
+
+  const roleLevel = getCurrentRoleLevel();
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  // RBAC Check
+  if (!isL3L4 && !canManageItemInRoom(item.room)) {
+    showToast(`คุณไม่มีสิทธิ์ตรวจนับครุภัณฑ์ใน ${item.room || 'ห้องนี้'} (ตรวจนับได้เฉพาะห้องที่ตนเองรับผิดชอบ)`, "error");
+    return;
+  }
+
+  const modal = document.getElementById("assetAuditModal");
+  if (!modal) return;
+
+  document.getElementById("auditAssetCode").value = item.code;
+  document.getElementById("auditAssetCodeDisplay").innerText = item.code;
+  document.getElementById("auditAssetNameDisplay").innerText = item.name;
+  document.getElementById("auditAssetLocationDisplay").innerText = `สถานที่: ${item.room || '-'} / ${item.cabinet || '-'} (ชั้น ${item.shelf || '-'})`;
+  document.getElementById("auditAssetCondition").value = item.assetCondition || "normal";
+  document.getElementById("auditAssetBookQty").value = item.qty || 0;
+  document.getElementById("auditAssetActualQty").value = item.actualQty !== undefined ? item.actualQty : (item.qty || 0);
+  document.getElementById("auditAssetFiscalYear").value = item.lastAuditYear || "2569";
+  document.getElementById("auditAssetNotes").value = item.auditNotes || "";
+
+  modal.classList.add("active");
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeAssetAuditModal() {
+  const modal = document.getElementById("assetAuditModal");
+  if (modal) modal.classList.remove("active");
+}
+
+async function saveAssetAuditRecord() {
+  const code = document.getElementById("auditAssetCode").value;
+  const item = items.find(i => i.code === code);
+  if (!item) return;
+
+  const roleLevel = getCurrentRoleLevel();
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  // RBAC Check
+  if (!isL3L4 && !canManageItemInRoom(item.room)) {
+    showToast(`คุณไม่มีสิทธิ์ตรวจนับครุภัณฑ์ใน ${item.room || 'ห้องนี้'}`, "error");
+    return;
+  }
+
+  const condition = document.getElementById("auditAssetCondition").value;
+  const actualQty = Number(document.getElementById("auditAssetActualQty").value);
+  const fiscalYear = document.getElementById("auditAssetFiscalYear").value || "2569";
+  const notes = document.getElementById("auditAssetNotes").value.trim();
+  const auditor = currentUser ? (currentUser.name || currentUser.username) : "เจ้าหน้าที่แล็บ";
+  const todayStr = new Date().toLocaleDateString('th-TH');
+
+  item.assetCondition = condition;
+  item.actualQty = actualQty;
+  item.lastAuditYear = fiscalYear;
+  item.lastAuditDate = todayStr;
+  item.auditedBy = auditor;
+  item.auditNotes = notes;
+
+  if (condition === "damaged") {
+    item.damagedQty = actualQty > 0 ? actualQty : 1;
+  } else if (condition === "repair") {
+    item.repairQty = actualQty > 0 ? actualQty : 1;
+  }
+
+  if (typeof saveItemToStorage === "function") {
+    await saveItemToStorage(item);
+  } else if (typeof saveItemsToLocal === "function") {
+    saveItemsToLocal();
+  }
+
+  closeAssetAuditModal();
+  showToast(`บันทึกผลการตรวจนับครุภัณฑ์ ${item.name} เรียบร้อยแล้ว`, "success");
+  if (typeof renderItemsTable === "function") renderItemsTable();
+  if (typeof renderAssetsTable === "function") renderAssetsTable();
+}
+
+// Export Annual Asset Audit CSV (with RBAC)
+function exportAssetsAuditCSV() {
+  const roleLevel = getCurrentRoleLevel();
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  let allAssetItems = items.filter(isAssetItem);
+  if (!isL3L4 && roleLevel === "L2") {
+    allAssetItems = allAssetItems.filter(item => canManageItemInRoom(item.room));
+  }
+
+  if (allAssetItems.length === 0) {
+    showToast("ไม่มีข้อมูลครุภัณฑ์สำหรับการส่งออก", "warning");
+    return;
+  }
+
+  const headers = [
+    "รหัสครุภัณฑ์",
+    "รายการครุภัณฑ์",
+    "หมวดหมู่",
+    "ห้องปฏิบัติการ",
+    "ตู้จัดเก็บ",
+    "ชั้นวาง",
+    "จำนวนในบัญชี",
+    "จำนวนที่นับได้จริง",
+    "หน่วยนับ",
+    "สภาพความพร้อมใช้งาน",
+    "รอบปีงบประมาณที่ตรวจ",
+    "วันที่ตรวจนับล่าสุด",
+    "ผู้ตรวจนับ",
+    "หมายเหตุ"
+  ];
+
+  const rows = allAssetItems.map(item => [
+    `"${item.code || ''}"`,
+    `"${(item.name || '').replace(/"/g, '""')}"`,
+    `"${item.category || ''}"`,
+    `"${item.room || ''}"`,
+    `"${item.cabinet || ''}"`,
+    `"${item.shelf || ''}"`,
+    item.qty || 0,
+    item.actualQty !== undefined ? item.actualQty : (item.qty || 0),
+    `"${item.unit || 'เครื่อง'}"`,
+    `"${item.assetCondition === 'damaged' ? 'ชำรุด' : item.assetCondition === 'repair' ? 'ส่งซ่อม' : item.assetCondition === 'minor_issue' ? 'มีตำหนิ' : 'ปกติ'}"`,
+    `"${item.lastAuditYear || '2569'}"`,
+    `"${item.lastAuditDate || '-'}"`,
+    `"${item.auditedBy || '-'}"`,
+    `"${(item.auditNotes || '').replace(/"/g, '""')}"`
+  ]);
+
+  const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `รายงานตรวจนับครุภัณฑ์ประจำปี_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast("ส่งออกรายงานตรวจนับครุภัณฑ์ (CSV) สำเร็จ!", "success");
+}
+
+// Print Annual Asset Audit PDF (with RBAC)
+function printAssetsAuditPDF() {
+  const roleLevel = getCurrentRoleLevel();
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  let allAssetItems = items.filter(isAssetItem);
+  let scopeTitle = "ศูนย์เครื่องมือวิจัยและห้องปฏิบัติการทั้งหมด";
+  if (!isL3L4 && roleLevel === "L2") {
+    allAssetItems = allAssetItems.filter(item => canManageItemInRoom(item.room));
+    const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่รับผิดชอบ";
+    scopeTitle = `ห้องปฏิบัติการที่รับผิดชอบ (${assigned})`;
+  }
+
+  const currentYear = "2569";
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    showToast("กรุณาอนุญาตป๊อปอัปเพื่อพิมพ์รายงาน", "error");
+    return;
+  }
+
+  let tableRows = "";
+  allAssetItems.forEach((item, index) => {
+    const statusText = item.assetCondition === 'damaged' ? 'ชำรุด' : item.assetCondition === 'repair' ? 'ส่งซ่อม' : item.assetCondition === 'minor_issue' ? 'มีตำหนิ' : 'ปกติ';
+    const isAudited = item.lastAuditYear === currentYear || (item.lastAuditDate && item.lastAuditDate.includes(currentYear));
+    tableRows += `
+      <tr>
+        <td style="text-align: center; border: 1px solid #333; padding: 6px;">${index + 1}</td>
+        <td style="text-align: center; border: 1px solid #333; padding: 6px; font-family: monospace;">${item.code}</td>
+        <td style="border: 1px solid #333; padding: 6px;">${item.name}</td>
+        <td style="border: 1px solid #333; padding: 6px; text-align: center;">${item.room || '-'}</td>
+        <td style="border: 1px solid #333; padding: 6px; text-align: center;">${item.qty} ${item.unit || 'เครื่อง'}</td>
+        <td style="border: 1px solid #333; padding: 6px; text-align: center;">${item.actualQty !== undefined ? item.actualQty : item.qty}</td>
+        <td style="border: 1px solid #333; padding: 6px; text-align: center;">${statusText}</td>
+        <td style="border: 1px solid #333; padding: 6px; text-align: center;">${isAudited ? '✅ ตรวจนับแล้ว' : '⏳ รอตรวจนับ'}</td>
+        <td style="border: 1px solid #333; padding: 6px; font-size: 11px;">${item.auditNotes || '-'}</td>
+      </tr>
+    `;
+  });
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>รายงานผลการตรวจสอบและตรวจนับครุภัณฑ์ประจำปีงบประมาณ ${currentYear}</title>
+      <style>
+        body { font-family: 'Sarabun', 'Segoe UI', Tahoma, sans-serif; padding: 20px; color: #000; }
+        h2, h3 { text-align: center; margin: 4px 0; }
+        .meta-info { margin: 15px 0; font-size: 13px; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+        th { background: #eee; border: 1px solid #333; padding: 8px 4px; text-align: center; }
+        .sign-area { margin-top: 40px; display: flex; justify-content: space-between; text-align: center; font-size: 13px; }
+        @media print {
+          @page { size: landscape; margin: 12mm; }
+        }
+      </style>
+    </head>
+    <body>
+      <h2>รายงานผลการตรวจสอบและตรวจนับครุภัณฑ์วิทยาศาสตร์ ประจำปีงบประมาณ ${currentYear}</h2>
+      <h3>${scopeTitle}</h3>
+      <div class="meta-info">
+        <div><strong>วันที่พิมพ์รายงาน:</strong> ${new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+        <div><strong>จำนวนครุภัณฑ์:</strong> ${allAssetItems.length} รายการ</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px;">ลำดับ</th>
+            <th style="width: 120px;">รหัสครุภัณฑ์</th>
+            <th>รายการครุภัณฑ์</th>
+            <th style="width: 100px;">ห้องที่จัดเก็บ</th>
+            <th style="width: 80px;">ยอดบัญชี</th>
+            <th style="width: 80px;">ยอดนับจริง</th>
+            <th style="width: 80px;">สภาพ</th>
+            <th style="width: 110px;">ผลการตรวจนับ</th>
+            <th style="width: 140px;">หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+      <div class="sign-area">
+        <div style="width: 250px;">
+          <br><br>
+          ลงชื่อ..........................................................<br>
+          (..........................................................)<br>
+          กรรมการผู้ตรวจนับครุภัณฑ์
+        </div>
+        <div style="width: 250px;">
+          <br><br>
+          ลงชื่อ..........................................................<br>
+          (..........................................................)<br>
+          หัวหน้าห้องปฏิบัติการ / ผู้รับรอง
+        </div>
+      </div>
+      <script>
+        window.onload = function() { window.print(); }
+      </script>
+    </body>
+    </html>
+  `;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+}
+
+// Asset Toolbar Event Listeners
+function setupAssetEventListeners() {
+  const searchInput = document.getElementById("assetSearchInput");
+  const roomFilter = document.getElementById("assetRoomFilter");
+  const statusFilter = document.getElementById("assetAuditStatusFilter");
+
+  if (searchInput) searchInput.addEventListener("input", renderAssetsTable);
+  if (roomFilter) roomFilter.addEventListener("change", renderAssetsTable);
+  if (statusFilter) statusFilter.addEventListener("change", renderAssetsTable);
+}
+
+// Window Global Exports
+window.renderAssetsTable = renderAssetsTable;
+window.quickApproveAssetAudit = quickApproveAssetAudit;
+window.openAssetAuditModal = openAssetAuditModal;
+window.closeAssetAuditModal = closeAssetAuditModal;
+window.saveAssetAuditRecord = saveAssetAuditRecord;
+window.exportAssetsAuditCSV = exportAssetsAuditCSV;
+window.printAssetsAuditPDF = printAssetsAuditPDF;
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", setupAssetEventListeners);
+} else {
+  setupAssetEventListeners();
+}
+
+
 
