@@ -2399,6 +2399,16 @@ function renderItemsTable() {
     thBatchAction.style.display = isL3Plus ? "" : "none";
   }
 
+  // Hide Export Excel and Print Report buttons for roles lower than L3
+  const btnExportCSV = document.getElementById("btnExportCSV");
+  const btnPrintReport = document.getElementById("btnPrintReport");
+  if (btnExportCSV) {
+    btnExportCSV.style.display = isL3Plus ? "inline-flex" : "none";
+  }
+  if (btnPrintReport) {
+    btnPrintReport.style.display = isL3Plus ? "inline-flex" : "none";
+  }
+
   // Non-L3 notice banner
   const nonL3Banner = document.getElementById("nonL3NoticeBanner");
   if (nonL3Banner) {
@@ -2435,10 +2445,14 @@ function renderItemsTable() {
     if (isAssetTab) {
       const bannerTitle = assetBanner.querySelector(".asset-banner-title");
       const bannerSub = assetBanner.querySelector(".asset-banner-subtitle");
+      const bannerActionButtons = assetBanner.querySelectorAll("button");
+      bannerActionButtons.forEach(btn => {
+        btn.style.display = isL3Plus ? "inline-flex" : "none";
+      });
       if (!isL3Plus && roleLevel === "L2") {
         const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่รับผิดชอบ";
         if (bannerTitle) bannerTitle.innerText = `การตรวจนับครุภัณฑ์ประจำปีงบประมาณ 2569 (${assigned})`;
-        if (bannerSub) bannerSub.innerText = `แสดงเฉพาะครุภัณฑ์ในห้องที่คุณรับผิดชอบ สามารถกดบันทึกตรวจนับสภาพ หรือส่งออกรายงานได้`;
+        if (bannerSub) bannerSub.innerText = `แสดงเฉพาะครุภัณฑ์ในห้องที่คุณรับผิดชอบ`;
       } else {
         if (bannerTitle) bannerTitle.innerText = `การตรวจนับครุภัณฑ์ประจำปีงบประมาณ 2569 (ภาพรวมทั้งระบบ)`;
         if (bannerSub) bannerSub.innerText = `แสดงครุภัณฑ์ทุกห้องปฏิบัติการ สามารถตรวจนับ บันทึกสภาพ และพิมพ์รายงานเสนอผู้บริหารได้`;
