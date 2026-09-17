@@ -1647,41 +1647,44 @@ function openReportIssueModal(defaultRoom = "") {
   const roomOptions = roomsList.map(r => `<option value="${r}" ${r === defaultRoom ? 'selected' : ''}>${r}</option>`).join("");
 
   Swal.fire({
-    title: '<div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 18px; font-weight: 700; color: #1e293b;"><i data-lucide="message-square-plus" style="color: #7c3aed; width: 22px; height: 22px;"></i> <span>แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</span></div>',
+    customClass: {
+      popup: 'report-issue-swal-modal'
+    },
+    title: '<div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 17px; font-weight: 700; color: #1e293b;"><i data-lucide="message-square-plus" style="color: #7c3aed; width: 20px; height: 20px;"></i> <span>แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</span></div>',
     html: `
-      <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.5;">
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center;">
+      <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.4; display: flex; flex-direction: column; gap: 12px;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 28px; height: 28px; border-radius: 50%; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px;">${(userName || "U").slice(0, 2).toUpperCase()}</div>
-            <span>ผู้แจ้ง: <b>${userName}</b></span>
+            <div style="width: 26px; height: 26px; border-radius: 50%; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10.5px;">${(userName || "U").slice(0, 2).toUpperCase()}</div>
+            <span>ผู้แจ้ง: <b style="color: #1e293b;">${userName}</b></span>
           </div>
-          <span class="badge" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px;">${userBadge.name} (${roleLevel})</span>
+          <span class="badge" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px;">${userBadge.name} (${roleLevel})</span>
         </div>
         
-        <div style="margin-bottom: 12px;">
+        <div>
           <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 5px; font-size: 12.5px; color: #475569;">
             <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #7c3aed;"></i>
             <span>สถานที่ / ห้องปฏิบัติการที่พบปัญหา:</span>
           </label>
-          <select id="swalIssueRoom" class="form-control" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+          <select id="swalIssueRoom" class="form-control" style="width: 100%; height: 38px; padding: 6px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; background: #ffffff;">
             ${roomOptions}
           </select>
         </div>
 
-        <div style="margin-bottom: 12px;">
+        <div>
           <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 5px; font-size: 12.5px; color: #475569;">
             <i data-lucide="alert-circle" style="width: 14px; height: 14px; color: #7c3aed;"></i>
             <span>หัวข้อปัญหา <span style="color: #ef4444;">*</span></span>
           </label>
-          <input type="text" id="swalIssueTitle" class="form-control" placeholder="เช่น สารเคมีหก, อุปกรณ์ชำรุด, แอร์ไม่เย็น, ระบบขัดข้อง..." style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+          <input type="text" id="swalIssueTitle" class="form-control" placeholder="เช่น สารเคมีหก, อุปกรณ์ชำรุด, แอร์ไม่เย็น, ระบบขัดข้อง..." style="width: 100%; height: 38px; padding: 6px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; background: #ffffff;">
         </div>
 
-        <div style="margin-bottom: 4px;">
+        <div>
           <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 5px; font-size: 12.5px; color: #475569;">
             <i data-lucide="align-left" style="width: 14px; height: 14px; color: #7c3aed;"></i>
             <span>รายละเอียดเพิ่มเติม:</span>
           </label>
-          <textarea id="swalIssueDetail" class="form-control" rows="3" placeholder="อธิบายรายละเอียด อาการ หรือจุดที่พบ เพื่อให้เจ้าหน้าที่เข้าตรวจสอบได้รวดเร็ว..." style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;"></textarea>
+          <textarea id="swalIssueDetail" class="form-control" rows="3" placeholder="อธิบายรายละเอียด อาการ หรือจุดที่พบ เพื่อให้เจ้าหน้าที่เข้าตรวจสอบได้รวดเร็ว..." style="width: 100%; min-height: 75px; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; background: #ffffff; resize: vertical; line-height: 1.4;"></textarea>
         </div>
       </div>
     `,

@@ -9015,6 +9015,44 @@ body.admin-logged-in .public-only-section {
   flex-wrap: wrap;
 }
 
+/* Custom Report Issue SweetAlert Modal Polish */
+.swal2-popup.report-issue-swal-modal {
+  padding: 22px 24px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  max-width: 480px !important;
+  width: 92vw !important;
+}
+
+.swal2-popup.report-issue-swal-modal .swal2-title {
+  padding: 0 0 14px 0 !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.swal2-popup.report-issue-swal-modal .swal2-html-container {
+  margin: 14px 0 0 0 !important;
+  padding: 0 !important;
+}
+
+.swal2-popup.report-issue-swal-modal .swal2-actions {
+  margin-top: 18px !important;
+  gap: 10px !important;
+  width: 100% !important;
+  justify-content: flex-end !important;
+  padding: 0 !important;
+}
+
+.swal2-popup.report-issue-swal-modal .swal2-confirm,
+.swal2-popup.report-issue-swal-modal .swal2-cancel {
+  height: 38px !important;
+  padding: 0 18px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  margin: 0 !important;
+}
+
 
 
 
