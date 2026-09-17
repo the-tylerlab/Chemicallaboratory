@@ -4426,19 +4426,39 @@
               </button>
             </div>
 
-            <!-- View Mode -->
-            <div id="emergencyContactsView" style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 16px; margin-bottom: 22px;">
-              <ul style="padding-left: 0; list-style: none; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; color: #334155;">
-                <li style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 15px;">👨‍🏫</span> <span id="dispContactAdmin">แอดมิน (ม.วงศกร ด้วงเกลี้ยง): ยังไม่ระบุ</span>
-                </li>
-                <li style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 15px;">🏥</span> <span id="dispContactNurse">ห้องพยาบาล: ยังไม่ระบุ</span>
-                </li>
-                <li style="display: flex; align-items: center; gap: 8px;">
-                  <span style="font-size: 15px;">🚒</span> <span id="dispContactFire">แจ้งเหตุเพลิงไหม้: ยังไม่ระบุ</span>
-                </li>
-              </ul>
+            <!-- View Mode (Modern Clean Cards Grid) -->
+            <div id="emergencyContactsView" style="margin-bottom: 22px;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
+                  </div>
+                  <div style="min-width: 0;">
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">ผู้ดูแลระบบ (Admin)</div>
+                    <div id="dispContactAdmin" style="font-size: 13px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร ด้วงเกลี้ยง)</div>
+                  </div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="heart-pulse" style="width: 18px; height: 18px;"></i>
+                  </div>
+                  <div style="min-width: 0;">
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">ห้องพยาบาล</div>
+                    <div id="dispContactNurse" style="font-size: 13px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: ยังไม่ระบุ</div>
+                  </div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="flame" style="width: 18px; height: 18px;"></i>
+                  </div>
+                  <div style="min-width: 0;">
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">แจ้งเหตุเพลิงไหม้ / ฉุกเฉิน</div>
+                    <div id="dispContactFire" style="font-size: 13px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Edit Mode (Inline Admin Edit) -->
