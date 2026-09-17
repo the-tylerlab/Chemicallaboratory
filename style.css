@@ -7906,8 +7906,24 @@ body.admin-logged-in .public-only-section {
 /* 1. Top Summary Stat Row */
 .lab-calendar-stats-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: minmax(0, 1.85fr) minmax(320px, 1.15fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.lab-stats-left-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
+  width: 100%;
+}
+
+.lab-stats-right-group {
+  display: flex;
+  width: 100%;
+}
+
+.lab-stats-right-group .lab-summary-card {
   width: 100%;
 }
 
@@ -8689,13 +8705,17 @@ body.admin-logged-in .public-only-section {
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {
+  .lab-calendar-stats-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
   .lab-calendar-main-grid {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 768px) {
-  .lab-calendar-stats-row {
+@media (max-width: 640px) {
+  .lab-stats-left-group {
     grid-template-columns: 1fr;
   }
   

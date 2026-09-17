@@ -1606,6 +1606,116 @@ async function submitUserFeedback() {
   }
 }
 
+window.openReportIssueModal = function(defaultRoom = "") {
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const userBadge = getRoleBadgeInfo(roleLevel);
+  const userName = currentUser ? (currentUser.name || currentUser.username) : "ผู้ใช้งานทั่วไป";
+  
+  const roomsList = [
+    "ทั่วไป (ไม่ระบุห้อง)",
+    "ห้องปฏิบัติการฟิสิกส์ (อาคารเซนต์ปีเตอร์)",
+    "ห้องปฏิบัติการวิทยาศาสตร์ (อาคารราฟาเอล)",
+    "ห้องปฏิบัติการเคมี (อาคารราฟาเอล)",
+    "ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล",
+    "ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล",
+    "ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ",
+    "ห้องศูนย์ STEM CENTER",
+    "ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่"
+  ];
+
+  const roomOptions = roomsList.map(r => `<option value="${r}" ${r === defaultRoom ? 'selected' : ''}>${r}</option>`).join("");
+
+  Swal.fire({
+    title: '<div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 18px; color: #1e293b;"><i data-lucide="message-square-warning" style="color: #ea580c; width: 22px; height: 22px;"></i> แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</div>',
+    html: `
+      <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.5;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center;">
+          <span>ผู้แจ้ง: <b>${userName}</b></span>
+          <span class="badge" style="background: #eff6ff; color: #1d4ed8; font-size: 11px;">${userBadge.name} (${roleLevel})</span>
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 12.5px;">สถานที่ / ห้องปฏิบัติการที่พบปัญหา:</label>
+          <select id="swalIssueRoom" class="form-control" style="width: 100%; padding: 8px 10px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1;">
+            ${roomOptions}
+          </select>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+          <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 12.5px;">หัวข้อปัญหา <span style="color: #ef4444;">*</span></label>
+          <input type="text" id="swalIssueTitle" class="form-control" placeholder="เช่น สารเคมีหก, อุปกรณ์ชำรุด, แอร์ไม่เย็น, ระบบขัดข้อง..." style="width: 100%; padding: 8px 10px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 4px;">
+          <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 12.5px;">รายละเอียดเพิ่มเติม:</label>
+          <textarea id="swalIssueDetail" class="form-control" rows="3" placeholder="อธิบายรายละเอียด อาการ หรือจุดที่พบ เพื่อให้เจ้าหน้าที่เข้าตรวจสอบได้รวดเร็ว..." style="width: 100%; padding: 8px 10px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;"></textarea>
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'ส่งแจ้งปัญหา',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#ea580c',
+    cancelButtonColor: '#94a3b8',
+    didOpen: () => {
+      if (window.lucide) lucide.createIcons();
+      const input = document.getElementById("swalIssueTitle");
+      if (input) input.focus();
+    },
+    preConfirm: () => {
+      const room = document.getElementById("swalIssueRoom").value;
+      const title = document.getElementById("swalIssueTitle").value.trim();
+      const detail = document.getElementById("swalIssueDetail").value.trim();
+      if (!title) {
+        Swal.showValidationMessage("กรุณากรอกหัวข้อปัญหา");
+        return false;
+      }
+      return { room, title, detail };
+    }
+  }).then(async (result) => {
+    if (result.isConfirmed && result.value) {
+      const { room, title, detail } = result.value;
+      const nextCode = getNextIssueCode();
+      const nextNumber = (window.feedbacksData ? window.feedbacksData.length : 0) + 1;
+      const fullMessage = detail ? `${title} (${detail})` : title;
+
+      const newFeedback = {
+        id: nextCode,
+        code: nextCode,
+        title: `${nextNumber}. ${title}`,
+        location: `จัดเก็บ: ${room} (ผู้แจ้ง: ${userName} - ${roleLevel})`,
+        detail: detail || title,
+        message: fullMessage,
+        status: "pending",
+        statusText: "รอดำเนินการ",
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        const response = await fetch(`${API_BASE}/feedbacks`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newFeedback)
+        });
+        if (response.ok) {
+          const data = await response.json();
+          window.feedbacksData.unshift(data.feedback || newFeedback);
+        } else {
+          window.feedbacksData.unshift(newFeedback);
+        }
+      } catch (err) {
+        console.error("Error submitting feedback:", err);
+        window.feedbacksData.unshift(newFeedback);
+      }
+
+      saveFeedbacksToStorage();
+      logActivity(userName, "แจ้งปัญหา", `${nextCode}: [${room}] ${title}`);
+      showToast(`บันทึกการแจ้งปัญหา (${nextCode}) เรียบร้อยแล้ว เจ้าหน้าที่จะรีบตรวจสอบ`, "success");
+      updateUI();
+    }
+  });
+};
+
 // ==========================================================================
 // EMERGENCY CONTACTS MANAGEMENT
 // ==========================================================================
