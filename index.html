@@ -220,9 +220,14 @@
         </ul>
       </nav>
 
-      <!-- Sidebar Bottom Menu (Help) -->
+      <!-- Sidebar Bottom Menu (Help & Report Issue) -->
       <div class="sidebar-bottom-menu">
         <ul class="sidebar-menu-bottom">
+          <li id="menuItemReportIssue">
+            <button type="button" id="btnSidebarReportIssue" onclick="openReportIssueModal()" class="menu-item-link" style="width: 100%; border: none; background: rgba(249, 115, 22, 0.08); color: #ea580c; font-weight: 600; text-align: left; cursor: pointer; border-radius: 8px; margin-bottom: 4px;">
+              <i data-lucide="message-square-warning" style="color: #ea580c; width: 17px; height: 17px;"></i> <span>แจ้งปัญหาการใช้งาน</span>
+            </button>
+          </li>
           <li>
             <button id="btnHelpSafetyModal" class="menu-item-link" style="width: 100%; border: none; background: transparent; text-align: left; cursor: pointer;">
               <i data-lucide="book-open"></i> <span>ศูนย์ข้อมูล และความปลอดภัย</span>
@@ -492,43 +497,47 @@
              LAB USAGE CALENDAR & SCHEDULE OVERVIEW (L0-L2 & All Users)
              ============================================================ -->
         <div class="dashboard-lab-calendar-section" id="dashboardLabCalendarSection">
-          <!-- 1. Top Summary Stat Row -->
+          <!-- 1. Top Summary Stat Row (Aligned with Calendar & Schedule Grid) -->
           <div class="lab-calendar-stats-row">
-            <div class="lab-summary-card stat-pending">
-              <div class="lab-summary-icon red">
-                <i data-lucide="clock"></i>
+            <div class="lab-stats-left-group">
+              <div class="lab-summary-card stat-pending">
+                <div class="lab-summary-icon red">
+                  <i data-lucide="clock"></i>
+                </div>
+                <div class="lab-summary-content">
+                  <span class="lab-summary-title">รออนุมัติ</span>
+                  <div class="lab-summary-val-wrap">
+                    <span class="lab-summary-val" id="calStatPending">0</span>
+                    <span class="lab-summary-unit">รายการ</span>
+                  </div>
+                </div>
               </div>
-              <div class="lab-summary-content">
-                <span class="lab-summary-title">รออนุมัติ</span>
-                <div class="lab-summary-val-wrap">
-                  <span class="lab-summary-val" id="calStatPending">0</span>
-                  <span class="lab-summary-unit">รายการ</span>
+
+              <div class="lab-summary-card stat-rooms">
+                <div class="lab-summary-icon green">
+                  <i data-lucide="door-open"></i>
+                </div>
+                <div class="lab-summary-content">
+                  <span class="lab-summary-title">ห้องปฏิบัติการทั้งหมด</span>
+                  <div class="lab-summary-val-wrap">
+                    <span class="lab-summary-val" id="calStatRooms">8</span>
+                    <span class="lab-summary-unit">ห้อง</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="lab-summary-card stat-rooms">
-              <div class="lab-summary-icon green">
-                <i data-lucide="door-open"></i>
-              </div>
-              <div class="lab-summary-content">
-                <span class="lab-summary-title">ห้องปฏิบัติการทั้งหมด</span>
-                <div class="lab-summary-val-wrap">
-                  <span class="lab-summary-val" id="calStatRooms">8</span>
-                  <span class="lab-summary-unit">ห้อง</span>
+            <div class="lab-stats-right-group">
+              <div class="lab-summary-card stat-users">
+                <div class="lab-summary-icon blue">
+                  <i data-lucide="users"></i>
                 </div>
-              </div>
-            </div>
-
-            <div class="lab-summary-card stat-users">
-              <div class="lab-summary-icon blue">
-                <i data-lucide="users"></i>
-              </div>
-              <div class="lab-summary-content">
-                <span class="lab-summary-title">สมาชิกในระบบ</span>
-                <div class="lab-summary-val-wrap">
-                  <span class="lab-summary-val" id="calStatUsers">0</span>
-                  <span class="lab-summary-unit">คน</span>
+                <div class="lab-summary-content">
+                  <span class="lab-summary-title">สมาชิกในระบบ</span>
+                  <div class="lab-summary-val-wrap">
+                    <span class="lab-summary-val" id="calStatUsers">0</span>
+                    <span class="lab-summary-unit">คน</span>
+                  </div>
                 </div>
               </div>
             </div>
