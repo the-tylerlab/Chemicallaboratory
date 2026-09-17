@@ -1049,16 +1049,27 @@ function setupNavigation() {
   const sidebar = document.getElementById("sidebar");
 
   sidebarLinks.forEach(link => {
-    // Skip if it's the Import, Login, or Help Modal link which opens modal instead of navigating
-    if (link.id === "btnSidebarImport" || link.id === "btnSidebarLogin" || link.id === "btnHelpSafetyModal") return;
+    // Skip if it's the Import, Login, Help Modal, or Report Issue link which opens modal instead of navigating
+    if (link.id === "btnSidebarImport" || link.id === "btnSidebarLogin" || link.id === "btnHelpSafetyModal" || link.id === "btnSidebarReportIssue" || !link.getAttribute("data-target")) return;
 
     link.addEventListener("click", (e) => {
       e.preventDefault();
       
       const targetPanelId = link.getAttribute("data-target");
-      navigateToPanel(targetPanelId);
+      if (targetPanelId) {
+        navigateToPanel(targetPanelId);
+      }
     });
   });
+
+  const btnSidebarReportIssue = document.getElementById("btnSidebarReportIssue");
+  if (btnSidebarReportIssue) {
+    btnSidebarReportIssue.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openReportIssueModal();
+    });
+  }
 
   // Mobile Hamburger Toggle
   if (menuToggle && sidebar) {
@@ -1606,7 +1617,17 @@ async function submitUserFeedback() {
   }
 }
 
-window.openReportIssueModal = function(defaultRoom = "") {
+function openReportIssueModal(defaultRoom = "") {
+  if (typeof Swal === "undefined") {
+    const btnHelp = document.getElementById("btnHelpSafetyModal");
+    if (btnHelp) btnHelp.click();
+    setTimeout(() => {
+      const tab5 = document.querySelector('.help-tab[data-target="help-tab-5"]');
+      if (tab5) tab5.click();
+    }, 150);
+    return;
+  }
+
   const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
   const userBadge = getRoleBadgeInfo(roleLevel);
   const userName = currentUser ? (currentUser.name || currentUser.username) : "ผู้ใช้งานทั่วไป";
@@ -1714,7 +1735,8 @@ window.openReportIssueModal = function(defaultRoom = "") {
       updateUI();
     }
   });
-};
+}
+window.openReportIssueModal = openReportIssueModal;
 
 // ==========================================================================
 // EMERGENCY CONTACTS MANAGEMENT
