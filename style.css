@@ -936,9 +936,13 @@ button {
 }
 
 /* Dashboard Panel Flex Ordering & Role-based Layout */
-#panel-dashboard {
+#panel-dashboard.active {
   display: flex;
   flex-direction: column;
+}
+
+#panel-dashboard:not(.active) {
+  display: none !important;
 }
 
 #panel-dashboard > .content-header { order: 1; }
