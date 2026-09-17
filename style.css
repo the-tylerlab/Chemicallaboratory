@@ -488,6 +488,14 @@ button {
   letter-spacing: -0.1px;
 }
 
+button.menu-item-link {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
 .menu-item-link {
   display: flex;
   align-items: center;
@@ -505,9 +513,10 @@ button {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.menu-item-link:hover {
-  background-color: #f1f5f9; /* slate-100 */
-  color: #0f172a; /* text-dark */
+.menu-item-link:hover,
+button.menu-item-link:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
 }
 
 .menu-item-link.active {
