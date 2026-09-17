@@ -1647,37 +1647,49 @@ function openReportIssueModal(defaultRoom = "") {
   const roomOptions = roomsList.map(r => `<option value="${r}" ${r === defaultRoom ? 'selected' : ''}>${r}</option>`).join("");
 
   Swal.fire({
-    title: '<div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 18px; color: #1e293b;"><i data-lucide="message-square-warning" style="color: #ea580c; width: 22px; height: 22px;"></i> แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</div>',
+    title: '<div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 18px; font-weight: 700; color: #1e293b;"><i data-lucide="message-square-plus" style="color: #7c3aed; width: 22px; height: 22px;"></i> <span>แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</span></div>',
     html: `
       <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.5;">
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center;">
-          <span>ผู้แจ้ง: <b>${userName}</b></span>
-          <span class="badge" style="background: #eff6ff; color: #1d4ed8; font-size: 11px;">${userBadge.name} (${roleLevel})</span>
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px;">${(userName || "U").slice(0, 2).toUpperCase()}</div>
+            <span>ผู้แจ้ง: <b>${userName}</b></span>
+          </div>
+          <span class="badge" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px;">${userBadge.name} (${roleLevel})</span>
         </div>
         
-        <div style="margin-bottom: 10px;">
-          <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 12.5px;">สถานที่ / ห้องปฏิบัติการที่พบปัญหา:</label>
-          <select id="swalIssueRoom" class="form-control" style="width: 100%; padding: 8px 10px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1;">
+        <div style="margin-bottom: 12px;">
+          <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 5px; font-size: 12.5px; color: #475569;">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+            <span>สถานที่ / ห้องปฏิบัติการที่พบปัญหา:</span>
+          </label>
+          <select id="swalIssueRoom" class="form-control" style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;">
             ${roomOptions}
           </select>
         </div>
 
-        <div style="margin-bottom: 10px;">
-          <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 12.5px;">หัวข้อปัญหา <span style="color: #ef4444;">*</span></label>
-          <input type="text" id="swalIssueTitle" class="form-control" placeholder="เช่น สารเคมีหก, อุปกรณ์ชำรุด, แอร์ไม่เย็น, ระบบขัดข้อง..." style="width: 100%; padding: 8px 10px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+        <div style="margin-bottom: 12px;">
+          <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 5px; font-size: 12.5px; color: #475569;">
+            <i data-lucide="alert-circle" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+            <span>หัวข้อปัญหา <span style="color: #ef4444;">*</span></span>
+          </label>
+          <input type="text" id="swalIssueTitle" class="form-control" placeholder="เช่น สารเคมีหก, อุปกรณ์ชำรุด, แอร์ไม่เย็น, ระบบขัดข้อง..." style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;">
         </div>
 
         <div style="margin-bottom: 4px;">
-          <label style="display: block; font-weight: 600; margin-bottom: 4px; font-size: 12.5px;">รายละเอียดเพิ่มเติม:</label>
-          <textarea id="swalIssueDetail" class="form-control" rows="3" placeholder="อธิบายรายละเอียด อาการ หรือจุดที่พบ เพื่อให้เจ้าหน้าที่เข้าตรวจสอบได้รวดเร็ว..." style="width: 100%; padding: 8px 10px; font-size: 13px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box;"></textarea>
+          <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 5px; font-size: 12.5px; color: #475569;">
+            <i data-lucide="align-left" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+            <span>รายละเอียดเพิ่มเติม:</span>
+          </label>
+          <textarea id="swalIssueDetail" class="form-control" rows="3" placeholder="อธิบายรายละเอียด อาการ หรือจุดที่พบ เพื่อให้เจ้าหน้าที่เข้าตรวจสอบได้รวดเร็ว..." style="width: 100%; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;"></textarea>
         </div>
       </div>
     `,
     showCancelButton: true,
     confirmButtonText: 'ส่งแจ้งปัญหา',
     cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#ea580c',
-    cancelButtonColor: '#94a3b8',
+    confirmButtonColor: '#7c3aed',
+    cancelButtonColor: '#64748b',
     didOpen: () => {
       if (window.lucide) lucide.createIcons();
       const input = document.getElementById("swalIssueTitle");
@@ -1764,11 +1776,6 @@ async function loadEmergencyContacts() {
     }
   }
 
-  const dispAdmin = document.getElementById("dispContactAdmin");
-  const dispNurse = document.getElementById("dispContactNurse");
-  const dispFire = document.getElementById("dispContactFire");
-
-  if (dispAdmin) dispAdmin.textContent = emergencyContactsData.admin || "แอดมิน (ม.วงศกร ด้วงเกลี้ยง): ยังไม่ระบุ";
   if (dispNurse) dispNurse.textContent = emergencyContactsData.nurse || "ห้องพยาบาล: ยังไม่ระบุ";
   if (dispFire) dispFire.textContent = emergencyContactsData.fire || "แจ้งเหตุเพลิงไหม้: ยังไม่ระบุ";
 
@@ -1854,35 +1861,53 @@ window.showContactAdminModal = function() {
   const fireContact = (typeof emergencyContactsData !== "undefined" && emergencyContactsData.fire) ? emergencyContactsData.fire : "199";
 
   Swal.fire({
-    title: '<span style="font-size: 19px; font-weight: 700; color: #1e293b;">ติดต่อผู้ดูแลระบบ (L3 / L4)</span>',
+    title: '<div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 18px; font-weight: 700; color: #1e293b;"><i data-lucide="shield-alert" style="color: #7c3aed; width: 22px; height: 22px;"></i> <span>ติดต่อผู้ดูแลระบบ (L3 / L4)</span></div>',
     html: `
       <div style="text-align: left; font-size: 13.5px; line-height: 1.6; color: #334155; padding: 4px 2px;">
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; color: #1e40af;">
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; color: #1e40af;">
           <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-            <span>ℹ️ คำแนะนำการแก้ไขข้อมูล</span>
+            <i data-lucide="info" style="width: 16px; height: 16px; color: #3b82f6;"></i>
+            <span>คำแนะนำการแก้ไขข้อมูล</span>
           </div>
-          <div>การเพิ่ม ลบ หรือแก้ไขข้อมูลสารเคมีและครุภัณฑ์ในระบบ เป็นสิทธิ์เฉพาะระดับ <strong>L3 (ผู้ดูแลระบบ)</strong> และ <strong>L4 (ผู้บริหาร)</strong> หากต้องการอัปเดตข้อมูล กรุณาแจ้งผู้ดูแลตามช่องทางด้านล่างนี้</div>
+          <div style="font-size: 12.5px;">การเพิ่ม ลบ หรือแก้ไขข้อมูลสารเคมีและครุภัณฑ์ในระบบ เป็นสิทธิ์เฉพาะระดับ <strong>L3 (ผู้ดูแลระบบ)</strong> และ <strong>L4 (ผู้บริหาร)</strong> หากต้องการอัปเดตข้อมูล กรุณาแจ้งผู้ดูแลตามช่องทางด้านล่างนี้</div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
-            <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">👨‍🏫 ผู้ดูแลระบบ / แอดมินหลัก (L3)</div>
-            <div style="color: #7c3aed; font-weight: 600; font-size: 14px;">${adminContact}</div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div style="min-width: 0;">
+              <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">ผู้ดูแลระบบ / แอดมินหลัก (L3)</div>
+              <div style="color: #7c3aed; font-weight: 700; font-size: 13.5px;">${adminContact}</div>
+            </div>
           </div>
 
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
-            <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">🏥 ห้องพยาบาล / หน่วยปฐมพยาบาล</div>
-            <div style="color: #059669; font-weight: 600; font-size: 13.5px;">${nurseContact}</div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="heart-pulse" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div style="min-width: 0;">
+              <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">ห้องพยาบาล / หน่วยปฐมพยาบาล</div>
+              <div style="color: #059669; font-weight: 700; font-size: 13.5px;">${nurseContact}</div>
+            </div>
           </div>
 
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
-            <div style="font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 4px;">🚒 แจ้งเหตุฉุกเฉิน / ดับเพลิง</div>
-            <div style="color: #dc2626; font-weight: 600; font-size: 13.5px;">${fireContact}</div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="flame" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div style="min-width: 0;">
+              <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">แจ้งเหตุฉุกเฉิน / ดับเพลิง</div>
+              <div style="color: #dc2626; font-weight: 700; font-size: 13.5px;">${fireContact}</div>
+            </div>
           </div>
         </div>
       </div>
     `,
-    icon: 'info',
+    didOpen: () => {
+      if (window.lucide) lucide.createIcons();
+    },
     confirmButtonText: 'รับทราบ',
     confirmButtonColor: '#7c3aed'
   });
