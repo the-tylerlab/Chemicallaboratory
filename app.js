@@ -15212,6 +15212,7 @@ async function loadAdminData() {
     renderAdminUsers();
     renderAuditLogs();
     updateAdminStats();
+    if (typeof updateDashboardCalendarStats === "function") updateDashboardCalendarStats();
     if (typeof loadPushSubscriptionsStatus === "function") loadPushSubscriptionsStatus();
     if (typeof checkPushSubscriptionState === "function") checkPushSubscriptionState();
   } catch (err) {
@@ -17516,19 +17517,26 @@ function updateDashboardCalendarStats() {
   }
 
   if (usersEl) {
-    let userCount = 28;
+    let userCount = 0;
     try {
-      if (window.systemUsers && Array.isArray(window.systemUsers)) {
-        userCount = window.systemUsers.length;
+      if (typeof adminUsers !== "undefined" && Array.isArray(adminUsers) && adminUsers.length > 0) {
+        userCount = adminUsers.length;
       } else {
-        const storedUsers = localStorage.getItem("system_users");
-        if (storedUsers) {
-          const parsed = JSON.parse(storedUsers);
-          if (Array.isArray(parsed)) userCount = parsed.length;
+        const storedAdminUsers = localStorage.getItem("lab_admin_users");
+        if (storedAdminUsers) {
+          const parsed = JSON.parse(storedAdminUsers);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            userCount = parsed.length;
+          }
         }
       }
-    } catch (e) {}
-    usersEl.textContent = userCount;
+      if (userCount === 0 && typeof DEFAULT_RBAC_USERS !== "undefined" && Array.isArray(DEFAULT_RBAC_USERS)) {
+        userCount = DEFAULT_RBAC_USERS.length;
+      }
+    } catch (e) {
+      userCount = 7;
+    }
+    usersEl.textContent = userCount || 7;
   }
 }
 
