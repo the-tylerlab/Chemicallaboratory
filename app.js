@@ -59,52 +59,70 @@ function getRoleBadgeInfo(roleLevel) {
   }
 }
 
-// Permission Helpers
+// Permission Helpers & Room Matching
+function normalizeRoomIdentifier(room) {
+  if (!room) return "";
+  const r = String(room).toLowerCase().trim();
+  if (r.includes("lab 1") || r.includes("เคมี") || r.includes("chemistry")) return "lab 1";
+  if (r.includes("lab 2") || r.includes("ฟิสิกส์") || r.includes("physics")) return "lab 2";
+  if (r.includes("lab 3") || r.includes("ชีววิทยา") || r.includes("ชีวะ") || r.includes("biology")) return "lab 3";
+  if (r.includes("lab 5") || r.includes("สสวท") || r.includes("posn")) return "lab 5";
+  if (r.includes("lab 4") || (r.includes("ราฟาเอล") && !r.includes("สสวท"))) return "lab 4";
+  if (r.includes("lab 6") || (r.includes("วิทยาศาสตร์") && r.includes("อัสสัมชัญ")) || r.includes("general")) return "lab 6";
+  if (r.includes("lab 7") || r.includes("stem")) return "lab 7";
+  if (r.includes("lab 8") || r.includes("ep") || r.includes("ยอห์น แมรี่") || r.includes("john mary")) return "lab 8";
+  return r;
+}
+
+function isRoomMatch(roomA, roomB) {
+  if (!roomA || !roomB) return false;
+  const normA = normalizeRoomIdentifier(roomA);
+  const normB = normalizeRoomIdentifier(roomB);
+  if (normA && normB && normA === normB) return true;
+  const strA = String(roomA).toLowerCase().trim();
+  const strB = String(roomB).toLowerCase().trim();
+  return strA.includes(strB) || strB.includes(strA);
+}
+
 function isUserLoggedIn() {
   const r = getCurrentRoleLevel();
   return r !== "L0";
 }
 
 function isExecutiveMode() {
-  return getCurrentRoleLevel() === "L4";
+  const r = getCurrentRoleLevel();
+  return r === "L4" || (typeof userRole !== "undefined" && userRole === "executive");
 }
 
 function canAccessAdminSection() {
-  return getCurrentRoleLevel() === "L3";
+  const r = getCurrentRoleLevel();
+  return r === "L3" || r === "admin";
 }
 
 function canManageItemInRoom(itemRoom) {
   const r = getCurrentRoleLevel();
-  if (r === "L3") return true;
-  if (r === "L2") {
+  if (r === "L3" || r === "L4" || r === "admin" || r === "executive") return true;
+  if (r === "L2" || (typeof userRole !== "undefined" && userRole === "staff")) {
     const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
     if (assigned.length === 0) return true; // If no restriction specified, allow
-    if (!itemRoom) return true;
-    return assigned.some(ar => itemRoom.toLowerCase().includes(ar.toLowerCase()) || ar.toLowerCase().includes(itemRoom.toLowerCase()));
+    if (!itemRoom) return false;
+    return assigned.some(ar => isRoomMatch(itemRoom, ar));
   }
   return false;
 }
 
 function canApproveReturnForRoom(txRoom) {
-  const r = getCurrentRoleLevel();
-  if (r === "L3" || r === "admin") return true;
-  if (r === "L2") {
-    const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
-    if (assigned.length === 0) return true;
-    if (!txRoom) return true;
-    return assigned.some(ar => txRoom.toLowerCase().includes(ar.toLowerCase()) || ar.toLowerCase().includes(txRoom.toLowerCase()));
-  }
-  return false;
+  return canApproveBookingForRoom(txRoom);
 }
 
 function canApproveBookingForRoom(room) {
   const r = getCurrentRoleLevel();
-  if (r === "L3" || r === "admin") return true;
-  if (r === "L2") {
+  if (r === "L3" || r === "L4" || r === "admin" || r === "executive") return true;
+  if (r === "L2" || (typeof userRole !== "undefined" && userRole === "staff")) {
     const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
     if (assigned.length === 0) return true;
-    if (!room) return true;
-    return assigned.some(ar => room.toLowerCase().includes(ar.toLowerCase()) || ar.toLowerCase().includes(room.toLowerCase()));
+    if (!room) return false;
+    return assigned.some(ar => isRoomMatch(room, ar));
   }
   return false;
 }
@@ -8172,8 +8190,8 @@ function renderPendingRequests() {
   if (!card || !container) return;
 
   const roleLevel = getCurrentRoleLevel();
-  // Only L2 (Staff) and L3 (System Manager / Admin) have approval dashboard rights
-  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
+  // L2 (Staff), L3 (System Manager / Admin), and L4 (Executive) have approval dashboard rights
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "L4" && roleLevel !== "admin" && roleLevel !== "executive") {
     card.style.display = "none";
     return;
   }
@@ -8181,7 +8199,7 @@ function renderPendingRequests() {
   // Filter pending borrow requests based on room permissions
   let filteredTx = transactions.filter(tx => {
     if (tx.type !== "borrow" || tx.status !== "pending") return false;
-    if (roleLevel === "L3" || roleLevel === "admin") return true;
+    if (roleLevel === "L3" || roleLevel === "L4" || roleLevel === "admin" || roleLevel === "executive") return true;
     const item = items.find(i => i.code === tx.itemCode);
     const room = (item ? item.room : tx.room) || "";
     return canManageItemInRoom(room);
@@ -8190,7 +8208,7 @@ function renderPendingRequests() {
   // Filter pending bookings based on room permissions
   const filteredBookings = bookings.filter(b => {
     if (b.status !== "pending") return false;
-    if (roleLevel === "L3" || roleLevel === "admin") return true;
+    if (roleLevel === "L3" || roleLevel === "L4" || roleLevel === "admin" || roleLevel === "executive") return true;
     return canApproveBookingForRoom(b.room);
   });
 
@@ -8318,7 +8336,7 @@ window.togglePendingRequestDetails = function(headerElement) {
 
 window.approveBookingRequest = async function(bookingId) {
   const roleLevel = getCurrentRoleLevel();
-  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "L4" && roleLevel !== "admin" && roleLevel !== "executive") {
     showToast("คุณไม่มีสิทธิ์ในการอนุมัติการจองห้องแล็บ", "error");
     return;
   }
@@ -8342,13 +8360,13 @@ window.approveBookingRequest = async function(bookingId) {
     }
   }
   showToast(`อนุมัติการจองห้อง "${getRoomThaiName(bk.room)}" เรียบร้อยแล้ว!`, "success");
-  logActivity(roleLevel === "L3" ? "Admin" : "Staff", "อนุมัติการจอง", `อนุมัติการจองห้อง ${getRoomThaiName(bk.room)} (${bk.slot}) สำหรับ ${bk.bookerName}`);
+  logActivity((roleLevel === "L3" || roleLevel === "L4" || roleLevel === "admin" || roleLevel === "executive") ? "Admin/Executive" : "Staff", "อนุมัติการจอง", `อนุมัติการจองห้อง ${getRoomThaiName(bk.room)} (${bk.slot}) สำหรับ ${bk.bookerName}`);
   updateUI();
 };
 
 window.rejectBookingRequest = async function(bookingId) {
   const roleLevel = getCurrentRoleLevel();
-  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "L4" && roleLevel !== "admin" && roleLevel !== "executive") {
     showToast("คุณไม่มีสิทธิ์ในการปฏิเสธการจองห้องแล็บ", "error");
     return;
   }
@@ -8373,14 +8391,14 @@ window.rejectBookingRequest = async function(bookingId) {
       }
     }
     showToast("ปฏิเสธคำขอจองห้องแล็บเรียบร้อยแล้ว", "info");
-    logActivity(roleLevel === "L3" ? "Admin" : "Staff", "ปฏิเสธการจอง", `ปฏิเสธการจองห้อง ${getRoomThaiName(bk.room)} สำหรับ ${bk.bookerName}`);
+    logActivity((roleLevel === "L3" || roleLevel === "L4" || roleLevel === "admin" || roleLevel === "executive") ? "Admin/Executive" : "Staff", "ปฏิเสธการจอง", `ปฏิเสธการจองห้อง ${getRoomThaiName(bk.room)} สำหรับ ${bk.bookerName}`);
     updateUI();
   }
 };
 
 window.approveBorrowRequest = async function(txId) {
   const roleLevel = getCurrentRoleLevel();
-  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "L4" && roleLevel !== "admin" && roleLevel !== "executive") {
     showToast("คุณไม่มีสิทธิ์ในการอนุมัติคำขอยืมพัสดุ", "error");
     return;
   }
@@ -8422,14 +8440,14 @@ window.approveBorrowRequest = async function(txId) {
       }
     }
     showToast(`อนุมัติคำขอยืม "${tx.itemName}" เรียบร้อยแล้ว!`, "success");
-    logActivity(roleLevel === "L3" ? "Admin" : "Staff", "อนุมัติการยืม", `อนุมัติการยืม ${tx.itemName} (${tx.qty} ชิ้น) ให้แก่ ${tx.borrower}`);
+    logActivity((roleLevel === "L3" || roleLevel === "L4" || roleLevel === "admin" || roleLevel === "executive") ? "Admin/Executive" : "Staff", "อนุมัติการยืม", `อนุมัติการยืม ${tx.itemName} (${tx.qty} ชิ้น) ให้แก่ ${tx.borrower}`);
     updateUI();
   }
 };
 
 window.rejectBorrowRequest = async function(txId) {
   const roleLevel = getCurrentRoleLevel();
-  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "admin") {
+  if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "L4" && roleLevel !== "admin" && roleLevel !== "executive") {
     showToast("คุณไม่มีสิทธิ์ในการปฏิเสธคำขอยืมพัสดุ", "error");
     return;
   }
@@ -8449,7 +8467,7 @@ window.rejectBorrowRequest = async function(txId) {
       }
     }
     showToast("ปฏิเสธคำขอยืมเรียบร้อยแล้ว", "info");
-    logActivity(roleLevel === "L3" ? "Admin" : "Staff", "ปฏิเสธการยืม", `ปฏิเสธคำขอยืม ${tx.itemName} ของ ${tx.borrower}`);
+    logActivity((roleLevel === "L3" || roleLevel === "L4" || roleLevel === "admin" || roleLevel === "executive") ? "Admin/Executive" : "Staff", "ปฏิเสธการยืม", `ปฏิเสธคำขอยืม ${tx.itemName} ของ ${tx.borrower}`);
     updateUI();
   }
 };
@@ -17532,16 +17550,38 @@ function updateDashboardCalendarStats() {
   const pendingEl = document.getElementById("calStatPending");
   const roomsEl = document.getElementById("calStatRooms");
   const usersEl = document.getElementById("calStatUsers");
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
 
   if (pendingEl) {
-    const pendingCount = (typeof bookings !== "undefined" ? bookings : []).filter(
-      b => b.status === "pending"
-    ).length;
+    let pendingCount = 0;
+    if (roleLevel === "L3" || roleLevel === "L4" || roleLevel === "admin" || roleLevel === "executive") {
+      // L3-L4: See ALL pending requests (Bookings + Borrows) across ALL labs
+      const pendingBookings = (typeof bookings !== "undefined" ? bookings : []).filter(b => b.status === "pending").length;
+      const pendingBorrows = (typeof transactions !== "undefined" ? transactions : []).filter(tx => tx.type === "borrow" && tx.status === "pending").length;
+      pendingCount = pendingBookings + pendingBorrows;
+    } else if (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff")) {
+      // L2: See ONLY pending requests for labs they are assigned to
+      const pendingBookings = (typeof bookings !== "undefined" ? bookings : []).filter(b => b.status === "pending" && canApproveBookingForRoom(b.room)).length;
+      const pendingBorrows = (typeof transactions !== "undefined" ? transactions : []).filter(tx => {
+        if (tx.type !== "borrow" || tx.status !== "pending") return false;
+        const item = (typeof items !== "undefined" ? items : []).find(i => i.code === tx.itemCode);
+        const room = (item ? item.room : tx.room) || "";
+        return canManageItemInRoom(room);
+      }).length;
+      pendingCount = pendingBookings + pendingBorrows;
+    } else {
+      // L0/L1: General overview
+      pendingCount = (typeof bookings !== "undefined" ? bookings : []).filter(b => b.status === "pending").length;
+    }
     pendingEl.textContent = pendingCount;
   }
 
   if (roomsEl) {
-    roomsEl.textContent = DASH_LAB_ROOMS.length;
+    if (roleLevel === "L2" && currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) {
+      roomsEl.textContent = currentUser.assignedRooms.length;
+    } else {
+      roomsEl.textContent = DASH_LAB_ROOMS.length;
+    }
   }
 
   if (usersEl) {
@@ -17566,6 +17606,20 @@ function updateDashboardCalendarStats() {
     }
     usersEl.textContent = userCount || 7;
   }
+}
+
+// Helper: Filter bookings visible to the logged-in user according to role (L2: assigned labs only, L3/L4: all labs)
+function getVisibleBookingsForUser(dateStr) {
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL2 = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+
+  return (typeof bookings !== "undefined" ? bookings : []).filter(b => {
+    if (b.status === "cancelled") return false;
+    if (dateStr && b.date !== dateStr) return false;
+    if (isL3L4 || !isL2) return true; // L3/L4 and L0/L1 see all
+    return canApproveBookingForRoom(b.room); // L2 sees only assigned rooms
+  });
 }
 
 // 2. Render Main Calendar
@@ -17630,9 +17684,7 @@ function renderDashboardMonthView(year, month, container) {
     const isToday = currentDate.toDateString() === today.toDateString();
     const isSelected = dateStr === selectedDateIso;
 
-    const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
-      b => b.date === dateStr && b.status !== "cancelled"
-    );
+    const dayBookings = getVisibleBookingsForUser(dateStr);
 
     let cellClasses = ["dash-cal-day-cell"];
     if (isToday) cellClasses.push("today");
@@ -17713,9 +17765,7 @@ function renderDashboardWeekView(year, month, container) {
     const isToday = dayDate.toDateString() === new Date().toDateString();
     const isSelected = dateStr === formatThaiDateIso(dashCalSelectedDate);
 
-    const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
-      b => b.date === dateStr && b.status !== "cancelled"
-    );
+    const dayBookings = getVisibleBookingsForUser(dateStr);
 
     html += `
       <div class="dash-cal-week-col ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="selectDashboardCalendarDate('${dateStr}')" style="cursor: pointer;">
@@ -17749,9 +17799,7 @@ function renderDashboardWeekView(year, month, container) {
 // Day View
 function renderDashboardDayView(year, month, container) {
   const dateStr = formatThaiDateIso(dashCalSelectedDate);
-  const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
-    b => b.date === dateStr && b.status !== "cancelled"
-  );
+  const dayBookings = getVisibleBookingsForUser(dateStr);
 
   const slotsList = [
     { slot: "1", time: "08:10 - 09:00" },
@@ -17825,9 +17873,7 @@ function renderDashboardDailySchedule(specificDateStr) {
     datePicker.value = dateStr;
   }
 
-  const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
-    b => b.date === dateStr && b.status !== "cancelled"
-  );
+  const dayBookings = getVisibleBookingsForUser(dateStr);
 
   if (dayBookings.length === 0) {
     body.innerHTML = `
@@ -17914,13 +17960,11 @@ function openDashboardDateEventsModal(dateStr, e) {
     title.textContent = `รายการจองวันที่ ${formatThaiDateDisplay(dateObj)}`;
   }
 
-  const dayBookings = (typeof bookings !== "undefined" ? bookings : []).filter(
-    b => b.date === dateStr && b.status !== "cancelled"
-  );
+  const dayBookings = getVisibleBookingsForUser(dateStr);
 
   let html = "";
   if (dayBookings.length === 0) {
-    html = '<p style="color: var(--text-muted); text-align: center; margin: 12px 0;">ไม่มีรายการจอง</p>';
+    html = '<p style="color: var(--text-muted); text-align: center; margin-12px 0;">ไม่มีรายการจอง</p>';
   } else {
     html = dayBookings.map(b => {
       const roomInfo = getDashRoomInfo(b.room);
