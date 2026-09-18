@@ -994,6 +994,13 @@ window.seedSampleActivityLogs = function() {
 };
 
 window.exportActivityLogsCSV = function() {
+  const roleLevel = getCurrentRoleLevel();
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+  if (!isL3L4) {
+    showToast("สิทธิ์การส่งออกข้อมูลเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+    return;
+  }
+
   if (!activityLogs || activityLogs.length === 0) {
     showToast("ไม่มีข้อมูลกิจกรรมสำหรับส่งออก", "error");
     return;
@@ -1516,9 +1523,11 @@ function updateUI() {
   const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
   const isL3Admin = (roleLevel === "L3" || (typeof userRole !== "undefined" && userRole === "admin"));
   const isL2Staff = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
-  const isL4Executive = (roleLevel === "L4" || (typeof userRole !== "undefined" && userRole === "executive"));
+  const isL3OrL4 = isL3Admin || isL4Executive;
+  const poExportActions = document.getElementById("poExportActions");
   
-  if (borrowExportActions) borrowExportActions.style.display = (isL3Admin || isL2Staff || isL4Executive) ? "inline-flex" : "none";
+  if (borrowExportActions) borrowExportActions.style.display = isL3OrL4 ? "inline-flex" : "none";
+  if (poExportActions) poExportActions.style.display = isL3OrL4 ? "inline-flex" : "none";
   if (quickBtnAddItem) quickBtnAddItem.style.display = (isL3Admin || isL2Staff) ? "flex" : "none";
   if (quickBtnAdmin) quickBtnAdmin.style.display = isL3Admin ? "flex" : "none";
 
@@ -9240,6 +9249,13 @@ function setupCsvExport() {
   if (!btn) return;
 
   btn.addEventListener("click", () => {
+    const roleLevel = getCurrentRoleLevel();
+    const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+    if (!isL3Plus) {
+      showToast("สิทธิ์การส่งออกข้อมูล Excel เปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+      return;
+    }
+
     if (items.length === 0) {
       showToast("ไม่มีข้อมูลในระบบที่สามารถส่งออกได้", "error");
       return;
@@ -9830,6 +9846,13 @@ function setupDashboardReports() {
   
   if (btnTx) {
     btnTx.addEventListener("click", () => {
+      const roleLevel = getCurrentRoleLevel();
+      const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+      if (!isL3Plus) {
+        showToast("สิทธิ์การส่งออกข้อมูลเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+        return;
+      }
+
       if (transactions.length === 0) {
         showToast("ไม่มีประวัติการยืม-คืนที่สามารถส่งออกได้", "error");
         return;
@@ -10419,6 +10442,13 @@ function setupHistoryExports() {
 
   if (btnExportBorrowCSV) {
     btnExportBorrowCSV.addEventListener("click", () => {
+      const roleLevel = getCurrentRoleLevel();
+      const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+      if (!isL3Plus) {
+        showToast("สิทธิ์การส่งออกข้อมูลเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+        return;
+      }
+
       let filtered = [...transactions];
       const filterVal = document.getElementById("exportBorrowRoomFilter") ? document.getElementById("exportBorrowRoomFilter").value : "all";
       if (filterVal !== "all") {
@@ -10464,6 +10494,13 @@ function setupHistoryExports() {
 
   if (btnExportBorrowPDF) {
     btnExportBorrowPDF.addEventListener("click", () => {
+      const roleLevel = getCurrentRoleLevel();
+      const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+      if (!isL3Plus) {
+        showToast("สิทธิ์การพิมพ์รายงานทางการเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+        return;
+      }
+
       let filtered = [...transactions];
       const filterVal = document.getElementById("exportBorrowRoomFilter") ? document.getElementById("exportBorrowRoomFilter").value : "all";
       if (filterVal !== "all") {
@@ -10545,6 +10582,13 @@ function setupHistoryExports() {
 
   if (btnExportBookingCSV) {
     btnExportBookingCSV.addEventListener("click", () => {
+      const roleLevel = getCurrentRoleLevel();
+      const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+      if (!isL3Plus) {
+        showToast("สิทธิ์การส่งออกข้อมูลเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+        return;
+      }
+
       let filtered = [...bookings];
       const filterVal = document.getElementById("exportBookingRoomFilter") ? document.getElementById("exportBookingRoomFilter").value : "all";
       if (filterVal !== "all") {
@@ -10580,6 +10624,13 @@ function setupHistoryExports() {
 
   if (btnExportBookingPDF) {
     btnExportBookingPDF.addEventListener("click", () => {
+      const roleLevel = getCurrentRoleLevel();
+      const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+      if (!isL3Plus) {
+        showToast("สิทธิ์การพิมพ์รายงานทางการเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+        return;
+      }
+
       let filtered = [...bookings];
       const filterVal = document.getElementById("exportBookingRoomFilter") ? document.getElementById("exportBookingRoomFilter").value : "all";
       if (filterVal !== "all") {
@@ -10662,6 +10713,13 @@ function setupHistoryExports() {
 
   if (btnExportPoCSV) {
     btnExportPoCSV.addEventListener("click", () => {
+      const roleLevel = getCurrentRoleLevel();
+      const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+      if (!isL3Plus) {
+        showToast("สิทธิ์การส่งออกข้อมูลเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+        return;
+      }
+
       if (purchaseOrders.length === 0) {
         showToast("ไม่มีข้อมูลรายการสั่งซื้อเพื่อส่งออก", "error");
         return;
@@ -10709,6 +10767,13 @@ function setupHistoryExports() {
 
   if (btnExportPoPDF) {
     btnExportPoPDF.addEventListener("click", () => {
+      const roleLevel = getCurrentRoleLevel();
+      const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+      if (!isL3Plus) {
+        showToast("สิทธิ์การพิมพ์รายงานทางการเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+        return;
+      }
+
       if (purchaseOrders.length === 0) {
         showToast("ไม่มีข้อมูลรายการสั่งซื้อเพื่อส่งออก", "error");
         return;
@@ -18412,15 +18477,17 @@ async function saveAssetAuditRecord() {
   if (typeof renderAssetsTable === "function") renderAssetsTable();
 }
 
-// Export Annual Asset Audit CSV (with RBAC)
+// Export Annual Asset Audit CSV (with RBAC: L3 & L4 only)
 function exportAssetsAuditCSV() {
   const roleLevel = getCurrentRoleLevel();
-  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+
+  if (!isL3L4) {
+    showToast("สิทธิ์การส่งออกข้อมูล Excel / พิมพ์รายงานทางการเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+    return;
+  }
 
   let allAssetItems = items.filter(isAssetItem);
-  if (!isL3L4 && roleLevel === "L2") {
-    allAssetItems = allAssetItems.filter(item => canManageItemInRoom(item.room));
-  }
 
   if (allAssetItems.length === 0) {
     showToast("ไม่มีข้อมูลครุภัณฑ์สำหรับการส่งออก", "warning");
