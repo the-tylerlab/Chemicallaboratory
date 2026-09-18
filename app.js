@@ -17550,38 +17550,15 @@ function updateDashboardCalendarStats() {
   const pendingEl = document.getElementById("calStatPending");
   const roomsEl = document.getElementById("calStatRooms");
   const usersEl = document.getElementById("calStatUsers");
-  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
 
   if (pendingEl) {
-    let pendingCount = 0;
-    if (roleLevel === "L3" || roleLevel === "L4" || roleLevel === "admin" || roleLevel === "executive") {
-      // L3-L4: See ALL pending requests (Bookings + Borrows) across ALL labs
-      const pendingBookings = (typeof bookings !== "undefined" ? bookings : []).filter(b => b.status === "pending").length;
-      const pendingBorrows = (typeof transactions !== "undefined" ? transactions : []).filter(tx => tx.type === "borrow" && tx.status === "pending").length;
-      pendingCount = pendingBookings + pendingBorrows;
-    } else if (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff")) {
-      // L2: See ONLY pending requests for labs they are assigned to
-      const pendingBookings = (typeof bookings !== "undefined" ? bookings : []).filter(b => b.status === "pending" && canApproveBookingForRoom(b.room)).length;
-      const pendingBorrows = (typeof transactions !== "undefined" ? transactions : []).filter(tx => {
-        if (tx.type !== "borrow" || tx.status !== "pending") return false;
-        const item = (typeof items !== "undefined" ? items : []).find(i => i.code === tx.itemCode);
-        const room = (item ? item.room : tx.room) || "";
-        return canManageItemInRoom(room);
-      }).length;
-      pendingCount = pendingBookings + pendingBorrows;
-    } else {
-      // L0/L1: General overview
-      pendingCount = (typeof bookings !== "undefined" ? bookings : []).filter(b => b.status === "pending").length;
-    }
-    pendingEl.textContent = pendingCount;
+    const pendingBookings = (typeof bookings !== "undefined" ? bookings : []).filter(b => b.status === "pending").length;
+    const pendingBorrows = (typeof transactions !== "undefined" ? transactions : []).filter(tx => tx.type === "borrow" && tx.status === "pending").length;
+    pendingEl.textContent = pendingBookings + pendingBorrows;
   }
 
   if (roomsEl) {
-    if (roleLevel === "L2" && currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) {
-      roomsEl.textContent = currentUser.assignedRooms.length;
-    } else {
-      roomsEl.textContent = DASH_LAB_ROOMS.length;
-    }
+    roomsEl.textContent = DASH_LAB_ROOMS.length;
   }
 
   if (usersEl) {
@@ -17608,17 +17585,12 @@ function updateDashboardCalendarStats() {
   }
 }
 
-// Helper: Filter bookings visible to the logged-in user according to role (L2: assigned labs only, L3/L4: all labs)
+// Helper: All roles see the complete lab calendar and schedules across all 8 laboratories
 function getVisibleBookingsForUser(dateStr) {
-  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
-  const isL2 = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
-  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
-
   return (typeof bookings !== "undefined" ? bookings : []).filter(b => {
     if (b.status === "cancelled") return false;
     if (dateStr && b.date !== dateStr) return false;
-    if (isL3L4 || !isL2) return true; // L3/L4 and L0/L1 see all
-    return canApproveBookingForRoom(b.room); // L2 sees only assigned rooms
+    return true; // All roles see all labs
   });
 }
 
