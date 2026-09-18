@@ -2582,14 +2582,15 @@ function renderItemsTable() {
 
   const roleLevel = getCurrentRoleLevel();
   const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+  const canManageAny = isL3Plus || roleLevel === "L2";
 
   const thActions = document.getElementById("thActions");
   const thBatchAction = document.getElementById("thBatchAction");
   if (thActions) {
-    thActions.style.display = isL3Plus ? "" : "none";
+    thActions.style.display = canManageAny ? "" : "none";
   }
   if (thBatchAction) {
-    thBatchAction.style.display = isL3Plus ? "" : "none";
+    thBatchAction.style.display = canManageAny ? "" : "none";
   }
 
   // Hide Export Excel and Print Report buttons for roles lower than L3
@@ -2605,12 +2606,19 @@ function renderItemsTable() {
   // Non-L3 notice banner
   const nonL3Banner = document.getElementById("nonL3NoticeBanner");
   if (nonL3Banner) {
-    if (!isL3Plus) {
+    if (roleLevel === "L2") {
+      nonL3Banner.style.display = "flex";
+      const noticeText = document.getElementById("nonL3NoticeText");
+      if (noticeText) {
+        const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่ได้รับมอบหมาย";
+        noticeText.innerHTML = `<i data-lucide="shield-check" style="width: 16px; height: 16px; margin-right: 6px; color: #7c3aed;"></i> สิทธิ์ <strong>L2 (เจ้าหน้าที่แล็บ)</strong>: สามารถเพิ่ม แก้ไข และลบข้อมูลสารเคมี/พัสดุได้เฉพาะห้องที่ได้รับมอบหมาย (<strong>${assigned}</strong>)`;
+      }
+    } else if (!isL3Plus) {
       nonL3Banner.style.display = "flex";
       const noticeText = document.getElementById("nonL3NoticeText");
       if (noticeText) {
         const badgeInfo = getRoleBadgeInfo(roleLevel);
-        noticeText.innerHTML = `ระดับสิทธิ์ของคุณคือ <strong>${badgeInfo.name} (${roleLevel})</strong>: สิทธิ์การแก้ไขและจัดการข้อมูลเปิดให้เฉพาะ <strong>L3 (ผู้ดูแลระบบ)</strong> ขึ้นไป หากต้องการแก้ไขข้อมูล กรุณาติดต่อผู้ดูแลระบบ`;
+        noticeText.innerHTML = `ระดับสิทธิ์ของคุณคือ <strong>${badgeInfo.name} (${roleLevel})</strong>: สิทธิ์การแก้ไขและจัดการข้อมูลเปิดให้เฉพาะ <strong>L2 (เจ้าหน้าที่แล็บ)</strong> และ <strong>L3 (ผู้ดูแลระบบ)</strong> ขึ้นไป`;
       }
     } else {
       nonL3Banner.style.display = "none";
@@ -2803,7 +2811,7 @@ function renderItemsTable() {
         </td>
         <td data-label="สถานที่จัดเก็บ" class="col-room" style="color: var(--text-muted); font-size: 12px;">${locationText}</td>
         <td data-label="สถานะ" class="col-status">${getStatusBadgeMarkup(status)}</td>
-        ${isL3Plus ? `
+        ${canManageAny ? `
         <td data-label="จัดการ">
           <div class="table-actions" style="position: relative;">
             <button class="action-icon-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex})" title="ตัวเลือกเพิ่มเติม">
@@ -2816,17 +2824,23 @@ function renderItemsTable() {
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); generateQR('${item.code}')">
                 <i data-lucide="qr-code" style="width: 14px; height: 14px; margin-right: 8px;"></i> สแกน QR
               </button>
-              ${((item.category && item.category.includes('ครุภัณฑ์')) || item.isAsset) ? `
+              ${(((item.category && item.category.includes('ครุภัณฑ์')) || item.isAsset) && (isL3Plus || canManageItemInRoom(item.room))) ? `
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); openAssetAuditModal('${item.code}')" style="color: var(--primary-purple); font-weight: 600;">
                 <i data-lucide="clipboard-check" style="width: 14px; height: 14px; margin-right: 8px;"></i> ตรวจนับครุภัณฑ์
               </button>
               ` : ''}
+              ${(isL3Plus || canManageItemInRoom(item.room)) ? `
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); editItem(${originalIndex})">
                 <i data-lucide="edit-3" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไขรายการ
               </button>
               <button class="dropdown-action-btn danger" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); deleteItem(${originalIndex})">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px; margin-right: 8px;"></i> ลบรายการ
               </button>
+              ` : `
+              <button class="dropdown-action-btn" disabled style="opacity: 0.5; cursor: not-allowed;" title="อยู่นอกห้องที่ได้รับมอบหมาย">
+                <i data-lucide="lock" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไข (จำกัดสิทธิ์ห้อง)
+              </button>
+              `}
             </div>
           </div>
         </td>
@@ -3548,15 +3562,41 @@ window.editItem = function(index) {
   const roleLevel = getCurrentRoleLevel();
   const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
 
-  if (!isL3Plus) {
+  if (isExecutiveMode()) {
+    showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถแก้ไขรายการได้", "warning");
+    return;
+  }
+
+  const item = items[index];
+  if (!item) return;
+
+  if (roleLevel === "L2") {
+    if (!canManageItemInRoom(item.room)) {
+      const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่ได้รับมอบหมาย";
+      Swal.fire({
+        icon: 'warning',
+        title: 'ไม่มีสิทธิ์แก้ไขห้องนี้',
+        html: `
+          <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.6;">
+            <p>รายการนี้อยู่ใน <b>${item.room || 'ไม่ระบุห้อง'}</b></p>
+            <p style="margin-top: 6px;">คุณได้รับมอบหมายดูแลเฉพาะ: <b>${assigned}</b></p>
+            <p style="margin-top: 8px; color: #64748b;">หากต้องการแก้ไขข้อมูลห้องอื่น กรุณาติดต่อผู้ดูแลระบบ (L3)</p>
+          </div>
+        `,
+        confirmButtonText: 'รับทราบ',
+        confirmButtonColor: '#7c3aed'
+      });
+      return;
+    }
+  } else if (!isL3Plus) {
     Swal.fire({
       icon: 'info',
-      title: 'ต้องใช้สิทธิ์ระดับ L3 ขึ้นไป',
+      title: 'ต้องใช้สิทธิ์ระดับ L2 หรือ L3 ขึ้นไป',
       html: `
         <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.6;">
           <p>ระดับสิทธิ์ปัจจุบันของคุณคือ <b>${getRoleBadgeInfo(roleLevel).name} (${roleLevel})</b></p>
-          <p style="margin-top: 8px;">สิทธิ์การแก้ไขข้อมูลสารเคมี/ครุภัณฑ์เปิดให้เฉพาะระดับ <b>L3 (ผู้ดูแลระบบ)</b> หรือ <b>L4 (ผู้บริหาร)</b> เท่านั้น</p>
-          <p style="margin-top: 8px; color: #64748b;">หากต้องการแก้ไขหรืออัปเดตข้อมูลรายการนี้ กรุณาติดต่อผู้ดูแลระบบ (L3/L4)</p>
+          <p style="margin-top: 8px;">สิทธิ์การแก้ไขข้อมูลสารเคมี/ครุภัณฑ์เปิดให้เฉพาะระดับ <b>L2 (เจ้าหน้าที่แล็บ)</b> หรือ <b>L3 (ผู้ดูแลระบบ)</b> เท่านั้น</p>
+          <p style="margin-top: 8px; color: #64748b;">หากต้องการแก้ไขหรืออัปเดตข้อมูลรายการนี้ กรุณาติดต่อผู้ดูแลระบบ (L3)</p>
         </div>
       `,
       showCancelButton: true,
@@ -3570,9 +3610,6 @@ window.editItem = function(index) {
     });
     return;
   }
-
-  const item = items[index];
-  if (!item) return;
 
   // Navigate to edit form
   navigateToPanel("add-item");
@@ -3629,15 +3666,29 @@ window.deleteItem = async function(index) {
   const roleLevel = getCurrentRoleLevel();
   const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
 
-  if (!isL3Plus) {
+  if (isExecutiveMode()) {
+    showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถลบรายการได้", "warning");
+    return;
+  }
+
+  const item = items[index];
+  if (!item) return;
+
+  if (roleLevel === "L2") {
+    if (!canManageItemInRoom(item.room)) {
+      const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่ได้รับมอบหมาย";
+      showToast(`คุณไม่มีสิทธิ์ลบรายการในห้อง "${item.room || 'อื่นๆ'}" (ได้รับมอบหมายเฉพาะ: ${assigned})`, "error");
+      return;
+    }
+  } else if (!isL3Plus) {
     Swal.fire({
       icon: 'info',
-      title: 'ต้องใช้สิทธิ์ระดับ L3 ขึ้นไป',
+      title: 'ต้องใช้สิทธิ์ระดับ L2 หรือ L3 ขึ้นไป',
       html: `
         <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.6;">
           <p>ระดับสิทธิ์ปัจจุบันของคุณคือ <b>${getRoleBadgeInfo(roleLevel).name} (${roleLevel})</b></p>
-          <p style="margin-top: 8px;">สิทธิ์การลบข้อมูลสารเคมี/ครุภัณฑ์เปิดให้เฉพาะระดับ <b>L3 (ผู้ดูแลระบบ)</b> หรือ <b>L4 (ผู้บริหาร)</b> เท่านั้น</p>
-          <p style="margin-top: 8px; color: #64748b;">หากต้องการลบรายการนี้ กรุณาติดต่อผู้ดูแลระบบ (L3/L4)</p>
+          <p style="margin-top: 8px;">สิทธิ์การลบข้อมูลสารเคมี/ครุภัณฑ์เปิดให้เฉพาะระดับ <b>L2 (เจ้าหน้าที่แล็บ)</b> หรือ <b>L3 (ผู้ดูแลระบบ)</b> เท่านั้น</p>
+          <p style="margin-top: 8px; color: #64748b;">หากต้องการลบรายการนี้ กรุณาติดต่อผู้ดูแลระบบ (L3)</p>
         </div>
       `,
       showCancelButton: true,
@@ -3649,19 +3700,6 @@ window.deleteItem = async function(index) {
         showContactAdminModal();
       }
     });
-    return;
-  }
-
-  if (isExecutiveMode()) {
-    showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถลบรายการได้", "warning");
-    return;
-  }
-
-  const item = items[index];
-  if (!item) return;
-
-  if (!canManageItemInRoom(item.room)) {
-    showToast(`คุณไม่มีสิทธิ์ลบรายการในห้อง "${item.room || 'อื่นๆ'}" (เฉพาะห้องที่ได้รับมอบหมายเท่านั้น)`, "error");
     return;
   }
 
@@ -8752,6 +8790,7 @@ window.showItemDetail = function(event, itemCode) {
   // Build Footer Actions
   const roleLevel = getCurrentRoleLevel();
   const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+  const canEditThisItem = isL3Plus || (roleLevel === "L2" && canManageItemInRoom(item.room));
 
   footer.innerHTML = `
     <button type="button" class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
@@ -8759,7 +8798,7 @@ window.showItemDetail = function(event, itemCode) {
       <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
       <span>พิมพ์บาร์โค้ด / สติกเกอร์</span>
     </button>
-    ${isL3Plus ? `
+    ${canEditThisItem ? `
     <button type="button" class="btn btn-primary" style="background-color: var(--primary); border-color: var(--primary); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); editItem(items.findIndex(i => i.code === '${item.code}'))">
       <i data-lucide="edit-3" style="width: 15px; height: 15px;"></i>
       <span>แก้ไขข้อมูล</span>
@@ -8767,7 +8806,7 @@ window.showItemDetail = function(event, itemCode) {
     ` : `
     <button type="button" class="btn btn-secondary" style="border-color: #93c5fd; color: #1d4ed8; background: #eff6ff; display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); showContactAdminModal()">
       <i data-lucide="phone" style="width: 15px; height: 15px;"></i>
-      <span>ติดต่อ L3/L4 เพื่อแก้ไข</span>
+      <span>ติดต่อ L3 เพื่อแก้ไข</span>
     </button>
     `}
   `;
@@ -14895,10 +14934,14 @@ function renderStockForecast() {
   const warningCountSpan = document.getElementById("forecastWarningCount");
   if (!listContainer) return;
 
+  const roleLevel = getCurrentRoleLevel();
+  const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+
   const forecastItems = [];
 
   (items || []).forEach(item => {
     if (item.status === "damaged" || item.status === "disposed") return;
+    if (roleLevel === "L2" && !canManageItemInRoom(item.room)) return;
 
     const velocity = getUsageVelocity(item);
     const qty = parseFloat(item.qty || 0);
@@ -14928,7 +14971,8 @@ function renderStockForecast() {
   });
 
   if (warningCountSpan) {
-    warningCountSpan.innerText = `${forecastItems.length} รายการต้องเติมสต็อก`;
+    const scopeText = (roleLevel === "L2" && currentUser?.assignedRooms?.length > 0) ? ` (${currentUser.assignedRooms.join(", ")})` : "";
+    warningCountSpan.innerText = `${forecastItems.length} รายการต้องเติมสต็อก${scopeText}`;
     if (forecastItems.length > 0) {
       warningCountSpan.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
       warningCountSpan.style.color = "#ef4444";
@@ -14941,10 +14985,13 @@ function renderStockForecast() {
   }
 
   if (forecastItems.length === 0) {
+    const emptyNotice = roleLevel === "L2" 
+      ? `พัสดุและสารเคมีในห้องที่คุณรับผิดชอบมีสต็อกเพียงพอสำหรับการใช้งานล่วงหน้า 30 วัน`
+      : `พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งานล่วงหน้า 30 วัน`;
     listContainer.innerHTML = `
       <div class="empty-state" style="padding: 30px;">
         <div class="empty-state-icon"><i data-lucide="check-circle" style="color: var(--accent-green);"></i></div>
-        <div class="empty-state-text" style="color: var(--text-muted);">พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งานล่วงหน้า 30 วัน</div>
+        <div class="empty-state-text" style="color: var(--text-muted);">${emptyNotice}</div>
       </div>
     `;
     lucide.createIcons();
@@ -15014,6 +15061,13 @@ function renderStockForecast() {
 window.addAutoPurchaseOrder = function(itemCode) {
   const item = (items || []).find(i => i.code === itemCode);
   if (!item) return;
+
+  const roleLevel = getCurrentRoleLevel();
+  if (roleLevel === "L2" && !canManageItemInRoom(item.room)) {
+    const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่ได้รับมอบหมาย";
+    showToast(`คุณไม่มีสิทธิ์สร้างใบสั่งซื้อสำหรับรายการในห้อง "${item.room || 'อื่นๆ'}" (ได้รับมอบหมายเฉพาะ: ${assigned})`, "error");
+    return;
+  }
 
   const orderQty = item.minAlert ? Math.ceil(item.minAlert * 2) : 10;
   const unitPrice = parseFloat(item.price || 0);
@@ -15780,11 +15834,33 @@ window.getSelectedBatchCodes = function() {
 window.batchDeleteItems = function() {
   const codes = getSelectedBatchCodes();
   if (codes.length === 0) return;
+
+  if (isExecutiveMode()) {
+    showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถลบรายการได้", "warning");
+    return;
+  }
+
+  const roleLevel = getCurrentRoleLevel();
+  // Check room permissions for L2
+  const allowedCodes = codes.filter(code => {
+    const it = items.find(i => i.code === code);
+    if (!it) return false;
+    return canManageItemInRoom(it.room);
+  });
+
+  if (allowedCodes.length === 0) {
+    showToast("คุณไม่มีสิทธิ์ลบรายการที่เลือกเนื่องจากอยู่นอกห้องที่ได้รับมอบหมาย", "error");
+    return;
+  }
+
+  if (allowedCodes.length < codes.length) {
+    showToast(`มีบางรายการอยู่นอกห้องที่คุณดูแล ระบบจะดำเนินการเฉพาะ ${allowedCodes.length} รายการที่ได้รับอนุญาต`, "warning");
+  }
   
-  if (confirm(`คุณต้องการลบรายการที่เลือกจำนวน ${codes.length} รายการใช่หรือไม่? (การกระทำนี้ไม่สามารถกู้คืนได้)`)) {
-    const actor = userRole === 'admin' ? 'Admin' : (userRole === 'teacher' ? 'Teacher' : 'Student');
+  if (confirm(`คุณต้องการลบรายการที่เลือกจำนวน ${allowedCodes.length} รายการใช่หรือไม่? (การกระทำนี้ไม่สามารถกู้คืนได้)`)) {
+    const actor = (currentUser && currentUser.name) ? currentUser.name : (userRole === 'admin' ? 'Admin' : 'Staff');
     
-    codes.forEach(code => {
+    allowedCodes.forEach(code => {
       const index = items.findIndex(i => i.code === code);
       if (index !== -1) {
         const itemName = items[index].name;
@@ -15797,7 +15873,7 @@ window.batchDeleteItems = function() {
     
     saveData();
     renderItemsTable();
-    showToast(`ลบรายการสำเร็จ ${codes.length} รายการ`, "success");
+    showToast(`ลบรายการสำเร็จ ${allowedCodes.length} รายการ`, "success");
     
     const selectAllCb = document.getElementById('selectAllBatch');
     if (selectAllCb) selectAllCb.checked = false;
