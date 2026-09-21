@@ -14747,6 +14747,15 @@ function renderCabinetMap() {
     return;
   }
 
+  // Update hidden cabinets count and filter pill for admin
+  const hiddenCabinetsCount = roomLayout.filter(el => el.isHidden).length;
+  const btnFilterHidden = document.getElementById('btnFilterHiddenCabinets');
+  const hiddenCountSpan = document.getElementById('hiddenCabinetCount');
+  if (btnFilterHidden && hiddenCountSpan) {
+    hiddenCountSpan.textContent = hiddenCabinetsCount;
+    btnFilterHidden.style.display = (isAdminLoggedIn && hiddenCabinetsCount > 0) ? 'inline-flex' : 'none';
+  }
+
   // Create the unified CSS grid container
   const unifiedGrid = document.createElement('div');
   unifiedGrid.className = 'shecu-unified-grid';
@@ -14754,13 +14763,18 @@ function renderCabinetMap() {
   unifiedGrid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; align-items: stretch; margin-top: 24px;';
   
   roomLayout.forEach(el => {
+    const isHidden = !!el.isHidden;
+    // Regular users cannot see hidden cabinets
+    if (!isAdminLoggedIn && isHidden) return;
+
     const card = document.createElement("div");
     card.className = "cabinet-card layout-element";
-    card.style.cssText = 'border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: white; overflow: hidden; display: flex; flex-direction: column; position: relative;';
+    card.style.cssText = `border: ${isHidden ? '1.5px dashed #94a3b8' : '1px solid var(--border-color)'}; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: ${isHidden ? '#f8fafc' : 'white'}; overflow: hidden; display: flex; flex-direction: column; position: relative; opacity: ${isHidden ? '0.78' : '1'};`;
     card.setAttribute("data-id", el.id);
     card.setAttribute("data-type", el.type);
     card.setAttribute("data-subtype", el.subType || (el.name && el.name.includes('เครื่องแก้ว') ? 'glassware_cabinet' : (el.type === 'table' || el.type === 'station' ? 'station' : 'chemical_cabinet')));
     card.setAttribute("data-name", el.name || "");
+    card.setAttribute("data-is-hidden", isHidden ? "true" : "false");
 
     const editToolbarHtml = isLayoutEditMode ? `
       <div class="card-edit-toolbar">
@@ -14796,6 +14810,7 @@ function renderCabinetMap() {
       const badgeEmergency = `<span class="shecu-badge" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fffbeb; color: #d97706; font-weight: 600; border: 1px solid #fde68a;">🟠 ตู้พักของรอจัดเก็บ</span>`;
       const badgeSafe = isEmergency ? badgeEmergency : `<span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>`;
       const badgeWarning = `<span class="shecu-badge badge-warning" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fef2f2; color: #e11d48; font-weight: 600;">🔴 พบสารไม่เข้ากัน</span>`;
+      const badgeHidden = `<span class="shecu-badge badge-hidden" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #f1f5f9; color: #64748b; font-weight: 600; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="eye-off" style="width: 12px; height: 12px;"></i> ซ่อนอยู่</span>`;
       const headerBg = isEmergency ? '#fffdf5' : '#f8fafc';
       
       if (!cab) {
@@ -14808,8 +14823,8 @@ function renderCabinetMap() {
                 <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">${cabName}</h3>
                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${subTitleText}</div>
               </div>
-              <div style="margin-left: auto; flex-shrink: 0;">
-                ${badgeSafe}
+              <div style="margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 4px;">
+                ${isHidden ? badgeHidden : badgeSafe}
               </div>
             </div>
           </div>
@@ -14837,7 +14852,14 @@ function renderCabinetMap() {
             <div style="width: 100%; margin-top: 4px;">
               <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
                 <span>ความจุ: 0 / ${maxCap}</span>
-                ${isAdminLoggedIn ? `<span style="color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})"><i data-lucide="edit-2" style="width:12px;height:12px;"></i> แก้ไข</span>` : ''}
+                ${isAdminLoggedIn ? `
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})"><i data-lucide="edit-2" style="width:12px;height:12px;"></i> แก้ไข</span>
+                    <span style="color: ${isHidden ? '#059669' : '#64748b'}; cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="toggleCabinetVisibility('${activeRoom}', '${el.id}', ${!isHidden}, event)" title="${isHidden ? 'คลิกเพื่อแสดงตู้ให้ทุกคนเห็น' : 'คลิกเพื่อซ่อนตู้นี้'}">
+                      <i data-lucide="${isHidden ? 'eye' : 'eye-off'}" style="width:12px;height:12px;"></i> ${isHidden ? 'แสดงตู้' : 'ซ่อนตู้'}
+                    </span>
+                  </div>
+                ` : ''}
               </div>
               <div style="width: 100%; background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden;">
                 <div style="width: 0%; background: #0ea5e9; height: 100%;"></div>
@@ -14889,8 +14911,8 @@ function renderCabinetMap() {
                 <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">${cabName}</h3>
                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${subTitleText}</div>
               </div>
-              <div style="margin-left: auto; flex-shrink: 0;">
-                ${cab.hasIncompatible ? badgeWarning : badgeSafe}
+              <div style="margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 4px;">
+                ${isHidden ? badgeHidden : (cab.hasIncompatible ? badgeWarning : badgeSafe)}
               </div>
             </div>
             
@@ -14917,7 +14939,14 @@ function renderCabinetMap() {
             <div style="width: 100%; margin-top: 4px;">
               <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
                 <span>ความจุ: ${totalItems} / ${maxCap}</span>
-                ${isAdminLoggedIn ? `<span style="color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})"><i data-lucide="edit-2" style="width:12px;height:12px;"></i> แก้ไข</span>` : ''}
+                ${isAdminLoggedIn ? `
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})"><i data-lucide="edit-2" style="width:12px;height:12px;"></i> แก้ไข</span>
+                    <span style="color: ${isHidden ? '#059669' : '#64748b'}; cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="toggleCabinetVisibility('${activeRoom}', '${el.id}', ${!isHidden}, event)" title="${isHidden ? 'คลิกเพื่อแสดงตู้ให้ทุกคนเห็น' : 'คลิกเพื่อซ่อนตู้นี้'}">
+                      <i data-lucide="${isHidden ? 'eye' : 'eye-off'}" style="width:12px;height:12px;"></i> ${isHidden ? 'แสดงตู้' : 'ซ่อนตู้'}
+                    </span>
+                  </div>
+                ` : ''}
               </div>
               <div style="width: 100%; background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden;">
                 <div style="width: ${Math.min(100, (totalItems/maxCap)*100)}%; background: ${totalItems > maxCap ? '#ef4444' : '#0ea5e9'}; height: 100%;"></div>
@@ -17666,6 +17695,7 @@ window.filterCabinetMap = function(category, clickedEl) {
     const type = card.getAttribute('data-type') || '';
     const subType = card.getAttribute('data-subtype') || type;
     const name = card.getAttribute('data-name') || '';
+    const isHidden = card.getAttribute('data-is-hidden') === 'true';
     const isGlassware = subType === 'glassware_cabinet' || name.includes('เครื่องแก้ว');
     const isEmergency = subType === 'emergency_cabinet' || name.includes('ฉุกเฉิน');
     
@@ -17676,6 +17706,8 @@ window.filterCabinetMap = function(category, clickedEl) {
       show = !isGlassware || isEmergency;
     } else if (category === 'glassware') {
       show = isGlassware || isEmergency;
+    } else if (category === 'hidden') {
+      show = isHidden;
     }
     
     card.style.display = show ? 'flex' : 'none';
@@ -17734,6 +17766,25 @@ window.editCabinetCapacity = function(room, id, currentCapacity) {
   }
 };
 
+window.toggleCabinetVisibility = async function(room, id, shouldHide, event) {
+  if (event) event.stopPropagation();
+  if (!isAdminLoggedIn) {
+    showToast('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถซ่อน/แสดงตู้ได้', 'error');
+    return;
+  }
+  
+  const layout = labLayouts[room];
+  if (layout) {
+    const el = layout.find(item => item.id === id);
+    if (el) {
+      el.isHidden = shouldHide;
+      await saveLabLayoutsToServer();
+      showToast(shouldHide ? `ซ่อน "${el.name}" เรียบร้อยแล้ว (แอดมินยังมองเห็นได้)` : `แสดง "${el.name}" เรียบร้อยแล้ว`, 'success');
+      renderCabinetMap();
+    }
+  }
+};
+
 /* =====================================================================
    SHECU Cabinet Management (Add, Edit, Delete, Dropdown)
    ===================================================================== */
@@ -17763,10 +17814,16 @@ function openAddCabinetModal(editName = '') {
   const typeSelect = document.getElementById('addCabinetType');
   const shelvesInput = document.getElementById('addCabinetShelves');
   const capacityInput = document.getElementById('addCabinetCapacity');
+  const isHiddenCheckbox = document.getElementById('addCabinetIsHidden');
+  const visibilityGroup = document.getElementById('addCabinetVisibilityGroup');
   
   const roomFilter = document.getElementById("cabinetMapRoomFilter");
   const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
   
+  if (visibilityGroup) {
+    visibilityGroup.style.display = isAdminLoggedIn ? 'flex' : 'none';
+  }
+
   if (editName) {
     title.innerText = 'แก้ไขข้อมูล / เพิ่มชั้นวาง';
     nameInput.value = editName;
@@ -17775,6 +17832,7 @@ function openAddCabinetModal(editName = '') {
       if (typeSelect) typeSelect.value = existing.subType || existing.type || 'chemical_cabinet';
       if (shelvesInput) shelvesInput.value = existing.shelvesCount || 4;
       if (capacityInput) capacityInput.value = existing.maxCapacity || 50;
+      if (isHiddenCheckbox) isHiddenCheckbox.checked = !!existing.isHidden;
     }
   } else {
     title.innerText = 'เพิ่มตู้ / จุดปฏิบัติการ';
@@ -17782,6 +17840,7 @@ function openAddCabinetModal(editName = '') {
     if (typeSelect) typeSelect.value = 'chemical_cabinet';
     if (shelvesInput) shelvesInput.value = '4';
     if (capacityInput) capacityInput.value = '50';
+    if (isHiddenCheckbox) isHiddenCheckbox.checked = false;
   }
   
   if (typeof onCabinetTypeChange === 'function') onCabinetTypeChange();
@@ -17807,6 +17866,8 @@ async function saveCabinetData() {
   const type = typeSelect ? typeSelect.value : 'chemical_cabinet';
   const shelvesInput = document.getElementById('addCabinetShelves');
   const capacityInput = document.getElementById('addCabinetCapacity');
+  const isHiddenCheckbox = document.getElementById('addCabinetIsHidden');
+  const isHidden = (isAdminLoggedIn && isHiddenCheckbox) ? isHiddenCheckbox.checked : false;
   
   const shelvesCount = shelvesInput ? (parseInt(shelvesInput.value, 10) || 4) : 4;
   const maxCapacity = capacityInput ? (parseInt(capacityInput.value, 10) || 50) : 50;
@@ -17824,6 +17885,9 @@ async function saveCabinetData() {
     labLayouts[activeRoom][existingIndex].type = 'cabinet';
     labLayouts[activeRoom][existingIndex].shelvesCount = shelvesCount;
     labLayouts[activeRoom][existingIndex].maxCapacity = maxCapacity;
+    if (isAdminLoggedIn) {
+      labLayouts[activeRoom][existingIndex].isHidden = isHidden;
+    }
   } else {
     const newEl = {
       id: `cab_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
@@ -17831,7 +17895,8 @@ async function saveCabinetData() {
       subType: type,
       name: name,
       shelvesCount: shelvesCount,
-      maxCapacity: maxCapacity
+      maxCapacity: maxCapacity,
+      isHidden: isHidden
     };
     labLayouts[activeRoom].push(newEl);
   }
