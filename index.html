@@ -3435,7 +3435,7 @@
           <div class="form-group" style="margin-bottom: 0;">
             <label for="loginUsername" class="form-label" style="font-weight: 600; font-size: 13.5px;">รหัสประจำตัวครู (Teacher ID) <span style="color: var(--accent-red);">*</span></label>
             <div style="position: relative;">
-              <input type="text" id="loginUsername" class="form-control" placeholder="เช่น 1001, 2001, admin" required autocomplete="username" style="font-family: monospace; font-size: 14px; font-weight: 600; padding-left: 36px;">
+              <input type="text" id="loginUsername" name="username" class="form-control" placeholder="เช่น 1001, 2001, admin" required autocomplete="username" style="font-family: monospace; font-size: 14px; font-weight: 600; padding-left: 36px;">
               <i data-lucide="user" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"></i>
             </div>
           </div>
@@ -3443,12 +3443,20 @@
           <div class="form-group" style="margin-bottom: 0;">
             <label for="loginPassword" class="form-label" style="font-weight: 600; font-size: 13.5px;">รหัสผ่าน <span style="color: var(--accent-red);">*</span></label>
             <div style="position: relative; display: flex; align-items: center;">
-              <input type="password" id="loginPassword" class="form-control" placeholder="ระบุรหัสผ่าน (ค่าเริ่มต้น = รหัสประจำตัวครู)" required autocomplete="current-password" style="padding-right: 40px; padding-left: 36px; width: 100%;">
+              <input type="password" id="loginPassword" name="password" class="form-control" placeholder="ระบุรหัสผ่าน (ค่าเริ่มต้น = รหัสประจำตัวครู)" required autocomplete="current-password" style="padding-right: 40px; padding-left: 36px; width: 100%;">
               <i data-lucide="key" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"></i>
               <button type="button" id="btnTogglePassword" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0; display: flex; align-items: center; justify-content: center;" aria-label="Toggle Password Visibility">
                 <i data-lucide="eye" id="eyeIcon" style="width: 18px; height: 18px;"></i>
               </button>
             </div>
+          </div>
+
+          <!-- Remember Me Checkbox -->
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 2px; margin-top: -2px;">
+            <label for="loginRememberMe" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-main); font-weight: 500; cursor: pointer; user-select: none;">
+              <input type="checkbox" id="loginRememberMe" checked style="width: 16px; height: 16px; accent-color: #7c3aed; cursor: pointer; border-radius: 4px;">
+              <span>จดจำรหัสผ่านในอุปกรณ์นี้ (Remember Password)</span>
+            </label>
           </div>
 
           <!-- Quick Demo Role Presets for Testing -->

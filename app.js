@@ -597,6 +597,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateLoginUI();
     setupSidebarCollapse();
     
+    // Ensure default landing panel is Dashboard (หน้าแรก) on startup / first visit
+    if (typeof navigateToPanel === "function") {
+      navigateToPanel("dashboard");
+    }
+
     // Initialize Lucide icons initially
     if (window.lucide) lucide.createIcons();
   } catch (err) {
@@ -7616,14 +7621,37 @@ window.openLoginModal = function() {
   if (loginModal) {
     loginModal.classList.add("active");
     const usernameInput = document.getElementById("loginUsername");
-    if (usernameInput) {
-      usernameInput.value = "";
-      setTimeout(() => usernameInput.focus(), 50);
-    }
     const loginPasswordInput = document.getElementById("loginPassword");
-    if (loginPasswordInput) loginPasswordInput.value = "";
+    const rememberCheckbox = document.getElementById("loginRememberMe");
     const errorMsg = document.getElementById("loginErrorMsg");
     if (errorMsg) errorMsg.style.display = "none";
+
+    let hasLoaded = false;
+    try {
+      const saved = JSON.parse(localStorage.getItem("lab_saved_credentials") || "null");
+      if (saved && saved.username) {
+        if (usernameInput) usernameInput.value = saved.username;
+        if (loginPasswordInput) loginPasswordInput.value = saved.password || "";
+        if (rememberCheckbox) rememberCheckbox.checked = true;
+        hasLoaded = true;
+      }
+    } catch (e) {}
+
+    if (!hasLoaded) {
+      if (usernameInput) {
+        usernameInput.value = "";
+        setTimeout(() => usernameInput.focus(), 50);
+      }
+      if (loginPasswordInput) loginPasswordInput.value = "";
+      if (rememberCheckbox) rememberCheckbox.checked = true;
+    } else {
+      if (loginPasswordInput && !loginPasswordInput.value) {
+        setTimeout(() => loginPasswordInput.focus(), 50);
+      } else if (usernameInput) {
+        setTimeout(() => usernameInput.focus(), 50);
+      }
+    }
+
     if (window.lucide) lucide.createIcons();
   }
 };
@@ -7638,6 +7666,22 @@ function setupLoginHandlers() {
   const btnTogglePassword = document.getElementById("btnTogglePassword");
   const loginPasswordInput = document.getElementById("loginPassword");
   const eyeIcon = document.getElementById("eyeIcon");
+
+  const saveOrClearSavedCredentials = (uname, pwd) => {
+    const rememberCheckbox = document.getElementById("loginRememberMe");
+    const shouldSave = rememberCheckbox ? rememberCheckbox.checked : true;
+    if (shouldSave) {
+      try {
+        localStorage.setItem("lab_saved_credentials", JSON.stringify({
+          username: uname,
+          password: pwd,
+          savedAt: new Date().toISOString()
+        }));
+      } catch (e) {}
+    } else {
+      localStorage.removeItem("lab_saved_credentials");
+    }
+  };
 
   const performLogout = () => {
     currentUser = null;
@@ -7737,6 +7781,7 @@ function setupLoginHandlers() {
             localStorage.setItem("currentUser", JSON.stringify(currentUser));
             localStorage.setItem("userRole", userRole);
             localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
+            saveOrClearSavedCredentials(username, password);
 
             const badgeInfo = getRoleBadgeInfo(userRole);
             showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
@@ -7752,15 +7797,17 @@ function setupLoginHandlers() {
 
       // Local fallback matching
       let fallbackUser = null;
-      if (typeof adminUsers !== "undefined" && Array.isArray(adminUsers)) {
-        fallbackUser = adminUsers.find(u => 
-          (u.teacherId && u.teacherId.toLowerCase() === username.toLowerCase()) ||
-          (u.email && u.email.toLowerCase() === username.toLowerCase()) ||
-          (username.toLowerCase() === "admin" && (u.role === "L3" || u.role === "admin"))
-        );
-      }
+      const allUsersPool = (typeof adminUsers !== "undefined" && Array.isArray(adminUsers) && adminUsers.length > 0)
+        ? adminUsers
+        : (typeof DEFAULT_RBAC_USERS !== "undefined" ? DEFAULT_RBAC_USERS : []);
 
-      if (fallbackUser && (password === (fallbackUser.password || fallbackUser.teacherId) || (username === "admin" && password === "admin1234"))) {
+      fallbackUser = allUsersPool.find(u => 
+        (u.teacherId && u.teacherId.toLowerCase() === username.toLowerCase()) ||
+        (u.email && u.email.toLowerCase() === username.toLowerCase()) ||
+        (username.toLowerCase() === "admin" && (u.role === "L3" || u.role === "admin"))
+      );
+
+      if (fallbackUser && (password === (fallbackUser.password || fallbackUser.teacherId) || (username === "admin" && (password === "admin" || password === "admin1234")))) {
         currentUser = fallbackUser;
         userRole = fallbackUser.role || "L1";
         isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
@@ -7768,6 +7815,7 @@ function setupLoginHandlers() {
         localStorage.setItem("currentUser", JSON.stringify(currentUser));
         localStorage.setItem("userRole", userRole);
         localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
+        saveOrClearSavedCredentials(username, password);
 
         const badgeInfo = getRoleBadgeInfo(userRole);
         showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
@@ -7793,6 +7841,7 @@ function setupLoginHandlers() {
         localStorage.setItem("currentUser", JSON.stringify(currentUser));
         localStorage.setItem("userRole", "L3");
         localStorage.setItem("isAdminLoggedIn", "true");
+        saveOrClearSavedCredentials(username, password);
 
         showToast("เข้าสู่ระบบในฐานะ ผู้ดูแลระบบ (L3) สำเร็จ!", "success");
         closeModal();
@@ -7816,6 +7865,7 @@ function setupLoginHandlers() {
         localStorage.setItem("currentUser", JSON.stringify(currentUser));
         localStorage.setItem("userRole", "L1");
         localStorage.setItem("isAdminLoggedIn", "false");
+        saveOrClearSavedCredentials(username, password);
 
         showToast("เข้าสู่ระบบในฐานะ ครูผู้สอน (L1) สำเร็จ!", "success");
         closeModal();
