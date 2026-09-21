@@ -751,6 +751,9 @@ app.post('/api/transactions', (req, res) => {
 
 function calculateUserInitials(name) {
   if (!name || typeof name !== 'string') return 'U';
+  const trimmed = name.trim();
+  if (/^admin$/i.test(trimmed) || /^\(Admin\)$/i.test(trimmed)) return "AD";
+
   let cleanName = name.replace(/\([^)]*\)/g, '').trim();
 
   // Known Thai & English Titles to strip
@@ -788,33 +791,48 @@ function calculateUserInitials(name) {
     }
   }
 
+  if (cleanName.includes("ผู้ดูแลระบบ") || cleanName.toLowerCase().includes("admin")) {
+    return "AD";
+  }
+
   const parts = cleanName.split(/\s+/).filter(Boolean);
   const leadingVowels = ['เ', 'แ', 'โ', 'ใ', 'ไ'];
+  const thaiMarks = /[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/g;
 
-  const getInitialChar = (word) => {
+  const getInitialConsonant = (word) => {
     if (!word) return '';
-    if (leadingVowels.includes(word[0]) && word.length > 1) {
-      return word[1];
+    const rawChars = Array.from(word);
+    if (leadingVowels.includes(rawChars[0]) && rawChars.length > 1) {
+      const base = rawChars[1].replace(thaiMarks, '');
+      return base || rawChars[1];
     }
-    return word[0];
+    const base = rawChars[0].replace(thaiMarks, '');
+    return base || rawChars[0];
   };
 
   if (parts.length >= 2) {
-    const firstChar = getInitialChar(parts[0]);
-    const lastChar = getInitialChar(parts[parts.length - 1]);
+    const firstChar = getInitialConsonant(parts[0]);
+    const lastChar = getInitialConsonant(parts[parts.length - 1]);
     return (firstChar + lastChar).toUpperCase();
   } else if (parts.length === 1) {
     const word = parts[0];
-    if (word.length >= 2) {
-      if (leadingVowels.includes(word[0]) && word.length > 2) {
-        return (word[1] + word[2]).toUpperCase();
-      }
-      return word.substring(0, 2).toUpperCase();
+    const pureLetters = Array.from(word.replace(thaiMarks, '')).filter(c => !leadingVowels.includes(c));
+    if (pureLetters.length >= 2) {
+      return (pureLetters[0] + pureLetters[1]).toUpperCase();
     }
-    return word.toUpperCase();
+    return word.substring(0, 2).toUpperCase();
   }
 
   return 'U';
+}
+
+function getRoleColor(role) {
+  const r = (role || "").toUpperCase();
+  if (r === "L4" || r.includes("EXECUTIVE") || r.includes("ผู้บริหาร")) return "#be185d";
+  if (r === "L3" || r.includes("ADMIN") || r.includes("ผู้ดูแล") || r.includes("MANAGER")) return "#7c3aed";
+  if (r === "L2" || r.includes("STAFF") || r.includes("เจ้าหน้าที่")) return "#ea580c";
+  if (r === "L1" || r.includes("TEACHER") || r.includes("ครู")) return "#0284c7";
+  return "#64748b";
 }
 
 // USERS
@@ -846,9 +864,8 @@ app.post('/api/users', (req, res) => {
     newUser.password = newUser.teacherId;
   }
   
-  // Assign random color/initials for avatar
-  const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#d946ef", "#be185d"];
-  newUser.color = newUser.color || colors[Math.floor(Math.random() * colors.length)];
+  // Assign avatar color strictly based on role
+  newUser.color = getRoleColor(newUser.role);
   newUser.initials = calculateUserInitials(newUser.name);
   
   users.push(newUser);

@@ -40,7 +40,7 @@
     "assignedRooms": [],
     "password": "1002",
     "initials": "วฝ",
-    "color": "#059669",
+    "color": "#0284c7",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
   },
@@ -76,7 +76,7 @@
     ],
     "password": "2002",
     "initials": "นด",
-    "color": "#d97706",
+    "color": "#ea580c",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
   },
@@ -91,7 +91,7 @@
     "assignedRooms": [],
     "password": "3001",
     "initials": "นห",
-    "color": "#6366f1",
+    "color": "#7c3aed",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
   },

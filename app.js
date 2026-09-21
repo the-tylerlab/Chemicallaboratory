@@ -7487,7 +7487,7 @@ function updateLoginUI() {
 
     if (sidebarUserAvatar) {
       sidebarUserAvatar.innerText = getUserInitials(currentUser.name, currentUser.initials);
-      sidebarUserAvatar.style.background = currentUser.color || "linear-gradient(135deg, #8b5cf6, #6366f1)";
+      sidebarUserAvatar.style.background = getRoleColor(currentUser.role || roleLevel);
     }
     if (sidebarUserName) {
       sidebarUserName.innerText = currentUser.name || "ผู้ใช้งาน";
@@ -15359,6 +15359,9 @@ let adminAuditLogs = [];
 // Default Fallback Users for Offline / Live Server
 function getUserInitials(name, fallback = "") {
   if (!name || typeof name !== 'string') return fallback || 'U';
+  const trimmed = name.trim();
+  if (/^admin$/i.test(trimmed) || /^\(Admin\)$/i.test(trimmed)) return "AD";
+
   let cleanName = name.replace(/\([^)]*\)/g, '').trim();
 
   // Known Thai & English Titles to strip
@@ -15396,33 +15399,48 @@ function getUserInitials(name, fallback = "") {
     }
   }
 
+  if (cleanName.includes("ผู้ดูแลระบบ") || cleanName.toLowerCase().includes("admin")) {
+    return "AD";
+  }
+
   const parts = cleanName.split(/\s+/).filter(Boolean);
   const leadingVowels = ['เ', 'แ', 'โ', 'ใ', 'ไ'];
+  const thaiMarks = /[\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]/g;
 
-  const getInitialChar = (word) => {
+  const getInitialConsonant = (word) => {
     if (!word) return '';
-    if (leadingVowels.includes(word[0]) && word.length > 1) {
-      return word[1];
+    const rawChars = Array.from(word);
+    if (leadingVowels.includes(rawChars[0]) && rawChars.length > 1) {
+      const base = rawChars[1].replace(thaiMarks, '');
+      return base || rawChars[1];
     }
-    return word[0];
+    const base = rawChars[0].replace(thaiMarks, '');
+    return base || rawChars[0];
   };
 
   if (parts.length >= 2) {
-    const firstChar = getInitialChar(parts[0]);
-    const lastChar = getInitialChar(parts[parts.length - 1]);
+    const firstChar = getInitialConsonant(parts[0]);
+    const lastChar = getInitialConsonant(parts[parts.length - 1]);
     return (firstChar + lastChar).toUpperCase();
   } else if (parts.length === 1) {
     const word = parts[0];
-    if (word.length >= 2) {
-      if (leadingVowels.includes(word[0]) && word.length > 2) {
-        return (word[1] + word[2]).toUpperCase();
-      }
-      return word.substring(0, 2).toUpperCase();
+    const pureLetters = Array.from(word.replace(thaiMarks, '')).filter(c => !leadingVowels.includes(c));
+    if (pureLetters.length >= 2) {
+      return (pureLetters[0] + pureLetters[1]).toUpperCase();
     }
-    return word.toUpperCase();
+    return word.substring(0, 2).toUpperCase();
   }
 
   return fallback || 'U';
+}
+
+function getRoleColor(role) {
+  const r = (role || "").toUpperCase();
+  if (r === "L4" || r.includes("EXECUTIVE") || r.includes("ผู้บริหาร")) return "#be185d";
+  if (r === "L3" || r.includes("ADMIN") || r.includes("ผู้ดูแล") || r.includes("MANAGER")) return "#7c3aed";
+  if (r === "L2" || r.includes("STAFF") || r.includes("เจ้าหน้าที่")) return "#ea580c";
+  if (r === "L1" || r.includes("TEACHER") || r.includes("ครู")) return "#0284c7";
+  return "#64748b";
 }
 
 const DEFAULT_RBAC_USERS = [
@@ -15546,6 +15564,7 @@ async function loadAdminData() {
 
     if (Array.isArray(adminUsers)) {
       adminUsers.forEach(u => {
+        u.color = getRoleColor(u.role);
         u.initials = getUserInitials(u.name, u.initials);
       });
       localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
@@ -15634,7 +15653,7 @@ function renderAdminUsers() {
       </td>
       <td style="padding: 10px 14px;">
         <div style="display: flex; align-items: center; gap: 10px; min-width: 180px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:${user.color || '#3b82f6'};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11.5px;flex-shrink:0;">${getUserInitials(user.name, user.initials)}</div>
+          <div style="width:32px;height:32px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11.5px;flex-shrink:0;">${getUserInitials(user.name, user.initials)}</div>
           <div>
             <div style="font-weight: 600; color: var(--text-main); font-size: 13px; line-height: 1.3;">${escapeHTML(user.name || '')}</div>
             <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(user.email || '-')}</div>
