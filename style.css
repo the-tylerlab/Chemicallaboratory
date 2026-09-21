@@ -9421,6 +9421,116 @@ body.admin-logged-in .public-only-section {
   .login-form-title {
     font-size: 19px;
   }
+/* ==========================================================================
+   BATCH USER IMPORT MODAL STYLES
+   ========================================================================== */
+
+.btn-batch-tab {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+.btn-batch-tab:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.btn-batch-tab.active {
+  background: #ffffff;
+  border-color: #7c3aed;
+  color: #6d28d9;
+  box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
+}
+
+.batch-upload-dropzone:hover,
+.batch-upload-dropzone.dragover {
+  border-color: #7c3aed !important;
+  background: #faf5ff !important;
+}
+
+.batch-data-table th {
+  font-weight: 600;
+  color: #475569;
+  text-align: left;
+}
+
+.batch-data-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.batch-data-table tr:hover {
+  background: #f8fafc;
+}
+
+.batch-data-table tr.row-invalid {
+  background: #fff1f2 !important;
+}
+
+.batch-data-table tr.row-duplicate {
+  background: #fffbeb !important;
+}
+
+.batch-input-cell {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-sizing: border-box;
+  background: #ffffff;
+  color: #0f172a;
+  transition: border-color 0.15s ease;
+}
+
+.batch-input-cell:focus {
+  outline: none;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+}
+
+.batch-input-cell.input-error {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+}
+
+.batch-role-select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-sizing: border-box;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.batch-role-select:focus {
+  outline: none;
+  border-color: #7c3aed;
+}
+
+.btn-remove-batch-row {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-remove-batch-row:hover {
+  background: #dc2626;
+  color: #ffffff;
 }
 
 

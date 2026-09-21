@@ -791,6 +791,88 @@ app.post('/api/users', (req, res) => {
   res.json({ success: true, user: newUser });
 });
 
+app.post('/api/users/batch', (req, res) => {
+  const users = readUsers();
+  const incomingList = req.body;
+  if (!Array.isArray(incomingList) || incomingList.length === 0) {
+    return res.status(400).json({ success: false, error: 'Expected a non-empty array of users' });
+  }
+
+  const roleNames = {
+    'L1': 'Teacher / User',
+    'L2': 'Staff / Operator',
+    'L3': 'Manager / System Manager',
+    'L4': 'Executive / Head of Department'
+  };
+  const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#d946ef", "#be185d"];
+
+  let addedCount = 0;
+  let updatedCount = 0;
+  const processedUsers = [];
+
+  incomingList.forEach(u => {
+    const teacherId = (u.teacherId || '').toString().trim();
+    if (!teacherId) return;
+
+    const role = (u.role || 'L1').toUpperCase();
+    const cleanRole = ['L1', 'L2', 'L3', 'L4'].includes(role) ? role : 'L1';
+    
+    // Parse assignedRooms if string
+    let assignedRooms = [];
+    if (Array.isArray(u.assignedRooms)) {
+      assignedRooms = u.assignedRooms;
+    } else if (typeof u.assignedRooms === 'string' && u.assignedRooms.trim()) {
+      assignedRooms = u.assignedRooms.split(/[,;\n]/).map(s => s.trim()).filter(Boolean);
+    }
+
+    const name = (u.name || '').trim();
+    const dept = (u.department || '').trim() || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี';
+    const email = (u.email || '').trim() || `${teacherId.toLowerCase()}@lab.school.ac.th`;
+    const password = u.password || teacherId;
+    const defaultColor = cleanRole === 'L2' ? '#ea580c' : cleanRole === 'L3' ? '#7c3aed' : cleanRole === 'L4' ? '#be185d' : '#0284c7';
+
+    const formattedUser = {
+      id: "u_" + teacherId,
+      teacherId: teacherId,
+      name: name || `ผู้ใช้งาน ${teacherId}`,
+      department: dept,
+      email: email,
+      role: cleanRole,
+      roleName: roleNames[cleanRole] || 'Teacher / User',
+      assignedRooms: assignedRooms,
+      password: password,
+      initials: name ? name.trim().substring(0, 2).toUpperCase() : "U",
+      color: u.color || defaultColor,
+      isActive: u.isActive !== false,
+      createdAt: u.createdAt || new Date().toISOString()
+    };
+
+    const existingIdx = users.findIndex(ex => (ex.teacherId || '').toLowerCase() === teacherId.toLowerCase());
+    if (existingIdx !== -1) {
+      users[existingIdx] = { ...users[existingIdx], ...formattedUser };
+      updatedCount++;
+      processedUsers.push(users[existingIdx]);
+    } else {
+      users.push(formattedUser);
+      addedCount++;
+      processedUsers.push(formattedUser);
+    }
+
+    const copy = { ...formattedUser };
+    delete copy.password;
+    syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
+  });
+
+  writeUsers(users);
+  res.json({
+    success: true,
+    addedCount: addedCount,
+    updatedCount: updatedCount,
+    totalProcessed: processedUsers.length,
+    users: users
+  });
+});
+
 app.put('/api/users/:id', (req, res) => {
   const users = readUsers();
   const index = users.findIndex(u => u.id === req.params.id);

@@ -15771,6 +15771,615 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ==========================================================================
+// BATCH / BULK USER IMPORT (EXCEL, CSV & INTERACTIVE MULTI-ROW GRID)
+// ==========================================================================
+
+let batchUserList = [];
+let currentBatchImportMode = 'file';
+
+function openBatchAddUsersModal() {
+  const modal = document.getElementById("modalBatchAddUsers");
+  if (!modal) return;
+
+  batchUserList = [];
+  currentBatchImportMode = 'file';
+  
+  const fileInput = document.getElementById("batchUserFileInput");
+  if (fileInput) fileInput.value = "";
+
+  switchBatchImportMode('file');
+  renderBatchUserRows();
+
+  modal.style.display = "flex";
+  if (window.lucide) lucide.createIcons();
+
+  setupBatchDropzoneAndPaste();
+}
+
+function closeBatchAddUsersModal() {
+  const modal = document.getElementById("modalBatchAddUsers");
+  if (modal) modal.style.display = "none";
+}
+
+function switchBatchImportMode(mode) {
+  currentBatchImportMode = mode;
+  const btnFile = document.getElementById("btnBatchTabFile");
+  const btnTable = document.getElementById("btnBatchTabTable");
+  const fileSection = document.getElementById("batchModeFileSection");
+  const tableControls = document.getElementById("batchModeTableControls");
+
+  if (mode === 'file') {
+    if (btnFile) btnFile.classList.add("active");
+    if (btnTable) btnTable.classList.remove("active");
+    if (fileSection) fileSection.style.display = "flex";
+    if (tableControls) tableControls.style.display = "none";
+  } else {
+    if (btnFile) btnFile.classList.remove("active");
+    if (btnTable) btnTable.classList.add("active");
+    if (fileSection) fileSection.style.display = "none";
+    if (tableControls) tableControls.style.display = "flex";
+
+    if (batchUserList.length === 0) {
+      addBatchUserRows(3);
+    }
+  }
+}
+
+function downloadUserTemplate(format = 'xlsx') {
+  const headers = ["Teacher ID", "ชื่อ - นามสกุล", "ระดับสิทธิ์ (L1/L2/L3/L4)", "กลุ่มสาระ / หน่วยงาน", "อีเมล", "ห้องแล็บที่รับผิดชอบ (สำหรับ L2)"];
+  const sampleData = [
+    ["1003", "ครูสมใจ หมายมั่น", "L1", "กลุ่มสาระการเรียนรู้วิทยาศาสตร์ (ชีววิทยา)", "somjai.m@lab.school.ac.th", ""],
+    ["2003", "เจ้าหน้าที่เอกชัย แดนสุวรรณ", "L2", "งานบริการห้องปฏิบัติการ", "ekkachai.d@lab.school.ac.th", "Lab 1, Lab 6"],
+    ["3002", "ดร.ชลธิชา ผู้จัดการแล็บ", "L3", "กลุ่มงานบริหารวิชาการและห้องแล็บ", "chonthicha.c@lab.school.ac.th", ""],
+    ["4002", "รองผู้อำนวยการ เกษม", "L4", "คณะกรรมการบริหารสถานศึกษา", "kasem.k@lab.school.ac.th", ""]
+  ];
+
+  if (format === 'xlsx' && typeof XLSX !== 'undefined') {
+    const wsData = [headers, ...sampleData];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    
+    ws['!cols'] = [
+      { wch: 14 },
+      { wch: 28 },
+      { wch: 24 },
+      { wch: 36 },
+      { wch: 30 },
+      { wch: 28 }
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "User_Template");
+    XLSX.writeFile(wb, "SciPortal_Users_Template.xlsx");
+    showToast("ดาวน์โหลดเทมเพลต Excel (.xlsx) สำเร็จ", "success");
+  } else {
+    let csvContent = "\uFEFF";
+    csvContent += headers.map(h => `"${h}"`).join(",") + "\n";
+    sampleData.forEach(row => {
+      csvContent += row.map(cell => `"${cell}"`).join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "SciPortal_Users_Template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("ดาวน์โหลดเทมเพลต CSV (.csv) สำเร็จ", "success");
+  }
+}
+
+function handleUserBatchFileUpload(event) {
+  const file = event.target.files ? event.target.files[0] : null;
+  if (!file) return;
+
+  const fileName = file.name.toLowerCase();
+  const reader = new FileReader();
+
+  if (fileName.endsWith('.csv')) {
+    reader.onload = function(e) {
+      parseUserCsvContent(e.target.result);
+    };
+    reader.readAsText(file, 'UTF-8');
+  } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+    reader.onload = function(e) {
+      if (typeof XLSX !== 'undefined') {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+        parseUserArrayRows(jsonRows);
+      } else {
+        showToast("ไม่พบไลบรารีอ่านไฟล์ Excel กำลังลองอ่านเป็น CSV", "warning");
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    showToast("รองรับเฉพาะไฟล์ .xlsx, .xls หรือ .csv เท่านั้น", "error");
+  }
+}
+
+function parseUserCsvContent(csvText) {
+  const lines = csvText.split(/\r\n|\n/).filter(line => line.trim().length > 0);
+  if (lines.length < 2) {
+    showToast("ไฟล์ไม่มีข้อมูล หรือมีเฉพาะหัวตาราง", "warning");
+    return;
+  }
+
+  const rows = lines.map(line => {
+    const values = [];
+    let inQuotes = false;
+    let currentVal = '';
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"' || char === "'") {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        values.push(currentVal.trim().replace(/^["']|["']$/g, ''));
+        currentVal = '';
+      } else {
+        currentVal += char;
+      }
+    }
+    values.push(currentVal.trim().replace(/^["']|["']$/g, ''));
+    return values;
+  });
+
+  parseUserArrayRows(rows);
+}
+
+function parseUserArrayRows(rows) {
+  if (!rows || rows.length < 2) {
+    showToast("ไม่พบแถวข้อมูลในไฟล์", "warning");
+    return;
+  }
+
+  let headerIndex = 0;
+  for (let i = 0; i < Math.min(5, rows.length); i++) {
+    const rowStr = rows[i].join(" ").toLowerCase();
+    if (rowStr.includes("teacher") || rowStr.includes("รหัส") || rowStr.includes("ชื่อ")) {
+      headerIndex = i;
+      break;
+    }
+  }
+
+  const header = rows[headerIndex].map(h => (h || "").toString().toLowerCase().trim());
+  
+  let idCol = header.findIndex(h => h.includes("teacher") || h.includes("รหัส") || h.includes("id") || h.includes("username"));
+  let nameCol = header.findIndex(h => h.includes("ชื่อ") || h.includes("name") || h.includes("fullname"));
+  let roleCol = header.findIndex(h => h.includes("สิทธิ์") || h.includes("role") || h.includes("ระดับ"));
+  let deptCol = header.findIndex(h => h.includes("กลุ่ม") || h.includes("สาระ") || h.includes("dept") || h.includes("หน่วยงาน") || h.includes("department"));
+  let emailCol = header.findIndex(h => h.includes("อีเมล") || h.includes("email") || h.includes("mail"));
+  let roomCol = header.findIndex(h => h.includes("ห้อง") || h.includes("lab") || h.includes("room") || h.includes("มอบหมาย"));
+
+  if (idCol === -1) idCol = 0;
+  if (nameCol === -1) nameCol = 1;
+  if (roleCol === -1) roleCol = 2;
+  if (deptCol === -1) deptCol = 3;
+  if (emailCol === -1) emailCol = 4;
+  if (roomCol === -1) roomCol = 5;
+
+  const parsedUsers = [];
+
+  for (let i = headerIndex + 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || r.length === 0) continue;
+
+    const teacherId = (r[idCol] !== undefined ? r[idCol] : "").toString().trim();
+    const name = (r[nameCol] !== undefined ? r[nameCol] : "").toString().trim();
+    if (!teacherId && !name) continue;
+
+    let rawRole = (r[roleCol] !== undefined ? r[roleCol] : "").toString().trim().toUpperCase();
+    let role = "L1";
+    if (rawRole.includes("L4") || rawRole.includes("ผู้บริหาร") || rawRole.includes("EXECUTIVE")) role = "L4";
+    else if (rawRole.includes("L3") || rawRole.includes("ADMIN") || rawRole.includes("แอดมิน") || rawRole.includes("ผู้ดูแล")) role = "L3";
+    else if (rawRole.includes("L2") || rawRole.includes("STAFF") || rawRole.includes("เจ้าหน้าที่") || rawRole.includes("แล็บ")) role = "L2";
+    else if (rawRole.includes("L1") || rawRole.includes("TEACHER") || rawRole.includes("ครู")) role = "L1";
+
+    const dept = (r[deptCol] !== undefined ? r[deptCol] : "").toString().trim() || "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี";
+    const email = (r[emailCol] !== undefined ? r[emailCol] : "").toString().trim();
+    const roomStr = (r[roomCol] !== undefined ? r[roomCol] : "").toString().trim();
+
+    parsedUsers.push({
+      teacherId: teacherId,
+      name: name,
+      role: role,
+      department: dept,
+      email: email,
+      assignedRooms: roomStr
+    });
+  }
+
+  if (parsedUsers.length === 0) {
+    showToast("ไม่พบข้อมูลผู้ใช้ที่ถูกต้องในไฟล์ กรุณาตรวจสอบหัวตาราง", "warning");
+    return;
+  }
+
+  batchUserList = parsedUsers;
+  renderBatchUserRows();
+  showToast(`นำเข้าข้อมูลจากไฟล์สำเร็จ ${parsedUsers.length} รายการ`, "success");
+}
+
+function addBatchUserRow(data = null) {
+  const defaultRow = data || {
+    teacherId: "",
+    name: "",
+    role: "L1",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    email: "",
+    assignedRooms: ""
+  };
+  batchUserList.push(defaultRow);
+  renderBatchUserRows();
+}
+
+function addBatchUserRows(count = 5) {
+  for (let i = 0; i < count; i++) {
+    batchUserList.push({
+      teacherId: "",
+      name: "",
+      role: "L1",
+      department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+      email: "",
+      assignedRooms: ""
+    });
+  }
+  renderBatchUserRows();
+}
+
+function removeBatchUserRow(index) {
+  if (index >= 0 && index < batchUserList.length) {
+    batchUserList.splice(index, 1);
+    renderBatchUserRows();
+  }
+}
+
+function clearBatchUserRows() {
+  batchUserList = [];
+  renderBatchUserRows();
+}
+
+function updateBatchRowData(index, field, value) {
+  if (batchUserList[index]) {
+    batchUserList[index][field] = value;
+    validateBatchUsers();
+  }
+}
+
+function renderBatchUserRows() {
+  const tbody = document.getElementById("batchUsersTableBody");
+  const placeholder = document.getElementById("batchTableEmptyPlaceholder");
+  const countEl = document.getElementById("batchUserCount");
+
+  if (!tbody) return;
+
+  if (countEl) countEl.textContent = batchUserList.length;
+
+  if (batchUserList.length === 0) {
+    tbody.innerHTML = "";
+    if (placeholder) placeholder.style.display = "block";
+    validateBatchUsers();
+    return;
+  }
+
+  if (placeholder) placeholder.style.display = "none";
+
+  let html = "";
+  batchUserList.forEach((u, idx) => {
+    const isTeacherIdEmpty = !u.teacherId || !u.teacherId.trim();
+    const isNameEmpty = !u.name || !u.name.trim();
+    const isDuplicate = Array.isArray(adminUsers) && adminUsers.some(ex => (ex.teacherId || '').toLowerCase() === (u.teacherId || '').toLowerCase());
+
+    html += `
+      <tr class="${(isTeacherIdEmpty || isNameEmpty) ? 'row-invalid' : isDuplicate ? 'row-duplicate' : ''}">
+        <td style="text-align: center; color: #94a3b8; font-weight: 500;">${idx + 1}</td>
+        <td>
+          <input type="text" class="batch-input-cell ${isTeacherIdEmpty ? 'input-error' : ''}" 
+                 value="${escapeHtml(u.teacherId || '')}" 
+                 placeholder="เช่น 1003" 
+                 oninput="updateBatchRowData(${idx}, 'teacherId', this.value)">
+        </td>
+        <td>
+          <input type="text" class="batch-input-cell ${isNameEmpty ? 'input-error' : ''}" 
+                 value="${escapeHtml(u.name || '')}" 
+                 placeholder="ชื่อ - สกุล" 
+                 oninput="updateBatchRowData(${idx}, 'name', this.value)">
+        </td>
+        <td>
+          <select class="batch-role-select" onchange="updateBatchRowData(${idx}, 'role', this.value)">
+            <option value="L1" ${u.role === 'L1' ? 'selected' : ''}>L1 ครูผู้สอน</option>
+            <option value="L2" ${u.role === 'L2' ? 'selected' : ''}>L2 จนท.แล็บ</option>
+            <option value="L3" ${u.role === 'L3' ? 'selected' : ''}>L3 แอดมิน</option>
+            <option value="L4" ${u.role === 'L4' ? 'selected' : ''}>L4 ผู้บริหาร</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" class="batch-input-cell" 
+                 value="${escapeHtml(u.department || '')}" 
+                 placeholder="กลุ่มสาระ / แผนก" 
+                 oninput="updateBatchRowData(${idx}, 'department', this.value)">
+        </td>
+        <td>
+          <input type="email" class="batch-input-cell" 
+                 value="${escapeHtml(u.email || '')}" 
+                 placeholder="name@school.ac.th" 
+                 oninput="updateBatchRowData(${idx}, 'email', this.value)">
+        </td>
+        <td>
+          <input type="text" class="batch-input-cell" 
+                 value="${escapeHtml(u.assignedRooms || '')}" 
+                 placeholder="เช่น Lab 1, Lab 6" 
+                 oninput="updateBatchRowData(${idx}, 'assignedRooms', this.value)">
+        </td>
+        <td style="text-align: center;">
+          <button type="button" class="btn-remove-batch-row" title="ลบแถวนี้" onclick="removeBatchUserRow(${idx})">
+            <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+  if (window.lucide) lucide.createIcons();
+  validateBatchUsers();
+}
+
+function validateBatchUsers() {
+  const btnSubmit = document.getElementById("btnSubmitBatchUsers");
+  const btnSubmitText = document.getElementById("btnSubmitBatchUsersText");
+  const statValid = document.getElementById("batchStatValid");
+  const statUpdate = document.getElementById("batchStatUpdate");
+  const statInvalid = document.getElementById("batchStatInvalid");
+
+  let validCount = 0;
+  let updateCount = 0;
+  let invalidCount = 0;
+
+  batchUserList.forEach(u => {
+    const isTeacherIdEmpty = !u.teacherId || !u.teacherId.trim();
+    const isNameEmpty = !u.name || !u.name.trim();
+
+    if (isTeacherIdEmpty || isNameEmpty) {
+      invalidCount++;
+    } else {
+      const isDuplicate = Array.isArray(adminUsers) && adminUsers.some(ex => (ex.teacherId || '').toLowerCase() === (u.teacherId || '').toLowerCase());
+      if (isDuplicate) {
+        updateCount++;
+      }
+      validCount++;
+    }
+  });
+
+  if (statValid) statValid.textContent = `พร้อมบันทึก: ${validCount}`;
+  
+  if (statUpdate) {
+    statUpdate.textContent = `อัปเดตคนเดิม: ${updateCount}`;
+    statUpdate.style.display = updateCount > 0 ? 'inline-block' : 'none';
+  }
+
+  if (statInvalid) {
+    statInvalid.textContent = `ข้อมูลไม่ครบ: ${invalidCount}`;
+    statInvalid.style.display = invalidCount > 0 ? 'inline-block' : 'none';
+  }
+
+  if (btnSubmit) {
+    btnSubmit.disabled = (validCount === 0);
+  }
+
+  if (btnSubmitText) {
+    btnSubmitText.textContent = validCount > 0 
+      ? `บันทึกและนำเข้าข้อมูล (${validCount} คน)`
+      : `บันทึกและนำเข้าข้อมูล`;
+  }
+}
+
+function setupBatchDropzoneAndPaste() {
+  const dropzone = document.getElementById("batchUserDropzone");
+  if (dropzone && !dropzone.dataset.bound) {
+    dropzone.dataset.bound = "true";
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('dragover');
+      }, false);
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        const fileInput = document.getElementById('batchUserFileInput');
+        if (fileInput) {
+          fileInput.files = files;
+          handleUserBatchFileUpload({ target: { files: files } });
+        }
+      }
+    }, false);
+  }
+
+  const modal = document.getElementById("modalBatchAddUsers");
+  if (modal && !modal.dataset.boundPaste) {
+    modal.dataset.boundPaste = "true";
+    modal.addEventListener('paste', function(e) {
+      const clipboardData = e.clipboardData || window.clipboardData;
+      const pastedData = clipboardData ? clipboardData.getData('Text') : '';
+      if (pastedData && (pastedData.includes('\t') || pastedData.includes('\n'))) {
+        e.preventDefault();
+        parseUserPastedText(pastedData);
+      }
+    });
+  }
+}
+
+function parseUserPastedText(text) {
+  const lines = text.split(/\r\n|\n/).filter(line => line.trim().length > 0);
+  if (lines.length === 0) return;
+
+  const newPastedRows = [];
+  lines.forEach(line => {
+    const cols = line.split('\t').map(c => c.trim());
+    if (cols.length === 0 || !cols.join('')) return;
+
+    const lineLower = line.toLowerCase();
+    if (lineLower.includes("teacher") || lineLower.includes("รหัส") || lineLower.includes("ชื่อ - สกุล")) {
+      return;
+    }
+
+    const teacherId = cols[0] || "";
+    const name = cols[1] || "";
+    let rawRole = (cols[2] || "").toUpperCase();
+    let role = "L1";
+    if (rawRole.includes("L4") || rawRole.includes("ผู้บริหาร")) role = "L4";
+    else if (rawRole.includes("L3") || rawRole.includes("ADMIN")) role = "L3";
+    else if (rawRole.includes("L2") || rawRole.includes("STAFF") || rawRole.includes("เจ้าหน้าที่")) role = "L2";
+
+    const dept = cols[3] || "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี";
+    const email = cols[4] || "";
+    const rooms = cols[5] || "";
+
+    newPastedRows.push({
+      teacherId: teacherId,
+      name: name,
+      role: role,
+      department: dept,
+      email: email,
+      assignedRooms: rooms
+    });
+  });
+
+  if (newPastedRows.length > 0) {
+    const hasOnlyBlank = batchUserList.every(u => !u.teacherId && !u.name);
+    if (hasOnlyBlank) {
+      batchUserList = newPastedRows;
+    } else {
+      batchUserList = [...batchUserList, ...newPastedRows];
+    }
+    renderBatchUserRows();
+    showToast(`วางข้อมูลจากคลิปบอร์ดสำเร็จ ${newPastedRows.length} รายการ`, "success");
+  }
+}
+
+async function submitBatchAddUsers() {
+  const validUsersToSave = batchUserList.filter(u => u.teacherId && u.teacherId.trim() && u.name && u.name.trim());
+  if (validUsersToSave.length === 0) {
+    showToast("ไม่มีข้อมูลที่สมบูรณ์สำหรับบันทึก กรุณากรอก Teacher ID และชื่อ - สกุล", "warning");
+    return;
+  }
+
+  const btnSubmit = document.getElementById("btnSubmitBatchUsers");
+  const btnSubmitText = document.getElementById("btnSubmitBatchUsersText");
+  if (btnSubmit) btnSubmit.disabled = true;
+  if (btnSubmitText) btnSubmitText.textContent = "กำลังบันทึกข้อมูล...";
+
+  let isSuccess = false;
+  let savedCount = 0;
+
+  try {
+    const res = await fetch('/api/users/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(validUsersToSave)
+    });
+
+    if (res.ok) {
+      const result = await res.json();
+      isSuccess = true;
+      savedCount = result.totalProcessed || validUsersToSave.length;
+    }
+  } catch (err) {
+    console.warn("API /api/users/batch request failed, using local storage fallback:", err);
+  }
+
+  if (!isSuccess) {
+    if (!Array.isArray(adminUsers)) adminUsers = [];
+    const roleNames = {
+      'L1': 'Teacher / User',
+      'L2': 'Staff / Operator',
+      'L3': 'Manager / System Manager',
+      'L4': 'Executive / Head of Department'
+    };
+
+    validUsersToSave.forEach(u => {
+      const teacherId = u.teacherId.trim();
+      let rooms = [];
+      if (Array.isArray(u.assignedRooms)) rooms = u.assignedRooms;
+      else if (typeof u.assignedRooms === 'string' && u.assignedRooms.trim()) {
+        rooms = u.assignedRooms.split(/[,;\n]/).map(s => s.trim()).filter(Boolean);
+      }
+
+      const formatted = {
+        id: "u_" + teacherId,
+        teacherId: teacherId,
+        name: u.name.trim(),
+        department: u.department.trim() || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี',
+        email: u.email.trim() || `${teacherId.toLowerCase()}@lab.school.ac.th`,
+        role: u.role || 'L1',
+        roleName: roleNames[u.role || 'L1'] || 'Teacher / User',
+        assignedRooms: rooms,
+        password: teacherId,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        initials: u.name.trim().substring(0, 2).toUpperCase(),
+        color: u.role === 'L2' ? '#ea580c' : u.role === 'L3' ? '#7c3aed' : u.role === 'L4' ? '#be185d' : '#0284c7'
+      };
+
+      const existingIdx = adminUsers.findIndex(ex => (ex.teacherId || '').toLowerCase() === teacherId.toLowerCase());
+      if (existingIdx !== -1) {
+        adminUsers[existingIdx] = { ...adminUsers[existingIdx], ...formatted };
+      } else {
+        adminUsers.push(formatted);
+      }
+    });
+
+    localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+    isSuccess = true;
+    savedCount = validUsersToSave.length;
+  }
+
+  await fetchAdminUsers();
+  closeBatchAddUsersModal();
+
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      icon: 'success',
+      title: 'นำเข้าข้อมูลผู้ใช้สำเร็จ!',
+      text: `บันทึกข้อมูลครูและเจ้าหน้าที่เรียบร้อยแล้วทั้งหมด ${savedCount} คน`,
+      confirmButtonColor: '#7c3aed',
+      confirmButtonText: 'ตกลง'
+    });
+  } else {
+    showToast(`นำเข้าข้อมูลสำเร็จ ${savedCount} คน`, "success");
+  }
+
+  if (btnSubmit) btnSubmit.disabled = false;
+  if (btnSubmitText) btnSubmitText.textContent = "บันทึกและนำเข้าข้อมูล";
+}
+
+window.openBatchAddUsersModal = openBatchAddUsersModal;
+window.closeBatchAddUsersModal = closeBatchAddUsersModal;
+window.switchBatchImportMode = switchBatchImportMode;
+window.downloadUserTemplate = downloadUserTemplate;
+window.handleUserBatchFileUpload = handleUserBatchFileUpload;
+window.addBatchUserRow = addBatchUserRow;
+window.addBatchUserRows = addBatchUserRows;
+window.removeBatchUserRow = removeBatchUserRow;
+window.clearBatchUserRows = clearBatchUserRows;
+window.updateBatchRowData = updateBatchRowData;
+window.submitBatchAddUsers = submitBatchAddUsers;
+
 // EDIT USER
 function openEditUserModal(id) {
   const user = adminUsers.find(u => u.id === id);
