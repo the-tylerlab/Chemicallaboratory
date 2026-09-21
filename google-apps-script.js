@@ -87,7 +87,7 @@ function autoOrganizeCleanSheets() {
   }
 
   dashSheet.clear();
-  dashSheet.setGridlines(true);
+  dashSheet.setHiddenGridlines(false);
 
   // หัวข้อแดชบอร์ด
   dashSheet.getRange('A1:G1').merge()
