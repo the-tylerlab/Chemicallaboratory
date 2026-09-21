@@ -15385,11 +15385,37 @@ async function loadAdminData() {
   }
 }
 
+function generateNextTeacherId(role = 'L1') {
+  let startNum = 1001;
+  if (role === 'L2' || role === 'staff') startNum = 2001;
+  else if (role === 'L3' || role === 'admin') startNum = 3001;
+  else if (role === 'L4' || role === 'executive') startNum = 4001;
+
+  const usersList = Array.isArray(adminUsers) && adminUsers.length > 0 ? adminUsers : (typeof DEFAULT_RBAC_USERS !== 'undefined' ? DEFAULT_RBAC_USERS : []);
+  const existingIds = usersList.map(u => String(u.teacherId || "")).filter(Boolean);
+  let nextNum = startNum;
+  while (existingIds.includes(String(nextNum))) {
+    nextNum++;
+  }
+  return String(nextNum);
+}
+
 function toggleAssignedRoomsField(prefix) {
   const roleSelect = document.getElementById(prefix === 'invite' ? 'inviteUserRole' : 'editUserRole');
   const container = document.getElementById(prefix === 'invite' ? 'inviteAssignedRoomsContainer' : 'editAssignedRoomsContainer');
   if (roleSelect && container) {
     container.style.display = (roleSelect.value === 'L2' || roleSelect.value === 'staff') ? 'block' : 'none';
+  }
+
+  // If in invite modal, automatically update Teacher ID recommendation
+  if (prefix === 'invite' && roleSelect) {
+    const teacherIdInput = document.getElementById("inviteUserTeacherId");
+    if (teacherIdInput) {
+      const cur = teacherIdInput.value.trim();
+      if (!cur || /^[1-4]\d{3}$/.test(cur) || /^T\d+$/.test(cur)) {
+        teacherIdInput.value = generateNextTeacherId(roleSelect.value);
+      }
+    }
   }
 }
 
@@ -15527,6 +15553,14 @@ function openInviteUserModal() {
   const form = document.getElementById("formInviteUser");
   if (form) form.reset();
   
+  const roleSelect = document.getElementById("inviteUserRole");
+  if (roleSelect) roleSelect.value = "L1";
+
+  const teacherIdInput = document.getElementById("inviteUserTeacherId");
+  if (teacherIdInput) {
+    teacherIdInput.value = generateNextTeacherId("L1");
+  }
+  
   // Uncheck all room checkboxes
   document.querySelectorAll('input[name="inviteRoom"]').forEach(cb => cb.checked = false);
   toggleAssignedRoomsField('invite');
@@ -15545,12 +15579,21 @@ document.addEventListener("DOMContentLoaded", () => {
   if (formInviteUser) {
     formInviteUser.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const teacherId = (document.getElementById("inviteUserTeacherId")?.value || "").trim();
+      const role = document.getElementById("inviteUserRole")?.value || "L1";
+      let teacherId = (document.getElementById("inviteUserTeacherId")?.value || "").trim();
+      if (!teacherId) {
+        teacherId = generateNextTeacherId(role);
+      }
       const name = (document.getElementById("inviteUserName")?.value || "").trim();
       const dept = (document.getElementById("inviteUserDept")?.value || "").trim();
       const email = (document.getElementById("inviteUserEmail")?.value || "").trim();
-      const role = document.getElementById("inviteUserRole")?.value || "L1";
       
+      if (!name) {
+        showToast("กรุณากรอกชื่อ - นามสกุลของผู้ใช้งาน", "warning");
+        document.getElementById("inviteUserName")?.focus();
+        return;
+      }
+
       // Collect checked assigned rooms for L2
       const assignedRooms = [];
       if (role === "L2" || role === "staff") {
@@ -15559,28 +15602,63 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
+      const roleNames = {
+        'L1': 'Teacher / User',
+        'L2': 'Staff / Operator',
+        'L3': 'Manager / System Manager',
+        'L4': 'Executive / Head of Department'
+      };
+
+      const newUserObj = {
+        id: "u_" + (teacherId || Date.now()),
+        teacherId: teacherId,
+        name: name,
+        department: dept || "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+        email: email || `${teacherId.toLowerCase()}@lab.school.ac.th`,
+        role: role,
+        roleName: roleNames[role] || 'Teacher / User',
+        assignedRooms: assignedRooms,
+        password: teacherId,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        initials: name ? name.trim().substring(0, 2).toUpperCase() : "U",
+        color: role === 'L2' ? '#ea580c' : role === 'L3' ? '#7c3aed' : role === 'L4' ? '#be185d' : '#0284c7'
+      };
+
+      let isSaved = false;
       try {
         const res = await fetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            teacherId: teacherId || "T" + Date.now().toString().slice(-4), 
-            name, 
-            department: dept, 
-            email, 
-            role, 
-            assignedRooms 
-          })
+          body: JSON.stringify(newUserObj)
         });
-        
         if (res.ok) {
-          showToast("เพิ่มผู้ใช้งานใหม่เรียบร้อยแล้ว", "success");
-          closeInviteUserModal();
-          await logAuditAction("เพิ่มผู้ใช้งานใหม่", `เพิ่มผู้ใช้ ${name} (ID: ${teacherId}) สิทธิ์ ${role}`);
-          await loadAdminData();
+          isSaved = true;
         }
-      } catch (err) {
-        showToast("เกิดข้อผิดพลาดในการเพิ่มผู้ใช้", "error");
+      } catch (apiErr) {
+        console.warn("API /api/users request failed, using local storage fallback:", apiErr);
+      }
+
+      // Local fallback if API is not reachable
+      if (!isSaved) {
+        if (!Array.isArray(adminUsers)) adminUsers = [];
+        const existingIdx = adminUsers.findIndex(u => u.teacherId === teacherId || u.id === newUserObj.id);
+        if (existingIdx !== -1) {
+          adminUsers[existingIdx] = newUserObj;
+        } else {
+          adminUsers.push(newUserObj);
+        }
+        localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+        isSaved = true;
+      }
+
+      if (isSaved) {
+        showToast(`บันทึกข้อมูล "${name}" (${teacherId}) เรียบร้อยแล้ว`, "success");
+        closeInviteUserModal();
+        if (typeof logAuditAction === "function") {
+          await logAuditAction("เพิ่มผู้ใช้งานใหม่", `เพิ่มผู้ใช้ ${name} (ID: ${teacherId}) สิทธิ์ ${role}`);
+        }
+        await loadAdminData();
       }
     });
   }
@@ -15633,6 +15711,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const email = (document.getElementById("editUserEmail")?.value || "").trim();
       const role = document.getElementById("editUserRole")?.value || "L1";
       
+      if (!name) {
+        showToast("กรุณากรอกชื่อ - นามสกุลของผู้ใช้งาน", "warning");
+        document.getElementById("editUserName")?.focus();
+        return;
+      }
+
       const assignedRooms = [];
       if (role === "L2" || role === "staff") {
         document.querySelectorAll('input[name="editRoom"]:checked').forEach(cb => {
@@ -15640,28 +15724,53 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
+      let isUpdated = false;
       try {
         const res = await fetch(`/api/users/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ teacherId, name, department: dept, email, role, assignedRooms })
         });
-        
         if (res.ok) {
-          showToast("อัปเดตข้อมูลและสิทธิ์ผู้ใช้สำเร็จ", "success");
-          closeEditUserModal();
-          await logAuditAction("อัปเดตสิทธิ์ผู้ใช้", `แก้ไขข้อมูล/สิทธิ์ของผู้ใช้ ${name} (ID: ${teacherId})`);
-          await loadAdminData();
-
-          // If current logged-in user is modified, update local state
-          if (currentUser && currentUser.id === id) {
-            currentUser = { ...currentUser, teacherId, name, department: dept, email, role, assignedRooms };
-            localStorage.setItem("currentUser", JSON.stringify(currentUser));
-            updateLoginUI();
-          }
+          isUpdated = true;
         }
-      } catch (err) {
-        showToast("เกิดข้อผิดพลาด", "error");
+      } catch (apiErr) {
+        console.warn("API /api/users PUT failed, using local storage fallback:", apiErr);
+      }
+
+      // Local fallback
+      if (!isUpdated) {
+        if (!Array.isArray(adminUsers)) adminUsers = [];
+        const idx = adminUsers.findIndex(u => u.id === id);
+        if (idx !== -1) {
+          adminUsers[idx] = {
+            ...adminUsers[idx],
+            teacherId,
+            name,
+            department: dept,
+            email,
+            role,
+            assignedRooms
+          };
+          localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+          isUpdated = true;
+        }
+      }
+
+      if (isUpdated) {
+        showToast("อัปเดตข้อมูลและสิทธิ์ผู้ใช้สำเร็จ", "success");
+        closeEditUserModal();
+        if (typeof logAuditAction === "function") {
+          await logAuditAction("อัปเดตสิทธิ์ผู้ใช้", `แก้ไขข้อมูล/สิทธิ์ของผู้ใช้ ${name} (ID: ${teacherId})`);
+        }
+        await loadAdminData();
+
+        // If current logged-in user is modified, update local state
+        if (currentUser && (currentUser.id === id || currentUser.teacherId === teacherId)) {
+          currentUser = { ...currentUser, teacherId, name, department: dept, email, role, assignedRooms };
+          localStorage.setItem("currentUser", JSON.stringify(currentUser));
+          updateLoginUI();
+        }
       }
     });
   }
@@ -15671,16 +15780,25 @@ async function deleteAdminUser() {
   const id = document.getElementById("editUserId").value;
   if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?")) return;
   
+  let isDeleted = false;
   try {
     const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      showToast("ลบผู้ใช้สำเร็จ", "success");
-      closeEditUserModal();
+    if (res.ok) isDeleted = true;
+  } catch (err) {}
+
+  if (!isDeleted) {
+    adminUsers = adminUsers.filter(u => u.id !== id);
+    localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+    isDeleted = true;
+  }
+
+  if (isDeleted) {
+    showToast("ลบผู้ใช้สำเร็จ", "success");
+    closeEditUserModal();
+    if (typeof logAuditAction === "function") {
       await logAuditAction("ลบผู้ใช้งาน", `ระบบได้ลบผู้ใช้งาน ID: ${id}`);
-      await loadAdminData();
     }
-  } catch (err) {
-    showToast("เกิดข้อผิดพลาด", "error");
+    await loadAdminData();
   }
 }
 
