@@ -7675,6 +7675,10 @@ window.openLoginModal = function() {
       }
     }
 
+    if (typeof applyLoginBannerUI === "function") {
+      applyLoginBannerUI();
+    }
+
     if (window.lucide) lucide.createIcons();
   }
 };
@@ -15337,6 +15341,8 @@ document.addEventListener("DOMContentLoaded", () => {
         targetTab.style.display = "block";
         if (targetTabId === "admin-announcement" && typeof initAdminAnnouncementForm === "function") {
           initAdminAnnouncementForm();
+        } else if (targetTabId === "admin-login-banner" && typeof initLoginBannerAdmin === "function") {
+          initLoginBannerAdmin();
         }
       }
     });
@@ -17730,6 +17736,227 @@ window.triggerAnnouncementLivePreview = triggerAnnouncementLivePreview;
 window.syncAnnouncementInRealtime = syncAnnouncementInRealtime;
 window.syncAnnouncementFormFields = syncAnnouncementFormFields;
 window.initAdminAnnouncementForm = initAdminAnnouncementForm;
+
+// ==========================================
+// LOGIN HERO & ANNOUNCEMENT BANNER MANAGEMENT
+// ==========================================
+
+const DEFAULT_LOGIN_BANNER_CONFIG = {
+  enabled: true,
+  headline: "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ",
+  badgeText: "📢 ประกาศด่วนประจำห้องแล็บ",
+  subtitle: "เชื่อมต่อคลังสารเคมี อุปกรณ์วิทยาศาสตร์ ตารางจองห้องแล็บ และบันทึกประวัติอย่างเป็นระบบ",
+  theme: "purple",
+  imgOption: "default",
+  customUrl: ""
+};
+
+const LAB_SAMPLE_IMAGES = {
+  lab1: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80",
+  lab2: "https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&w=800&q=80",
+  lab3: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80"
+};
+
+let currentSelectedLoginBannerTheme = "purple";
+
+function getLoginBannerConfig() {
+  try {
+    const saved = localStorage.getItem("lab_login_banner_config");
+    if (saved) {
+      return { ...DEFAULT_LOGIN_BANNER_CONFIG, ...JSON.parse(saved) };
+    }
+  } catch (e) {}
+  return { ...DEFAULT_LOGIN_BANNER_CONFIG };
+}
+
+function applyLoginBannerUI(customConfig = null) {
+  const config = customConfig || getLoginBannerConfig();
+  const heroSide = document.getElementById("loginHeroSide");
+  const splitGrid = document.getElementById("loginSplitGrid");
+  const modalContent = document.querySelector("#loginModal .login-split-modal");
+  
+  if (!heroSide || !splitGrid) return;
+
+  if (!config.enabled) {
+    heroSide.style.display = "none";
+    splitGrid.style.gridTemplateColumns = "1fr";
+    if (modalContent) modalContent.style.maxWidth = "480px";
+    return;
+  }
+
+  heroSide.style.display = "flex";
+  splitGrid.style.gridTemplateColumns = "";
+  if (modalContent) modalContent.style.maxWidth = "880px";
+
+  // Apply Theme Class
+  const themes = ["orange", "purple", "blue", "green", "dark"];
+  themes.forEach(t => heroSide.classList.remove(`login-hero-theme-${t}`));
+  heroSide.classList.add(`login-hero-theme-${config.theme || "purple"}`);
+
+  // Apply Text Content
+  const badgeTextEl = document.getElementById("loginHeroBadgeText");
+  const headlineEl = document.getElementById("loginHeroHeadline");
+  const subtitleEl = document.getElementById("loginHeroSubtitle");
+  const heroImgEl = document.getElementById("loginHeroImage");
+  const defaultGraphicEl = document.getElementById("loginHeroDefaultGraphic");
+
+  if (badgeTextEl) badgeTextEl.textContent = config.badgeText || "📢 ประกาศด่วนประจำห้องแล็บ";
+  if (headlineEl) headlineEl.textContent = config.headline || "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ";
+  if (subtitleEl) subtitleEl.textContent = config.subtitle || "";
+
+  // Apply Visual Image / Graphic
+  let imgSrc = "";
+  if (config.imgOption === "custom" && config.customUrl) {
+    imgSrc = config.customUrl.trim();
+  } else if (LAB_SAMPLE_IMAGES[config.imgOption]) {
+    imgSrc = LAB_SAMPLE_IMAGES[config.imgOption];
+  }
+
+  if (imgSrc && heroImgEl && defaultGraphicEl) {
+    heroImgEl.src = imgSrc;
+    heroImgEl.style.display = "block";
+    defaultGraphicEl.style.display = "none";
+  } else if (heroImgEl && defaultGraphicEl) {
+    heroImgEl.style.display = "none";
+    defaultGraphicEl.style.display = "flex";
+  }
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function initLoginBannerAdmin() {
+  const config = getLoginBannerConfig();
+  const toggle = document.getElementById("adminLoginBannerEnabled");
+  const statusText = document.getElementById("adminLoginBannerStatusText");
+  const headlineInput = document.getElementById("adminLoginBannerHeadline");
+  const badgeInput = document.getElementById("adminLoginBannerBadgeText");
+  const subtitleInput = document.getElementById("adminLoginBannerSubtitle");
+  const imgOptionSelect = document.getElementById("adminLoginBannerImgOption");
+  const customUrlInput = document.getElementById("adminLoginBannerCustomUrl");
+  const customUrlRow = document.getElementById("adminLoginBannerCustomUrlRow");
+
+  if (toggle) toggle.checked = config.enabled;
+  if (statusText) statusText.textContent = config.enabled ? "เปิดใช้งาน" : "ปิดการใช้งาน";
+  if (headlineInput) headlineInput.value = config.headline;
+  if (badgeInput) badgeInput.value = config.badgeText;
+  if (subtitleInput) subtitleInput.value = config.subtitle;
+  if (imgOptionSelect) imgOptionSelect.value = config.imgOption || "default";
+  if (customUrlInput) customUrlInput.value = config.customUrl || "";
+  if (customUrlRow) customUrlRow.style.display = (config.imgOption === "custom") ? "block" : "none";
+
+  selectLoginBannerTheme(config.theme || "purple");
+  triggerLoginBannerLivePreview();
+}
+
+function selectLoginBannerTheme(themeName) {
+  currentSelectedLoginBannerTheme = themeName;
+  const chips = document.querySelectorAll("#adminLoginBannerThemeChips .ticker-theme-chip");
+  chips.forEach(chip => {
+    if (chip.getAttribute("data-theme") === themeName) {
+      chip.classList.add("active");
+    } else {
+      chip.classList.remove("active");
+    }
+  });
+  triggerLoginBannerLivePreview();
+}
+
+function onLoginBannerImgOptionChange(val) {
+  const customUrlRow = document.getElementById("adminLoginBannerCustomUrlRow");
+  if (customUrlRow) {
+    customUrlRow.style.display = (val === "custom") ? "block" : "none";
+  }
+  triggerLoginBannerLivePreview();
+}
+
+function updateLoginBannerToggleLabel(checked) {
+  const statusText = document.getElementById("adminLoginBannerStatusText");
+  if (statusText) {
+    statusText.textContent = checked ? "เปิดใช้งาน" : "ปิดการใช้งาน";
+  }
+}
+
+function triggerLoginBannerLivePreview() {
+  const previewBox = document.getElementById("adminLoginHeroPreviewBox");
+  if (!previewBox) return;
+
+  const headlineInput = document.getElementById("adminLoginBannerHeadline");
+  const badgeInput = document.getElementById("adminLoginBannerBadgeText");
+  const subtitleInput = document.getElementById("adminLoginBannerSubtitle");
+  const imgOptionSelect = document.getElementById("adminLoginBannerImgOption");
+  const customUrlInput = document.getElementById("adminLoginBannerCustomUrl");
+
+  const badgeEl = document.getElementById("adminPreviewHeroBadgeText");
+  const headlineEl = document.getElementById("adminPreviewHeroHeadline");
+  const subtitleEl = document.getElementById("adminPreviewHeroSubtitle");
+  const imgEl = document.getElementById("adminPreviewHeroImg");
+  const defaultGraphic = document.getElementById("adminPreviewHeroDefaultGraphic");
+
+  if (badgeEl && badgeInput) badgeEl.textContent = badgeInput.value || "📢 ประกาศด่วน";
+  if (headlineEl && headlineInput) headlineEl.textContent = headlineInput.value || "หัวข้อประกาศ";
+  if (subtitleEl && subtitleInput) subtitleEl.textContent = subtitleInput.value || "";
+
+  // Apply Theme to Preview
+  const themes = ["orange", "purple", "blue", "green", "dark"];
+  themes.forEach(t => previewBox.classList.remove(`login-hero-theme-${t}`));
+  previewBox.classList.add(`login-hero-theme-${currentSelectedLoginBannerTheme || "purple"}`);
+
+  // Image preview
+  const imgOption = imgOptionSelect ? imgOptionSelect.value : "default";
+  let imgSrc = "";
+  if (imgOption === "custom" && customUrlInput && customUrlInput.value.trim()) {
+    imgSrc = customUrlInput.value.trim();
+  } else if (LAB_SAMPLE_IMAGES[imgOption]) {
+    imgSrc = LAB_SAMPLE_IMAGES[imgOption];
+  }
+
+  if (imgSrc && imgEl && defaultGraphic) {
+    imgEl.src = imgSrc;
+    imgEl.style.display = "block";
+    defaultGraphic.style.display = "none";
+  } else if (imgEl && defaultGraphic) {
+    imgEl.style.display = "none";
+    defaultGraphic.style.display = "flex";
+  }
+
+  if (window.lucide) lucide.createIcons();
+}
+
+function saveAdminLoginBanner(e) {
+  if (e) e.preventDefault();
+  const toggle = document.getElementById("adminLoginBannerEnabled");
+  const headlineInput = document.getElementById("adminLoginBannerHeadline");
+  const badgeInput = document.getElementById("adminLoginBannerBadgeText");
+  const subtitleInput = document.getElementById("adminLoginBannerSubtitle");
+  const imgOptionSelect = document.getElementById("adminLoginBannerImgOption");
+  const customUrlInput = document.getElementById("adminLoginBannerCustomUrl");
+
+  const newConfig = {
+    enabled: toggle ? toggle.checked : true,
+    headline: headlineInput ? headlineInput.value.trim() : "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ",
+    badgeText: badgeInput ? badgeInput.value.trim() : "📢 ประกาศด่วนประจำห้องแล็บ",
+    subtitle: subtitleInput ? subtitleInput.value.trim() : "",
+    theme: currentSelectedLoginBannerTheme || "purple",
+    imgOption: imgOptionSelect ? imgOptionSelect.value : "default",
+    customUrl: customUrlInput ? customUrlInput.value.trim() : ""
+  };
+
+  try {
+    localStorage.setItem("lab_login_banner_config", JSON.stringify(newConfig));
+  } catch (err) {}
+
+  applyLoginBannerUI(newConfig);
+  showToast("บันทึกการตั้งค่าแบนเนอร์หน้าเข้าสู่ระบบเรียบร้อยแล้ว!", "success");
+}
+
+window.getLoginBannerConfig = getLoginBannerConfig;
+window.applyLoginBannerUI = applyLoginBannerUI;
+window.initLoginBannerAdmin = initLoginBannerAdmin;
+window.selectLoginBannerTheme = selectLoginBannerTheme;
+window.onLoginBannerImgOptionChange = onLoginBannerImgOptionChange;
+window.updateLoginBannerToggleLabel = updateLoginBannerToggleLabel;
+window.triggerLoginBannerLivePreview = triggerLoginBannerLivePreview;
+window.saveAdminLoginBanner = saveAdminLoginBanner;
 
 function renderTodayLabStatus() {
   const container = document.getElementById("todayLabsGrid");
