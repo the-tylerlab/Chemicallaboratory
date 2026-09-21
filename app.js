@@ -1327,6 +1327,10 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
     if (typeof renderActivityLogs === "function") renderActivityLogs();
   }
 
+  if (panelId === "cabinet-layout" || panelId === "shecu") {
+    if (typeof renderCabinetMap === "function") renderCabinetMap();
+  }
+
   if (panelId === "assets") {
     navigateToPanel("all-items", "ครุภัณฑ์", "all");
     if (typeof selectCategoryTab === "function") {
@@ -14636,13 +14640,118 @@ function renderBookingCalendar() {
 /* ==========================================================================
    PREMIUM FEATURE: INTERACTIVE SHECU CABINET COMPATIBILITY MAP
    ========================================================================== */
+let currentCabinetMapRoom = "Lab 1";
+
+function getAllLabRooms() {
+  const roomMap = new Map();
+
+  // 1. Predefined standard lab rooms
+  if (typeof DASH_LAB_ROOMS !== 'undefined' && Array.isArray(DASH_LAB_ROOMS)) {
+    DASH_LAB_ROOMS.forEach(r => {
+      roomMap.set(r.id, {
+        id: r.id,
+        name: r.name,
+        building: r.building || '',
+        hex: r.hex || '#2563eb'
+      });
+    });
+  }
+
+  // 2. Custom rooms from items list
+  if (typeof items !== 'undefined' && Array.isArray(items)) {
+    items.forEach(it => {
+      if (it.room && it.room !== 'None' && !roomMap.has(it.room)) {
+        roomMap.set(it.room, {
+          id: it.room,
+          name: getRoomThaiName(it.room),
+          building: 'อาคารวิทยาศาสตร์',
+          hex: '#6366f1'
+        });
+      }
+    });
+  }
+
+  // 3. Custom rooms from labLayouts
+  if (typeof labLayouts === 'object' && labLayouts !== null) {
+    Object.keys(labLayouts).forEach(rKey => {
+      if (rKey && rKey !== 'None' && !roomMap.has(rKey)) {
+        roomMap.set(rKey, {
+          id: rKey,
+          name: getRoomThaiName(rKey),
+          building: 'อาคารวิทยาศาสตร์',
+          hex: '#6366f1'
+        });
+      }
+    });
+  }
+
+  return Array.from(roomMap.values());
+}
+
+function renderCabinetRoomTabs() {
+  const container = document.getElementById("shecuRoomTabsContainer");
+  if (!container) return;
+
+  const rooms = getAllLabRooms();
+  if (rooms.length === 0) {
+    container.innerHTML = "";
+    return;
+  }
+
+  // Ensure currentCabinetMapRoom is valid
+  if (!rooms.some(r => r.id === currentCabinetMapRoom)) {
+    currentCabinetMapRoom = rooms[0].id;
+  }
+
+  const roomFilter = document.getElementById("cabinetMapRoomFilter");
+  if (roomFilter) roomFilter.value = currentCabinetMapRoom;
+
+  const activeRoomSummary = document.getElementById("shecuActiveRoomName");
+  if (activeRoomSummary) {
+    const activeObj = rooms.find(r => r.id === currentCabinetMapRoom);
+    activeRoomSummary.textContent = activeObj ? `${activeObj.id} (${activeObj.name})` : currentCabinetMapRoom;
+  }
+
+  container.innerHTML = rooms.map(room => {
+    const isActive = (room.id === currentCabinetMapRoom);
+    const roomItems = (items || []).filter(it => (it.room || 'Lab 1') === room.id || (room.id === 'Lab 1' && (!it.room || it.room === 'None')));
+    const itemCount = roomItems.length;
+
+    const activeBg = isActive ? 'var(--primary-color)' : 'white';
+    const activeColor = isActive ? 'white' : 'var(--text-dark)';
+    const activeBorder = isActive ? 'var(--primary-color)' : 'var(--border-color)';
+    const countBg = isActive ? 'rgba(255, 255, 255, 0.25)' : '#f1f5f9';
+    const countColor = isActive ? 'white' : 'var(--text-muted)';
+
+    return `
+      <button type="button" class="shecu-room-tab-btn ${isActive ? 'active' : ''}" 
+              onclick="switchCabinetRoom('${room.id.replace(/'/g, "\\'")}')"
+              style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 24px; border: 1.5px solid ${activeBorder}; background: ${activeBg}; color: ${activeColor}; font-weight: ${isActive ? '600' : '500'}; font-size: 13px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; box-shadow: ${isActive ? '0 2px 8px rgba(79, 70, 229, 0.25)' : 'none'}; flex-shrink: 0;">
+        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${isActive ? '#a5b4fc' : (room.hex || '#6366f1')};"></span>
+        <span>${room.id} (${room.name})</span>
+        <span style="font-size: 11px; padding: 2px 7px; border-radius: 10px; background: ${countBg}; color: ${countColor}; font-weight: 600;">${itemCount} รายการ</span>
+      </button>
+    `;
+  }).join("");
+}
+
+window.switchCabinetRoom = function(roomId) {
+  currentCabinetMapRoom = roomId;
+  const roomFilter = document.getElementById("cabinetMapRoomFilter");
+  if (roomFilter) roomFilter.value = roomId;
+  renderCabinetRoomTabs();
+  renderCabinetMap();
+};
+
 function renderCabinetMap() {
+  renderCabinetRoomTabs();
+
   const roomFilter = document.getElementById("cabinetMapRoomFilter");
   const grid = document.getElementById("cabinetMapGrid");
   if (!grid) return;
 
   const btnEditLayout = document.getElementById("btnEditLayout");
-  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  const activeRoom = currentCabinetMapRoom || (roomFilter ? roomFilter.value : "Lab 1");
   
   if (btnEditLayout) {
     if (isAdminLoggedIn || (typeof userRole !== 'undefined' && userRole === "teacher")) {
@@ -14656,7 +14765,8 @@ function renderCabinetMap() {
   grid.className = "cabinet-layout-wrapper";
   grid.innerHTML = "";
 
-  const roomItems = (items || []).filter(item => item.room === activeRoom);
+  // Filter items specifically for the active laboratory room
+  const roomItems = (items || []).filter(item => (item.room || 'Lab 1') === activeRoom || (activeRoom === 'Lab 1' && (!item.room || item.room === 'None')));
 
   const cabinets = {};
   roomItems.forEach(item => {
@@ -14664,6 +14774,7 @@ function renderCabinetMap() {
     if (!cab || cab === "ไม่ระบุตู้") {
       cab = "ตู้ฉุกเฉิน";
     }
+    cab = cab.trim();
     if (!cabinets[cab]) {
       cabinets[cab] = {
         name: cab,
@@ -14712,13 +14823,34 @@ function renderCabinetMap() {
           id: `cab_${Date.now()}_${Math.floor(Math.random()*1000)}`,
           type: 'cabinet',
           subType: cabName.includes('เครื่องแก้ว') ? 'glassware_cabinet' : (cabName.includes('ฉุกเฉิน') ? 'emergency_cabinet' : 'chemical_cabinet'),
-          name: cabName
+          name: cabName,
+          shelvesCount: 4,
+          maxCapacity: cabName.includes('ฉุกเฉิน') ? 100 : 50,
+          isHidden: false
         });
       }
     });
     labLayouts[activeRoom] = roomLayout;
   } else {
     roomLayout = roomLayout.filter(el => el.type !== 'table' && el.type !== 'station' && !(el.name && el.name.includes('โต๊ะ')));
+    
+    // Auto-sync any cabinets present in roomItems that are not yet in roomLayout
+    Object.keys(cabinets).forEach(cabName => {
+      if (cabName && cabName !== "ไม่ระบุตู้" && !cabName.includes('โต๊ะ')) {
+        if (!roomLayout.some(el => el.name === cabName)) {
+          roomLayout.push({
+            id: `cab_${Date.now()}_${Math.floor(Math.random()*1000)}`,
+            type: 'cabinet',
+            subType: cabName.includes('เครื่องแก้ว') ? 'glassware_cabinet' : (cabName.includes('ฉุกเฉิน') ? 'emergency_cabinet' : 'chemical_cabinet'),
+            name: cabName,
+            shelvesCount: 4,
+            maxCapacity: cabName.includes('ฉุกเฉิน') ? 100 : 50,
+            isHidden: false
+          });
+        }
+      }
+    });
+    
     labLayouts[activeRoom] = roomLayout;
   }
 
@@ -14730,7 +14862,8 @@ function renderCabinetMap() {
       subType: 'emergency_cabinet',
       name: 'ตู้ฉุกเฉิน',
       shelvesCount: 4,
-      maxCapacity: 100
+      maxCapacity: 100,
+      isHidden: false
     });
   }
 
@@ -14976,9 +15109,21 @@ window.openCabinetDetails = function(room, cabinetName) {
 
   if (!modal || !content) return;
 
-  title.innerText = `${cabinetName} - ห้องปฏิบัติการ ${room}`;
+  if (title) {
+    title.innerText = `${cabinetName} - ${getRoomThaiName(room)}`;
+  }
 
-  const cabItems = (items || []).filter(item => item.room === room && item.cabinet === cabinetName);
+  const cabItems = (items || []).filter(item => {
+    const itRoom = item.room || 'Lab 1';
+    const isRoomMatch = (itRoom === room) || (room === 'Lab 1' && (!item.room || item.room === 'None'));
+    if (!isRoomMatch) return false;
+    
+    const itCab = (item.cabinet || '').trim();
+    if (cabinetName === 'ตู้ฉุกเฉิน') {
+      return !itCab || itCab === 'ไม่ระบุตู้' || itCab === 'ตู้ฉุกเฉิน';
+    }
+    return itCab === cabinetName;
+  });
 
   const incompatiblePairs = [];
   for (let i = 0; i < cabItems.length; i++) {

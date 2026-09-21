@@ -2425,8 +2425,25 @@
           </div>
         </div>
 
+        <!-- Laboratory Room Tabs -->
+        <div class="shecu-room-tabs-container" style="margin-top: 16px;">
+          <input type="hidden" id="cabinetMapRoomFilter" value="Lab 1">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <div style="font-size: 13px; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="door-open" style="width: 15px; height: 15px; color: var(--primary-color);"></i>
+              <span>เลือกห้องปฏิบัติการ:</span>
+            </div>
+            <div id="shecuActiveRoomSummary" style="font-size: 12px; color: var(--text-muted);">
+              กำลังดู: <strong id="shecuActiveRoomName" style="color: var(--primary-color);">Lab 1 (ห้องปฏิบัติการเคมี)</strong>
+            </div>
+          </div>
+          <div id="shecuRoomTabsContainer" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin;">
+            <!-- Dynamically generated room tab buttons -->
+          </div>
+        </div>
+
         <!-- Filter & Search Bar -->
-        <div class="directory-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; background: white; padding: 12px 16px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color);">
+        <div class="directory-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; background: white; padding: 12px 16px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color);">
           <div style="display: flex; align-items: center; gap: 12px;">
             <span class="shecu-badge badge-safe" style="font-size: 13px;">🟢 มาตรฐาน SHECU: ปลอดภัยทุกตู้</span>
             <div class="category-pills" style="display: flex; gap: 8px; flex-wrap: wrap;">
