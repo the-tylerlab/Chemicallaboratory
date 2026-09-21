@@ -69,6 +69,11 @@
   <!-- ==========================================
        APP SKELETON LOADER
        ========================================== -->
+  <script>
+    if (window.location.search && window.location.search.indexOf('capture=true') !== -1) {
+      document.write('<style>#app-skeleton-loader { display: none !important; }</style>');
+    }
+  </script>
   <div id="app-skeleton-loader">
     <div class="skeleton-sidebar">
       <div class="skeleton-logo animate-pulse"></div>
@@ -4946,7 +4951,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260922_0026"></script>
+  <script src="app.js?v=20260922_0108"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {
