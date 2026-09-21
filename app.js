@@ -7486,7 +7486,7 @@ function updateLoginUI() {
     if (btnSidebarLogin) btnSidebarLogin.style.display = "none";
 
     if (sidebarUserAvatar) {
-      sidebarUserAvatar.innerText = currentUser.initials || (currentUser.name ? currentUser.name.substring(0, 2) : "U");
+      sidebarUserAvatar.innerText = getUserInitials(currentUser.name, currentUser.initials);
       sidebarUserAvatar.style.background = currentUser.color || "linear-gradient(135deg, #8b5cf6, #6366f1)";
     }
     if (sidebarUserName) {
@@ -7884,7 +7884,7 @@ function setupLoginHandlers() {
           role: "L1",
           roleName: "Teacher / User",
           assignedRooms: [],
-          initials: "สช",
+          initials: "สร",
           color: "#0284c7"
         };
         userRole = "L1";
@@ -15357,6 +15357,74 @@ let adminUsers = [];
 let adminAuditLogs = [];
 
 // Default Fallback Users for Offline / Live Server
+function getUserInitials(name, fallback = "") {
+  if (!name || typeof name !== 'string') return fallback || 'U';
+  let cleanName = name.replace(/\([^)]*\)/g, '').trim();
+
+  // Known Thai & English Titles to strip
+  const titlePrefixes = [
+    /^เจ้าหน้าที่\s*/i,
+    /^จนท\.\s*/i,
+    /^อาจารย์\s*/i,
+    /^อ\.\s*/i,
+    /^ครู\s*/i,
+    /^ผอ\.\s*/i,
+    /^ผู้อำนวยการ\s*/i,
+    /^ดร\.\s*/i,
+    /^นาย\s*/i,
+    /^นางสาว\s*/i,
+    /^นาง\s*/i,
+    /^น\.ส\.\s*/i,
+    /^ผศ\.ดร\.\s*/i,
+    /^ผศ\.\s*/i,
+    /^รศ\.ดร\.\s*/i,
+    /^รศ\.\s*/i,
+    /^ศ\.ดร\.\s*/i,
+    /^ศ\.\s*/i,
+    /^คุณ\s*/i,
+    /^Mr\.\s*/i,
+    /^Mrs\.\s*/i,
+    /^Ms\.\s*/i,
+    /^Dr\.\s*/i,
+    /^Prof\.\s*/i
+  ];
+
+  for (const prefix of titlePrefixes) {
+    if (prefix.test(cleanName)) {
+      cleanName = cleanName.replace(prefix, '').trim();
+      break;
+    }
+  }
+
+  const parts = cleanName.split(/\s+/).filter(Boolean);
+  const leadingVowels = ['เ', 'แ', 'โ', 'ใ', 'ไ'];
+
+  const getInitialChar = (word) => {
+    if (!word) return '';
+    if (leadingVowels.includes(word[0]) && word.length > 1) {
+      return word[1];
+    }
+    return word[0];
+  };
+
+  if (parts.length >= 2) {
+    const firstChar = getInitialChar(parts[0]);
+    const lastChar = getInitialChar(parts[parts.length - 1]);
+    return (firstChar + lastChar).toUpperCase();
+  } else if (parts.length === 1) {
+    const word = parts[0];
+    if (word.length >= 2) {
+      if (leadingVowels.includes(word[0]) && word.length > 2) {
+        return (word[1] + word[2]).toUpperCase();
+      }
+      return word.substring(0, 2).toUpperCase();
+    }
+    return word.toUpperCase();
+  }
+
+  return fallback || 'U';
+}
+
 const DEFAULT_RBAC_USERS = [
   {
     id: "u_admin",
@@ -15381,7 +15449,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Teacher / User",
     assignedRooms: [],
     password: "1001",
-    initials: "สช",
+    initials: "สร",
     color: "#0284c7"
   },
   {
@@ -15394,7 +15462,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Teacher / User",
     assignedRooms: [],
     password: "1002",
-    initials: "วภ",
+    initials: "วฝ",
     color: "#059669"
   },
   {
@@ -15407,7 +15475,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Staff / Operator",
     assignedRooms: ["Lab 1", "Lab 6"],
     password: "2001",
-    initials: "ทศ",
+    initials: "ทด",
     color: "#ea580c"
   },
   {
@@ -15420,7 +15488,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Staff / Operator",
     assignedRooms: ["Lab 2", "Lab 3"],
     password: "2002",
-    initials: "นม",
+    initials: "นด",
     color: "#d97706"
   },
   {
@@ -15433,7 +15501,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Manager / System Manager",
     assignedRooms: [],
     password: "3001",
-    initials: "นพ",
+    initials: "นห",
     color: "#6366f1"
   },
   {
@@ -15446,7 +15514,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Executive / Head of Department",
     assignedRooms: [],
     password: "4001",
-    initials: "กศ",
+    initials: "กว",
     color: "#be185d"
   }
 ];
@@ -15474,6 +15542,13 @@ async function loadAdminData() {
         adminUsers = [...DEFAULT_RBAC_USERS];
         localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
       }
+    }
+
+    if (Array.isArray(adminUsers)) {
+      adminUsers.forEach(u => {
+        u.initials = getUserInitials(u.name, u.initials);
+      });
+      localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
     }
     
     try {
@@ -15559,7 +15634,7 @@ function renderAdminUsers() {
       </td>
       <td style="padding: 10px 14px;">
         <div style="display: flex; align-items: center; gap: 10px; min-width: 180px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:${user.color || '#3b82f6'};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11.5px;flex-shrink:0;">${user.initials || 'U'}</div>
+          <div style="width:32px;height:32px;border-radius:50%;background:${user.color || '#3b82f6'};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11.5px;flex-shrink:0;">${getUserInitials(user.name, user.initials)}</div>
           <div>
             <div style="font-weight: 600; color: var(--text-main); font-size: 13px; line-height: 1.3;">${escapeHTML(user.name || '')}</div>
             <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(user.email || '-')}</div>

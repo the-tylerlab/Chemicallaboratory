@@ -749,6 +749,74 @@ app.post('/api/transactions', (req, res) => {
 // ADMIN PANEL ENDPOINTS
 // ==========================================
 
+function calculateUserInitials(name) {
+  if (!name || typeof name !== 'string') return 'U';
+  let cleanName = name.replace(/\([^)]*\)/g, '').trim();
+
+  // Known Thai & English Titles to strip
+  const titlePrefixes = [
+    /^เจ้าหน้าที่\s*/i,
+    /^จนท\.\s*/i,
+    /^อาจารย์\s*/i,
+    /^อ\.\s*/i,
+    /^ครู\s*/i,
+    /^ผอ\.\s*/i,
+    /^ผู้อำนวยการ\s*/i,
+    /^ดร\.\s*/i,
+    /^นาย\s*/i,
+    /^นางสาว\s*/i,
+    /^นาง\s*/i,
+    /^น\.ส\.\s*/i,
+    /^ผศ\.ดร\.\s*/i,
+    /^ผศ\.\s*/i,
+    /^รศ\.ดร\.\s*/i,
+    /^รศ\.\s*/i,
+    /^ศ\.ดร\.\s*/i,
+    /^ศ\.\s*/i,
+    /^คุณ\s*/i,
+    /^Mr\.\s*/i,
+    /^Mrs\.\s*/i,
+    /^Ms\.\s*/i,
+    /^Dr\.\s*/i,
+    /^Prof\.\s*/i
+  ];
+
+  for (const prefix of titlePrefixes) {
+    if (prefix.test(cleanName)) {
+      cleanName = cleanName.replace(prefix, '').trim();
+      break;
+    }
+  }
+
+  const parts = cleanName.split(/\s+/).filter(Boolean);
+  const leadingVowels = ['เ', 'แ', 'โ', 'ใ', 'ไ'];
+
+  const getInitialChar = (word) => {
+    if (!word) return '';
+    if (leadingVowels.includes(word[0]) && word.length > 1) {
+      return word[1];
+    }
+    return word[0];
+  };
+
+  if (parts.length >= 2) {
+    const firstChar = getInitialChar(parts[0]);
+    const lastChar = getInitialChar(parts[parts.length - 1]);
+    return (firstChar + lastChar).toUpperCase();
+  } else if (parts.length === 1) {
+    const word = parts[0];
+    if (word.length >= 2) {
+      if (leadingVowels.includes(word[0]) && word.length > 2) {
+        return (word[1] + word[2]).toUpperCase();
+      }
+      return word.substring(0, 2).toUpperCase();
+    }
+    return word.toUpperCase();
+  }
+
+  return 'U';
+}
+
 // USERS
 app.get('/api/users', (req, res) => {
   res.json(readUsers());
@@ -781,7 +849,7 @@ app.post('/api/users', (req, res) => {
   // Assign random color/initials for avatar
   const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#d946ef", "#be185d"];
   newUser.color = newUser.color || colors[Math.floor(Math.random() * colors.length)];
-  newUser.initials = newUser.name ? newUser.name.trim().substring(0, 2).toUpperCase() : "U";
+  newUser.initials = calculateUserInitials(newUser.name);
   
   users.push(newUser);
   writeUsers(users);
@@ -841,7 +909,7 @@ app.post('/api/users/batch', (req, res) => {
       roleName: roleNames[cleanRole] || 'Teacher / User',
       assignedRooms: assignedRooms,
       password: password,
-      initials: name ? name.trim().substring(0, 2).toUpperCase() : "U",
+      initials: calculateUserInitials(name),
       color: u.color || defaultColor,
       isActive: u.isActive !== false,
       createdAt: u.createdAt || new Date().toISOString()
