@@ -17286,7 +17286,7 @@ function triggerAnnouncementLivePreview(context) {
   if (!previewBar || !previewTrack) return;
 
   const theme = currentSelectedAnnouncementTheme[context] || "orange";
-  const validThemes = ["orange", "blue", "green", "purple", "red"];
+  const validThemes = ["orange", "blue", "green", "purple", "red", "dark"];
   validThemes.forEach(t => previewBar.classList.remove(`ticker-theme-${t}`));
   previewBar.classList.add(`ticker-theme-${theme}`);
 
@@ -17400,8 +17400,8 @@ function renderAnnouncementTicker(customData) {
   const isBackoffice = (roleLevel !== "L0");
   const data = customData || getAnnouncementData();
 
-  // Apply Theme Classes (orange, blue, green, purple, red)
-  const validThemes = ["orange", "blue", "green", "purple", "red"];
+  // Apply Theme Classes (orange, blue, green, purple, red, dark)
+  const validThemes = ["orange", "blue", "green", "purple", "red", "dark"];
   const currentTheme = validThemes.includes(data.theme) ? data.theme : "orange";
   validThemes.forEach(t => tickerBar.classList.remove(`ticker-theme-${t}`));
   tickerBar.classList.add(`ticker-theme-${currentTheme}`);
@@ -17789,7 +17789,7 @@ function applyLoginBannerUI(customConfig = null) {
   if (modalContent) modalContent.style.maxWidth = "740px";
 
   // Apply Theme Class
-  const themes = ["orange", "purple", "blue", "green", "dark"];
+  const themes = ["orange", "blue", "green", "purple", "red", "dark"];
   themes.forEach(t => heroSide.classList.remove(`login-hero-theme-${t}`));
   heroSide.classList.add(`login-hero-theme-${config.theme || "purple"}`);
 
