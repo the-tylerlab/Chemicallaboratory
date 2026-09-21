@@ -5382,6 +5382,10 @@ window.moveCardRight = function(id, event) {
 };
 
 function toggleLayoutEditMode() {
+  if (!isAdminLoggedIn) {
+    showToast("เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถแก้ไขแผนผังได้", "error");
+    return;
+  }
   isLayoutEditMode = !isLayoutEditMode;
   const toolbox = document.getElementById("layoutEditToolbox");
   const btnEdit = document.getElementById("btnEditLayout");
@@ -5392,7 +5396,7 @@ function toggleLayoutEditMode() {
     showToast("เข้าสู่โหมดแก้ไข: ลากการ์ดหรือกดลูกศร ◀ ▶ เพื่อสลับตำแหน่ง", "info");
   } else {
     if (toolbox) toolbox.style.display = "none";
-    if (btnEdit && isAdminLoggedIn) btnEdit.style.display = "block";
+    if (btnEdit && isAdminLoggedIn) btnEdit.style.display = "inline-flex";
     showToast("ออกจากโหมดแก้ไขแผนผังแล้ว", "info");
   }
   
@@ -5401,8 +5405,12 @@ function toggleLayoutEditMode() {
 
 function removeLayoutElement(id, event) {
   if (event) event.stopPropagation();
+  if (!isAdminLoggedIn) {
+    showToast("เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่มีสิทธิ์ลบตู้จากแผนผัง", "error");
+    return;
+  }
   const roomFilter = document.getElementById("cabinetMapRoomFilter");
-  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  const activeRoom = currentCabinetMapRoom || (roomFilter ? roomFilter.value : "Lab 1");
   
   if (!labLayouts[activeRoom]) labLayouts[activeRoom] = [];
   
@@ -5410,7 +5418,7 @@ function removeLayoutElement(id, event) {
   const itemName = itemToRemove ? itemToRemove.name : 'รายการ';
   
   // Find if there are items in this cabinet
-  const itemsInCab = (items || []).filter(it => it.room === activeRoom && it.cabinet === itemName);
+  const itemsInCab = (items || []).filter(it => (it.room || 'Lab 1') === activeRoom && it.cabinet === itemName);
   
   let confirmMsg = `คุณต้องการลบ "${itemName}" ออกจากแผนผังใช่หรือไม่?`;
   if (itemsInCab.length > 0) {
@@ -5460,9 +5468,13 @@ function removeLayoutElement(id, event) {
 }
 
 async function saveLayout() {
+  if (!isAdminLoggedIn) {
+    showToast("เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่มีสิทธิ์บันทึกแผนผัง", "error");
+    return;
+  }
   const grid = document.querySelector('.shecu-unified-grid');
   const roomFilter = document.getElementById("cabinetMapRoomFilter");
-  const activeRoom = roomFilter ? roomFilter.value : "Lab 1";
+  const activeRoom = currentCabinetMapRoom || (roomFilter ? roomFilter.value : "Lab 1");
   
   if (!grid) {
     toggleLayoutEditMode();
@@ -5480,15 +5492,17 @@ async function saveLayout() {
     
     let maxCap = 50;
     let shelvesCount = 4;
+    let isHidden = false;
     if (labLayouts[activeRoom]) {
       const existing = labLayouts[activeRoom].find(i => i.id === id || (i.name === name && name));
       if (existing) {
         if (existing.maxCapacity !== undefined) maxCap = existing.maxCapacity;
         if (existing.shelvesCount !== undefined) shelvesCount = existing.shelvesCount;
+        if (existing.isHidden !== undefined) isHidden = existing.isHidden;
       }
     }
     
-    newLayout.push({ id, type, subType, name, maxCapacity: maxCap, shelvesCount });
+    newLayout.push({ id, type, subType, name, maxCapacity: maxCap, shelvesCount, isHidden });
   });
   
   labLayouts[activeRoom] = newLayout;
@@ -5499,7 +5513,7 @@ async function saveLayout() {
   const toolbox = document.getElementById("layoutEditToolbox");
   const btnEdit = document.getElementById("btnEditLayout");
   if (toolbox) toolbox.style.display = "none";
-  if (btnEdit) btnEdit.style.display = "block";
+  if (btnEdit && isAdminLoggedIn) btnEdit.style.display = "inline-flex";
   
   renderCabinetMap();
 }
@@ -14754,8 +14768,8 @@ function renderCabinetMap() {
   const activeRoom = currentCabinetMapRoom || (roomFilter ? roomFilter.value : "Lab 1");
   
   if (btnEditLayout) {
-    if (isAdminLoggedIn || (typeof userRole !== 'undefined' && userRole === "teacher")) {
-      btnEditLayout.style.display = isLayoutEditMode ? "none" : "block";
+    if (isAdminLoggedIn) {
+      btnEditLayout.style.display = isLayoutEditMode ? "none" : "inline-flex";
     } else {
       btnEditLayout.style.display = "none";
     }
