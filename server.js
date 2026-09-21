@@ -859,7 +859,12 @@ function getRoleColor(role) {
 
 // USERS
 app.get('/api/users', (req, res) => {
-  res.json(readUsers());
+  const users = readUsers();
+  const refreshedUsers = users.map(u => ({
+    ...u,
+    initials: calculateUserInitials(u.name) || u.initials || 'U'
+  }));
+  res.json(refreshedUsers);
 });
 
 app.post('/api/users', (req, res) => {
@@ -991,6 +996,9 @@ app.put('/api/users/:id', (req, res) => {
       'L4': 'Executive / Head of Department'
     };
     const updated = { ...users[index], ...req.body };
+    if (updated.name) {
+      updated.initials = calculateUserInitials(updated.name);
+    }
     if (req.body.role) {
       updated.roleName = roleNames[req.body.role] || updated.roleName;
     }

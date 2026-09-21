@@ -47,7 +47,7 @@
   {
     "id": "u_2001",
     "teacherId": "2001",
-    "name": "เจ้าหน้าที่ทรงศักดิ์ ดูแลแล็บเคมี",
+    "name": "ม.ธนันกรกานต์ พิจารณา",
     "department": "งานบริการห้องปฏิบัติการวิทยาศาสตร์",
     "email": "songsak.s@lab.school.ac.th",
     "role": "L2",
@@ -57,7 +57,7 @@
       "Lab 6"
     ],
     "password": "2001",
-    "initials": "ทด",
+    "initials": "ธพ",
     "color": "#ea580c",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
