@@ -7537,7 +7537,7 @@ function updateLoginUI() {
     if (btnSidebarLogin) btnSidebarLogin.style.display = "none";
 
     if (sidebarUserAvatar) {
-      sidebarUserAvatar.innerText = getUserInitials(currentUser.name, currentUser.initials);
+      sidebarUserAvatar.innerText = getUserInitials(currentUser.name);
       sidebarUserAvatar.style.background = getRoleColor(currentUser.role || roleLevel);
     }
     if (sidebarUserName) {
@@ -15808,7 +15808,7 @@ async function loadAdminData() {
     if (Array.isArray(adminUsers)) {
       adminUsers.forEach(u => {
         u.color = getRoleColor(u.role);
-        u.initials = getUserInitials(u.name, u.initials);
+        u.initials = getUserInitials(u.name);
       });
       localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
     }
@@ -15896,7 +15896,7 @@ function renderAdminUsers() {
       </td>
       <td style="padding: 10px 14px;">
         <div style="display: flex; align-items: center; gap: 10px; min-width: 180px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11.5px;flex-shrink:0;">${getUserInitials(user.name, user.initials)}</div>
+          <div style="width:32px;height:32px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11.5px;flex-shrink:0;">${getUserInitials(user.name)}</div>
           <div>
             <div style="font-weight: 600; color: var(--text-main); font-size: 13px; line-height: 1.3;">${escapeHTML(user.name || '')}</div>
             <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(user.email || '-')}</div>
@@ -16803,7 +16803,8 @@ document.addEventListener("DOMContentLoaded", () => {
             department: dept,
             email,
             role,
-            assignedRooms
+            assignedRooms,
+            initials: getUserInitials(name)
           };
           localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
           isUpdated = true;
@@ -16820,7 +16821,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // If current logged-in user is modified, update local state
         if (currentUser && (currentUser.id === id || currentUser.teacherId === teacherId)) {
-          currentUser = { ...currentUser, teacherId, name, department: dept, email, role, assignedRooms };
+          currentUser = { ...currentUser, teacherId, name, department: dept, email, role, assignedRooms, initials: getUserInitials(name) };
           localStorage.setItem("currentUser", JSON.stringify(currentUser));
           updateLoginUI();
         }
