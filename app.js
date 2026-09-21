@@ -17780,13 +17780,13 @@ function applyLoginBannerUI(customConfig = null) {
   if (!config.enabled) {
     heroSide.style.display = "none";
     splitGrid.style.gridTemplateColumns = "1fr";
-    if (modalContent) modalContent.style.maxWidth = "480px";
+    if (modalContent) modalContent.style.maxWidth = "420px";
     return;
   }
 
   heroSide.style.display = "flex";
   splitGrid.style.gridTemplateColumns = "";
-  if (modalContent) modalContent.style.maxWidth = "880px";
+  if (modalContent) modalContent.style.maxWidth = "740px";
 
   // Apply Theme Class
   const themes = ["orange", "purple", "blue", "green", "dark"];
@@ -17800,8 +17800,8 @@ function applyLoginBannerUI(customConfig = null) {
   const heroImgEl = document.getElementById("loginHeroImage");
   const defaultGraphicEl = document.getElementById("loginHeroDefaultGraphic");
 
-  if (badgeTextEl) badgeTextEl.textContent = config.badgeText || "📢 ประกาศด่วนประจำห้องแล็บ";
-  if (headlineEl) headlineEl.textContent = config.headline || "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ";
+  if (badgeTextEl) badgeTextEl.textContent = config.badgeText || "ประกาศระบบห้องปฏิบัติการ";
+  if (headlineEl) headlineEl.textContent = config.headline || "ระบบสารสนเทศห้องปฏิบัติการ";
   if (subtitleEl) subtitleEl.textContent = config.subtitle || "";
 
   // Apply Visual Image / Graphic
