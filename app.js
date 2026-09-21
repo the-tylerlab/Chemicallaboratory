@@ -2082,7 +2082,7 @@ async function editFeedback(id) {
             <span>รหัสปัญหา</span>
             <span style="font-size: 11.5px; color: #64748b; font-weight: normal;">(ระบบรันเลขอัตโนมัติ หรือแก้ไขเองได้)</span>
           </label>
-          <input id="swal-fb-code" class="swal2-input" style="width: 100%; margin: 0; font-size: 14.5px; box-sizing: border-box; height: 44px; background-color: #f8fafc; font-family: monospace; font-weight: 600;" value="${currentCode}" placeholder="เช่น ISSUE-001">
+          <input id="swal-fb-code" class="swal2-input" style="width: 100%; margin: 0; font-size: 14.5px; box-sizing: border-box; height: 44px; background-color: #f8fafc; font-weight: 600;" value="${currentCode}" placeholder="เช่น ISSUE-001">
         </div>
         <div>
           <label style="font-size: 13px; font-weight: 600; color: #334155; display: block; margin-bottom: 6px;">สถานที่จัดเก็บ / ผู้แจ้ง</label>
@@ -9203,7 +9203,7 @@ window.triggerPhysicalLabelPrint = function(itemCode) {
           }
           .nfpa-val {
             position: absolute;
-            font-family: 'Prompt', 'Sora', sans-serif;
+            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
             font-weight: 800;
             text-align: center;
             line-height: 1;
@@ -9601,7 +9601,7 @@ function printComprehensiveInventoryReport() {
         <title>รายงานสรุปสถานะคลังพัสดุและเคมีภัณฑ์ - ${new Date().toLocaleDateString('th-TH')}</title>
         <style>
           body {
-            font-family: 'Prompt', sans-serif;
+            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
             color: #1e293b;
             padding: 40px;
             background-color: #ffffff;
@@ -10485,7 +10485,7 @@ function setupWasteClassificationWizard() {
         </div>
         <div style="display: flex; flex-direction: column; gap: 10px;">
           ${choices.map((choice) => `
-            <button type="button" class="waste-choice-btn" data-next="${choice.next}" style="text-align: left; background: #ffffff; border: 1px solid var(--border-color); padding: 12px 16px; border-radius: var(--border-radius-sm); font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; transition: background-color var(--transition-fast), border-color var(--transition-fast); font-family: 'Prompt', sans-serif;">
+            <button type="button" class="waste-choice-btn" data-next="${choice.next}" style="text-align: left; background: #ffffff; border: 1px solid var(--border-color); padding: 12px 16px; border-radius: var(--border-radius-sm); font-size: 13px; font-weight: 500; color: var(--text-main); cursor: pointer; transition: background-color var(--transition-fast), border-color var(--transition-fast); font-family: var(--font-sans);">
               ${choice.label}
             </button>
           `).join("")}
@@ -10612,8 +10612,8 @@ function setupHistoryExports() {
         <head>
           <title>รายงานประวัติการยืม-คืนพัสดุและสารเคมี${filterText}</title>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-            body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
+            body { font-family: 'Noto Sans Thai', 'Inter', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
             h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
             p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
             table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
@@ -10744,8 +10744,8 @@ function setupHistoryExports() {
       <head>
         <title>รายงานประวัติการใช้ห้องปฏิบัติการ${filterText}</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-          body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
+          body { font-family: 'Noto Sans Thai', 'Inter', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
           h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
           p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
           table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
@@ -10921,8 +10921,8 @@ function setupHistoryExports() {
         <head>
           <title>รายงานรายการสั่งซื้อสะสม</title>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-            body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
+            body { font-family: 'Noto Sans Thai', 'Inter', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
             h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
             p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
             table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; page-break-inside: auto; }
