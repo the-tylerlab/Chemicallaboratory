@@ -1295,7 +1295,7 @@
           </div>
 
           <!-- Table Filters Section -->
-          <div class="table-filter-bar" style="display: flex; flex-wrap: wrap; gap: 16px; width: 100%;">
+          <div class="table-filter-bar">
             
             <div class="search-scan-group">
               <div class="search-box-container">
@@ -1305,10 +1305,10 @@
 
               <!-- Barcode/QR Quick Scan box -->
               <div class="scan-box-container">
-                <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="คลิกเพื่อสแกนด้วยกล้อง">
+                <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="คลิกเพื่อสแกนด้วยกล้อง">
                   <i data-lucide="scan" style="color: var(--primary-purple); width: 16px; height: 16px;"></i>
                 </button>
-                <input type="text" id="scanInput" placeholder="สแกนคิวอาร์..." autocomplete="off" style="width: 100%;">
+                <input type="text" id="scanInput" placeholder="สแกน QR / บาร์โค้ด" autocomplete="off">
               </div>
             </div>
 
@@ -1329,17 +1329,16 @@
               <option value="expired">หมดอายุแล้ว</option>
             </select>
 
-            <div class="filter-buttons-group" style="position: relative;">
-
+            <div class="filter-buttons-group">
               <button class="btn btn-secondary" id="btnExportCSV">
-                <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
+                <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px;"></i>
                 <span>ส่งออก Excel</span>
               </button>
               <button class="btn btn-secondary" id="btnPrintReport" style="background-color: var(--accent-blue-light); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.2);" onclick="window.print()">
-                <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+                <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
                 <span>พิมพ์รายงาน</span>
               </button>
-              <button class="btn btn-secondary admin-clear-btn" id="btnClearInventory" style="display: none; background-color: transparent; color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 12px; font-size: 12px; height: auto;" onclick="openClearPoModal()">
+              <button class="btn btn-secondary admin-clear-btn" id="btnClearInventory" style="display: none; background-color: transparent; color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3);" onclick="openClearPoModal()">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                 <span>ล้างคลังพัสดุ</span>
               </button>
