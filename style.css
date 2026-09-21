@@ -7436,6 +7436,13 @@ a[href^="tel"]:visited {
   border-color: #fecaca;
 }
 
+.announcement-ticker-bar.ticker-theme-dark .ticker-badge,
+.ticker-preview-bar.ticker-theme-dark .ticker-badge {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
 .btn-ticker-admin-edit {
   display: none;
   align-items: center;
@@ -9177,16 +9184,20 @@ body.admin-logged-in .public-only-section {
   background: linear-gradient(150deg, #ea580c 0%, #c2410c 50%, #9a3412 100%);
 }
 
-.login-hero-theme-purple {
-  background: linear-gradient(150deg, #4338ca 0%, #3730a3 50%, #1e1b4b 100%);
-}
-
 .login-hero-theme-blue {
   background: linear-gradient(150deg, #0284c7 0%, #0369a1 50%, #075985 100%);
 }
 
 .login-hero-theme-green {
   background: linear-gradient(150deg, #059669 0%, #047857 50%, #064e3b 100%);
+}
+
+.login-hero-theme-purple {
+  background: linear-gradient(150deg, #4338ca 0%, #3730a3 50%, #1e1b4b 100%);
+}
+
+.login-hero-theme-red {
+  background: linear-gradient(150deg, #dc2626 0%, #b91c1c 50%, #7f1d1d 100%);
 }
 
 .login-hero-theme-dark {
