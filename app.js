@@ -486,7 +486,7 @@ function setupRealtimeSubscriptions() {
 }
 
 // Dynamic System Version Auto-Updater
-const APP_SYSTEM_VERSION = "2.5.0";
+const APP_SYSTEM_VERSION = "2.6.0";
 
 async function fetchAppVersion() {
   let version = APP_SYSTEM_VERSION;

@@ -562,9 +562,9 @@ app.post('/api/sync-google-sheets', async (req, res) => {
 app.get('/api/version', (req, res) => {
   try {
     const pkg = require('./package.json');
-    res.json({ version: pkg.version || '2.5.0', pwa: true, name: 'Chemical Laboratory System' });
+    res.json({ version: pkg.version || '2.6.0', pwa: true, name: 'Chemical Laboratory System' });
   } catch (e) {
-    res.json({ version: '2.5.0', pwa: true });
+    res.json({ version: '2.6.0', pwa: true });
   }
 });
 
