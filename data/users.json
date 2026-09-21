@@ -24,7 +24,7 @@
     "roleName": "Teacher / User",
     "assignedRooms": [],
     "password": "1001",
-    "initials": "สช",
+    "initials": "สร",
     "color": "#0284c7",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
@@ -39,7 +39,7 @@
     "roleName": "Teacher / User",
     "assignedRooms": [],
     "password": "1002",
-    "initials": "วภ",
+    "initials": "วฝ",
     "color": "#059669",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
@@ -57,7 +57,7 @@
       "Lab 6"
     ],
     "password": "2001",
-    "initials": "ทศ",
+    "initials": "ทด",
     "color": "#ea580c",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
@@ -75,7 +75,7 @@
       "Lab 3"
     ],
     "password": "2002",
-    "initials": "นม",
+    "initials": "นด",
     "color": "#d97706",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
@@ -90,7 +90,7 @@
     "roleName": "Manager / System Manager",
     "assignedRooms": [],
     "password": "3001",
-    "initials": "นพ",
+    "initials": "นห",
     "color": "#6366f1",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
@@ -105,7 +105,7 @@
     "roleName": "Executive / Head of Department",
     "assignedRooms": [],
     "password": "4001",
-    "initials": "กศ",
+    "initials": "กว",
     "color": "#be185d",
     "isActive": true,
     "createdAt": "2026-09-16T12:00:00Z"
