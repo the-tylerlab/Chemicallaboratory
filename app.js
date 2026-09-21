@@ -11,6 +11,14 @@ const itemsPerPage = 10;
 let fileToImport = null;
 
 // RBAC State Management (L0 - L4)
+const initUrlParams = typeof window !== "undefined" && window.location ? new URLSearchParams(window.location.search) : null;
+if (initUrlParams && initUrlParams.get("admin") === "true") {
+  localStorage.setItem("userRole", "admin");
+  localStorage.setItem("isAdminLoggedIn", "true");
+  localStorage.setItem("userRoleLevel", "L3");
+  localStorage.setItem("currentUser", JSON.stringify({ id: "admin", name: "ผู้ดูแลระบบ", role: "admin", roleLevel: "L3" }));
+}
+
 let currentUser = null;
 try {
   const savedUser = localStorage.getItem("currentUser");
@@ -597,8 +605,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateLoginUI();
     setupSidebarCollapse();
     
-    // Ensure default landing panel is Dashboard (หน้าแรก) on startup / first visit
-    if (typeof navigateToPanel === "function") {
+    // Support URL query parameters for direct navigation & screenshot automation
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetPanel = urlParams.get("panel");
+    const forceAdmin = urlParams.get("admin");
+    if (forceAdmin === "true") {
+      isAdminLoggedIn = true;
+      userRole = "admin";
+      currentUser = { id: "admin", name: "ผู้ดูแลระบบ", role: "admin", roleLevel: "L3" };
+      localStorage.setItem("isAdminLoggedIn", "true");
+      localStorage.setItem("userRole", "admin");
+    }
+
+    if (targetPanel && typeof navigateToPanel === "function") {
+      navigateToPanel(targetPanel);
+    } else if (typeof navigateToPanel === "function") {
       navigateToPanel("dashboard");
     }
 
@@ -1329,6 +1350,15 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
 
   if (panelId === "cabinet-layout" || panelId === "shecu") {
     if (typeof renderCabinetMap === "function") renderCabinetMap();
+  }
+
+  if (panelId === "lab-booking") {
+    if (typeof renderBookingCalendar === "function") renderBookingCalendar();
+  }
+
+  if (panelId === "admin" || panelId === "panel-admin") {
+    if (typeof renderAdminPanel === "function") renderAdminPanel();
+    if (typeof renderUsersTable === "function") renderUsersTable();
   }
 
   if (panelId === "assets") {
@@ -15553,40 +15583,62 @@ function getUserInitials(name, fallback = "") {
   const trimmed = name.trim();
   if (/^admin$/i.test(trimmed) || /^\(Admin\)$/i.test(trimmed)) return "AD";
 
-  let cleanName = name.replace(/\([^)]*\)/g, '').trim();
+  let cleanName = name.replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '').trim();
 
-  // Known Thai & English Titles to strip
+  // Known Thai & English Titles to strip (including school prefixes: มิส, ม., มาสเตอร์, ภราดา, ฯลฯ)
   const titlePrefixes = [
+    /^ว่าที่\s*ร\.ต\.\s*(?:หญิง\s*)?/i,
+    /^ว่าที่\s*ร้อยตรี\s*(?:หญิง\s*)?/i,
+    /^รอง\s*ผู้อำนวยการ\s*/i,
+    /^รอง\s*ผอ\.\s*/i,
+    /^ผู้อำนวยการ\s*/i,
+    /^ผอ\.\s*/i,
     /^เจ้าหน้าที่\s*/i,
     /^จนท\.\s*/i,
-    /^อาจารย์\s*/i,
-    /^อ\.\s*/i,
-    /^ครู\s*/i,
-    /^ผอ\.\s*/i,
-    /^ผู้อำนวยการ\s*/i,
-    /^ดร\.\s*/i,
-    /^นาย\s*/i,
-    /^นางสาว\s*/i,
-    /^นาง\s*/i,
-    /^น\.ส\.\s*/i,
     /^ผศ\.ดร\.\s*/i,
     /^ผศ\.\s*/i,
     /^รศ\.ดร\.\s*/i,
     /^รศ\.\s*/i,
     /^ศ\.ดร\.\s*/i,
     /^ศ\.\s*/i,
+    /^ดร\.\s*/i,
+    /^อาจารย์\s*/i,
+    /^อ\.\s*/i,
+    /^ภราดา\s*/i,
+    /^บราเดอร์\s*/i,
+    /^ซิสเตอร์\s*/i,
+    /^เซอร์\s*/i,
+    /^มาสเตอร์\s*/i,
+    /^มัสเตอร์\s*/i,
+    /^มิส(?:\.|\s+|$)/i,
+    /^มิส/i,
+    /^ม\.(?:\s+|$)?/i,
+    /^ม\s+/i,
+    /^ครู\s*/i,
+    /^นางสาว\s*/i,
+    /^น\.ส\.\s*/i,
+    /^นส\.\s*/i,
+    /^นาง\s*/i,
+    /^นาย\s*/i,
     /^คุณ\s*/i,
     /^Mr\.\s*/i,
     /^Mrs\.\s*/i,
     /^Ms\.\s*/i,
+    /^Miss\s*/i,
+    /^Master\s*/i,
     /^Dr\.\s*/i,
     /^Prof\.\s*/i
   ];
 
-  for (const prefix of titlePrefixes) {
-    if (prefix.test(cleanName)) {
-      cleanName = cleanName.replace(prefix, '').trim();
-      break;
+  let matched = true;
+  while (matched) {
+    matched = false;
+    for (const prefix of titlePrefixes) {
+      if (prefix.test(cleanName)) {
+        cleanName = cleanName.replace(prefix, '').trim();
+        matched = true;
+        break;
+      }
     }
   }
 
@@ -16013,7 +16065,7 @@ document.addEventListener("DOMContentLoaded", () => {
         password: teacherId,
         isActive: true,
         createdAt: new Date().toISOString(),
-        initials: name ? name.trim().substring(0, 2).toUpperCase() : "U",
+        initials: getUserInitials(name),
         color: role === 'L2' ? '#ea580c' : role === 'L3' ? '#7c3aed' : role === 'L4' ? '#be185d' : '#0284c7'
       };
 
@@ -16617,7 +16669,7 @@ async function submitBatchAddUsers() {
         password: teacherId,
         isActive: true,
         createdAt: new Date().toISOString(),
-        initials: u.name.trim().substring(0, 2).toUpperCase(),
+        initials: getUserInitials(u.name),
         color: u.role === 'L2' ? '#ea580c' : u.role === 'L3' ? '#7c3aed' : u.role === 'L4' ? '#be185d' : '#0284c7'
       };
 

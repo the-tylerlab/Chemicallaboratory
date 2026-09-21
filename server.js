@@ -754,40 +754,62 @@ function calculateUserInitials(name) {
   const trimmed = name.trim();
   if (/^admin$/i.test(trimmed) || /^\(Admin\)$/i.test(trimmed)) return "AD";
 
-  let cleanName = name.replace(/\([^)]*\)/g, '').trim();
+  let cleanName = name.replace(/\([^)]*\)/g, '').replace(/\[[^\]]*\]/g, '').trim();
 
-  // Known Thai & English Titles to strip
+  // Known Thai & English Titles to strip (including school prefixes: มิส, ม., มาสเตอร์, ภราดา, ฯลฯ)
   const titlePrefixes = [
+    /^ว่าที่\s*ร\.ต\.\s*(?:หญิง\s*)?/i,
+    /^ว่าที่\s*ร้อยตรี\s*(?:หญิง\s*)?/i,
+    /^รอง\s*ผู้อำนวยการ\s*/i,
+    /^รอง\s*ผอ\.\s*/i,
+    /^ผู้อำนวยการ\s*/i,
+    /^ผอ\.\s*/i,
     /^เจ้าหน้าที่\s*/i,
     /^จนท\.\s*/i,
-    /^อาจารย์\s*/i,
-    /^อ\.\s*/i,
-    /^ครู\s*/i,
-    /^ผอ\.\s*/i,
-    /^ผู้อำนวยการ\s*/i,
-    /^ดร\.\s*/i,
-    /^นาย\s*/i,
-    /^นางสาว\s*/i,
-    /^นาง\s*/i,
-    /^น\.ส\.\s*/i,
     /^ผศ\.ดร\.\s*/i,
     /^ผศ\.\s*/i,
     /^รศ\.ดร\.\s*/i,
     /^รศ\.\s*/i,
     /^ศ\.ดร\.\s*/i,
     /^ศ\.\s*/i,
+    /^ดร\.\s*/i,
+    /^อาจารย์\s*/i,
+    /^อ\.\s*/i,
+    /^ภราดา\s*/i,
+    /^บราเดอร์\s*/i,
+    /^ซิสเตอร์\s*/i,
+    /^เซอร์\s*/i,
+    /^มาสเตอร์\s*/i,
+    /^มัสเตอร์\s*/i,
+    /^มิส(?:\.|\s+|$)/i,
+    /^มิส/i,
+    /^ม\.(?:\s+|$)?/i,
+    /^ม\s+/i,
+    /^ครู\s*/i,
+    /^นางสาว\s*/i,
+    /^น\.ส\.\s*/i,
+    /^นส\.\s*/i,
+    /^นาง\s*/i,
+    /^นาย\s*/i,
     /^คุณ\s*/i,
     /^Mr\.\s*/i,
     /^Mrs\.\s*/i,
     /^Ms\.\s*/i,
+    /^Miss\s*/i,
+    /^Master\s*/i,
     /^Dr\.\s*/i,
     /^Prof\.\s*/i
   ];
 
-  for (const prefix of titlePrefixes) {
-    if (prefix.test(cleanName)) {
-      cleanName = cleanName.replace(prefix, '').trim();
-      break;
+  let matched = true;
+  while (matched) {
+    matched = false;
+    for (const prefix of titlePrefixes) {
+      if (prefix.test(cleanName)) {
+        cleanName = cleanName.replace(prefix, '').trim();
+        matched = true;
+        break;
+      }
     }
   }
 
@@ -1028,7 +1050,7 @@ app.post('/api/auth/login', (req, res) => {
           roleName: user.roleName || 'Teacher / User',
           department: user.department || '',
           assignedRooms: user.assignedRooms || [],
-          initials: user.initials || 'U',
+          initials: calculateUserInitials(user.name) || user.initials || 'U',
           color: user.color || '#3b82f6'
         }
       });
