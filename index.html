@@ -3451,10 +3451,8 @@
   <div class="modal-overlay" id="loginModal">
     <div class="modal-content" style="max-width: 460px; width: 95%;">
       <div class="modal-header">
-        <h2 class="modal-title" style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; display: flex; align-items: center; justify-content: center;">
-            <i data-lucide="lock" style="width: 17px; height: 17px;"></i>
-          </div>
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="lock" style="width: 18px; height: 18px; color: var(--primary-purple);"></i>
           <span>เข้าสู่ระบบห้องปฏิบัติการ</span>
         </h2>
         <button class="modal-close-btn" id="loginModalClose">&times;</button>
@@ -3463,8 +3461,8 @@
       <form id="adminLoginForm">
         <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
 
-          <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: var(--text-main); display: flex; align-items: flex-start; gap: 10px;">
-            <i data-lucide="info" style="width: 18px; height: 18px; color: #6366f1; flex-shrink: 0; margin-top: 1px;"></i>
+          <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--text-main); display: flex; align-items: flex-start; gap: 10px;">
+            <i data-lucide="info" style="width: 16px; height: 16px; color: var(--primary-purple); flex-shrink: 0; margin-top: 2px;"></i>
             <div>
               <span style="font-weight: 600;">เข้าใช้งานด้วยรหัสประจำตัวครู:</span>
               <div style="color: var(--text-muted); font-size: 12px; margin-top: 2px;">
@@ -3501,15 +3499,15 @@
           <!-- Remember Me Checkbox -->
           <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 2px; margin-top: -2px;">
             <label for="loginRememberMe" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-main); font-weight: 500; cursor: pointer; user-select: none;">
-              <input type="checkbox" id="loginRememberMe" checked style="width: 16px; height: 16px; accent-color: #7c3aed; cursor: pointer; border-radius: 4px;">
+              <input type="checkbox" id="loginRememberMe" checked style="width: 16px; height: 16px; accent-color: var(--primary-purple); cursor: pointer; border-radius: 4px;">
               <span>จดจำรหัสผ่านในอุปกรณ์นี้ (Remember Password)</span>
             </label>
           </div>
 
           <!-- Quick Demo Role Presets for Testing -->
-          <div style="background: #f1f5f9; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; margin-top: 4px;">
-            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #8b5cf6;"></i>
+          <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; margin-top: 4px;">
+            <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="users" style="width: 14px; height: 14px; color: var(--primary-purple);"></i>
               <span>เลือกบัญชีตัวอย่างเพื่อทดสอบระดับสิทธิ์ (Demo Roles):</span>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
