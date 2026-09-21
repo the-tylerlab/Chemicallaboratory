@@ -1729,9 +1729,9 @@
               </div>
 
               <div id="bookingSubmitFields">
-                <div class="form-row-2" style="margin-top: 14px;">
+                <div class="form-row-2" style="margin-top: 14px; gap: 14px;">
                   <div class="form-group" style="margin-bottom: 0;">
-                    <label for="bookingGradeLevel" class="form-label" style="font-weight: 600; font-size: 13px;">ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                    <label for="bookingGradeLevel" class="form-label">ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน <span style="color: var(--accent-red);">*</span></label>
                     <input type="text" id="bookingGradeLevel" class="form-control" placeholder="เช่น ม.4/1, ม.5/2, ม.ต้น" required list="gradeLevelOptions">
                     <datalist id="gradeLevelOptions">
                       <option value="ม.1/1">
@@ -1755,21 +1755,21 @@
                   </div>
 
                   <div class="form-group" style="margin-bottom: 0;">
-                    <label for="bookingStudentCount" class="form-label" style="font-weight: 600; font-size: 13px;">จำนวนนักเรียนที่เข้าใช้งานทั้งหมด <span style="color: var(--accent-red);">*</span></label>
-                    <div style="position: relative; display: flex; align-items: center;">
-                      <input type="number" id="bookingStudentCount" class="form-control" placeholder="เช่น 35" min="1" max="150" required style="padding-right: 45px;">
-                      <span style="position: absolute; right: 12px; font-size: 13px; color: var(--text-muted); font-weight: 500;">คน</span>
+                    <label for="bookingStudentCount" class="form-label">จำนวนนักเรียนที่เข้าใช้งานทั้งหมด <span style="color: var(--accent-red);">*</span></label>
+                    <div style="position: relative; width: 100%; display: flex; align-items: center;">
+                      <input type="number" id="bookingStudentCount" class="form-control" placeholder="เช่น 35" min="1" max="150" required style="padding-right: 48px;">
+                      <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); font-weight: 500; pointer-events: none;">คน</span>
                     </div>
                   </div>
                 </div>
 
                 <div class="form-group" style="margin-top: 14px;">
-                  <label for="bookingPurpose" class="form-label" style="font-weight: 600; font-size: 13px;">ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น) <span style="color: var(--accent-red);">*</span></label>
-                  <textarea id="bookingPurpose" class="form-control" rows="2" placeholder="ระบุกิจกรรม เช่น ทำ Lab เรื่องการไทเทรตกรด-เบส, การทดลองการหักเหของแสง, กิจกรรมชมรมดาราศาสตร์" required style="resize: vertical; font-size: 13.5px;"></textarea>
+                  <label for="bookingPurpose" class="form-label">ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น) <span style="color: var(--accent-red);">*</span></label>
+                  <textarea id="bookingPurpose" class="form-control" rows="2" placeholder="ระบุกิจกรรม เช่น ทำ Lab เรื่องการไทเทรตกรด-เบส, การทดลองการหักเหของแสง, กิจกรรมชมรมดาราศาสตร์" required style="resize: vertical;"></textarea>
                 </div>
 
                 <div class="form-group" style="margin-top: 14px;">
-                  <label for="bookerName" class="form-label" style="font-weight: 600; font-size: 13px;">ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น) <span style="color: var(--accent-red);">*</span></label>
+                  <label for="bookerName" class="form-label">ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น) <span style="color: var(--accent-red);">*</span></label>
                   <input type="text" id="bookerName" class="form-control" placeholder="พิมพ์เฉพาะชื่อ-นามสกุล เช่น สมชาย รักการสอน" required>
                 </div>
 

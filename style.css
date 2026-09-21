@@ -1373,10 +1373,13 @@ button.menu-item-link:hover {
   gap: 12px;
 }
 
+.form-label,
 label {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: var(--text-main);
+  color: #1e293b;
+  margin-bottom: 6px;
+  display: block;
 }
 
 label span.required {
@@ -1388,30 +1391,93 @@ input[type="text"],
 input[type="number"],
 input[type="date"],
 input[type="password"],
+input[type="email"],
 input[type="url"],
 select,
-textarea {
-  padding: 8px 12px;
-  border-radius: var(--border-radius-md);
+.form-control:not(textarea) {
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
   border: 1px solid var(--border-color);
-  font-size: 13px;
+  font-size: 13.5px;
+  font-family: var(--font-sans);
   background-color: #ffffff;
   color: var(--text-main);
+  box-sizing: border-box;
+  line-height: 42px;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   width: 100%;
-  resize: vertical;
+}
+
+select {
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px;
+  padding: 0 38px 0 14px !important;
+  cursor: pointer;
 }
 
 select option {
-  font-size: 13px;
+  font-size: 13.5px;
+  padding: 8px 12px;
 }
 
-input[type="text"],
-input[type="number"],
-input[type="date"],
-input[type="password"],
-input[type="url"] {
-  height: 38px;
+input[type="date"] {
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  margin: 0;
+  text-align: left;
+  line-height: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 2px;
+  transition: opacity 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+textarea,
+textarea.form-control {
+  min-height: 84px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  font-size: 13.5px;
+  font-family: var(--font-sans);
+  background-color: #ffffff;
+  color: var(--text-main);
+  box-sizing: border-box;
+  line-height: 1.6;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  width: 100%;
+  resize: vertical;
 }
 
 /* Hide native HTML5 datalist dropdown arrow */
@@ -1419,22 +1485,9 @@ input[list]::-webkit-calendar-picker-indicator {
   display: none !important;
 }
 
-select {
-  height: 38px;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 14px;
-  padding: 6px 32px 6px 12px !important;
-  line-height: normal;
-}
-
 input:focus, select:focus, textarea:focus {
-  border-color: var(--primary-purple);
-  box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.08), 0 0 0 4px rgba(24, 24, 27, 0.05);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
 }
 
 /* Storage Nested Location Box */
@@ -3641,7 +3694,9 @@ tr:hover td {
 input[type="date"] {
   -webkit-appearance: none;
   appearance: none;
-  min-height: 46px; /* Align height with other text inputs on iOS */
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
   box-sizing: border-box;
   position: relative;
 }
@@ -3650,7 +3705,10 @@ input[type="date"] {
 input[type="date"]::-webkit-date-and-time-value {
   margin: 0;
   text-align: left;
-  min-height: 1.2em;
+  line-height: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
   font-family: inherit;
   font-size: inherit;
 }
