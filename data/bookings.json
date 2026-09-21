@@ -4,7 +4,9 @@
     "room": "Lab 2",
     "date": "2026-07-13",
     "slot": "6, 7",
-    "bookerName": "นางสาวสมหญิง ทดสอบจอง",
+    "gradeLevel": "ม.4/1",
+    "studentCount": 36,
+    "bookerName": "สมหญิง ทดสอบจอง",
     "purpose": "เพื่อทดสอบการทำปฏิกิริยาเคมีเบื้องต้น",
     "prepItems": [
       {
@@ -24,8 +26,10 @@
     "room": "Lab 1",
     "date": "2026-07-13",
     "slot": "3",
-    "bookerName": "นายสมชาย เรียนดี",
-    "purpose": "เพื่อทดสอบกระบวนการทำแล็บเคมีเบื้องต้น",
+    "gradeLevel": "ม.5/2",
+    "studentCount": 38,
+    "bookerName": "สมชาย รักการสอน",
+    "purpose": "ทำ Lab เรื่องการไทเทรตกรด-เบส",
     "prepItems": [
       {
         "qty": 2,
@@ -40,7 +44,9 @@
     "room": "Lab 2",
     "date": "2026-07-14",
     "slot": "4, 5",
-    "bookerName": "นางสาวสมหญิง ใจดี",
+    "gradeLevel": "ม.4/3",
+    "studentCount": 35,
+    "bookerName": "สมหญิง ใจดี",
     "purpose": "ทดลองเรื่องกลศาสตร์แรงและการหมุน",
     "prepItems": [
       {
@@ -56,7 +62,9 @@
     "room": "Lab 3",
     "date": "2026-07-15",
     "slot": "1, 2",
-    "bookerName": "นายมานะ ขยันเรียน",
+    "gradeLevel": "ม.6/1",
+    "studentCount": 32,
+    "bookerName": "มานะ ขยันเรียน",
     "purpose": "ศึกษาการดูดจ่ายสารเคมีและเซลล์พืชด้วยกล้องจุลทรรศน์",
     "prepItems": [
       {

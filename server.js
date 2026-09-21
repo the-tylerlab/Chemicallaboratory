@@ -502,6 +502,31 @@ async function syncToGoogleSheets(table, action, data, keyField = 'id') {
 // HTTP API ENDPOINTS
 // ==========================================================================
 
+function formatBookingForSync(b) {
+  const roomNames = {
+    'Lab 1': 'ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ (Lab 1)',
+    'Lab 2': 'ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์ (Lab 2)',
+    'Lab 3': 'ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์ (Lab 3)',
+    'Lab 4': 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล (Lab 4)',
+    'Lab 5': 'ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล (Lab 5)',
+    'Lab 6': 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ (Lab 6)',
+    'Lab 7': 'ห้องศูนย์ STEM CENTER (Lab 7)',
+    'Lab 8': 'ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่ (Lab 8)'
+  };
+  return {
+    'วัน/เดือน/ปี ที่ใช้งาน': b.date || '',
+    'เวลาที่เข้าใช้': b.slot || '',
+    'ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน': b.gradeLevel || '-',
+    'จำนวนนักเรียนที่เข้าใช้งานทั้งหมด': b.studentCount ? `${b.studentCount} คน` : '-',
+    'ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น)': b.purpose || b.activity || '',
+    'ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น)': b.bookerName || b.teacherName || '',
+    'ห้องปฏิบัติการ': roomNames[b.room] || b.room || '',
+    'สถานะ': b.status === 'approved' ? 'อนุมัติแล้ว' : (b.status === 'pending' ? 'รออนุมัติ' : 'ปฏิเสธ'),
+    'id': b.id,
+    'createdAt': b.createdAt || new Date().toISOString()
+  };
+}
+
 // Manual / Full Trigger: Sync All Tables to Google Sheets
 app.post('/api/sync-google-sheets', async (req, res) => {
   try {
@@ -515,7 +540,7 @@ app.post('/api/sync-google-sheets', async (req, res) => {
 
     items.forEach(item => syncToGoogleSheets('Items', 'UPSERT', item, 'code'));
     transactions.forEach(tx => syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id'));
-    bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', b, 'id'));
+    bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(b), 'id'));
     purchaseOrders.forEach(po => syncToGoogleSheets('Purchase_Orders', 'UPSERT', po, 'id'));
     users.forEach(u => {
       const copy = { ...u };
@@ -700,7 +725,7 @@ app.post('/api/bookings', (req, res) => {
   const bookings = req.body;
   writeBookings(bookings);
   if (Array.isArray(bookings)) {
-    bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', b, 'id'));
+    bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(b), 'id'));
   }
   res.json({ success: true });
 });

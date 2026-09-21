@@ -1729,21 +1729,52 @@
               </div>
 
               <div id="bookingSubmitFields">
-                <div class="form-group" style="margin-top: 16px;">
-                  <label for="bookerName" class="form-label">ชื่อผู้จอง <span style="color: var(--accent-red);">*</span></label>
-                  <input type="text" id="bookerName" class="form-control" placeholder="ระบุชื่อผู้จอง">
+                <div class="form-row-2" style="margin-top: 14px;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label for="bookingGradeLevel" class="form-label" style="font-weight: 600; font-size: 13px;">ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                    <input type="text" id="bookingGradeLevel" class="form-control" placeholder="เช่น ม.4/1, ม.5/2, ม.ต้น" required list="gradeLevelOptions">
+                    <datalist id="gradeLevelOptions">
+                      <option value="ม.1/1">
+                      <option value="ม.1/2">
+                      <option value="ม.2/1">
+                      <option value="ม.2/2">
+                      <option value="ม.3/1">
+                      <option value="ม.3/2">
+                      <option value="ม.4/1">
+                      <option value="ม.4/2">
+                      <option value="ม.4/3">
+                      <option value="ม.5/1">
+                      <option value="ม.5/2">
+                      <option value="ม.5/3">
+                      <option value="ม.6/1">
+                      <option value="ม.6/2">
+                      <option value="ม.6/3">
+                      <option value="ชมรมวิทยาศาสตร์">
+                      <option value="โครงงานวิทยาศาสตร์">
+                    </datalist>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label for="bookingStudentCount" class="form-label" style="font-weight: 600; font-size: 13px;">จำนวนนักเรียนที่เข้าใช้งานทั้งหมด <span style="color: var(--accent-red);">*</span></label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                      <input type="number" id="bookingStudentCount" class="form-control" placeholder="เช่น 35" min="1" max="150" required style="padding-right: 45px;">
+                      <span style="position: absolute; right: 12px; font-size: 13px; color: var(--text-muted); font-weight: 500;">คน</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div class="form-group" style="margin-top: 16px;">
-                  <label for="bookingPurpose" class="form-label">วัตถุประสงค์การใช้งาน <span style="color: var(--accent-red);">*</span></label>
-                  <input type="text" id="bookingPurpose" class="form-control" placeholder="ระบุวัตถุประสงค์">
-                  <span style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px; display: block;">
-                    หมายเหตุ: ระบุระดับชั้น วิชา และเรื่อง (เช่น ม.4 วิชาเคมี เรื่องการไทเทรต)
-                  </span>
+                <div class="form-group" style="margin-top: 14px;">
+                  <label for="bookingPurpose" class="form-label" style="font-weight: 600; font-size: 13px;">ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น) <span style="color: var(--accent-red);">*</span></label>
+                  <textarea id="bookingPurpose" class="form-control" rows="2" placeholder="ระบุกิจกรรม เช่น ทำ Lab เรื่องการไทเทรตกรด-เบส, การทดลองการหักเหของแสง, กิจกรรมชมรมดาราศาสตร์" required style="resize: vertical; font-size: 13.5px;"></textarea>
                 </div>
 
-                <div class="form-actions" style="margin-top: 24px;">
-                  <button type="submit" class="btn btn-primary" id="btnSubmitBooking" style="background-color: #8b5cf6;">
+                <div class="form-group" style="margin-top: 14px;">
+                  <label for="bookerName" class="form-label" style="font-weight: 600; font-size: 13px;">ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น) <span style="color: var(--accent-red);">*</span></label>
+                  <input type="text" id="bookerName" class="form-control" placeholder="พิมพ์เฉพาะชื่อ-นามสกุล เช่น สมชาย รักการสอน" required>
+                </div>
+
+                <div class="form-actions" style="margin-top: 20px;">
+                  <button type="submit" class="btn btn-primary" id="btnSubmitBooking" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: inline-flex; align-items: center; gap: 8px; font-weight: 600;">
                     <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
                     <span>บันทึกการจอง</span>
                   </button>
@@ -1754,10 +1785,22 @@
           </div>
 
           <!-- Right Column: Logs / Calendar -->
-          <div style="display: flex; flex-direction: column; gap: 20px; flex: 1; min-width: 0;">
-            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0;">
-              <h2>รายการจองห้องปฏิบัติการ</h2>
-              <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
+          <div style="display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 0;">
+            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h2>รายการจองห้องปฏิบัติการ</h2>
+                <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" id="btnQuickExportBookingCSV" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; border-radius: 8px;">
+                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #10b981;"></i>
+                  <span>ส่งออก Excel/CSV</span>
+                </button>
+                <button type="button" id="btnQuickExportBookingPDF" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; border-radius: 8px;">
+                  <i data-lucide="printer" style="width: 14px; height: 14px; color: #6366f1;"></i>
+                  <span>พิมพ์รายงาน</span>
+                </button>
+              </div>
             </div>
 
             <!-- View Toggle Bar -->
@@ -1778,18 +1821,22 @@
             <div id="bookingListViewArea" style="display: none; flex-direction: column; gap: 12px; flex: 1;">
 
               <!-- Booking Table -->
-              <div class="table-container" style="margin-bottom: 0; flex: 1;">
-                <table>
+              <div class="table-container" style="margin-bottom: 0; flex: 1; overflow-x: auto;">
+                <table style="min-width: 720px;">
                   <thead>
                     <tr>
-                      <th style="width: 30%;">วันที่เข้าใช้</th>
-                      <th style="width: 70%;">ห้องแล็บ</th>
+                      <th style="width: 14%;">วัน/เดือน/ปี ที่ใช้งาน</th>
+                      <th style="width: 14%;">เวลาที่เข้าใช้</th>
+                      <th style="width: 14%;">ระดับชั้น / นร.</th>
+                      <th style="width: 26%;">กิจกรรมที่ใช้</th>
+                      <th style="width: 16%;">ลงชื่อคุณครู</th>
+                      <th style="width: 16%;">ห้องปฏิบัติการ</th>
                     </tr>
                   </thead>
                   <tbody id="bookingsTableBody">
                     <!-- Dynamically populated -->
                     <tr>
-                      <td colspan="2" style="text-align: center; padding: 40px;">
+                      <td colspan="6" style="text-align: center; padding: 40px;">
                         <div class="empty-state">
                           <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
                           <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
@@ -3572,12 +3619,22 @@
             </div>
             
             <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
-              <span style="color: var(--text-muted); font-weight: 500;">ผู้จอง:</span>
+              <span style="color: var(--text-muted); font-weight: 500;">ระดับชั้นเรียน:</span>
+              <span id="bsGradeLevel" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">จำนวนนักเรียน:</span>
+              <span id="bsStudentCount" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">คุณครูผู้สอน:</span>
               <span id="bsBooker" style="color: var(--text-main); font-weight: 600;">-</span>
             </div>
             
             <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
-              <span style="color: var(--text-muted); font-weight: 500;">วัตถุประสงค์:</span>
+              <span style="color: var(--text-muted); font-weight: 500;">กิจกรรมที่ใช้:</span>
               <span id="bsPurpose" style="color: var(--text-main);">-</span>
             </div>
             

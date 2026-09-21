@@ -6107,11 +6107,13 @@ function setupBookingForm() {
     const room = document.getElementById("bookingRoom").value;
     const date = document.getElementById("bookingDate").value;
     const slot = document.getElementById("selectedBookingSlot").value;
-    const bookerName = document.getElementById("bookerName").value.trim();
+    const gradeLevel = document.getElementById("bookingGradeLevel") ? document.getElementById("bookingGradeLevel").value.trim() : "";
+    const studentCount = document.getElementById("bookingStudentCount") ? document.getElementById("bookingStudentCount").value.trim() : "";
     const purpose = document.getElementById("bookingPurpose").value.trim();
+    const bookerName = document.getElementById("bookerName").value.trim();
 
-    if (!room || !date || !slot || !bookerName || !purpose) {
-      showToast("กรุณากรอกข้อมูลและเลือกช่วงเวลาว่างให้ครบถ้วน", "error");
+    if (!room || !date || !slot || !gradeLevel || !studentCount || !purpose || !bookerName) {
+      showToast("กรุณากรอกข้อมูล วันที่, ช่วงเวลา, ระดับชั้น, จำนวนนักเรียน, กิจกรรมที่ใช้ และลงชื่อคุณครูให้ครบถ้วน", "error");
       return;
     }
 
@@ -6154,8 +6156,12 @@ function setupBookingForm() {
       room,
       date,
       slot,
-      bookerName,
+      gradeLevel,
+      studentCount: Number(studentCount) || studentCount,
       purpose,
+      activity: purpose,
+      bookerName,
+      teacherName: bookerName,
       prepItems,
       status: bookingStatus,
       createdAt: new Date().toISOString()
@@ -6183,6 +6189,8 @@ function setupBookingForm() {
       const bsRoom = document.getElementById("bsRoom");
       const bsDate = document.getElementById("bsDate");
       const bsSlots = document.getElementById("bsSlots");
+      const bsGradeLevel = document.getElementById("bsGradeLevel");
+      const bsStudentCount = document.getElementById("bsStudentCount");
       const bsBooker = document.getElementById("bsBooker");
       const bsPurpose = document.getElementById("bsPurpose");
       const bsPrepBlock = document.getElementById("bsPrepBlock");
@@ -6193,6 +6201,8 @@ function setupBookingForm() {
       if (bsRoom) bsRoom.textContent = getRoomThaiName(room);
       if (bsDate) bsDate.textContent = formatThaiDate(date);
       if (bsSlots) bsSlots.textContent = slot;
+      if (bsGradeLevel) bsGradeLevel.textContent = gradeLevel || "-";
+      if (bsStudentCount) bsStudentCount.textContent = studentCount ? `${studentCount} คน` : "-";
       if (bsBooker) bsBooker.textContent = bookerName;
       if (bsPurpose) bsPurpose.textContent = purpose;
       
@@ -6363,25 +6373,38 @@ function renderBookingsTable() {
     const formattedDate = formatThaiDate(b.date);
     
     // Split slots by comma and create a line for each slot
-    const slotHtml = b.slot.split(", ").map(s => `
-      <div style="font-weight: 600; color: var(--text-main); font-size: 11px; line-height: 1.4; margin-top: 2px;">${s}</div>
+    const slotHtml = (b.slot || "").split(", ").map(s => `
+      <div style="font-weight: 600; color: #6366f1; font-size: 11px; line-height: 1.3;">${s}</div>
     `).join("");
+
+    const isApproved = b.status === "approved";
+    const isPending = b.status === "pending";
+    const statusBadge = isApproved 
+      ? "<span style='color:#10b981; font-size:11px; font-weight:600;'>🟢 อนุมัติแล้ว</span>" 
+      : (isPending ? "<span style='color:#f59e0b; font-size:11px; font-weight:600;'>⏳ รออนุมัติ</span>" : "<span style='color:#ef4444; font-size:11px; font-weight:600;'>❌ ปฏิเสธ</span>");
 
     html += `
       <tr class="table-clickable-row" onclick="showBookingDetail('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
-        <td data-label="วันที่เข้าใช้" style="font-size: 12px; font-weight: 500; color: var(--text-muted);">${formattedDate}</td>
-        <td data-label="ห้องแล็บ">
-          <div style="margin-bottom: 4px;">
-            <span style="font-family: var(--font-sans); background-color: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; width: max-content;">${getRoomThaiName(b.room)}</span>
+        <td data-label="วัน/เดือน/ปี ที่ใช้งาน" style="font-size: 12px; font-weight: 600; color: #1e293b;">${formattedDate}</td>
+        <td data-label="เวลาที่เข้าใช้">${slotHtml}</td>
+        <td data-label="ระดับชั้น / นร." style="font-size: 12px;">
+          <div style="font-weight: 600; color: var(--text-main);">${b.gradeLevel || "-"}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">${b.studentCount ? `${b.studentCount} คน` : ""}</div>
+        </td>
+        <td data-label="กิจกรรมที่ใช้" style="font-size: 12px; color: var(--text-main); max-width: 220px; word-break: break-word;">${b.purpose || b.activity || "-"}</td>
+        <td data-label="ลงชื่อคุณครู" style="font-size: 12px; font-weight: 600; color: var(--text-main);">${b.bookerName || b.teacherName || "-"}</td>
+        <td data-label="ห้องปฏิบัติการ">
+          <div style="margin-bottom: 2px;">
+            <span style="font-family: var(--font-sans); background-color: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block;">${getRoomThaiName(b.room)}</span>
           </div>
-          ${slotHtml}
+          <div>${statusBadge}</div>
         </td>
       </tr>
     `;
   });
 
   tableBody.innerHTML = html;
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 }
 
 window.cancelBookingRecord = async function(bookingId) {
@@ -8067,31 +8090,39 @@ window.showBookingDetail = function(bkId) {
   // Build Body HTML
   body.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 12px;">
-      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">ห้องแล็บ:</span>
+      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">ห้องปฏิบัติการ:</span>
         <span style="font-weight: 600; color: #0f172a;">${getRoomThaiName(bk.room)}</span>
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">วันที่จองเข้าใช้:</span>
-        <span style="font-weight: 600;">${formatThaiDate(bk.date)}</span>
+      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">วัน/เดือน/ปี ที่ใช้งาน:</span>
+        <span style="font-weight: 600; color: #1e293b;">${formatThaiDate(bk.date)}</span>
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">ช่วงเวลา (คาบ):</span>
+      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">เวลาที่เข้าใช้:</span>
         <span style="font-weight: 600; color: #8b5cf6;">${bk.slot}</span>
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">ผู้จองห้องแล็บ:</span>
-        <span style="font-weight: 500;">${bk.bookerName}</span>
+      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">ระดับชั้นเรียน:</span>
+        <span style="font-weight: 600; color: var(--text-main);">${bk.gradeLevel || "-"}</span>
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">จำนวนนักเรียนทั้งหมด:</span>
+        <span style="font-weight: 600; color: var(--text-main);">${bk.studentCount ? `${bk.studentCount} คน` : "-"}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">ลงชื่อคุณครู:</span>
+        <span style="font-weight: 600; color: var(--text-main);">${bk.bookerName || bk.teacherName || "-"}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">สถานะการจอง:</span>
         <span><span class="badge ${statusClass}" style="display: inline-block;">${statusLabel}</span></span>
       </div>
-      ${bk.purpose ? `
+      ${bk.purpose || bk.activity ? `
       <div style="display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">วัตถุประสงค์การใช้งาน:</span>
-        <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 13px; color: var(--text-main); font-style: italic; min-height: 40px;">
-          ${bk.purpose}
+        <span style="font-weight: 600; color: var(--text-muted);">กิจกรรมที่ใช้:</span>
+        <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 13px; color: var(--text-main); font-weight: 500; min-height: 40px;">
+          ${bk.purpose || bk.activity}
         </div>
       </div>` : ''}
       ${prepHtml}
@@ -10630,132 +10661,152 @@ function setupHistoryExports() {
     });
   }
 
-  if (btnExportBookingCSV) {
-    btnExportBookingCSV.addEventListener("click", () => {
-      const roleLevel = getCurrentRoleLevel();
-      const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
-      if (!isL3Plus) {
-        showToast("สิทธิ์การส่งออกข้อมูลเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
-        return;
-      }
+  const handleExportBookingCSV = (filterSourceId = "exportBookingRoomFilter") => {
+    const roleLevel = getCurrentRoleLevel();
+    const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+    if (!isL3Plus) {
+      showToast("สิทธิ์การส่งออกข้อมูลเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+      return;
+    }
 
-      let filtered = [...bookings];
-      const filterVal = document.getElementById("exportBookingRoomFilter") ? document.getElementById("exportBookingRoomFilter").value : "all";
-      if (filterVal !== "all") {
-        filtered = filtered.filter(b => b.room === filterVal);
-      }
-      if (filtered.length === 0) {
-        showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการสำหรับห้องปฏิบัติการที่เลือก", "error");
-        return;
-      }
-      const headers = [
-        "วันที่เข้าใช้",
-        "ห้องปฏิบัติการ",
-        "คาบเรียนที่ใช้",
-        "ผู้จอง",
-        "วัตถุประสงค์",
-        "สถานะ",
-        "วันที่จอง (บันทึกเข้าระบบ)"
-      ];
-      const rows = filtered.map(b => [
-        b.date || "",
-        getRoomThaiName(b.room) || "",
-        b.slot || "",
-        b.bookerName || "",
-        b.purpose || "",
-        b.status === "approved" ? "อนุมัติ" : b.status === "pending" ? "รออนุมัติ" : "ปฏิเสธ",
-        b.createdAt ? b.createdAt.split('T')[0] : ""
-      ]);
-      const roomSuffix = filterVal !== "all" ? `_${filterVal}` : "";
-      exportDataToCSV(`lab_booking_history${roomSuffix}_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
-      showToast("ส่งออกประวัติการจองห้องปฏิบัติการแบบ CSV สำเร็จ!", "success");
-    });
+    let filtered = [...bookings];
+    const filterEl = document.getElementById(filterSourceId);
+    const filterVal = filterEl ? filterEl.value : "all";
+    if (filterVal !== "all") {
+      filtered = filtered.filter(b => b.room === filterVal);
+    }
+    if (filtered.length === 0) {
+      showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการสำหรับห้องปฏิบัติการที่เลือก", "error");
+      return;
+    }
+    const headers = [
+      "วัน/เดือน/ปี ที่ใช้งาน",
+      "เวลาที่เข้าใช้",
+      "ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน",
+      "จำนวนนักเรียนที่เข้าใช้งานทั้งหมด",
+      "ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น)",
+      "ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น)",
+      "ห้องปฏิบัติการ",
+      "สถานะ"
+    ];
+    const rows = filtered.map(b => [
+      formatThaiDate(b.date),
+      b.slot || "",
+      b.gradeLevel || "-",
+      b.studentCount ? `${b.studentCount} คน` : "-",
+      b.purpose || b.activity || "",
+      b.bookerName || b.teacherName || "",
+      getRoomThaiName(b.room) || "",
+      b.status === "approved" ? "อนุมัติแล้ว" : (b.status === "pending" ? "รออนุมัติ" : "ปฏิเสธ")
+    ]);
+    const roomSuffix = filterVal !== "all" ? `_${filterVal}` : "";
+    exportDataToCSV(`lab_booking_history${roomSuffix}_${new Date().toISOString().split('T')[0]}.csv`, headers, rows);
+    showToast("ส่งออกประวัติการจองห้องปฏิบัติการแบบ CSV/Excel สำเร็จ!", "success");
+  };
+
+  const handleExportBookingPDF = (filterSourceId = "exportBookingRoomFilter") => {
+    const roleLevel = getCurrentRoleLevel();
+    const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+    if (!isL3Plus) {
+      showToast("สิทธิ์การพิมพ์รายงานทางการเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
+      return;
+    }
+
+    let filtered = [...bookings];
+    const filterEl = document.getElementById(filterSourceId);
+    const filterVal = filterEl ? filterEl.value : "all";
+    if (filterVal !== "all") {
+      filtered = filtered.filter(b => b.room === filterVal);
+    }
+    if (filtered.length === 0) {
+      showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการสำหรับห้องปฏิบัติการที่เลือก", "error");
+      return;
+    }
+    const printDate = formatThaiDate(new Date().toISOString().split('T')[0]) + " " + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    const rowsHtml = filtered.map(b => `
+      <tr>
+        <td>${formatThaiDate(b.date)}</td>
+        <td>${b.slot || ""}</td>
+        <td>${b.gradeLevel || "-"}</td>
+        <td>${b.studentCount ? `${b.studentCount} คน` : "-"}</td>
+        <td>${b.purpose || b.activity || "-"}</td>
+        <td>${b.bookerName || b.teacherName || "-"}</td>
+        <td>${getRoomThaiName(b.room)}</td>
+        <td>${b.status === "approved" ? "<span style='color:#10b981; font-weight: 600;'>อนุมัติแล้ว</span>" : b.status === "pending" ? "<span style='color:#f59e0b; font-weight: 600;'>รออนุมัติ</span>" : "<span style='color:#ef4444; font-weight: 600;'>ปฏิเสธ</span>"}</td>
+      </tr>
+    `).join("");
+
+    const filterText = filterVal !== "all" ? ` (${getRoomThaiName(filterVal)})` : "";
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>รายงานประวัติการใช้ห้องปฏิบัติการ${filterText}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+          body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+          h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
+          p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
+          th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
+          th { background-color: #f1f5f9; font-weight: 600; color: #334155; }
+          tr:nth-child(even) { background-color: #f8fafc; }
+          .footer { margin-top: 40px; font-size: 10px; text-align: right; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+          @media print {
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>รายงานประวัติการใช้ห้องปฏิบัติการ${filterText}</h1>
+        <p class="meta">ออกรายงาน ณ วันที่: ${printDate} | จำนวนรายการจองทั้งหมด: ${filtered.length} รายการ</p>
+        <table>
+          <thead>
+            <tr>
+              <th>วัน/เดือน/ปี ที่ใช้งาน</th>
+              <th>เวลาที่เข้าใช้</th>
+              <th>ระดับชั้น</th>
+              <th>จำนวน นร.</th>
+              <th>ระบุกิจกรรมที่ใช้</th>
+              <th>ลงชื่อคุณครู</th>
+              <th>ห้องปฏิบัติการ</th>
+              <th>สถานะ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+        <div class="footer">ระบบจัดการห้องปฏิบัติการเคมีและอุปกรณ์วิทยาศาสตร์</div>
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(function() { window.close(); }, 500);
+          }
+        </script>
+      </body>
+      </html>
+    `;
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  if (btnExportBookingCSV) {
+    btnExportBookingCSV.addEventListener("click", () => handleExportBookingCSV("exportBookingRoomFilter"));
+  }
+  if (btnExportBookingPDF) {
+    btnExportBookingPDF.addEventListener("click", () => handleExportBookingPDF("exportBookingRoomFilter"));
   }
 
-  if (btnExportBookingPDF) {
-    btnExportBookingPDF.addEventListener("click", () => {
-      const roleLevel = getCurrentRoleLevel();
-      const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
-      if (!isL3Plus) {
-        showToast("สิทธิ์การพิมพ์รายงานทางการเปิดให้เฉพาะ L3 (ผู้ดูแลระบบ) และ L4 (ผู้บริหาร) เท่านั้น", "warning");
-        return;
-      }
-
-      let filtered = [...bookings];
-      const filterVal = document.getElementById("exportBookingRoomFilter") ? document.getElementById("exportBookingRoomFilter").value : "all";
-      if (filterVal !== "all") {
-        filtered = filtered.filter(b => b.room === filterVal);
-      }
-      if (filtered.length === 0) {
-        showToast("ไม่มีข้อมูลประวัติการใช้ห้องปฏิบัติการสำหรับห้องปฏิบัติการที่เลือก", "error");
-        return;
-      }
-      const printDate = formatThaiDate(new Date().toISOString().split('T')[0]) + " " + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-      const rowsHtml = filtered.map(b => `
-        <tr>
-          <td>${formatThaiDate(b.date)}</td>
-          <td>${getRoomThaiName(b.room)}</td>
-          <td>${b.slot}</td>
-          <td>${b.bookerName}</td>
-          <td>${b.purpose}</td>
-          <td>${b.status === "approved" ? "<span style='color:#10b981; font-weight: 500;'>อนุมัติแล้ว</span>" : b.status === "pending" ? "<span style='color:#f59e0b; font-weight: 500;'>รออนุมัติ</span>" : "<span style='color:#ef4444; font-weight: 500;'>ปฏิเสธ</span>"}</td>
-        </tr>
-      `).join("");
-
-      const filterText = filterVal !== "all" ? ` (${getRoomThaiName(filterVal)})` : "";
-
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>รายงานประวัติการใช้ห้องปฏิบัติการ${filterText}</title>
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
-            body { font-family: 'Prompt', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
-            h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
-            p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
-            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
-            th { background-color: #f1f5f9; font-weight: 600; color: #334155; }
-            tr:nth-child(even) { background-color: #f8fafc; }
-            .footer { margin-top: 40px; font-size: 10px; text-align: right; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 12px; }
-            @media print {
-              body { padding: 0; }
-            }
-          </style>
-        </head>
-        <body>
-          <h1>รายงานประวัติการใช้ห้องปฏิบัติการ${filterText}</h1>
-          <p class="meta">ออกรายงาน ณ วันที่: ${printDate} | จำนวนรายการจองทั้งหมด: ${filtered.length} รายการ</p>
-          <table>
-            <thead>
-              <tr>
-                <th>วันที่เข้าใช้</th>
-                <th>ห้องปฏิบัติการ</th>
-                <th>คาบเรียน</th>
-                <th>ผู้จอง</th>
-                <th>วัตถุประสงค์</th>
-                <th>สถานะ</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rowsHtml}
-            </tbody>
-          </table>
-          <div class="footer">ระบบจัดการห้องปฏิบัติการเคมีและอุปกรณ์วิทยาศาสตร์</div>
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(function() { window.close(); }, 500);
-            }
-          </script>
-        </body>
-        </html>
-      `;
-      const printWindow = window.open("", "_blank");
-      printWindow.document.write(htmlContent);
-      printWindow.document.close();
-    });
+  const btnQuickExportBookingCSV = document.getElementById("btnQuickExportBookingCSV");
+  const btnQuickExportBookingPDF = document.getElementById("btnQuickExportBookingPDF");
+  if (btnQuickExportBookingCSV) {
+    btnQuickExportBookingCSV.addEventListener("click", () => handleExportBookingCSV(""));
+  }
+  if (btnQuickExportBookingPDF) {
+    btnQuickExportBookingPDF.addEventListener("click", () => handleExportBookingPDF(""));
   }
 
   const btnExportPoCSV = document.getElementById("btnExportPoCSV");

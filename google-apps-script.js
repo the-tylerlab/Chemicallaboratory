@@ -77,21 +77,51 @@ function doGet(e) {
 }
 
 // -------------------------------------------------------------
+// Predefined Preferred Column Order for Tables
+// -------------------------------------------------------------
+var PREFERRED_HEADERS = {
+  'Bookings': [
+    'วัน/เดือน/ปี ที่ใช้งาน',
+    'เวลาที่เข้าใช้',
+    'ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน',
+    'จำนวนนักเรียนที่เข้าใช้งานทั้งหมด',
+    'ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น)',
+    'ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น)',
+    'ห้องปฏิบัติการ',
+    'สถานะ',
+    'id',
+    'createdAt'
+  ]
+};
+
+// -------------------------------------------------------------
 // Helper: UPSERT row in sheet
 // -------------------------------------------------------------
 function upsertRow(sheet, data, keyField) {
   var lastRow = sheet.getLastRow();
   var lastCol = sheet.getLastColumn();
+  var tableName = sheet.getName();
 
   // If sheet is completely empty, initialize header
   if (lastRow === 0 || lastCol === 0) {
-    var headers = Object.keys(data);
+    var headers = [];
+    if (PREFERRED_HEADERS[tableName]) {
+      headers = PREFERRED_HEADERS[tableName].slice();
+      // Add any additional keys in data that aren't in preferred list
+      Object.keys(data).forEach(function(k) {
+        if (headers.indexOf(k) === -1) headers.push(k);
+      });
+    } else {
+      headers = Object.keys(data);
+    }
+
     sheet.appendRow(headers);
     formatHeaderRow(sheet, headers.length);
     var rowValues = headers.map(function(h) { 
       return formatValueForSheet(data[h]); 
     });
     sheet.appendRow(rowValues);
+    autoFitSheetColumns(sheet, headers.length);
     return "created_sheet_and_inserted";
   }
 
@@ -191,4 +221,12 @@ function formatHeaderRow(sheet, colCount) {
   headerRange.setFontColor("#ffffff");
   headerRange.setFontWeight("bold");
   sheet.setFrozenRows(1);
+}
+
+function autoFitSheetColumns(sheet, colCount) {
+  try {
+    for (var i = 1; i <= colCount; i++) {
+      sheet.autoResizeColumn(i);
+    }
+  } catch (e) {}
 }
