@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบริหารจัดการห้องปฏิบัติการวิทยาศาสตร์ และคลังสารเคมีตามมาตรฐาน SHECU | Presentation</title>
+  
+  <!-- Google Fonts: Prompt & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --primary: #581c87;
+      --primary-light: #7e22ce;
+      --primary-accent: #a855f7;
+      --bg-dark: #090614;
+      --bg-card: rgba(255, 255, 255, 0.05);
+      --border-card: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --font-th: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-en: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-th);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      user-select: none;
+    }
+
+    /* Background Animated Glows */
+    .bg-glow-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .glow-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.25;
+      animation: floatSlow 20s infinite alternate ease-in-out;
+    }
+
+    .glow-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, #7e22ce 0%, transparent 70%);
+      top: -10%;
+      left: -10%;
+    }
+
+    .glow-2 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+      bottom: -10%;
+      right: -10%;
+      animation-delay: -5s;
+    }
+
+    .glow-3 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #ec4899 0%, transparent 70%);
+      top: 40%;
+      left: 60%;
+      animation-delay: -10s;
+    }
+
+    @keyframes floatSlow {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(60px, 40px) scale(1.1); }
+      100% { transform: translate(-40px, 80px) scale(0.95); }
+    }
+
+    /* Deck Layout */
+    .deck-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      padding: 60px 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(0.96) translateY(20px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1) translateY(0);
+      z-index: 2;
+    }
+
+    .slide.prev {
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(1.04) translateY(-20px);
+    }
+
+    /* Header & Tag */
+    .slide-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 6px 14px;
+      border-radius: 30px;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #c084fc;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+
+    .slide-title {
+      font-size: 44px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slide-subtitle {
+      font-size: 20px;
+      color: var(--text-muted);
+      font-weight: 400;
+      line-height: 1.6;
+      max-width: 900px;
+      margin-bottom: 40px;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+    }
+
+    /* Glass Cards */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 28px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card:hover {
+      background: rgba(255, 255, 255, 0.07);
+      border-color: rgba(168, 85, 247, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .icon-purple { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .icon-cyan { background: rgba(6, 182, 212, 0.2); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+    .icon-emerald { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .icon-amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .icon-rose { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+
+    .card-desc {
+      font-size: 14.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Hero Slide Special */
+    .hero-slide {
+      text-align: center;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 20px;
+      background: rgba(124, 58, 237, 0.2);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: 100px;
+      color: #d8b4fe;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+    }
+
+    .hero-title {
+      font-size: 58px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 24px;
+      max-width: 1000px;
+      background: linear-gradient(135deg, #ffffff 30%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 22px;
+      color: #94a3b8;
+      max-width: 850px;
+      line-height: 1.6;
+      margin-bottom: 40px;
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+      padding: 16px 32px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 50px;
+      font-size: 15px;
+      color: #cbd5e1;
+    }
+
+    .hero-meta span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Role Badge Pill */
+    .role-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .role-l0 { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+    .role-l1 { background: rgba(6, 182, 212, 0.15); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.3); }
+    .role-l2 { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .role-l3 { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .role-l4 { background: rgba(244, 63, 94, 0.15); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.3); }
+
+    /* Controls Bar */
+    .presentation-controls {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15, 11, 30, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      padding: 8px 18px;
+      border-radius: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .ctrl-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(168, 85, 247, 0.3);
+      border-color: rgba(168, 85, 247, 0.5);
+      transform: scale(1.08);
+    }
+
+    .slide-counter {
+      font-size: 14px;
+      font-weight: 600;
+      color: #cbd5e1;
+      padding: 0 12px;
+      font-family: var(--font-en);
+    }
+
+    .progress-bar-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 1000;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7e22ce, #06b6d4);
+      transition: width 0.4s ease;
+    }
+
+    /* Print / PDF Styles */
+    @media print {
+      body {
+        overflow: visible;
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .bg-glow-container, .presentation-controls, .progress-bar-container {
+        display: none !important;
+      }
+      .deck-container {
+        display: block;
+        height: auto;
+      }
+      .slide {
+        position: relative !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        page-break-after: always;
+        height: 100vh;
+        padding: 50px !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .slide-title, .hero-title {
+        background: none !important;
+        -webkit-text-fill-color: #0f172a !important;
+        color: #0f172a !important;
+      }
+      .glass-card {
+        background: #f8fafc !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+      }
+      .card-title {
+        color: #0f172a !important;
+      }
+      .card-desc, .slide-subtitle, .hero-subtitle {
+        color: #475569 !important;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .slide { padding: 40px 30px; }
+      .hero-title { font-size: 38px; }
+      .slide-title { font-size: 32px; }
+      .grid-3, .grid-4, .grid-5 { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Animated Lights -->
+  <div class="bg-glow-container">
+    <div class="glow-orb glow-1"></div>
+    <div class="glow-orb glow-2"></div>
+    <div class="glow-orb glow-3"></div>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progressBar"></div>
+  </div>
+
+  <!-- Main Deck Presentation -->
+  <div class="deck-container">
+
+    <!-- SLIDE 1: HERO TITLE -->
+    <div class="slide hero-slide active" data-slide="1">
+      <div class="hero-badge">
+        <i data-lucide="shield-check" style="width: 18px; height: 18px; color: #a855f7;"></i>
+        <span>ระบบบริหารจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ</span>
+      </div>
+      <h1 class="hero-title">
+        Chemical Laboratory & Equipment Management System
+      </h1>
+      <p class="hero-subtitle">
+        แพลตฟอร์มบริหารคลังสารเคมี เครื่องแก้ว ครุภัณฑ์ และการจองห้องปฏิบัติการตามมาตรฐานความปลอดภัย SHECU เต็มรูปแบบ (Version 2.6.0 PWA)
+      </p>
+      <div class="hero-meta">
+        <span><i data-lucide="user-check" style="width: 16px; height: 16px; color: #c084fc;"></i> <strong>ผู้พัฒนา:</strong> ม.วงศกร ด้วงเกลี้ยง</span>
+        <span><i data-lucide="layers" style="width: 16px; height: 16px; color: #38bdf8;"></i> <strong>สถาปัตยกรรม:</strong> Multi-Tier RBAC & Cloud Sync</span>
+        <span><i data-lucide="calendar" style="width: 16px; height: 16px; color: #4ade80;"></i> ปีการศึกษา 2569</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: OBJECTIVES & PAIN POINTS -->
+    <div class="slide" data-slide="2">
+      <div class="slide-tag"><i data-lucide="target" style="width: 14px; height: 14px;"></i> วัตถุประสงค์และความเป็นมา</div>
+      <h2 class="slide-title">ทำไมต้องยกระดับการจัดการห้องปฏิบัติการ?</h2>
+      <p class="slide-subtitle">แก้ปัญหาการบริหารคลังแบบดั้งเดิม พร้อมยกระดับสู่มาตรฐานความปลอดภัยสากล</p>
+
+      <div class="grid-3">
+        <div class="glass-card">
+          <div class="card-icon icon-rose"><i data-lucide="alert-triangle"></i></div>
+          <h3 class="card-title">ความปลอดภัยสารเคมี (SHECU)</h3>
+          <p class="card-desc">ป้องกันอุบัติเหตุจากการจัดเก็บสารที่ไม่เข้ากัน (Incompatible Chemicals) ในตู้เดียวกัน พร้อมตรวจจับสารอันตรายและเอกสาร SDS แบบเรียลไทม์</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-icon icon-cyan"><i data-lucide="refresh-cw"></i></div>
+          <h3 class="card-title">สต็อกแม่นยำ & ซิงค์ข้อมูลอัตโนมัติ</h3>
+          <p class="card-desc">ตัดยอดสารเคมี บันทึกการเบิก-ยืม-คืนอุปกรณ์ และเชื่อมต่อฐานข้อมูลคลาวด์ Supabase กับ Google Sheets ตลอด 24 ชม.</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-icon icon-emerald"><i data-lucide="calendar-check"></i></div>
+          <h3 class="card-title">ลดความซ้ำซ้อนในการจองห้องแล็บ</h3>
+          <p class="card-desc">ปฏิทินจองห้องปฏิบัติการอัจฉริยะ ตรวจสอบช่วงเวลาว่าง ป้องกันการจองชนกัน และมีระบบอนุมัติคำขอแยกตามผู้รับผิดชอบห้อง</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: 5 ROLES (RBAC ARCHITECTURE) -->
+    <div class="slide" data-slide="3">
+      <div class="slide-tag"><i data-lucide="users" style="width: 14px; height: 14px;"></i> สิทธิ์การเข้าถึง 5 ระดับ</div>
+      <h2 class="slide-title">Role-Based Access Control (RBAC Architecture)</h2>
+      <p class="slide-subtitle">จำกัดและจัดสรรสิทธิ์ตามหน้าที่ความรับผิดชอบอย่างรัดกุมและปลอดภัย</p>
+
+      <div class="grid-5">
+        <div class="glass-card" style="padding: 22px 18px;">
+          <span class="role-pill role-l0" style="margin-bottom: 14px;">L0 Guest</span>
+          <h4 style="font-size: 16px; margin-bottom: 8px;">บุคคลทั่วไป</h4>
+          <p class="card-desc" style="font-size: 12.5px;">ดูแคตตาล็อกสารเคมี อุปกรณ์ และตารางการใช้ห้องแล็บ (Read-Only)</p>
+        </div>
+
+        <div class="glass-card" style="padding: 22px 18px;">
+          <span class="role-pill role-l1" style="margin-bottom: 14px;">L1 Teacher</span>
+          <h4 style="font-size: 16px; margin-bottom: 8px;">ครูผู้สอน</h4>
+          <p class="card-desc" style="font-size: 12.5px;">จองห้องแล็บ ขอยืม-คืนอุปกรณ์ และเสนอขอจัดซื้อพัสดุการทดลอง</p>
+        </div>
+
+        <div class="glass-card" style="padding: 22px 18px;">
+          <span class="role-pill role-l2" style="margin-bottom: 14px;">L2 Staff</span>
+          <h4 style="font-size: 16px; margin-bottom: 8px;">จนท.ประจำแล็บ</h4>
+          <p class="card-desc" style="font-size: 12.5px;">จัดการสต็อก อนุมัติยืม-คืน และอนุมัติการจองในห้องที่รับผิดชอบ</p>
+        </div>
+
+        <div class="glass-card" style="padding: 22px 18px;">
+          <span class="role-pill role-l3" style="margin-bottom: 14px;">L3 Admin</span>
+          <h4 style="font-size: 16px; margin-bottom: 8px;">ผู้ดูแลระบบ</h4>
+          <p class="card-desc" style="font-size: 12.5px;">สิทธิ์สูงสุดทุกห้อง แก้ไขผังตู้ SHECU จัดการผู้ใช้ และสำรองข้อมูล</p>
+        </div>
+
+        <div class="glass-card" style="padding: 22px 18px;">
+          <span class="role-pill role-l4" style="margin-bottom: 14px;">L4 Executive</span>
+          <h4 style="font-size: 16px; margin-bottom: 8px;">ผู้บริหาร</h4>
+          <p class="card-desc" style="font-size: 12.5px;">ดูรายงานสถิติ แดชบอร์ดภาพรวมงบประมาณ และอนุมัติการจัดซื้อ</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: SHECU CABINET MAP SYSTEM -->
+    <div class="slide" data-slide="4">
+      <div class="slide-tag"><i data-lucide="layout-grid" style="width: 14px; height: 14px;"></i> จุดเด่นระบบ</div>
+      <h2 class="slide-title">Interactive SHECU Storage Cabinet Map</h2>
+      <p class="slide-subtitle">ผังตู้จัดเก็บสารเคมีและอุปกรณ์แบบอินเตอร์แอคทีฟ เชื่อมโยงสต็อกจริง</p>
+
+      <div class="grid-2">
+        <div style="display: flex; flex-direction: column; gap: 18px;">
+          <div class="glass-card" style="display: flex; gap: 16px; align-items: flex-start;">
+            <div class="card-icon icon-purple" style="margin: 0; flex-shrink: 0;"><i data-lucide="layers"></i></div>
+            <div>
+              <h4 style="font-size: 18px; margin-bottom: 4px;">แท็บแยกห้องปฏิบัติการ (Lab 1 - Lab 8)</h4>
+              <p class="card-desc">สลับดูผังตู้ของแต่ละห้องแล็บได้ทันที พร้อมป้ายนับจำนวนรายการสารเคมีในแต่ละห้อง</p>
+            </div>
+          </div>
+
+          <div class="glass-card" style="display: flex; gap: 16px; align-items: flex-start;">
+            <div class="card-icon icon-emerald" style="margin: 0; flex-shrink: 0;"><i data-lucide="shield-alert"></i></div>
+            <div>
+              <h4 style="font-size: 18px; margin-bottom: 4px;">ระบบตรวจจับความเข้ากันไม่ได้ (Chemical Matrix)</h4>
+              <p class="card-desc">แจ้งเตือนสถานะตู้ทันทีหากมีสารไวไฟ กรด ด่าง หรือสารออกซิไดซ์จัดเก็บปะปนกัน</p>
+            </div>
+          </div>
+
+          <div class="glass-card" style="display: flex; gap: 16px; align-items: flex-start;">
+            <div class="card-icon icon-amber" style="margin: 0; flex-shrink: 0;"><i data-lucide="eye-off"></i></div>
+            <div>
+              <h4 style="font-size: 18px; margin-bottom: 4px;">ระบบซ่อน/แสดงตู้ ควบคุมเฉพาะแอดมิน</h4>
+              <p class="card-desc">Admin สามารถซ่อนตู้พิเศษ หรือจัดเรียงผังตู้แบบ Drag & Drop ได้อย่างอิสระ</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="background: rgba(0,0,0,0.4); border-color: rgba(168,85,247,0.3); padding: 32px; display: flex; flex-direction: column; gap: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+            <span style="font-weight: 600; color: #e2e8f0; display: flex; align-items: center; gap: 8px;"><i data-lucide="box" style="color: #a855f7;"></i> ตู้สารเคมี A (Flammable)</span>
+            <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(16,185,129,0.2); color: #34d399;">SHECU ปลอดภัย</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; font-size: 13px;">ชั้นที่ 1: แอลกอฮอล์ & ตัวทำละลาย (6 รายการ)</div>
+            <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; font-size: 13px;">ชั้นที่ 2: สารไฮโดรคาร์บอน (4 รายการ)</div>
+            <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; font-size: 13px;">ชั้นที่ 3: สารประกอบเอสเทอร์ (3 รายการ)</div>
+            <div style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; font-size: 13px;">ชั้นที่ 4: สารอินทรีย์ทั่วไป (5 รายการ)</div>
+          </div>
+          <div style="margin-top: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; margin-bottom: 4px;">
+              <span>ความจุตู้: 18 / 50 รายการ</span>
+              <span>36%</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+              <div style="width: 36%; height: 100%; background: #06b6d4;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: INVENTORY & LAB BOOKING -->
+    <div class="slide" data-slide="5">
+      <div class="slide-tag"><i data-lucide="package" style="width: 14px; height: 14px;"></i> ระบบคลังและบริการ</div>
+      <h2 class="slide-title">Inventory Management & Lab Booking Workflow</h2>
+      <p class="slide-subtitle">ครอบคลุมวงจรการใช้งานสารเคมี อุปกรณ์วิทยาศาสตร์ และห้องปฏิบัติการ</p>
+
+      <div class="grid-4">
+        <div class="glass-card">
+          <div class="card-icon icon-cyan"><i data-lucide="search"></i></div>
+          <h3 class="card-title" style="font-size: 18px;">สืบค้น & กรองอัจฉริยะ</h3>
+          <p class="card-desc" style="font-size: 13px;">ค้นหาตามชื่อ สูตรเคมี CAS No. หรือสแกน QR Code ตู้จัดเก็บเพื่อดูข้อมูลได้ทันที</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-icon icon-purple"><i data-lucide="arrow-left-right"></i></div>
+          <h3 class="card-title" style="font-size: 18px;">ระบบยืม-คืน & ตัดสต็อก</h3>
+          <p class="card-desc" style="font-size: 13px;">บันทึกปริมาณสารที่ใช้ สภาพอุปกรณ์เมื่อส่งคืน และออกประวัติธุรกรรมครบถ้วน</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-icon icon-emerald"><i data-lucide="calendar"></i></div>
+          <h3 class="card-title" style="font-size: 18px;">ระบบจองห้องแล็บ</h3>
+          <p class="card-desc" style="font-size: 13px;">ระบุวัตถุประสงค์การทดลอง จำนวนนักเรียน และสารเคมีที่ต้องเตรียมล่วงหน้า</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-icon icon-amber"><i data-lucide="file-spreadsheet"></i></div>
+          <h3 class="card-title" style="font-size: 18px;">รายงาน & นำเข้า Excel</h3>
+          <p class="card-desc" style="font-size: 13px;">ส่งออกรายงานสารเคมีคงเหลือ, ทะเบียนครุภัณฑ์ และเอกสารจัดซื้ออัตโนมัติ</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: CLOUD ARCHITECTURE & DATA SYNC -->
+    <div class="slide" data-slide="6">
+      <div class="slide-tag"><i data-lucide="cloud" style="width: 14px; height: 14px;"></i> สถาปัตยกรรมคลาวด์</div>
+      <h2 class="slide-title">Multi-Tier Cloud Synchronization Architecture</h2>
+      <p class="slide-subtitle">เสถียรภาพสูงสุดด้วยการซิงค์ข้อมูลคู่ขนาน Supabase Database และ Google Sheets</p>
+
+      <div class="grid-3">
+        <div class="glass-card">
+          <div class="card-icon icon-emerald"><i data-lucide="database"></i></div>
+          <h3 class="card-title">1. Supabase PostgreSQL</h3>
+          <p class="card-desc">ฐานข้อมูลหลักระดับองค์กร รองรับ Realtime Subscriptions, Row Level Security และการเชื่อมต่อผ่าน REST API ที่มีความเร็วสูง</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-icon icon-cyan"><i data-lucide="sheet"></i></div>
+          <h3 class="card-title">2. Google Sheets Auto-Sync</h3>
+          <p class="card-desc">สำรองข้อมูลแบบ 2-Way Synchronization ผ่าน Google Apps Script อัปเดตตารางและสูตรอัตโนมัติเพื่อความสะดวกในการเปิดดูของผู้บริหาร</p>
+        </div>
+
+        <div class="glass-card">
+          <div class="card-icon icon-purple"><i data-lucide="smartphone"></i></div>
+          <h3 class="card-title">3. PWA & Offline Support</h3>
+          <p class="card-desc">รองรับการติดตั้งเป็นแอปพลิเคชันบนมือถือ แท็บเล็ต และคอมพิวเตอร์ ทำงานออฟไลน์ด้วย Service Worker และ Local Caching</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: SUMMARY & IMPACT -->
+    <div class="slide hero-slide" data-slide="7">
+      <div class="slide-tag"><i data-lucide="award" style="width: 14px; height: 14px;"></i> บทสรุปและประโยชน์</div>
+      <h2 class="hero-title" style="font-size: 46px;">
+        ยกระดับห้องปฏิบัติการสู่มาตรฐานสากลและความปลอดภัยสูงสุด
+      </h2>
+      <div class="grid-3" style="max-width: 1000px; margin: 30px auto; text-align: left;">
+        <div class="glass-card">
+          <h4 style="color: #38bdf8; font-size: 18px; margin-bottom: 6px;">⚡ ประสิทธิภาพสูงขึ้น 80%</h4>
+          <p class="card-desc" style="font-size: 13.5px;">ลดระยะเวลาในการค้นหาสารเคมี จัดการสต็อก และขั้นตอนการทำเอกสารยืม-คืน</p>
+        </div>
+        <div class="glass-card">
+          <h4 style="color: #34d399; font-size: 18px; margin-bottom: 6px;">🛡️ ปลอดภัยตามเกณฑ์ SHECU</h4>
+          <p class="card-desc" style="font-size: 13.5px;">มีระบบแจ้งเตือนสารเคมีอันตรายและเอกสาร SDS พร้อมใช้งานในทุกสถานการณ์</p>
+        </div>
+        <div class="glass-card">
+          <h4 style="color: #c084fc; font-size: 18px; margin-bottom: 6px;">🌐 เชื่อมโยงแบบไร้รอยต่อ</h4>
+          <p class="card-desc" style="font-size: 13.5px;">รองรับทุกอุปกรณ์ ทำงานร่วมกันระหว่างครู เจ้าหน้าที่ และผู้บริหารได้อย่างโปร่งใส</p>
+        </div>
+      </div>
+      <div style="margin-top: 20px; font-size: 15px; color: #94a3b8;">
+        ขอขอบคุณคณะกรรมการและคณาจารย์ทุกท่าน | พร้อมตอบข้อซักถาม
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Floating Controller -->
+  <div class="presentation-controls">
+    <button class="ctrl-btn" id="btnPrevSlide" title="สไลด์ก่อนหน้า (Arrow Left)"><i data-lucide="chevron-left"></i></button>
+    <div class="slide-counter"><span id="currentSlideNum">1</span> / <span id="totalSlideNum">7</span></div>
+    <button class="ctrl-btn" id="btnNextSlide" title="สไลด์ถัดไป (Arrow Right / Space)"><i data-lucide="chevron-right"></i></button>
+    <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 4px;"></div>
+    <button class="ctrl-btn" id="btnFullscreen" title="เต็มจอ (F)"><i data-lucide="maximize"></i></button>
+    <button class="ctrl-btn" id="btnPrintPdf" title="พิมพ์ / บันทึก PDF (P)"><i data-lucide="printer"></i></button>
+  </div>
+
+  <!-- Interactive Slide Controller Script -->
+  <script>
+    lucide.createIcons();
+
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let currentSlide = 1;
+
+    const currentSlideNumEl = document.getElementById('currentSlideNum');
+    const totalSlideNumEl = document.getElementById('totalSlideNum');
+    const progressBar = document.getElementById('progressBar');
+
+    totalSlideNumEl.textContent = totalSlides;
+
+    function goToSlide(slideIndex) {
+      if (slideIndex < 1) slideIndex = 1;
+      if (slideIndex > totalSlides) slideIndex = totalSlides;
+
+      currentSlide = slideIndex;
+
+      slides.forEach((slide, idx) => {
+        const slideNum = idx + 1;
+        slide.classList.remove('active', 'prev');
+        if (slideNum === currentSlide) {
+          slide.classList.add('active');
+        } else if (slideNum < currentSlide) {
+          slide.classList.add('prev');
+        }
+      });
+
+      currentSlideNumEl.textContent = currentSlide;
+      const progressPercent = (currentSlide / totalSlides) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) goToSlide(currentSlide + 1);
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) goToSlide(currentSlide - 1);
+    }
+
+    // Event Listeners
+    document.getElementById('btnNextSlide').addEventListener('click', nextSlide);
+    document.getElementById('btnPrevSlide').addEventListener('click', prevSlide);
+
+    // Keyboard Navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      } else if (e.key === 'p' || e.key === 'P') {
+        window.print();
+      }
+    });
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    document.getElementById('btnFullscreen').addEventListener('click', toggleFullscreen);
+    document.getElementById('btnPrintPdf').addEventListener('click', () => window.print());
+
+    // Initialize progress bar
+    goToSlide(1);
+  </script>
+</body>
+</html>
