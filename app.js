@@ -1540,6 +1540,9 @@ function updateUI() {
   if (quickBtnAddItem) quickBtnAddItem.style.display = (isL3Admin || isL2Staff) ? "flex" : "none";
   if (quickBtnAdmin) quickBtnAdmin.style.display = isL3Admin ? "flex" : "none";
 
+  const presentationDeckWrapper = document.getElementById("presentationDeckWrapper");
+  if (presentationDeckWrapper) presentationDeckWrapper.style.display = isL3Admin ? "flex" : "none";
+
   // Toggle display of admin-only clear data buttons
   document.querySelectorAll(".admin-clear-btn").forEach(btn => {
     btn.style.display = isL3Admin ? "inline-flex" : "none";
