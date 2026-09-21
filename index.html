@@ -3584,7 +3584,7 @@
        MODAL: TEACHER ID & RBAC LOGIN DIALOG
        ========================================== -->
   <div class="modal-overlay" id="loginModal">
-    <div class="modal-content login-split-modal" style="max-width: 880px; width: 95%;">
+    <div class="modal-content login-split-modal" style="max-width: 740px; width: 95%;">
       <button class="modal-close-btn login-modal-close-corner" id="loginModalClose" aria-label="Close modal">&times;</button>
       
       <div class="login-split-grid" id="loginSplitGrid">
@@ -3593,12 +3593,12 @@
           <div class="login-hero-glow"></div>
           <div class="login-hero-content">
             <div class="login-hero-badge" id="loginHeroBadge">
-              <i data-lucide="sparkles" id="loginHeroBadgeIcon" style="width: 13px; height: 13px;"></i>
-              <span id="loginHeroBadgeText">📢 ประกาศด่วนประจำห้องแล็บ</span>
+              <i data-lucide="bell" id="loginHeroBadgeIcon" style="width: 12px; height: 12px;"></i>
+              <span id="loginHeroBadgeText">ประกาศระบบห้องปฏิบัติการ</span>
             </div>
             
             <h2 class="login-hero-headline" id="loginHeroHeadline">
-              แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ
+              ระบบสารสนเทศห้องปฏิบัติการ
             </h2>
             
             <p class="login-hero-subtitle" id="loginHeroSubtitle">
@@ -3607,13 +3607,27 @@
 
             <div class="login-hero-media" id="loginHeroMedia">
               <img id="loginHeroImage" src="" alt="Science Laboratory" class="login-hero-img" style="display: none;">
-              <div id="loginHeroDefaultGraphic" class="login-hero-default-graphic">
-                <div class="lab-art-flask">
-                  <i data-lucide="flask-conical" class="floating-flask-icon"></i>
+              <div id="loginHeroDefaultGraphic" class="login-hero-features-list">
+                <div class="login-feature-item">
+                  <div class="login-feature-icon-wrap"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i></div>
+                  <div class="login-feature-text">
+                    <span class="feature-title">มาตรฐานความปลอดภัย SHECU</span>
+                    <span class="feature-desc">ตรวจเช็กและควบคุมสารเคมีตามเกณฑ์</span>
+                  </div>
                 </div>
-                <div class="lab-art-meta">
-                  <div class="lab-art-chip"><i data-lucide="shield-check" style="width: 14px; height: 14px;"></i> มาตรฐานความปลอดภัย SHECU</div>
-                  <div class="lab-art-chip"><i data-lucide="boxes" style="width: 14px; height: 14px;"></i> ติดตามสถานะสต็อก Real-time</div>
+                <div class="login-feature-item">
+                  <div class="login-feature-icon-wrap"><i data-lucide="boxes" style="width: 15px; height: 15px;"></i></div>
+                  <div class="login-feature-text">
+                    <span class="feature-title">สต็อกเคมีและอุปกรณ์ Real-time</span>
+                    <span class="feature-desc">ติดตามยอดคงเหลือและประวัติการเบิก-คืน</span>
+                  </div>
+                </div>
+                <div class="login-feature-item">
+                  <div class="login-feature-icon-wrap"><i data-lucide="calendar-clock" style="width: 15px; height: 15px;"></i></div>
+                  <div class="login-feature-text">
+                    <span class="feature-title">ตารางการใช้ห้องปฏิบัติการ</span>
+                    <span class="feature-desc">จองแล็บและจัดตารางการทดลองอย่างเป็นระบบ</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3623,10 +3637,7 @@
         <!-- Right Column: Login Form & Demo Roles -->
         <div class="login-form-panel" id="loginFormSide">
           <div class="login-form-header">
-            <div class="login-brand-icon">
-              <i data-lucide="atom" style="width: 22px; height: 22px;"></i>
-            </div>
-            <h1 class="login-form-title">เข้าสู่ระบบห้องปฏิบัติการ</h1>
+            <h1 class="login-form-title">เข้าสู่ระบบ</h1>
             <p class="login-form-desc">ระบุรหัสประจำตัวครู (Teacher ID) เพื่อเข้าใช้งานระบบ</p>
           </div>
 
