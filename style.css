@@ -9122,30 +9122,20 @@ body.admin-logged-in .public-only-section {
   letter-spacing: -0.5px;
 }
 
-/* Toolbar & Filters */
-.admin-toolbar-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* Toolbar & Filters (1-to-1 Column Match with KPI Grid) */
+.admin-toolbar-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.admin-toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
 .admin-search-wrap {
   position: relative;
-  flex: 1;
-  min-width: 180px;
-  max-width: 320px;
+  width: 100%;
+  min-width: 0;
 }
 
 .admin-search-wrap .admin-search-icon {
@@ -9193,6 +9183,7 @@ input[type="text"].admin-search-input:focus {
 }
 
 select.admin-filter-select {
+  width: 100% !important;
   height: 38px !important;
   min-height: 38px !important;
   max-height: 38px !important;
@@ -9210,9 +9201,7 @@ select.admin-filter-select {
   transition: all 0.2s ease;
   font-family: inherit;
   box-sizing: border-box;
-  flex: 0 0 auto;
-  min-width: 140px;
-  max-width: 200px;
+  min-width: 0;
   vertical-align: middle;
 }
 
@@ -9225,22 +9214,26 @@ select.admin-filter-select:focus {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .btn-admin-action {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   white-space: nowrap;
   height: 38px;
-  padding: 0 14px;
+  padding: 0 8px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   box-sizing: border-box;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .btn-admin-action.btn-secondary {
@@ -9267,40 +9260,16 @@ select.admin-filter-select:focus {
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
 }
 
-@media (max-width: 900px) {
-  .admin-kpi-grid {
+@media (max-width: 990px) {
+  .admin-kpi-grid,
+  .admin-toolbar-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 }
 
-@media (max-width: 860px) {
-  .admin-toolbar-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-  .admin-toolbar-left {
-    flex-wrap: wrap;
-    width: 100%;
-  }
-  .admin-search-wrap {
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: 1 1 100%;
-  }
-  select.admin-filter-select {
-    width: 100% !important;
-    max-width: 100% !important;
-    flex: 1 1 100%;
-  }
-  .admin-toolbar-right {
-    width: 100%;
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 540px) {
-  .admin-kpi-grid {
+@media (max-width: 580px) {
+  .admin-kpi-grid,
+  .admin-toolbar-grid {
     grid-template-columns: 1fr !important;
   }
 }

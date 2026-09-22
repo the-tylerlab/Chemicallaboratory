@@ -2811,36 +2811,33 @@
             </div>
           </div>
 
-          <!-- Smart Search & Filter Toolbar -->
-          <div class="admin-toolbar-row">
-            <!-- Left Filter Group -->
-            <div class="admin-toolbar-left">
-              <!-- Search Input -->
-              <div class="admin-search-wrap">
-                <i data-lucide="search" class="admin-search-icon"></i>
-                <input type="text" id="adminUserSearchInput" class="admin-search-input" placeholder="ค้นหาชื่อ, รหัสครู, อีเมล..." oninput="filterAdminUsersTable()">
-              </div>
-
-              <!-- Role Filter -->
-              <select id="adminUserRoleFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
-                <option value="">ทุกระดับสิทธิ์ (All Roles)</option>
-                <option value="L1">L1 - ครูผู้สอน (Teacher)</option>
-                <option value="L2">L2 - เจ้าหน้าที่แล็บ (Lab Staff)</option>
-                <option value="L3">L3 - หัวหน้ากลุ่มสาระ (Admin)</option>
-                <option value="L4">L4 - ผู้บริหาร (Executive)</option>
-              </select>
-
-              <!-- Dept Filter -->
-              <select id="adminUserDeptFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
-                <option value="">ทุกกลุ่มสาระ / หน่วยงาน</option>
-              </select>
+          <!-- Smart Search & Filter Toolbar Matching 4 KPI Columns -->
+          <div class="admin-toolbar-grid">
+            <!-- Col 1: Search Input (aligned with KPI 1) -->
+            <div class="admin-search-wrap">
+              <i data-lucide="search" class="admin-search-icon"></i>
+              <input type="text" id="adminUserSearchInput" class="admin-search-input" placeholder="ค้นหาชื่อ, รหัสครู, อีเมล..." oninput="filterAdminUsersTable()">
             </div>
 
-            <!-- Right Action Buttons -->
+            <!-- Col 2: Role Filter (aligned with KPI 2) -->
+            <select id="adminUserRoleFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
+              <option value="">ทุกระดับสิทธิ์ (All Roles)</option>
+              <option value="L1">L1 - ครูผู้สอน (Teacher)</option>
+              <option value="L2">L2 - เจ้าหน้าที่แล็บ (Lab Staff)</option>
+              <option value="L3">L3 - หัวหน้ากลุ่มสาระ (Admin)</option>
+              <option value="L4">L4 - ผู้บริหาร (Executive)</option>
+            </select>
+
+            <!-- Col 3: Dept Filter (aligned with KPI 3) -->
+            <select id="adminUserDeptFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
+              <option value="">ทุกกลุ่มสาระ / หน่วยงาน</option>
+            </select>
+
+            <!-- Col 4: Action Buttons (aligned with KPI 4) -->
             <div class="admin-toolbar-right">
-              <button class="btn btn-danger" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none; align-items: center; gap: 7px; background: #ef4444; color: white; white-space: nowrap; height: 38px; border-radius: 8px; font-weight: 600; font-size: 13px; border: none; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); cursor: pointer; transition: all 0.2s ease;">
+              <button class="btn btn-danger" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none; align-items: center; gap: 6px; background: #ef4444; color: white; white-space: nowrap; height: 38px; border-radius: 8px; font-weight: 600; font-size: 12px; border: none; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); cursor: pointer; transition: all 0.2s ease; flex: 1;">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                <span id="batchDeleteUsersCountText">ลบที่เลือก (0)</span>
+                <span id="batchDeleteUsersCountText">ลบ (0)</span>
               </button>
               <button class="btn btn-secondary btn-admin-action" onclick="openBatchAddUsersModal()">
                 <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #16a34a;"></i>
