@@ -707,23 +707,23 @@ button.menu-item-link:hover {
 }
 
 .help-modal-sidebar {
-  width: 205px;
+  width: 200px;
   flex-shrink: 0;
   background: #f1f5f9;
   border-right: 1px solid var(--border-color);
-  padding: 12px 0;
+  padding: 8px 0;
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
 }
 
 .help-tab {
-  padding: 11px 14px;
-  margin: 3px 8px;
-  border-radius: 8px;
+  padding: 7.5px 12px;
+  margin: 2px 8px;
+  border-radius: 7px;
   cursor: pointer;
   color: #475569;
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 550;
   transition: all 0.2s ease;
   user-select: none;
