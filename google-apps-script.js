@@ -473,49 +473,98 @@ function parseAnyBookingRow(row) {
     'Lab 8': 'ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่'
   };
 
-  row.forEach(function(cell, colIndex) {
-    if (cell === null || cell === undefined) return;
-    var s = String(cell).trim();
-    if (!s) return;
+  // Positional check if row has standard 8-10 columns (Col A=ลำดับ, B=Date, C=Slot, D=Room, E=Grade, F=Count, G=Purpose, H=Booker, I=Status, J=Id)
+  if (row && row.length >= 8) {
+    var rawDate = row[1];
+    var rawSlot = row[2];
+    var rawRoom = row[3];
+    var rawGrade = row[4];
+    var rawCount = row[5];
+    var rawPurpose = row[6];
+    var rawBooker = row[7];
+    var rawStatus = row[8];
+    var rawId = row[9];
 
-    if (colIndex === 0 && /^\d+$/.test(s)) return;
-
-    if (/^(book_|test_booking_)/i.test(s)) {
-      id = s;
-    } else if (/^(Lab\s*\d|ห้องปฏิบัติการ|ห้องศูนย์)/i.test(s)) {
-      room = roomMap[s] || s;
-    } else if (typeof cell === 'string' && s.indexOf('T') !== -1 && s.indexOf('Z') !== -1) {
-      if (!id) id = "book_" + s.replace(/[^0-9]/g, "").slice(0, 14);
-    } else if (/^\d{4}-\d{2}-\d{2}/.test(s) || (cell instanceof Date)) {
-      date = formatDateForLog(cell);
-    } else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
-      date = s;
-    } else if (/^(approved|pending|rejected|อนุมัติแล้ว|รออนุมัติ|ปฏิเสธ)$/i.test(s)) {
-      if (s.toLowerCase() === 'approved' || s === 'อนุมัติแล้ว') status = 'อนุมัติแล้ว';
-      else if (s.toLowerCase() === 'pending' || s === 'รออนุมัติ') status = 'รออนุมัติ';
-      else status = 'ปฏิเสธ';
-    } else if (/^\[.*\]$/.test(s)) {
-      // Skip prepItems JSON array
-    } else if (/^(ม\.\d\/\d|ม\.ต้น|ม\.ปลาย|ชมรม|โครงงาน|ม\.\d)/i.test(s)) {
-      gradeLevel = s;
-    } else if (/^\d+\s*คน$/.test(s) || (/^\d+$/.test(s) && Number(s) > 10 && Number(s) <= 150)) {
-      studentCount = s.indexOf('คน') !== -1 ? s : (s + ' คน');
-    } else if (/^[1-9](?:\s*,\s*[1-9])*$/.test(s)) {
-      if (!slot) slot = "คาบ " + s;
-    } else if (/คาบ\s*\d|^\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}/.test(s)) {
-      slot = formatSlotForLog(s);
-    } else if (/^(\d+(?:[,\s]+\d+)*)\s+(.*)$/.test(s)) {
-      var match = s.match(/^(\d+(?:[,\s]+\d+)*)\s+(.*)$/);
-      if (!slot) slot = "คาบ " + match[1];
-      if (!bookerName) bookerName = match[2];
-    } else if (/^(นาย|นางสาว|นาง|น\.ส\.|ครู|อาจารย์|อ\.|ม\.|มิส|ดร\.|Wongsakorn|Aj\.|T\.)/i.test(s)) {
-      bookerName = s;
-    } else {
-      if (!purpose && isNaN(Number(s))) {
-        purpose = s;
-      }
+    if (rawDate !== undefined && rawDate !== null && String(rawDate).trim() !== "") {
+      date = formatDateForLog(rawDate);
     }
-  });
+    if (rawSlot !== undefined && rawSlot !== null && String(rawSlot).trim() !== "") {
+      slot = formatSlotForLog(rawSlot);
+    }
+    if (rawRoom !== undefined && rawRoom !== null && String(rawRoom).trim() !== "") {
+      var rStr = String(rawRoom).trim();
+      room = roomMap[rStr] || rStr;
+    }
+    if (rawGrade !== undefined && rawGrade !== null && String(rawGrade).trim() !== "") {
+      gradeLevel = String(rawGrade).trim();
+    }
+    if (rawCount !== undefined && rawCount !== null && String(rawCount).trim() !== "") {
+      studentCount = String(rawCount).trim();
+    }
+    if (rawPurpose !== undefined && rawPurpose !== null && String(rawPurpose).trim() !== "") {
+      purpose = String(rawPurpose).trim();
+    }
+    if (rawBooker !== undefined && rawBooker !== null && String(rawBooker).trim() !== "") {
+      bookerName = String(rawBooker).trim();
+    }
+    if (rawStatus !== undefined && rawStatus !== null && String(rawStatus).trim() !== "") {
+      var stStr = String(rawStatus).trim();
+      if (stStr === 'อนุมัติแล้ว' || stStr.toLowerCase() === 'approved') status = 'อนุมัติแล้ว';
+      else if (stStr === 'รออนุมัติ' || stStr.toLowerCase() === 'pending') status = 'รออนุมัติ';
+      else if (stStr === 'ปฏิเสธ' || stStr.toLowerCase() === 'rejected') status = 'ปฏิเสธ';
+      else status = stStr;
+    }
+    if (rawId !== undefined && rawId !== null && String(rawId).trim() !== "") {
+      id = String(rawId).trim();
+    }
+  }
+
+  // Fallback scanner if key fields are still blank
+  if (!date || !room || !bookerName) {
+    row.forEach(function(cell, colIndex) {
+      if (cell === null || cell === undefined) return;
+      var s = String(cell).trim();
+      if (!s || s === "-") return;
+
+      if (colIndex === 0 && /^\d+$/.test(s)) return;
+
+      if (/^(book_|test_booking_)/i.test(s)) {
+        if (!id) id = s;
+      } else if (/^(Lab\s*\d|ห้องปฏิบัติการ|ห้องศูนย์)/i.test(s)) {
+        if (!room) room = roomMap[s] || s;
+      } else if (typeof cell === 'string' && s.indexOf('T') !== -1 && s.indexOf('Z') !== -1) {
+        if (!id) id = "book_" + s.replace(/[^0-9]/g, "").slice(0, 14);
+      } else if (/^\d{4}-\d{2}-\d{2}/.test(s) || (cell instanceof Date)) {
+        if (!date) date = formatDateForLog(cell);
+      } else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+        if (!date) date = s;
+      } else if (/^(approved|pending|rejected|อนุมัติแล้ว|รออนุมัติ|ปฏิเสธ)$/i.test(s)) {
+        if (s.toLowerCase() === 'approved' || s === 'อนุมัติแล้ว') status = 'อนุมัติแล้ว';
+        else if (s.toLowerCase() === 'pending' || s === 'รออนุมัติ') status = 'รออนุมัติ';
+        else status = 'ปฏิเสธ';
+      } else if (/^\[.*\]$/.test(s)) {
+        // Skip prepItems JSON array
+      } else if (/^(ม\.\d\/\d|ม\.ต้น|ม\.ปลาย|ชมรม|โครงงาน|ม\.\d)/i.test(s)) {
+        if (gradeLevel === "-") gradeLevel = s;
+      } else if (/^\d+\s*คน$/.test(s) || (/^\d+$/.test(s) && Number(s) > 10 && Number(s) <= 150)) {
+        if (studentCount === "-") studentCount = s.indexOf('คน') !== -1 ? s : (s + ' คน');
+      } else if (/^[1-9](?:\s*,\s*[1-9])*$/.test(s)) {
+        if (!slot || slot === "-") slot = "คาบ " + s;
+      } else if (/คาบ\s*\d|^\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}/.test(s)) {
+        if (!slot || slot === "-") slot = formatSlotForLog(s);
+      } else if (/^(\d+(?:[,\s]+\d+)*)\s+(.*)$/.test(s)) {
+        var match = s.match(/^(\d+(?:[,\s]+\d+)*)\s+(.*)$/);
+        if (!slot || slot === "-") slot = "คาบ " + match[1];
+        if (!bookerName || bookerName === "-") bookerName = match[2];
+      } else if (/^(นาย|นางสาว|นาง|น\.ส\.|ครู|อาจารย์|อ\.|ม\.|มิส|ดร\.|Wongsakorn|Aj\.|T\.)/i.test(s)) {
+        if (!bookerName || bookerName === "-") bookerName = s;
+      } else {
+        if ((!purpose || purpose === "-") && isNaN(Number(s)) && s !== "-") {
+          purpose = s;
+        }
+      }
+    });
+  }
 
   if (!id) id = "book_" + Math.random().toString(36).substr(2, 9);
   return {
@@ -523,8 +572,8 @@ function parseAnyBookingRow(row) {
     room: room || 'ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ',
     date: date || '',
     slot: slot || '-',
-    gradeLevel: gradeLevel,
-    studentCount: studentCount,
+    gradeLevel: gradeLevel || '-',
+    studentCount: studentCount || '-',
     purpose: purpose || '-',
     bookerName: bookerName || '-',
     status: status

@@ -1795,6 +1795,10 @@
                 <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
               </div>
               <div style="display: flex; gap: 8px; align-items: center;">
+                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; border-radius: 8px;" title="ซิงค์ข้อมูลกับ Google Sheets ทันที">
+                  <i data-lucide="refresh-cw" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                  <span>ซิงค์ข้อมูล</span>
+                </button>
                 <button type="button" id="btnQuickExportBookingCSV" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 6px 12px; border-radius: 8px;">
                   <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #10b981;"></i>
                   <span>ส่งออก Excel/CSV</span>
