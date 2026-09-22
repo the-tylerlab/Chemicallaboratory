@@ -1,12 +1,12 @@
 /**
- * Chemical Laboratory Management System - Google Sheets Realtime Backup & Academic Logbook Sync
+ * Chemical Laboratory Management System - Google Sheets Realtime Backup & Academic Logbook
  * ==============================================================================
  * วิธีใช้งาน:
  * 1. เปิด Google Sheet ที่ต้องการสำรองข้อมูล
  * 2. ไปที่ Extensions (ส่วนขยาย) > Apps Script
  * 3. ลบโค้ดเดิมทั้งหมดใน Code.gs แล้วนำโค้ดด้านล่างนี้ไปวางแทนที่ทั้งหมด
  * 4. ด้านบนเลือกฟังก์ชัน "autoOrganizeCleanSheets" แล้วกดปุ่ม Run (▶️)
- *    - ระบบจะสร้าง 0.Dashboard + 7 แท็บมาตรฐาน + แท็บสมุดบันทึกการใช้ห้องแยกตามห้อง (Logbook) อัตโนมัติ
+ *    - ระบบจะสร้าง 0.Dashboard + แท็บ Bookings (รูปแบบสมุดบันทึกรวมทุกห้องพร้อมฟิลเตอร์) + แท็บมาตรฐาน
  * 5. กด Deploy (การทำให้ใช้งานได้) > New deployment (การทำให้ใช้งานได้รายการใหม่)
  *    - Type: Web app
  *    - Execute as: Me (ฉัน)
@@ -15,77 +15,28 @@
  */
 
 // -------------------------------------------------------------
-// MAP ROOM NAMES TO TAB CONFIGURATIONS
-// -------------------------------------------------------------
-var ROOM_CONFIGS = [
-  {
-    code: 'Lab 5',
-    tabName: '2.ห้องพัฒนาศูนย์สสวท. อาคารราฟาแอล',
-    title: 'ห้องพัฒนาศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล ภาคเรียนที่ 1/2569',
-    aliases: ['Lab 5', 'ห้องศูนย์ สสวท.', 'ห้องพัฒนาศูนย์สสวท', 'อาคารราฟาแอล', 'อาคารราฟาเอล']
-  },
-  {
-    code: 'Lab 6',
-    tabName: '3.ห้องปฏิบัติการทางวิทยาศาสตร์อาคารอัสสัมชัญ',
-    title: 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ ภาคเรียนที่ 1/2569',
-    aliases: ['Lab 6', 'ห้องปฏิบัติการทางวิทยาศาสตร์อาคารอัสสัมชัญ', 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ']
-  },
-  {
-    code: 'Lab 1',
-    tabName: '4.ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ',
-    title: 'ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ ภาคเรียนที่ 1/2569',
-    aliases: ['Lab 1', 'ห้องปฏิบัติการเคมี', 'ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ']
-  },
-  {
-    code: 'Lab 2',
-    tabName: '5.ห้องปฏิบัติการ ฟิสิกส์ อาคารเซนต์ปีเตอร์',
-    title: 'ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์ ภาคเรียนที่ 1/2569',
-    aliases: ['Lab 2', 'ห้องปฏิบัติการฟิสิกส์', 'ห้องปฏิบัติการ ฟิสิกส์', 'ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์']
-  },
-  {
-    code: 'Lab 3',
-    tabName: '6.ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์',
-    title: 'ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์ ภาคเรียนที่ 1/2569',
-    aliases: ['Lab 3', 'ห้องปฏิบัติการชีววิทยา', 'ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์']
-  },
-  {
-    code: 'Lab 4',
-    tabName: '7.ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล',
-    title: 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล ภาคเรียนที่ 1/2569',
-    aliases: ['Lab 4', 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล']
-  },
-  {
-    code: 'Lab 7',
-    tabName: '8.ห้องศูนย์ STEM CENTER',
-    title: 'ห้องศูนย์ STEM CENTER ภาคเรียนที่ 1/2569',
-    aliases: ['Lab 7', 'ห้องศูนย์ STEM CENTER', 'STEM']
-  },
-  {
-    code: 'Lab 8',
-    tabName: '9.ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่',
-    title: 'ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่ ภาคเรียนที่ 1/2569',
-    aliases: ['Lab 8', 'EP', 'อาคารยอห์น แมรี่']
-  }
-];
-
-// -------------------------------------------------------------
-// CUSTOM MENU IN GOOGLE SHEETS
+// CUSTOM MENU IN GOOGLE SHEETS (พร้อมปุ่ม SORT / FILTER)
 // -------------------------------------------------------------
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('🔬 เมนูระบบห้องแล็บ')
     .addItem('📊 จัดระเบียบชีตทั้งหมด (Auto Organize & Setup)', 'autoOrganizeCleanSheets')
-    .addItem('🔄 ซิงค์ข้อมูลการจองลงสมุดบันทึกรายห้อง (Sync Room Logs)', 'syncAllRoomLogSheets')
+    .addSeparator()
+    .addItem('📅 เรียงตาม: วันที่และเวลาใช้งาน (Sort by Date & Time)', 'sortByDateTime')
+    .addItem('🏢 เรียงตาม: ห้องปฏิบัติการ (Sort by Room)', 'sortByRoom')
+    .addItem('👨‍🏫 เรียงตาม: ชื่อคุณครูผู้สอน (Sort by Teacher)', 'sortByTeacher')
+    .addSeparator()
+    .addItem('🔄 รีเฟรชลำดับตัวเลข 1, 2, 3... (Re-number Rows)', 'renumberBookingRows')
     .addToUi();
 }
 
 // -------------------------------------------------------------
-// 1-CLICK AUTO SETUP & DASHBOARD CREATOR (0.Dashboard + 7 Tabs + Room Logs)
+// 1-CLICK AUTO SETUP & DASHBOARD CREATOR (0.Dashboard + Standard Tabs)
 // -------------------------------------------------------------
 function autoOrganizeCleanSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  // 1. โครงสร้าง 7 แท็บมาตรฐานภาษาอังกฤษ (Raw Data)
+  // 1. โครงสร้าง 6 แท็บมาตรฐานทั่วไป
   var schemas = {
     'Items': [
       'code', 'name', 'category', 'qty', 'unit', 'minAlert', 'expiry', 
@@ -94,10 +45,6 @@ function autoOrganizeCleanSheets() {
     'Transactions': [
       'id', 'code', 'itemCode', 'itemName', 'qty', 'unit', 'borrower', 
       'room', 'date', 'slot', 'notes', 'status', 'type', 'timestamp', 'createdAt'
-    ],
-    'Bookings': [
-      'id', 'room', 'date', 'slot', 'gradeLevel', 'studentCount', 'purpose', 'bookerName', 
-      'prepItems', 'status', 'createdAt'
     ],
     'Purchase_Orders': [
       'id', 'code', 'name', 'academicYear', 'semester', 
@@ -116,7 +63,7 @@ function autoOrganizeCleanSheets() {
     ]
   };
 
-  // สร้างหรือตรวจสอบ 7 แท็บมาตรฐาน
+  // สร้างหรือตรวจสอบแท็บมาตรฐาน
   Object.keys(schemas).forEach(function(tabName) {
     var sheet = ss.getSheetByName(tabName);
     var headers = schemas[tabName];
@@ -144,7 +91,10 @@ function autoOrganizeCleanSheets() {
     sheet.setFrozenRows(1);
   });
 
-  // 2. สร้างแท็บ "0.Dashboard" (ภาพรวมแดชบอร์ดสรุปสถิติอัตโนมัติ)
+  // 2. สร้างแท็บ "Bookings" (รูปแบบสมุดบันทึกการใช้ห้องปฏิบัติการรวมทุกห้อง พร้อมระบบ Sort/Filter)
+  setupUnifiedBookingLogSheet(ss);
+
+  // 3. สร้างแท็บ "0.Dashboard" (ภาพรวมแดชบอร์ดสรุปสถิติอัตโนมัติ)
   var dashSheet = ss.getSheetByName('0.Dashboard') || ss.getSheetByName('0.ภาพรวม');
   if (!dashSheet) {
     dashSheet = ss.insertSheet('0.Dashboard', 0); // วางไว้เป็นชีตแรกสุด
@@ -194,13 +144,13 @@ function autoOrganizeCleanSheets() {
   // กล่องสถิติที่ 2: การจองห้องปฏิบัติการและยืมคืน
   dashSheet.getRange('E4:G4').merge().setValue('🔬 สถิติการจองแล็บและการยืมคืน').setBackground('#f3e8ff').setFontColor('#7e22ce').setFontWeight('bold');
   dashSheet.getRange('E5').setValue('รายการจองห้องแล็บทั้งหมด:');
-  dashSheet.getRange('G5').setFormula('=IFERROR(COUNTA(Bookings!A2:A), 0)').setFontWeight('bold').setHorizontalAlignment('right');
+  dashSheet.getRange('G5').setFormula('=IFERROR(COUNTA(Bookings!A3:A), 0)').setFontWeight('bold').setHorizontalAlignment('right');
 
   dashSheet.getRange('E6').setValue('• รออนุมัติการจอง:');
-  dashSheet.getRange('G6').setFormula('=IFERROR(COUNTIF(Bookings!J2:J, "รออนุมัติ") + COUNTIF(Bookings!J2:J, "pending"), 0)').setFontColor('#ea580c').setFontWeight('bold').setHorizontalAlignment('right');
+  dashSheet.getRange('G6').setFormula('=IFERROR(COUNTIF(Bookings!I3:I, "*รออนุมัติ*") + COUNTIF(Bookings!I3:I, "*pending*"), 0)').setFontColor('#ea580c').setFontWeight('bold').setHorizontalAlignment('right');
 
   dashSheet.getRange('E7').setValue('• อนุมัติ / เสร็จสิ้นแล้ว:');
-  dashSheet.getRange('G7').setFormula('=IFERROR(COUNTIF(Bookings!J2:J, "อนุมัติแล้ว") + COUNTIF(Bookings!J2:J, "approved") + COUNTIF(Bookings!J2:J, "เสร็จสิ้น"), 0)').setHorizontalAlignment('right');
+  dashSheet.getRange('G7').setFormula('=IFERROR(COUNTIF(Bookings!I3:I, "*อนุมัติแล้ว*") + COUNTIF(Bookings!I3:I, "*approved*") + COUNTIF(Bookings!I3:I, "*เสร็จสิ้น*"), 0)').setHorizontalAlignment('right');
 
   dashSheet.getRange('E8').setValue('📋 ประวัติการทำรายการยืม-คืน:');
   dashSheet.getRange('G8').setFormula('=IFERROR(COUNTA(Transactions!A2:A), 0)').setHorizontalAlignment('right');
@@ -229,7 +179,7 @@ function autoOrganizeCleanSheets() {
   dashSheet.getRange('E13').setValue('ยอดรวมงบประมาณจัดซื้อ:');
   dashSheet.getRange('G13').setFormula('=IFERROR(SUM(Purchase_Orders!G2:G), 0)').setFontWeight('bold').setFontColor('#15803d').setHorizontalAlignment('right');
 
-  // ปรับความกว้างคอลัมน์ให้อ่านง่าย
+  // ปรับความกว้างคอลัมน์
   dashSheet.setColumnWidth(1, 220);
   dashSheet.setColumnWidth(2, 20);
   dashSheet.setColumnWidth(3, 100);
@@ -237,14 +187,6 @@ function autoOrganizeCleanSheets() {
   dashSheet.setColumnWidth(5, 220);
   dashSheet.setColumnWidth(6, 20);
   dashSheet.setColumnWidth(7, 100);
-
-  // 3. สร้างแท็บสมุดบันทึกการใช้ห้องแยกตามห้อง (Logbook Sheets - รูปแบบตามโรงเรียน)
-  ROOM_CONFIGS.forEach(function(cfg) {
-    setupRoomLogSheet(ss, cfg);
-  });
-
-  // 4. ซิงค์ข้อมูลการจองที่มีอยู่แล้วลงแท็บห้องแต่ละห้อง
-  syncAllRoomLogSheets();
 
   // ลบแท็บซ้ำซ้อนเดิม
   var oldTabs = ['Sheet1', 'ชีต1', 'System', 'การจองห้องแล็บ', 'รายการอุปกรณ์', 'รายการสารเคมี'];
@@ -256,25 +198,42 @@ function autoOrganizeCleanSheets() {
   });
 
   ss.setActiveSheet(dashSheet);
-  ss.toast('✅ สร้าง Dashboard, 7 แท็บมาตรฐาน และสมุดบันทึกรายห้องสำเร็จเรียบร้อย!', 'สำเร็จ', 5);
+  ss.toast('✅ จัดระเบียบ Dashboard และแท็บ Bookings รูปแบบสมุดบันทึกสำเร็จเรียบร้อย!', 'สำเร็จ', 5);
 }
 
 // -------------------------------------------------------------
-// SETUP INDIVIDUAL ROOM LOG SHEET TEMPLATE (2-ROW HEADER)
+// SETUP UNIFIED BOOKINGS LOG SHEET (รวมทุกห้องในแท็บเดียว + ฟิลเตอร์)
 // -------------------------------------------------------------
-function setupRoomLogSheet(ss, cfg) {
-  var sheet = ss.getSheetByName(cfg.tabName);
+function setupUnifiedBookingLogSheet(ss) {
+  var sheet = ss.getSheetByName('Bookings');
   if (!sheet) {
-    sheet = ss.insertSheet(cfg.tabName);
+    sheet = ss.insertSheet('Bookings', 3);
+  }
+
+  // Preserve existing data if present
+  var lastRow = sheet.getLastRow();
+  var existingData = [];
+  if (lastRow >= 2) {
+    // Check if row 1 was old header or title
+    var r1Val = sheet.getRange(1, 1).getValue();
+    if (r1Val === 'id' || r1Val === 'ลำดับ') {
+      var rawValues = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+      var rawHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      existingData = rawValues.map(function(row) {
+        var obj = {};
+        rawHeaders.forEach(function(h, idx) { obj[h] = row[idx]; });
+        return obj;
+      });
+    }
   }
 
   // Row 1: Merged Title Header
-  sheet.getRange('A1:G1').merge()
-       .setValue(cfg.title)
-       .setBackground('#a7f3d0') // Soft Mint Green Header
+  sheet.getRange('A1:J1').merge()
+       .setValue('ห้องปฏิบัติการวิทยาศาสตร์และลงข้อมูลการใช้ห้อง ภาคเรียนที่ 1/2569')
+       .setBackground('#a7f3d0') // Soft Mint Green Header (ตามแบบภาพ)
        .setFontColor('#064e3b')
        .setFontWeight('bold')
-       .setFontSize(11)
+       .setFontSize(11.5)
        .setHorizontalAlignment('center')
        .setVerticalAlignment('middle');
   sheet.setRowHeight(1, 36);
@@ -284,13 +243,16 @@ function setupRoomLogSheet(ss, cfg) {
     'ลำดับ',
     'วัน/เดือน/ปี ที่ใช้งาน',
     'เวลาที่เข้าใช้',
+    'ห้องปฏิบัติการ',
     'ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน',
     'จำนวนนักเรียนที่เข้าใช้งานทั้งสิ้น',
     'ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง..................../ การเรียนการสอนเรื่อง......./กิจกรรมชมรม เป็นต้น)',
-    'ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น)'
+    'ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น)',
+    'สถานะ',
+    'id'
   ];
 
-  sheet.getRange(2, 1, 1, 7)
+  sheet.getRange(2, 1, 1, 10)
        .setValues([headers])
        .setBackground('#f8fafc')
        .setFontColor('#1e293b')
@@ -303,161 +265,109 @@ function setupRoomLogSheet(ss, cfg) {
 
   // Column Widths
   sheet.setColumnWidth(1, 60);  // ลำดับ
-  sheet.setColumnWidth(2, 120); // วันที่
-  sheet.setColumnWidth(3, 110); // เวลา
-  sheet.setColumnWidth(4, 140); // ระดับชั้น
-  sheet.setColumnWidth(5, 120); // จำนวนนักเรียน
-  sheet.setColumnWidth(6, 380); // กิจกรรม
-  sheet.setColumnWidth(7, 160); // ชื่อครู
+  sheet.setColumnWidth(2, 120); // วัน/เดือน/ปี ที่ใช้งาน
+  sheet.setColumnWidth(3, 110); // เวลาที่เข้าใช้
+  sheet.setColumnWidth(4, 200); // ห้องปฏิบัติการ (เพิ่มคอลัมน์นี้เพื่อให้กรอง/Sort ได้ครบทุกห้อง)
+  sheet.setColumnWidth(5, 140); // ระบุระดับชั้น
+  sheet.setColumnWidth(6, 120); // จำนวนนักเรียน
+  sheet.setColumnWidth(7, 360); // ระบุกิจกรรมที่ใช้
+  sheet.setColumnWidth(8, 160); // ลงชื่อคุณครู
+  sheet.setColumnWidth(9, 100); // สถานะ (อนุมัติแล้ว/รออนุมัติ)
+  sheet.setColumnWidth(10, 140); // id (รหัสอ้างอิงระบบ)
 
   sheet.setFrozenRows(2);
+
+  // Create built-in Google Sheets filter on Row 2 if not present
+  var currentFilter = sheet.getFilter();
+  if (!currentFilter) {
+    sheet.getRange(2, 1, Math.max(lastRow, 3), 10).createFilter();
+  }
+
+  // Re-number rows
+  renumberBookingRows();
 }
 
 // -------------------------------------------------------------
-// SYNC ALL BOOKINGS INTO ROOM LOG SHEETS
+// SORT & FILTER FUNCTIONS
 // -------------------------------------------------------------
-function syncAllRoomLogSheets() {
+
+// 1. เรียงตาม วันที่ และ เวลาเข้าใช้
+function sortByDateTime() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var bookingSheet = ss.getSheetByName('Bookings');
-  if (!bookingSheet || bookingSheet.getLastRow() < 2) return;
+  var sheet = ss.getSheetByName('Bookings');
+  if (!sheet || sheet.getLastRow() < 3) return;
 
-  var data = bookingSheet.getDataRange().getValues();
-  var headers = data[0];
+  var lastRow = sheet.getLastRow();
+  // Sort data range (Row 3 onwards, columns 1 to 10) by Col B (Date) Ascending, then Col C (Time) Ascending
+  var range = sheet.getRange(3, 1, lastRow - 2, 10);
+  range.sort([
+    { column: 2, ascending: true },
+    { column: 3, ascending: true }
+  ]);
 
-  // Helper index lookups (supports both English and Thai schema)
-  var colId = headers.indexOf('id');
-  var colRoom = headers.indexOf('room') !== -1 ? headers.indexOf('room') : headers.indexOf('ห้องปฏิบัติการ');
-  var colDate = headers.indexOf('date') !== -1 ? headers.indexOf('date') : headers.indexOf('วัน/เดือน/ปี ที่ใช้งาน');
-  var colSlot = headers.indexOf('slot') !== -1 ? headers.indexOf('slot') : headers.indexOf('เวลาที่เข้าใช้');
-  var colGrade = headers.indexOf('gradeLevel') !== -1 ? headers.indexOf('gradeLevel') : headers.indexOf('ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน');
-  var colCount = headers.indexOf('studentCount') !== -1 ? headers.indexOf('studentCount') : headers.indexOf('จำนวนนักเรียนที่เข้าใช้งานทั้งหมด');
-  if (colCount === -1) colCount = headers.indexOf('จำนวนนักเรียนที่เข้าใช้งานทั้งสิ้น');
-  var colPurpose = headers.indexOf('purpose') !== -1 ? headers.indexOf('purpose') : headers.indexOf('ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น)');
-  if (colPurpose === -1) colPurpose = headers.indexOf('ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง..................../ การเรียนการสอนเรื่อง......./กิจกรรมชมรม เป็นต้น)');
-  var colBooker = headers.indexOf('bookerName') !== -1 ? headers.indexOf('bookerName') : headers.indexOf('ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น)');
-  var colStatus = headers.indexOf('status') !== -1 ? headers.indexOf('status') : headers.indexOf('สถานะ');
-
-  // Group approved/active bookings by room
-  var roomBookings = {};
-  ROOM_CONFIGS.forEach(function(cfg) {
-    roomBookings[cfg.code] = [];
-  });
-
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    var status = String(colStatus !== -1 ? row[colStatus] : '').trim().toLowerCase();
-    
-    // Only log approved or non-rejected bookings in the official logbook
-    if (status === 'rejected' || status === 'ปฏิเสธ' || status === 'cancelled') continue;
-
-    var rawRoom = String(colRoom !== -1 ? row[colRoom] : '').trim();
-    var matchedCfg = findRoomConfig(rawRoom);
-    if (!matchedCfg) continue;
-
-    var dateVal = colDate !== -1 ? formatDateForLog(row[colDate]) : '';
-    var slotVal = colSlot !== -1 ? formatSlotForLog(row[colSlot]) : '';
-    var gradeVal = colGrade !== -1 ? String(row[colGrade] || '').trim() : '';
-    var countVal = colCount !== -1 ? String(row[colCount] || '').replace(/[^0-9]/g, '') : '';
-    var purposeVal = colPurpose !== -1 ? String(row[colPurpose] || '').trim() : '';
-    var bookerVal = colBooker !== -1 ? String(row[colBooker] || '').trim() : '';
-
-    roomBookings[matchedCfg.code].push({
-      date: dateVal,
-      slot: slotVal,
-      grade: gradeVal || '-',
-      count: countVal ? Number(countVal) : '-',
-      purpose: purposeVal,
-      booker: bookerVal,
-      rawDate: row[colDate]
-    });
-  }
-
-  // Write each room's logbook cleanly
-  ROOM_CONFIGS.forEach(function(cfg) {
-    var sheet = ss.getSheetByName(cfg.tabName);
-    if (!sheet) {
-      setupRoomLogSheet(ss, cfg);
-      sheet = ss.getSheetByName(cfg.tabName);
-    }
-
-    // Clear old data rows below header (Row 3 onwards)
-    var lastRow = sheet.getLastRow();
-    if (lastRow > 2) {
-      sheet.getRange(3, 1, lastRow - 2, 7).clearContent().clearFormat();
-    }
-
-    var list = roomBookings[cfg.code] || [];
-    if (list.length === 0) return;
-
-    var rows = list.map(function(item, idx) {
-      return [
-        idx + 1,
-        item.date,
-        item.slot,
-        item.grade,
-        item.count,
-        item.purpose,
-        item.booker
-      ];
-    });
-
-    var range = sheet.getRange(3, 1, rows.length, 7);
-    range.setValues(rows)
-         .setFontSize(9.5)
-         .setVerticalAlignment('middle')
-         .setWrap(true);
-
-    // Alignment per column
-    sheet.getRange(3, 1, rows.length, 1).setHorizontalAlignment('center').setFontWeight('bold'); // ลำดับ
-    sheet.getRange(3, 2, rows.length, 1).setHorizontalAlignment('center'); // วันที่
-    sheet.getRange(3, 3, rows.length, 1).setHorizontalAlignment('center'); // เวลา
-    sheet.getRange(3, 4, rows.length, 1).setHorizontalAlignment('center'); // ชั้น
-    sheet.getRange(3, 5, rows.length, 1).setHorizontalAlignment('center'); // จำนวน
-    sheet.getRange(3, 6, rows.length, 1).setHorizontalAlignment('left');   // กิจกรรม
-    sheet.getRange(3, 7, rows.length, 1).setHorizontalAlignment('center'); // ชื่อครู
-
-    // Gridlines & borders
-    range.setBorder(true, true, true, true, true, true, '#cbd5e1', SpreadsheetApp.BorderStyle.SOLID);
-  });
+  renumberBookingRows();
+  ss.toast('📅 เรียงลำดับตาม "วันที่และเวลาเข้าใช้งาน" สำเร็จเรียบร้อย!', 'สำเร็จ', 3);
 }
 
-function findRoomConfig(rawRoom) {
-  if (!rawRoom) return null;
-  for (var i = 0; i < ROOM_CONFIGS.length; i++) {
-    var cfg = ROOM_CONFIGS[i];
-    if (cfg.code.toLowerCase() === rawRoom.toLowerCase() || cfg.tabName === rawRoom) return cfg;
-    for (var j = 0; j < cfg.aliases.length; j++) {
-      if (rawRoom.toLowerCase().indexOf(cfg.aliases[j].toLowerCase()) !== -1) return cfg;
-    }
-  }
-  return null;
+// 2. เรียงตาม ห้องปฏิบัติการ และ วันที่
+function sortByRoom() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Bookings');
+  if (!sheet || sheet.getLastRow() < 3) return;
+
+  var lastRow = sheet.getLastRow();
+  // Sort data range by Col D (Room) Ascending, then Col B (Date) Ascending
+  var range = sheet.getRange(3, 1, lastRow - 2, 10);
+  range.sort([
+    { column: 4, ascending: true },
+    { column: 2, ascending: true },
+    { column: 3, ascending: true }
+  ]);
+
+  renumberBookingRows();
+  ss.toast('🏢 เรียงลำดับตาม "ห้องปฏิบัติการ" สำเร็จเรียบร้อย!', 'สำเร็จ', 3);
 }
 
-function formatDateForLog(val) {
-  if (!val) return '';
-  if (val instanceof Date) {
-    var d = ('0' + val.getDate()).slice(-2);
-    var m = ('0' + (val.getMonth() + 1)).slice(-2);
-    var y = val.getFullYear();
-    return d + '/' + m + '/' + y;
-  }
-  var s = String(val).trim();
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-    var p = s.split('T')[0].split('-');
-    return p[2] + '/' + p[1] + '/' + p[0];
-  }
-  return s;
+// 3. เรียงตาม ชื่อคุณครูผู้สอน
+function sortByTeacher() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Bookings');
+  if (!sheet || sheet.getLastRow() < 3) return;
+
+  var lastRow = sheet.getLastRow();
+  var range = sheet.getRange(3, 1, lastRow - 2, 10);
+  range.sort([
+    { column: 8, ascending: true },
+    { column: 2, ascending: true }
+  ]);
+
+  renumberBookingRows();
+  ss.toast('👨‍🏫 เรียงลำดับตาม "ชื่อคุณครูผู้สอน" สำเร็จเรียบร้อย!', 'สำเร็จ', 3);
 }
 
-function formatSlotForLog(slot) {
-  if (!slot) return '';
-  var s = String(slot).trim();
-  // If slot contains time like 13:20 - 15:00 or คาบ 6: 13:20...
-  if (s.indexOf('(') !== -1 && s.indexOf(')') !== -1) {
-    var m = s.match(/\(([^)]+)\)/);
-    if (m) return m[1].replace(/:/g, '.');
+// 4. รันลำดับตัวเลข 1, 2, 3... ในคอลัมน์ A ให้อัตโนมัติ
+function renumberBookingRows() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Bookings');
+  if (!sheet || sheet.getLastRow() < 3) return;
+
+  var numRows = sheet.getLastRow() - 2;
+  var numbers = [];
+  for (var i = 1; i <= numRows; i++) {
+    numbers.push([i]);
   }
-  return s.replace(/:/g, '.');
+
+  var numRange = sheet.getRange(3, 1, numRows, 1);
+  numRange.setValues(numbers)
+          .setHorizontalAlignment('center')
+          .setFontWeight('bold')
+          .setFontSize(9.5);
+
+  // Set borders for entire data range
+  sheet.getRange(3, 1, numRows, 10)
+       .setBorder(true, true, true, true, true, true, '#cbd5e1', SpreadsheetApp.BorderStyle.SOLID)
+       .setVerticalAlignment('middle')
+       .setWrap(true);
 }
 
 // -------------------------------------------------------------
@@ -498,13 +408,12 @@ function doPost(e) {
       sheet = ss.insertSheet(table);
     }
 
-    var result = (action === 'DELETE') ? deleteRow(sheet, data, keyField) : upsertRow(sheet, data, keyField);
-
-    // If Bookings table is modified, automatically sync room logbook sheets
+    var result = "";
     if (table === 'Bookings') {
-      try {
-        syncAllRoomLogSheets();
-      } catch(syncErr) {}
+      result = (action === 'DELETE') ? deleteBookingRow(sheet, data) : upsertBookingRow(sheet, data);
+      renumberBookingRows();
+    } else {
+      result = (action === 'DELETE') ? deleteRow(sheet, data, keyField) : upsertRow(sheet, data, keyField);
     }
 
     return ContentService.createTextOutput(JSON.stringify({ 
@@ -523,10 +432,75 @@ function doPost(e) {
 function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({ 
     status: "active", 
-    message: "Chemical Lab Realtime Backup & Logbook Webhook is running." 
+    message: "Chemical Lab Realtime Backup & Academic Logbook Webhook is running." 
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
+// -------------------------------------------------------------
+// BOOKINGS UPSERT & DELETE (รองรับหัวตาราง 2 แถวของสมุดบันทึก)
+// -------------------------------------------------------------
+function upsertBookingRow(sheet, data) {
+  var id = data.id || '';
+  if (!id) return "missing_id";
+
+  var dateVal = formatDateForLog(data.date || data['วัน/เดือน/ปี ที่ใช้งาน']);
+  var slotVal = formatSlotForLog(data.slot || data['เวลาที่เข้าใช้']);
+  var roomVal = data.room || data['ห้องปฏิบัติการ'] || '';
+  var gradeVal = data.gradeLevel || data['ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน'] || '-';
+  var countVal = data.studentCount || data['จำนวนนักเรียนที่เข้าใช้งานทั้งหมด'] || data['จำนวนนักเรียนที่เข้าใช้งานทั้งสิ้น'] || '-';
+  var purposeVal = data.purpose || data.activity || data['ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น)'] || '';
+  var bookerVal = data.bookerName || data.teacherName || data['ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น)'] || '';
+  var statusVal = data.status || data['สถานะ'] || 'อนุมัติแล้ว';
+
+  var rowValues = [
+    "", // ลำดับ (จะถูก renumber ให้อัตโนมัติ)
+    dateVal,
+    slotVal,
+    roomVal,
+    gradeVal,
+    countVal,
+    purposeVal,
+    bookerVal,
+    statusVal,
+    id
+  ];
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow >= 3) {
+    var idColRange = sheet.getRange(3, 10, lastRow - 2, 1).getValues();
+    for (var i = 0; i < idColRange.length; i++) {
+      if (String(idColRange[i][0]).trim() === String(id).trim()) {
+        rowValues[0] = i + 1;
+        sheet.getRange(i + 3, 1, 1, 10).setValues([rowValues]);
+        return "updated_row_" + (i + 3);
+      }
+    }
+  }
+
+  // Append new row
+  rowValues[0] = Math.max(lastRow - 1, 1);
+  sheet.appendRow(rowValues);
+  return "inserted_new_booking";
+}
+
+function deleteBookingRow(sheet, data) {
+  var id = data.id || '';
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 3 || !id) return "not_found";
+
+  var idColRange = sheet.getRange(3, 10, lastRow - 2, 1).getValues();
+  for (var i = idColRange.length - 1; i >= 0; i--) {
+    if (String(idColRange[i][0]).trim() === String(id).trim()) {
+      sheet.deleteRow(i + 3);
+      return "deleted_row_" + (i + 3);
+    }
+  }
+  return "row_not_found";
+}
+
+// -------------------------------------------------------------
+// STANDARD GENERIC TABLES UPSERT / DELETE
+// -------------------------------------------------------------
 function upsertRow(sheet, data, keyField) {
   var lastRow = sheet.getLastRow();
   var headers = sheet.getLastColumn() > 0 ? sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0] : [];
@@ -569,4 +543,30 @@ function deleteRow(sheet, data, keyField) {
     }
   }
   return "row_not_found";
+}
+
+function formatDateForLog(val) {
+  if (!val) return '';
+  if (val instanceof Date) {
+    var d = ('0' + val.getDate()).slice(-2);
+    var m = ('0' + (val.getMonth() + 1)).slice(-2);
+    var y = val.getFullYear();
+    return d + '/' + m + '/' + y;
+  }
+  var s = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    var p = s.split('T')[0].split('-');
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+  return s;
+}
+
+function formatSlotForLog(slot) {
+  if (!slot) return '';
+  var s = String(slot).trim();
+  if (s.indexOf('(') !== -1 && s.indexOf(')') !== -1) {
+    var m = s.match(/\(([^)]+)\)/);
+    if (m) return m[1].replace(/:/g, '.');
+  }
+  return s.replace(/:/g, '.');
 }
