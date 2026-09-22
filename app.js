@@ -414,7 +414,25 @@ function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
   }
 }
 
-// Full 2-Way / 1-Way Sync All Data to Google Sheets
+async function fetchTableFromGoogleSheets(table) {
+  if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) return [];
+  try {
+    const url = `${GOOGLE_SCRIPT_WEBAPP_URL}?table=${encodeURIComponent(table)}`;
+    const response = await fetch(url);
+    if (!response.ok) return [];
+    const json = await response.json();
+    if (json && json.status === "success" && Array.isArray(json.data)) {
+      return json.data;
+    }
+    return [];
+  } catch (err) {
+    console.warn(`[GoogleSheetsFetch] Fetch error on ${table}:`, err.message);
+    return [];
+  }
+}
+window.fetchTableFromGoogleSheets = fetchTableFromGoogleSheets;
+
+// Full 2-Way Sync All Data with Google Sheets
 async function syncAllToGoogleSheets(silent = false) {
   if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) {
     if (!silent) showToast("ไม่สามารถเชื่อมต่อ Google Sheets Webhook ได้ หรืออุปกรณ์ออฟไลน์", "warning");
@@ -424,20 +442,89 @@ async function syncAllToGoogleSheets(silent = false) {
   try {
     if (!silent && typeof Swal !== 'undefined') {
       Swal.fire({
-        title: 'กำลังซิงค์ข้อมูลไปยัง Google Sheets...',
-        html: '<div style="font-size:13px; color:#64748b; line-height: 1.6;">กำลังอัปเดตข้อมูลผู้ใช้งาน 5.Users, รายการพัสดุและสารเคมี 1.Items, ธุรกรรมยืม-คืน 2.Transactions, และการจองห้อง 3.Bookings...</div>',
+        title: 'กำลังซิงค์ข้อมูลกับ Google Sheets...',
+        html: '<div style="font-size:13px; color:#64748b; line-height: 1.6;">กำลังดึงข้อมูลและอัปเดต 3.Bookings, 1.Items, 2.Transactions, และ 5.Users...</div>',
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
       });
     }
 
-    // 1. Clean obsolete mock demo users from Google Sheets
+    // 1. Pull latest Bookings from Google Sheets
+    let pulledBookingsCount = 0;
+    try {
+      const sheetBookings = await fetchTableFromGoogleSheets('3.Bookings');
+      if (Array.isArray(sheetBookings) && sheetBookings.length > 0) {
+        const validSheetBookings = sheetBookings
+          .filter(b => {
+            if (!b) return false;
+            const hasDate = b.date && String(b.date).trim() !== "" && String(b.date).trim() !== "-";
+            const hasBooker = (b.bookerName && String(b.bookerName).trim() !== "" && String(b.bookerName).trim() !== "-") ||
+                              (b.teacherName && String(b.teacherName).trim() !== "" && String(b.teacherName).trim() !== "-");
+            const hasPurpose = (b.purpose && String(b.purpose).trim() !== "" && String(b.purpose).trim() !== "-") ||
+                               (b.activity && String(b.activity).trim() !== "" && String(b.activity).trim() !== "-");
+            return hasDate && (hasBooker || hasPurpose || (b.id && !b.id.startsWith("book_mock_")));
+          })
+          .map(b => {
+            const normDate = normalizeDateStr(b.date);
+            const rawRoom = b.room || b.roomFullName || "Lab 1";
+            const cleanRoom = (typeof getRoomCodeFromName === 'function' ? getRoomCodeFromName(rawRoom) : rawRoom);
+            const rawStatus = b.status || "approved";
+            const status = (rawStatus === "approved" || rawStatus === "อนุมัติแล้ว") ? "approved" 
+                         : ((rawStatus === "pending" || rawStatus === "รออนุมัติ") ? "pending" : "rejected");
+            
+            let booker = b.bookerName || b.teacherName || "";
+            if (booker === "-") booker = "";
+            let purpose = b.purpose || b.activity || "";
+            if (purpose === "-") purpose = "";
+            let grade = b.gradeLevel || "";
+            if (grade === "-") grade = "";
+            let count = b.studentCount || "";
+            if (count === "-") count = "";
+
+            return {
+              id: b.id || ("book_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6)),
+              room: cleanRoom,
+              date: normDate,
+              slot: (b.slot && b.slot !== "-") ? b.slot : "คาบ 1",
+              gradeLevel: grade,
+              studentCount: count,
+              purpose: purpose || "การเรียนการสอนวิทยาศาสตร์",
+              bookerName: booker || "คุณครูผู้สอน",
+              teacherName: booker || "คุณครูผู้สอน",
+              status: status,
+              createdAt: b.createdAt || new Date().toISOString()
+            };
+          });
+
+        if (validSheetBookings.length > 0) {
+          pulledBookingsCount = validSheetBookings.length;
+          const mergedBookingsMap = new Map();
+          if (Array.isArray(bookings)) {
+            bookings.forEach(b => { if (b && b.id) mergedBookingsMap.set(b.id, b); });
+          }
+          validSheetBookings.forEach(sb => {
+            const ex = mergedBookingsMap.get(sb.id);
+            if (ex) {
+              mergedBookingsMap.set(sb.id, { ...ex, ...sb });
+            } else {
+              mergedBookingsMap.set(sb.id, sb);
+            }
+          });
+          bookings = Array.from(mergedBookingsMap.values());
+          localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+        }
+      }
+    } catch (e) {
+      console.warn("Pull bookings notice:", e);
+    }
+
+    // 2. Clean obsolete mock demo users from Google Sheets
     const obsoleteMockIds = ["1001", "1002", "2001", "2002", "3001", "4001", "10797"];
     obsoleteMockIds.forEach(tId => {
       syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: tId, id: `u_${tId}` }, 'teacherId');
     });
 
-    // 2. Sync active Users
+    // 3. Sync active Users
     const activeUsers = (typeof adminUsers !== 'undefined' && Array.isArray(adminUsers) && adminUsers.length > 0) ? adminUsers : DEFAULT_RBAC_USERS;
     activeUsers.forEach(u => {
       const sheetUser = { ...u };
@@ -445,28 +532,28 @@ async function syncAllToGoogleSheets(silent = false) {
       syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
     });
 
-    // 3. Sync all Items
+    // 4. Sync all Items
     if (typeof items !== 'undefined' && Array.isArray(items) && items.length > 0) {
       items.forEach(it => {
         syncToGoogleSheetsDirect('Items', 'UPSERT', it, 'code');
       });
     }
 
-    // 4. Sync Transactions
+    // 5. Sync Transactions
     if (typeof transactions !== 'undefined' && Array.isArray(transactions) && transactions.length > 0) {
       transactions.forEach(tx => {
         syncToGoogleSheetsDirect('Transactions', 'UPSERT', tx, 'id');
       });
     }
 
-    // 5. Sync Bookings
+    // 6. Push Bookings to Google Sheets
     if (typeof bookings !== 'undefined' && Array.isArray(bookings) && bookings.length > 0) {
       bookings.forEach(bk => {
         syncToGoogleSheetsDirect('Bookings', 'UPSERT', bk, 'id');
       });
     }
 
-    // 6. Sync Purchase Orders
+    // 7. Sync Purchase Orders
     if (typeof purchaseOrders !== 'undefined' && Array.isArray(purchaseOrders) && purchaseOrders.length > 0) {
       purchaseOrders.forEach(po => {
         syncToGoogleSheetsDirect('Purchase_Orders', 'UPSERT', po, 'id');
@@ -476,6 +563,14 @@ async function syncAllToGoogleSheets(silent = false) {
     // Brief delay to allow dispatches to fire cleanly
     await new Promise(resolve => setTimeout(resolve, 600));
 
+    // Refresh UI components
+    if (typeof renderBookingsTable === 'function') renderBookingsTable();
+    if (typeof renderBookingSlots === 'function') renderBookingSlots();
+    if (typeof renderBookingCalendar === 'function') renderBookingCalendar();
+    if (typeof renderItems === 'function') renderItems();
+    if (typeof renderAdminUsersTable === 'function') renderAdminUsersTable();
+    if (typeof updateUI === 'function') updateUI();
+
     if (!silent) {
       if (typeof Swal !== 'undefined') {
         if (typeof Swal.hideLoading === 'function') {
@@ -483,11 +578,12 @@ async function syncAllToGoogleSheets(silent = false) {
         }
         Swal.fire({
           icon: 'success',
-          title: 'ซิงค์ Google Sheets สำเร็จ!',
-          html: `<div style="font-size:13.5px; color:#334155; line-height:1.6; text-align:left;">
-            <p>✅ อัปเดตรายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> ลงชีท <b>5.Users</b></p>
-            <p>✅ อัปเดตรายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> ลงชีท <b>1.Items</b></p>
-            <p>✅ ลบข้อมูลจำลองเก่าที่ไม่ได้ใช้งานออกจาก Google Sheets แล้ว</p>
+          title: 'ซิงค์ข้อมูล Google Sheets สำเร็จ!',
+          html: `<div style="font-size:13.5px; color:#334155; line-height:1.7; text-align:left;">
+            <p>✅ ซิงค์รายการจองห้องปฏิบัติการ <b>${bookings.length} รายการ</b> (จากชีท <b>3.Bookings</b>)</p>
+            <p>✅ อัปเดตรายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> (ชีท <b>5.Users</b>)</p>
+            <p>✅ อัปเดตรายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> (ชีท <b>1.Items</b>)</p>
+            <p>✅ ซิงค์ประวัติธุรกรรมและการสั่งซื้อเรียบร้อยแล้ว</p>
           </div>`,
           showConfirmButton: true,
           confirmButtonColor: '#7c3aed',
@@ -499,7 +595,7 @@ async function syncAllToGoogleSheets(silent = false) {
           }
         });
       } else {
-        showToast("ซิงค์ข้อมูลไปยัง Google Sheets สำเร็จเรียบร้อยแล้ว!", "success");
+        showToast("ซิงค์ข้อมูลกับ Google Sheets สำเร็จเรียบร้อยแล้ว!", "success");
       }
     }
   } catch (err) {
@@ -1651,6 +1747,21 @@ function getRoomThaiName(room) {
   if (room === "Lab 7" || room === "ห้องศูนย์ STEM CENTER") return "ห้องศูนย์ STEM CENTER";
   if (room === "Lab 8" || room === "ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่") return "ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่";
   return room;
+}
+
+function getRoomCodeFromName(name) {
+  if (!name) return "Lab 1";
+  const s = String(name).trim();
+  if (/^Lab\s*\d$/i.test(s)) return s.replace(/\s+/g, " ");
+  if (s.includes("เคมี")) return "Lab 1";
+  if (s.includes("ฟิสิกส์")) return "Lab 2";
+  if (s.includes("ชีววิทยา")) return "Lab 3";
+  if (s.includes("ราฟาเอล") && !s.includes("สสวท")) return "Lab 4";
+  if (s.includes("สสวท")) return "Lab 5";
+  if (s.includes("อัสสัมชัญ") && s.includes("วิทยาศาสตร์")) return "Lab 6";
+  if (s.includes("STEM") || s.includes("สะเต็ม")) return "Lab 7";
+  if (s.includes("EP") || s.includes("ยอห์น")) return "Lab 8";
+  return s;
 }
 
 function applyDashboardRoleLayout() {
@@ -6401,6 +6512,58 @@ async function loadAllBookings() {
     }
   }
 
+  // 1. Fetch from Google Sheets
+  let sheetBookings = [];
+  try {
+    const rawSheet = await fetchTableFromGoogleSheets('3.Bookings');
+    if (Array.isArray(rawSheet) && rawSheet.length > 0) {
+      sheetBookings = rawSheet
+        .filter(b => {
+          if (!b) return false;
+          const hasDate = b.date && String(b.date).trim() !== "" && String(b.date).trim() !== "-";
+          const hasBooker = (b.bookerName && String(b.bookerName).trim() !== "" && String(b.bookerName).trim() !== "-") ||
+                            (b.teacherName && String(b.teacherName).trim() !== "" && String(b.teacherName).trim() !== "-");
+          const hasPurpose = (b.purpose && String(b.purpose).trim() !== "" && String(b.purpose).trim() !== "-") ||
+                             (b.activity && String(b.activity).trim() !== "" && String(b.activity).trim() !== "-");
+          return hasDate && (hasBooker || hasPurpose || (b.id && !b.id.startsWith("book_mock_")));
+        })
+        .map(b => {
+          const normDate = normalizeDateStr(b.date);
+          const rawRoom = b.room || b.roomFullName || "Lab 1";
+          const cleanRoom = (typeof getRoomCodeFromName === 'function' ? getRoomCodeFromName(rawRoom) : rawRoom);
+          const rawStatus = b.status || "approved";
+          const status = (rawStatus === "approved" || rawStatus === "อนุมัติแล้ว") ? "approved" 
+                       : ((rawStatus === "pending" || rawStatus === "รออนุมัติ") ? "pending" : "rejected");
+          
+          let booker = b.bookerName || b.teacherName || "";
+          if (booker === "-") booker = "";
+          let purpose = b.purpose || b.activity || "";
+          if (purpose === "-") purpose = "";
+          let grade = b.gradeLevel || "";
+          if (grade === "-") grade = "";
+          let count = b.studentCount || "";
+          if (count === "-") count = "";
+
+          return {
+            id: b.id || ("book_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6)),
+            room: cleanRoom,
+            date: normDate,
+            slot: (b.slot && b.slot !== "-") ? b.slot : "คาบ 1",
+            gradeLevel: grade,
+            studentCount: count,
+            purpose: purpose || "การเรียนการสอนวิทยาศาสตร์",
+            bookerName: booker || "คุณครูผู้สอน",
+            teacherName: booker || "คุณครูผู้สอน",
+            status: status,
+            createdAt: b.createdAt || new Date().toISOString()
+          };
+        });
+      console.log(`📊 Loaded ${sheetBookings.length} bookings from Google Sheets.`);
+    }
+  } catch (e) {
+    console.warn("Failed to load bookings from Google Sheets:", e);
+  }
+
   if (remoteBookings.length === 0 && isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/bookings`);
@@ -6415,7 +6578,7 @@ async function loadAllBookings() {
     }
   }
 
-  // LocalStorage check and merge
+  // 2. LocalStorage check
   let localList = [];
   try {
     const localBookings = localStorage.getItem("lab_bookings");
@@ -6424,24 +6587,50 @@ async function loadAllBookings() {
     }
   } catch (e) {}
 
-  if (remoteBookings.length > 0) {
-    const merged = [...remoteBookings];
-    if (Array.isArray(localList)) {
-      localList.forEach(lb => {
-        if (lb && lb.id && !merged.some(rb => rb.id === lb.id)) {
-          merged.push(lb);
+  // 3. Merge all sources
+  const mergedMap = new Map();
+
+  if (sheetBookings.length === 0 && remoteBookings.length === 0 && localList.length === 0) {
+    defaultBookings.forEach(b => mergedMap.set(b.id, b));
+  }
+
+  if (Array.isArray(localList)) {
+    localList.forEach(b => {
+      if (b && b.id) mergedMap.set(b.id, b);
+    });
+  }
+
+  if (Array.isArray(remoteBookings)) {
+    remoteBookings.forEach(b => {
+      if (b && b.id) mergedMap.set(b.id, b);
+    });
+  }
+
+  if (Array.isArray(sheetBookings)) {
+    sheetBookings.forEach(b => {
+      if (b && b.id) {
+        const existing = mergedMap.get(b.id);
+        if (existing) {
+          mergedMap.set(b.id, { ...existing, ...b });
+        } else {
+          mergedMap.set(b.id, b);
+        }
+      }
+    });
+  }
+
+  bookings = Array.from(mergedMap.values());
+  localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+
+  if (isSupabaseOnline && sheetBookings.length > 0) {
+    try {
+      sheetBookings.forEach(async (sb) => {
+        if (!remoteBookings.some(rb => rb.id === sb.id)) {
+          await supabase.from("bookings").upsert(sb);
         }
       });
-    }
-    bookings = merged;
-  } else if (Array.isArray(localList) && localList.length > 0) {
-    bookings = localList;
-  } else {
-    bookings = [...defaultBookings];
+    } catch (e) {}
   }
-  
-  localStorage.setItem("lab_bookings", JSON.stringify(bookings));
-  injectTestBookings();
 }
 
 function injectTestBookings() {
@@ -7188,17 +7377,19 @@ function renderBookingsTable() {
   const tableBody = document.getElementById("bookingsTableBody");
   if (!tableBody) return;
 
-  // Sort bookings: newest first
+  // Sort bookings: newest date first
   const sortedBookings = [...bookings].sort((a, b) => {
-    const dateA = new Date(a.createdAt || 0);
-    const dateB = new Date(b.createdAt || 0);
+    const isoA = a.date ? (normalizeDateStr(a.date) + 'T00:00:00') : (a.createdAt || 0);
+    const isoB = b.date ? (normalizeDateStr(b.date) + 'T00:00:00') : (b.createdAt || 0);
+    const dateA = new Date(isoA);
+    const dateB = new Date(isoB);
     return dateB - dateA;
   });
 
   if (sortedBookings.length === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="2" style="text-align: center; padding: 40px;">
+        <td colspan="6" style="text-align: center; padding: 40px;">
           <div class="empty-state">
             <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
             <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
@@ -7212,7 +7403,7 @@ function renderBookingsTable() {
   let html = "";
   sortedBookings.forEach(b => {
     // Format Date nicely for display
-    const formattedDate = formatThaiDate(b.date);
+    const formattedDate = formatThaiDate(normalizeDateStr(b.date) || b.date);
     
     // Split slots by comma and create a line for each slot
     const slotHtml = (b.slot || "").split(", ").map(s => `
