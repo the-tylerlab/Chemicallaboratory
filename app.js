@@ -15831,16 +15831,16 @@ function renderCabinetMap() {
       const headerBg = isEmergency ? '#fffdf5' : '#f8fafc';
       
       if (!cab) {
-        const shelfArray = Array.from({ length: shelvesCount }, (_, i) => i + 1);
+        const shelfArray = Array.from({ length: Math.max(shelvesCount, 4) }, (_, i) => i + 1);
         card.innerHTML += `
           ${editToolbarHtml}
-          <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: ${headerBg};">
-            <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-              <div style="flex: 1; min-width: 0; padding-right: 12px;">
-                <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">${cabName}</h3>
+          <div class="cabinet-header" style="display: flex; flex-direction: column; width: 100%; box-sizing: border-box; padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: ${headerBg};">
+            <div class="cabinet-title-row" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 10px;">
+              <div style="flex: 1; min-width: 0;">
+                <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b; line-height: 1.3;">${cabName}</h3>
                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${subTitleText}</div>
               </div>
-              <div style="margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 4px;">
+              <div style="margin-left: auto; flex-shrink: 0; display: flex; align-items: center;">
                 ${isHidden ? badgeHidden : badgeSafe}
               </div>
             </div>
@@ -15890,22 +15890,23 @@ function renderCabinetMap() {
         const totalItems = chemCount + equipCount;
         
         let shelvesHtml = "";
-        const shelfNames = Object.keys(cab.shelves).sort();
+        const shelfNames = Object.keys(cab.shelves);
         
-        const displayShelves = [];
-        let defaultIdx = 1;
-        const targetShelves = Math.max(shelvesCount, shelfNames.length, 4);
-        for (let i = 0; i < targetShelves; i++) {
-           if (i < shelfNames.length) {
-              displayShelves.push(shelfNames[i]);
-           } else {
-              while (shelfNames.includes(`ชั้น ${defaultIdx}`)) {
-                 defaultIdx++;
-              }
-              displayShelves.push(`ชั้น ${defaultIdx}`);
-              defaultIdx++;
-           }
+        // Build all shelves and sort naturally (ชั้น 1, ชั้น 2, ชั้น 3, ชั้น 4, ...)
+        const allShelfSet = new Set(shelfNames);
+        const targetShelvesCount = Math.max(shelvesCount, allShelfSet.size, 4);
+        for (let i = 1; i <= targetShelvesCount; i++) {
+          allShelfSet.add(`ชั้น ${i}`);
         }
+        
+        const displayShelves = Array.from(allShelfSet).sort((a, b) => {
+          const numA = parseInt((a.match(/\d+/) || [0])[0], 10);
+          const numB = parseInt((b.match(/\d+/) || [0])[0], 10);
+          if (numA && numB && numA !== numB) {
+            return numA - numB;
+          }
+          return a.localeCompare(b, 'th', { numeric: true, sensitivity: 'base' });
+        });
         
         displayShelves.forEach(sName => {
           const shelfItems = cab.shelves[sName] || [];
@@ -15913,7 +15914,7 @@ function renderCabinetMap() {
             <div class="cabinet-shelf-item" data-shelf="${sName}" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
               <span style="font-size: 13px; font-weight: 500; color: #334155;">${sName}</span>
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px;">${shelfItems.length} รายการ</span>
+                <span class="item-count" style="background: ${shelfItems.length > 0 ? '#ede9fe' : 'white'}; border: 1px solid ${shelfItems.length > 0 ? '#ddd6fe' : 'var(--border-color)'}; color: ${shelfItems.length > 0 ? '#7c3aed' : 'var(--text-muted)'}; font-weight: ${shelfItems.length > 0 ? '600' : '400'}; font-size: 11px; padding: 2px 8px; border-radius: 12px;">${shelfItems.length} รายการ</span>
                 <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
               </div>
             </div>
@@ -15922,21 +15923,21 @@ function renderCabinetMap() {
 
         card.innerHTML += `
           ${editToolbarHtml}
-          <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: ${headerBg};">
-            <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-              <div style="flex: 1; min-width: 0; padding-right: 12px;">
-                <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">${cabName}</h3>
+          <div class="cabinet-header" style="display: flex; flex-direction: column; width: 100%; box-sizing: border-box; padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: ${headerBg};">
+            <div class="cabinet-title-row" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 10px;">
+              <div style="flex: 1; min-width: 0;">
+                <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b; line-height: 1.3;">${cabName}</h3>
                 <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${subTitleText}</div>
               </div>
-              <div style="margin-left: auto; flex-shrink: 0; display: flex; align-items: center; gap: 4px;">
+              <div style="margin-left: auto; flex-shrink: 0; display: flex; align-items: center;">
                 ${isHidden ? badgeHidden : (cab.hasIncompatible ? badgeWarning : badgeSafe)}
               </div>
             </div>
             
             ${cab.hasIncompatible ? `
-              <div style="background-color: #fef2f2; padding: 8px 12px; border-left: 3px solid #ef4444; border-radius: 4px; font-size: 12px; color: #dc2626; margin-top: 12px; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="alert-triangle" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
-                <span>มีสารเคมีที่ไม่ควรเก็บร่วมกัน!</span>
+              <div style="background-color: #fef2f2; border: 1px solid #fecdd3; border-left: 3px solid #ef4444; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #dc2626; margin-top: 12px; display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box;">
+                <i data-lucide="alert-triangle" style="width: 16px; height: 16px; flex-shrink: 0; color: #ef4444;"></i>
+                <span style="font-weight: 500;">มีสารเคมีที่ไม่ควรเก็บร่วมกัน!</span>
               </div>
             ` : ''}
           </div>
