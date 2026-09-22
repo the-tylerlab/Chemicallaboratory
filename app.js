@@ -8976,15 +8976,18 @@ window.showItemDetail = function(event, itemCode) {
 
   // Build Footer Actions
   const roleLevel = getCurrentRoleLevel();
+  const isL2Plus = (roleLevel === "L2" || roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "staff" || userRole === "admin" || userRole === "executive" || userRole === "L2" || userRole === "L3" || userRole === "L4")));
   const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
   const canEditThisItem = isL3Plus || (roleLevel === "L2" && canManageItemInRoom(item.room));
 
   footer.innerHTML = `
     <button type="button" class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
+    ${isL2Plus ? `
     <button type="button" class="btn btn-primary" style="background-color: var(--primary-purple); border-color: var(--primary-purple); display: inline-flex; align-items: center; gap: 6px;" onclick="printItemLabel('${item.code}')">
       <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
       <span>พิมพ์บาร์โค้ด / สติกเกอร์</span>
     </button>
+    ` : ''}
     ${canEditThisItem ? `
     <button type="button" class="btn btn-primary" style="background-color: var(--primary); border-color: var(--primary); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); editItem(items.findIndex(i => i.code === '${item.code}'))">
       <i data-lucide="edit-3" style="width: 15px; height: 15px;"></i>
@@ -9067,6 +9070,13 @@ window.deleteDilution = async function(itemCode, dIdx) {
 };
 
 window.printItemLabel = function(itemCode) {
+  const roleLevel = getCurrentRoleLevel();
+  const isL2Plus = (roleLevel === "L2" || roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "staff" || userRole === "admin" || userRole === "executive" || userRole === "L2" || userRole === "L3" || userRole === "L4")));
+  if (!isL2Plus) {
+    showToast("การพิมพ์บาร์โค้ดและสติกเกอร์อนุญาตเฉพาะเจ้าหน้าที่แล็บ (L2) ขึ้นไปเท่านั้น", "warning");
+    return;
+  }
+
   const item = items.find(i => i.code === itemCode);
   if (!item) return;
 
