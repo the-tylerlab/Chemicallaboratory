@@ -15170,10 +15170,13 @@ function setupAdminClearHandlers() {
     if (confirmBtn) {
       confirmBtn.disabled = true;
       confirmBtn.style.cursor = "not-allowed";
-      confirmBtn.style.backgroundColor = "var(--text-muted)";
-      confirmBtn.style.borderColor = "var(--text-muted)";
+      confirmBtn.style.backgroundColor = "#cbd5e1";
+      confirmBtn.style.borderColor = "#cbd5e1";
+      confirmBtn.style.color = "#94a3b8";
+      confirmBtn.style.boxShadow = "none";
     }
     if (confirmModal) confirmModal.classList.add("active");
+    if (typeof lucide !== 'undefined') lucide.createIcons();
     if (confirmInput) confirmInput.focus();
   }
 
@@ -15274,16 +15277,20 @@ function setupAdminClearHandlers() {
   // Input typing validation
   if (confirmInput && confirmBtn) {
     confirmInput.addEventListener("input", (e) => {
-      const match = e.target.value === "CONFIRM TO DELETE";
+      const match = e.target.value.trim() === "CONFIRM TO DELETE";
       confirmBtn.disabled = !match;
       if (match) {
         confirmBtn.style.cursor = "pointer";
-        confirmBtn.style.backgroundColor = "var(--accent-red)";
-        confirmBtn.style.borderColor = "var(--accent-red)";
+        confirmBtn.style.backgroundColor = "#dc2626";
+        confirmBtn.style.borderColor = "#dc2626";
+        confirmBtn.style.color = "#ffffff";
+        confirmBtn.style.boxShadow = "0 4px 12px rgba(220, 38, 38, 0.3)";
       } else {
         confirmBtn.style.cursor = "not-allowed";
-        confirmBtn.style.backgroundColor = "var(--text-muted)";
-        confirmBtn.style.borderColor = "var(--text-muted)";
+        confirmBtn.style.backgroundColor = "#cbd5e1";
+        confirmBtn.style.borderColor = "#cbd5e1";
+        confirmBtn.style.color = "#94a3b8";
+        confirmBtn.style.boxShadow = "none";
       }
     });
   }
