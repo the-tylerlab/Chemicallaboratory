@@ -17586,8 +17586,8 @@ function renderBatchUserRows() {
         <td>
           <select class="batch-role-select" onchange="updateBatchRowData(${idx}, 'role', this.value)">
             <option value="L1" ${u.role === 'L1' ? 'selected' : ''}>L1 ครูผู้สอน</option>
-            <option value="L2" ${u.role === 'L2' ? 'selected' : ''}>L2 จนท.แล็บ</option>
-            <option value="L3" ${u.role === 'L3' ? 'selected' : ''}>L3 แอดมิน</option>
+            <option value="L2" ${u.role === 'L2' ? 'selected' : ''}>L2 เจ้าหน้าที่แล็บ</option>
+            <option value="L3" ${u.role === 'L3' ? 'selected' : ''}>L3 ผู้ดูแลระบบ</option>
             <option value="L4" ${u.role === 'L4' ? 'selected' : ''}>L4 ผู้บริหาร</option>
           </select>
         </td>
