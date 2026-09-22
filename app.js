@@ -6025,10 +6025,15 @@ function formatBookingForGoogleSheets(b) {
     'Lab 7': 'ห้องศูนย์ STEM CENTER',
     'Lab 8': 'ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่'
   };
+  let dateFormatted = b.date || '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateFormatted)) {
+    const [y, m, d] = dateFormatted.split('-');
+    dateFormatted = `${d}/${m}/${y}`;
+  }
   return {
     id: b.id,
     room: roomNames[b.room] || b.room || '',
-    date: b.date || '',
+    date: dateFormatted,
     slot: b.slot || '',
     gradeLevel: b.gradeLevel || '-',
     studentCount: b.studentCount ? `${b.studentCount} คน` : '-',
