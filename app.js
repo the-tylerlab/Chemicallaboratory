@@ -3924,72 +3924,243 @@ function setupImportModal() {
   const fileInput = document.getElementById("csvFileInput");
   const fileNameDisplay = document.getElementById("csvFileName");
   const btnConfirm = document.getElementById("btnConfirmImport");
-  const btnDownload = document.getElementById("btnDownloadTemplate");
+  const btnDownloadCSV = document.getElementById("btnDownloadTemplate");
+  const btnDownloadExcel = document.getElementById("btnDownloadExcelTemplate");
 
   // Close modal events
   const closeModalFunc = () => {
     modal.classList.remove("active");
     // Clear selection
     fileInput.value = "";
-    fileNameDisplay.innerText = "no file selected";
+    fileNameDisplay.innerText = "ยังไม่ได้เลือกไฟล์";
     btnConfirm.disabled = true;
     fileToImport = null;
   };
 
-  btnClose.addEventListener("click", closeModalFunc);
-  btnCancel.addEventListener("click", closeModalFunc);
+  if (btnClose) btnClose.addEventListener("click", closeModalFunc);
+  if (btnCancel) btnCancel.addEventListener("click", closeModalFunc);
 
   // Close modal when clicking on dark backdrop
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeModalFunc();
-  });
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModalFunc();
+    });
+  }
 
-  // Handle File Input Selection
-  fileInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.name.slice(-4).toLowerCase() !== ".csv") {
-        showToast("กรุณาเลือกไฟล์สกุล .csv เท่านั้น!", "error");
-        fileInput.value = "";
-        fileNameDisplay.innerText = "no file selected";
-        btnConfirm.disabled = true;
-        fileToImport = null;
+  // Handle File Input Selection (.xlsx, .xls, .csv)
+  if (fileInput) {
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!["csv", "xlsx", "xls"].includes(ext)) {
+          showToast("กรุณาเลือกไฟล์สกุล .xlsx, .xls หรือ .csv เท่านั้น!", "error");
+          fileInput.value = "";
+          fileNameDisplay.innerText = "ยังไม่ได้เลือกไฟล์";
+          btnConfirm.disabled = true;
+          fileToImport = null;
+          return;
+        }
+        fileToImport = file;
+        fileNameDisplay.innerText = file.name;
+        btnConfirm.disabled = false;
+      }
+    });
+  }
+
+  // Handle Import Submission (Supports Excel .xlsx/.xls and CSV)
+  if (btnConfirm) {
+    btnConfirm.addEventListener("click", () => {
+      const roleLevel = getCurrentRoleLevel();
+      const canImport = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+      
+      if (!canImport) {
+        showToast("เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้นที่มีสิทธิ์นำเข้าข้อมูล", "error");
+        closeModalFunc();
         return;
       }
-      fileToImport = file;
-      fileNameDisplay.innerText = file.name;
-      btnConfirm.disabled = false;
-    }
-  });
 
-  // Handle Import Submission (Read & Parse CSV)
-  btnConfirm.addEventListener("click", () => {
-    const roleLevel = getCurrentRoleLevel();
-    const canImport = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
-    
-    if (!canImport) {
-      showToast("เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้นที่มีสิทธิ์นำเข้าข้อมูล", "error");
-      closeModalFunc();
-      return;
-    }
+      if (!fileToImport) return;
 
-    if (!fileToImport) return;
+      const fileName = fileToImport.name.toLowerCase();
+      if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            if (typeof XLSX === 'undefined') {
+              showToast("ไม่พบไลบรารี XLSX สำหรับอ่านไฟล์ Excel", "error");
+              return;
+            }
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            // Intelligently choose the Data sheet:
+            // 1. Look for sheet name containing "กรอกข้อมูล", "Data", "Items", "พัสดุ", "สารเคมี"
+            // 2. Or if sheet 0 is "คู่มือ"/"Guide", choose sheet 1
+            let targetSheetName = workbook.SheetNames[0];
+            const dataSheet = workbook.SheetNames.find(s => 
+              s.includes('กรอกข้อมูล') || s.includes('Data') || s.includes('Items') || s.includes('พัสดุ') || s.includes('สารเคมี')
+            );
+            if (dataSheet) {
+              targetSheetName = dataSheet;
+            } else if (workbook.SheetNames.length > 1 && (workbook.SheetNames[0].includes('คู่มือ') || workbook.SheetNames[0].includes('Guide'))) {
+              targetSheetName = workbook.SheetNames[1];
+            }
 
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      const text = e.target.result;
-      await parseCSVAndImport(text);
-      closeModalFunc();
-    };
-    // Use UTF-8 to support Thai characters correctly
-    reader.readAsText(fileToImport, "UTF-8");
-  });
+            const worksheet = workbook.Sheets[targetSheetName];
+            const jsonMatrix = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+            await processImportRowsMatrix(jsonMatrix);
+            closeModalFunc();
+          } catch (err) {
+            console.error("Excel import failed:", err);
+            showToast("เกิดข้อผิดพลาดในการอ่านไฟล์ Excel: " + err.message, "error");
+          }
+        };
+        reader.readAsArrayBuffer(fileToImport);
+      } else {
+        // CSV file
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          const text = e.target.result;
+          await parseCSVAndImport(text);
+          closeModalFunc();
+        };
+        // Use UTF-8 to support Thai characters correctly
+        reader.readAsText(fileToImport, "UTF-8");
+      }
+    });
+  }
+
+  // Handle Excel Template Download (2 Sheets: Guide + Data)
+  if (btnDownloadExcel) {
+    btnDownloadExcel.addEventListener("click", (e) => {
+      e.preventDefault();
+      downloadExcelChemicalTemplate();
+    });
+  }
 
   // Handle CSV Template Download
-  btnDownload.addEventListener("click", (e) => {
-    e.preventDefault();
+  if (btnDownloadCSV) {
+    btnDownloadCSV.addEventListener("click", (e) => {
+      e.preventDefault();
+      downloadCSVTemplate();
+    });
+  }
+}
+
+// Download Excel Template (.xlsx) with 2 Sheets: Sheet 1 = Guide, Sheet 2 = Data Entry Table
+function downloadExcelChemicalTemplate() {
+  if (typeof XLSX === 'undefined') {
+    showToast("กำลังดาวน์โหลดเป็นไฟล์ CSV แทนเนื่องจากเบราว์เซอร์ไม่พร้อมใช้งาน Excel", "info");
     downloadCSVTemplate();
-  });
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // --- SHEET 1: 1. คู่มือการใช้งาน (Guide) ---
+  const guideData = [
+    ["# คู่มือการกรอกข้อมูลพัสดุและสารเคมีสำหรับนำเข้าระบบ (System Import Reference Guide)", "", ""],
+    ["คำแนะนำ: กรุณากรอกข้อมูลในชีตถัดไปชื่อ '2. ตารางกรอกข้อมูล (Data)' โดยอ้างอิงจากหลักเกณฑ์ด้านล่างนี้", "", ""],
+    ["", "", ""],
+    ["หัวข้อ (Topic)", "คำอธิบายและข้อกำหนด (Guidelines & Rules)", "ตัวอย่างค่าที่ถูกต้อง (Valid Examples)"],
+    ["1. คอลัมน์ที่จำเป็น (ห้ามเว้นว่าง)", "ต้องระบุข้อมูลในคอลัมน์ที่มีเครื่องหมายดอกจัน (*) ได้แก่ รหัส, ชื่อ, หมวดหมู่, จำนวน, หน่วย", "รหัส: CHEM-001 | ชื่อ: กรดไฮโดรคลอริก 37% | หมวดหมู่: สารเคมี | จำนวน: 5 | หน่วย: ขวด"],
+    ["2. หมวดหมู่พัสดุ (หมวดหมู่*)", "ต้องระบุให้ตรงกับ 4 หมวดหมู่หลักของระบบ", "สารเคมี | อุปกรณ์วิทยาศาสตร์ | เครื่องแก้ว | วัสดุสิ้นเปลือง"],
+    ["3. หน่วยนับ (หน่วย*)", "หน่วยนับของพัสดุและสารเคมี", "ขวด | เครื่อง | ชิ้น | อัน | กล่อง | หลอด | แกลลอน | ใบ | ชุด | ม้วน | แพ็ค | ลิตร | มล. | กรัม | กก."],
+    ["4. วันหมดอายุ", "รองรับทั้งรูปแบบสากล (YYYY-MM-DD) หรือแบบไทย (DD/MM/YYYY) (เว้นว่างได้ถ้าไม่มีวันหมดอายุ)", "2027-12-31 หรือ 31/12/2027 หรือ 31/12/2570"],
+    ["5. ห้องปฏิบัติการ (ห้อง)", "ระบุชื่อเต็มตามระบบหรือรหัสย่อ Lab 1 ถึง Lab 8", "Lab 1 หรือ ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ\nLab 2 หรือ ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์\nLab 3 หรือ ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์\nLab 4 หรือ ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล\nLab 5 หรือ ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล\nLab 6 หรือ ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ\nLab 7 หรือ ห้องศูนย์ STEM CENTER\nLab 8 หรือ ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่\nNone หรือ นอกห้องปฏิบัติการ"],
+    ["6. ตำแหน่งจัดเก็บ (ตู้ / ชั้น)", "ระบุชื่อตู้และชั้นวางเพื่อความสะดวกในการค้นหา", "ตู้: ตู้กรด-เบส AC-01 | ชั้น: ชั้น 1"],
+    ["7. ประเภทสารเคมี (SHECU)", "กลุ่มความเข้ากันได้ทางเคมี (เฉพาะสารเคมี)", "A (เบสอินทรีย์) | B (ทำปฏิกิริยากับน้ำ) | C (เบสอนินทรีย์) | D (กรดอินทรีย์) | E (ออกซิไดเซอร์อนินทรีย์) | F (กรดอนินทรีย์) | G (เคมีทั่วไป) | I (ออกซิไดเซอร์กรดแก่) | K (สารระเบิดได้) | L (สารไวไฟ/ตัวทำละลาย) | X (สารไม่เข้ากันกับกลุ่มใด)"],
+    ["8. ลิงก์ SDS", "URL เอกสารข้อมูลความปลอดภัยสารเคมี (Safety Data Sheet)", "https://example.com/sds-chemical.pdf (เว้นว่างได้)"],
+    ["9. สัญลักษณ์ GHS (9 สัญลักษณ์)", "ให้ใส่ Y หรือ 1 หรือ X ในช่องสัญลักษณ์ที่ตรงกับสารเคมีนั้นๆ", "ระเบิดได้, ไวไฟ, ออกซิไดซ์, ก๊าซความดัน, กัดกร่อน, ความเป็นพิษ, ระคายเคือง, ภัยสุขภาพ, ภัยสิ่งแวดล้อม"],
+    ["10. ขั้นตอนการนำเข้า", "เมื่อกรอกข้อมูลในชีต '2. ตารางกรอกข้อมูล (Data)' เรียบร้อยแล้ว ให้บันทึกไฟล์และอัปโหลดเข้าสู่ระบบ", "ระบบจะทำการประมวลผล ตรวจสอบความถูกต้อง และซิงค์ขึ้น Supabase Cloud + Google Sheets ให้ทันที"]
+  ];
+  const wsGuide = XLSX.utils.aoa_to_sheet(guideData);
+  wsGuide['!cols'] = [{ wch: 28 }, { wch: 80 }, { wch: 60 }];
+
+  // --- SHEET 2: 2. ตารางกรอกข้อมูล (Data) ---
+  const headers = [
+    "รหัส*", 
+    "ชื่อ*", 
+    "หมวดหมู่*", 
+    "จำนวน*", 
+    "หน่วย*", 
+    "จำนวนที่ชำรุด", 
+    "จำนวนส่งซ่อม", 
+    "จุดสั่งซื้อขั้นต่ำ", 
+    "วันหมดอายุ(YYYY-MM-DD)", 
+    "ห้อง", 
+    "ตู้", 
+    "ชั้น", 
+    "ประเภทสารเคมี", 
+    "ลิงก์ SDS", 
+    "ระเบิดได้(GHS)", 
+    "ไวไฟ(GHS)", 
+    "ออกซิไดซ์(GHS)", 
+    "ก๊าซความดัน(GHS)", 
+    "กัดกร่อน(GHS)", 
+    "ความเป็นพิษ(GHS)", 
+    "ระคายเคือง(GHS)", 
+    "ภัยสุขภาพ(GHS)", 
+    "ภัยสิ่งแวดล้อม(GHS)"
+  ];
+
+  const sampleRows = [
+    [
+      "CHEM-001", "กรดไฮโดรคลอริก 37% (Hydrochloric Acid 37%)", "สารเคมี", 5, "ขวด", 0, 0, 2, "2027-12-31", "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ", "ตู้กรด-เบส AC-01", "ชั้น 1", 
+      "F", "https://example.com/sds-hcl.pdf", "", "", "", "", "Y", "Y", "", "", ""
+    ],
+    [
+      "CHEM-002", "เอทานอล 95% (Ethanol 95%)", "สารเคมี", 10, "ขวด", 0, 0, 3, "2028-06-30", "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ", "ตู้สารไวไฟ FL-01", "ชั้น 2", 
+      "L", "https://example.com/sds-ethanol.pdf", "", "Y", "", "", "", "", "Y", "", ""
+    ],
+    [
+      "EQ-001", "เครื่องชั่งดิจิตอล 2 ตำแหน่ง (Digital Balance)", "อุปกรณ์วิทยาศาสตร์", 4, "เครื่อง", 0, 0, 1, "", "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์", "ตู้เครื่องมือวัด PHY-01", "ชั้น 1", 
+      "", "", "", "", "", "", "", "", "", "", ""
+    ],
+    [
+      "GW-001", "บีกเกอร์ 250 มล. (Beaker 250 mL)", "เครื่องแก้ว", 24, "ใบ", 1, 0, 10, "", "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์", "ตู้เครื่องแก้ว GW-01", "ชั้น 3", 
+      "", "", "", "", "", "", "", "", "", "", ""
+    ],
+    [
+      "CS-001", "กระดาษลิตมัสสีน้ำเงิน (Blue Litmus Paper)", "วัสดุสิ้นเปลือง", 15, "กล่อง", 0, 0, 5, "", "ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล", "ตู้เก็บวัสดุสิ้นเปลือง CS-01", "ชั้น 2", 
+      "", "", "", "", "", "", "", "", "", "", ""
+    ]
+  ];
+
+  const wsData = [headers, ...sampleRows];
+  const wsSheet = XLSX.utils.aoa_to_sheet(wsData);
+  wsSheet['!cols'] = [
+    { wch: 14 }, // รหัส*
+    { wch: 45 }, // ชื่อ*
+    { wch: 22 }, // หมวดหมู่*
+    { wch: 10 }, // จำนวน*
+    { wch: 10 }, // หน่วย*
+    { wch: 14 }, // จำนวนที่ชำรุด
+    { wch: 14 }, // จำนวนส่งซ่อม
+    { wch: 16 }, // จุดสั่งซื้อขั้นต่ำ
+    { wch: 24 }, // วันหมดอายุ
+    { wch: 40 }, // ห้อง
+    { wch: 24 }, // ตู้
+    { wch: 14 }, // ชั้น
+    { wch: 16 }, // ประเภทสารเคมี
+    { wch: 35 }, // ลิงก์ SDS
+    { wch: 14 }, // ระเบิดได้
+    { wch: 12 }, // ไวไฟ
+    { wch: 14 }, // ออกซิไดซ์
+    { wch: 16 }, // ก๊าซความดัน
+    { wch: 14 }, // กัดกร่อน
+    { wch: 16 }, // ความเป็นพิษ
+    { wch: 16 }, // ระคายเคือง
+    { wch: 14 }, // ภัยสุขภาพ
+    { wch: 16 }  // ภัยสิ่งแวดล้อม
+  ];
+
+  XLSX.utils.book_append_sheet(wb, wsGuide, "1. คู่มือการใช้งาน (Guide)");
+  XLSX.utils.book_append_sheet(wb, wsSheet, "2. ตารางกรอกข้อมูล (Data)");
+
+  XLSX.writeFile(wb, "Template_Chemical_Library.xlsx");
+  showToast("ดาวน์โหลดไฟล์เทมเพลต Excel (2 ชีต) เรียบร้อยแล้ว!", "success");
 }
 
 // Download UTF-8 CSV with BOM for automatic Excel support
@@ -4095,7 +4266,7 @@ function downloadCSVTemplate() {
   tempLink.click();
   document.body.removeChild(tempLink);
   
-  showToast("ดาวน์โหลดไฟล์ Template สำหรับนำเข้าพัสดุและสารเคมีเรียบร้อยแล้ว!");
+  showToast("ดาวน์โหลดไฟล์ Template CSV สำหรับนำเข้าพัสดุและสารเคมีเรียบร้อยแล้ว!");
 }
 
 // Helper: Parse single CSV line handling quotes and commas properly
@@ -4160,29 +4331,36 @@ function normalizeExpiryDateStr(val) {
   return str;
 }
 
-// Parse CSV text into arrays and push to local items
-async function parseCSVAndImport(csvText) {
-  const lines = csvText.split(/\r\n|\n/);
-  if (lines.length < 2) {
+// Master processor for 2D matrix rows (from Excel or CSV)
+async function processImportRowsMatrix(rows) {
+  if (!rows || rows.length < 2) {
     showToast("ไฟล์ไม่มีข้อมูลสำหรับการนำเข้า!", "error");
     return;
   }
 
   const importList = [];
   let errorCount = 0;
-  let headerSkipped = false;
+  let headerIndex = -1;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue; // Skip empty rows
-    if (line.startsWith('#')) continue; // Skip comment rows
-
-    if (!headerSkipped) {
-      headerSkipped = true;
-      continue; // Skip header row
+  // Search for the header row containing key column names
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!Array.isArray(r)) continue;
+    const rowStr = r.join(' ').toLowerCase();
+    if (rowStr.includes('รหัส') || rowStr.includes('ชื่อ') || rowStr.includes('code') || rowStr.includes('name')) {
+      headerIndex = i;
+      break;
     }
+  }
 
-    const cols = parseCSVLine(line).map(c => c.replace(/^"|"$/g, '').trim());
+  if (headerIndex === -1) {
+    headerIndex = 0;
+  }
+
+  for (let i = headerIndex + 1; i < rows.length; i++) {
+    const cols = (rows[i] || []).map(c => String(c ?? '').trim());
+    if (cols.length === 0 || cols.every(c => !c)) continue; // skip blank rows
+    if (cols[0].startsWith('#')) continue; // skip comments
 
     if (cols.length < 5) {
       errorCount++;
@@ -4220,7 +4398,7 @@ async function parseCSVAndImport(csvText) {
     const ghs = [];
     const isChecked = (val) => {
       if (!val) return false;
-      const normalized = val.trim().toLowerCase();
+      const normalized = String(val).trim().toLowerCase();
       return ["y", "1", "x", "yes", "true", "/", "ใช่", "ติ๊ก"].includes(normalized);
     };
 
@@ -4271,6 +4449,11 @@ async function parseCSVAndImport(csvText) {
     });
   }
 
+  if (importList.length === 0) {
+    showToast("ไม่พบข้อมูลที่ถูกต้องสำหรับนำเข้า (กรุณาตรวจสอบว่ามี รหัส, ชื่อ, หมวดหมู่, จำนวน, หน่วย ครบถ้วน)", "warning");
+    return;
+  }
+
   // 1. Google Sheets Direct Sync
   importList.forEach(item => syncToGoogleSheetsDirect('Items', 'UPSERT', item, 'code'));
 
@@ -4288,7 +4471,21 @@ async function parseCSVAndImport(csvText) {
       
       await loadAllItems();
       updateUI();
-      showToast(`นำเข้าคลาวด์สำเร็จ ${importedCount} รายการ! ${errorCount > 0 ? `(ข้ามรายการผิดพลาด ${errorCount} รายการ)` : ''}`, "success");
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: 'นำเข้าข้อมูลสำเร็จ!',
+          html: `<div style="font-size:14px; color:#334155; text-align:left; line-height:1.6;">
+            <p>บันทึกพัสดุและสารเคมีลงระบบเรียบร้อยแล้ว <b>${importedCount} รายการ</b></p>
+            ${errorCount > 0 ? `<p style="color:#e11d48; margin-top:6px;">⚠️ ข้ามแถวที่ไม่สมบูรณ์: ${errorCount} แถว</p>` : ''}
+            <p style="color:#059669; font-size:12.5px; margin-top:8px;">✅ ซิงค์ข้อมูลขึ้น Supabase Cloud และ Google Sheets อัตโนมัติ</p>
+          </div>`,
+          confirmButtonColor: '#7c3aed',
+          confirmButtonText: 'ตกลง'
+        });
+      } else {
+        showToast(`นำเข้าสำเร็จ ${importedCount} รายการ! ${errorCount > 0 ? `(ข้ามรายการผิดพลาด ${errorCount} รายการ)` : ''}`, "success");
+      }
     } catch (err) {
       console.error("🔥 Supabase batch import failed:", err);
       showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูลนำเข้าคลาวด์", "error");
@@ -4304,24 +4501,25 @@ async function parseCSVAndImport(csvText) {
         body: JSON.stringify(importList)
       });
       if (response.ok) {
-        const result = await response.json();
         await loadAllItems();
         updateUI();
-        showToast(`นำเข้าสำเร็จ ${result.imported} รายการ! ${result.errors > 0 ? `(ข้ามรายการซ้ำ/ผิดพลาด ${result.errors} รายการ)` : ''}`, "success");
+        showToast(`นำเข้าสำเร็จ ${importList.length} รายการ!`, "success");
       } else {
-        showToast("เกิดข้อผิดพลาดในการนำเข้าหลังบ้าน", "error");
+        showToast("เกิดข้อผิดพลาดในการนำเข้าข้อมูลบนเซิร์ฟเวอร์", "error");
       }
     } catch (err) {
-      console.error("Backend batch import failed, falling back:", err);
-      showToast("เกิดข้อผิดพลาดในการสื่อสารกับเซิร์ฟเวอร์หลังบ้าน", "error");
+      console.error("Batch import API failed, falling back:", err);
+      fallbackLocalImport(importList, errorCount);
     }
-    return;
+  } else {
+    fallbackLocalImport(importList, errorCount);
   }
+}
 
-  // Local Fallback Mode
+// Local storage fallback helper
+function fallbackLocalImport(importList, errorCount) {
   let localImportCount = 0;
   importList.forEach(newItem => {
-    // Check duplicate code locally safely
     const isDuplicate = items.some(item => (item.code || "").toLowerCase() === (newItem.code || "").toLowerCase());
     if (isDuplicate) {
       errorCount++;
@@ -4333,12 +4531,25 @@ async function parseCSVAndImport(csvText) {
 
   saveItemsToLocal();
   updateUI();
+  showToast(`นำเข้าข้อมูลลงเครื่อง (Offline) สำเร็จ ${localImportCount} รายการ!`, "success");
+}
 
-  if (localImportCount > 0) {
-    showToast(`นำเข้าข้อมูลพัสดุสำเร็จ ${localImportCount} รายการ! ${errorCount > 0 ? `(มีข้อผิดพลาด/ซ้ำ ${errorCount} รายการ)` : ''}`, "success");
-  } else {
-    showToast(`ไม่สามารถนำเข้าข้อมูลได้! มีข้อผิดพลาดในตารางข้อมูล`, "error");
+// Parse CSV text into arrays and delegate to processImportRowsMatrix
+async function parseCSVAndImport(csvText) {
+  const lines = csvText.split(/\r\n|\n/);
+  if (lines.length < 2) {
+    showToast("ไฟล์ไม่มีข้อมูลสำหรับการนำเข้า!", "error");
+    return;
   }
+
+  const matrix = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    matrix.push(parseCSVLine(line).map(c => c.replace(/^"|"$/g, '').trim()));
+  }
+
+  await processImportRowsMatrix(matrix);
 }
 
 // ==========================================================================
