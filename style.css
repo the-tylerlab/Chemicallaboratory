@@ -697,18 +697,39 @@ button.menu-item-link:hover {
 
 
 /* Modal Tabs */
+.help-modal-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.help-modal-sidebar {
+  width: 205px;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  border-right: 1px solid var(--border-color);
+  padding: 12px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
 .help-tab {
-  padding: 13px 18px;
-  margin: 4px 12px;
-  border-radius: 9px;
+  padding: 11px 14px;
+  margin: 3px 8px;
+  border-radius: 8px;
   cursor: pointer;
   color: #475569;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 550;
   transition: all 0.2s ease;
   user-select: none;
   display: flex;
   align-items: center;
+  white-space: nowrap;
 }
 
 .help-tab:hover {
@@ -720,6 +741,17 @@ button.menu-item-link:hover {
   background: rgba(124, 58, 237, 0.12);
   color: var(--primary-purple);
   font-weight: 700;
+}
+
+.help-modal-content {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 16px 20px 20px 20px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #ffffff;
+  box-sizing: border-box;
 }
 
 .help-content h4 {

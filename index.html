@@ -4840,18 +4840,18 @@
 
   <!-- MODAL: HELP & SAFETY -->
   <div id="helpSafetyModal" class="modal-overlay">
-    <div class="modal-content modal-lg" style="width: 92%; max-width: 840px; height: 440px; max-height: 85vh; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
-      <div style="padding: 16px 22px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; flex-shrink: 0;">
-        <h3 style="margin: 0; font-size: 17px; display: flex; align-items: center; gap: 8px;">
+    <div class="modal-content modal-lg" style="width: 94%; max-width: 860px; height: 450px; max-height: 85vh; padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+      <div style="padding: 14px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; flex-shrink: 0;">
+        <h3 style="margin: 0; font-size: 16.5px; display: flex; align-items: center; gap: 8px;">
           <i data-lucide="book-open" style="color: var(--primary-color);"></i> ศูนย์ข้อมูล และความปลอดภัย
         </h3>
         <button class="modal-close" onclick="closeHelpSafetyModal()" style="position: relative; top: 0; right: 0;"><i data-lucide="x"></i></button>
       </div>
       
-      <div class="help-modal-body" style="display: flex; flex: 1; min-height: 0; height: calc(100% - 54px); overflow: hidden;">
+      <div class="help-modal-body" style="display: flex; flex: 1; min-height: 0; height: calc(100% - 50px); width: 100%; overflow: hidden; box-sizing: border-box;">
         <!-- Sidebar Tabs -->
-        <div class="help-modal-sidebar" style="width: 235px; flex-shrink: 0; background: #f1f5f9; border-right: 1px solid var(--border-color); padding: 14px 0; overflow-y: auto;">
-          <ul class="help-tabs" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px;">
+        <div class="help-modal-sidebar" style="width: 200px; flex-shrink: 0; background: #f1f5f9; border-right: 1px solid var(--border-color); padding: 10px 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box;">
+          <ul class="help-tabs" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 3px;">
             <li class="help-tab active" data-target="help-tab-1">ความปลอดภัย SHECU</li>
             <li class="help-tab" data-target="help-tab-2">เอกสาร SDS</li>
             <li class="help-tab" data-target="help-tab-3">จัดการของเสีย</li>
@@ -4862,54 +4862,54 @@
         </div>
         
         <!-- Content Area -->
-        <div class="help-modal-content" style="flex: 1; padding: 20px 24px 24px 24px; overflow-y: auto; background: #ffffff; min-height: 0;">
+        <div class="help-modal-content" style="flex: 1; min-width: 0; width: 100%; padding: 16px 20px 20px 20px; overflow-y: auto; overflow-x: hidden; background: #ffffff; box-sizing: border-box;">
           <!-- Tab 1: ความปลอดภัย SHECU -->
           <div id="help-tab-1" class="help-content active">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
               <!-- Card 1 -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(245, 158, 11, 0.12); color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(245, 158, 11, 0.12); color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-alert" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>การจัดเก็บสารเคมีไม่เข้ากัน (Incompatible Chemicals)</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">การจัดเก็บสารเคมีไม่เข้ากัน (Incompatible Chemicals)</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #fef3c7; color: #92400e; border-radius: 6px;">มาตรฐาน SHECU-G</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #fef3c7; color: #92400e; border-radius: 6px; flex-shrink: 0;">มาตรฐาน SHECU-G</span>
                 </div>
-                <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #475569;">
+                <p style="margin: 0; font-size: 12.5px; line-height: 1.55; color: #475569;">
                   สารเคมีต้องถูกจัดเก็บแยกตามกลุ่มความเข้ากันไม่ได้ เช่น <strong>ห้ามเก็บกรดร่วมกับเบส</strong> หรือสารไวไฟร่วมกับตัวออกซิไดซ์ และแยกเก็บสารอันตรายสูงในตู้ดูดควันหรือตู้เก็บสารนิรภัย
                 </p>
               </div>
 
               <!-- Card 2 -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(59, 130, 246, 0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="archive" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(59, 130, 246, 0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="archive" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>การควบคุมความจุตู้จัดเก็บ (Cabinet Storage Capacity)</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">การควบคุมความจุตู้จัดเก็บ (Cabinet Storage Capacity)</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #dbeafe; color: #1e40af; border-radius: 6px;">สูงสุด 80%</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #dbeafe; color: #1e40af; border-radius: 6px; flex-shrink: 0;">สูงสุด 80%</span>
                 </div>
-                <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #475569;">
+                <p style="margin: 0; font-size: 12.5px; line-height: 1.55; color: #475569;">
                   ตรวจสอบความจุของตู้เก็บสารเคมีและชั้นวาง <strong>ไม่ควรเก็บเกิน 80%</strong> ของพื้นที่ เพื่อการระบายอากาศที่ดี และป้องกันอุบัติเหตุขวดสารเคมีเบียดตกหล่น
                 </p>
               </div>
 
               <!-- Card 3 -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(239, 68, 68, 0.12); color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="heart-pulse" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(239, 68, 68, 0.12); color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="heart-pulse" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>การปฐมพยาบาล & อ่างล้างตาฉุกเฉิน (Emergency Eyewash)</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">การปฐมพยาบาล & อ่างล้างตาฉุกเฉิน (Emergency Eyewash)</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #fee2e2; color: #991b1b; border-radius: 6px;">ล้างน้ำ 15 นาที</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #fee2e2; color: #991b1b; border-radius: 6px; flex-shrink: 0;">ล้างน้ำ 15 นาที</span>
                 </div>
-                <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #475569;">
+                <p style="margin: 0; font-size: 12.5px; line-height: 1.55; color: #475569;">
                   หากสารเคมีกระเด็นเข้าตาหรือสัมผัสร่างกาย ให้ล้างด้วยน้ำสะอาดจากอ่างล้างตาฉุกเฉินอย่างต่อเนื่องเป็นเวลาอย่างน้อย <strong>15 นาที</strong> และแจ้งห้องพยาบาลทันที
                 </p>
               </div>
@@ -4918,43 +4918,43 @@
           
           <!-- Tab 2: เอกสาร SDS -->
           <div id="help-tab-2" class="help-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
               <!-- Card 1 -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(99, 102, 241, 0.12); color: #4f46e5; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="search" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(99, 102, 241, 0.12); color: #4f46e5; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="search" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>การค้นหาและตรวจสอบเลข CAS No.</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">การค้นหาและตรวจสอบเลข CAS No.</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #e0e7ff; color: #3730a3; border-radius: 6px;">รหัสสากล</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #e0e7ff; color: #3730a3; border-radius: 6px; flex-shrink: 0;">รหัสสากล</span>
                 </div>
-                <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #475569;">
+                <p style="margin: 0; font-size: 12.5px; line-height: 1.55; color: #475569;">
                   เลข <strong>CAS No.</strong> เป็นรหัสเฉพาะสากลสำหรับสารเคมีแต่ละชนิด สามารถตรวจสอบได้จากฉลากข้างขวด หรือค้นหาผ่านตารางคลังสารเคมีในระบบเพื่อความแม่นยำในการเตรียมการทดลอง
                 </p>
               </div>
 
               <!-- Card 2 -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(13, 148, 136, 0.12); color: #0d9488; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(13, 148, 136, 0.12); color: #0d9488; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="file-text" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>การอ่านเอกสารข้อมูลความปลอดภัย SDS 16 หัวข้อ</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">การอ่านเอกสารข้อมูลความปลอดภัย SDS 16 หัวข้อ</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #ccfbf1; color: #115e59; border-radius: 6px;">16 หัวข้อหลัก</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #ccfbf1; color: #115e59; border-radius: 6px; flex-shrink: 0;">16 หัวข้อหลัก</span>
                 </div>
-                <p style="margin: 0 0 8px 0; font-size: 13.5px; line-height: 1.6; color: #475569;">
+                <p style="margin: 0 0 8px 0; font-size: 12.5px; line-height: 1.55; color: #475569;">
                   เอกสาร SDS สรุปข้อมูลความปลอดภัย 16 ส่วน เช่น ข้อมูลความเป็นอันตราย (หัวข้อ 2), มาตรการปฐมพยาบาล (หัวข้อ 4), และการจัดการเมื่อเกิดการหกรั่วไหล (หัวข้อ 6)
                 </p>
-                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                  <span style="font-size: 11.5px; padding: 3px 8px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">1. ข้อมูลสารเคมี</span>
-                  <span style="font-size: 11.5px; padding: 3px 8px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">2. ความเป็นอันตราย</span>
-                  <span style="font-size: 11.5px; padding: 3px 8px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">4. ปฐมพยาบาล</span>
-                  <span style="font-size: 11.5px; padding: 3px 8px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">7. การจัดเก็บ</span>
-                  <span style="font-size: 11.5px; padding: 3px 8px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">8. การป้องกันตนเอง</span>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                  <span style="font-size: 11px; padding: 2px 6px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">1. ข้อมูลสารเคมี</span>
+                  <span style="font-size: 11px; padding: 2px 6px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">2. ความเป็นอันตราย</span>
+                  <span style="font-size: 11px; padding: 2px 6px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">4. ปฐมพยาบาล</span>
+                  <span style="font-size: 11px; padding: 2px 6px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">7. การจัดเก็บ</span>
+                  <span style="font-size: 11px; padding: 2px 6px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; color: #475569;">8. การป้องกันตนเอง</span>
                 </div>
               </div>
             </div>
@@ -4962,48 +4962,48 @@
           
           <!-- Tab 3: จัดการของเสีย -->
           <div id="help-tab-3" class="help-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              <div style="font-size: 14.5px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 8px;">
-                <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                  <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
+              <div style="font-size: 13.5px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 7px;">
+                <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
                 </div>
                 <span>คู่มือการจำแนกถังขยะเคมี (Chemical Waste Separation)</span>
               </div>
 
-              <!-- Waste Grid -->
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px;">
+              <!-- Waste Grid with minmax(0, 1fr) -->
+              <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
                 <!-- Red Bin -->
-                <div style="background: #fff5f5; border: 1px solid #fecaca; border-radius: 10px; padding: 14px 14px; min-height: 84px; display: flex; flex-direction: column; justify-content: space-between;">
-                  <div style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: #dc2626; margin-bottom: 6px;">
-                    <div style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; flex-shrink: 0;"></div>
-                    <span>ถังแดง: สารไวไฟ</span>
+                <div style="background: #fff5f5; border: 1px solid #fecaca; border-radius: 8px; padding: 10px 10px; min-width: 0; box-sizing: border-box;">
+                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: #dc2626; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0;"></div>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังแดง: สารไวไฟ</span>
                   </div>
-                  <div style="font-size: 12.5px; color: #7f1d1d; line-height: 1.5;">ตัวทำละลายอินทรีย์ (Organic Solvents เช่น เอทานอล, อะซิโตน)</div>
+                  <div style="font-size: 11px; color: #7f1d1d; line-height: 1.45; word-break: break-word;">ตัวทำละลายอินทรีย์ (Organic Solvents เช่น เอทานอล, อะซิโตน)</div>
                 </div>
 
                 <!-- Blue Bin -->
-                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px 14px; min-height: 84px; display: flex; flex-direction: column; justify-content: space-between;">
-                  <div style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: #2563eb; margin-bottom: 6px;">
-                    <div style="width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; flex-shrink: 0;"></div>
-                    <span>ถังน้ำเงิน: กรด-เบส</span>
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 10px; min-width: 0; box-sizing: border-box;">
+                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: #2563eb; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; flex-shrink: 0;"></div>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังน้ำเงิน: กรด-เบส</span>
                   </div>
-                  <div style="font-size: 12.5px; color: #1e3a8a; line-height: 1.5;">สารละลายน้ำ / สารละลายกรดและเบส (Aqueous Acid-Base)</div>
+                  <div style="font-size: 11px; color: #1e3a8a; line-height: 1.45; word-break: break-word;">สารละลายน้ำ / สารละลายกรดและเบส (Aqueous Acid-Base)</div>
                 </div>
 
                 <!-- Yellow Bin -->
-                <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 10px; padding: 14px 14px; min-height: 84px; display: flex; flex-direction: column; justify-content: space-between;">
-                  <div style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: #ca8a04; margin-bottom: 6px;">
-                    <div style="width: 10px; height: 10px; border-radius: 50%; background: #eab308; flex-shrink: 0;"></div>
-                    <span>ถังเหลือง: ของแข็งปนเปื้อน</span>
+                <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 10px 10px; min-width: 0; box-sizing: border-box;">
+                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: #ca8a04; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: #eab308; flex-shrink: 0;"></div>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังเหลือง: ของแข็ง</span>
                   </div>
-                  <div style="font-size: 12.5px; color: #713f12; line-height: 1.5;">ของแข็งปนเปื้อนเคมี กระดาษกรอง ถุงมือ หรือขวดเปล่า</div>
+                  <div style="font-size: 11px; color: #713f12; line-height: 1.45; word-break: break-word;">ของแข็งปนเปื้อนเคมี กระดาษกรอง ถุงมือ หรือขวดเปล่า</div>
                 </div>
               </div>
 
               <!-- Safety Waste Rules Card -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 16px; display: flex; align-items: flex-start; gap: 10px;">
-                <div style="color: #ea580c; margin-top: 1px;"><i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i></div>
-                <div style="font-size: 13px; line-height: 1.6; color: #475569;">
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: flex-start; gap: 8px; width: 100%; box-sizing: border-box;">
+                <div style="color: #ea580c; margin-top: 1px; flex-shrink: 0;"><i data-lucide="alert-triangle" style="width: 15px; height: 15px;"></i></div>
+                <div style="font-size: 12px; line-height: 1.55; color: #475569;">
                   <strong>ข้อปฏิบัติสำคัญ:</strong> ห้ามเทสารเคมีลงอ่างล้างท่อโดยเด็ดขาด ปิดฝาถังขยะเคมีให้สนิททุกครั้ง และบันทึกปริมาณการทิ้งลงสมุดบันทึกของเสียประจำห้องปฏิบัติการ
                 </div>
               </div>
@@ -5012,19 +5012,19 @@
           
           <!-- Tab 4: คู่มือระบบ -->
           <div id="help-tab-4" class="help-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
               <!-- Card 1: การจองห้องแล็บ -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(124, 58, 237, 0.12); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="calendar-check" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(124, 58, 237, 0.12); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="calendar-check" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>1. การจองห้องปฏิบัติการ (Lab Booking)</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">1. การจองห้องปฏิบัติการ (Lab Booking)</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #ede9fe; color: #6d28d9; border-radius: 6px;">ครู / ผู้ใช้</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #ede9fe; color: #6d28d9; border-radius: 6px; flex-shrink: 0;">ครู / ผู้ใช้</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #475569; line-height: 1.6;">
+                <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: #475569; line-height: 1.55;">
                   <div>• <strong>เลือกห้อง & วันเวลา:</strong> เข้าเมนู <em>"จองห้องปฏิบัติการ"</em> ดูตารางปฏิทิน แล้วเลือกห้องและคาบเรียนที่ยังว่าง</div>
                   <div>• <strong>ระบุสารเคมี/อุปกรณ์:</strong> กรอกชื่อผู้จอง วัตถุประสงค์ และระบุรายการพัสดุที่ต้องการให้จัดเตรียมล่วงหน้า</div>
                   <div>• <strong>อนุมัติการใช้งาน:</strong> เมื่อกดยืนยัน เจ้าหน้าที่ L2/L3 จะได้รับแจ้งเตือนและอนุมัติการเข้าใช้งาน</div>
@@ -5032,17 +5032,17 @@
               </div>
 
               <!-- Card 2: การเบิก-ยืมพัสดุ -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(59, 130, 246, 0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="clipboard-list" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(59, 130, 246, 0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="clipboard-list" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>2. การเบิก-ยืมพัสดุและสารเคมี (Borrowing & Return)</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">2. การเบิก-ยืมพัสดุและสารเคมี (Borrowing & Return)</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #dbeafe; color: #1e40af; border-radius: 6px;">ตัดสต็อกอัตโนมัติ</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #dbeafe; color: #1e40af; border-radius: 6px; flex-shrink: 0;">ตัดสต็อกอัตโนมัติ</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #475569; line-height: 1.6;">
+                <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: #475569; line-height: 1.55;">
                   <div>• <strong>ค้นหาพัสดุในคลัง:</strong> ค้นหาชื่อสารเคมีหรือเครื่องแก้ว กำหนดจำนวนและวันที่ต้องการส่งคืน</div>
                   <div>• <strong>ยื่นคำขอยืม:</strong> ระบบจะส่งคำขอและตัดยอดคงเหลือในคลังสารเคมีแบบ Real-time</div>
                   <div>• <strong>ส่งคืนพัสดุ:</strong> ตรวจสอบสภาพอุปกรณ์ก่อนกดรับคืน หรือบันทึกยอดชำรุดหากมีความเสียหาย</div>
@@ -5050,17 +5050,17 @@
               </div>
 
               <!-- Card 3: การตรวจนับสต็อก & สแกน QR Code -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(16, 185, 129, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="qr-code" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(16, 185, 129, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="qr-code" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>3. การตรวจนับสต็อกและสแกน QR Code (Inventory & QR)</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">3. การตรวจนับสต็อกและสแกน QR Code (Inventory & QR)</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #d1fae5; color: #065f46; border-radius: 6px;">สแกนมือถือ</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #d1fae5; color: #065f46; border-radius: 6px; flex-shrink: 0;">สแกนมือถือ</span>
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #475569; line-height: 1.6;">
+                <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12.5px; color: #475569; line-height: 1.55;">
                   <div>• <strong>สแกนผ่านกล้องมือถือ:</strong> สแกน QR Code ข้างขวดหรือหน้าตู้เพื่อดูยอดคงเหลือและตำแหน่งจัดเก็บ</div>
                   <div>• <strong>พิมพ์สติกเกอร์ฉลาก:</strong> เจ้าหน้าที่ L2+ สามารถกดพิมพ์ฉลากบาร์โค้ด QR Code ติดขวดสารใหม่ได้ทันที</div>
                   <div>• <strong>อัปเดตยอดคงเหลือ:</strong> บันทึกการรับเข้า หรือแก้ไขจุดเตือนขั้นต่ำ (Min Alert) เพื่อป้องกันของหมดคลัง</div>
@@ -5071,101 +5071,104 @@
           
           <!-- Tab 5: แจ้งปัญหา -->
           <div id="help-tab-5" class="help-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
               <!-- Emergency Contacts Top Bar -->
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="font-size: 14.5px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-                  <i data-lucide="phone-call" style="width: 16px; height: 16px; color: #ef4444;"></i>
-                  <span>เบอร์ติดต่อฉุกเฉินประจำห้องแล็บ (Emergency Contacts)</span>
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                <div style="font-size: 13.5px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 6px; min-width: 0;">
+                  <i data-lucide="phone-call" style="width: 15px; height: 15px; color: #ef4444; flex-shrink: 0;"></i>
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">เบอร์ติดต่อฉุกเฉินประจำห้องแล็บ</span>
                 </div>
-                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 12px; padding: 4px 10px; border-radius: 6px; background: #ede9fe; color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.2); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 500;" onclick="toggleEmergencyContactEdit(true)">
-                  <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> แก้ไขข้อมูล
+                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px; background: #ede9fe; color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.2); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 500; flex-shrink: 0;" onclick="toggleEmergencyContactEdit(true)">
+                  <i data-lucide="edit-3" style="width: 11px; height: 11px;"></i> แก้ไขข้อมูล
                 </button>
               </div>
 
-              <!-- View Mode (Modern Clean 3-Column Cards Grid) -->
-              <div id="emergencyContactsView">
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+              <!-- View Mode (Clean 3-Column Grid with minmax(0, 1fr)) -->
+              <div id="emergencyContactsView" style="width: 100%; box-sizing: border-box;">
+                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
+                  <!-- Card Admin -->
+                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 9px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
                     </div>
-                    <div style="min-width: 0;">
-                      <div style="font-size: 11.5px; font-weight: 600; color: #64748b;">ผู้ดูแลระบบ (Admin)</div>
-                      <div id="dispContactAdmin" style="font-size: 12.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร ด้วงเกลี้ยง)</div>
-                    </div>
-                  </div>
-
-                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="heart-pulse" style="width: 16px; height: 16px;"></i>
-                    </div>
-                    <div style="min-width: 0;">
-                      <div style="font-size: 11.5px; font-weight: 600; color: #64748b;">ห้องพยาบาล</div>
-                      <div id="dispContactNurse" style="font-size: 12.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: ยังไม่ระบุ</div>
+                    <div style="min-width: 0; flex: 1; overflow: hidden;">
+                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ผู้ดูแลระบบ (Admin)</div>
+                      <div id="dispContactAdmin" style="font-size: 11.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร ด้วงเกลี้ยง)</div>
                     </div>
                   </div>
 
-                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(239, 68, 68, 0.1); color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="flame" style="width: 16px; height: 16px;"></i>
+                  <!-- Card Nurse -->
+                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 9px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="heart-pulse" style="width: 14px; height: 14px;"></i>
                     </div>
-                    <div style="min-width: 0;">
-                      <div style="font-size: 11.5px; font-weight: 600; color: #64748b;">แจ้งเหตุเพลิงไหม้ / ฉุกเฉิน</div>
-                      <div id="dispContactFire" style="font-size: 12.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
+                    <div style="min-width: 0; flex: 1; overflow: hidden;">
+                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล</div>
+                      <div id="dispContactNurse" style="font-size: 11.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: ยังไม่ระบุ</div>
+                    </div>
+                  </div>
+
+                  <!-- Card Fire -->
+                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 9px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(239, 68, 68, 0.1); color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="flame" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <div style="min-width: 0; flex: 1; overflow: hidden;">
+                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้ / ฉุกเฉิน</div>
+                      <div id="dispContactFire" style="font-size: 11.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <!-- Edit Mode (Inline Admin Edit) -->
-              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 12px 14px;">
-                <div style="font-size: 12.5px; font-weight: 600; color: #7c3aed; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                  <i data-lucide="shield" style="width: 14px; height: 14px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน (เฉพาะแอดมิน/เจ้าหน้าที่)
+              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 10px 12px; width: 100%; box-sizing: border-box;">
+                <div style="font-size: 12px; font-weight: 600; color: #7c3aed; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+                  <i data-lucide="shield" style="width: 13px; height: 13px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
                   <div>
-                    <label style="font-size: 12px; color: #64748b; margin-bottom: 2px; display: block;">เบอร์แอดมิน / ผู้ดูแล</label>
-                    <input type="text" id="inputContactAdmin" class="form-control" style="font-size: 13px; padding: 5px 8px;" placeholder="เช่น แอดมิน (ม.วงศกร ด้วงเกลี้ยง): 08x-xxx-xxxx หรือห้องพักครู" />
+                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แอดมิน / ผู้ดูแล</label>
+                    <input type="text" id="inputContactAdmin" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น แอดมิน (ม.วงศกร): 08x-xxx-xxxx" />
                   </div>
                   <div>
-                    <label style="font-size: 12px; color: #64748b; margin-bottom: 2px; display: block;">เบอร์ห้องพยาบาล</label>
-                    <input type="text" id="inputContactNurse" class="form-control" style="font-size: 13px; padding: 5px 8px;" placeholder="เช่น ห้องพยาบาล: อาคาร 1 ชั้น 1 (เบอร์ภายใน 104)" />
+                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์ห้องพยาบาล</label>
+                    <input type="text" id="inputContactNurse" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น ห้องพยาบาล: อาคาร 1 (เบอร์ 104)" />
                   </div>
                   <div>
-                    <label style="font-size: 12px; color: #64748b; margin-bottom: 2px; display: block;">เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย</label>
-                    <input type="text" id="inputContactFire" class="form-control" style="font-size: 13px; padding: 5px 8px;" placeholder="เช่น แจ้งเหตุเพลิงไหม้: 199 หรือ 02-xxx-xxxx" />
+                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย</label>
+                    <input type="text" id="inputContactFire" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น แจ้งเหตุเพลิงไหม้: 199" />
                   </div>
                 </div>
-                <div style="display: flex; gap: 8px;">
-                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 4px 10px;" onclick="saveEmergencyContacts()">
-                    <i data-lucide="check" style="width: 13px; height: 13px;"></i> บันทึกข้อมูล
+                <div style="display: flex; gap: 6px;">
+                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 3px 8px;" onclick="saveEmergencyContacts()">
+                    <i data-lucide="check" style="width: 12px; height: 12px;"></i> บันทึก
                   </button>
-                  <button type="button" class="btn btn-secondary btn-sm" style="font-size: 12.5px; padding: 4px 10px;" onclick="toggleEmergencyContactEdit(false)">
+                  <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 3px 8px;" onclick="toggleEmergencyContactEdit(false)">
                     ยกเลิก
                   </button>
                 </div>
               </div>
 
               <!-- Feedback Form Card (Clean & Matching Tab 1-3) -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(124, 58, 237, 0.12); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="message-square-plus" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(124, 58, 237, 0.12); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="message-square-plus" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>ส่ง Feedback หรือแจ้งปัญหาการใช้งาน</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ส่ง Feedback หรือแจ้งปัญหาการใช้งาน</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #ede9fe; color: #6d28d9; border-radius: 6px;">ช่วยเหลือ & แนะนำ</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #ede9fe; color: #6d28d9; border-radius: 6px; flex-shrink: 0;">ช่วยเหลือ & แนะนำ</span>
                 </div>
-                <p style="margin: 0 0 8px 0; font-size: 13px; line-height: 1.5; color: #64748b;">
+                <p style="margin: 0 0 6px 0; font-size: 12px; line-height: 1.5; color: #64748b;">
                   หากพบข้อผิดพลาด ต้องการสอบถาม หรือมีข้อเสนอแนะในการพัฒนาระบบ สามารถพิมพ์ข้อความส่งถึงผู้ดูแลระบบได้ทันที
                 </p>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                  <textarea id="feedbackInput" class="form-control" rows="2" style="font-size: 13px; border-radius: 8px; padding: 8px 12px; resize: vertical; min-height: 48px; background: #ffffff;" placeholder="อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ..."></textarea>
+                <div style="display: flex; flex-direction: column; gap: 6px; width: 100%; box-sizing: border-box;">
+                  <textarea id="feedbackInput" class="form-control" rows="2" style="font-size: 12.5px; border-radius: 8px; padding: 6px 10px; resize: vertical; min-height: 44px; background: #ffffff; width: 100%; box-sizing: border-box;" placeholder="อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ..."></textarea>
                   <div style="display: flex; justify-content: flex-end;">
-                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; border-radius: 6px; background: var(--primary-purple); box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);" onclick="submitUserFeedback()">
-                      <i data-lucide="send" style="width: 13px; height: 13px;"></i>
+                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; font-size: 12px; border-radius: 6px; background: var(--primary-purple); box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);" onclick="submitUserFeedback()">
+                      <i data-lucide="send" style="width: 12px; height: 12px;"></i>
                       <span>ส่งข้อความ</span>
                     </button>
                   </div>
@@ -5176,70 +5179,70 @@
 
           <!-- Tab 6: ผู้พัฒนาระบบ -->
           <div id="help-tab-6" class="help-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box;">
               <!-- Profile Card -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                  <div style="width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2); flex-shrink: 0;">
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                  <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2); flex-shrink: 0;">
                     WD
                   </div>
-                  <div>
-                    <div style="font-size: 14.5px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-                      <span>ม.วงศกร ด้วงเกลี้ยง</span>
+                  <div style="min-width: 0;">
+                    <div style="font-size: 13.5px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      ม.วงศกร ด้วงเกลี้ยง
                     </div>
-                    <div style="font-size: 12.5px; color: #64748b; margin-top: 2px;">
+                    <div style="font-size: 11.5px; color: #64748b; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                       ผู้พัฒนาและดูแลระบบบริหารจัดการห้องปฏิบัติการวิทยาศาสตร์
                     </div>
                   </div>
                 </div>
-                <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #ede9fe; color: #6d28d9; border-radius: 6px; white-space: nowrap;">Lead Developer</span>
+                <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; background: #ede9fe; color: #6d28d9; border-radius: 6px; white-space: nowrap; flex-shrink: 0;">Lead Developer</span>
               </div>
 
-              <!-- System Specs Grid -->
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
-                  <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="cpu" style="width: 16px; height: 16px;"></i>
+              <!-- System Specs Grid with minmax(0, 1fr) -->
+              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                  <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="cpu" style="width: 14px; height: 14px;"></i>
                   </div>
-                  <div style="min-width: 0;">
-                    <div style="font-size: 11.5px; font-weight: 600; color: #64748b;">เวอร์ชันระบบ (App Version)</div>
-                    <div id="devTabSystemVersion" style="font-size: 13px; font-weight: 600; color: #1e293b;">Version 2.6.0 (PWA)</div>
+                  <div style="min-width: 0; flex: 1; overflow: hidden;">
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เวอร์ชันระบบ (App Version)</div>
+                    <div id="devTabSystemVersion" style="font-size: 12px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Version 2.6.0 (PWA)</div>
                   </div>
                 </div>
 
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px;">
-                  <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="database" style="width: 16px; height: 16px;"></i>
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                  <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="database" style="width: 14px; height: 14px;"></i>
                   </div>
-                  <div style="min-width: 0;">
-                    <div style="font-size: 11.5px; font-weight: 600; color: #64748b;">ฐานข้อมูล & สำรองคลาวด์</div>
-                    <div style="font-size: 13px; font-weight: 600; color: #1e293b;">Supabase & Sheets (Real-time)</div>
+                  <div style="min-width: 0; flex: 1; overflow: hidden;">
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ฐานข้อมูล & สำรองคลาวด์</div>
+                    <div style="font-size: 12px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Supabase & Sheets (Real-time)</div>
                   </div>
                 </div>
               </div>
 
               <!-- Purpose & Standard Card -->
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; color: #1e293b;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(59, 130, 246, 0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="target" style="width: 16px; height: 16px;"></i>
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(59, 130, 246, 0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="target" style="width: 15px; height: 15px;"></i>
                     </div>
-                    <span>วัตถุประสงค์การพัฒนาระบบ (Purpose & Standard)</span>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">วัตถุประสงค์การพัฒนาระบบ</span>
                   </div>
-                  <span style="font-size: 11.5px; font-weight: 600; padding: 2px 8px; background: #dbeafe; color: #1e40af; border-radius: 6px;">SHECU Standard</span>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #dbeafe; color: #1e40af; border-radius: 6px; flex-shrink: 0;">SHECU Standard</span>
                 </div>
-                <p style="margin: 0; font-size: 13.5px; line-height: 1.6; color: #475569;">
+                <p style="margin: 0; font-size: 12.5px; line-height: 1.55; color: #475569;">
                   ระบบนี้พัฒนาขึ้นเพื่อยกระดับการจัดการคลังสารเคมี อุปกรณ์วิทยาศาสตร์ และการจองห้องปฏิบัติการตามมาตรฐานความปลอดภัย SHECU มุ่งเน้นการอำนวยความสะดวกในการเรียนการสอนและงานวิจัยอย่างมีประสิทธิภาพสูงสุด
                 </p>
               </div>
 
               <!-- Presentation Deck for Admin -->
               <div id="presentationDeckWrapper" style="display: none; justify-content: flex-end; margin-top: 2px;">
-                <a href="presentation.html" target="_blank" id="btnOpenPresentationDeck" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 12.5px; border-radius: 6px; background: var(--primary-purple); color: #ffffff; font-weight: 600; text-decoration: none; box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);">
-                  <i data-lucide="presentation" style="width: 14px; height: 14px;"></i>
+                <a href="presentation.html" target="_blank" id="btnOpenPresentationDeck" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 12px; border-radius: 6px; background: var(--primary-purple); color: #ffffff; font-weight: 600; text-decoration: none; box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);">
+                  <i data-lucide="presentation" style="width: 13px; height: 13px;"></i>
                   <span>เปิดสไลด์นำเสนอระบบ (สำหรับ Admin)</span>
-                  <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                  <i data-lucide="external-link" style="width: 11px; height: 11px;"></i>
                 </a>
               </div>
             </div>
