@@ -586,10 +586,69 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({ 
-    status: "active", 
-    message: "Chemical Lab Realtime Backup & Academic Logbook Webhook is running." 
-  })).setMimeType(ContentService.MimeType.JSON);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var table = (e && e.parameter && e.parameter.table) ? e.parameter.table : '';
+    
+    if (!table) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: "active", 
+        message: "Chemical Lab Realtime Backup & Academic Logbook Webhook is running." 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var sheet = ss.getSheetByName(table);
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: "error", 
+        message: "Table " + table + " not found" 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var lastRow = sheet.getLastRow();
+    var lastCol = sheet.getLastColumn();
+    if (lastRow <= 1 || lastCol < 1) {
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: "success", 
+        data: [] 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var rawData = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+    var headers = rawData[0];
+    var results = [];
+
+    for (var i = 1; i < rawData.length; i++) {
+      var row = rawData[i];
+      var obj = {};
+      var hasVal = false;
+      for (var j = 0; j < headers.length; j++) {
+        var key = String(headers[j]).trim();
+        if (key) {
+          var val = row[j];
+          if (val instanceof Date) {
+            val = val.toISOString();
+          }
+          obj[key] = (val !== undefined && val !== null) ? val : "";
+          if (val !== "" && val !== null && val !== undefined) hasVal = true;
+        }
+      }
+      if (hasVal) {
+        results.push(obj);
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ 
+      status: "success", 
+      data: results 
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ 
+      status: "error", 
+      message: err.toString() 
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 // -------------------------------------------------------------

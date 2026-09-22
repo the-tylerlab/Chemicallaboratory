@@ -866,9 +866,74 @@ function getRoleColor(role) {
   return "#64748b";
 }
 
+let usersCache = null;
+let lastUsersFetch = 0;
+
+// Fetch Live Users from Google Sheets and merge with local database
+async function fetchLiveUsers(forceRefresh = false) {
+  const localUsers = readUsers();
+  
+  if (!forceRefresh && usersCache && (Date.now() - lastUsersFetch < 15000)) {
+    return usersCache;
+  }
+
+  if (!GOOGLE_SCRIPT_URL) {
+    usersCache = localUsers;
+    return localUsers;
+  }
+
+  try {
+    const fetchUrl = `${GOOGLE_SCRIPT_URL}?table=Users`;
+    const res = await fetch(fetchUrl, { method: 'GET' });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
+        const merged = [...localUsers];
+        json.data.forEach(sheetUser => {
+          const tId = String(sheetUser.teacherId || sheetUser.id || '').trim();
+          if (!tId) return;
+          const idx = merged.findIndex(u => String(u.teacherId || '').trim().toLowerCase() === tId.toLowerCase());
+          const cleanUser = {
+            id: sheetUser.id || ("u_" + tId),
+            teacherId: tId,
+            name: sheetUser.name || `ครู (${tId})`,
+            department: sheetUser.department || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี',
+            email: sheetUser.email || `${tId.toLowerCase()}@lab.school.ac.th`,
+            role: sheetUser.role || 'L1',
+            roleName: sheetUser.roleName || 'Teacher / User',
+            assignedRooms: typeof sheetUser.assignedRooms === 'string' && sheetUser.assignedRooms ? sheetUser.assignedRooms.split(',').map(s => s.trim()) : (Array.isArray(sheetUser.assignedRooms) ? sheetUser.assignedRooms : []),
+            initials: sheetUser.initials || calculateUserInitials(sheetUser.name) || 'U',
+            color: sheetUser.color || getRoleColor(sheetUser.role),
+            password: sheetUser.password || tId,
+            isActive: sheetUser.isActive !== false && sheetUser.isActive !== 'false',
+            createdAt: sheetUser.createdAt || new Date().toISOString()
+          };
+
+          if (idx !== -1) {
+            merged[idx] = { ...merged[idx], ...cleanUser };
+          } else {
+            merged.push(cleanUser);
+          }
+        });
+
+        writeUsers(merged);
+        usersCache = merged;
+        lastUsersFetch = Date.now();
+        return merged;
+      }
+    }
+  } catch(e) {
+    console.warn("Could not fetch live users from Google Sheets:", e.message);
+  }
+
+  usersCache = localUsers;
+  lastUsersFetch = Date.now();
+  return localUsers;
+}
+
 // USERS
-app.get('/api/users', (req, res) => {
-  const users = readUsers();
+app.get('/api/users', async (req, res) => {
+  const users = await fetchLiveUsers();
   const refreshedUsers = users.map(u => ({
     ...u,
     initials: calculateUserInitials(u.name) || u.initials || 'U'
@@ -1047,9 +1112,9 @@ function normalizeThaiDigits(str) {
 }
 
 // AUTH LOGIN ENDPOINT (Supports Teacher ID, Email, Name, or ID)
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
-  const users = readUsers();
+  let users = await fetchLiveUsers();
   
   const rawUser = normalizeThaiDigits((username || '').trim());
   const cleanUser = rawUser.toLowerCase();
@@ -1060,29 +1125,38 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(400).json({ success: false, message: "กรุณาระบุรหัสประจำตัวครูหรือชื่อผู้ใช้งาน" });
   }
 
-  // Find user by teacherId, email, id, or name
-  const user = users.find(u => {
-    const tId = normalizeThaiDigits(String(u.teacherId || '')).trim().toLowerCase();
-    const uEmail = String(u.email || '').trim().toLowerCase();
-    const uId = String(u.id || '').trim().toLowerCase();
-    const uName = String(u.name || '').trim().toLowerCase();
-    const uNameWithoutTitle = uName.replace(/^(ครู|อาจารย์|อ\.|ม\.|มิส|นาย|นางสาว|นาง|น\.ส\.|ดร\.|ผอ\.)\s*/, '');
+  const findUserInList = (list) => {
+    return list.find(u => {
+      const tId = normalizeThaiDigits(String(u.teacherId || '')).trim().toLowerCase();
+      const uEmail = String(u.email || '').trim().toLowerCase();
+      const uId = String(u.id || '').trim().toLowerCase();
+      const uName = String(u.name || '').trim().toLowerCase();
+      const uNameWithoutTitle = uName.replace(/^(ครู|อาจารย์|อ\.|ม\.|มิส|นาย|นางสาว|นาง|น\.ส\.|ดร\.|ผอ\.)\s*/, '');
 
-    // 1. Exact matches on teacherId, email, id, name
-    if (tId && (tId === cleanUser || Number(tId) === Number(cleanUser))) return true;
-    if (uEmail && uEmail === cleanUser) return true;
-    if (uId && uId === cleanUser) return true;
-    if (uName && uName === cleanUser) return true;
-    if (uNameWithoutTitle && uNameWithoutTitle === cleanUser) return true;
+      // 1. Exact matches on teacherId, email, id, name
+      if (tId && (tId === cleanUser || Number(tId) === Number(cleanUser))) return true;
+      if (uEmail && uEmail === cleanUser) return true;
+      if (uId && uId === cleanUser) return true;
+      if (uName && uName === cleanUser) return true;
+      if (uNameWithoutTitle && uNameWithoutTitle === cleanUser) return true;
 
-    // 2. Partial match on name (e.g. searching first name "สมชาย" in "ครูสมชาย รักการสอน")
-    if (cleanUser.length >= 3 && (uName.includes(cleanUser) || cleanUser.includes(uNameWithoutTitle))) return true;
+      // 2. Partial match on name (e.g. searching first name "สมชาย" in "ครูสมชาย รักการสอน")
+      if (cleanUser.length >= 3 && (uName.includes(cleanUser) || cleanUser.includes(uNameWithoutTitle))) return true;
 
-    // 3. Admin alias
-    if (cleanUser === 'admin' && (u.role === 'L3' || u.role === 'admin' || tId === 'admin')) return true;
+      // 3. Admin alias
+      if (cleanUser === 'admin' && (u.role === 'L3' || u.role === 'admin' || tId === 'admin')) return true;
 
-    return false;
-  });
+      return false;
+    });
+  };
+
+  let user = findUserInList(users);
+
+  // If user is not found, force fresh fetch from Google Sheets in case they were just added!
+  if (!user && GOOGLE_SCRIPT_URL) {
+    users = await fetchLiveUsers(true);
+    user = findUserInList(users);
+  }
 
   if (user) {
     const userPass = String(user.password || user.teacherId || user.id || '').trim();
