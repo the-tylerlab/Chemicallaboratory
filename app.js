@@ -389,6 +389,31 @@ if (typeof supabase !== 'undefined' && supabaseUrl !== 'YOUR_SUPABASE_URL') {
 
 // Global API settings
 const API_BASE = "http://localhost:3000/api";
+const GOOGLE_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
+
+function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
+  if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) return;
+  try {
+    const payload = {
+      table: table,
+      action: action, // 'UPSERT' or 'DELETE'
+      keyField: keyField,
+      data: data
+    };
+    fetch(GOOGLE_SCRIPT_WEBAPP_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).catch(err => {
+      console.warn(`[GoogleSheetsDirectSync] ${table} notice:`, err.message);
+    });
+    console.log(`📊 [GoogleSheetsDirectSync] Dispatched ${action} on table ${table}`);
+  } catch (e) {
+    console.warn(`[GoogleSheetsDirectSync] Error on ${table}:`, e);
+  }
+}
+
 let isBackendOnline = false;
 let transactions = [];
 let bookings = [];
@@ -3188,6 +3213,9 @@ function renderNotificationsList(stats) {
 // ==========================================================================
 
 async function createItemBackend(itemData) {
+  // 1. Google Sheets Direct Sync
+  syncToGoogleSheetsDirect('Items', 'UPSERT', itemData, 'code');
+
   if (isSupabaseOnline) {
     try {
       await supabase.from("items").upsert(itemData);
@@ -3228,6 +3256,9 @@ async function createItemBackend(itemData) {
 }
 
 async function updateItemBackend(code, itemData, index) {
+  // 1. Google Sheets Direct Sync
+  syncToGoogleSheetsDirect('Items', 'UPSERT', itemData, 'code');
+
   if (isSupabaseOnline) {
     try {
       await supabase.from("items").upsert(itemData);
@@ -3840,6 +3871,9 @@ window.deleteItem = async function(index) {
     cancelButtonText: 'ยกเลิก'
   });
   if (result.isConfirmed) {
+    // 1. Google Sheets Direct Sync
+    syncToGoogleSheetsDirect('Items', 'DELETE', { code: item.code }, 'code');
+
     if (isSupabaseOnline) {
       try {
         await supabase.from("items").delete().eq("code", item.code);
@@ -4145,6 +4179,9 @@ async function parseCSVAndImport(csvText) {
     });
   }
 
+  // 1. Google Sheets Direct Sync
+  importList.forEach(item => syncToGoogleSheetsDirect('Items', 'UPSERT', item, 'code'));
+
   if (isSupabaseOnline) {
     try {
       let importedCount = 0;
@@ -4424,6 +4461,9 @@ async function loadAllTransactions() {
 
 // Helper to save a single transaction
 async function saveTransaction(transData) {
+  // 1. Google Sheets Direct Sync
+  syncToGoogleSheetsDirect('Transactions', 'UPSERT', transData, 'id');
+
   if (isSupabaseOnline) {
     try {
       await supabase.from("transactions").upsert(transData);
@@ -5069,6 +5109,9 @@ function setupBorrowForm() {
               damagedQty: damagedCount
             };
             
+            // 1. Google Sheets Direct Sync
+            syncToGoogleSheetsDirect('Transactions', 'UPSERT', updatedTrans, 'id');
+
             // Update in Supabase or LocalStorage
             if (isSupabaseOnline) {
               try {
@@ -5331,6 +5374,9 @@ window.returnBorrowedItem = async function(transId) {
       // Update transaction status
       const updatedTrans = { ...tx, status: "returned" };
       
+      // 1. Google Sheets Direct Sync
+      syncToGoogleSheetsDirect('Transactions', 'UPSERT', updatedTrans, 'id');
+
       // Update in Supabase or LocalStorage
       if (isSupabaseOnline) {
         try {
@@ -6012,7 +6058,6 @@ function formatBookingForSupabase(b) {
 // ==========================================================================
 // OFFLINE SYNC QUEUE & RESILIENT STORAGE PIPELINE (Supabase -> Google Sheets -> LocalStorage)
 // ==========================================================================
-const GOOGLE_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
 
 function formatBookingForGoogleSheets(b) {
   const roomNames = {
@@ -6779,6 +6824,10 @@ function syncBudgetToBackend() {
 
 function syncPurchaseOrdersToBackend() {
   window.isSavingPurchaseOrders = true;
+
+  // 1. Google Sheets Direct Sync
+  purchaseOrders.forEach(po => syncToGoogleSheetsDirect('Purchase_Orders', 'UPSERT', po, 'id'));
+
   if (isSupabaseOnline) {
     let promises = purchaseOrders.map(o => {
       return supabase.from("purchase_orders").upsert(o).then(({error}) => {
@@ -7678,6 +7727,9 @@ window.deletePurchaseOrder = function(orderId) {
     "ยืนยันการลบข้อมูล",
     "คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
     () => {
+      // 1. Google Sheets Direct Sync
+      syncToGoogleSheetsDirect('Purchase_Orders', 'DELETE', { id: orderId }, 'id');
+
       window.isSavingPurchaseOrders = true;
       if (isSupabaseOnline) {
         supabase.from("purchase_orders").delete().eq("id", orderId)
@@ -14781,6 +14833,10 @@ function setupAdminClearHandlers() {
           items = [];
           saveItemsToLocal();
           
+          for (const item of itemsToDelete) {
+            syncToGoogleSheetsDirect('Items', 'DELETE', { code: item.code }, 'code');
+          }
+
           if (isSupabaseOnline) {
             for (const item of itemsToDelete) {
               try {
@@ -14805,6 +14861,10 @@ function setupAdminClearHandlers() {
           transactions = [];
           localStorage.setItem("lab_transactions", JSON.stringify(transactions));
           
+          for (const tx of txsToDelete) {
+            syncToGoogleSheetsDirect('Transactions', 'DELETE', { id: tx.id }, 'id');
+          }
+
           if (isSupabaseOnline) {
             for (const tx of txsToDelete) {
               try {
@@ -14829,6 +14889,10 @@ function setupAdminClearHandlers() {
           bookings = [];
           localStorage.setItem("lab_bookings", JSON.stringify(bookings));
           
+          for (const bk of bookingsToDelete) {
+            syncBookingToGoogleSheetsDirect(bk, 'DELETE');
+          }
+
           if (isSupabaseOnline) {
             for (const bk of bookingsToDelete) {
               try {
@@ -16712,8 +16776,13 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       let isSaved = false;
+
+      // 1. Google Sheets Direct Sync
+      const sheetUser = { ...newUserObj };
+      delete sheetUser.password;
+      syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
       
-      // 1. Direct Supabase Upsert
+      // 2. Direct Supabase Upsert
       if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
         try {
           await supabase.from('users').upsert(newUserObj, { onConflict: 'id' });
@@ -17519,6 +17588,13 @@ async function submitBatchAddUsers() {
       await supabase.from('users').upsert(formattedForSupabase, { onConflict: 'id' });
       isSuccess = true;
       savedCount = validUsersToSave.length;
+
+      // 1.1 Google Sheets Direct Batch Sync
+      formattedForSupabase.forEach(u => {
+        const sheetUser = { ...u };
+        delete sheetUser.password;
+        syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
+      });
     } catch (supaErr) {
       console.warn("Direct Supabase batch insert failed:", supaErr);
     }
@@ -17690,7 +17766,12 @@ document.addEventListener("DOMContentLoaded", () => {
       let isUpdated = false;
       const updatedUserPayload = { id, teacherId, name, department: dept, email, role, assignedRooms };
 
-      // 1. Direct Supabase Update
+      // 1. Google Sheets Direct Sync
+      const sheetUser = { ...updatedUserPayload };
+      delete sheetUser.password;
+      syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
+
+      // 2. Direct Supabase Update
       if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
         try {
           await supabase.from('users').upsert(updatedUserPayload, { onConflict: 'id' });
@@ -17756,6 +17837,12 @@ document.addEventListener("DOMContentLoaded", () => {
 async function deleteAdminUser() {
   const id = document.getElementById("editUserId").value;
   if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?")) return;
+
+  const targetUser = Array.isArray(adminUsers) ? adminUsers.find(u => u.id === id) : null;
+  const teacherId = targetUser?.teacherId || id;
+
+  // 1. Google Sheets Direct Sync
+  syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: teacherId }, 'teacherId');
   
   let isDeleted = false;
   if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
