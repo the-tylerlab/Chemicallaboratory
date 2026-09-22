@@ -7567,7 +7567,7 @@ function updateLoginUI() {
       btnSidebarLogin.style.display = "flex";
       const sidebarLoginText = document.getElementById("sidebarLoginText");
       const sidebarLoginIcon = document.getElementById("sidebarLoginIcon");
-      if (sidebarLoginText) sidebarLoginText.innerText = "เข้าสู่ระบบด้วยรหัสครู";
+      if (sidebarLoginText) sidebarLoginText.innerText = "เข้าสู่ระบบ";
       if (sidebarLoginIcon) sidebarLoginIcon.setAttribute("data-lucide", "log-in");
     }
   }
