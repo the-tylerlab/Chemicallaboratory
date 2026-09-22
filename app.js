@@ -809,10 +809,18 @@ async function saveActivityLogs() {
 }
 
 function logActivity(actor, action, details) {
+  let displayActor = actor;
+  if (!displayActor || displayActor === "Admin" || displayActor === "Teacher" || displayActor === "Staff" || displayActor === "Student") {
+    if (currentUser && currentUser.name) {
+      displayActor = `${currentUser.name} (${getCurrentRoleLevel()})`;
+    } else {
+      displayActor = actor || "System";
+    }
+  }
   const log = {
     id: "log-" + Date.now() + "-" + Math.floor(Math.random() * 1000),
     timestamp: new Date().toISOString(),
-    actor: actor || "System",
+    actor: displayActor,
     action: action,
     details: details
   };
@@ -7856,7 +7864,7 @@ function renderOrdersTable() {
   updateBudgetUI();
   const formCol = document.getElementById("purchaseOrderFormCol");
   const grid = document.getElementById("purchaseOrdersGrid");
-  const isBackoffice = (userRole === "admin" || userRole === "teacher");
+  const isBackoffice = isUserLoggedIn();
 
   const budgetStatGrid = document.getElementById("budgetStatGrid");
   if (budgetStatGrid) {
