@@ -473,8 +473,14 @@ async function syncAllToGoogleSheets(silent = false) {
       });
     }
 
+    // Brief delay to allow dispatches to fire cleanly
+    await new Promise(resolve => setTimeout(resolve, 600));
+
     if (!silent) {
       if (typeof Swal !== 'undefined') {
+        if (typeof Swal.hideLoading === 'function') {
+          Swal.hideLoading();
+        }
         Swal.fire({
           icon: 'success',
           title: 'ซิงค์ Google Sheets สำเร็จ!',
@@ -483,8 +489,14 @@ async function syncAllToGoogleSheets(silent = false) {
             <p>✅ อัปเดตรายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> ลงชีท <b>1.Items</b></p>
             <p>✅ ลบข้อมูลจำลองเก่าที่ไม่ได้ใช้งานออกจาก Google Sheets แล้ว</p>
           </div>`,
+          showConfirmButton: true,
           confirmButtonColor: '#7c3aed',
-          confirmButtonText: 'ตกลง'
+          confirmButtonText: 'ตกลง',
+          didOpen: () => {
+            if (typeof Swal.hideLoading === 'function') {
+              Swal.hideLoading();
+            }
+          }
         });
       } else {
         showToast("ซิงค์ข้อมูลไปยัง Google Sheets สำเร็จเรียบร้อยแล้ว!", "success");
@@ -492,6 +504,9 @@ async function syncAllToGoogleSheets(silent = false) {
     }
   } catch (err) {
     console.error("Full Google Sheets sync error:", err);
+    if (typeof Swal !== 'undefined' && typeof Swal.hideLoading === 'function') {
+      Swal.hideLoading();
+    }
     if (!silent) showToast("เกิดข้อผิดพลาดในการซิงค์ Google Sheets: " + err.message, "error");
   }
 }
