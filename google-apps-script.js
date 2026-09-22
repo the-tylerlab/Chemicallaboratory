@@ -91,11 +91,13 @@ function onOpen() {
   ui.createMenu('🔬 เมนูระบบห้องแล็บ')
     .addItem('📊 จัดระเบียบฐานข้อมูลเป็น 8 แท็บมาตรฐาน (0.Dashboard - 7. Announcements)', 'autoOrganizeCleanSheets')
     .addSeparator()
+    .addItem('🧹 ล้างข้อมูลจำลองและข้อมูลตัวอย่างทั้งหมด (Clean All Mock Data)', 'cleanAllMockAndSeedData')
+    .addItem('🔄 รีเฟรชลำดับตัวเลข 1, 2, 3... (Re-number Rows)', 'renumberBookingRows')
+    .addSeparator()
     .addItem('🏢 เรียงตาม: ห้องปฏิบัติการ (Sort by Room)', 'sortByRoom')
     .addItem('📅 เรียงตาม: วันที่และเวลาใช้งาน (Sort by Date & Time)', 'sortByDateTime')
     .addItem('👨‍🏫 เรียงตาม: ชื่อคุณครูผู้สอน (Sort by Teacher)', 'sortByTeacher')
     .addSeparator()
-    .addItem('🔄 รีเฟรชลำดับตัวเลข 1, 2, 3... (Re-number Rows)', 'renumberBookingRows')
     .addItem('🗑️ เคลียร์ชีตส่วนเกินที่ไม่ได้ใช้งานทิ้ง', 'cleanExtraSheetsOnly')
     .addToUi();
 }
@@ -653,6 +655,68 @@ function renumberBookingRows() {
        .setBorder(true, true, true, true, true, true, '#cbd5e1', SpreadsheetApp.BorderStyle.SOLID)
        .setVerticalAlignment('middle')
        .setWrap(true);
+}
+
+function cleanAllMockAndSeedData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var cleanedCount = 0;
+
+  // 1. Clean 3.Bookings
+  var bkSheet = ss.getSheetByName(CANONICAL_TABS.BOOKINGS) || ss.getSheetByName('3.Bookings');
+  if (bkSheet && bkSheet.getLastRow() >= 3) {
+    var lastRow = bkSheet.getLastRow();
+    var data = bkSheet.getRange(3, 1, lastRow - 2, 10).getValues();
+    for (var i = data.length - 1; i >= 0; i--) {
+      var row = data[i];
+      var id = String(row[9] || '');
+      var date = String(row[1] || '');
+      var booker = String(row[7] || '');
+      var purpose = String(row[6] || '');
+
+      var isMock = false;
+      if (id.indexOf('book_mock_') === 0 || id.indexOf('test_booking_') === 0 || id.indexOf('book_20260711') === 0 || id.indexOf('book_20260713') === 0) isMock = true;
+      if (!date || date.trim() === '' || date.trim() === '-') isMock = true;
+      if ((!booker || booker.trim() === '' || booker === '-') && (!purpose || purpose.trim() === '' || purpose === '-')) isMock = true;
+
+      if (isMock) {
+        bkSheet.deleteRow(i + 3);
+        cleanedCount++;
+      }
+    }
+    renumberBookingRows();
+  }
+
+  // 2. Clean 2.Transactions
+  var txSheet = ss.getSheetByName(CANONICAL_TABS.TRANSACTIONS) || ss.getSheetByName('2.Transactions');
+  if (txSheet && txSheet.getLastRow() >= 2) {
+    var lastRow = txSheet.getLastRow();
+    var data = txSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = data.length - 1; i >= 0; i--) {
+      var id = String(data[i][0] || '');
+      if (id.indexOf('tx-mock') === 0) {
+        txSheet.deleteRow(i + 2);
+        cleanedCount++;
+      }
+    }
+  }
+
+  // 3. Clean 5.Users obsolete mock IDs
+  var uSheet = ss.getSheetByName(CANONICAL_TABS.USERS) || ss.getSheetByName('5.Users');
+  if (uSheet && uSheet.getLastRow() >= 2) {
+    var obsoleteMockIds = ["1001", "1002", "2001", "2002", "3001", "4001", "10797"];
+    var lastRow = uSheet.getLastRow();
+    var data = uSheet.getRange(2, 1, lastRow - 1, 2).getValues();
+    for (var i = data.length - 1; i >= 0; i--) {
+      var uId = String(data[i][0] || '');
+      var tId = String(data[i][1] || '');
+      if (obsoleteMockIds.indexOf(tId) !== -1 || obsoleteMockIds.indexOf(uId.replace('u_', '')) !== -1) {
+        uSheet.deleteRow(i + 2);
+        cleanedCount++;
+      }
+    }
+  }
+
+  ss.toast('🧹 ล้างข้อมูลจำลองและตัวอย่างทั้งหมด (' + cleanedCount + ' รายการ) เรียบร้อยแล้ว!', 'สำเร็จ', 5);
 }
 
 // -------------------------------------------------------------

@@ -518,10 +518,18 @@ async function syncAllToGoogleSheets(silent = false) {
       console.warn("Pull bookings notice:", e);
     }
 
-    // 2. Clean obsolete mock demo users from Google Sheets
+    // 2. Clean obsolete mock demo bookings, users, and transactions from Google Sheets
     const obsoleteMockIds = ["1001", "1002", "2001", "2002", "3001", "4001", "10797"];
     obsoleteMockIds.forEach(tId => {
       syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: tId, id: `u_${tId}` }, 'teacherId');
+    });
+    const mockTxIds = ["tx-mock-pending-001", "tx-mock-001", "tx-mock-002", "tx-mock-003", "tx-mock-004", "tx-mock-005", "tx-mock-006"];
+    mockTxIds.forEach(tId => {
+      syncToGoogleSheetsDirect('Transactions', 'DELETE', { id: tId }, 'id');
+    });
+    const mockBkIds = ["book_mock_today_01", "book_mock_today_02", "book_mock_today_03", "book_mock_today_04", "book_mock_today_05", "book_mock_01", "book_mock_02", "book_mock_03", "book_mock_04", "book_mock_05", "book_mock_06", "book_mock_07", "book_mock_08", "book_mock_09", "book_mock_10", "book_mock_11", "book_mock_12", "book_mock_13", "book_mock_14", "book_mock_15", "book_mock_16", "book_mock_17", "book_mock_18", "test_booking_001", "test_booking_002", "test_booking_003", "test_booking_004", "book_mock_002", "book_20260713141205", "book_20260713141242", "book_20260711141205"];
+    mockBkIds.forEach(bId => {
+      syncToGoogleSheetsDirect('Bookings', 'DELETE', { id: bId }, 'id');
     });
 
     // 3. Sync active Users
@@ -4868,163 +4876,46 @@ function setupDashboardCards() {
 
 // Load transactions from Supabase or LocalStorage
 async function loadAllTransactions() {
-  const defaultTrans = [
-    {
-      id: "tx-mock-pending-001",
-      itemCode: "EQ-001",
-      itemName: "เครื่องชั่งดิจิตอล 4 ตำแหน่ง (Digital Balance)",
-      qty: 1,
-      borrower: "ด.ช. ทดสอบ ระบบ",
-      date: new Date().toISOString().split('T')[0],
-      type: "borrow",
-      status: "pending",
-      notes: "ขอยืมไปใช้ในโครงงานวิทยาศาสตร์",
-      expectedReturnDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      room: "Lab 1",
-      supervisingTeacher: "อาจารย์ทดสอบ",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "tx-mock-001",
-      itemCode: "CHEM-001",
-      itemName: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
-      qty: 2,
-      borrower: "นายสมชาย เรียนดี",
-      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      type: "borrow",
-      status: "borrowed",
-      notes: "แล็บวิชาเคมี 1 เรื่องกรด-เบส",
-      expectedReturnDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      bookingId: "book_mock_001",
-      room: "Lab 1",
-      slot: "3",
-      supervisingTeacher: "อาจารย์สมศักดิ์ รักสอน",
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "tx-mock-002",
-      itemCode: "CHEM-003",
-      itemName: "โซเดียมไฮดรอกไซด์ (Sodium Hydroxide)",
-      qty: 1,
-      borrower: "นางสาวสมหญิง ใจดี",
-      date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      type: "borrow",
-      status: "borrowed",
-      notes: "แล็บเคมีฟิสิกส์ เรื่องปฏิกิริยาความร้อน",
-      expectedReturnDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      bookingId: "book_mock_002",
-      room: "Lab 2",
-      slot: "4, 5",
-      supervisingTeacher: "อาจารย์ศิริมา ดีใจ",
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "tx-mock-003",
-      itemCode: "GW-001",
-      itemName: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
-      qty: 4,
-      borrower: "นายมานะ ขยันเรียน",
-      date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      type: "borrow",
-      status: "returned",
-      notes: "ทดลองเรื่องความเข้มข้นสารละลาย",
-      expectedReturnDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      bookingId: "",
-      room: "Lab 2",
-      slot: "2",
-      supervisingTeacher: "อาจารย์วิภาดา ใฝ่รู้",
-      returnDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      damagedQty: 1,
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "tx-mock-004",
-      itemCode: "GW-002",
-      itemName: "ปิเปตขนาด 10 มล. (Pipette 10ml)",
-      qty: 2,
-      borrower: "นายมานะ ขยันเรียน",
-      date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      type: "borrow",
-      status: "borrowed",
-      notes: "ศึกษาการดูดจ่ายสารเคมีและเซลล์พืช",
-      expectedReturnDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      bookingId: "book_mock_003",
-      room: "Lab 3",
-      slot: "1, 2",
-      supervisingTeacher: "อาจารย์ศิริมา ดีใจ",
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-    },
-    {
-      id: "tx-mock-005",
-      itemCode: "CHEM-002",
-      itemName: "เอทานอล 95% (Ethanol)",
-      qty: 1,
-      borrower: "นางสาววิภา ใฝ่เรียน",
-      date: new Date().toISOString().split('T')[0],
-      type: "borrow",
-      status: "pending",
-      notes: "สกัดคลอโรฟิลล์จากใบพืช",
-      expectedReturnDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      bookingId: "book_mock_004",
-      room: "Lab 1",
-      slot: "5, 6",
-      supervisingTeacher: "อาจารย์สมศักดิ์ รักสอน",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "tx-mock-006",
-      itemCode: "EQ-001",
-      itemName: "เครื่องชั่งดิจิตอล 4 ตำแหน่ง (Digital Balance)",
-      qty: 1,
-      borrower: "นายชูชาติ รักชาติ",
-      date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      type: "borrow",
-      status: "returned",
-      notes: "ชั่งสารเคมีเพื่อทดลองแรงลอยตัวและกระแสไฟฟ้า",
-      expectedReturnDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      bookingId: "book_mock_005",
-      room: "Lab 2",
-      slot: "3",
-      supervisingTeacher: "อาจารย์วิภาดา ใฝ่รู้",
-      returnDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-    }
-  ];
-
   if (isSupabaseOnline) {
     try {
       const { data, error } = await supabase.from("transactions").select('*');
       if (error) throw error;
       const loadedTrans = [];
       (data || []).forEach(d => {
-        if (d && d.id) {
+        if (d && d.id && !d.id.startsWith("tx-mock")) {
           loadedTrans.push(d);
         }
       });
-      if (loadedTrans.length > 0) {
-        transactions = loadedTrans;
-        console.log("🔥 Loaded " + transactions.length + " transactions from Supabase Cloud.");
-        return;
-      } else {
-        // Seed Supabase if empty
-        defaultTrans.forEach(demoTx => transactions.push(demoTx));
-        await supabase.from("transactions").insert(defaultTrans);
-        console.log("🔥 Seeded default transactions to Supabase.");
-        return;
-      }
+      transactions = loadedTrans;
+      localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+      console.log("🔥 Loaded " + transactions.length + " transactions from Supabase Cloud.");
+      return;
     } catch (err) {
       console.error("🔥 Failed to load transactions from Supabase:", err);
       isSupabaseOnline = false;
     }
   }
 
+  // 1. Fetch from Google Sheets if available
+  try {
+    const sheetTx = await fetchTableFromGoogleSheets('2.Transactions');
+    if (Array.isArray(sheetTx) && sheetTx.length > 0) {
+      transactions = sheetTx.filter(t => t && t.id && !t.id.startsWith("tx-mock"));
+      localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+      return;
+    }
+  } catch (e) {}
+
   if (isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/transactions`);
       if (response.ok) {
-        transactions = await response.json();
-        localStorage.setItem("lab_transactions", JSON.stringify(transactions));
-        return;
+        const json = await response.json();
+        if (Array.isArray(json)) {
+          transactions = json.filter(t => t && t.id && !t.id.startsWith("tx-mock"));
+          localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+          return;
+        }
       }
     } catch (e) {
       console.error("Failed to load transactions from backend:", e);
@@ -5034,11 +4925,20 @@ async function loadAllTransactions() {
   // LocalStorage Fallback
   const localTrans = localStorage.getItem("lab_transactions");
   if (localTrans) {
-    transactions = JSON.parse(localTrans);
+    try {
+      const parsed = JSON.parse(localTrans);
+      if (Array.isArray(parsed)) {
+        transactions = parsed.filter(t => t && t.id && !t.id.startsWith("tx-mock"));
+      } else {
+        transactions = [];
+      }
+    } catch (e) {
+      transactions = [];
+    }
   } else {
-    transactions = [...defaultTrans];
-    localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+    transactions = [];
   }
+  localStorage.setItem("lab_transactions", JSON.stringify(transactions));
 }
 
 // Helper to save a single transaction
@@ -6260,251 +6160,13 @@ async function saveLayout() {
 
 
 async function loadAllBookings() {
-  const todayDate = new Date();
-  const y = todayDate.getFullYear();
-  const m = String(todayDate.getMonth() + 1).padStart(2, '0');
-  
-  const getIsoDay = (dayNum) => `${y}-${m}-${String(dayNum).padStart(2, '0')}`;
-
-  const defaultBookings = [
-    {
-      id: "book_mock_today_01",
-      room: "Lab 1",
-      date: getIsoDay(todayDate.getDate()),
-      slot: "1, 2",
-      bookerName: "แก้วกาญจน์ เฮงทองเลิศ",
-      purpose: "Present Project การทดลองเคมี ม.5",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_today_02",
-      room: "Lab 2",
-      date: getIsoDay(todayDate.getDate()),
-      slot: "4, 5",
-      bookerName: "ชุติมา ผาสุข",
-      purpose: "นวัตกรรม ม.รัชกฤช ฟิสิกส์การเคลื่อนที่",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_today_03",
-      room: "Lab 7",
-      date: getIsoDay(todayDate.getDate()),
-      slot: "6, 7",
-      bookerName: "ภัสสร โชวเซ็ง",
-      purpose: "สอบวิชา STEM Activity ม.2/3",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_today_04",
-      room: "Lab 4",
-      date: getIsoDay(todayDate.getDate()),
-      slot: "7, 8",
-      bookerName: "ชุติมา ผาสุข",
-      purpose: "นวัตกรรม ม.2/2 มิสปริญา",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_today_05",
-      room: "Lab 6",
-      date: getIsoDay(todayDate.getDate()),
-      slot: "8",
-      bookerName: "อาจารย์กฤษณะ รุ่งเรือง",
-      purpose: "เตรียมความพร้อมแล็บวิทย์ ม.ต้น",
-      status: "pending",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_01",
-      room: "Lab 4",
-      date: getIsoDay(1),
-      slot: "2, 3",
-      bookerName: "ม.รัชกฤช สุขใจ",
-      purpose: "working จัดเตรียมโครงงานวิทยาศาสตร์",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_02",
-      room: "Lab 1",
-      date: getIsoDay(2),
-      slot: "1, 2",
-      bookerName: "อ.พรทิพย์ มั่งมี",
-      purpose: "ใช้ในการแข่งขันโอลิมปิกวิชาการ",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_03",
-      room: "Lab 3",
-      date: getIsoDay(3),
-      slot: "2, 3",
-      bookerName: "ครูสมชาย รักการสอน",
-      purpose: "working สังเกตการแบ่งเซลล์พืช",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_04",
-      room: "Lab 5",
-      date: getIsoDay(4),
-      slot: "1, 2",
-      bookerName: "มิสปริยากรณ์ ใจงาม",
-      purpose: "จัดการเรียนการสอนศูนย์ สสวท.",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_05",
-      room: "Lab 8",
-      date: getIsoDay(7),
-      slot: "2, 3",
-      bookerName: "Teacher David",
-      purpose: "เรียนวิชาเลือกเสรี Science Lab EP",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_06",
-      room: "Lab 1",
-      date: getIsoDay(8),
-      slot: "1, 2",
-      bookerName: "มิสปริยากรณ์",
-      purpose: "มิสปริยากรณ์ (เคมีปฏิบัติการ)",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_07",
-      room: "Lab 7",
-      date: getIsoDay(9),
-      slot: "3, 4",
-      bookerName: "ครูวิภาดา ใฝ่รู้",
-      purpose: "Students Presentation STEM",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_08",
-      room: "Lab 5",
-      date: getIsoDay(10),
-      slot: "1, 2",
-      bookerName: "เจ้าหน้าที่ทรงศักดิ์",
-      purpose: "จัดกิจกรรมอบรมสะเต็ม",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_09",
-      room: "Lab 8",
-      date: getIsoDay(11),
-      slot: "1",
-      bookerName: "Teacher Sarah",
-      purpose: "Present Gr.5-6 Science Expo",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_10",
-      room: "Lab 5",
-      date: getIsoDay(14),
-      slot: "1, 2",
-      bookerName: "Mr. Robert",
-      purpose: "Eng Lab IEP Program",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_11",
-      room: "Lab 1",
-      date: getIsoDay(15),
-      slot: "1, 2",
-      bookerName: "มิสปริยากรณ์",
-      purpose: "มิสปริยากรณ์ (เคมีทดลอง)",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_12",
-      room: "Lab 4",
-      date: getIsoDay(16),
-      slot: "1, 2",
-      bookerName: "แก้วกาญจน์ เฮงทองเลิศ",
-      purpose: "Present Project การทดลองเคมี ม.5",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_13",
-      room: "Lab 5",
-      date: getIsoDay(17),
-      slot: "1, 2",
-      bookerName: "มิสปริยากรณ์",
-      purpose: "จัดการเรียนการสอนวิทยาศาสตร์",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_14",
-      room: "Lab 2",
-      date: getIsoDay(18),
-      slot: "2",
-      bookerName: "ม.รัชกฤช",
-      purpose: "ม.รัชกฤช: 3/5",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_15",
-      room: "Lab 6",
-      date: getIsoDay(18),
-      slot: "2",
-      bookerName: "อาจารย์กฤษณะ",
-      purpose: "กิจกรรม board game ป.6",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_16",
-      room: "Lab 1",
-      date: getIsoDay(18),
-      slot: "3",
-      bookerName: "มิสปริยากรณ์",
-      purpose: "มิสปริยากรณ์ (ไทย): 1/6",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_17",
-      room: "Lab 7",
-      date: getIsoDay(18),
-      slot: "7",
-      bookerName: "ครูวิภาดา ใฝ่รู้",
-      purpose: "การเรียนการสอน Innovative",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "book_mock_18",
-      room: "Lab 5",
-      date: getIsoDay(18),
-      slot: "8",
-      bookerName: "TED Club Advisor",
-      purpose: "TED Club กิจกรรมวิทย์",
-      status: "approved",
-      createdAt: new Date().toISOString()
-    }
-  ];
-
   let remoteBookings = [];
   if (isSupabaseOnline) {
     try {
       const { data, error } = await supabase.from("bookings").select('*');
       if (!error && Array.isArray(data) && data.length > 0) {
-        remoteBookings = data;
+        // Filter out any mock booking IDs
+        remoteBookings = data.filter(b => b && b.id && !b.id.startsWith("book_mock") && !b.id.startsWith("test_booking") && !b.id.startsWith("book_20260711") && !b.id.startsWith("book_20260713"));
         console.log("🔥 Loaded " + remoteBookings.length + " bookings from Supabase Cloud.");
       }
     } catch (err) {
@@ -6519,13 +6181,15 @@ async function loadAllBookings() {
     if (Array.isArray(rawSheet) && rawSheet.length > 0) {
       sheetBookings = rawSheet
         .filter(b => {
-          if (!b) return false;
+          if (!b || !b.id) return false;
+          // Discard mock seed IDs
+          if (b.id.startsWith("book_mock") || b.id.startsWith("test_booking") || b.id.startsWith("book_20260711") || b.id.startsWith("book_20260713")) return false;
           const hasDate = b.date && String(b.date).trim() !== "" && String(b.date).trim() !== "-";
           const hasBooker = (b.bookerName && String(b.bookerName).trim() !== "" && String(b.bookerName).trim() !== "-") ||
                             (b.teacherName && String(b.teacherName).trim() !== "" && String(b.teacherName).trim() !== "-");
           const hasPurpose = (b.purpose && String(b.purpose).trim() !== "" && String(b.purpose).trim() !== "-") ||
                              (b.activity && String(b.activity).trim() !== "" && String(b.activity).trim() !== "-");
-          return hasDate && (hasBooker || hasPurpose || (b.id && !b.id.startsWith("book_mock_")));
+          return hasDate && (hasBooker || hasPurpose);
         })
         .map(b => {
           const normDate = normalizeDateStr(b.date);
@@ -6545,7 +6209,7 @@ async function loadAllBookings() {
           if (count === "-") count = "";
 
           return {
-            id: b.id || ("book_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6)),
+            id: b.id,
             room: cleanRoom,
             date: normDate,
             slot: (b.slot && b.slot !== "-") ? b.slot : "คาบ 1",
@@ -6558,7 +6222,7 @@ async function loadAllBookings() {
             createdAt: b.createdAt || new Date().toISOString()
           };
         });
-      console.log(`📊 Loaded ${sheetBookings.length} bookings from Google Sheets.`);
+      console.log(`📊 Loaded ${sheetBookings.length} clean bookings from Google Sheets.`);
     }
   } catch (e) {
     console.warn("Failed to load bookings from Google Sheets:", e);
@@ -6569,8 +6233,8 @@ async function loadAllBookings() {
       const response = await fetch(`${API_BASE}/bookings`);
       if (response.ok) {
         const backendBookings = await response.json();
-        if (Array.isArray(backendBookings) && backendBookings.length > 0) {
-          remoteBookings = backendBookings;
+        if (Array.isArray(backendBookings)) {
+          remoteBookings = backendBookings.filter(b => b && b.id && !b.id.startsWith("book_mock") && !b.id.startsWith("test_booking") && !b.id.startsWith("book_20260711") && !b.id.startsWith("book_20260713"));
         }
       }
     } catch (e) {
@@ -6578,21 +6242,20 @@ async function loadAllBookings() {
     }
   }
 
-  // 2. LocalStorage check
+  // 2. LocalStorage check & filter
   let localList = [];
   try {
     const localBookings = localStorage.getItem("lab_bookings");
     if (localBookings) {
-      localList = JSON.parse(localBookings);
+      const parsed = JSON.parse(localBookings);
+      if (Array.isArray(parsed)) {
+        localList = parsed.filter(b => b && b.id && !b.id.startsWith("book_mock") && !b.id.startsWith("test_booking") && !b.id.startsWith("book_20260711") && !b.id.startsWith("book_20260713"));
+      }
     }
   } catch (e) {}
 
-  // 3. Merge all sources
+  // 3. Merge all valid clean sources
   const mergedMap = new Map();
-
-  if (sheetBookings.length === 0 && remoteBookings.length === 0 && localList.length === 0) {
-    defaultBookings.forEach(b => mergedMap.set(b.id, b));
-  }
 
   if (Array.isArray(localList)) {
     localList.forEach(b => {
@@ -6630,72 +6293,6 @@ async function loadAllBookings() {
         }
       });
     } catch (e) {}
-  }
-}
-
-function injectTestBookings() {
-  const testBookings = [
-    {
-      id: "test_booking_001",
-      room: "Lab 1",
-      date: "2026-07-08",
-      slot: "1, 2",
-      bookerName: "อ.สมศักดิ์ รักเรียน",
-      purpose: "การไทเทรตหาความเข้มข้นของสารละลายกรด-เบส",
-      prepItems: [],
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "test_booking_002",
-      room: "Lab 2",
-      date: "2026-07-08",
-      slot: "3, 4",
-      bookerName: "อ.วีระ ชนะศึก",
-      purpose: "การวัดสนามแม่เหล็กและการทดลองวงจรไฟฟ้า",
-      prepItems: [],
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "test_booking_003",
-      room: "Lab 3",
-      date: "2026-07-08",
-      slot: "5, 6",
-      bookerName: "อ.สิริมา นามดี",
-      purpose: "ศึกษากระบวนการแบ่งเซลล์พืชและการส่องกล้องจุลทรรศน์",
-      prepItems: [],
-      status: "approved",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: "test_booking_004",
-      room: "Lab 7",
-      date: "2026-07-08",
-      slot: "7, 8",
-      bookerName: "อ.พรเทพ เกียรติดี",
-      purpose: "คลาส STEM: การจำลองการทำงานและต่อระบบเซนเซอร์",
-      prepItems: [],
-      status: "approved",
-      createdAt: new Date().toISOString()
-    }
-  ];
-
-  let modified = false;
-  testBookings.forEach(tb => {
-    if (!bookings.some(b => b.id === tb.id)) {
-      bookings.push(tb);
-      modified = true;
-      if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline) {
-        try {
-          supabase.from("bookings").upsert(tb).catch(() => {});
-        } catch (e) {}
-      }
-    }
-  });
-
-  if (modified) {
-    localStorage.setItem("lab_bookings", JSON.stringify(bookings));
   }
 }
 
