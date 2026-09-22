@@ -6012,6 +6012,58 @@ function formatBookingForSupabase(b) {
 // ==========================================================================
 // OFFLINE SYNC QUEUE & RESILIENT STORAGE PIPELINE (Supabase -> Google Sheets -> LocalStorage)
 // ==========================================================================
+const GOOGLE_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
+
+function formatBookingForGoogleSheets(b) {
+  const roomNames = {
+    'Lab 1': 'ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ',
+    'Lab 2': 'ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์',
+    'Lab 3': 'ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์',
+    'Lab 4': 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล',
+    'Lab 5': 'ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล',
+    'Lab 6': 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ',
+    'Lab 7': 'ห้องศูนย์ STEM CENTER',
+    'Lab 8': 'ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่'
+  };
+  return {
+    id: b.id,
+    room: roomNames[b.room] || b.room || '',
+    date: b.date || '',
+    slot: b.slot || '',
+    gradeLevel: b.gradeLevel || '-',
+    studentCount: b.studentCount ? `${b.studentCount} คน` : '-',
+    purpose: b.purpose || b.activity || '',
+    bookerName: b.bookerName || b.teacherName || '',
+    prepItems: Array.isArray(b.prepItems) ? JSON.stringify(b.prepItems) : (b.prepItems || ''),
+    status: b.status === 'approved' ? 'อนุมัติแล้ว' : (b.status === 'pending' ? 'รออนุมัติ' : (b.status === 'rejected' ? 'ปฏิเสธ' : b.status)),
+    createdAt: b.createdAt || new Date().toISOString()
+  };
+}
+
+async function syncBookingToGoogleSheetsDirect(bookingData, action = 'UPSERT') {
+  if (!GOOGLE_SCRIPT_WEBAPP_URL) return;
+  try {
+    const formatted = formatBookingForGoogleSheets(bookingData);
+    const payload = {
+      table: 'Bookings',
+      action: action,
+      keyField: 'id',
+      data: formatted
+    };
+    fetch(GOOGLE_SCRIPT_WEBAPP_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).catch(err => {
+      console.warn("Google Sheets direct sync notice:", err);
+    });
+    console.log("📊 Direct Google Sheets booking sync dispatched for:", bookingData.id);
+  } catch (e) {
+    console.warn("Google Sheets direct sync error:", e);
+  }
+}
+
 function enqueueOfflineBooking(bookingData) {
   try {
     const queue = JSON.parse(localStorage.getItem("lab_offline_booking_queue") || "[]");
@@ -6049,7 +6101,13 @@ async function flushOfflineBookingQueue() {
         if (!error) synced = true;
       } catch (e) {}
     }
-    // 2. Google Sheets / Backend Sync
+    // 2. Google Sheets Direct Sync
+    try {
+      syncBookingToGoogleSheetsDirect(b);
+      synced = true;
+    } catch (e) {}
+    
+    // 3. Backend Server Sync
     if (isBackendOnline) {
       try {
         await fetch(`${API_BASE}/bookings`, {
@@ -6108,10 +6166,13 @@ async function saveBooking(bookingData) {
     }
   }
 
-  // 3. [ลำดับที่ 2] Google Sheets & Server Backend Database (Secondary Backup & Sheets Sync)
-  if (navigator.onLine && isBackendOnline) {
+  // 3. [ลำดับที่ 2] Google Sheets (Direct Cloud Sheet Web App & Backend Server Database)
+  if (navigator.onLine) {
     try {
-      syncBookingsToBackend();
+      syncBookingToGoogleSheetsDirect(bookingData);
+      if (isBackendOnline) {
+        syncBookingsToBackend();
+      }
       isSavedRemotely = true;
     } catch (err) {
       console.warn("Google Sheets / Backend sync notice:", err);
@@ -6137,8 +6198,11 @@ async function updateBookingStatus(bookingId, status) {
   bookings[index] = updatedBooking;
   localStorage.setItem("lab_bookings", JSON.stringify(bookings));
   
-  if (navigator.onLine && isBackendOnline) {
-    syncBookingsToBackend();
+  if (navigator.onLine) {
+    syncBookingToGoogleSheetsDirect(updatedBooking);
+    if (isBackendOnline) {
+      syncBookingsToBackend();
+    }
   }
 
   if (navigator.onLine && isSupabaseOnline) {
