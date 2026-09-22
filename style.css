@@ -9124,11 +9124,13 @@ body.admin-logged-in .public-only-section {
   letter-spacing: -0.5px;
 }
 
-/* Toolbar & Filters (1-to-1 Column Match with KPI Grid) */
+/* Toolbar & Filters (Responsive Flex Layout with Spacious Action Buttons) */
 .admin-toolbar-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 16px;
   width: 100%;
   box-sizing: border-box;
@@ -9136,8 +9138,8 @@ body.admin-logged-in .public-only-section {
 
 .admin-search-wrap {
   position: relative;
-  width: 100%;
-  min-width: 0;
+  flex: 1 1 220px;
+  min-width: 180px;
 }
 
 .admin-search-wrap .admin-search-icon {
@@ -9185,7 +9187,8 @@ input[type="text"].admin-search-input:focus {
 }
 
 select.admin-filter-select {
-  width: 100% !important;
+  flex: 0 1 190px;
+  min-width: 160px;
   height: 38px !important;
   min-height: 38px !important;
   max-height: 38px !important;
@@ -9203,7 +9206,6 @@ select.admin-filter-select {
   transition: all 0.2s ease;
   font-family: inherit;
   box-sizing: border-box;
-  min-width: 0;
   vertical-align: middle;
 }
 
@@ -9216,8 +9218,9 @@ select.admin-filter-select:focus {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
-  min-width: 0;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .btn-admin-action {
@@ -9227,15 +9230,14 @@ select.admin-filter-select:focus {
   gap: 6px;
   white-space: nowrap;
   height: 38px;
-  padding: 0 8px;
+  padding: 0 14px;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 12.5px;
   cursor: pointer;
   transition: all 0.2s ease;
   box-sizing: border-box;
-  flex: 1 1 0;
-  min-width: 0;
+  flex: none;
 }
 
 .btn-admin-action.btn-secondary {
@@ -9247,6 +9249,7 @@ select.admin-filter-select:focus {
 .btn-admin-action.btn-secondary:hover {
   background: #f8fafc;
   border-color: #94a3b8;
+  transform: translateY(-1px);
 }
 
 .btn-admin-action.btn-add-user {
