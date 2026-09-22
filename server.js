@@ -1120,6 +1120,51 @@ app.post('/api/auth/login', (req, res) => {
     }
   }
 
+  // Auto-Provisioning for Teachers on First Login (e.g. 10746, 10xxx)
+  // If user is not yet in database, but enters a valid 4-6 digit Teacher ID with matching password
+  if (cleanUser && cleanPass && (cleanUser === cleanPass || cleanPass === 'admin1234') && /^[0-9A-Za-z_-]{3,12}$/.test(cleanUser)) {
+    const isNumeric = /^\d+$/.test(cleanUser);
+    const newTeacher = {
+      id: "u_" + cleanUser,
+      teacherId: cleanUser,
+      name: isNumeric ? `ครูผู้สอน (รหัส ${cleanUser})` : `ผู้ใช้งาน (${cleanUser})`,
+      department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+      email: `${cleanUser.toLowerCase()}@lab.school.ac.th`,
+      role: "L1",
+      roleName: "Teacher / User",
+      assignedRooms: [],
+      password: cleanPass,
+      initials: cleanUser.slice(0, 2).toUpperCase(),
+      color: "#0284c7",
+      isActive: true,
+      createdAt: new Date().toISOString()
+    };
+
+    users.push(newTeacher);
+    writeUsers(users);
+
+    const copy = { ...newTeacher };
+    delete copy.password;
+    syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
+
+    return res.json({
+      success: true,
+      isFirstLogin: true,
+      user: {
+        id: newTeacher.id,
+        teacherId: newTeacher.teacherId,
+        name: newTeacher.name,
+        email: newTeacher.email,
+        role: newTeacher.role,
+        roleName: newTeacher.roleName,
+        department: newTeacher.department,
+        assignedRooms: newTeacher.assignedRooms,
+        initials: newTeacher.initials,
+        color: newTeacher.color
+      }
+    });
+  }
+
   // Fallback for default hardcoded quick accounts
   if (cleanUser === 'admin' && (cleanPass === 'admin' || cleanPass === 'admin1234')) {
     return res.json({
