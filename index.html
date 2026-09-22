@@ -3835,9 +3835,9 @@
               </div>
 
               <div class="form-group" style="margin-bottom: 0;">
-                <label for="loginUsername" class="form-label" style="font-weight: 600; font-size: 13.5px;">รหัสประจำตัวครู (Teacher ID) <span style="color: var(--accent-red);">*</span></label>
+                <label for="loginUsername" class="form-label" style="font-weight: 600; font-size: 13.5px;">รหัสประจำตัวครู (Teacher ID) หรือชื่อผู้ใช้ <span style="color: var(--accent-red);">*</span></label>
                 <div style="position: relative;">
-                  <input type="text" id="loginUsername" name="username" class="form-control" placeholder="เช่น 00000" required autocomplete="username" style="font-size: 13.5px; padding-left: 36px;">
+                  <input type="text" id="loginUsername" name="username" class="form-control" placeholder="เช่น 1001, 10797 หรือระบุชื่อคุณครู" required autocomplete="username" style="font-size: 13.5px; padding-left: 36px;">
                   <i data-lucide="user" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"></i>
                 </div>
               </div>
@@ -3845,12 +3845,13 @@
               <div class="form-group" style="margin-bottom: 0;">
                 <label for="loginPassword" class="form-label" style="font-weight: 600; font-size: 13.5px;">รหัสผ่าน <span style="color: var(--accent-red);">*</span></label>
                 <div style="position: relative; display: flex; align-items: center;">
-                  <input type="password" id="loginPassword" name="password" class="form-control" placeholder="ระบุรหัสผ่าน" required autocomplete="current-password" style="font-size: 13.5px; padding-right: 40px; padding-left: 36px; width: 100%;">
+                  <input type="password" id="loginPassword" name="password" class="form-control" placeholder="ระบุรหัสผ่าน (เริ่มต้น: รหัสประจำตัวครู)" required autocomplete="current-password" style="font-size: 13.5px; padding-right: 40px; padding-left: 36px; width: 100%;">
                   <i data-lucide="key" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"></i>
                   <button type="button" id="btnTogglePassword" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0; display: flex; align-items: center; justify-content: center;" aria-label="Toggle Password Visibility">
                     <i data-lucide="eye" id="eyeIcon" style="width: 18px; height: 18px;"></i>
                   </button>
                 </div>
+                <small style="color: var(--text-muted); font-size: 11.5px; display: block; margin-top: 4px;">💡 รหัสผ่านเริ่มต้นคือ <b>รหัสประจำตัวครู (Teacher ID)</b></small>
               </div>
 
               <!-- Remember Me Checkbox -->

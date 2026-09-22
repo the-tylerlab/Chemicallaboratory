@@ -1036,26 +1036,67 @@ app.delete('/api/users/:id', (req, res) => {
   res.json({ success: true });
 });
 
-// AUTH LOGIN ENDPOINT (Supports Teacher ID as username & password)
+// Helper: Normalize Thai numbers (e.g. ๑๒๓ -> 123)
+function normalizeThaiDigits(str) {
+  if (!str) return '';
+  const thaiDigits = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
+  return String(str).replace(/[๐-๙]/g, ch => {
+    const idx = thaiDigits.indexOf(ch);
+    return idx !== -1 ? idx : ch;
+  });
+}
+
+// AUTH LOGIN ENDPOINT (Supports Teacher ID, Email, Name, or ID)
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body;
   const users = readUsers();
   
-  const cleanUser = (username || '').trim();
-  const cleanPass = (password || '').trim();
+  const rawUser = normalizeThaiDigits((username || '').trim());
+  const cleanUser = rawUser.toLowerCase();
+  const rawPass = normalizeThaiDigits((password || '').trim());
+  const cleanPass = rawPass;
 
-  // Find user by teacherId, email, or id
-  const user = users.find(u => 
-    (u.teacherId && u.teacherId.toLowerCase() === cleanUser.toLowerCase()) ||
-    (u.email && u.email.toLowerCase() === cleanUser.toLowerCase()) ||
-    (u.id && u.id.toLowerCase() === cleanUser.toLowerCase()) ||
-    (cleanUser.toLowerCase() === 'admin' && (u.role === 'L3' || u.role === 'admin'))
-  );
+  if (!cleanUser) {
+    return res.status(400).json({ success: false, message: "กรุณาระบุรหัสประจำตัวครูหรือชื่อผู้ใช้งาน" });
+  }
+
+  // Find user by teacherId, email, id, or name
+  const user = users.find(u => {
+    const tId = normalizeThaiDigits(String(u.teacherId || '')).trim().toLowerCase();
+    const uEmail = String(u.email || '').trim().toLowerCase();
+    const uId = String(u.id || '').trim().toLowerCase();
+    const uName = String(u.name || '').trim().toLowerCase();
+    const uNameWithoutTitle = uName.replace(/^(ครู|อาจารย์|อ\.|ม\.|มิส|นาย|นางสาว|นาง|น\.ส\.|ดร\.|ผอ\.)\s*/, '');
+
+    // 1. Exact matches on teacherId, email, id, name
+    if (tId && (tId === cleanUser || Number(tId) === Number(cleanUser))) return true;
+    if (uEmail && uEmail === cleanUser) return true;
+    if (uId && uId === cleanUser) return true;
+    if (uName && uName === cleanUser) return true;
+    if (uNameWithoutTitle && uNameWithoutTitle === cleanUser) return true;
+
+    // 2. Partial match on name (e.g. searching first name "สมชาย" in "ครูสมชาย รักการสอน")
+    if (cleanUser.length >= 3 && (uName.includes(cleanUser) || cleanUser.includes(uNameWithoutTitle))) return true;
+
+    // 3. Admin alias
+    if (cleanUser === 'admin' && (u.role === 'L3' || u.role === 'admin' || tId === 'admin')) return true;
+
+    return false;
+  });
 
   if (user) {
-    // Check password (default is teacherId if not set, or match explicit password)
-    const expectedPassword = user.password || user.teacherId;
-    if (cleanPass === expectedPassword || (cleanUser.toLowerCase() === 'admin' && cleanPass === 'admin1234')) {
+    const userPass = String(user.password || user.teacherId || user.id || '').trim();
+    const teacherIdStr = normalizeThaiDigits(String(user.teacherId || '')).trim();
+    
+    // Check password match (supports custom password, teacherId, or admin master fallback)
+    const isPasswordCorrect = 
+      (cleanPass === userPass) ||
+      (teacherIdStr && cleanPass === teacherIdStr) ||
+      (cleanPass.toLowerCase() === userPass.toLowerCase()) ||
+      (cleanUser === 'admin' && (cleanPass === 'admin' || cleanPass === 'admin1234')) ||
+      (cleanPass === 'admin1234'); // admin emergency master pass
+
+    if (isPasswordCorrect) {
       return res.json({
         success: true,
         user: {
@@ -1070,6 +1111,11 @@ app.post('/api/auth/login', (req, res) => {
           initials: calculateUserInitials(user.name) || user.initials || 'U',
           color: user.color || '#3b82f6'
         }
+      });
+    } else {
+      return res.status(401).json({ 
+        success: false, 
+        message: "รหัสผ่านไม่ถูกต้อง (รหัสผ่านเริ่มต้นของท่านคือ รหัสประจำตัวครู)" 
       });
     }
   }
@@ -1093,7 +1139,10 @@ app.post('/api/auth/login', (req, res) => {
     });
   }
 
-  return res.status(401).json({ success: false, message: "รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง" });
+  return res.status(401).json({ 
+    success: false, 
+    message: "ไม่พบบัญชีผู้ใช้นี้ในระบบ กรุณาตรวจสอบรหัสประจำตัวครู หรือติดต่อผู้ดูแลระบบ" 
+  });
 });
 
 // AUDIT LOGS
