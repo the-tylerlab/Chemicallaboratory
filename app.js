@@ -16218,6 +16218,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let batchUserList = [];
 let currentBatchImportMode = 'file';
+let currentBatchFilter = 'all'; // 'all', 'valid', 'update', 'invalid'
+let currentUploadedFileName = '';
 
 function openBatchAddUsersModal() {
   const modal = document.getElementById("modalBatchAddUsers");
@@ -16225,10 +16227,19 @@ function openBatchAddUsersModal() {
 
   batchUserList = [];
   currentBatchImportMode = 'file';
+  currentBatchFilter = 'all';
+  currentUploadedFileName = '';
   
   const fileInput = document.getElementById("batchUserFileInput");
   if (fileInput) fileInput.value = "";
 
+  const pasteInput = document.getElementById("batchPasteInput");
+  if (pasteInput) pasteInput.value = "";
+
+  const guidelines = document.getElementById("batchGuidelinesBox");
+  if (guidelines) guidelines.style.display = "none";
+
+  clearBatchUploadedFile(false);
   switchBatchImportMode('file');
   renderBatchUserRows();
 
@@ -16243,27 +16254,32 @@ function closeBatchAddUsersModal() {
   if (modal) modal.style.display = "none";
 }
 
+function toggleBatchGuidelines() {
+  const box = document.getElementById("batchGuidelinesBox");
+  if (!box) return;
+  const isHidden = (box.style.display === 'none' || !box.style.display);
+  box.style.display = isHidden ? 'block' : 'none';
+  if (window.lucide) lucide.createIcons();
+}
+
 function switchBatchImportMode(mode) {
   currentBatchImportMode = mode;
   const btnFile = document.getElementById("btnBatchTabFile");
+  const btnPaste = document.getElementById("btnBatchTabPaste");
   const btnTable = document.getElementById("btnBatchTabTable");
+  
   const fileSection = document.getElementById("batchModeFileSection");
-  const tableControls = document.getElementById("batchModeTableControls");
+  const pasteSection = document.getElementById("batchModePasteSection");
 
-  if (mode === 'file') {
-    if (btnFile) btnFile.classList.add("active");
-    if (btnTable) btnTable.classList.remove("active");
-    if (fileSection) fileSection.style.display = "flex";
-    if (tableControls) tableControls.style.display = "none";
-  } else {
-    if (btnFile) btnFile.classList.remove("active");
-    if (btnTable) btnTable.classList.add("active");
-    if (fileSection) fileSection.style.display = "none";
-    if (tableControls) tableControls.style.display = "flex";
+  if (btnFile) btnFile.classList.toggle("active", mode === 'file');
+  if (btnPaste) btnPaste.classList.toggle("active", mode === 'paste');
+  if (btnTable) btnTable.classList.toggle("active", mode === 'table');
 
-    if (batchUserList.length === 0) {
-      addBatchUserRows(3);
-    }
+  if (fileSection) fileSection.style.display = (mode === 'file') ? 'flex' : 'none';
+  if (pasteSection) pasteSection.style.display = (mode === 'paste') ? 'flex' : 'none';
+
+  if (mode === 'table' && batchUserList.length === 0) {
+    addBatchUserRows(3);
   }
 }
 
@@ -16316,12 +16332,14 @@ function handleUserBatchFileUpload(event) {
   const file = event.target.files ? event.target.files[0] : null;
   if (!file) return;
 
+  currentUploadedFileName = file.name;
   const fileName = file.name.toLowerCase();
   const reader = new FileReader();
 
   if (fileName.endsWith('.csv')) {
     reader.onload = function(e) {
       parseUserCsvContent(e.target.result);
+      updateBatchActiveFileDisplay(file.name, file.size);
     };
     reader.readAsText(file, 'UTF-8');
   } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
@@ -16333,6 +16351,7 @@ function handleUserBatchFileUpload(event) {
         const worksheet = workbook.Sheets[firstSheetName];
         const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
         parseUserArrayRows(jsonRows);
+        updateBatchActiveFileDisplay(file.name, file.size);
       } else {
         showToast("ไม่พบไลบรารีอ่านไฟล์ Excel กำลังลองอ่านเป็น CSV", "warning");
       }
@@ -16340,6 +16359,38 @@ function handleUserBatchFileUpload(event) {
     reader.readAsArrayBuffer(file);
   } else {
     showToast("รองรับเฉพาะไฟล์ .xlsx, .xls หรือ .csv เท่านั้น", "error");
+  }
+}
+
+function updateBatchActiveFileDisplay(name, size) {
+  const card = document.getElementById("batchActiveFileCard");
+  const dropzone = document.getElementById("batchUserDropzone");
+  const nameEl = document.getElementById("batchActiveFileName");
+  const detailsEl = document.getElementById("batchActiveFileDetails");
+
+  if (card && nameEl && detailsEl) {
+    const sizeKb = size ? ` | ${(size / 1024).toFixed(1)} KB` : '';
+    nameEl.textContent = `ไฟล์: ${name}`;
+    detailsEl.textContent = `นำเข้าสำเร็จตรวจพบ ${batchUserList.length} แถว${sizeKb}`;
+    card.style.display = "flex";
+  }
+  if (dropzone) {
+    dropzone.style.display = "none";
+  }
+}
+
+function clearBatchUploadedFile(shouldClearTable = true) {
+  currentUploadedFileName = '';
+  const card = document.getElementById("batchActiveFileCard");
+  const dropzone = document.getElementById("batchUserDropzone");
+  const fileInput = document.getElementById("batchUserFileInput");
+
+  if (card) card.style.display = "none";
+  if (dropzone) dropzone.style.display = "block";
+  if (fileInput) fileInput.value = "";
+
+  if (shouldClearTable) {
+    clearBatchUserRows();
   }
 }
 
@@ -16444,6 +16495,114 @@ function parseUserArrayRows(rows) {
   showToast(`นำเข้าข้อมูลจากไฟล์สำเร็จ ${parsedUsers.length} รายการ`, "success");
 }
 
+function fillBatchPasteExample() {
+  const pasteInput = document.getElementById("batchPasteInput");
+  if (!pasteInput) return;
+  pasteInput.value = 
+`1001\tครูสมใจ หมายมั่น\tL1\tกลุ่มสาระการเรียนรู้วิทยาศาสตร์\tsomjai@school.ac.th\t
+2001\tนายเอกชัย ช่างแล็บ\tL2\tงานบริการห้องปฏิบัติการ\tekkachai@school.ac.th\tLab 1, Lab 6
+3001\tดร.ชลธิชา วิชาการ\tL3\tกลุ่มงานบริหารวิชาการ\tchonthicha@school.ac.th\t`;
+  showToast("วางข้อมูลตัวอย่างเรียบร้อย กดปุ่ม 'แปลงข้อมูลเข้าสู่ตาราง' ได้เลย", "info");
+}
+
+function parseBatchPastedTextarea() {
+  const pasteInput = document.getElementById("batchPasteInput");
+  if (!pasteInput || !pasteInput.value.trim()) {
+    showToast("กรุณาวางข้อความก่อนกดแปลงข้อมูล", "warning");
+    return;
+  }
+  parseUserPastedText(pasteInput.value);
+}
+
+function fillBatchUserSampleData() {
+  const sampleUsers = [
+    {
+      teacherId: "1005",
+      name: "ครูวิภาดา ธนกิจโกศล",
+      role: "L1",
+      department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์ (เคมี)",
+      email: "wiphada.t@lab.school.ac.th",
+      assignedRooms: ""
+    },
+    {
+      teacherId: "2005",
+      name: "นายชานนท์ รักษาการแล็บ",
+      role: "L2",
+      department: "งานบริการห้องปฏิบัติการเคมี",
+      email: "chanon.r@lab.school.ac.th",
+      assignedRooms: "Lab 2, Lab 3"
+    },
+    {
+      teacherId: "3005",
+      name: "อ.ดร.พรพรรณ เทคโนโลยี",
+      role: "L3",
+      department: "กลุ่มงานบริหารวิทยาศาสตร์",
+      email: "pornpan.t@lab.school.ac.th",
+      assignedRooms: ""
+    }
+  ];
+
+  const hasOnlyBlank = batchUserList.length === 0 || batchUserList.every(u => !u.teacherId && !u.name);
+  if (hasOnlyBlank) {
+    batchUserList = sampleUsers;
+  } else {
+    batchUserList = [...batchUserList, ...sampleUsers];
+  }
+
+  renderBatchUserRows();
+  showToast("ใส่ข้อมูลตัวอย่าง 3 คนเรียบร้อยแล้ว", "success");
+}
+
+function autoFillBatchEmails() {
+  if (batchUserList.length === 0) {
+    showToast("ยังไม่มีข้อมูลในตาราง", "warning");
+    return;
+  }
+  let filledCount = 0;
+  batchUserList.forEach(u => {
+    if ((!u.email || !u.email.trim()) && u.teacherId && u.teacherId.trim()) {
+      u.email = `${u.teacherId.trim().toLowerCase()}@lab.school.ac.th`;
+      filledCount++;
+    }
+  });
+  renderBatchUserRows();
+  showToast(`เติมอีเมลอัตโนมัติสำเร็จ ${filledCount} แถว`, "success");
+}
+
+function autoFillBatchDepartments() {
+  if (batchUserList.length === 0) {
+    showToast("ยังไม่มีข้อมูลในตาราง", "warning");
+    return;
+  }
+  let filledCount = 0;
+  batchUserList.forEach(u => {
+    if (!u.department || !u.department.trim()) {
+      u.department = "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี";
+      filledCount++;
+    }
+  });
+  renderBatchUserRows();
+  showToast(`เติมกลุ่มสาระสำเร็จ ${filledCount} แถว`, "success");
+}
+
+function bulkSetBatchRole(role) {
+  if (!role || batchUserList.length === 0) return;
+  batchUserList.forEach(u => {
+    u.role = role;
+  });
+  renderBatchUserRows();
+  showToast(`ปรับระดับสิทธิ์ของทุกคนเป็น ${role} เรียบร้อย`, "info");
+}
+
+function setBatchFilter(filter) {
+  currentBatchFilter = filter;
+  ['all', 'valid', 'update', 'invalid'].forEach(f => {
+    const chip = document.getElementById(`chipFilter${f.charAt(0).toUpperCase() + f.slice(1)}`);
+    if (chip) chip.classList.toggle("active", f === filter);
+  });
+  renderBatchUserRows();
+}
+
 function addBatchUserRow(data = null) {
   const defaultRow = data || {
     teacherId: "",
@@ -16477,6 +16636,17 @@ function removeBatchUserRow(index) {
     renderBatchUserRows();
   }
 }
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+window.escapeHtml = escapeHtml;
 
 function clearBatchUserRows() {
   batchUserList = [];
@@ -16512,11 +16682,20 @@ function renderBatchUserRows() {
   batchUserList.forEach((u, idx) => {
     const isTeacherIdEmpty = !u.teacherId || !u.teacherId.trim();
     const isNameEmpty = !u.name || !u.name.trim();
-    const isDuplicate = Array.isArray(adminUsers) && adminUsers.some(ex => (ex.teacherId || '').toLowerCase() === (u.teacherId || '').toLowerCase());
+    const isInvalid = isTeacherIdEmpty || isNameEmpty;
+    const isDuplicate = !isInvalid && Array.isArray(adminUsers) && adminUsers.some(ex => (ex.teacherId || '').toLowerCase() === (u.teacherId || '').toLowerCase());
+    const isValidNew = !isInvalid && !isDuplicate;
+
+    // Filtering check
+    if (currentBatchFilter === 'valid' && isInvalid) return;
+    if (currentBatchFilter === 'update' && !isDuplicate) return;
+    if (currentBatchFilter === 'invalid' && !isInvalid) return;
+
+    const rowClass = isInvalid ? 'row-invalid' : (isDuplicate ? 'row-duplicate' : 'row-valid-new');
 
     html += `
-      <tr class="${(isTeacherIdEmpty || isNameEmpty) ? 'row-invalid' : isDuplicate ? 'row-duplicate' : ''}">
-        <td style="text-align: center; color: #94a3b8; font-weight: 500;">${idx + 1}</td>
+      <tr class="${rowClass}">
+        <td style="text-align: center; color: #64748b; font-weight: 600; font-size: 11.5px;">${idx + 1}</td>
         <td>
           <input type="text" class="batch-input-cell ${isTeacherIdEmpty ? 'input-error' : ''}" 
                  value="${escapeHtml(u.teacherId || '')}" 
@@ -16557,7 +16736,7 @@ function renderBatchUserRows() {
         </td>
         <td style="text-align: center;">
           <button type="button" class="btn-remove-batch-row" title="ลบแถวนี้" onclick="removeBatchUserRow(${idx})">
-            <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+            <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
           </button>
         </td>
       </tr>
@@ -16572,9 +16751,12 @@ function renderBatchUserRows() {
 function validateBatchUsers() {
   const btnSubmit = document.getElementById("btnSubmitBatchUsers");
   const btnSubmitText = document.getElementById("btnSubmitBatchUsersText");
-  const statValid = document.getElementById("batchStatValid");
-  const statUpdate = document.getElementById("batchStatUpdate");
-  const statInvalid = document.getElementById("batchStatInvalid");
+  const statValidNum = document.getElementById("batchStatValidNum");
+  const statUpdateNum = document.getElementById("batchStatUpdateNum");
+  const statInvalidNum = document.getElementById("batchStatInvalidNum");
+  const chipUpdate = document.getElementById("chipFilterUpdate");
+  const chipInvalid = document.getElementById("chipFilterInvalid");
+  const summaryNotice = document.getElementById("batchSummaryNotice");
 
   let validCount = 0;
   let updateCount = 0;
@@ -16595,16 +16777,24 @@ function validateBatchUsers() {
     }
   });
 
-  if (statValid) statValid.textContent = `พร้อมบันทึก: ${validCount}`;
+  if (statValidNum) statValidNum.textContent = validCount;
   
-  if (statUpdate) {
-    statUpdate.textContent = `อัปเดตคนเดิม: ${updateCount}`;
-    statUpdate.style.display = updateCount > 0 ? 'inline-block' : 'none';
+  if (statUpdateNum) {
+    statUpdateNum.textContent = updateCount;
+  }
+  if (chipUpdate) {
+    chipUpdate.style.display = updateCount > 0 ? 'inline-flex' : 'none';
   }
 
-  if (statInvalid) {
-    statInvalid.textContent = `ข้อมูลไม่ครบ: ${invalidCount}`;
-    statInvalid.style.display = invalidCount > 0 ? 'inline-block' : 'none';
+  if (statInvalidNum) {
+    statInvalidNum.textContent = invalidCount;
+  }
+  if (chipInvalid) {
+    chipInvalid.style.display = invalidCount > 0 ? 'inline-flex' : 'none';
+  }
+
+  if (summaryNotice) {
+    summaryNotice.textContent = `พร้อมบันทึก: ${validCount} คน ${updateCount > 0 ? `(อัปเดตคนเดิม ${updateCount})` : ''} ${invalidCount > 0 ? `(ข้อมูลไม่ครบ ${invalidCount})` : ''}`;
   }
 
   if (btnSubmit) {
@@ -16655,6 +16845,9 @@ function setupBatchDropzoneAndPaste() {
   if (modal && !modal.dataset.boundPaste) {
     modal.dataset.boundPaste = "true";
     modal.addEventListener('paste', function(e) {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+        return; // Normal paste inside input/textarea
+      }
       const clipboardData = e.clipboardData || window.clipboardData;
       const pastedData = clipboardData ? clipboardData.getData('Text') : '';
       if (pastedData && (pastedData.includes('\t') || pastedData.includes('\n'))) {
@@ -16671,11 +16864,22 @@ function parseUserPastedText(text) {
 
   const newPastedRows = [];
   lines.forEach(line => {
-    const cols = line.split('\t').map(c => c.trim());
+    // Support tab, semicolon, comma separator
+    let cols = [];
+    if (line.includes('\t')) {
+      cols = line.split('\t').map(c => c.trim());
+    } else if (line.includes(';')) {
+      cols = line.split(';').map(c => c.trim().replace(/^["']|["']$/g, ''));
+    } else if (line.includes(',')) {
+      cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+    } else {
+      cols = line.split(/\s{2,}/).map(c => c.trim());
+    }
+
     if (cols.length === 0 || !cols.join('')) return;
 
     const lineLower = line.toLowerCase();
-    if (lineLower.includes("teacher") || lineLower.includes("รหัส") || lineLower.includes("ชื่อ - สกุล")) {
+    if (lineLower.includes("teacher") || lineLower.includes("รหัส") || lineLower.includes("ชื่อ - สกุล") || lineLower.includes("ชื่อ-สกุล")) {
       return;
     }
 
@@ -16702,14 +16906,16 @@ function parseUserPastedText(text) {
   });
 
   if (newPastedRows.length > 0) {
-    const hasOnlyBlank = batchUserList.every(u => !u.teacherId && !u.name);
+    const hasOnlyBlank = batchUserList.length === 0 || batchUserList.every(u => !u.teacherId && !u.name);
     if (hasOnlyBlank) {
       batchUserList = newPastedRows;
     } else {
       batchUserList = [...batchUserList, ...newPastedRows];
     }
     renderBatchUserRows();
-    showToast(`วางข้อมูลจากคลิปบอร์ดสำเร็จ ${newPastedRows.length} รายการ`, "success");
+    showToast(`แปลงและเพิ่มข้อมูลเข้าสู่ตารางสำเร็จ ${newPastedRows.length} รายการ`, "success");
+  } else {
+    showToast("ไม่พบข้อมูลที่ตรงตามรูปแบบ กรุณาตรวจสอบข้อความ", "warning");
   }
 }
 
@@ -16831,7 +17037,7 @@ async function submitBatchAddUsers() {
     savedCount = validUsersToSave.length;
   }
 
-  await fetchAdminUsers();
+  await loadAdminData();
   closeBatchAddUsersModal();
 
   if (typeof Swal !== 'undefined') {
@@ -16854,7 +17060,16 @@ window.openBatchAddUsersModal = openBatchAddUsersModal;
 window.closeBatchAddUsersModal = closeBatchAddUsersModal;
 window.switchBatchImportMode = switchBatchImportMode;
 window.downloadUserTemplate = downloadUserTemplate;
+window.toggleBatchGuidelines = toggleBatchGuidelines;
+window.clearBatchUploadedFile = clearBatchUploadedFile;
 window.handleUserBatchFileUpload = handleUserBatchFileUpload;
+window.fillBatchPasteExample = fillBatchPasteExample;
+window.parseBatchPastedTextarea = parseBatchPastedTextarea;
+window.fillBatchUserSampleData = fillBatchUserSampleData;
+window.autoFillBatchEmails = autoFillBatchEmails;
+window.autoFillBatchDepartments = autoFillBatchDepartments;
+window.bulkSetBatchRole = bulkSetBatchRole;
+window.setBatchFilter = setBatchFilter;
 window.addBatchUserRow = addBatchUserRow;
 window.addBatchUserRows = addBatchUserRows;
 window.removeBatchUserRow = removeBatchUserRow;

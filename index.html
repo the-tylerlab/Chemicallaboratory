@@ -3216,139 +3216,277 @@
     <!-- ==========================================
          MODAL: BATCH / BULK ADD USERS (EXCEL & TABLE)
          ========================================== -->
-    <div class="modal-overlay" id="modalBatchAddUsers" style="display: none; align-items: center; justify-content: center;">
-      <div class="modal-content" style="width: 960px; max-width: 96vw; max-height: 90vh; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; padding: 0; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);">
+    <div class="modal-overlay" id="modalBatchAddUsers" style="display: none; align-items: center; justify-content: center; z-index: 1050;">
+      <div class="modal-content" style="width: 1000px; max-width: 96vw; max-height: 92vh; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; padding: 0; box-shadow: 0 20px 50px -12px rgba(0,0,0,0.25); border: 1px solid rgba(226, 232, 240, 0.9);">
         
         <!-- Header -->
-        <div class="modal-header" style="padding: 18px 24px; border-bottom: 1px solid var(--border-color); background: #ffffff; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center;">
-              <i data-lucide="users-round" style="width: 22px; height: 22px;"></i>
+        <div class="modal-header" style="padding: 12px 20px; border-bottom: 1px solid var(--border-color); background: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%); color: #7c3aed; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.2);">
+              <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
             </div>
             <div>
-              <h2 class="modal-title" style="margin: 0; font-size: 18px; font-weight: 700; color: #0f172a;">นำเข้าผู้ใช้งานหลายคน (Batch User Import)</h2>
-              <p style="margin: 2px 0 0 0; font-size: 12.5px; color: var(--text-muted);">นำเข้าข้อมูลครูและเจ้าหน้าที่จำนวนมากผ่านไฟล์ Excel / CSV หรือกรอกในตารางด่วน</p>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <h2 class="modal-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">นำเข้าผู้ใช้งานหลายคน (Batch User Import)</h2>
+                <span style="background: #f5f3ff; color: #7c3aed; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 12px; border: 1px solid #ddd6fe;">v2.0</span>
+              </div>
+              <p style="margin: 1px 0 0 0; font-size: 11px; color: var(--text-muted);">เลือกวิธีนำเข้าข้อมูล: อัปโหลดไฟล์ Excel / CSV, วางข้อความจากตาราง, หรือกรอกข้อมูลโดยตรง</p>
             </div>
           </div>
-          <button class="modal-close-btn" onclick="closeBatchAddUsersModal()" style="font-size: 24px; color: #64748b; background: none; border: none; cursor: pointer;">&times;</button>
+          <button class="modal-close-btn" onclick="closeBatchAddUsersModal()" title="ปิดหน้าต่าง" style="width: 28px; height: 28px; border-radius: 6px; font-size: 18px; color: #64748b; background: #f1f5f9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s;">&times;</button>
         </div>
 
-        <!-- Mode Switcher Tabs -->
-        <div style="padding: 12px 24px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-          <div class="batch-tab-buttons" style="display: flex; gap: 8px;">
-            <button type="button" id="btnBatchTabFile" class="btn-batch-tab active" onclick="switchBatchImportMode('file')" style="display: flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-              <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px; color: #16a34a;"></i>
-              <span>นำเข้าผ่านไฟล์ Excel / CSV</span>
+        <!-- Mode Switcher & Quick Downloads Bar -->
+        <div style="padding: 8px 20px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <!-- 3 Segmented Modes -->
+          <div class="batch-modal-segment-nav">
+            <button type="button" id="btnBatchTabFile" class="btn-batch-tab active" onclick="switchBatchImportMode('file')">
+              <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #16a34a;"></i>
+              <span>1. อัปโหลดไฟล์ (Excel/CSV)</span>
             </button>
-            <button type="button" id="btnBatchTabTable" class="btn-batch-tab" onclick="switchBatchImportMode('table')" style="display: flex; align-items: center; gap: 7px; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
-              <i data-lucide="table" style="width: 16px; height: 16px; color: #0284c7;"></i>
-              <span>กรอกในตารางด่วน (Direct Entry / Paste)</span>
+            <button type="button" id="btnBatchTabPaste" class="btn-batch-tab" onclick="switchBatchImportMode('paste')">
+              <i data-lucide="clipboard-paste" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <span>2. วางข้อความ (Copy-Paste)</span>
+            </button>
+            <button type="button" id="btnBatchTabTable" class="btn-batch-tab" onclick="switchBatchImportMode('table')">
+              <i data-lucide="table" style="width: 14px; height: 14px; color: #0284c7;"></i>
+              <span>3. กรอกในตารางตรงๆ</span>
             </button>
           </div>
 
-          <!-- Template Downloads -->
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">ดาวน์โหลดเทมเพลต:</span>
-            <button type="button" class="btn btn-sm" onclick="downloadUserTemplate('xlsx')" style="display: flex; align-items: center; gap: 5px; font-size: 12px; padding: 5px 10px; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; color: #15803d; font-weight: 600; cursor: pointer;">
-              <i data-lucide="download" style="width: 13px; height: 13px;"></i>
-              <span>Excel (.xlsx)</span>
+          <!-- Template & Guidelines Actions -->
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="batch-quick-btn" onclick="toggleBatchGuidelines()" style="font-size: 11px; padding: 4px 8px; background: #f1f5f9; border-color: #cbd5e1; color: #475569;">
+              <i data-lucide="help-circle" style="width: 13px; height: 13px; color: #6366f1;"></i>
+              <span>คู่มือรูปแบบคอลัมน์</span>
             </button>
-            <button type="button" class="btn btn-sm" onclick="downloadUserTemplate('csv')" style="display: flex; align-items: center; gap: 5px; font-size: 12px; padding: 5px 10px; border-radius: 6px; background: #ffffff; border: 1px solid #cbd5e1; color: #0369a1; font-weight: 600; cursor: pointer;">
-              <i data-lucide="download" style="width: 13px; height: 13px;"></i>
-              <span>CSV (.csv)</span>
+            <div style="height: 14px; width: 1px; background: #cbd5e1; margin: 0 1px;"></div>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">ดาวน์โหลดตัวอย่าง:</span>
+            <button type="button" class="batch-quick-btn" onclick="downloadUserTemplate('xlsx')" title="ดาวน์โหลดไฟล์ตัวอย่าง Excel พร้อมหัวตารางที่ถูกต้อง">
+              <i data-lucide="download" style="width: 12px; height: 12px; color: #16a34a;"></i>
+              <span style="color: #15803d; font-weight: 600;">Excel (.xlsx)</span>
             </button>
+            <button type="button" class="batch-quick-btn" onclick="downloadUserTemplate('csv')" title="ดาวน์โหลดไฟล์ตัวอย่าง CSV">
+              <i data-lucide="download" style="width: 12px; height: 12px; color: #0284c7;"></i>
+              <span style="color: #0369a1; font-weight: 600;">CSV (.csv)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Collapsible Column Format Guidelines -->
+        <div id="batchGuidelinesBox" style="display: none; background: #f5f3ff; border-bottom: 1px solid #ddd6fe; padding: 10px 20px; font-size: 11px; color: #4c1d95;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+            <strong style="font-size: 12px; display: flex; align-items: center; gap: 5px;">
+              <i data-lucide="info" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              โครงสร้างหัวตารางที่รองรับ (เรียงตามลำดับ หรือมีชื่อคอลัมน์ตรงกัน):
+            </strong>
+            <button type="button" onclick="toggleBatchGuidelines()" style="background: none; border: none; color: #7c3aed; font-size: 11px; cursor: pointer; text-decoration: underline;">ปิดคู่มือ</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; background: #ffffff; padding: 8px 10px; border-radius: 7px; border: 1px solid #e9d5ff;">
+            <div><span style="color: #dc2626; font-weight: 700;">1. Teacher ID *</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น 1001, T045)</span></div>
+            <div><span style="color: #dc2626; font-weight: 700;">2. ชื่อ - นามสกุล *</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น ครูสมใจ หมายมั่น)</span></div>
+            <div><span style="color: #475569; font-weight: 700;">3. สิทธิ์ (Role)</span> <br><span style="color: #64748b; font-size: 10.5px;">(L1 ครู, L2 จนท., L3 แอดมิน, L4 ผู้บริหาร)</span></div>
+            <div><span style="color: #475569; font-weight: 700;">4. กลุ่มสาระ / แผนก</span> <br><span style="color: #64748b; font-size: 10.5px;">(ค่าเริ่มต้น: กลุ่มสาระวิทยาศาสตร์)</span></div>
+            <div><span style="color: #475569; font-weight: 700;">5. อีเมล</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น user@school.ac.th)</span></div>
+            <div><span style="color: #475569; font-weight: 700;">6. ห้องแล็บ (เฉพาะ L2)</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น Lab 1, Lab 6)</span></div>
           </div>
         </div>
 
         <!-- Modal Body (Scrollable) -->
-        <div class="modal-body" style="padding: 20px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px;">
+        <div class="modal-body" style="padding: 14px 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px;">
           
           <!-- Mode 1: File Upload Section -->
-          <div id="batchModeFileSection" style="display: flex; flex-direction: column; gap: 12px;">
-            <div class="batch-upload-dropzone" id="batchUserDropzone" onclick="document.getElementById('batchUserFileInput').click()" style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 28px 20px; text-align: center; background: #ffffff; cursor: pointer; transition: all 0.2s ease;">
-              <input type="file" id="batchUserFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleUserBatchFileUpload(event)">
-              <div style="width: 48px; height: 48px; margin: 0 auto 10px; border-radius: 50%; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center;">
-                <i data-lucide="upload-cloud" style="width: 26px; height: 26px;"></i>
+          <div id="batchModeFileSection" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Active File Info (shown when file is loaded) -->
+            <div id="batchActiveFileCard" class="batch-active-file-card" style="display: none;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 30px; height: 30px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center;">
+                  <i data-lucide="file-check" style="width: 17px; height: 17px;"></i>
+                </div>
+                <div>
+                  <div style="font-weight: 700; font-size: 12px; color: #14532d;" id="batchActiveFileName">ไฟล์: data.xlsx</div>
+                  <div style="font-size: 11px; color: #166534;" id="batchActiveFileDetails">ตรวจพบข้อมูล 0 รายการ</div>
+                </div>
               </div>
-              <div style="font-weight: 700; font-size: 15px; color: #1e293b; margin-bottom: 4px;">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์ Excel / CSV มาวางที่นี่</div>
-              <div style="font-size: 12.5px; color: #64748b;">รองรับไฟล์นามสกุล <strong>.xlsx, .xls, .csv</strong> (สามารถดาวน์โหลดตัวอย่างหัวตารางได้จากปุ่มด้านบน)</div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" class="batch-quick-btn" onclick="document.getElementById('batchUserFileInput').click()" style="padding: 3px 8px; font-size: 11px;">
+                  <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> เปลี่ยนไฟล์
+                </button>
+                <button type="button" class="batch-quick-btn" onclick="clearBatchUploadedFile()" style="padding: 3px 8px; font-size: 11px; color: #b91c1c; border-color: #fecaca; background: #fff5f5;">
+                  <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> ล้างข้อมูล
+                </button>
+              </div>
+            </div>
+
+            <!-- Empty Dropzone -->
+            <div class="batch-upload-dropzone" id="batchUserDropzone" onclick="document.getElementById('batchUserFileInput').click()">
+              <input type="file" id="batchUserFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleUserBatchFileUpload(event)">
+              <div style="width: 42px; height: 42px; margin: 0 auto 8px; border-radius: 10px; background: linear-gradient(135deg, #f0fdf4 0%, #e0e7ff 100%); color: #16a34a; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(22, 163, 74, 0.12);">
+                <i data-lucide="cloud-upload" style="width: 22px; height: 22px;"></i>
+              </div>
+              <div style="font-weight: 700; font-size: 13.5px; color: #0f172a; margin-bottom: 3px;">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์ Excel / CSV มาวางที่นี่</div>
+              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">รองรับไฟล์นามสกุล <strong>.xlsx, .xls, .csv</strong> (ระบบจะอ่านข้อมูลและแสดงในตารางด้านล่างอัตโนมัติ)</div>
+              <div style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 10.5px; color: #475569;">
+                <i data-lucide="sparkles" style="width: 12px; height: 12px; color: #eab308;"></i> ระบบจะตรวจจับชื่อหัวตารางและแมปให้อัตโนมัติ
+              </div>
             </div>
           </div>
 
-          <!-- Mode 2: Table Control Section (Shown in table mode) -->
-          <div id="batchModeTableControls" style="display: none; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 10px 14px; border-radius: 8px;">
-            <div style="font-size: 12px; color: #475569;">
-              💡 <strong>คำแนะนำ:</strong> สามารถก๊อปปี้ข้อมูลหลายแถวจาก Excel/Sheets แล้วกด <code>Ctrl+V</code> / <code>Cmd+V</code> ลงในตารางได้ทันที
+          <!-- Mode 2: Quick Copy-Paste Textarea Section -->
+          <div id="batchModePasteSection" style="display: none; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="batchPasteInput" style="font-size: 11.5px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="clipboard-copy" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+                <span>วางข้อมูลที่คัดลอกจาก Excel หรือ Google Sheets:</span>
+              </label>
+              <button type="button" onclick="fillBatchPasteExample()" style="background: none; border: none; color: #7c3aed; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> ใส่ตัวอย่างทดสอบ
+              </button>
             </div>
-            <div style="display: flex; gap: 6px;">
-              <button type="button" class="btn btn-sm" onclick="addBatchUserRow()" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 5px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                <i data-lucide="plus" style="width: 13px; height: 13px;"></i> เพิ่ม 1 แถว
+            <textarea id="batchPasteInput" class="batch-paste-box" rows="4" placeholder="คัดลอกแถวจาก Excel/Sheets (กด Ctrl+C แล้วมาวางที่นี่ด้วย Ctrl+V)&#10;ตัวอย่าง:&#10;1001&#9;ครูสมใจ หมายมั่น&#9;L1&#9;กลุ่มสาระวิทยาศาสตร์&#9;somjai@school.ac.th&#10;2001&#9;นายเอกชัย ช่างแล็บ&#9;L2&#9;บริการห้องแล็บ&#9;ekkachai@school.ac.th&#9;Lab 1, Lab 6"></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 6px;">
+              <button type="button" class="batch-quick-btn" onclick="document.getElementById('batchPasteInput').value = ''" style="color: #b91c1c; font-size: 11px;">
+                <i data-lucide="x" style="width: 12px; height: 12px;"></i> ล้างข้อความ
               </button>
-              <button type="button" class="btn btn-sm" onclick="addBatchUserRows(5)" style="background: #ffffff; border: 1px solid #cbd5e1; padding: 5px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                <i data-lucide="plus-circle" style="width: 13px; height: 13px;"></i> เพิ่ม 5 แถว
+              <button type="button" class="batch-quick-btn batch-quick-btn-primary" onclick="parseBatchPastedTextarea()" style="font-size: 11px;">
+                <i data-lucide="play" style="width: 13px; height: 13px;"></i> แปลงข้อมูลเข้าสู่ตาราง (Parse Data)
               </button>
-              <button type="button" class="btn btn-sm" onclick="clearBatchUserRows()" style="background: #fee2e2; border: 1px solid #fecaca; color: #b91c1c; padding: 5px 10px; font-size: 12px; font-weight: 600; border-radius: 6px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
-                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> ล้างตาราง
+            </div>
+          </div>
+
+          <!-- Mode 3: Direct Table Controls & Bulk Tools Bar -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <!-- Left: Add Rows & Sample Data -->
+            <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+              <span style="font-size: 11px; font-weight: 600; color: #475569; margin-right: 2px;">เพิ่มแถว:</span>
+              <button type="button" class="batch-quick-btn" onclick="addBatchUserRow()" title="เพิ่มแถวว่าง 1 แถว">
+                <i data-lucide="plus" style="width: 12px; height: 12px; color: #16a34a;"></i> +1 แถว
+              </button>
+              <button type="button" class="batch-quick-btn" onclick="addBatchUserRows(5)" title="เพิ่มแถวว่าง 5 แถว">
+                <i data-lucide="plus-circle" style="width: 12px; height: 12px; color: #0284c7;"></i> +5 แถว
+              </button>
+              <button type="button" class="batch-quick-btn" onclick="fillBatchUserSampleData()" style="background: #f5f3ff; border-color: #ddd6fe; color: #6d28d9;" title="ทดลองใส่ข้อมูลจำลอง 3 คน">
+                <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> ใส่ข้อมูลทดสอบ
+              </button>
+            </div>
+
+            <!-- Right: Smart Auto-Fill & Clean Helpers -->
+            <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+              <span style="font-size: 11px; font-weight: 600; color: #475569; margin-right: 2px;">⚡ เครื่องมือด่วน:</span>
+              <button type="button" class="batch-quick-btn" onclick="autoFillBatchEmails()" title="เติมอีเมลอัตโนมัติ (เช่น 1001@lab.school.ac.th) สำหรับแถวที่ยังไม่มีอีเมล">
+                <i data-lucide="mail" style="width: 12px; height: 12px; color: #6366f1;"></i> เติมอีเมลอัตโนมัติ
+              </button>
+              <button type="button" class="batch-quick-btn" onclick="autoFillBatchDepartments()" title="เติมกลุ่มสาระมาตรฐานสำหรับแถวที่ยังว่างอยู่">
+                <i data-lucide="building" style="width: 12px; height: 12px; color: #059669;"></i> เติมกลุ่มสาระ
+              </button>
+              <button type="button" class="batch-quick-btn" onclick="clearBatchUserRows()" style="color: #b91c1c; border-color: #fecaca; background: #fff5f5;" title="ล้างรายการทั้งหมดในตาราง">
+                <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> ล้างตาราง
               </button>
             </div>
           </div>
 
           <!-- Live Preview & Editable Grid -->
-          <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <!-- Filter & Status Summary Bar -->
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-              <div style="font-weight: 700; font-size: 13.5px; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="list-checks" style="width: 16px; height: 16px; color: #7c3aed;"></i>
-                <span>รายการข้อมูลผู้ใช้งานที่ตรวจพบ (<span id="batchUserCount">0</span> รายการ)</span>
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="font-weight: 700; font-size: 12px; color: #0f172a; display: flex; align-items: center; gap: 5px;">
+                  <i data-lucide="list-checks" style="width: 15px; height: 15px; color: #7c3aed;"></i>
+                  <span>ตารางข้อมูลผู้ใช้งาน</span>
+                </span>
+                
+                <!-- Interactive Filter Chips -->
+                <div style="display: flex; gap: 5px;" id="batchFilterChipsContainer">
+                  <button type="button" class="batch-filter-chip active" id="chipFilterAll" onclick="setBatchFilter('all')" style="background: #f1f5f9; color: #334155; border-color: #cbd5e1;">
+                    ทั้งหมด (<span id="batchUserCount">0</span>)
+                  </button>
+                  <button type="button" class="batch-filter-chip" id="chipFilterValid" onclick="setBatchFilter('valid')" style="background: #dcfce7; color: #15803d; border-color: #bbf7d0;">
+                    🟢 พร้อมบันทึก: <span id="batchStatValidNum">0</span>
+                  </button>
+                  <button type="button" class="batch-filter-chip" id="chipFilterUpdate" onclick="setBatchFilter('update')" style="background: #fef3c7; color: #b45309; border-color: #fde68a; display: none;">
+                    🟡 อัปเดตคนเดิม: <span id="batchStatUpdateNum">0</span>
+                  </button>
+                  <button type="button" class="batch-filter-chip" id="chipFilterInvalid" onclick="setBatchFilter('invalid')" style="background: #fee2e2; color: #b91c1c; border-color: #fecaca; display: none;">
+                    🔴 ข้อมูลไม่ครบ: <span id="batchStatInvalidNum">0</span>
+                  </button>
+                </div>
               </div>
-              
-              <!-- Validation Badges -->
-              <div style="display: flex; gap: 8px; font-size: 11.5px;" id="batchValidationStats">
-                <span class="badge" id="batchStatValid" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 3px 8px; border-radius: 6px; font-weight: 600;">พร้อมบันทึก: 0</span>
-                <span class="badge" id="batchStatUpdate" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: none;">อัปเดตคนเดิม: 0</span>
-                <span class="badge" id="batchStatInvalid" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 3px 8px; border-radius: 6px; font-weight: 600; display: none;">ข้อมูลไม่ครบ: 0</span>
+
+              <!-- Quick Bulk Role Selector -->
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <span style="font-size: 10.5px; color: var(--text-muted);">ปรับสิทธิ์ทุกคน:</span>
+                <select onchange="bulkSetBatchRole(this.value); this.value='';" style="font-size: 11px; padding: 3px 6px; border-radius: 5px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; color: #334155;">
+                  <option value="">-- เลือกเพื่อเปลี่ยน --</option>
+                  <option value="L1">L1 ครูผู้สอน (Teacher)</option>
+                  <option value="L2">L2 เจ้าหน้าที่แล็บ (Staff)</option>
+                  <option value="L3">L3 แอดมิน (Admin)</option>
+                  <option value="L4">L4 ผู้บริหาร (Executive)</option>
+                </select>
               </div>
             </div>
 
-            <div class="batch-table-wrapper" style="border: 1px solid var(--border-color); border-radius: 10px; overflow-x: auto; max-height: 320px; background: #ffffff;">
-              <table class="batch-data-table" id="batchUsersTable" style="width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 800px;">
-                <thead style="background: #f8fafc; position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <!-- Table Container -->
+            <div class="batch-table-wrapper" style="border: 1px solid var(--border-color); border-radius: 9px; overflow-x: auto; max-height: 320px; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+              <table class="batch-data-table" id="batchUsersTable" style="min-width: 820px;">
+                <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.06);">
                   <tr>
-                    <th style="padding: 8px 10px; width: 40px; text-align: center; border-bottom: 1px solid #e2e8f0;">#</th>
-                    <th style="padding: 8px 10px; width: 110px; border-bottom: 1px solid #e2e8f0;">Teacher ID <span style="color: #ef4444;">*</span></th>
-                    <th style="padding: 8px 10px; width: 170px; border-bottom: 1px solid #e2e8f0;">ชื่อ - สกุล <span style="color: #ef4444;">*</span></th>
-                    <th style="padding: 8px 10px; width: 130px; border-bottom: 1px solid #e2e8f0;">ระดับสิทธิ์ (Role)</th>
-                    <th style="padding: 8px 10px; width: 170px; border-bottom: 1px solid #e2e8f0;">กลุ่มสาระ / หน่วยงาน</th>
-                    <th style="padding: 8px 10px; width: 160px; border-bottom: 1px solid #e2e8f0;">อีเมล</th>
-                    <th style="padding: 8px 10px; width: 130px; border-bottom: 1px solid #e2e8f0;">ห้องแล็บ (L2)</th>
-                    <th style="padding: 8px 6px; width: 45px; text-align: center; border-bottom: 1px solid #e2e8f0;">ลบ</th>
+                    <th style="width: 38px; text-align: center;">#</th>
+                    <th style="width: 110px;">Teacher ID <span style="color: #ef4444;">*</span></th>
+                    <th style="width: 170px;">ชื่อ - สกุล <span style="color: #ef4444;">*</span></th>
+                    <th style="width: 130px;">ระดับสิทธิ์ (Role)</th>
+                    <th style="width: 170px;">กลุ่มสาระ / หน่วยงาน</th>
+                    <th style="width: 160px;">อีเมล</th>
+                    <th style="width: 130px;">ห้องแล็บ (L2)</th>
+                    <th style="width: 44px; text-align: center;">ลบ</th>
                   </tr>
                 </thead>
                 <tbody id="batchUsersTableBody">
-                  <!-- Generated rows dynamically -->
+                  <!-- Dynamic rows rendered by JavaScript -->
                 </tbody>
               </table>
-              <div id="batchTableEmptyPlaceholder" style="padding: 36px 20px; text-align: center; color: #94a3b8;">
-                <i data-lucide="inbox" style="width: 32px; height: 32px; margin: 0 auto 8px; opacity: 0.5;"></i>
-                <div style="font-size: 13px;">ยังไม่มีข้อมูลในตาราง — อัปโหลดไฟล์ Excel/CSV หรือกด "เพิ่มแถว" เพื่อเริ่มกรอกข้อมูล</div>
+
+              <!-- Empty State Placeholder -->
+              <div id="batchTableEmptyPlaceholder" style="padding: 32px 20px; text-align: center; color: #94a3b8;">
+                <div style="width: 40px; height: 40px; margin: 0 auto 8px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #64748b;">
+                  <i data-lucide="users" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 3px;">ยังไม่มีข้อมูลในตาราง</div>
+                <div style="font-size: 11.5px; color: #94a3b8; max-width: 420px; margin: 0 auto 10px;">อัปโหลดไฟล์ Excel/CSV, คัดลอกข้อความมาวาง, หรือกดปุ่มด้านล่างเพื่อเริ่มกรอกข้อมูลทันที</div>
+                <div style="display: flex; justify-content: center; gap: 6px;">
+                  <button type="button" class="batch-quick-btn batch-quick-btn-primary" onclick="addBatchUserRows(3)">
+                    <i data-lucide="plus" style="width: 12px; height: 12px;"></i> เริ่มกรอกข้อมูล (+3 แถว)
+                  </button>
+                  <button type="button" class="batch-quick-btn" onclick="fillBatchUserSampleData()">
+                    <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> โหลดตัวอย่างทดสอบ
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #64748b; line-height: 1.5;">
-            🔒 <strong>หมายเหตุความปลอดภัย:</strong> รหัสผ่านเริ่มต้นของผู้ใช้ที่ถูกนำเข้าใหม่จะถูกตั้งเป็น <strong>Teacher ID</strong> อัตโนมัติ (และผู้ใช้สามารถเปลี่ยนรหัสผ่านได้หลังเข้าสู่ระบบ)
+          <!-- Security & Default Password Notice -->
+          <div style="background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%); border: 1px solid #bbf7d0; border-radius: 8px; padding: 7px 12px; font-size: 11px; color: #166534; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 14px;">🔒</span>
+              <span><strong>ความปลอดภัย & รหัสผ่านเริ่มต้น:</strong> ผู้ใช้ใหม่จะใช้รหัสผ่านเป็น <strong>Teacher ID</strong> ในการเข้าสู่ระบบครั้งแรก (ผู้ใช้เปลี่ยนรหัสผ่านเองได้ตลอดเวลา)</span>
+            </div>
+            <div style="font-size: 11px; color: #15803d; font-weight: 600;" id="batchSummaryNotice">พร้อมบันทึก: 0 คน</div>
           </div>
 
         </div>
 
         <!-- Footer -->
-        <div class="modal-footer" style="padding: 14px 24px; border-top: 1px solid var(--border-color); background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
-          <button type="button" class="btn btn-secondary" onclick="closeBatchAddUsersModal()" style="height: 38px; border-radius: 8px; padding: 0 16px; font-size: 13px; font-weight: 500;">
+        <div class="modal-footer" style="padding: 10px 20px; border-top: 1px solid var(--border-color); background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+          <button type="button" class="btn btn-secondary" onclick="closeBatchAddUsersModal()" style="height: 34px; border-radius: 7px; padding: 0 14px; font-size: 12px; font-weight: 500; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer;">
             ยกเลิก
           </button>
-          <button type="button" class="btn btn-primary" id="btnSubmitBatchUsers" onclick="submitBatchAddUsers()" style="height: 38px; border-radius: 8px; padding: 0 20px; font-size: 13.5px; font-weight: 600; background: var(--primary-purple); display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);" disabled>
-            <i data-lucide="check-check" style="width: 16px; height: 16px;"></i>
-            <span id="btnSubmitBatchUsersText">บันทึกและนำเข้าข้อมูล</span>
-          </button>
+          
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn btn-primary" id="btnSubmitBatchUsers" onclick="submitBatchAddUsers()" style="height: 34px; border-radius: 7px; padding: 0 18px; font-size: 12px; font-weight: 600; background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%); color: #ffffff; border: none; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(124, 58, 237, 0.25); cursor: pointer; transition: all 0.2s;" disabled>
+              <i data-lucide="check-check" style="width: 15px; height: 15px;"></i>
+              <span id="btnSubmitBatchUsersText">บันทึกและนำเข้าข้อมูล</span>
+            </button>
+          </div>
         </div>
 
       </div>

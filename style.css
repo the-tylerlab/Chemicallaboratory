@@ -9488,68 +9488,204 @@ body.admin-logged-in .public-only-section {
 }
 
 /* ==========================================================================
-   BATCH USER IMPORT MODAL STYLES
+   BATCH USER IMPORT MODAL STYLES (COMPACT & CLEAN TYPOGRAPHY)
    ========================================================================== */
 
+.batch-modal-segment-nav {
+  display: flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 8px;
+  gap: 3px;
+}
+
 .btn-batch-tab {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #475569;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #64748b;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-batch-tab:hover {
-  background: #f1f5f9;
   color: #0f172a;
-  border-color: #94a3b8;
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .btn-batch-tab.active {
   background: #ffffff;
-  border-color: #7c3aed;
   color: #6d28d9;
-  box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.batch-upload-dropzone {
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 22px 18px;
+  text-align: center;
+  background: linear-gradient(180deg, #ffffff 0%, #faf5ff 100%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .batch-upload-dropzone:hover,
 .batch-upload-dropzone.dragover {
   border-color: #7c3aed !important;
-  background: #faf5ff !important;
+  background: #f5f3ff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -4px rgba(124, 58, 237, 0.1);
+}
+
+.batch-active-file-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #166534;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.batch-paste-box {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #1e293b;
+  background: #f8fafc;
+  resize: vertical;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.batch-paste-box:focus {
+  outline: none;
+  border-color: #7c3aed;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
+}
+
+.batch-quick-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.batch-quick-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.batch-quick-btn-primary {
+  background: #7c3aed;
+  color: #ffffff;
+  border-color: #7c3aed;
+}
+
+.batch-quick-btn-primary:hover {
+  background: #6d28d9;
+  border-color: #6d28d9;
+  color: #ffffff;
+}
+
+.batch-filter-chip {
+  padding: 2px 8px;
+  border-radius: 16px;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.batch-filter-chip.active {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.batch-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
 }
 
 .batch-data-table th {
   font-weight: 600;
   color: #475569;
   text-align: left;
+  padding: 7px 8px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 11px;
 }
 
 .batch-data-table td {
-  padding: 6px 8px;
+  padding: 4px 6px;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
 }
 
-.batch-data-table tr:hover {
+.batch-data-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.batch-data-table tbody tr:hover {
   background: #f8fafc;
 }
 
 .batch-data-table tr.row-invalid {
   background: #fff1f2 !important;
+  border-left: 3px solid #ef4444;
 }
 
 .batch-data-table tr.row-duplicate {
   background: #fffbeb !important;
+  border-left: 3px solid #f59e0b;
+}
+
+.batch-data-table tr.row-valid-new {
+  border-left: 3px solid #10b981;
 }
 
 .batch-input-cell {
   width: 100%;
-  padding: 6px 8px;
-  font-size: 12px;
+  padding: 4px 8px;
+  font-size: 11px;
+  height: 28px;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 5px;
   box-sizing: border-box;
   background: #ffffff;
   color: #0f172a;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .batch-input-cell:focus {
@@ -9565,38 +9701,49 @@ body.admin-logged-in .public-only-section {
 
 .batch-role-select {
   width: 100%;
-  padding: 6px 8px;
-  font-size: 12px;
+  padding: 3px 6px;
+  font-size: 11px;
   font-weight: 600;
+  height: 28px;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 5px;
   box-sizing: border-box;
   background: #ffffff;
   cursor: pointer;
+  transition: border-color 0.15s ease;
 }
 
 .batch-role-select:focus {
   outline: none;
   border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
 }
 
 .btn-remove-batch-row {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: #fee2e2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.15s ease;
+  margin: 0 auto;
 }
 
 .btn-remove-batch-row:hover {
-  background: #dc2626;
-  color: #ffffff;
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.btn-remove-batch-row:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
 /* ==========================================================================

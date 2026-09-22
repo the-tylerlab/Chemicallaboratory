@@ -1,13 +1,23 @@
 /**
  * Chemical Laboratory Management System - Google Sheets Realtime Backup & Academic Logbook
  * ==============================================================================
+ * โครงสร้างชีตมาตรฐาน 8 แท็บ:
+ * 0.Dashboard        -> ภาพรวมสถิติและแดชบอร์ดสรุปผลอัตโนมัติ
+ * 1.Items            -> ฐานข้อมูลสารเคมี อุปกรณ์ และครุภัณฑ์
+ * 2.Transactions     -> บันทึกประวัติการเบิก-จ่าย-ยืม-คืน
+ * 3.Bookings         -> สมุดบันทึกการใช้ห้องปฏิบัติการวิทยาศาสตร์ (รวมทุกห้องในแท็บเดียว)
+ * 4.Purchase_Orders  -> คำสั่งซื้อและงบประมาณจัดซื้อ
+ * 5.Users            -> บัญชีผู้ใช้งานและระดับสิทธิ์ (L1 - L4)
+ * 6.Audit_Logs       -> บันทึกประวัติการทำงานของระบบ (Audit Trail)
+ * 7. Announcements   -> ประชาสัมพันธ์และเบอร์โทรฉุกเฉิน
+ * ==============================================================================
  * วิธีใช้งาน:
  * 1. เปิด Google Sheet ที่ต้องการใช้งาน
  * 2. ไปที่ Extensions (ส่วนขยาย) > Apps Script
  * 3. ลบโค้ดเดิมทั้งหมดใน Code.gs แล้วนำโค้ดด้านล่างนี้ไปวางแทนที่ทั้งหมด
  * 4. ด้านบนเลือกฟังก์ชัน "autoOrganizeCleanSheets" แล้วกดปุ่ม Run (▶️)
- *    - ระบบจะลบแท็บห้องแล็บแยกเดิมทิ้งทั้งหมด
- *    - รวมข้อมูลการจองทุกห้องเข้าแท็บ "Bookings" เดียวในรูปแบบสมุดบันทึก พร้อมจัดคอลัมน์ถูกต้อง 100%
+ *    - ระบบจะเปลี่ยนชื่อ/ย้ายข้อมูลเดิมเข้าสู่ 8 แท็บมาตรฐานอย่างถูกต้อง
+ *    - ลบชีตส่วนเกินหรือแท็บแยกห้องเดิมทิ้งทั้งหมดอัตโนมัติ
  * 5. กด Deploy (การทำให้ใช้งานได้) > New deployment (การทำให้ใช้งานได้รายการใหม่)
  *    - Type: Web app
  *    - Execute as: Me (ฉัน)
@@ -16,55 +26,136 @@
  */
 
 // -------------------------------------------------------------
-// CUSTOM MENU IN GOOGLE SHEETS (พร้อมปุ่ม SORT / FILTER)
+// TAB MAPPING & CANONICAL NAMES
+// -------------------------------------------------------------
+var CANONICAL_TABS = {
+  DASHBOARD: '0.Dashboard',
+  ITEMS: '1.Items',
+  TRANSACTIONS: '2.Transactions',
+  BOOKINGS: '3.Bookings',
+  PURCHASE_ORDERS: '4.Purchase_Orders',
+  USERS: '5.Users',
+  AUDIT_LOGS: '6.Audit_Logs',
+  ANNOUNCEMENTS: '7. Announcements'
+};
+
+var ALL_VALID_SHEET_NAMES = [
+  '0.Dashboard',
+  '1.Items',
+  '2.Transactions',
+  '3.Bookings',
+  '4.Purchase_Orders',
+  '5.Users',
+  '6.Audit_Logs',
+  '7. Announcements'
+];
+
+function resolveSheetName(tableName) {
+  if (!tableName) return null;
+  var raw = String(tableName).trim();
+  var lower = raw.toLowerCase().replace(/[\s_\-\.]/g, '');
+
+  if (lower.includes('dash') || lower.includes('ภาพรวม')) return CANONICAL_TABS.DASHBOARD;
+  if (lower.includes('item') || lower.includes('สารเคมี') || lower.includes('อุปกรณ์')) return CANONICAL_TABS.ITEMS;
+  if (lower.includes('trans') || lower.includes('ยืม') || lower.includes('เบิก')) return CANONICAL_TABS.TRANSACTIONS;
+  if (lower.includes('book') || lower.includes('จอง') || lower.includes('ห้องแล็บ')) return CANONICAL_TABS.BOOKINGS;
+  if (lower.includes('purch') || lower.includes('order') || lower.includes('สั่งซื้อ')) return CANONICAL_TABS.PURCHASE_ORDERS;
+  if (lower.includes('user') || lower.includes('ผู้ใช้') || lower.includes('ครู')) return CANONICAL_TABS.USERS;
+  if (lower.includes('audit') || lower.includes('log') || lower.includes('ประวัติ')) return CANONICAL_TABS.AUDIT_LOGS;
+  if (lower.includes('announc') || lower.includes('ประชาสัมพันธ์') || lower.includes('emergency')) return CANONICAL_TABS.ANNOUNCEMENTS;
+
+  return raw;
+}
+
+function getOrCreateCanonicalSheet(ss, tableName) {
+  var resolvedName = resolveSheetName(tableName) || tableName;
+  var sheet = ss.getSheetByName(resolvedName);
+  if (sheet) return sheet;
+
+  // Check if legacy un-numbered sheet exists (e.g. "Items") and rename it
+  var legacyName = resolvedName.replace(/^\d+\.\s*/, '');
+  var legacySheet = ss.getSheetByName(legacyName);
+  if (legacySheet) {
+    legacySheet.setName(resolvedName);
+    return legacySheet;
+  }
+
+  return ss.insertSheet(resolvedName);
+}
+
+// -------------------------------------------------------------
+// CUSTOM MENU IN GOOGLE SHEETS
 // -------------------------------------------------------------
 function onOpen() {
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('🔬 เมนูระบบห้องแล็บ')
-    .addItem('📊 จัดระเบียบชีต & แก้ไขข้อมูลลงช่อง (Auto Organize)', 'autoOrganizeCleanSheets')
+    .addItem('📊 จัดระเบียบฐานข้อมูลเป็น 8 แท็บมาตรฐาน (0.Dashboard - 7. Announcements)', 'autoOrganizeCleanSheets')
     .addSeparator()
     .addItem('🏢 เรียงตาม: ห้องปฏิบัติการ (Sort by Room)', 'sortByRoom')
     .addItem('📅 เรียงตาม: วันที่และเวลาใช้งาน (Sort by Date & Time)', 'sortByDateTime')
     .addItem('👨‍🏫 เรียงตาม: ชื่อคุณครูผู้สอน (Sort by Teacher)', 'sortByTeacher')
     .addSeparator()
     .addItem('🔄 รีเฟรชลำดับตัวเลข 1, 2, 3... (Re-number Rows)', 'renumberBookingRows')
+    .addItem('🗑️ เคลียร์ชีตส่วนเกินที่ไม่ได้ใช้งานทิ้ง', 'cleanExtraSheetsOnly')
     .addToUi();
 }
 
 // -------------------------------------------------------------
-// 1-CLICK AUTO SETUP: ลบแท็บแยกห้องทิ้ง + จัดระเบียบ 8 แท็บมาตรฐาน
+// 1-CLICK AUTO SETUP & CLEAN: จัดระเบียบ 8 แท็บมาตรฐาน + ลบส่วนเกิน
 // -------------------------------------------------------------
 function autoOrganizeCleanSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  // 1. โครงสร้าง 6 แท็บมาตรฐานทั่วไป
+  // 1. Rename existing legacy sheets if present
+  var renameMap = {
+    'Items': '1.Items',
+    'Transactions': '2.Transactions',
+    'Bookings': '3.Bookings',
+    'Purchase_Orders': '4.Purchase_Orders',
+    'Users': '5.Users',
+    'Audit_Logs': '6.Audit_Logs',
+    'Announcements': '7. Announcements',
+    '7.Announcements': '7. Announcements',
+    '0.ภาพรวม': '0.Dashboard'
+  };
+
+  Object.keys(renameMap).forEach(function(oldName) {
+    var oldSheet = ss.getSheetByName(oldName);
+    var targetName = renameMap[oldName];
+    var targetSheet = ss.getSheetByName(targetName);
+    if (oldSheet && !targetSheet) {
+      try { oldSheet.setName(targetName); } catch(e) {}
+    }
+  });
+
+  // 2. Define standard table schemas
   var schemas = {
-    'Items': [
+    '1.Items': [
       'code', 'name', 'category', 'qty', 'unit', 'minAlert', 'expiry', 
       'room', 'cabinet', 'shelf', 'damagedQty', 'createdAt'
     ],
-    'Transactions': [
+    '2.Transactions': [
       'id', 'code', 'itemCode', 'itemName', 'qty', 'unit', 'borrower', 
       'room', 'date', 'slot', 'notes', 'status', 'type', 'timestamp', 'createdAt'
     ],
-    'Purchase_Orders': [
+    '4.Purchase_Orders': [
       'id', 'code', 'name', 'academicYear', 'semester', 
       'unitPrice', 'quantity', 'totalPrice', 'discount', 'date'
     ],
-    'Users': [
+    '5.Users': [
       'id', 'teacherId', 'name', 'department', 'email', 'role', 
       'roleName', 'assignedRooms', 'initials', 'color', 'isActive', 'createdAt'
     ],
-    'Audit_Logs': [
+    '6.Audit_Logs': [
       'id', 'action', 'details', 'timestamp', 'user'
     ],
-    'Announcements': [
+    '7. Announcements': [
       'enabled', 'text', 'badgeText', 'speed', 'gap', 
       'theme', 'pauseOnHover', 'emergencyContacts', 'updatedAt'
     ]
   };
 
-  // สร้างหรือตรวจสอบ 6 แท็บมาตรฐาน
+  // สร้างหรือตรวจสอบ 6 แท็บมาตรฐานทั่วไป
   Object.keys(schemas).forEach(function(tabName) {
     var sheet = ss.getSheetByName(tabName);
     var headers = schemas[tabName];
@@ -92,15 +183,38 @@ function autoOrganizeCleanSheets() {
     sheet.setFrozenRows(1);
   });
 
-  // 2. จัดระเบียบแท็บ "Bookings" (รวมทุกห้องในแท็บเดียว และวางข้อมูลตรงช่อง 100%)
+  // 3. จัดระเบียบแท็บ "3.Bookings" (รวมข้อมูลทุกห้องและจัดคอลัมน์ A ถึง J ให้ตรงช่อง 100%)
   setupAndMigrateBookingsSheet(ss);
 
-  // 3. สร้างแท็บ "0.Dashboard" (ภาพรวมแดชบอร์ดสรุปสถิติอัตโนมัติ)
-  var dashSheet = ss.getSheetByName('0.Dashboard') || ss.getSheetByName('0.ภาพรวม');
+  // 4. สร้างหรืออัปเดตแท็บ "0.Dashboard" (แดชบอร์ดสรุปสถิติอัตโนมัติ)
+  setupDashboardSheet(ss);
+
+  // 5. จัดเรียงลำดับแท็บชีตทั้ง 8 แท็บให้อยู่ในลำดับ 0 ถึง 7
+  ALL_VALID_SHEET_NAMES.forEach(function(tabName, index) {
+    var s = ss.getSheetByName(tabName);
+    if (s) {
+      try {
+        ss.setActiveSheet(s);
+        ss.moveActiveSheet(index + 1);
+      } catch(e) {}
+    }
+  });
+
+  // 6. ลบชีตส่วนเกินอื่นๆ ทั้งหมด ให้เหลือเฉพาะ 8 แท็บมาตรฐาน
+  cleanExtraSheetsOnly(ss);
+
+  var dashSheet = ss.getSheetByName(CANONICAL_TABS.DASHBOARD);
+  if (dashSheet) ss.setActiveSheet(dashSheet);
+  ss.toast('✅ ฐานข้อมูลถูกปรับให้เหลือเฉพาะ 8 แท็บมาตรฐาน (0.Dashboard ถึง 7. Announcements) เรียบร้อยแล้ว!', 'สำเร็จ', 6);
+}
+
+// -------------------------------------------------------------
+// SETUP 0.DASHBOARD SHEET
+// -------------------------------------------------------------
+function setupDashboardSheet(ss) {
+  var dashSheet = ss.getSheetByName(CANONICAL_TABS.DASHBOARD);
   if (!dashSheet) {
-    dashSheet = ss.insertSheet('0.Dashboard', 0);
-  } else {
-    dashSheet.setName('0.Dashboard');
+    dashSheet = ss.insertSheet(CANONICAL_TABS.DASHBOARD, 0);
   }
 
   dashSheet.clear();
@@ -108,118 +222,106 @@ function autoOrganizeCleanSheets() {
 
   // หัวข้อแดชบอร์ด
   dashSheet.getRange('A1:G1').merge()
-           .setValue('📊 แดชบอร์ดภาพรวมห้องปฏิบัติการวิทยาศาสตร์ (Laboratory Summary & Analytics)')
+           .setValue('📊 แดชบอร์ดภาพรวมห้องปฏิบัติการวิทยาศาสตร์ (Laboratory Analytics & Live Overview)')
            .setBackground('#0f172a')
            .setFontColor('#ffffff')
-           .setFontSize(14)
+           .setFontSize(13.5)
            .setFontWeight('bold')
            .setHorizontalAlignment('center')
            .setVerticalAlignment('middle');
-  dashSheet.setRowHeight(1, 44);
+  dashSheet.setRowHeight(1, 42);
 
-  // คำอธิบายและเวลาอัปเดต
+  // คำอธิบาย
   dashSheet.getRange('A2:G2').merge()
-           .setValue('อัปเดตข้อมูลอัตโนมัติแบบเรียลไทม์จากชีตข้อมูลหลัก (Items, Bookings, Transactions, Users, Purchase_Orders)')
-           .setFontSize(10)
+           .setValue('อัปเดตข้อมูลอัตโนมัติจากชีต 1.Items, 2.Transactions, 3.Bookings, 4.Purchase_Orders, 5.Users, 6.Audit_Logs, 7. Announcements')
+           .setFontSize(9.5)
            .setFontColor('#64748b')
            .setHorizontalAlignment('center');
   dashSheet.setRowHeight(2, 22);
 
-  // กล่องสถิติที่ 1: คลังพัสดุและสารเคมี
-  dashSheet.getRange('A4:C4').merge().setValue('📦 สถิติคลังสารเคมีและอุปกรณ์').setBackground('#e0f2fe').setFontColor('#0369a1').setFontWeight('bold');
+  // กล่องที่ 1: คลังพัสดุและสารเคมี (1.Items)
+  dashSheet.getRange('A4:C4').merge().setValue('📦 1. สถิติคลังสารเคมีและอุปกรณ์ (1.Items)').setBackground('#e0f2fe').setFontColor('#0369a1').setFontWeight('bold').setFontSize(10.5);
   dashSheet.getRange('A5').setValue('สารเคมีและอุปกรณ์ทั้งหมด:');
-  dashSheet.getRange('C5').setFormula('=IFERROR(COUNTA(Items!A2:A), 0)').setFontWeight('bold').setHorizontalAlignment('right');
+  dashSheet.getRange('C5').setFormula("=IFERROR(COUNTA('1.Items'!A2:A), 0)").setFontWeight('bold').setHorizontalAlignment('right');
   
   dashSheet.getRange('A6').setValue('• สารเคมี:');
-  dashSheet.getRange('C6').setFormula('=IFERROR(COUNTIF(Items!C2:C, "สารเคมี"), 0)').setHorizontalAlignment('right');
+  dashSheet.getRange('C6').setFormula("=IFERROR(COUNTIF('1.Items'!C2:C, \"สารเคมี\"), 0)").setHorizontalAlignment('right');
   
   dashSheet.getRange('A7').setValue('• อุปกรณ์ / เครื่องแก้ว:');
-  dashSheet.getRange('C7').setFormula('=IFERROR(COUNTIF(Items!C2:C, "<>สารเคมี") - COUNTIF(Items!C2:C, ""), 0)').setHorizontalAlignment('right');
+  dashSheet.getRange('C7').setFormula("=IFERROR(COUNTIF('1.Items'!C2:C, \"<>สารเคมี\") - COUNTIF('1.Items'!C2:C, \"\"), 0)").setHorizontalAlignment('right');
   
   dashSheet.getRange('A8').setValue('⚠️ รายการสต็อกต่ำกว่าเกณฑ์:');
-  dashSheet.getRange('C8').setFormula('=IFERROR(COUNTIF(Items!D2:D, "<=2"), 0)').setFontColor('#ea580c').setFontWeight('bold').setHorizontalAlignment('right');
+  dashSheet.getRange('C8').setFormula("=IFERROR(COUNTIF('1.Items'!D2:D, \"<=2\"), 0)").setFontColor('#ea580c').setFontWeight('bold').setHorizontalAlignment('right');
 
   dashSheet.getRange('A9').setValue('❌ รายการชำรุดสะสม:');
-  dashSheet.getRange('C9').setFormula('=IFERROR(SUM(Items!K2:K), 0)').setFontColor('#dc2626').setHorizontalAlignment('right');
+  dashSheet.getRange('C9').setFormula("=IFERROR(SUM('1.Items'!K2:K), 0)").setFontColor('#dc2626').setHorizontalAlignment('right');
 
-  // กล่องสถิติที่ 2: การจองห้องปฏิบัติการและยืมคืน
-  dashSheet.getRange('E4:G4').merge().setValue('🔬 สถิติการจองแล็บและการยืมคืน').setBackground('#f3e8ff').setFontColor('#7e22ce').setFontWeight('bold');
+  // กล่องที่ 2: การจองห้องปฏิบัติการและยืมคืน (3.Bookings & 2.Transactions)
+  dashSheet.getRange('E4:G4').merge().setValue('🔬 2. การจองแล็บและยืมคืน (3.Bookings & 2.Transactions)').setBackground('#f3e8ff').setFontColor('#7e22ce').setFontWeight('bold').setFontSize(10.5);
   dashSheet.getRange('E5').setValue('รายการจองห้องแล็บทั้งหมด:');
-  dashSheet.getRange('G5').setFormula('=IFERROR(COUNTA(Bookings!A3:A), 0)').setFontWeight('bold').setHorizontalAlignment('right');
+  dashSheet.getRange('G5').setFormula("=IFERROR(COUNTA('3.Bookings'!A3:A), 0)").setFontWeight('bold').setHorizontalAlignment('right');
 
   dashSheet.getRange('E6').setValue('• รออนุมัติการจอง:');
-  dashSheet.getRange('G6').setFormula('=IFERROR(COUNTIF(Bookings!I3:I, "*รออนุมัติ*") + COUNTIF(Bookings!I3:I, "*pending*"), 0)').setFontColor('#ea580c').setFontWeight('bold').setHorizontalAlignment('right');
+  dashSheet.getRange('G6').setFormula("=IFERROR(COUNTIF('3.Bookings'!I3:I, \"*รออนุมัติ*\") + COUNTIF('3.Bookings'!I3:I, \"*pending*\"), 0)").setFontColor('#ea580c').setFontWeight('bold').setHorizontalAlignment('right');
 
   dashSheet.getRange('E7').setValue('• อนุมัติ / เสร็จสิ้นแล้ว:');
-  dashSheet.getRange('G7').setFormula('=IFERROR(COUNTIF(Bookings!I3:I, "*อนุมัติแล้ว*") + COUNTIF(Bookings!I3:I, "*approved*") + COUNTIF(Bookings!I3:I, "*เสร็จสิ้น*"), 0)').setHorizontalAlignment('right');
+  dashSheet.getRange('G7').setFormula("=IFERROR(COUNTIF('3.Bookings'!I3:I, \"*อนุมัติแล้ว*\") + COUNTIF('3.Bookings'!I3:I, \"*approved*\") + COUNTIF('3.Bookings'!I3:I, \"*เสร็จสิ้น*\"), 0)").setHorizontalAlignment('right');
 
   dashSheet.getRange('E8').setValue('📋 ประวัติการทำรายการยืม-คืน:');
-  dashSheet.getRange('G8').setFormula('=IFERROR(COUNTA(Transactions!A2:A), 0)').setHorizontalAlignment('right');
+  dashSheet.getRange('G8').setFormula("=IFERROR(COUNTA('2.Transactions'!A2:A), 0)").setHorizontalAlignment('right');
 
   dashSheet.getRange('E9').setValue('🔄 กำลังยืมใช้งานอยู่ในขณะนี้:');
-  dashSheet.getRange('G9').setFormula('=IFERROR(COUNTIF(Transactions!L2:L, "กำลังยืม"), 0)').setFontColor('#2563eb').setFontWeight('bold').setHorizontalAlignment('right');
+  dashSheet.getRange('G9').setFormula("=IFERROR(COUNTIF('2.Transactions'!L2:L, \"กำลังยืม\"), 0)").setFontColor('#2563eb').setFontWeight('bold').setHorizontalAlignment('right');
 
-  // กล่องสถิติที่ 3: ผู้ใช้งานและงบประมาณ
-  dashSheet.getRange('A11:C11').merge().setValue('👥 ผู้ใช้งานและระบบสิทธิ์').setBackground('#fef3c7').setFontColor('#92400e').setFontWeight('bold');
+  // กล่องที่ 3: ผู้ใช้งานและระบบสิทธิ์ (5.Users)
+  dashSheet.getRange('A11:C11').merge().setValue('👥 3. ผู้ใช้งานและระบบสิทธิ์ (5.Users)').setBackground('#fef3c7').setFontColor('#92400e').setFontWeight('bold').setFontSize(10.5);
   dashSheet.getRange('A12').setValue('ผู้ใช้งานทั้งหมดในระบบ:');
-  dashSheet.getRange('C12').setFormula('=IFERROR(COUNTA(Users!A2:A), 0)').setFontWeight('bold').setHorizontalAlignment('right');
+  dashSheet.getRange('C12').setFormula("=IFERROR(COUNTA('5.Users'!A2:A), 0)").setFontWeight('bold').setHorizontalAlignment('right');
 
   dashSheet.getRange('A13').setValue('• ครูผู้สอน (L1):');
-  dashSheet.getRange('C13').setFormula('=IFERROR(COUNTIF(Users!F2:F, "L1"), 0)').setHorizontalAlignment('right');
+  dashSheet.getRange('C13').setFormula("=IFERROR(COUNTIF('5.Users'!F2:F, \"L1\"), 0)").setHorizontalAlignment('right');
 
   dashSheet.getRange('A14').setValue('• เจ้าหน้าที่แล็บ (L2):');
-  dashSheet.getRange('C14').setFormula('=IFERROR(COUNTIF(Users!F2:F, "L2"), 0)').setHorizontalAlignment('right');
+  dashSheet.getRange('C14').setFormula("=IFERROR(COUNTIF('5.Users'!F2:F, \"L2\"), 0)").setHorizontalAlignment('right');
 
   dashSheet.getRange('A15').setValue('• ผู้ดูแลระบบ / ผู้บริหาร (L3-L4):');
-  dashSheet.getRange('C15').setFormula('=IFERROR(COUNTIF(Users!F2:F, "L3") + COUNTIF(Users!F2:F, "L4"), 0)').setHorizontalAlignment('right');
+  dashSheet.getRange('C15').setFormula("=IFERROR(COUNTIF('5.Users'!F2:F, \"L3\") + COUNTIF('5.Users'!F2:F, \"L4\"), 0)").setHorizontalAlignment('right');
 
-  dashSheet.getRange('E11:G11').merge().setValue('💰 คำสั่งซื้อและงบประมาณ').setBackground('#dcfce7').setFontColor('#166534').setFontWeight('bold');
+  // กล่องที่ 4: คำสั่งซื้อและงบประมาณ (4.Purchase_Orders)
+  dashSheet.getRange('E11:G11').merge().setValue('💰 4. คำสั่งซื้อและงบประมาณ (4.Purchase_Orders)').setBackground('#dcfce7').setFontColor('#166534').setFontWeight('bold').setFontSize(10.5);
   dashSheet.getRange('E12').setValue('จำนวนใบสั่งซื้อทั้งหมด:');
-  dashSheet.getRange('G12').setFormula('=IFERROR(COUNTA(Purchase_Orders!A2:A), 0)').setFontWeight('bold').setHorizontalAlignment('right');
+  dashSheet.getRange('G12').setFormula("=IFERROR(COUNTA('4.Purchase_Orders'!A2:A), 0)").setFontWeight('bold').setHorizontalAlignment('right');
 
   dashSheet.getRange('E13').setValue('ยอดรวมงบประมาณจัดซื้อ:');
-  dashSheet.getRange('G13').setFormula('=IFERROR(SUM(Purchase_Orders!G2:G), 0)').setFontWeight('bold').setFontColor('#15803d').setHorizontalAlignment('right');
+  dashSheet.getRange('G13').setFormula("=IFERROR(SUM('4.Purchase_Orders'!G2:G), 0)").setFontWeight('bold').setFontColor('#15803d').setHorizontalAlignment('right');
 
-  // ปรับความกว้างคอลัมน์แดชบอร์ด
-  dashSheet.setColumnWidth(1, 220);
+  // ปรับขนาดและสไตล์ของตารางแดชบอร์ด
+  dashSheet.setColumnWidth(1, 230);
   dashSheet.setColumnWidth(2, 20);
   dashSheet.setColumnWidth(3, 100);
   dashSheet.setColumnWidth(4, 30);
-  dashSheet.setColumnWidth(5, 220);
+  dashSheet.setColumnWidth(5, 230);
   dashSheet.setColumnWidth(6, 20);
   dashSheet.setColumnWidth(7, 100);
-
-  // 4. ลบแท็บแยกห้องแล็บเดิมทิ้งทั้งหมด ให้เหลือเฉพาะ 8 แท็บมาตรฐาน
-  var standardTabs = ['0.Dashboard', '0.ภาพรวม', 'Items', 'Transactions', 'Bookings', 'Purchase_Orders', 'Users', 'Audit_Logs', 'Announcements'];
-  var allSheets = ss.getSheets();
-  allSheets.forEach(function(s) {
-    var name = s.getName();
-    if (standardTabs.indexOf(name) === -1 && allSheets.length > 1) {
-      try { ss.deleteSheet(s); } catch(e) {}
-    }
-  });
-
-  ss.setActiveSheet(dashSheet);
-  ss.toast('✅ ลบแท็บแยกห้องแล็บเดิมทิ้ง และจัดระเบียบข้อมูลลงช่องถูกต้องเรียบร้อย!', 'สำเร็จ', 5);
 }
 
 // -------------------------------------------------------------
-// SETUP & MIGRATE BOOKINGS SHEET (จัดคอลัมน์ให้ตรงช่อง 100%)
+// SETUP & MIGRATE BOOKINGS SHEET (3.Bookings)
 // -------------------------------------------------------------
 function setupAndMigrateBookingsSheet(ss) {
-  var sheet = ss.getSheetByName('Bookings');
+  var sheet = ss.getSheetByName(CANONICAL_TABS.BOOKINGS) || ss.getSheetByName('Bookings');
   if (!sheet) {
-    sheet = ss.insertSheet('Bookings', 3);
+    sheet = ss.insertSheet(CANONICAL_TABS.BOOKINGS, 3);
+  } else {
+    sheet.setName(CANONICAL_TABS.BOOKINGS);
   }
 
-  // 1. อ่านข้อมูลเดิมและวิเคราะห์ถอดรหัสฟิลด์ให้ถูกต้อง
+  // 1. อ่านข้อมูลเดิมและถอดรหัสฟิลด์ให้ถูกต้อง
   var lastRow = sheet.getLastRow();
   var extractedBookings = [];
 
   if (lastRow >= 2) {
     var fullRange = sheet.getRange(1, 1, lastRow, sheet.getLastColumn()).getValues();
-    
-    // เริ่มอ่านจากแถวที่ 2 หรือ 3
     var startIdx = 1;
     if (String(fullRange[0][0]).indexOf('ห้องปฏิบัติการ') !== -1 || String(fullRange[0][0]).indexOf('ภาคเรียน') !== -1) {
       startIdx = 2; // ข้ามแถว title และ header
@@ -234,17 +336,17 @@ function setupAndMigrateBookingsSheet(ss) {
     }
   }
 
-  // 2. เคลียร์ชีตเพื่อสร้างโครงสร้างใหม่ที่สมบูรณ์
+  // 2. เคลียร์ชีตเพื่อสร้างโครงสร้างใหม่
   sheet.clear();
   sheet.setHiddenGridlines(false);
 
   // Row 1: Merged Title Header
   sheet.getRange('A1:J1').merge()
        .setValue('ห้องปฏิบัติการวิทยาศาสตร์และลงข้อมูลการใช้ห้อง ภาคเรียนที่ 1/2569')
-       .setBackground('#a7f3d0') // Soft Mint Green Header (ตามแบบภาพ)
+       .setBackground('#a7f3d0') // Soft Mint Green Header
        .setFontColor('#064e3b')
        .setFontWeight('bold')
-       .setFontSize(11.5)
+       .setFontSize(11)
        .setHorizontalAlignment('center')
        .setVerticalAlignment('middle');
   sheet.setRowHeight(1, 36);
@@ -268,27 +370,26 @@ function setupAndMigrateBookingsSheet(ss) {
        .setBackground('#f8fafc')
        .setFontColor('#1e293b')
        .setFontWeight('bold')
-       .setFontSize(9.5)
+       .setFontSize(9)
        .setHorizontalAlignment('center')
        .setVerticalAlignment('middle')
        .setWrap(true);
-  sheet.setRowHeight(2, 44);
+  sheet.setRowHeight(2, 42);
 
-  // กำหนดความกว้างคอลัมน์
-  sheet.setColumnWidth(1, 55);  // ลำดับ
-  sheet.setColumnWidth(2, 120); // วัน/เดือน/ปี ที่ใช้งาน
-  sheet.setColumnWidth(3, 110); // เวลาที่เข้าใช้
-  sheet.setColumnWidth(4, 210); // ห้องปฏิบัติการ
-  sheet.setColumnWidth(5, 140); // ระบุระดับชั้น
+  sheet.setColumnWidth(1, 50);  // ลำดับ
+  sheet.setColumnWidth(2, 120); // วัน/เดือน/ปี
+  sheet.setColumnWidth(3, 110); // เวลา
+  sheet.setColumnWidth(4, 210); // ห้องแล็บ
+  sheet.setColumnWidth(5, 140); // ระดับชั้น
   sheet.setColumnWidth(6, 120); // จำนวนนักเรียน
-  sheet.setColumnWidth(7, 360); // ระบุกิจกรรมที่ใช้
-  sheet.setColumnWidth(8, 160); // ลงชื่อคุณครู
+  sheet.setColumnWidth(7, 360); // กิจกรรม
+  sheet.setColumnWidth(8, 160); // ครู
   sheet.setColumnWidth(9, 100); // สถานะ
   sheet.setColumnWidth(10, 140); // id
 
   sheet.setFrozenRows(2);
 
-  // 3. เขียนข้อมูลกลับลงชีตอย่างแม่นยำในตำแหน่งคอลัมน์ A ถึง J
+  // 3. เขียนข้อมูลกลับลงชีตอย่างแม่นยำ
   if (extractedBookings.length > 0) {
     var rowsToWrite = extractedBookings.map(function(b, idx) {
       return [
@@ -307,32 +408,44 @@ function setupAndMigrateBookingsSheet(ss) {
 
     var dataRange = sheet.getRange(3, 1, rowsToWrite.length, 10);
     dataRange.setValues(rowsToWrite)
-             .setFontSize(9.5)
+             .setFontSize(9)
              .setVerticalAlignment('middle')
              .setWrap(true);
 
-    // ปรับการจัดแนวข้อความ (Alignment)
-    sheet.getRange(3, 1, rowsToWrite.length, 1).setHorizontalAlignment('center').setFontWeight('bold'); // ลำดับ
-    sheet.getRange(3, 2, rowsToWrite.length, 1).setHorizontalAlignment('center'); // วันที่
-    sheet.getRange(3, 3, rowsToWrite.length, 1).setHorizontalAlignment('center'); // เวลา
-    sheet.getRange(3, 4, rowsToWrite.length, 1).setHorizontalAlignment('left');   // ห้องแล็บ
-    sheet.getRange(3, 5, rowsToWrite.length, 1).setHorizontalAlignment('center'); // ชั้น
-    sheet.getRange(3, 6, rowsToWrite.length, 1).setHorizontalAlignment('center'); // จำนวน
-    sheet.getRange(3, 7, rowsToWrite.length, 1).setHorizontalAlignment('left');   // กิจกรรม
-    sheet.getRange(3, 8, rowsToWrite.length, 1).setHorizontalAlignment('center'); // ครู
-    sheet.getRange(3, 9, rowsToWrite.length, 1).setHorizontalAlignment('center'); // สถานะ
-    sheet.getRange(3, 10, rowsToWrite.length, 1).setHorizontalAlignment('center').setFontColor('#64748b'); // id
+    sheet.getRange(3, 1, rowsToWrite.length, 1).setHorizontalAlignment('center').setFontWeight('bold');
+    sheet.getRange(3, 2, rowsToWrite.length, 1).setHorizontalAlignment('center');
+    sheet.getRange(3, 3, rowsToWrite.length, 1).setHorizontalAlignment('center');
+    sheet.getRange(3, 4, rowsToWrite.length, 1).setHorizontalAlignment('left');
+    sheet.getRange(3, 5, rowsToWrite.length, 1).setHorizontalAlignment('center');
+    sheet.getRange(3, 6, rowsToWrite.length, 1).setHorizontalAlignment('center');
+    sheet.getRange(3, 7, rowsToWrite.length, 1).setHorizontalAlignment('left');
+    sheet.getRange(3, 8, rowsToWrite.length, 1).setHorizontalAlignment('center');
+    sheet.getRange(3, 9, rowsToWrite.length, 1).setHorizontalAlignment('center');
+    sheet.getRange(3, 10, rowsToWrite.length, 1).setHorizontalAlignment('center').setFontColor('#64748b');
 
     dataRange.setBorder(true, true, true, true, true, true, '#cbd5e1', SpreadsheetApp.BorderStyle.SOLID);
   }
 
-  // สร้างปุ่ม Filter ใน Google Sheet
   try {
     var filter = sheet.getFilter();
     if (!filter) {
       sheet.getRange(2, 1, Math.max(sheet.getLastRow(), 3), 10).createFilter();
     }
   } catch(e) {}
+}
+
+// -------------------------------------------------------------
+// HELPER: CLEAN ALL EXTRA SHEETS OUTSIDE 8 CANONICAL TABS
+// -------------------------------------------------------------
+function cleanExtraSheetsOnly(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
+  var allSheets = ss.getSheets();
+  allSheets.forEach(function(s) {
+    var name = s.getName();
+    if (ALL_VALID_SHEET_NAMES.indexOf(name) === -1 && allSheets.length > 1) {
+      try { ss.deleteSheet(s); } catch(e) {}
+    }
+  });
 }
 
 // -------------------------------------------------------------
@@ -365,66 +478,39 @@ function parseAnyBookingRow(row) {
     var s = String(cell).trim();
     if (!s) return;
 
-    // Skip sequence number in column A (1, 2, 3, ...)
     if (colIndex === 0 && /^\d+$/.test(s)) return;
 
-    // Detect ID
     if (/^(book_|test_booking_)/i.test(s)) {
       id = s;
-    }
-    // Detect Room
-    else if (/^(Lab\s*\d|ห้องปฏิบัติการ|ห้องศูนย์)/i.test(s)) {
+    } else if (/^(Lab\s*\d|ห้องปฏิบัติการ|ห้องศูนย์)/i.test(s)) {
       room = roomMap[s] || s;
-    }
-    // Detect ISO Timestamp string ending with Z (createdAt / fallback ID)
-    else if (typeof cell === 'string' && s.indexOf('T') !== -1 && s.indexOf('Z') !== -1) {
+    } else if (typeof cell === 'string' && s.indexOf('T') !== -1 && s.indexOf('Z') !== -1) {
       if (!id) id = "book_" + s.replace(/[^0-9]/g, "").slice(0, 14);
-    }
-    // Detect Date
-    else if (/^\d{4}-\d{2}-\d{2}/.test(s) || (cell instanceof Date)) {
+    } else if (/^\d{4}-\d{2}-\d{2}/.test(s) || (cell instanceof Date)) {
       date = formatDateForLog(cell);
-    }
-    else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+    } else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
       date = s;
-    }
-    // Detect Status
-    else if (/^(approved|pending|rejected|อนุมัติแล้ว|รออนุมัติ|ปฏิเสธ)$/i.test(s)) {
+    } else if (/^(approved|pending|rejected|อนุมัติแล้ว|รออนุมัติ|ปฏิเสธ)$/i.test(s)) {
       if (s.toLowerCase() === 'approved' || s === 'อนุมัติแล้ว') status = 'อนุมัติแล้ว';
       else if (s.toLowerCase() === 'pending' || s === 'รออนุมัติ') status = 'รออนุมัติ';
       else status = 'ปฏิเสธ';
-    }
-    // Detect prepItems JSON (skip)
-    else if (/^\[.*\]$/.test(s)) {
-      // JSON prep items array e.g. [{"qty":...}] or [], skip
-    }
-    // Detect Grade level
-    else if (/^(ม\.\d\/\d|ม\.ต้น|ม\.ปลาย|ชมรม|โครงงาน|ม\.\d)/i.test(s)) {
+    } else if (/^\[.*\]$/.test(s)) {
+      // Skip prepItems JSON array
+    } else if (/^(ม\.\d\/\d|ม\.ต้น|ม\.ปลาย|ชมรม|โครงงาน|ม\.\d)/i.test(s)) {
       gradeLevel = s;
-    }
-    // Detect Student Count
-    else if (/^\d+\s*คน$/.test(s) || (/^\d+$/.test(s) && Number(s) > 10 && Number(s) <= 150)) {
+    } else if (/^\d+\s*คน$/.test(s) || (/^\d+$/.test(s) && Number(s) > 10 && Number(s) <= 150)) {
       studentCount = s.indexOf('คน') !== -1 ? s : (s + ' คน');
-    }
-    // Detect Periods e.g. "3", "4, 5", "1, 2", "5, 6", "7, 8"
-    else if (/^[1-9](?:\s*,\s*[1-9])*$/.test(s)) {
+    } else if (/^[1-9](?:\s*,\s*[1-9])*$/.test(s)) {
       if (!slot) slot = "คาบ " + s;
-    }
-    // Detect Time Slot / Period strings e.g. "คาบ 6: 13:20 - 14:10, คาบ 7: 14:10 - 15:00"
-    else if (/คาบ\s*\d|^\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}/.test(s)) {
+    } else if (/คาบ\s*\d|^\d{1,2}[:.]\d{2}\s*-\s*\d{1,2}[:.]\d{2}/.test(s)) {
       slot = formatSlotForLog(s);
-    }
-    // Detect combined slot & name e.g. "3 นายสมชาย เรียนดี"
-    else if (/^(\d+(?:[,\s]+\d+)*)\s+(.*)$/.test(s)) {
+    } else if (/^(\d+(?:[,\s]+\d+)*)\s+(.*)$/.test(s)) {
       var match = s.match(/^(\d+(?:[,\s]+\d+)*)\s+(.*)$/);
       if (!slot) slot = "คาบ " + match[1];
       if (!bookerName) bookerName = match[2];
-    }
-    // Detect Teacher / Booker Name
-    else if (/^(นาย|นางสาว|นาง|น\.ส\.|ครู|อาจารย์|อ\.|ม\.|มิส|ดร\.|Wongsakorn|Aj\.|T\.)/i.test(s)) {
+    } else if (/^(นาย|นางสาว|นาง|น\.ส\.|ครู|อาจารย์|อ\.|ม\.|มิส|ดร\.|Wongsakorn|Aj\.|T\.)/i.test(s)) {
       bookerName = s;
-    }
-    // Otherwise Purpose / Activity
-    else {
+    } else {
       if (!purpose && isNaN(Number(s))) {
         purpose = s;
       }
@@ -448,15 +534,12 @@ function parseAnyBookingRow(row) {
 // -------------------------------------------------------------
 // SORT & FILTER FUNCTIONS
 // -------------------------------------------------------------
-
-// 1. เรียงตาม ห้องปฏิบัติการ และ วันที่
 function sortByRoom() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Bookings');
+  var sheet = ss.getSheetByName(CANONICAL_TABS.BOOKINGS);
   if (!sheet || sheet.getLastRow() < 3) return;
 
   var lastRow = sheet.getLastRow();
-  // Sort Col D (Room) Ascending, then Col B (Date) Ascending
   var range = sheet.getRange(3, 1, lastRow - 2, 10);
   range.sort([
     { column: 4, ascending: true },
@@ -468,10 +551,9 @@ function sortByRoom() {
   ss.toast('🏢 เรียงลำดับตาม "ห้องปฏิบัติการ" สำเร็จเรียบร้อย!', 'สำเร็จ', 3);
 }
 
-// 2. เรียงตาม วันที่ และ เวลาเข้าใช้
 function sortByDateTime() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Bookings');
+  var sheet = ss.getSheetByName(CANONICAL_TABS.BOOKINGS);
   if (!sheet || sheet.getLastRow() < 3) return;
 
   var lastRow = sheet.getLastRow();
@@ -485,10 +567,9 @@ function sortByDateTime() {
   ss.toast('📅 เรียงลำดับตาม "วันที่และเวลาเข้าใช้งาน" สำเร็จเรียบร้อย!', 'สำเร็จ', 3);
 }
 
-// 3. เรียงตาม ชื่อคุณครูผู้สอน
 function sortByTeacher() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Bookings');
+  var sheet = ss.getSheetByName(CANONICAL_TABS.BOOKINGS);
   if (!sheet || sheet.getLastRow() < 3) return;
 
   var lastRow = sheet.getLastRow();
@@ -502,10 +583,9 @@ function sortByTeacher() {
   ss.toast('👨‍🏫 เรียงลำดับตาม "ชื่อคุณครูผู้สอน" สำเร็จเรียบร้อย!', 'สำเร็จ', 3);
 }
 
-// 4. รันลำดับตัวเลข 1, 2, 3... ในคอลัมน์ A ให้อัตโนมัติ
 function renumberBookingRows() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName('Bookings');
+  var sheet = ss.getSheetByName(CANONICAL_TABS.BOOKINGS);
   if (!sheet || sheet.getLastRow() < 3) return;
 
   var numRows = sheet.getLastRow() - 2;
@@ -518,7 +598,7 @@ function renumberBookingRows() {
   numRange.setValues(numbers)
           .setHorizontalAlignment('center')
           .setFontWeight('bold')
-          .setFontSize(9.5);
+          .setFontSize(9);
 
   sheet.getRange(3, 1, numRows, 10)
        .setBorder(true, true, true, true, true, true, '#cbd5e1', SpreadsheetApp.BorderStyle.SOLID)
@@ -540,8 +620,9 @@ function doPost(e) {
 
     var payload = JSON.parse(e.postData.contents);
     var action = (payload.action || '').toUpperCase(); // 'UPSERT', 'DELETE', 'GET_DATA', 'FETCH', 'PING'
-    var table = payload.table;         // 'Items', 'Transactions', 'Bookings', 'Purchase_Orders', 'Users', 'Audit_Logs', 'Announcements'
-    var data = payload.data;           // Object data
+    var rawTable = payload.table;
+    var table = resolveSheetName(rawTable) || rawTable;
+    var data = payload.data;
     var keyField = payload.keyField || 'id';
 
     if (action === 'PING') {
@@ -551,8 +632,9 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
     if (action === 'GET_DATA' || action === 'FETCH' || action === 'READ') {
-      var ss = SpreadsheetApp.getActiveSpreadsheet();
       var sheet = ss.getSheetByName(table);
       if (!sheet) {
         return ContentService.createTextOutput(JSON.stringify({ 
@@ -574,14 +656,10 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheetByName(table);
-    if (!sheet) {
-      sheet = ss.insertSheet(table);
-    }
+    var sheet = getOrCreateCanonicalSheet(ss, table);
 
     var result = "";
-    if (table === 'Bookings') {
+    if (table === CANONICAL_TABS.BOOKINGS || table === 'Bookings') {
       result = (action === 'DELETE') ? deleteBookingRow(sheet, data) : upsertBookingRow(sheet, data);
       renumberBookingRows();
     } else {
@@ -590,7 +668,8 @@ function doPost(e) {
 
     return ContentService.createTextOutput(JSON.stringify({ 
       status: "success", 
-      result: result 
+      result: result,
+      table: table
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
@@ -604,15 +683,16 @@ function doPost(e) {
 function doGet(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var table = (e && e.parameter && e.parameter.table) ? e.parameter.table : '';
+    var rawTable = (e && e.parameter && e.parameter.table) ? e.parameter.table : '';
     
-    if (!table) {
+    if (!rawTable) {
       return ContentService.createTextOutput(JSON.stringify({ 
         status: "active", 
-        message: "Chemical Lab Realtime Backup & Academic Logbook Webhook is running." 
+        message: "Chemical Lab Realtime Backup & Academic Logbook Webhook is running (8 Canonical Sheets)." 
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    var table = resolveSheetName(rawTable) || rawTable;
     var sheet = ss.getSheetByName(table);
     if (!sheet) {
       return ContentService.createTextOutput(JSON.stringify({ 
@@ -625,6 +705,7 @@ function doGet(e) {
 
     return ContentService.createTextOutput(JSON.stringify({ 
       status: "success", 
+      table: table,
       data: results 
     })).setMimeType(ContentService.MimeType.JSON);
 
@@ -637,7 +718,7 @@ function doGet(e) {
 }
 
 // -------------------------------------------------------------
-// EXTRACT TABLE DATA (Universal parser for all sheets)
+// EXTRACT TABLE DATA
 // -------------------------------------------------------------
 function extractSheetData(sheet, table) {
   var lastRow = sheet.getLastRow();
@@ -647,8 +728,7 @@ function extractSheetData(sheet, table) {
   var rawData = sheet.getRange(1, 1, lastRow, lastCol).getValues();
   var results = [];
 
-  if (table === 'Bookings') {
-    // Reverse map from Full Thai name to Lab code
+  if (table === CANONICAL_TABS.BOOKINGS || table === '3.Bookings' || table === 'Bookings') {
     var reverseRoomMap = {
       'ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ': 'Lab 1',
       'ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์': 'Lab 2',
@@ -662,7 +742,7 @@ function extractSheetData(sheet, table) {
 
     var startRowIdx = 1;
     if (String(rawData[0][0]).indexOf('ห้องปฏิบัติการ') !== -1 || String(rawData[0][0]).indexOf('ภาคเรียน') !== -1) {
-      startRowIdx = 2; // Row 1 is Title, Row 2 is Header, Data starts Row 3
+      startRowIdx = 2;
     }
 
     for (var i = startRowIdx; i < rawData.length; i++) {
@@ -690,7 +770,6 @@ function extractSheetData(sheet, table) {
     return results;
   }
 
-  // Standard tabular sheets (Row 1 = Headers)
   var headers = rawData[0];
   for (var i = 1; i < rawData.length; i++) {
     var row = rawData[i];
@@ -717,7 +796,7 @@ function extractSheetData(sheet, table) {
 }
 
 // -------------------------------------------------------------
-// BOOKINGS UPSERT & DELETE (จัดตำแหน่งคอลัมน์ A ถึง J ลงช่อง 100%)
+// BOOKINGS UPSERT & DELETE (3.Bookings)
 // -------------------------------------------------------------
 function upsertBookingRow(sheet, data) {
   var id = data.id || '';
@@ -771,7 +850,6 @@ function upsertBookingRow(sheet, data) {
     }
   }
 
-  // Append new row
   rowValues[0] = Math.max(lastRow - 1, 1);
   sheet.appendRow(rowValues);
   return "inserted_new_booking";
