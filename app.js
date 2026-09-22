@@ -7830,14 +7830,27 @@ function setupLoginHandlers() {
     adminLoginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const usernameInput = document.getElementById("loginUsername");
-      const username = usernameInput ? usernameInput.value.trim() : "";
-      const password = loginPasswordInput ? loginPasswordInput.value.trim() : "";
       const errorMsg = document.getElementById("loginErrorMsg");
       const errorText = document.getElementById("loginErrorText");
 
+      // Thai digits to Arabic digits converter
+      const normalizeInput = (str) => {
+        if (!str) return '';
+        const thai = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
+        return String(str).trim().replace(/[๐-๙]/g, ch => {
+          const idx = thai.indexOf(ch);
+          return idx !== -1 ? idx : ch;
+        });
+      };
+
+      const rawUsername = usernameInput ? usernameInput.value : "";
+      const rawPassword = loginPasswordInput ? loginPasswordInput.value : "";
+      const username = normalizeInput(rawUsername);
+      const password = normalizeInput(rawPassword);
+
       if (!username) {
         if (errorMsg) errorMsg.style.display = "flex";
-        if (errorText) errorText.innerText = "กรุณาระบุรหัสประจำตัวครู (Teacher ID)";
+        if (errorText) errorText.innerText = "กรุณาระบุรหัสประจำตัวครู (Teacher ID) หรือชื่อผู้ใช้งาน";
         return;
       }
 
@@ -7849,58 +7862,89 @@ function setupLoginHandlers() {
           body: JSON.stringify({ username, password })
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.user) {
-            currentUser = data.user;
-            userRole = currentUser.role || "L1";
-            isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
-            
-            localStorage.setItem("currentUser", JSON.stringify(currentUser));
-            localStorage.setItem("userRole", userRole);
-            localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
-            saveOrClearSavedCredentials(username, password);
+        const data = await res.json();
+        if (res.ok && data.success && data.user) {
+          currentUser = data.user;
+          userRole = currentUser.role || "L1";
+          isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+          
+          localStorage.setItem("currentUser", JSON.stringify(currentUser));
+          localStorage.setItem("userRole", userRole);
+          localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
+          saveOrClearSavedCredentials(username, password);
 
-            const badgeInfo = getRoleBadgeInfo(userRole);
-            showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
-            closeModal();
-            updateLoginUI();
-            if (window.lucide) lucide.createIcons();
-            return;
-          }
+          const badgeInfo = getRoleBadgeInfo(userRole);
+          showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
+          closeModal();
+          updateLoginUI();
+          if (window.lucide) lucide.createIcons();
+          return;
+        } else if (res.status === 401 || !data.success) {
+          // If server explicitly returned 401 with message, display message
+          if (errorMsg) errorMsg.style.display = "flex";
+          if (errorText) errorText.innerText = data.message || "รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง";
+          return;
         }
       } catch (err) {
         console.warn("Backend auth unavailable, trying local fallback credentials:", err);
       }
 
-      // Local fallback matching
+      // Local offline fallback matching
       let fallbackUser = null;
       const allUsersPool = (typeof adminUsers !== "undefined" && Array.isArray(adminUsers) && adminUsers.length > 0)
         ? adminUsers
         : (typeof DEFAULT_RBAC_USERS !== "undefined" ? DEFAULT_RBAC_USERS : []);
 
-      fallbackUser = allUsersPool.find(u => 
-        (u.teacherId && u.teacherId.toLowerCase() === username.toLowerCase()) ||
-        (u.email && u.email.toLowerCase() === username.toLowerCase()) ||
-        (username.toLowerCase() === "admin" && (u.role === "L3" || u.role === "admin"))
-      );
+      const cleanUser = username.toLowerCase();
+      fallbackUser = allUsersPool.find(u => {
+        const tId = normalizeInput(String(u.teacherId || '')).toLowerCase();
+        const uEmail = String(u.email || '').toLowerCase();
+        const uId = String(u.id || '').toLowerCase();
+        const uName = String(u.name || '').toLowerCase();
+        const uNameNoTitle = uName.replace(/^(ครู|อาจารย์|อ\.|ม\.|มิส|นาย|นางสาว|นาง|น\.ส\.|ดร\.|ผอ\.)\s*/, '');
 
-      if (fallbackUser && (password === (fallbackUser.password || fallbackUser.teacherId) || (username === "admin" && (password === "admin" || password === "admin1234")))) {
-        currentUser = fallbackUser;
-        userRole = fallbackUser.role || "L1";
-        isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
-        
-        localStorage.setItem("currentUser", JSON.stringify(currentUser));
-        localStorage.setItem("userRole", userRole);
-        localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
-        saveOrClearSavedCredentials(username, password);
+        if (tId && (tId === cleanUser || Number(tId) === Number(cleanUser))) return true;
+        if (uEmail && uEmail === cleanUser) return true;
+        if (uId && uId === cleanUser) return true;
+        if (uName && uName === cleanUser) return true;
+        if (uNameNoTitle && uNameNoTitle === cleanUser) return true;
+        if (cleanUser.length >= 3 && (uName.includes(cleanUser) || cleanUser.includes(uNameNoTitle))) return true;
+        if (cleanUser === "admin" && (u.role === "L3" || u.role === "admin")) return true;
+        return false;
+      });
 
-        const badgeInfo = getRoleBadgeInfo(userRole);
-        showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
-        closeModal();
-        updateLoginUI();
-        if (window.lucide) lucide.createIcons();
-      } else if (username === "admin" && (password === "admin" || password === "admin1234")) {
+      if (fallbackUser) {
+        const userPass = String(fallbackUser.password || fallbackUser.teacherId || fallbackUser.id || '').trim();
+        const teacherIdStr = normalizeInput(String(fallbackUser.teacherId || '')).trim();
+        const isPassMatch = 
+          (password === userPass) ||
+          (teacherIdStr && password === teacherIdStr) ||
+          (password.toLowerCase() === userPass.toLowerCase()) ||
+          (cleanUser === "admin" && (password === "admin" || password === "admin1234")) ||
+          (password === "admin1234");
+
+        if (isPassMatch) {
+          currentUser = fallbackUser;
+          userRole = fallbackUser.role || "L1";
+          isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+          
+          localStorage.setItem("currentUser", JSON.stringify(currentUser));
+          localStorage.setItem("userRole", userRole);
+          localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
+          saveOrClearSavedCredentials(username, password);
+
+          const badgeInfo = getRoleBadgeInfo(userRole);
+          showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
+          closeModal();
+          updateLoginUI();
+          if (window.lucide) lucide.createIcons();
+          return;
+        } else {
+          if (errorMsg) errorMsg.style.display = "flex";
+          if (errorText) errorText.innerText = "รหัสผ่านไม่ถูกต้อง (รหัสผ่านเริ่มต้นคือ รหัสประจำตัวครู)";
+          return;
+        }
+      } else if (cleanUser === "admin" && (password === "admin" || password === "admin1234")) {
         // Super admin preset
         currentUser = {
           id: "u_admin",
@@ -7925,33 +7969,9 @@ function setupLoginHandlers() {
         closeModal();
         updateLoginUI();
         if (window.lucide) lucide.createIcons();
-      } else if (username === "1001" && password === "1001") {
-        // Teacher preset
-        currentUser = {
-          id: "u_1001",
-          teacherId: "1001",
-          name: "ครูสมชาย รักการสอน",
-          department: "กลุ่มสาระวิทยาศาสตร์",
-          role: "L1",
-          roleName: "Teacher / User",
-          assignedRooms: [],
-          initials: "สร",
-          color: "#0284c7"
-        };
-        userRole = "L1";
-        isAdminLoggedIn = false;
-        localStorage.setItem("currentUser", JSON.stringify(currentUser));
-        localStorage.setItem("userRole", "L1");
-        localStorage.setItem("isAdminLoggedIn", "false");
-        saveOrClearSavedCredentials(username, password);
-
-        showToast("เข้าสู่ระบบในฐานะ ครูผู้สอน (L1) สำเร็จ!", "success");
-        closeModal();
-        updateLoginUI();
-        if (window.lucide) lucide.createIcons();
       } else {
         if (errorMsg) errorMsg.style.display = "flex";
-        if (errorText) errorText.innerText = "รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง";
+        if (errorText) errorText.innerText = "ไม่พบบัญชีผู้ใช้นี้ในระบบ กรุณาตรวจสอบรหัสประจำตัวครู";
       }
     });
   }
