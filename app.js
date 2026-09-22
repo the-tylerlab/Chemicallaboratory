@@ -461,7 +461,15 @@ function setupRealtimeSubscriptions() {
     })
     .subscribe();
 
-  // 5. Subscribe to system table (for labLayouts, activityLogs, budget)
+  // 5. Subscribe to users table (for real-time permissions & account updates)
+  supabase.channel('public:users')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, async (payload) => {
+      console.log('Realtime change received for users:', payload);
+      if (typeof loadAdminData === 'function') await loadAdminData();
+    })
+    .subscribe();
+
+  // 6. Subscribe to system table (for labLayouts, activityLogs, budget)
   supabase.channel('public:system')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'system' }, async (payload) => {
       console.log('Realtime change received for system:', payload);
@@ -15855,6 +15863,30 @@ async function loadAdminData() {
       // offline / Live server
     }
 
+    // Direct Supabase Users query fallback/merge
+    if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
+      try {
+        const { data: supaUsers, error } = await supabase.from('users').select('*');
+        if (!error && Array.isArray(supaUsers) && supaUsers.length > 0) {
+          if (!Array.isArray(adminUsers)) adminUsers = [];
+          supaUsers.forEach(su => {
+            const tId = String(su.teacherId || su.id || '').trim();
+            if (!tId) return;
+            const idx = adminUsers.findIndex(u => String(u.teacherId || '').toLowerCase() === tId.toLowerCase());
+            if (idx !== -1) {
+              adminUsers[idx] = { ...adminUsers[idx], ...su };
+            } else {
+              adminUsers.push(su);
+            }
+          });
+          localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+          loadedFromApi = true;
+        }
+      } catch (err) {
+        console.warn("Direct Supabase users fetch error:", err);
+      }
+    }
+
     if (!loadedFromApi) {
       const localUsers = localStorage.getItem("lab_admin_users");
       if (localUsers) {
@@ -16130,6 +16162,18 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       let isSaved = false;
+      
+      // 1. Direct Supabase Upsert
+      if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
+        try {
+          await supabase.from('users').upsert(newUserObj, { onConflict: 'id' });
+          isSaved = true;
+        } catch (supaErr) {
+          console.warn("Direct Supabase user insert failed:", supaErr);
+        }
+      }
+
+      // 2. Server API Dispatch (Syncs to Google Sheets and local database)
       try {
         const res = await fetch('/api/users', {
           method: 'POST',
@@ -16684,6 +16728,47 @@ async function submitBatchAddUsers() {
   let isSuccess = false;
   let savedCount = 0;
 
+  // 1. Direct Supabase Batch Upsert
+  if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
+    try {
+      const roleNames = {
+        'L1': 'Teacher / User',
+        'L2': 'Staff / Operator',
+        'L3': 'Manager / System Manager',
+        'L4': 'Executive / Head of Department'
+      };
+      const formattedForSupabase = validUsersToSave.map(u => {
+        const teacherId = u.teacherId.trim();
+        let rooms = [];
+        if (Array.isArray(u.assignedRooms)) rooms = u.assignedRooms;
+        else if (typeof u.assignedRooms === 'string' && u.assignedRooms.trim()) {
+          rooms = u.assignedRooms.split(/[,;\n]/).map(s => s.trim()).filter(Boolean);
+        }
+        return {
+          id: "u_" + teacherId,
+          teacherId: teacherId,
+          name: u.name.trim(),
+          department: (u.department || '').trim() || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี',
+          email: (u.email || '').trim() || `${teacherId.toLowerCase()}@lab.school.ac.th`,
+          role: u.role || 'L1',
+          roleName: roleNames[u.role || 'L1'] || 'Teacher / User',
+          assignedRooms: rooms,
+          password: teacherId,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          initials: getUserInitials(u.name),
+          color: u.role === 'L2' ? '#ea580c' : u.role === 'L3' ? '#7c3aed' : u.role === 'L4' ? '#be185d' : '#0284c7'
+        };
+      });
+      await supabase.from('users').upsert(formattedForSupabase, { onConflict: 'id' });
+      isSuccess = true;
+      savedCount = validUsersToSave.length;
+    } catch (supaErr) {
+      console.warn("Direct Supabase batch insert failed:", supaErr);
+    }
+  }
+
+  // 2. Server API Batch Dispatch
   try {
     const res = await fetch('/api/users/batch', {
       method: 'POST',
@@ -16838,11 +16923,24 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       let isUpdated = false;
+      const updatedUserPayload = { id, teacherId, name, department: dept, email, role, assignedRooms };
+
+      // 1. Direct Supabase Update
+      if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
+        try {
+          await supabase.from('users').upsert(updatedUserPayload, { onConflict: 'id' });
+          isUpdated = true;
+        } catch (supaErr) {
+          console.warn("Direct Supabase user update failed:", supaErr);
+        }
+      }
+
+      // 2. Server API Update
       try {
         const res = await fetch(`/api/users/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ teacherId, name, department: dept, email, role, assignedRooms })
+          body: JSON.stringify(updatedUserPayload)
         });
         if (res.ok) {
           isUpdated = true;
@@ -16895,6 +16993,15 @@ async function deleteAdminUser() {
   if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?")) return;
   
   let isDeleted = false;
+  if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
+    try {
+      await supabase.from('users').delete().eq('id', id);
+      isDeleted = true;
+    } catch (supaErr) {
+      console.warn("Direct Supabase user delete failed:", supaErr);
+    }
+  }
+
   try {
     const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
     if (res.ok) isDeleted = true;

@@ -539,7 +539,7 @@ function doPost(e) {
     }
 
     var payload = JSON.parse(e.postData.contents);
-    var action = payload.action;       // 'UPSERT', 'DELETE', or 'PING'
+    var action = (payload.action || '').toUpperCase(); // 'UPSERT', 'DELETE', 'GET_DATA', 'FETCH', 'PING'
     var table = payload.table;         // 'Items', 'Transactions', 'Bookings', 'Purchase_Orders', 'Users', 'Audit_Logs', 'Announcements'
     var data = payload.data;           // Object data
     var keyField = payload.keyField || 'id';
@@ -548,6 +548,22 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ 
         status: "success", 
         message: "Active" 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === 'GET_DATA' || action === 'FETCH' || action === 'READ') {
+      var ss = SpreadsheetApp.getActiveSpreadsheet();
+      var sheet = ss.getSheetByName(table);
+      if (!sheet) {
+        return ContentService.createTextOutput(JSON.stringify({ 
+          status: "error", 
+          message: "Table " + table + " not found" 
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      var sheetData = extractSheetData(sheet, table);
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: "success", 
+        data: sheetData 
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -605,38 +621,7 @@ function doGet(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    var lastRow = sheet.getLastRow();
-    var lastCol = sheet.getLastColumn();
-    if (lastRow <= 1 || lastCol < 1) {
-      return ContentService.createTextOutput(JSON.stringify({ 
-        status: "success", 
-        data: [] 
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-
-    var rawData = sheet.getRange(1, 1, lastRow, lastCol).getValues();
-    var headers = rawData[0];
-    var results = [];
-
-    for (var i = 1; i < rawData.length; i++) {
-      var row = rawData[i];
-      var obj = {};
-      var hasVal = false;
-      for (var j = 0; j < headers.length; j++) {
-        var key = String(headers[j]).trim();
-        if (key) {
-          var val = row[j];
-          if (val instanceof Date) {
-            val = val.toISOString();
-          }
-          obj[key] = (val !== undefined && val !== null) ? val : "";
-          if (val !== "" && val !== null && val !== undefined) hasVal = true;
-        }
-      }
-      if (hasVal) {
-        results.push(obj);
-      }
-    }
+    var results = extractSheetData(sheet, table);
 
     return ContentService.createTextOutput(JSON.stringify({ 
       status: "success", 
@@ -649,6 +634,86 @@ function doGet(e) {
       message: err.toString() 
     })).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// -------------------------------------------------------------
+// EXTRACT TABLE DATA (Universal parser for all sheets)
+// -------------------------------------------------------------
+function extractSheetData(sheet, table) {
+  var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
+  if (lastRow <= 1 || lastCol < 1) return [];
+
+  var rawData = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+  var results = [];
+
+  if (table === 'Bookings') {
+    // Reverse map from Full Thai name to Lab code
+    var reverseRoomMap = {
+      'ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ': 'Lab 1',
+      'ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์': 'Lab 2',
+      'ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์': 'Lab 3',
+      'ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล': 'Lab 4',
+      'ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล': 'Lab 5',
+      'ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ': 'Lab 6',
+      'ห้องศูนย์ STEM CENTER': 'Lab 7',
+      'ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่': 'Lab 8'
+    };
+
+    var startRowIdx = 1;
+    if (String(rawData[0][0]).indexOf('ห้องปฏิบัติการ') !== -1 || String(rawData[0][0]).indexOf('ภาคเรียน') !== -1) {
+      startRowIdx = 2; // Row 1 is Title, Row 2 is Header, Data starts Row 3
+    }
+
+    for (var i = startRowIdx; i < rawData.length; i++) {
+      var row = rawData[i];
+      var parsed = parseAnyBookingRow(row);
+      if (parsed && (parsed.id || parsed.room || parsed.date || parsed.purpose)) {
+        var cleanRoom = reverseRoomMap[parsed.room] || parsed.room;
+        var cleanStatus = (parsed.status === 'อนุมัติแล้ว' || parsed.status === 'approved') ? 'approved' : (parsed.status === 'รออนุมัติ' || parsed.status === 'pending' ? 'pending' : 'rejected');
+        results.push({
+          id: parsed.id || ("bk_sheet_" + (i + 1)),
+          room: cleanRoom,
+          roomFullName: parsed.room,
+          date: parsed.date,
+          slot: parsed.slot,
+          gradeLevel: parsed.gradeLevel,
+          studentCount: parsed.studentCount,
+          purpose: parsed.purpose,
+          bookerName: parsed.bookerName,
+          teacherName: parsed.bookerName,
+          status: cleanStatus,
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
+    return results;
+  }
+
+  // Standard tabular sheets (Row 1 = Headers)
+  var headers = rawData[0];
+  for (var i = 1; i < rawData.length; i++) {
+    var row = rawData[i];
+    var obj = {};
+    var hasVal = false;
+    for (var j = 0; j < headers.length; j++) {
+      var key = String(headers[j]).trim();
+      if (key) {
+        var val = row[j];
+        if (val instanceof Date) {
+          val = val.toISOString();
+        } else if (typeof val === 'string' && (val.startsWith('{') || val.startsWith('['))) {
+          try { val = JSON.parse(val); } catch(e) {}
+        }
+        obj[key] = (val !== undefined && val !== null) ? val : "";
+        if (val !== "" && val !== null && val !== undefined) hasVal = true;
+      }
+    }
+    if (hasVal) {
+      results.push(obj);
+    }
+  }
+  return results;
 }
 
 // -------------------------------------------------------------
