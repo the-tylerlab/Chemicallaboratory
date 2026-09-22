@@ -2811,18 +2811,18 @@
             </div>
           </div>
 
-          <!-- Smart Search & Filter Toolbar in Single Horizontal Line -->
-          <div class="admin-toolbar-row" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; width: 100%; box-sizing: border-box;">
-            <!-- Left Filter Group: Search Input + Role Filter + Dept Filter in a single horizontal row -->
-            <div class="admin-filter-group" style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+          <!-- Smart Search & Filter Toolbar -->
+          <div class="admin-toolbar-row">
+            <!-- Left Filter Group -->
+            <div class="admin-toolbar-left">
               <!-- Search Input -->
-              <div style="position: relative; width: 230px; min-width: 150px; flex-shrink: 1;">
+              <div class="admin-search-wrap">
+                <i data-lucide="search" class="admin-search-icon"></i>
                 <input type="text" id="adminUserSearchInput" class="admin-search-input" placeholder="ค้นหาชื่อ, รหัสครู, อีเมล..." oninput="filterAdminUsersTable()">
-                <i data-lucide="search" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #94a3b8;"></i>
               </div>
 
               <!-- Role Filter -->
-              <select id="adminUserRoleFilter" class="admin-filter-select" style="min-width: 135px; flex-shrink: 0;" onchange="filterAdminUsersTable()">
+              <select id="adminUserRoleFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
                 <option value="">ทุกระดับสิทธิ์ (All Roles)</option>
                 <option value="L1">L1 - ครูผู้สอน (Teacher)</option>
                 <option value="L2">L2 - เจ้าหน้าที่แล็บ (Lab Staff)</option>
@@ -2831,22 +2831,22 @@
               </select>
 
               <!-- Dept Filter -->
-              <select id="adminUserDeptFilter" class="admin-filter-select" style="min-width: 145px; max-width: 190px; flex-shrink: 0;" onchange="filterAdminUsersTable()">
+              <select id="adminUserDeptFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
                 <option value="">ทุกกลุ่มสาระ / หน่วยงาน</option>
               </select>
             </div>
 
             <!-- Right Action Buttons -->
-            <div class="admin-action-group" style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-              <button class="btn btn-danger" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none; align-items: center; gap: 7px; background: #ef4444; color: white; white-space: nowrap; height: 36px; border-radius: 8px; font-weight: 600; font-size: 12.5px; border: none; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); cursor: pointer; transition: all 0.2s ease;">
+            <div class="admin-toolbar-right">
+              <button class="btn btn-danger" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none; align-items: center; gap: 7px; background: #ef4444; color: white; white-space: nowrap; height: 38px; border-radius: 8px; font-weight: 600; font-size: 13px; border: none; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); cursor: pointer; transition: all 0.2s ease;">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                 <span id="batchDeleteUsersCountText">ลบที่เลือก (0)</span>
               </button>
-              <button class="btn btn-secondary" onclick="openBatchAddUsersModal()" style="display: flex; align-items: center; gap: 6px; white-space: nowrap; height: 36px; border-radius: 8px; font-weight: 600; font-size: 12.5px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #334155;">
+              <button class="btn btn-secondary btn-admin-action" onclick="openBatchAddUsersModal()">
                 <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #16a34a;"></i>
                 <span>นำเข้าข้อมูล</span>
               </button>
-              <button class="btn btn-primary" onclick="openInviteUserModal()" style="display: flex; align-items: center; gap: 6px; background: #0f172a; color: #ffffff; white-space: nowrap; height: 36px; border-radius: 8px; font-weight: 600; font-size: 12.5px; border: none; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);">
+              <button class="btn btn-primary btn-admin-action btn-add-user" onclick="openInviteUserModal()">
                 <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
                 <span>เพิ่มผู้ใช้งาน / ครู</span>
               </button>
