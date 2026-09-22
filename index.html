@@ -5009,158 +5009,168 @@
             </div>
           </div>
           
-          <!-- Tab 4: คู่มือระบบ (Collapsible Dropdown Accordion) -->
+          <!-- Tab 4: คู่มือระบบ -->
           <div id="help-tab-4" class="help-content" style="display: none;">
-            <p style="margin: 0 0 12px 0; color: var(--text-muted); font-size: 13px;">
-              คลิกที่หัวข้อเพื่อเปิดดูขั้นตอนการใช้งานระบบอย่างละเอียด
-            </p>
-
-            <!-- Item 1: การจองห้องแล็บ -->
-            <details class="help-accordion-item">
-              <summary class="help-accordion-header">
-                <span style="display: flex; align-items: center; gap: 8px;">
-                  <i data-lucide="calendar" style="width: 16px; height: 16px; color: var(--primary-color);"></i>
-                  <span>1. การจองห้องปฏิบัติการ (Lab Booking)</span>
-                </span>
-                <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
-              </summary>
-              <div class="help-accordion-body">
-                <p style="margin: 0 0 8px 0; color: #1e293b; font-weight: 500; font-size: 12.5px;">
-                  สำหรับครูและนักเรียนที่ต้องการใช้งานห้องแล็บเพื่อการเรียนการสอนหรือทำโครงงาน
-                </p>
-                <ol style="margin: 0; padding-left: 18px; line-height: 1.65; font-size: 12.5px; color: #475569;">
-                  <li><strong>เลือกห้องและวันเวลา:</strong> เข้าเมนู <em>"จองห้องปฏิบัติการ"</em> ตรวจสอบตารางปฏิทิน แล้วเลือกห้องแล็บพร้อมช่วงเวลาที่ยังว่างอยู่</li>
-                  <li><strong>ระบุรายละเอียด:</strong> กรอกชื่อผู้จอง วัตถุประสงค์การทดลอง และระบุรายการสารเคมีหรืออุปกรณ์ที่ต้องการให้ห้องแล็บเตรียมไว้ล่วงหน้า</li>
-                  <li><strong>ส่งคำขอและรออนุมัติ:</strong> เมื่อกดยืนยัน ระบบจะส่งการแจ้งเตือนไปยังครูผู้ดูแลทันที เมื่อได้รับการอนุมัติ สถานะจะเปลี่ยนเป็น <em>"อนุมัติแล้ว (Approved)"</em></li>
-                </ol>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- Card 1: การจองห้องแล็บ -->
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(124, 58, 237, 0.12); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="calendar-check" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span>1. การจองห้องปฏิบัติการ (Lab Booking)</span>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #ede9fe; color: #6d28d9; border-radius: 6px;">ครู / ผู้ใช้</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #475569; line-height: 1.6;">
+                  <div>• <strong>เลือกห้อง & วันเวลา:</strong> เข้าเมนู <em>"จองห้องปฏิบัติการ"</em> ดูตารางปฏิทิน แล้วเลือกห้องและคาบเรียนที่ยังว่าง</div>
+                  <div>• <strong>ระบุสารเคมี/อุปกรณ์:</strong> กรอกชื่อผู้จอง วัตถุประสงค์ และระบุรายการพัสดุที่ต้องการให้จัดเตรียมล่วงหน้า</div>
+                  <div>• <strong>อนุมัติการใช้งาน:</strong> เมื่อกดยืนยัน เจ้าหน้าที่ L2/L3 จะได้รับแจ้งเตือนและอนุมัติการเข้าใช้งาน</div>
+                </div>
               </div>
-            </details>
 
-            <!-- Item 2: การเบิก-ยืมพัสดุ -->
-            <details class="help-accordion-item">
-              <summary class="help-accordion-header">
-                <span style="display: flex; align-items: center; gap: 8px;">
-                  <i data-lucide="clipboard-list" style="width: 16px; height: 16px; color: var(--primary-color);"></i>
-                  <span>2. การเบิก-ยืมพัสดุและสารเคมี (Borrowing & Request)</span>
-                </span>
-                <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
-              </summary>
-              <div class="help-accordion-body">
-                <p style="margin: 0 0 8px 0; color: #1e293b; font-weight: 500; font-size: 12.5px;">
-                  สำหรับการยืมอุปกรณ์วิทยาศาสตร์ เครื่องแก้ว หรือเบิกใช้สารเคมี
-                </p>
-                <ol style="margin: 0; padding-left: 18px; line-height: 1.65; font-size: 12.5px; color: #475569;">
-                  <li><strong>ค้นหาพัสดุ:</strong> เข้าเมนู <em>"ยืม-คืนพัสดุ"</em> พิมพ์ค้นหาชื่อสารเคมีหรืออุปกรณ์ที่ต้องการจากคลัง</li>
-                  <li><strong>เลือกรายการและกำหนดวันส่งคืน:</strong> ระบุจำนวนที่ต้องการใช้ กำหนดวันส่งคืนพัสดุ และชื่ออาจารย์ที่ปรึกษาการทดลอง</li>
-                  <li><strong>กดยื่นคำขอยืม:</strong> เพื่อส่งคำขอให้อาจารย์หรือแอดมินพิจารณา เมื่อได้รับการอนุมัติ ระบบจะตัดสต็อกคงเหลือและบันทึกประวัติให้อัตโนมัติ</li>
-                </ol>
+              <!-- Card 2: การเบิก-ยืมพัสดุ -->
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(59, 130, 246, 0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="clipboard-list" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span>2. การเบิก-ยืมพัสดุและสารเคมี (Borrowing & Return)</span>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #dbeafe; color: #1e40af; border-radius: 6px;">ตัดสต็อกอัตโนมัติ</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #475569; line-height: 1.6;">
+                  <div>• <strong>ค้นหาพัสดุในคลัง:</strong> ค้นหาชื่อสารเคมีหรือเครื่องแก้ว กำหนดจำนวนและวันที่ต้องการส่งคืน</div>
+                  <div>• <strong>ยื่นคำขอยืม:</strong> ระบบจะส่งคำขอและตัดยอดคงเหลือในคลังสารเคมีแบบ Real-time</div>
+                  <div>• <strong>ส่งคืนพัสดุ:</strong> ตรวจสอบสภาพอุปกรณ์ก่อนกดรับคืน หรือบันทึกยอดชำรุดหากมีความเสียหาย</div>
+                </div>
               </div>
-            </details>
 
-            <!-- Item 3: การตรวจนับสต็อก -->
-            <details class="help-accordion-item">
-              <summary class="help-accordion-header">
-                <span style="display: flex; align-items: center; gap: 8px;">
-                  <i data-lucide="qr-code" style="width: 16px; height: 16px; color: var(--primary-color);"></i>
-                  <span>3. การตรวจนับสต็อกและสแกน QR Code (Inventory & QR Scan)</span>
-                </span>
-                <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
-              </summary>
-              <div class="help-accordion-body">
-                <p style="margin: 0 0 8px 0; color: #1e293b; font-weight: 500; font-size: 12.5px;">
-                  สำหรับการตรวจสอบจำนวนคงเหลือ ตำแหน่งจัดเก็บ และวันหมดอายุ
-                </p>
-                <ol style="margin: 0; padding-left: 18px; line-height: 1.65; font-size: 12.5px; color: #475569;">
-                  <li><strong>ตรวจสอบผ่านหน้าเว็บ:</strong> เข้าเมนู <em>"คลังสารเคมีและอุปกรณ์"</em> เพื่อดูรายการทั้งหมด สามารถกรองตามห้องปฏิบัติการ ตู้จัดเก็บ หรือชั้นวางได้</li>
-                  <li><strong>สแกนด้วยโทรศัพท์มือถือ:</strong> ใช้กล้องมือถือสแกน <strong>QR Code</strong> ที่ติดอยู่หน้าตู้จัดเก็บหรือข้างขวดสารเคมี เพื่อเปิดดูข้อมูลได้ทันที</li>
-                  <li><strong>อัปเดตจำนวนจริง:</strong> แก้ไขจำนวนคงเหลือหลังการใช้งาน หรือกดรับเข้าพัสดุใหม่เพื่อรักษายอดสต็อกให้ตรงกับความเป็นจริงอยู่เสมอ</li>
-                </ol>
+              <!-- Card 3: การตรวจนับสต็อก & สแกน QR Code -->
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(16, 185, 129, 0.12); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="qr-code" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span>3. การตรวจนับสต็อกและสแกน QR Code (Inventory & QR)</span>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #d1fae5; color: #065f46; border-radius: 6px;">สแกนมือถือ</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: #475569; line-height: 1.6;">
+                  <div>• <strong>สแกนผ่านกล้องมือถือ:</strong> สแกน QR Code ข้างขวดหรือหน้าตู้เพื่อดูยอดคงเหลือและตำแหน่งจัดเก็บ</div>
+                  <div>• <strong>พิมพ์สติกเกอร์ฉลาก:</strong> เจ้าหน้าที่ L2+ สามารถกดพิมพ์ฉลากบาร์โค้ด QR Code ติดขวดสารใหม่ได้ทันที</div>
+                  <div>• <strong>อัปเดตยอดคงเหลือ:</strong> บันทึกการรับเข้า หรือแก้ไขจุดเตือนขั้นต่ำ (Min Alert) เพื่อป้องกันของหมดคลัง</div>
+                </div>
               </div>
-            </details>
+            </div>
           </div>
           
           <!-- Tab 5: แจ้งปัญหา -->
           <div id="help-tab-5" class="help-content" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <h4 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: #1e293b;">
-                <i data-lucide="phone-call" style="width: 16px; height: 16px; color: #ef4444;"></i> เบอร์ติดต่อฉุกเฉินประจำห้องแล็บ
-              </h4>
-              <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px; background: #ede9fe; color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.2); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 500;" onclick="toggleEmergencyContactEdit(true)">
-                <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> แก้ไขข้อมูล
-              </button>
-            </div>
-
-            <!-- View Mode (Modern Clean Cards Grid) -->
-            <div id="emergencyContactsView" style="margin-bottom: 16px;">
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px;">
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
-                  <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
-                  </div>
-                  <div style="min-width: 0;">
-                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">ผู้ดูแลระบบ (Admin)</div>
-                    <div id="dispContactAdmin" style="font-size: 12.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร ด้วงเกลี้ยง)</div>
-                  </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- Emergency Contacts Top Bar -->
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 13.5px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="phone-call" style="width: 16px; height: 16px; color: #ef4444;"></i>
+                  <span>เบอร์ติดต่อฉุกเฉินประจำห้องแล็บ (Emergency Contacts)</span>
                 </div>
-
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
-                  <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="heart-pulse" style="width: 16px; height: 16px;"></i>
-                  </div>
-                  <div style="min-width: 0;">
-                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">ห้องพยาบาล</div>
-                    <div id="dispContactNurse" style="font-size: 12.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: ยังไม่ระบุ</div>
-                  </div>
-                </div>
-
-                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
-                  <div style="width: 32px; height: 32px; border-radius: 6px; background: rgba(239, 68, 68, 0.1); color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="flame" style="width: 16px; height: 16px;"></i>
-                  </div>
-                  <div style="min-width: 0;">
-                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">แจ้งเหตุเพลิงไหม้ / ฉุกเฉิน</div>
-                    <div id="dispContactFire" style="font-size: 12.5px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Edit Mode (Inline Admin Edit) -->
-            <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;">
-              <div style="font-size: 12px; font-weight: 600; color: #7c3aed; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="shield" style="width: 14px; height: 14px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน (เฉพาะแอดมิน/เจ้าหน้าที่)
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
-                <div>
-                  <label style="font-size: 11.5px; color: #64748b; margin-bottom: 2px; display: block;">เบอร์แอดมิน / ผู้ดูแล</label>
-                  <input type="text" id="inputContactAdmin" class="form-control" style="font-size: 12.5px; padding: 5px 8px;" placeholder="เช่น แอดมิน (ม.วงศกร ด้วงเกลี้ยง): 08x-xxx-xxxx หรือห้องพักครู" />
-                </div>
-                <div>
-                  <label style="font-size: 11.5px; color: #64748b; margin-bottom: 2px; display: block;">เบอร์ห้องพยาบาล</label>
-                  <input type="text" id="inputContactNurse" class="form-control" style="font-size: 12.5px; padding: 5px 8px;" placeholder="เช่น ห้องพยาบาล: อาคาร 1 ชั้น 1 (เบอร์ภายใน 104)" />
-                </div>
-                <div>
-                  <label style="font-size: 11.5px; color: #64748b; margin-bottom: 2px; display: block;">เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย</label>
-                  <input type="text" id="inputContactFire" class="form-control" style="font-size: 12.5px; padding: 5px 8px;" placeholder="เช่น แจ้งเหตุเพลิงไหม้: 199 หรือ 02-xxx-xxxx" />
-                </div>
-              </div>
-              <div style="display: flex; gap: 8px;">
-                <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px;" onclick="saveEmergencyContacts()">
-                  <i data-lucide="check" style="width: 13px; height: 13px;"></i> บันทึกข้อมูล
-                </button>
-                <button type="button" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 4px 10px;" onclick="toggleEmergencyContactEdit(false)">
-                  ยกเลิก
+                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px; background: #ede9fe; color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.2); cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 500;" onclick="toggleEmergencyContactEdit(true)">
+                  <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> แก้ไขข้อมูล
                 </button>
               </div>
-            </div>
 
-            <h4 style="margin: 0 0 8px 0; font-size: 13.5px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="message-square" style="width: 15px; height: 15px; color: var(--primary-color);"></i> ส่ง Feedback หรือแจ้งปัญหา
-            </h4>
-            <form style="display: flex; flex-direction: column; gap: 10px;">
-              <textarea id="feedbackInput" class="form-control" rows="3" style="font-size: 12.5px; border-radius: 8px;" placeholder="อธิบายปัญหาที่คุณพบในการใช้งานระบบ..."></textarea>
-              <button type="button" class="btn btn-primary btn-sm" style="align-self: flex-start; padding: 6px 14px; font-size: 12.5px; border-radius: 6px;" onclick="submitUserFeedback()">ส่งข้อความ</button>
-            </form>
+              <!-- View Mode (Modern Clean 3-Column Cards Grid) -->
+              <div id="emergencyContactsView">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <div style="min-width: 0;">
+                      <div style="font-size: 11px; font-weight: 600; color: #64748b;">ผู้ดูแลระบบ (Admin)</div>
+                      <div id="dispContactAdmin" style="font-size: 12px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร ด้วงเกลี้ยง)</div>
+                    </div>
+                  </div>
+
+                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="heart-pulse" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <div style="min-width: 0;">
+                      <div style="font-size: 11px; font-weight: 600; color: #64748b;">ห้องพยาบาล</div>
+                      <div id="dispContactNurse" style="font-size: 12px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: ยังไม่ระบุ</div>
+                    </div>
+                  </div>
+
+                  <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 30px; height: 30px; border-radius: 6px; background: rgba(239, 68, 68, 0.1); color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="flame" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <div style="min-width: 0;">
+                      <div style="font-size: 11px; font-weight: 600; color: #64748b;">แจ้งเหตุเพลิงไหม้ / ฉุกเฉิน</div>
+                      <div id="dispContactFire" style="font-size: 12px; font-weight: 600; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Edit Mode (Inline Admin Edit) -->
+              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 12px 14px;">
+                <div style="font-size: 12px; font-weight: 600; color: #7c3aed; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="shield" style="width: 14px; height: 14px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน (เฉพาะแอดมิน/เจ้าหน้าที่)
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+                  <div>
+                    <label style="font-size: 11.5px; color: #64748b; margin-bottom: 2px; display: block;">เบอร์แอดมิน / ผู้ดูแล</label>
+                    <input type="text" id="inputContactAdmin" class="form-control" style="font-size: 12.5px; padding: 5px 8px;" placeholder="เช่น แอดมิน (ม.วงศกร ด้วงเกลี้ยง): 08x-xxx-xxxx หรือห้องพักครู" />
+                  </div>
+                  <div>
+                    <label style="font-size: 11.5px; color: #64748b; margin-bottom: 2px; display: block;">เบอร์ห้องพยาบาล</label>
+                    <input type="text" id="inputContactNurse" class="form-control" style="font-size: 12.5px; padding: 5px 8px;" placeholder="เช่น ห้องพยาบาล: อาคาร 1 ชั้น 1 (เบอร์ภายใน 104)" />
+                  </div>
+                  <div>
+                    <label style="font-size: 11.5px; color: #64748b; margin-bottom: 2px; display: block;">เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย</label>
+                    <input type="text" id="inputContactFire" class="form-control" style="font-size: 12.5px; padding: 5px 8px;" placeholder="เช่น แจ้งเหตุเพลิงไหม้: 199 หรือ 02-xxx-xxxx" />
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px;" onclick="saveEmergencyContacts()">
+                    <i data-lucide="check" style="width: 13px; height: 13px;"></i> บันทึกข้อมูล
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 4px 10px;" onclick="toggleEmergencyContactEdit(false)">
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+
+              <!-- Feedback Form Card (Clean & Matching Tab 1-3) -->
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(124, 58, 237, 0.12); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="message-square-plus" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span>ส่ง Feedback หรือแจ้งปัญหาการใช้งาน</span>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #ede9fe; color: #6d28d9; border-radius: 6px;">ช่วยเหลือ & แนะนำ</span>
+                </div>
+                <p style="margin: 0 0 8px 0; font-size: 12px; line-height: 1.5; color: #64748b;">
+                  หากพบข้อผิดพลาด ต้องการสอบถาม หรือมีข้อเสนอแนะในการพัฒนาระบบ สามารถพิมพ์ข้อความส่งถึงผู้ดูแลระบบได้ทันที
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <textarea id="feedbackInput" class="form-control" rows="2" style="font-size: 12.5px; border-radius: 8px; padding: 7px 10px; resize: vertical; min-height: 48px; background: #ffffff;" placeholder="อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ..."></textarea>
+                  <div style="display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px; font-size: 12.5px; border-radius: 6px; background: var(--primary-purple); box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);" onclick="submitUserFeedback()">
+                      <i data-lucide="send" style="width: 13px; height: 13px;"></i>
+                      <span>ส่งข้อความ</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Tab 6: ผู้พัฒนาระบบ -->
