@@ -7976,6 +7976,20 @@ function setupLoginHandlers() {
     });
   }
 
+  // Clear error message on typing
+  const usernameInput = document.getElementById("loginUsername");
+  const errorMsg = document.getElementById("loginErrorMsg");
+  if (usernameInput && errorMsg) {
+    usernameInput.addEventListener("input", () => {
+      errorMsg.style.display = "none";
+    });
+  }
+  if (loginPasswordInput && errorMsg) {
+    loginPasswordInput.addEventListener("input", () => {
+      errorMsg.style.display = "none";
+    });
+  }
+
   // Password visibility toggle
   if (btnTogglePassword && loginPasswordInput && eyeIcon) {
     btnTogglePassword.addEventListener("click", (e) => {
