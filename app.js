@@ -391,7 +391,7 @@ if (typeof supabase !== 'undefined' && supabaseUrl !== 'YOUR_SUPABASE_URL') {
 const API_BASE = "http://localhost:3000/api";
 const GOOGLE_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
 
-function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
+async function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
   if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) return;
   try {
     const payload = {
@@ -400,7 +400,7 @@ function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
       keyField: keyField,
       data: data
     };
-    fetch(GOOGLE_SCRIPT_WEBAPP_URL, {
+    await fetch(GOOGLE_SCRIPT_WEBAPP_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -456,13 +456,14 @@ async function syncAllToGoogleSheets(silent = false) {
       if (Array.isArray(sheetBookings) && sheetBookings.length > 0) {
         const validSheetBookings = sheetBookings
           .filter(b => {
-            if (!b) return false;
+            if (!b || !b.id) return false;
+            if (b.id.startsWith("book_mock") || b.id.startsWith("test_booking") || b.id.startsWith("book_20260711") || b.id.startsWith("book_20260713")) return false;
             const hasDate = b.date && String(b.date).trim() !== "" && String(b.date).trim() !== "-";
             const hasBooker = (b.bookerName && String(b.bookerName).trim() !== "" && String(b.bookerName).trim() !== "-") ||
                               (b.teacherName && String(b.teacherName).trim() !== "" && String(b.teacherName).trim() !== "-");
             const hasPurpose = (b.purpose && String(b.purpose).trim() !== "" && String(b.purpose).trim() !== "-") ||
                                (b.activity && String(b.activity).trim() !== "" && String(b.activity).trim() !== "-");
-            return hasDate && (hasBooker || hasPurpose || (b.id && !b.id.startsWith("book_mock_")));
+            return hasDate && (hasBooker || hasPurpose);
           })
           .map(b => {
             const normDate = normalizeDateStr(b.date);
@@ -482,7 +483,7 @@ async function syncAllToGoogleSheets(silent = false) {
             if (count === "-") count = "";
 
             return {
-              id: b.id || ("book_" + Date.now() + "_" + Math.random().toString(36).substr(2, 6)),
+              id: b.id,
               room: cleanRoom,
               date: normDate,
               slot: (b.slot && b.slot !== "-") ? b.slot : "คาบ 1",
@@ -520,56 +521,61 @@ async function syncAllToGoogleSheets(silent = false) {
 
     // 2. Clean obsolete mock demo bookings, users, and transactions from Google Sheets
     const obsoleteMockIds = ["1001", "1002", "2001", "2002", "3001", "4001", "10797"];
-    obsoleteMockIds.forEach(tId => {
-      syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: tId, id: `u_${tId}` }, 'teacherId');
-    });
+    for (const tId of obsoleteMockIds) {
+      await syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: tId, id: `u_${tId}` }, 'teacherId');
+      await new Promise(r => setTimeout(r, 40));
+    }
     const mockTxIds = ["tx-mock-pending-001", "tx-mock-001", "tx-mock-002", "tx-mock-003", "tx-mock-004", "tx-mock-005", "tx-mock-006"];
-    mockTxIds.forEach(tId => {
-      syncToGoogleSheetsDirect('Transactions', 'DELETE', { id: tId }, 'id');
-    });
+    for (const tId of mockTxIds) {
+      await syncToGoogleSheetsDirect('Transactions', 'DELETE', { id: tId }, 'id');
+      await new Promise(r => setTimeout(r, 40));
+    }
     const mockBkIds = ["book_mock_today_01", "book_mock_today_02", "book_mock_today_03", "book_mock_today_04", "book_mock_today_05", "book_mock_01", "book_mock_02", "book_mock_03", "book_mock_04", "book_mock_05", "book_mock_06", "book_mock_07", "book_mock_08", "book_mock_09", "book_mock_10", "book_mock_11", "book_mock_12", "book_mock_13", "book_mock_14", "book_mock_15", "book_mock_16", "book_mock_17", "book_mock_18", "test_booking_001", "test_booking_002", "test_booking_003", "test_booking_004", "book_mock_002", "book_20260713141205", "book_20260713141242", "book_20260711141205"];
-    mockBkIds.forEach(bId => {
-      syncToGoogleSheetsDirect('Bookings', 'DELETE', { id: bId }, 'id');
-    });
+    for (const bId of mockBkIds) {
+      await syncToGoogleSheetsDirect('Bookings', 'DELETE', { id: bId }, 'id');
+      await new Promise(r => setTimeout(r, 40));
+    }
 
-    // 3. Sync active Users
+    // 3. Sync active Users sequentially
     const activeUsers = (typeof adminUsers !== 'undefined' && Array.isArray(adminUsers) && adminUsers.length > 0) ? adminUsers : DEFAULT_RBAC_USERS;
-    activeUsers.forEach(u => {
+    for (const u of activeUsers) {
       const sheetUser = { ...u };
       delete sheetUser.password;
-      syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
-    });
+      await syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
+      await new Promise(r => setTimeout(r, 80));
+    }
 
-    // 4. Sync all Items
+    // 4. Sync all Items sequentially
     if (typeof items !== 'undefined' && Array.isArray(items) && items.length > 0) {
-      items.forEach(it => {
-        syncToGoogleSheetsDirect('Items', 'UPSERT', it, 'code');
-      });
+      for (const it of items) {
+        await syncToGoogleSheetsDirect('Items', 'UPSERT', it, 'code');
+        await new Promise(r => setTimeout(r, 40));
+      }
     }
 
     // 5. Sync Transactions
     if (typeof transactions !== 'undefined' && Array.isArray(transactions) && transactions.length > 0) {
-      transactions.forEach(tx => {
-        syncToGoogleSheetsDirect('Transactions', 'UPSERT', tx, 'id');
-      });
+      for (const tx of transactions) {
+        await syncToGoogleSheetsDirect('Transactions', 'UPSERT', tx, 'id');
+        await new Promise(r => setTimeout(r, 40));
+      }
     }
 
     // 6. Push Bookings to Google Sheets
     if (typeof bookings !== 'undefined' && Array.isArray(bookings) && bookings.length > 0) {
-      bookings.forEach(bk => {
-        syncToGoogleSheetsDirect('Bookings', 'UPSERT', bk, 'id');
-      });
+      for (const bk of bookings) {
+        await syncToGoogleSheetsDirect('Bookings', 'UPSERT', bk, 'id');
+        await new Promise(r => setTimeout(r, 60));
+      }
     }
 
     // 7. Sync Purchase Orders
     if (typeof purchaseOrders !== 'undefined' && Array.isArray(purchaseOrders) && purchaseOrders.length > 0) {
-      purchaseOrders.forEach(po => {
-        syncToGoogleSheetsDirect('Purchase_Orders', 'UPSERT', po, 'id');
-      });
+      for (const po of purchaseOrders) {
+        await syncToGoogleSheetsDirect('Purchase_Orders', 'UPSERT', po, 'id');
+        await new Promise(r => setTimeout(r, 40));
+      }
     }
-
-    // Brief delay to allow dispatches to fire cleanly
-    await new Promise(resolve => setTimeout(resolve, 600));
 
     // Refresh UI components
     if (typeof renderBookingsTable === 'function') renderBookingsTable();
@@ -588,9 +594,9 @@ async function syncAllToGoogleSheets(silent = false) {
           icon: 'success',
           title: 'ซิงค์ข้อมูล Google Sheets สำเร็จ!',
           html: `<div style="font-size:13.5px; color:#334155; line-height:1.7; text-align:left;">
-            <p>✅ ซิงค์รายการจองห้องปฏิบัติการ <b>${bookings.length} รายการ</b> (จากชีท <b>3.Bookings</b>)</p>
-            <p>✅ อัปเดตรายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> (ชีท <b>5.Users</b>)</p>
-            <p>✅ อัปเดตรายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> (ชีท <b>1.Items</b>)</p>
+            <p>✅ ซิงค์รายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> (ชีท <b>5.Users</b>)</p>
+            <p>✅ ซิงค์รายการจองห้องปฏิบัติการ <b>${bookings.length} รายการ</b> (ชีท <b>3.Bookings</b>)</p>
+            <p>✅ ซิงค์รายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> (ชีท <b>1.Items</b>)</p>
             <p>✅ ซิงค์ประวัติธุรกรรมและการสั่งซื้อเรียบร้อยแล้ว</p>
           </div>`,
           showConfirmButton: true,
