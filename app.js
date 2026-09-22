@@ -5993,6 +5993,22 @@ function injectTestBookings() {
   }
 }
 
+// Helper: Format & Sanitize Booking Object to match Supabase Cloud table schema exactly
+function formatBookingForSupabase(b) {
+  if (!b) return null;
+  return {
+    id: String(b.id),
+    room: String(b.room || "Lab 1"),
+    date: normalizeDateStr(b.date),
+    slot: String(b.slot || ""),
+    bookerName: String(b.bookerName || b.teacherName || ""),
+    purpose: String(b.purpose || b.activity || ""),
+    prepItems: Array.isArray(b.prepItems) ? b.prepItems : [],
+    status: String(b.status || "approved"),
+    createdAt: b.createdAt || new Date().toISOString()
+  };
+}
+
 // ==========================================================================
 // OFFLINE SYNC QUEUE & RESILIENT STORAGE PIPELINE (Supabase -> Google Sheets -> LocalStorage)
 // ==========================================================================
@@ -6028,7 +6044,8 @@ async function flushOfflineBookingQueue() {
     // 1. Supabase Cloud Sync
     if (isSupabaseOnline) {
       try {
-        const { error } = await supabase.from("bookings").upsert(b);
+        const payload = formatBookingForSupabase(b);
+        const { error } = await supabase.from("bookings").upsert(payload);
         if (!error) synced = true;
       } catch (e) {}
     }
@@ -6078,9 +6095,11 @@ async function saveBooking(bookingData) {
   // 2. [ลำดับที่ 1] Supabase Cloud (Primary Realtime Database สำหรับซิงค์ไปทุกเครื่อง)
   if (navigator.onLine && isSupabaseOnline) {
     try {
-      const { error } = await supabase.from("bookings").upsert(bookingData);
+      const supaPayload = formatBookingForSupabase(bookingData);
+      const { error } = await supabase.from("bookings").upsert(supaPayload);
       if (!error) {
         isSavedRemotely = true;
+        console.log("🔥 Successfully synced booking to Supabase Cloud:", supaPayload.id);
       } else {
         console.warn("🔥 Supabase save booking error notice:", error.message);
       }
@@ -6124,7 +6143,8 @@ async function updateBookingStatus(bookingId, status) {
 
   if (navigator.onLine && isSupabaseOnline) {
     try {
-      const { error } = await supabase.from("bookings").upsert(updatedBooking);
+      const supaPayload = formatBookingForSupabase(updatedBooking);
+      const { error } = await supabase.from("bookings").upsert(supaPayload);
       if (error) {
         console.warn("🔥 Supabase update booking status notice:", error.message);
       }
