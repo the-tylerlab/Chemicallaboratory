@@ -5265,10 +5265,11 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .cabinet-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
   border-bottom: 1.5px solid var(--border-color);
-  padding-bottom: 10px;
+  padding: 16px 20px;
 }
 
 .cabinet-title-group {
@@ -6551,10 +6552,11 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .cabinet-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px dashed var(--border-color);
-  padding-bottom: 12px;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 20px;
 }
 
 .cabinet-title-group {
