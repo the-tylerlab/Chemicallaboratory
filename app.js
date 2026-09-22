@@ -7725,7 +7725,7 @@ window.openLoginModal = function() {
         setTimeout(() => usernameInput.focus(), 50);
       }
       if (loginPasswordInput) loginPasswordInput.value = "";
-      if (rememberCheckbox) rememberCheckbox.checked = true;
+      if (rememberCheckbox) rememberCheckbox.checked = false;
     } else {
       if (loginPasswordInput && !loginPasswordInput.value) {
         setTimeout(() => loginPasswordInput.focus(), 50);
@@ -7755,7 +7755,7 @@ function setupLoginHandlers() {
 
   const saveOrClearSavedCredentials = (uname, pwd) => {
     const rememberCheckbox = document.getElementById("loginRememberMe");
-    const shouldSave = rememberCheckbox ? rememberCheckbox.checked : true;
+    const shouldSave = rememberCheckbox ? rememberCheckbox.checked : false;
     if (shouldSave) {
       try {
         localStorage.setItem("lab_saved_credentials", JSON.stringify({
