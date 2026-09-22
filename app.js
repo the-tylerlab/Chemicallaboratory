@@ -3996,13 +3996,22 @@ function setupImportModal() {
 function downloadCSVTemplate() {
   const instructions = [
     "# คู่มือการอ้างอิงข้อมูลของระบบสำหรับนำเข้าไฟล์ (System Import Reference Guide)",
-    "# 1. คอลัมน์ที่จำเป็นต้องระบุ (ต้องไม่เว้นว่าง): รหัส, ชื่อ, หมวดหมู่, จำนวน, หน่วย",
-    "# 2. หมวดหมู่* (ต้องตรงตามค่าใดค่าหนึ่ง): สารเคมี | อุปกรณ์วิทยาศาสตร์ | เครื่องแก้ว | วัสดุสิ้นเปลือง",
-    "# 3. หน่วย* (เช่น): ขวด | เครื่อง | ชิ้น | อัน | กล่อง | หลอด | แกลลอน | ใบ | ชุด",
-    "# 4. วันหมดอายุ(YYYY-MM-DD): ปี-เดือน-วัน ค.ศ. เช่น 2027-08-20 (เว้นว่างได้ถ้าไม่มี)",
-    "# 5. ห้อง (ตรงตามระบบ): ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ (หรือ Lab 1) | ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์ (หรือ Lab 2) | ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์ (หรือ Lab 3) | นอกห้องปฏิบัติการ (หรือ None)",
-    "# 6. ประเภทสารเคมี (กลุ่มความเข้ากันได้ SHECU): A (เบสอินทรีย์) | B (ทำปฏิกิริยากับน้ำ) | C (เบสอนินทรีย์) | D (กรดอินทรีย์) | E (ออกซิไดเซอร์อนินทรีย์) | F (กรดอนินทรีย์) | G (เคมีทั่วไป) | I (ออกซิไดเซอร์ที่เป็นกรดแก่) | K (สารระเบิดได้) | L (สารไวไฟ/ตัวทำละลาย) | X (สารไม่เข้ากันกับกลุ่มใดเลย)",
-    "# 7. คอลัมน์ GHS (ระเบิดได้ - ภัยสิ่งแวดล้อม): ให้ใส่ Y หรือ 1 หรือ x เพื่อเลือกใช้สัญลักษณ์ความปลอดภัย GHS นั้นๆ (เว้นว่างหากไม่เกี่ยวข้อง)"
+    "# 1. คอลัมน์ที่จำเป็นต้องระบุ (ห้ามเว้นว่าง): รหัส*, ชื่อ*, หมวดหมู่*, จำนวน*, หน่วย*",
+    "# 2. หมวดหมู่* (ต้องระบุตามนี้): สารเคมี | อุปกรณ์วิทยาศาสตร์ | เครื่องแก้ว | วัสดุสิ้นเปลือง",
+    "# 3. หน่วย* (ตัวอย่าง): ขวด | เครื่อง | ชิ้น | อัน | กล่อง | หลอด | แกลลอน | ใบ | ชุด | ม้วน | แพ็ค | ลิตร | มล. | กรัม | กก.",
+    "# 4. วันหมดอายุ: รองรับทั้ง YYYY-MM-DD (เช่น 2027-08-20) หรือ DD/MM/YYYY (เช่น 20/08/2027) (เว้นว่างได้ถ้าไม่มีวันหมดอายุ)",
+    "# 5. ห้อง (ระบุตามชื่อระบบหรือรหัสย่อ):",
+    "#    - Lab 1 หรือ ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ",
+    "#    - Lab 2 หรือ ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์",
+    "#    - Lab 3 หรือ ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์",
+    "#    - Lab 4 หรือ ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล",
+    "#    - Lab 5 หรือ ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล",
+    "#    - Lab 6 หรือ ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ",
+    "#    - Lab 7 หรือ ห้องศูนย์ STEM CENTER",
+    "#    - Lab 8 หรือ ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่",
+    "#    - None หรือ นอกห้องปฏิบัติการ",
+    "# 6. ประเภทสารเคมี (กลุ่มความเข้ากันได้ SHECU สำหรับสารเคมี): A (เบสอินทรีย์) | B (ทำปฏิกิริยากับน้ำ) | C (เบสอนินทรีย์) | D (กรดอินทรีย์) | E (ออกซิไดเซอร์อนินทรีย์) | F (กรดอนินทรีย์) | G (เคมีทั่วไป) | I (ออกซิไดเซอร์ที่เป็นกรดแก่) | K (สารระเบิดได้) | L (สารไวไฟ/ตัวทำละลาย) | X (สารไม่เข้ากันกับกลุ่มใดเลย)",
+    "# 7. คอลัมน์ GHS (ระเบิดได้ ถึง ภัยสิ่งแวดล้อม): ให้ใส่ Y หรือ 1 หรือ X ในช่องสัญลักษณ์ที่ตรงกับสารเคมีนั้น (เว้นว่างได้หากไม่เกี่ยวข้อง)"
   ];
   
   const headers = [
@@ -4030,26 +4039,47 @@ function downloadCSVTemplate() {
     "ภัยสุขภาพ(GHS)", 
     "ภัยสิ่งแวดล้อม(GHS)"
   ];
+
+  function escapeCsv(val) {
+    const s = String(val ?? '');
+    if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+      return `"${s.replace(/"/g, '""')}"`;
+    }
+    return s;
+  }
   
-  const sampleRow1 = [
-    "CHEM-005", "กรดอะซิติก (Acetic Acid)", "สารเคมี", "3", "ขวด", "0", "0", "1", "2027-08-20", "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ", "ตู้ B", "ชั้น 1", 
-    "D", "https://example.com/sds-acetic.pdf", "", "Y", "", "", "Y", "", "Y", "", ""
-  ];
-  const sampleRow2 = [
-    "EQ-002", "กล้องจุลทรรศน์แบบใช้แสง (Microscope)", "อุปกรณ์วิทยาศาสตร์", "4", "เครื่อง", "0", "0", "2", "", "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์", "ตู้เก็บอุปกรณ์", "ตู้ด้านซ้าย", 
-    "", "", "", "", "", "", "", "", "", "", ""
-  ];
-  const sampleRow3 = [
-    "GW-003", "บีกเกอร์ 250 มล. (Beaker 250ml)", "เครื่องแก้ว", "10", "ใบ", "1", "0", "5", "", "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์", "ตู้แก้ว A", "ชั้น 2", 
-    "", "", "", "", "", "", "", "", "", "", ""
+  const sampleRows = [
+    // 1. สารเคมี - กรดกัดกร่อน
+    [
+      "CHEM-001", "กรดไฮโดรคลอริก 37% (Hydrochloric Acid 37%)", "สารเคมี", "5", "ขวด", "0", "0", "2", "2027-12-31", "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ", "ตู้กรด-เบส AC-01", "ชั้น 1", 
+      "F", "https://example.com/sds-hcl.pdf", "", "", "", "", "Y", "Y", "", "", ""
+    ],
+    // 2. สารเคมี - ตัวทำละลายไวไฟ
+    [
+      "CHEM-002", "เอทานอล 95% (Ethanol 95%)", "สารเคมี", "10", "ขวด", "0", "0", "3", "2028-06-30", "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ", "ตู้สารไวไฟ FL-01", "ชั้น 2", 
+      "L", "https://example.com/sds-ethanol.pdf", "", "Y", "", "", "", "", "Y", "", ""
+    ],
+    // 3. อุปกรณ์วิทยาศาสตร์
+    [
+      "EQ-001", "เครื่องชั่งดิจิตอล 2 ตำแหน่ง (Digital Balance)", "อุปกรณ์วิทยาศาสตร์", "4", "เครื่อง", "0", "0", "1", "", "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์", "ตู้เครื่องมือวัด PHY-01", "ชั้น 1", 
+      "", "", "", "", "", "", "", "", "", "", ""
+    ],
+    // 4. เครื่องแก้ว
+    [
+      "GW-001", "บีกเกอร์ 250 มล. (Beaker 250 mL)", "เครื่องแก้ว", "24", "ใบ", "1", "0", "10", "", "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์", "ตู้เครื่องแก้ว GW-01", "ชั้น 3", 
+      "", "", "", "", "", "", "", "", "", "", ""
+    ],
+    // 5. วัสดุสิ้นเปลือง
+    [
+      "CS-001", "กระดาษลิตมัสสีน้ำเงิน (Blue Litmus Paper)", "วัสดุสิ้นเปลือง", "15", "กล่อง", "0", "0", "5", "", "ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล", "ตู้เก็บวัสดุสิ้นเปลือง CS-01", "ชั้น 2", 
+      "", "", "", "", "", "", "", "", "", "", ""
+    ]
   ];
   
   const csvContent = [
     ...instructions,
-    headers.join(","),
-    sampleRow1.join(","),
-    sampleRow2.join(","),
-    sampleRow3.join(",")
+    headers.map(escapeCsv).join(","),
+    ...sampleRows.map(row => row.map(escapeCsv).join(","))
   ].join("\n");
 
   // UTF-8 BOM
@@ -4065,7 +4095,69 @@ function downloadCSVTemplate() {
   tempLink.click();
   document.body.removeChild(tempLink);
   
-  showToast("ดาวน์โหลดไฟล์ Template เรียบร้อยแล้ว!");
+  showToast("ดาวน์โหลดไฟล์ Template สำหรับนำเข้าพัสดุและสารเคมีเรียบร้อยแล้ว!");
+}
+
+// Helper: Parse single CSV line handling quotes and commas properly
+function parseCSVLine(text) {
+  const result = [];
+  let field = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        field += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(field.trim());
+      field = '';
+    } else {
+      field += char;
+    }
+  }
+  result.push(field.trim());
+  return result;
+}
+
+// Helper: Normalize expiry dates (YYYY-MM-DD, DD/MM/YYYY, Buddhist Era)
+function normalizeExpiryDateStr(val) {
+  if (!val) return "";
+  let str = String(val).trim().replace(/^"|"$/g, '');
+  if (!str) return "";
+  
+  // Format DD/MM/YYYY or D/M/YYYY
+  const slashMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) {
+    let [_, d, m, y] = slashMatch;
+    let year = parseInt(y, 10);
+    if (year > 2400) year -= 543;
+    return `${year}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+
+  // Format DD-MM-YYYY or D-M-YYYY
+  const dashMatch = str.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (dashMatch) {
+    let [_, d, m, y] = dashMatch;
+    let year = parseInt(y, 10);
+    if (year > 2400) year -= 543;
+    return `${year}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+
+  // Format YYYY-MM-DD
+  const isoMatch = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (isoMatch) {
+    let [_, y, m, d] = isoMatch;
+    let year = parseInt(y, 10);
+    if (year > 2400) year -= 543;
+    return `${year}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  }
+
+  return str;
 }
 
 // Parse CSV text into arrays and push to local items
@@ -4090,7 +4182,7 @@ async function parseCSVAndImport(csvText) {
       continue; // Skip header row
     }
 
-    const cols = line.split(",").map(c => c.trim().replace(/^"|"$/g, ''));
+    const cols = parseCSVLine(line).map(c => c.replace(/^"|"$/g, '').trim());
 
     if (cols.length < 5) {
       errorCount++;
@@ -4105,7 +4197,7 @@ async function parseCSVAndImport(csvText) {
     const damagedQty = cols[5] ? Number(cols[5]) : 0;
     const repairQty = cols[6] ? Number(cols[6]) : 0;
     const minAlert = cols[7] ? Number(cols[7]) : null;
-    const expiry = cols[8] || "";
+    const expiry = normalizeExpiryDateStr(cols[8] || "");
     let room = cols[9] || "";
     const cabinet = cols[10] || "";
     const shelf = cols[11] || "";
