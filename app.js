@@ -1723,53 +1723,96 @@ function openReportIssueModal(defaultRoom = "") {
 
   const roomOptions = roomsList.map(r => `<option value="${r}" ${r === defaultRoom ? 'selected' : ''}>${r}</option>`).join("");
 
+  window.selectIssueCategory = function(btn, categoryText) {
+    document.querySelectorAll('.issue-category-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    const titleInput = document.getElementById("swalIssueTitle");
+    if (titleInput) {
+      titleInput.value = categoryText;
+      titleInput.focus();
+    }
+  };
+
   Swal.fire({
     customClass: {
       popup: 'report-issue-swal-modal'
     },
-    title: '<div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 17px; font-weight: 700; color: #1e293b;"><i data-lucide="message-square-plus" style="color: #7c3aed; width: 20px; height: 20px;"></i> <span>แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</span></div>',
+    showCloseButton: true,
     html: `
-      <div style="text-align: left; font-size: 13.5px; color: #334155; line-height: 1.4; display: flex; flex-direction: column; gap: 12px;">
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; font-size: 12.5px; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 26px; height: 26px; border-radius: 50%; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10.5px;">${(userName || "U").slice(0, 2).toUpperCase()}</div>
-            <span>ผู้แจ้ง: <b style="color: #1e293b;">${userName}</b></span>
+      <div class="report-issue-container">
+        <!-- Friendly Header -->
+        <div class="report-issue-header">
+          <div class="report-issue-icon-circle">
+            <i data-lucide="life-buoy" style="width: 22px; height: 22px; color: #7c3aed;"></i>
           </div>
-          <span class="badge" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px;">${userBadge.name} (${roleLevel})</span>
+          <div class="report-issue-title-wrap">
+            <h3 class="report-issue-title">แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</h3>
+            <p class="report-issue-subtitle">แจ้งปัญหาเพื่อให้เจ้าหน้าที่และผู้ดูแลเข้าตรวจสอบได้อย่างรวดเร็ว</p>
+          </div>
         </div>
-        
-        <div>
-          <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 5px; font-size: 12.5px; color: #475569;">
-            <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #7c3aed;"></i>
-            <span>สถานที่ / ห้องปฏิบัติการที่พบปัญหา:</span>
+
+        <!-- User Info Card -->
+        <div class="report-issue-user-card">
+          <div class="report-issue-user-info">
+            <div class="report-issue-avatar">${(userName || "U").slice(0, 2).toUpperCase()}</div>
+            <div class="report-issue-user-text">
+              <span class="report-issue-user-name">${userName}</span>
+              <span class="report-issue-role-tag">${userBadge.name} (${roleLevel})</span>
+            </div>
+          </div>
+          <div class="report-issue-status-badge">
+            <span class="status-dot"></span> พร้อมส่งเรื่อง
+          </div>
+        </div>
+
+        <!-- Quick Categories -->
+        <div class="report-issue-category-section">
+          <label class="report-issue-field-label">
+            <span>หมวดหมู่ปัญหาด่วน</span>
+            <span class="report-issue-hint">(คลิกเพื่อเลือกหัวข้ออัตโนมัติ)</span>
           </label>
-          <select id="swalIssueRoom" class="form-control" style="width: 100%; height: 38px; padding: 6px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; background: #ffffff;">
+          <div class="report-issue-categories">
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'สารเคมี / เครื่องแก้วชำรุด')">🧪 สารเคมี / เครื่องแก้ว</button>
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'อุปกรณ์ไฟฟ้า / เครื่องมือวิทยาศาสตร์')">🔌 อุปกรณ์ / ไฟฟ้า</button>
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'แอร์ / น้ำประปา / อาคารสถานที่')">❄️ แอร์ / อาคาร</button>
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'ระบบโปรแกรม / บัญชีผู้ใช้งานขัดข้อง')">💻 ซอฟต์แวร์ / ระบบ</button>
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'การเบิก-ยืม / คืนอุปกรณ์')">📦 เบิกยืม / คืน</button>
+          </div>
+        </div>
+
+        <!-- Location Dropdown -->
+        <div class="report-issue-form-group">
+          <label class="report-issue-field-label" for="swalIssueRoom">
+            <i data-lucide="map-pin" class="field-icon"></i>
+            <span>สถานที่ / ห้องปฏิบัติการ</span>
+          </label>
+          <select id="swalIssueRoom" class="report-issue-select">
             ${roomOptions}
           </select>
         </div>
 
-        <div>
-          <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 5px; font-size: 12.5px; color: #475569;">
-            <i data-lucide="alert-circle" style="width: 14px; height: 14px; color: #7c3aed;"></i>
-            <span>หัวข้อปัญหา <span style="color: #ef4444;">*</span></span>
+        <!-- Title Input -->
+        <div class="report-issue-form-group">
+          <label class="report-issue-field-label" for="swalIssueTitle">
+            <i data-lucide="alert-circle" class="field-icon"></i>
+            <span>หัวข้อปัญหา <span class="required-star">*</span></span>
           </label>
-          <input type="text" id="swalIssueTitle" class="form-control" placeholder="เช่น สารเคมีหก, อุปกรณ์ชำรุด, แอร์ไม่เย็น, ระบบขัดข้อง..." style="width: 100%; height: 38px; padding: 6px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; background: #ffffff;">
+          <input type="text" id="swalIssueTitle" class="report-issue-input" placeholder="ระบุหัวข้อ เช่น สารเคมีหก, อุปกรณ์ชำรุด, แอร์ไม่เย็น...">
         </div>
 
-        <div>
-          <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 5px; font-size: 12.5px; color: #475569;">
-            <i data-lucide="align-left" style="width: 14px; height: 14px; color: #7c3aed;"></i>
-            <span>รายละเอียดเพิ่มเติม:</span>
+        <!-- Detail Textarea -->
+        <div class="report-issue-form-group">
+          <label class="report-issue-field-label" for="swalIssueDetail">
+            <i data-lucide="align-left" class="field-icon"></i>
+            <span>รายละเอียดเพิ่มเติม</span>
           </label>
-          <textarea id="swalIssueDetail" class="form-control" rows="3" placeholder="อธิบายรายละเอียด อาการ หรือจุดที่พบ เพื่อให้เจ้าหน้าที่เข้าตรวจสอบได้รวดเร็ว..." style="width: 100%; min-height: 75px; padding: 8px 12px; font-size: 13px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; background: #ffffff; resize: vertical; line-height: 1.4;"></textarea>
+          <textarea id="swalIssueDetail" class="report-issue-textarea" rows="3" placeholder="อธิบายรายละเอียด อาการ หรือจุดที่พบ เพื่อให้เจ้าหน้าที่เข้าตรวจสอบได้รวดเร็ว..."></textarea>
         </div>
       </div>
     `,
     showCancelButton: true,
-    confirmButtonText: 'ส่งแจ้งปัญหา',
+    confirmButtonText: '<span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="send" style="width: 14px; height: 14px;"></i> <span>ส่งแจ้งปัญหา</span></span>',
     cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#7c3aed',
-    cancelButtonColor: '#64748b',
     didOpen: () => {
       if (window.lucide) lucide.createIcons();
       const input = document.getElementById("swalIssueTitle");

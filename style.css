@@ -9395,40 +9395,308 @@ select.admin-filter-select:focus {
 
 /* Custom Report Issue SweetAlert Modal Polish */
 .swal2-popup.report-issue-swal-modal {
-  padding: 22px 24px !important;
-  border-radius: 16px !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
-  max-width: 480px !important;
+  padding: 0 !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  max-width: 500px !important;
   width: 92vw !important;
+  background: #ffffff !important;
+  overflow: hidden !important;
 }
 
 .swal2-popup.report-issue-swal-modal .swal2-title {
-  padding: 0 0 14px 0 !important;
-  margin: 0 !important;
-  border-bottom: 1px solid #f1f5f9;
+  display: none !important;
 }
 
 .swal2-popup.report-issue-swal-modal .swal2-html-container {
-  margin: 14px 0 0 0 !important;
-  padding: 0 !important;
+  margin: 0 !important;
+  padding: 24px 26px 14px 26px !important;
+  text-align: left !important;
 }
 
 .swal2-popup.report-issue-swal-modal .swal2-actions {
-  margin-top: 18px !important;
+  margin: 0 !important;
+  padding: 14px 26px 20px 26px !important;
   gap: 10px !important;
   width: 100% !important;
   justify-content: flex-end !important;
-  padding: 0 !important;
+  border-top: 1px solid #f1f5f9 !important;
+  background: #fafafa !important;
 }
 
-.swal2-popup.report-issue-swal-modal .swal2-confirm,
-.swal2-popup.report-issue-swal-modal .swal2-cancel {
-  height: 38px !important;
-  padding: 0 18px !important;
+.swal2-popup.report-issue-swal-modal .swal2-confirm {
+  height: 40px !important;
+  padding: 0 22px !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
-  border-radius: 8px !important;
+  border-radius: 10px !important;
   margin: 0 !important;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.28) !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal2-popup.report-issue-swal-modal .swal2-confirm:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
+}
+
+.swal2-popup.report-issue-swal-modal .swal2-cancel {
+  height: 40px !important;
+  padding: 0 18px !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  border-radius: 10px !important;
+  margin: 0 !important;
+  background: #ffffff !important;
+  color: #64748b !important;
+  border: 1.5px solid #cbd5e1 !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal2-popup.report-issue-swal-modal .swal2-cancel:hover {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+/* Modal Inner Content Styles */
+.report-issue-container {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.report-issue-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 2px;
+}
+
+.report-issue-icon-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #ede9fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.report-issue-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.report-issue-title {
+  margin: 0;
+  font-size: 16.5px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.report-issue-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+/* User Card */
+.report-issue-user-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 9px 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.report-issue-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.report-issue-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+  color: #7c3aed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
+}
+
+.report-issue-user-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.report-issue-user-name {
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #1e293b;
+  line-height: 1.2;
+}
+
+.report-issue-role-tag {
+  font-size: 11px;
+  color: #7c3aed;
+  font-weight: 500;
+}
+
+.report-issue-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #059669;
+  background: #ecfdf5;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid #a7f3d0;
+}
+
+.report-issue-status-badge .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+/* Quick Categories */
+.report-issue-category-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-issue-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.issue-category-chip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  user-select: none;
+}
+
+.issue-category-chip:hover {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #6d28d9;
+  transform: translateY(-1px);
+}
+
+.issue-category-chip.active {
+  background: #7c3aed !important;
+  border-color: #7c3aed !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25) !important;
+}
+
+/* Form Groups */
+.report-issue-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.report-issue-field-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #334155;
+}
+
+.report-issue-field-label .field-icon {
+  width: 14px;
+  height: 14px;
+  color: #7c3aed;
+}
+
+.report-issue-hint {
+  font-weight: 400;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.required-star {
+  color: #ef4444;
+}
+
+.report-issue-input,
+.report-issue-select {
+  width: 100%;
+  height: 38px !important;
+  min-height: 38px !important;
+  max-height: 38px !important;
+  line-height: 38px !important;
+  padding: 0 12px !important;
+  font-size: 13px !important;
+  border-radius: 9px !important;
+  border: 1px solid #cbd5e1 !important;
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+  font-family: inherit !important;
+  vertical-align: middle !important;
+}
+
+.report-issue-select {
+  padding: 0 32px 0 12px !important;
+  cursor: pointer !important;
+  background-color: #f8fafc !important;
+}
+
+.report-issue-input:focus,
+.report-issue-select:focus,
+.report-issue-textarea:focus {
+  background-color: #ffffff !important;
+  border-color: #7c3aed !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+}
+
+.report-issue-textarea {
+  width: 100% !important;
+  min-height: 72px !important;
+  padding: 9px 12px !important;
+  font-size: 13px !important;
+  border-radius: 9px !important;
+  border: 1px solid #cbd5e1 !important;
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+  font-family: inherit !important;
+  resize: vertical !important;
+  line-height: 1.45 !important;
 }
 
 /* ==========================================================================
