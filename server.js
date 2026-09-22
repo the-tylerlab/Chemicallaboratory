@@ -512,26 +512,27 @@ async function syncToGoogleSheets(table, action, data, keyField = 'id') {
 
 function formatBookingForSync(b) {
   const roomNames = {
-    'Lab 1': 'ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ (Lab 1)',
-    'Lab 2': 'ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์ (Lab 2)',
-    'Lab 3': 'ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์ (Lab 3)',
-    'Lab 4': 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล (Lab 4)',
-    'Lab 5': 'ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล (Lab 5)',
-    'Lab 6': 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ (Lab 6)',
-    'Lab 7': 'ห้องศูนย์ STEM CENTER (Lab 7)',
-    'Lab 8': 'ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่ (Lab 8)'
+    'Lab 1': 'ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ',
+    'Lab 2': 'ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์',
+    'Lab 3': 'ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์',
+    'Lab 4': 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล',
+    'Lab 5': 'ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล',
+    'Lab 6': 'ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ',
+    'Lab 7': 'ห้องศูนย์ STEM CENTER',
+    'Lab 8': 'ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่'
   };
   return {
-    'วัน/เดือน/ปี ที่ใช้งาน': b.date || '',
-    'เวลาที่เข้าใช้': b.slot || '',
-    'ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน': b.gradeLevel || '-',
-    'จำนวนนักเรียนที่เข้าใช้งานทั้งหมด': b.studentCount ? `${b.studentCount} คน` : '-',
-    'ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น)': b.purpose || b.activity || '',
-    'ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น)': b.bookerName || b.teacherName || '',
-    'ห้องปฏิบัติการ': roomNames[b.room] || b.room || '',
-    'สถานะ': b.status === 'approved' ? 'อนุมัติแล้ว' : (b.status === 'pending' ? 'รออนุมัติ' : 'ปฏิเสธ'),
-    'id': b.id,
-    'createdAt': b.createdAt || new Date().toISOString()
+    id: b.id,
+    room: roomNames[b.room] || b.room || '',
+    date: b.date || '',
+    slot: b.slot || '',
+    gradeLevel: b.gradeLevel || '-',
+    studentCount: b.studentCount ? `${b.studentCount} คน` : '-',
+    purpose: b.purpose || b.activity || '',
+    bookerName: b.bookerName || b.teacherName || '',
+    prepItems: Array.isArray(b.prepItems) ? JSON.stringify(b.prepItems) : (b.prepItems || ''),
+    status: b.status === 'approved' ? 'อนุมัติแล้ว' : (b.status === 'pending' ? 'รออนุมัติ' : 'ปฏิเสธ'),
+    createdAt: b.createdAt || new Date().toISOString()
   };
 }
 
