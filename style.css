@@ -718,12 +718,12 @@ button.menu-item-link:hover {
 }
 
 .help-tab {
-  padding: 8.5px 12px;
-  margin: 3px 8px;
+  padding: 6.5px 10px;
+  margin: 2px 6px;
   border-radius: 7px;
   cursor: pointer;
   color: #475569;
-  font-size: 14.5px;
+  font-size: 13.5px;
   font-weight: 550;
   transition: all 0.2s ease;
   user-select: none;
@@ -747,7 +747,7 @@ button.menu-item-link:hover {
   flex: 1;
   min-width: 0;
   width: 100%;
-  padding: 14px 18px;
+  padding: 10px 14px;
   overflow-y: auto;
   overflow-x: hidden;
   background: #ffffff;
