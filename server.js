@@ -3,9 +3,21 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const webpush = require('web-push');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Initialize Supabase Client for dual cloud synchronization
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://avzneyaalenbyawfvykp.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_iqpHDJXb983_PwFSoSDV9w_kd2pvKoj';
+let supabase = null;
+try {
+  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log("🚀 Supabase connected in server backend");
+} catch(e) {
+  console.warn("Supabase init failed in server:", e.message);
+}
 
 // Enable CORS and JSON parsing
 app.use(cors());
@@ -506,6 +518,277 @@ async function syncToGoogleSheets(table, action, data, keyField = 'id') {
   }
 }
 
+// Resilient Cloud Fetcher for Google Sheets (Dual POST / GET strategy)
+async function fetchGoogleSheetTable(table) {
+  if (!GOOGLE_SCRIPT_URL) return [];
+  try {
+    const postRes = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'GET_DATA', table })
+    });
+    if (postRes.ok) {
+      const json = await postRes.json();
+      if (json.status === 'success' && Array.isArray(json.data)) {
+        return json.data;
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const getRes = await fetch(`${GOOGLE_SCRIPT_URL}?table=${encodeURIComponent(table)}`, {
+      method: 'GET',
+      redirect: 'follow'
+    });
+    if (getRes.ok) {
+      const json = await getRes.json();
+      if (json.status === 'success' && Array.isArray(json.data)) {
+        return json.data;
+      }
+    }
+  } catch (e) {}
+
+  return [];
+}
+
+// ==========================================================================
+// DUAL-SOURCE LIVE SYNC HELPERS (Supabase + Google Sheets + Local)
+// ==========================================================================
+
+let itemsCache = null;
+let lastItemsFetch = 0;
+
+async function fetchLiveItems(forceRefresh = false) {
+  const localItems = readDatabase();
+  if (!forceRefresh && itemsCache && (Date.now() - lastItemsFetch < 15000)) {
+    return itemsCache;
+  }
+
+  let merged = [...localItems];
+
+  // 1. Supabase items
+  if (supabase) {
+    try {
+      const { data: supaItems, error } = await supabase.from('items').select('*');
+      if (!error && Array.isArray(supaItems) && supaItems.length > 0) {
+        supaItems.forEach(si => {
+          if (!si.code) return;
+          const idx = merged.findIndex(i => String(i.code).toLowerCase() === String(si.code).toLowerCase());
+          if (idx !== -1) {
+            merged[idx] = { ...merged[idx], ...si };
+          } else {
+            merged.push(si);
+          }
+        });
+      }
+    } catch(e) {
+      console.warn("Supabase fetch items notice:", e.message);
+    }
+  }
+
+  // 2. Google Sheets Items
+  const sheetItems = await fetchGoogleSheetTable('Items');
+  if (Array.isArray(sheetItems) && sheetItems.length > 0) {
+    sheetItems.forEach(si => {
+      if (!si.code) return;
+      const idx = merged.findIndex(i => String(i.code).toLowerCase() === String(si.code).toLowerCase());
+      if (idx !== -1) {
+        merged[idx] = { ...merged[idx], ...si };
+      } else {
+        merged.push(si);
+      }
+    });
+  }
+
+  writeDatabase(merged);
+  itemsCache = merged;
+  lastItemsFetch = Date.now();
+  return merged;
+}
+
+let bookingsCache = null;
+let lastBookingsFetch = 0;
+
+async function fetchLiveBookings(forceRefresh = false) {
+  const localBookings = readBookings();
+  if (!forceRefresh && bookingsCache && (Date.now() - lastBookingsFetch < 15000)) {
+    return bookingsCache;
+  }
+
+  let merged = [...localBookings];
+
+  // 1. Supabase bookings
+  if (supabase) {
+    try {
+      const { data: supaBookings, error } = await supabase.from('bookings').select('*');
+      if (!error && Array.isArray(supaBookings) && supaBookings.length > 0) {
+        supaBookings.forEach(sb => {
+          if (!sb.id) return;
+          const idx = merged.findIndex(b => String(b.id) === String(sb.id));
+          if (idx !== -1) {
+            merged[idx] = { ...merged[idx], ...sb };
+          } else {
+            merged.push(sb);
+          }
+        });
+      }
+    } catch(e) {
+      console.warn("Supabase fetch bookings notice:", e.message);
+    }
+  }
+
+  // 2. Google Sheets Bookings
+  const sheetBookings = await fetchGoogleSheetTable('Bookings');
+  if (Array.isArray(sheetBookings) && sheetBookings.length > 0) {
+    sheetBookings.forEach(sb => {
+      if (!sb.id && !sb.room && !sb.date) return;
+      const id = sb.id || `bk_${sb.room}_${sb.date}_${sb.slot}`;
+      sb.id = id;
+      const idx = merged.findIndex(b => String(b.id) === String(id) || (b.room === sb.room && b.date === sb.date && b.slot === sb.slot));
+      if (idx !== -1) {
+        merged[idx] = { ...merged[idx], ...sb };
+      } else {
+        merged.push(sb);
+      }
+    });
+  }
+
+  writeBookings(merged);
+  bookingsCache = merged;
+  lastBookingsFetch = Date.now();
+  return merged;
+}
+
+let transactionsCache = null;
+let lastTransactionsFetch = 0;
+
+async function fetchLiveTransactions(forceRefresh = false) {
+  const localTxs = readTransactions();
+  if (!forceRefresh && transactionsCache && (Date.now() - lastTransactionsFetch < 15000)) {
+    return transactionsCache;
+  }
+
+  let merged = [...localTxs];
+
+  // 1. Supabase transactions
+  if (supabase) {
+    try {
+      const { data: supaTxs, error } = await supabase.from('transactions').select('*');
+      if (!error && Array.isArray(supaTxs) && supaTxs.length > 0) {
+        supaTxs.forEach(st => {
+          if (!st.id) return;
+          const idx = merged.findIndex(t => String(t.id) === String(st.id));
+          if (idx !== -1) {
+            merged[idx] = { ...merged[idx], ...st };
+          } else {
+            merged.push(st);
+          }
+        });
+      }
+    } catch(e) {
+      console.warn("Supabase fetch transactions notice:", e.message);
+    }
+  }
+
+  // 2. Google Sheets Transactions
+  const sheetTxs = await fetchGoogleSheetTable('Transactions');
+  if (Array.isArray(sheetTxs) && sheetTxs.length > 0) {
+    sheetTxs.forEach(st => {
+      if (!st.id) return;
+      const idx = merged.findIndex(t => String(t.id) === String(st.id));
+      if (idx !== -1) {
+        merged[idx] = { ...merged[idx], ...st };
+      } else {
+        merged.push(st);
+      }
+    });
+  }
+
+  writeTransactions(merged);
+  transactionsCache = merged;
+  lastTransactionsFetch = Date.now();
+  return merged;
+}
+
+let poCache = null;
+let lastPoFetch = 0;
+
+async function fetchLivePurchaseOrders(forceRefresh = false) {
+  const localOrders = readPurchaseOrders();
+  if (!forceRefresh && poCache && (Date.now() - lastPoFetch < 15000)) {
+    return poCache;
+  }
+
+  let merged = [...localOrders];
+
+  // 1. Supabase purchase orders
+  if (supabase) {
+    try {
+      const { data: supaPOs, error } = await supabase.from('purchase_orders').select('*');
+      if (!error && Array.isArray(supaPOs) && supaPOs.length > 0) {
+        supaPOs.forEach(spo => {
+          if (!spo.id) return;
+          const idx = merged.findIndex(o => String(o.id) === String(spo.id));
+          if (idx !== -1) {
+            merged[idx] = { ...merged[idx], ...spo };
+          } else {
+            merged.push(spo);
+          }
+        });
+      }
+    } catch(e) {
+      console.warn("Supabase fetch POs notice:", e.message);
+    }
+  }
+
+  // 2. Google Sheets Purchase Orders
+  const sheetPOs = await fetchGoogleSheetTable('Purchase_Orders');
+  if (Array.isArray(sheetPOs) && sheetPOs.length > 0) {
+    sheetPOs.forEach(spo => {
+      if (!spo.id) return;
+      const idx = merged.findIndex(o => String(o.id) === String(spo.id));
+      if (idx !== -1) {
+        merged[idx] = { ...merged[idx], ...spo };
+      } else {
+        merged.push(spo);
+      }
+    });
+  }
+
+  writePurchaseOrders(merged);
+  poCache = merged;
+  lastPoFetch = Date.now();
+  return merged;
+}
+
+async function fetchLiveBudget() {
+  let budgetObj = readBudget();
+  if (supabase) {
+    try {
+      const { data } = await supabase.from('system').select('value').eq('key', 'budget').maybeSingle();
+      if (data && data.value && data.value.budget !== undefined) {
+        budgetObj = data.value;
+        writeBudget(budgetObj);
+      }
+    } catch(e) {}
+  }
+  return budgetObj;
+}
+
+async function fetchLiveAnnouncements() {
+  let ann = readAnnouncements();
+  if (supabase) {
+    try {
+      const { data } = await supabase.from('system').select('value').eq('key', 'lab_announcement_settings').maybeSingle();
+      if (data && data.value) {
+        ann = { ...ann, ...data.value };
+        writeAnnouncements(ann);
+      }
+    } catch(e) {}
+  }
+  return ann;
+}
+
 // ==========================================================================
 // HTTP API ENDPOINTS
 // ==========================================================================
@@ -536,16 +819,54 @@ function formatBookingForSync(b) {
   };
 }
 
+// Full Cloud Sync Aggregator Endpoint
+app.get('/api/sync/all-cloud-data', async (req, res) => {
+  try {
+    const [users, items, bookings, transactions, purchaseOrders, budget, announcements] = await Promise.all([
+      fetchLiveUsers(true),
+      fetchLiveItems(true),
+      fetchLiveBookings(true),
+      fetchLiveTransactions(true),
+      fetchLivePurchaseOrders(true),
+      fetchLiveBudget(),
+      fetchLiveAnnouncements()
+    ]);
+
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      counts: {
+        users: users.length,
+        items: items.length,
+        bookings: bookings.length,
+        transactions: transactions.length,
+        purchaseOrders: purchaseOrders.length
+      },
+      data: {
+        users,
+        items,
+        bookings,
+        transactions,
+        purchaseOrders,
+        budget,
+        announcements
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Manual / Full Trigger: Sync All Tables to Google Sheets
 app.post('/api/sync-google-sheets', async (req, res) => {
   try {
-    const items = readDatabase();
-    const transactions = readTransactions();
-    const bookings = readBookings();
-    const purchaseOrders = readPurchaseOrders();
-    const users = readUsers();
+    const items = await fetchLiveItems(false);
+    const transactions = await fetchLiveTransactions(false);
+    const bookings = await fetchLiveBookings(false);
+    const purchaseOrders = await fetchLivePurchaseOrders(false);
+    const users = await fetchLiveUsers(false);
     const auditLogs = readAuditLogs();
-    const announcements = readAnnouncements();
+    const announcements = await fetchLiveAnnouncements();
 
     items.forEach(item => syncToGoogleSheets('Items', 'UPSERT', item, 'code'));
     transactions.forEach(tx => syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id'));
@@ -577,20 +898,20 @@ app.get('/api/version', (req, res) => {
   }
 });
 
-// 1. GET /api/items — Fetch all items
-app.get('/api/items', (req, res) => {
-  const items = readDatabase();
+// 1. GET /api/items — Fetch all items from cloud & local
+app.get('/api/items', async (req, res) => {
+  const items = await fetchLiveItems();
   res.json(items);
 });
 
 // 2. POST /api/items — Create a new item
-app.post('/api/items', (req, res) => {
+app.post('/api/items', async (req, res) => {
   const newItem = req.body;
   if (!newItem.code || !newItem.name || !newItem.category || newItem.qty === undefined || !newItem.unit) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  const items = readDatabase();
+  const items = await fetchLiveItems();
   
   // Check duplicate
   const exists = items.some(item => item.code.toLowerCase() === newItem.code.toLowerCase());
@@ -603,6 +924,14 @@ app.post('/api/items', (req, res) => {
   
   items.push(newItem);
   writeDatabase(items);
+  itemsCache = items;
+
+  // Sync to Supabase
+  if (supabase) {
+    supabase.from('items').upsert(newItem, { onConflict: 'code' }).catch(err => {
+      console.warn("Supabase upsert item err:", err.message);
+    });
+  }
 
   // Sync to Google Sheets in Real-time
   syncToGoogleSheets('Items', 'UPSERT', newItem, 'code');
@@ -611,11 +940,11 @@ app.post('/api/items', (req, res) => {
 });
 
 // 3. PUT /api/items/:code — Update an existing item
-app.put('/api/items/:code', (req, res) => {
+app.put('/api/items/:code', async (req, res) => {
   const codeToUpdate = req.params.code.toLowerCase();
   const updatedData = req.body;
   
-  const items = readDatabase();
+  const items = await fetchLiveItems();
   const index = items.findIndex(item => item.code.toLowerCase() === codeToUpdate);
   
   if (index === -1) {
@@ -627,6 +956,14 @@ app.put('/api/items/:code', (req, res) => {
   
   items[index] = { ...items[index], ...updatedData };
   writeDatabase(items);
+  itemsCache = items;
+
+  // Sync to Supabase
+  if (supabase) {
+    supabase.from('items').upsert(items[index], { onConflict: 'code' }).catch(err => {
+      console.warn("Supabase update item err:", err.message);
+    });
+  }
 
   // Sync to Google Sheets in Real-time
   syncToGoogleSheets('Items', 'UPSERT', items[index], 'code');
@@ -635,9 +972,9 @@ app.put('/api/items/:code', (req, res) => {
 });
 
 // 4. DELETE /api/items/:code — Delete an item
-app.delete('/api/items/:code', (req, res) => {
+app.delete('/api/items/:code', async (req, res) => {
   const codeToDelete = req.params.code.toLowerCase();
-  const items = readDatabase();
+  const items = await fetchLiveItems();
   
   const initialLength = items.length;
   const filteredItems = items.filter(item => item.code.toLowerCase() !== codeToDelete);
@@ -647,6 +984,14 @@ app.delete('/api/items/:code', (req, res) => {
   }
   
   writeDatabase(filteredItems);
+  itemsCache = filteredItems;
+
+  // Sync to Supabase
+  if (supabase) {
+    supabase.from('items').delete().eq('code', req.params.code).catch(err => {
+      console.warn("Supabase delete item err:", err.message);
+    });
+  }
 
   // Sync to Google Sheets in Real-time
   syncToGoogleSheets('Items', 'DELETE', { code: codeToDelete }, 'code');
@@ -655,15 +1000,16 @@ app.delete('/api/items/:code', (req, res) => {
 });
 
 // 5. POST /api/items/import — Batch Import
-app.post('/api/items/import', (req, res) => {
+app.post('/api/items/import', async (req, res) => {
   const importedItems = req.body;
   if (!Array.isArray(importedItems)) {
     return res.status(400).json({ error: "Data must be an array" });
   }
 
-  const items = readDatabase();
+  const items = await fetchLiveItems();
   let successCount = 0;
   let errorCount = 0;
+  const newItemsToSync = [];
 
   importedItems.forEach(newItem => {
     if (!newItem.code || !newItem.name || !newItem.category || newItem.qty === undefined || !newItem.unit) {
@@ -680,6 +1026,7 @@ app.post('/api/items/import', (req, res) => {
 
     newItem.createdAt = newItem.createdAt || new Date().toISOString();
     items.push(newItem);
+    newItemsToSync.push(newItem);
     successCount++;
 
     // Sync to Google Sheets
@@ -688,6 +1035,12 @@ app.post('/api/items/import', (req, res) => {
 
   if (successCount > 0) {
     writeDatabase(items);
+    itemsCache = items;
+    if (supabase && newItemsToSync.length > 0) {
+      supabase.from('items').upsert(newItemsToSync, { onConflict: 'code' }).catch(err => {
+        console.warn("Supabase batch import items err:", err.message);
+      });
+    }
   }
 
   res.json({ 
@@ -698,57 +1051,76 @@ app.post('/api/items/import', (req, res) => {
 });
 
 // GET /api/budget
-app.get('/api/budget', (req, res) => {
-  res.json(readBudget());
+app.get('/api/budget', async (req, res) => {
+  const budget = await fetchLiveBudget();
+  res.json(budget);
 });
 
 // POST /api/budget
-app.post('/api/budget', (req, res) => {
+app.post('/api/budget', async (req, res) => {
   const data = req.body;
   writeBudget(data);
+  if (supabase) {
+    supabase.from('system').upsert({ key: 'budget', value: data }).catch(e => {});
+  }
   res.json({ success: true, budget: data.budget });
 });
 
 // GET /api/purchase-orders
-app.get('/api/purchase-orders', (req, res) => {
-  res.json(readPurchaseOrders());
+app.get('/api/purchase-orders', async (req, res) => {
+  const orders = await fetchLivePurchaseOrders();
+  res.json(orders);
 });
 
 // POST /api/purchase-orders
-app.post('/api/purchase-orders', (req, res) => {
+app.post('/api/purchase-orders', async (req, res) => {
   const orders = req.body;
   writePurchaseOrders(orders);
+  poCache = orders;
   if (Array.isArray(orders)) {
+    if (supabase) {
+      supabase.from('purchase_orders').upsert(orders, { onConflict: 'id' }).catch(e => {});
+    }
     orders.forEach(po => syncToGoogleSheets('Purchase_Orders', 'UPSERT', po, 'id'));
   }
   res.json({ success: true });
 });
 
 // GET /api/bookings
-app.get('/api/bookings', (req, res) => {
-  res.json(readBookings());
+app.get('/api/bookings', async (req, res) => {
+  const bookings = await fetchLiveBookings();
+  res.json(bookings);
 });
 
 // POST /api/bookings
-app.post('/api/bookings', (req, res) => {
+app.post('/api/bookings', async (req, res) => {
   const bookings = req.body;
   writeBookings(bookings);
+  bookingsCache = bookings;
   if (Array.isArray(bookings)) {
+    if (supabase) {
+      supabase.from('bookings').upsert(bookings, { onConflict: 'id' }).catch(e => {});
+    }
     bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(b), 'id'));
   }
   res.json({ success: true });
 });
 
 // GET /api/transactions
-app.get('/api/transactions', (req, res) => {
-  res.json(readTransactions());
+app.get('/api/transactions', async (req, res) => {
+  const transactions = await fetchLiveTransactions();
+  res.json(transactions);
 });
 
 // POST /api/transactions
-app.post('/api/transactions', (req, res) => {
+app.post('/api/transactions', async (req, res) => {
   const transactions = req.body;
   writeTransactions(transactions);
+  transactionsCache = transactions;
   if (Array.isArray(transactions)) {
+    if (supabase) {
+      supabase.from('transactions').upsert(transactions, { onConflict: 'id' }).catch(e => {});
+    }
     transactions.forEach(tx => syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id'));
   }
   res.json({ success: true });
@@ -869,7 +1241,7 @@ function getRoleColor(role) {
 let usersCache = null;
 let lastUsersFetch = 0;
 
-// Fetch Live Users from Google Sheets and merge with local database
+// Fetch Live Users from Supabase + Google Sheets + Local database
 async function fetchLiveUsers(forceRefresh = false) {
   const localUsers = readUsers();
   
@@ -877,36 +1249,31 @@ async function fetchLiveUsers(forceRefresh = false) {
     return usersCache;
   }
 
-  if (!GOOGLE_SCRIPT_URL) {
-    usersCache = localUsers;
-    return localUsers;
-  }
+  let merged = [...localUsers];
 
-  try {
-    const fetchUrl = `${GOOGLE_SCRIPT_URL}?table=Users`;
-    const res = await fetch(fetchUrl, { method: 'GET' });
-    if (res.ok) {
-      const json = await res.json();
-      if (json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
-        const merged = [...localUsers];
-        json.data.forEach(sheetUser => {
-          const tId = String(sheetUser.teacherId || sheetUser.id || '').trim();
+  // 1. Fetch from Supabase Users Table
+  if (supabase) {
+    try {
+      const { data: supaUsers, error } = await supabase.from('users').select('*');
+      if (!error && Array.isArray(supaUsers) && supaUsers.length > 0) {
+        supaUsers.forEach(su => {
+          const tId = String(su.teacherId || su.id || '').trim();
           if (!tId) return;
           const idx = merged.findIndex(u => String(u.teacherId || '').trim().toLowerCase() === tId.toLowerCase());
           const cleanUser = {
-            id: sheetUser.id || ("u_" + tId),
+            id: su.id || ("u_" + tId),
             teacherId: tId,
-            name: sheetUser.name || `ครู (${tId})`,
-            department: sheetUser.department || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี',
-            email: sheetUser.email || `${tId.toLowerCase()}@lab.school.ac.th`,
-            role: sheetUser.role || 'L1',
-            roleName: sheetUser.roleName || 'Teacher / User',
-            assignedRooms: typeof sheetUser.assignedRooms === 'string' && sheetUser.assignedRooms ? sheetUser.assignedRooms.split(',').map(s => s.trim()) : (Array.isArray(sheetUser.assignedRooms) ? sheetUser.assignedRooms : []),
-            initials: sheetUser.initials || calculateUserInitials(sheetUser.name) || 'U',
-            color: sheetUser.color || getRoleColor(sheetUser.role),
-            password: sheetUser.password || tId,
-            isActive: sheetUser.isActive !== false && sheetUser.isActive !== 'false',
-            createdAt: sheetUser.createdAt || new Date().toISOString()
+            name: su.name || `ครู (${tId})`,
+            department: su.department || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี',
+            email: su.email || `${tId.toLowerCase()}@lab.school.ac.th`,
+            role: su.role || 'L1',
+            roleName: su.roleName || 'Teacher / User',
+            assignedRooms: Array.isArray(su.assignedRooms) ? su.assignedRooms : (typeof su.assignedRooms === 'string' && su.assignedRooms ? su.assignedRooms.split(',').map(s => s.trim()) : []),
+            initials: su.initials || calculateUserInitials(su.name) || 'U',
+            color: su.color || getRoleColor(su.role),
+            password: su.password || tId,
+            isActive: su.isActive !== false,
+            createdAt: su.createdAt || new Date().toISOString()
           };
 
           if (idx !== -1) {
@@ -915,20 +1282,57 @@ async function fetchLiveUsers(forceRefresh = false) {
             merged.push(cleanUser);
           }
         });
-
-        writeUsers(merged);
-        usersCache = merged;
-        lastUsersFetch = Date.now();
-        return merged;
       }
+    } catch(e) {
+      console.warn("Could not fetch live users from Supabase:", e.message);
     }
-  } catch(e) {
-    console.warn("Could not fetch live users from Google Sheets:", e.message);
   }
 
-  usersCache = localUsers;
+  // 2. Fetch from Google Sheets Users Tab
+  if (GOOGLE_SCRIPT_URL) {
+    try {
+      const fetchUrl = `${GOOGLE_SCRIPT_URL}?table=Users`;
+      const res = await fetch(fetchUrl, { method: 'GET' });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
+          json.data.forEach(sheetUser => {
+            const tId = String(sheetUser.teacherId || sheetUser.id || '').trim();
+            if (!tId) return;
+            const idx = merged.findIndex(u => String(u.teacherId || '').trim().toLowerCase() === tId.toLowerCase());
+            const cleanUser = {
+              id: sheetUser.id || ("u_" + tId),
+              teacherId: tId,
+              name: sheetUser.name || `ครู (${tId})`,
+              department: sheetUser.department || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี',
+              email: sheetUser.email || `${tId.toLowerCase()}@lab.school.ac.th`,
+              role: sheetUser.role || 'L1',
+              roleName: sheetUser.roleName || 'Teacher / User',
+              assignedRooms: typeof sheetUser.assignedRooms === 'string' && sheetUser.assignedRooms ? sheetUser.assignedRooms.split(',').map(s => s.trim()) : (Array.isArray(sheetUser.assignedRooms) ? sheetUser.assignedRooms : []),
+              initials: sheetUser.initials || calculateUserInitials(sheetUser.name) || 'U',
+              color: sheetUser.color || getRoleColor(sheetUser.role),
+              password: sheetUser.password || tId,
+              isActive: sheetUser.isActive !== false && sheetUser.isActive !== 'false',
+              createdAt: sheetUser.createdAt || new Date().toISOString()
+            };
+
+            if (idx !== -1) {
+              merged[idx] = { ...merged[idx], ...cleanUser };
+            } else {
+              merged.push(cleanUser);
+            }
+          });
+        }
+      }
+    } catch(e) {
+      console.warn("Could not fetch live users from Google Sheets:", e.message);
+    }
+  }
+
+  writeUsers(merged);
+  usersCache = merged;
   lastUsersFetch = Date.now();
-  return localUsers;
+  return merged;
 }
 
 // USERS
@@ -941,7 +1345,7 @@ app.get('/api/users', async (req, res) => {
   res.json(refreshedUsers);
 });
 
-app.post('/api/users', (req, res) => {
+app.post('/api/users', async (req, res) => {
   const users = readUsers();
   const newUser = req.body;
   newUser.id = "u_" + (newUser.teacherId || Date.now());
@@ -971,13 +1375,25 @@ app.post('/api/users', (req, res) => {
   
   users.push(newUser);
   writeUsers(users);
+  
+  // Sync to Google Sheets
   const copy = { ...newUser };
   delete copy.password;
   syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
+
+  // Sync to Supabase
+  if (supabase) {
+    try {
+      await supabase.from('users').upsert(newUser, { onConflict: 'id' });
+    } catch(err) {
+      console.warn("Supabase user sync error:", err.message);
+    }
+  }
+
   res.json({ success: true, user: newUser });
 });
 
-app.post('/api/users/batch', (req, res) => {
+app.post('/api/users/batch', async (req, res) => {
   const users = readUsers();
   const incomingList = req.body;
   if (!Array.isArray(incomingList) || incomingList.length === 0) {
@@ -990,7 +1406,6 @@ app.post('/api/users/batch', (req, res) => {
     'L3': 'Manager / System Manager',
     'L4': 'Executive / Head of Department'
   };
-  const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#3b82f6", "#8b5cf6", "#d946ef", "#be185d"];
 
   let addedCount = 0;
   let updatedCount = 0;
@@ -1003,7 +1418,6 @@ app.post('/api/users/batch', (req, res) => {
     const role = (u.role || 'L1').toUpperCase();
     const cleanRole = ['L1', 'L2', 'L3', 'L4'].includes(role) ? role : 'L1';
     
-    // Parse assignedRooms if string
     let assignedRooms = [];
     if (Array.isArray(u.assignedRooms)) {
       assignedRooms = u.assignedRooms;
@@ -1050,6 +1464,16 @@ app.post('/api/users/batch', (req, res) => {
   });
 
   writeUsers(users);
+
+  // Sync to Supabase
+  if (supabase && processedUsers.length > 0) {
+    try {
+      await supabase.from('users').upsert(processedUsers, { onConflict: 'id' });
+    } catch(err) {
+      console.warn("Supabase batch user sync error:", err.message);
+    }
+  }
+
   res.json({
     success: true,
     addedCount: addedCount,
@@ -1059,7 +1483,7 @@ app.post('/api/users/batch', (req, res) => {
   });
 });
 
-app.put('/api/users/:id', (req, res) => {
+app.put('/api/users/:id', async (req, res) => {
   const users = readUsers();
   const index = users.findIndex(u => u.id === req.params.id);
   if (index !== -1) {
@@ -1081,22 +1505,41 @@ app.put('/api/users/:id', (req, res) => {
     }
     users[index] = updated;
     writeUsers(users);
+
     const copy = { ...users[index] };
     delete copy.password;
     syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
+
+    // Sync to Supabase
+    if (supabase) {
+      try {
+        await supabase.from('users').upsert(users[index], { onConflict: 'id' });
+      } catch(err) {
+        console.warn("Supabase update user sync error:", err.message);
+      }
+    }
+
     res.json({ success: true, user: users[index] });
   } else {
     res.status(404).json({ error: "User not found" });
   }
 });
 
-app.delete('/api/users/:id', (req, res) => {
+app.delete('/api/users/:id', async (req, res) => {
   let users = readUsers();
   const userToDelete = users.find(u => u.id === req.params.id);
   users = users.filter(u => u.id !== req.params.id);
   writeUsers(users);
+
   if (userToDelete) {
     syncToGoogleSheets('Users', 'DELETE', { teacherId: userToDelete.teacherId }, 'teacherId');
+    if (supabase) {
+      try {
+        await supabase.from('users').delete().eq('id', req.params.id);
+      } catch(err) {
+        console.warn("Supabase delete user sync error:", err.message);
+      }
+    }
   }
   res.json({ success: true });
 });
