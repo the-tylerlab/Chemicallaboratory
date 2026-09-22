@@ -5175,48 +5175,72 @@
 
           <!-- Tab 6: ผู้พัฒนาระบบ -->
           <div id="help-tab-6" class="help-content" style="display: none;">
-            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color);">
-              <div style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 700; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); flex-shrink: 0;">
-                WD
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- Profile Card -->
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2); flex-shrink: 0;">
+                    WD
+                  </div>
+                  <div>
+                    <div style="font-size: 13.5px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                      <span>ม.วงศกร ด้วงเกลี้ยง</span>
+                    </div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 1px;">
+                      ผู้พัฒนาและดูแลระบบบริหารจัดการห้องปฏิบัติการวิทยาศาสตร์
+                    </div>
+                  </div>
+                </div>
+                <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; background: #ede9fe; color: #6d28d9; border-radius: 6px; white-space: nowrap;">Lead Developer</span>
               </div>
-              <div>
-                <h4 style="margin: 0 0 4px 0; font-size: 16px; color: #1e293b; display: flex; align-items: center; gap: 8px;">
-                  ม.วงศกร ด้วงเกลี้ยง
-                  <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; border-radius: 9999px;">Lead Developer</span>
-                </h4>
-                <p style="margin: 0; font-size: 13px; color: #64748b;">
-                  ผู้พัฒนาและดูแลระบบบริหารจัดการห้องปฏิบัติการวิทยาศาสตร์
+
+              <!-- System Specs Grid -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px;">
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="cpu" style="width: 15px; height: 15px;"></i>
+                  </div>
+                  <div style="min-width: 0;">
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">เวอร์ชันระบบ (App Version)</div>
+                    <div id="devTabSystemVersion" style="font-size: 12.5px; font-weight: 600; color: #1e293b;">Version 2.6.0 (PWA)</div>
+                  </div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 28px; height: 28px; border-radius: 6px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="database" style="width: 15px; height: 15px;"></i>
+                  </div>
+                  <div style="min-width: 0;">
+                    <div style="font-size: 11px; font-weight: 600; color: #64748b;">ฐานข้อมูล & สำรองคลาวด์</div>
+                    <div style="font-size: 12.5px; font-weight: 600; color: #1e293b;">Supabase & Sheets (Real-time)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Purpose & Standard Card -->
+              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                  <div style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13.5px; color: #1e293b;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: rgba(59, 130, 246, 0.12); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="target" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span>วัตถุประสงค์การพัฒนาระบบ (Purpose & Standard)</span>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 600; padding: 2px 7px; background: #dbeafe; color: #1e40af; border-radius: 6px;">SHECU Standard</span>
+                </div>
+                <p style="margin: 0; font-size: 12.5px; line-height: 1.6; color: #475569;">
+                  ระบบนี้พัฒนาขึ้นเพื่อยกระดับการจัดการคลังสารเคมี อุปกรณ์วิทยาศาสตร์ และการจองห้องปฏิบัติการตามมาตรฐานความปลอดภัย SHECU มุ่งเน้นการอำนวยความสะดวกในการเรียนการสอนและงานวิจัยอย่างมีประสิทธิภาพสูงสุด
                 </p>
               </div>
-            </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px;">
-                <div style="font-size: 12px; color: #64748b; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                  <i data-lucide="cpu" style="width: 14px; height: 14px; color: var(--primary-color);"></i> เวอร์ชันระบบ
-                </div>
-                <div id="devTabSystemVersion" style="font-size: 14px; font-weight: 600; color: #1e293b;">Version 2.6.0 (PWA)</div>
+              <!-- Presentation Deck for Admin -->
+              <div id="presentationDeckWrapper" style="display: none; justify-content: flex-end; margin-top: 2px;">
+                <a href="presentation.html" target="_blank" id="btnOpenPresentationDeck" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 12px; border-radius: 6px; background: var(--primary-purple); color: #ffffff; font-weight: 600; text-decoration: none; box-shadow: 0 2px 6px rgba(124, 58, 237, 0.2);">
+                  <i data-lucide="presentation" style="width: 14px; height: 14px;"></i>
+                  <span>เปิดสไลด์นำเสนอระบบ (สำหรับ Admin)</span>
+                  <i data-lucide="external-link" style="width: 12px; height: 12px;"></i>
+                </a>
               </div>
-
-              <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 14px;">
-                <div style="font-size: 12px; color: #64748b; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                  <i data-lucide="database" style="width: 14px; height: 14px; color: #059669;"></i> การสำรองข้อมูลคลาวด์
-                </div>
-                <div style="font-size: 13px; font-weight: 600; color: #1e293b;">Supabase & Google Sheets (Real-time)</div>
-              </div>
-            </div>
-
-            <div style="background: #f1f5f9; border-radius: 8px; padding: 12px 14px; font-size: 12.5px; line-height: 1.6; color: #334155; margin-bottom: 14px;">
-              <strong style="color: #0f172a; display: block; margin-bottom: 4px;">🎯 วัตถุประสงค์การพัฒนาระบบ</strong>
-              ระบบนี้พัฒนาขึ้นเพื่อยกระดับการจัดการคลังสารเคมี อุปกรณ์วิทยาศาสตร์ และการจองห้องปฏิบัติการตามมาตรฐานความปลอดภัย SHECU มุ่งเน้นการอำนวยความสะดวกในการเรียนการสอนและงานวิจัยอย่างมีประสิทธิภาพสูงสุด
-            </div>
-
-            <div id="presentationDeckWrapper" style="display: none; justify-content: flex-end; margin-top: 10px;">
-              <a href="presentation.html" target="_blank" id="btnOpenPresentationDeck" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; text-decoration: none; padding: 9px 18px; border-radius: 8px; background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: #ffffff; font-weight: 600; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);">
-                <i data-lucide="presentation" style="width: 16px; height: 16px;"></i>
-                <span>เปิดสไลด์นำเสนอระบบ (สำหรับ Admin)</span>
-                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
-              </a>
             </div>
           </div>
         </div>
