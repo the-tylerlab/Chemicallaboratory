@@ -7742,6 +7742,43 @@ window.openLoginModal = function() {
   }
 };
 
+window.handleForgotPasswordClick = function() {
+  if (typeof Swal !== "undefined") {
+    Swal.fire({
+      icon: "info",
+      title: "ลืมรหัสผ่าน?",
+      html: `
+        <div style="font-size: 13.5px; line-height: 1.6; color: #475569; text-align: left;">
+          <p style="margin: 0 0 8px 0;">💡 <strong>รหัสผ่านเริ่มต้นของระบบ:</strong> ใช้รหัสประจำตัวครู (Teacher ID) เช่น <code>T101</code> หรือ <code>1001</code></p>
+          <p style="margin: 0;">หากท่านเปลี่ยนรหัสผ่านแล้วลืม โปรดติดต่อผู้ดูแลระบบ (Admin) หรือแจ้งปัญหาผ่านศูนย์ข้อมูลเพื่อขอรีเซ็ตรหัสผ่านครับ</p>
+        </div>
+      `,
+      confirmButtonText: "เข้าใจแล้ว",
+      confirmButtonColor: "#0070f3"
+    });
+  } else {
+    alert("รหัสผ่านเริ่มต้นคือ รหัสประจำตัวครู (Teacher ID) หากท่านลืมรหัสผ่านโปรดติดต่อผู้ดูแลระบบ");
+  }
+};
+
+window.handleGoogleOrQuickLogin = function() {
+  if (typeof Swal !== "undefined") {
+    Swal.fire({
+      title: "เข้าสู่ระบบด่วน",
+      text: "โปรดระบุรหัสประจำตัวครู (Teacher ID) ในช่อง Login เพื่อเข้าใช้งานระบบได้ทันที",
+      icon: "info",
+      confirmButtonText: "ไปที่ช่องกรอกข้อมูล",
+      confirmButtonColor: "#0070f3"
+    }).then(() => {
+      const uname = document.getElementById("loginUsername");
+      if (uname) uname.focus();
+    });
+  } else {
+    const uname = document.getElementById("loginUsername");
+    if (uname) uname.focus();
+  }
+};
+
 function setupLoginHandlers() {
   const btnSidebarLogin = document.getElementById("btnSidebarLogin");
   const btnSidebarLogoutQuick = document.getElementById("btnSidebarLogoutQuick");
@@ -15965,10 +16002,35 @@ function toggleAssignedRoomsField(prefix) {
   }
 }
 
-function renderAdminUsers() {
+function renderAdminUsers(filteredList = null) {
   const tbody = document.getElementById("adminUsersTableBody");
   if (!tbody) return;
   
+  // Calculate & Update KPI Cards
+  const allUsers = Array.isArray(adminUsers) ? adminUsers : [];
+  const totalUsers = allUsers.length;
+  const staffAdmins = allUsers.filter(u => ['L2', 'L3', 'L4', 'staff', 'admin', 'executive'].includes(u.role)).length;
+  const assignedLabsCount = allUsers.filter(u => u.assignedRooms && u.assignedRooms.length > 0).length;
+
+  const elTotal = document.getElementById("kpiTotalUsers");
+  if (elTotal) elTotal.textContent = totalUsers;
+  const elStaff = document.getElementById("kpiStaffAdmins");
+  if (elStaff) elStaff.textContent = staffAdmins;
+  const elLabs = document.getElementById("kpiAssignedLabs");
+  if (elLabs) elLabs.textContent = assignedLabsCount;
+
+  // Populate Department Filter dropdown if empty
+  const deptSelect = document.getElementById("adminUserDeptFilter");
+  if (deptSelect && deptSelect.options.length <= 1 && allUsers.length > 0) {
+    const depts = [...new Set(allUsers.map(u => u.department || 'กลุ่มสาระวิทยาศาสตร์'))].filter(Boolean);
+    depts.forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d;
+      deptSelect.appendChild(opt);
+    });
+  }
+
   tbody.innerHTML = "";
 
   const selectAll = document.getElementById("selectAllUsersCheckbox");
@@ -15979,51 +16041,53 @@ function renderAdminUsers() {
   const btnBatchDelete = document.getElementById("btnBatchDeleteUsers");
   if (btnBatchDelete) btnBatchDelete.style.display = "none";
   
-  if (!adminUsers || adminUsers.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="padding: 24px; text-align: center; color: var(--text-muted);">ไม่พบข้อมูลผู้ใช้งาน</td></tr>`;
+  const displayUsers = filteredList !== null ? filteredList : allUsers;
+
+  if (!displayUsers || displayUsers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" style="padding: 28px; text-align: center; color: #64748b; font-size: 13px;">ไม่พบข้อมูลผู้ใช้งานที่ตรงกับเงื่อนไข</td></tr>`;
     return;
   }
   
-  adminUsers.forEach(user => {
+  displayUsers.forEach(user => {
     const roleLevel = user.role || 'L1';
     const badgeInfo = getRoleBadgeInfo(roleLevel);
     
     // Assigned rooms display for L2
     let roomsHtml = '<span style="color: var(--text-muted); font-size: 12px;">-</span>';
     if ((roleLevel === 'L2' || roleLevel === 'staff') && user.assignedRooms && user.assignedRooms.length > 0) {
-      roomsHtml = user.assignedRooms.map(r => `<span class="room-badge-tag highlight">${r}</span>`).join(" ");
+      roomsHtml = user.assignedRooms.map(r => `<span class="room-badge-tag highlight" style="font-size: 11px; padding: 2px 7px; border-radius: 5px;">${r}</span>`).join(" ");
     } else if (roleLevel === 'L3' || roleLevel === 'admin') {
-      roomsHtml = '<span class="room-badge-tag" style="background:#f5f3ff; color:#7c3aed; border-color:#ddd6fe;">ทุกห้อง (All Labs)</span>';
+      roomsHtml = '<span class="room-badge-tag" style="background:#f5f3ff; color:#7c3aed; border-color:#ddd6fe; font-size: 11px; padding: 2px 7px; border-radius: 5px;">ทุกห้อง (All Labs)</span>';
     } else if (roleLevel === 'L4' || roleLevel === 'executive') {
-      roomsHtml = '<span class="room-badge-tag" style="background:#fdf2f8; color:#be185d; border-color:#fbcfe8;">ภาพรวมทุกห้อง (Read Only)</span>';
+      roomsHtml = '<span class="room-badge-tag" style="background:#fdf2f8; color:#be185d; border-color:#fbcfe8; font-size: 11px; padding: 2px 7px; border-radius: 5px;">ภาพรวมทุกห้อง (Read Only)</span>';
     }
       
     const tr = document.createElement("tr");
-    tr.style.borderBottom = "1px solid var(--border-color)";
+    tr.style.borderBottom = "1px solid #f1f5f9";
     tr.innerHTML = `
-      <td style="width: 38px; text-align: center; padding: 10px 8px;">
-        <input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 16px; height: 16px; accent-color: var(--primary-purple); cursor: pointer; border-radius: 4px;">
+      <td style="width: 38px; text-align: center; padding: 11px 8px;">
+        <input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 15px; height: 15px; accent-color: #0f172a; cursor: pointer; border-radius: 4px;">
       </td>
-      <td style="padding: 10px 14px; font-family: monospace; font-weight: 700; color: #1e293b; white-space: nowrap; font-size: 13px;">
+      <td style="padding: 11px 14px; font-family: monospace; font-weight: 700; color: #0f172a; white-space: nowrap; font-size: 13px;">
         ${escapeHTML(user.teacherId || user.id || '-')}
       </td>
-      <td style="padding: 10px 14px;">
+      <td style="padding: 11px 14px;">
         <div style="display: flex; align-items: center; gap: 10px; min-width: 180px;">
-          <div style="width:32px;height:32px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:11.5px;flex-shrink:0;">${getUserInitials(user.name)}</div>
+          <div style="width:34px;height:34px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow: 0 2px 5px rgba(0,0,0,0.1);flex-shrink:0;">${getUserInitials(user.name)}</div>
           <div>
-            <div style="font-weight: 600; color: var(--text-main); font-size: 13px; line-height: 1.3;">${escapeHTML(user.name || '')}</div>
-            <div style="font-size: 11px; color: var(--text-muted);">${escapeHTML(user.email || '-')}</div>
+            <div style="font-weight: 600; color: #0f172a; font-size: 13px; line-height: 1.3;">${escapeHTML(user.name || '')}</div>
+            <div style="font-size: 11px; color: #64748b;">${escapeHTML(user.email || '-')}</div>
           </div>
         </div>
       </td>
-      <td style="padding: 10px 14px; color: var(--text-muted); font-size: 12.5px; min-width: 130px; line-height: 1.3;">${escapeHTML(user.department || 'กลุ่มสาระวิทยาศาสตร์')}</td>
-      <td style="padding: 10px 14px; white-space: nowrap;">
-        <span class="badge-role ${badgeInfo.className}">${badgeInfo.level} ${badgeInfo.name}</span>
+      <td style="padding: 11px 14px; color: #475569; font-size: 12.5px; min-width: 130px; line-height: 1.3;">${escapeHTML(user.department || 'กลุ่มสาระวิทยาศาสตร์')}</td>
+      <td style="padding: 11px 14px; white-space: nowrap;">
+        <span class="badge-role ${badgeInfo.className}" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px;">${badgeInfo.level} ${badgeInfo.name}</span>
       </td>
-      <td style="padding: 10px 14px; min-width: 110px;">${roomsHtml}</td>
-      <td style="padding: 10px 14px; text-align: center; white-space: nowrap;">
-        <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: white; border: 1px solid var(--border-color); cursor: pointer; padding: 4px 10px; border-radius: 6px; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
-          <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i>
+      <td style="padding: 11px 14px; min-width: 110px;">${roomsHtml}</td>
+      <td style="padding: 11px 14px; text-align: center; white-space: nowrap;">
+        <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; cursor: pointer; padding: 4px 10px; border-radius: 6px; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+          <i data-lucide="edit-2" style="width: 12px; height: 12px; color: #64748b;"></i>
           <span>แก้ไข</span>
         </button>
       </td>
@@ -16033,6 +16097,49 @@ function renderAdminUsers() {
 
   if (window.lucide) lucide.createIcons();
 }
+
+window.filterAdminUsersTable = function() {
+  if (!Array.isArray(adminUsers)) return;
+  const searchInput = document.getElementById("adminUserSearchInput");
+  const roleSelect = document.getElementById("adminUserRoleFilter");
+  const deptSelect = document.getElementById("adminUserDeptFilter");
+
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+  const roleFilter = roleSelect ? roleSelect.value : "";
+  const deptFilter = deptSelect ? deptSelect.value : "";
+
+  const filtered = adminUsers.filter(user => {
+    // Search matching
+    if (query) {
+      const name = (user.name || "").toLowerCase();
+      const teacherId = String(user.teacherId || user.id || "").toLowerCase();
+      const email = (user.email || "").toLowerCase();
+      const dept = (user.department || "").toLowerCase();
+      if (!name.includes(query) && !teacherId.includes(query) && !email.includes(query) && !dept.includes(query)) {
+        return false;
+      }
+    }
+
+    // Role matching
+    if (roleFilter) {
+      const uRole = (user.role || "L1").toUpperCase();
+      if (roleFilter === "L1" && !["L1", "TEACHER"].includes(uRole)) return false;
+      if (roleFilter === "L2" && !["L2", "STAFF"].includes(uRole)) return false;
+      if (roleFilter === "L3" && !["L3", "ADMIN"].includes(uRole)) return false;
+      if (roleFilter === "L4" && !["L4", "EXECUTIVE"].includes(uRole)) return false;
+    }
+
+    // Department matching
+    if (deptFilter) {
+      const userDept = user.department || "กลุ่มสาระวิทยาศาสตร์";
+      if (userDept !== deptFilter) return false;
+    }
+
+    return true;
+  });
+
+  renderAdminUsers(filtered);
+};
 
 window.toggleSelectAllUsers = function(isChecked) {
   const checkboxes = document.querySelectorAll(".user-select-checkbox");
