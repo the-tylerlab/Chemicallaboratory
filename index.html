@@ -3839,46 +3839,54 @@
   </div>
 
   <!-- ==========================================
-       MODAL: CSV IMPORT DIALOG
+       MODAL: EXCEL / CSV IMPORT DIALOG
        ========================================== -->
   <div class="modal-overlay" id="importModal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 580px;">
       <div class="modal-header">
-        <h2 class="modal-title">นำเข้าไฟล์ (CSV)</h2>
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+          นำเข้าไฟล์พัสดุและสารเคมี (Excel / CSV)
+        </h2>
         <button class="modal-close-btn" id="modalClose">&times;</button>
       </div>
       
       <div class="modal-body">
         <!-- Step 1: Download Template -->
         <div class="modal-step">
-          <div class="modal-step-title">1. ดาวน์โหลดไฟล์ต้นแบบ</div>
-          <div class="template-download-box">
-            <span class="template-download-text">
-              ดาวน์โหลดไฟล์เทมเพลต CSV เพื่อกรอกข้อมูลพัสดุและสารเคมีให้ถูกต้องตามระบบ
+          <div class="modal-step-title">1. ดาวน์โหลดไฟล์ต้นแบบเทมเพลต</div>
+          <div class="template-download-box" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+            <span class="template-download-text" style="font-size: 13px; color: #475569;">
+              ดาวน์โหลดไฟล์เทมเพลตเพื่อกรอกข้อมูล <b>ชีตแรกเป็นคู่มือการใช้งาน</b> และ <b>ชีตถัดไปเป็นตารางกรอกข้อมูล</b>
             </span>
-            <a href="#" class="template-download-btn" id="btnDownloadTemplate">
-              <i data-lucide="download" style="width: 14px; height: 14px;"></i>
-              Template.csv
-            </a>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; width: 100%;">
+              <a href="#" class="template-download-btn" id="btnDownloadExcelTemplate" style="background: #15803d; color: #ffffff; border: none; font-weight: 600; padding: 7px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; transition: all 0.2s;">
+                <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px;"></i>
+                Excel (.xlsx) แนะนำ (2 ชีต)
+              </a>
+              <a href="#" class="template-download-btn" id="btnDownloadTemplate" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-weight: 500; padding: 7px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; transition: all 0.2s;">
+                <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+                CSV (.csv)
+              </a>
+            </div>
           </div>
         </div>
 
-
-
         <!-- Step 2: Select File -->
-        <div class="modal-step">
-          <div class="modal-step-title">2. เลือกไฟล์ CSV ของคุณ</div>
+        <div class="modal-step" style="margin-top: 14px;">
+          <div class="modal-step-title">2. เลือกไฟล์ที่กรอกข้อมูลแล้ว</div>
           <div class="file-upload-container">
-            <input type="file" id="csvFileInput" class="file-upload-input" accept=".csv">
-            <label for="csvFileInput" class="file-upload-label">
-              <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
-              เลือกไฟล์
+            <input type="file" id="csvFileInput" class="file-upload-input" accept=".xlsx, .xls, .csv">
+            <label for="csvFileInput" class="file-upload-label" style="cursor: pointer;">
+              <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+              เลือกไฟล์ Excel / CSV
             </label>
             <span class="file-upload-filename" id="csvFileName">ยังไม่ได้เลือกไฟล์</span>
           </div>
-          <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">
-            * รองรับไฟล์รหัสภาษา UTF-8 (แนะนำให้ใช้การบันทึกใน Excel เป็น CSV UTF-8)<br>
-            * คอลัมน์ที่รองรับ: รหัส, ชื่อ, หมวดหมู่, จำนวน, หน่วย, จุดสั่งซื้อ, วันหมดอายุ, ห้อง, ตู้, ชั้น
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.5;">
+            * รองรับไฟล์นามสกุล <b>.xlsx, .xls, .csv</b> (ระบบจะอ่านข้อมูลจากชีตกรอกข้อมูลอัตโนมัติ)<br>
+            * คอลัมน์จำเป็น: <b>รหัส*, ชื่อ*, หมวดหมู่*, จำนวน*, หน่วย*</b><br>
+            * ข้อมูลจะถูกนำเข้าและซิงค์ไปยัง Supabase Cloud และ Google Sheets แบบเรียลไทม์
           </p>
         </div>
       </div>
