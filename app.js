@@ -15960,9 +15960,17 @@ function renderAdminUsers() {
   if (!tbody) return;
   
   tbody.innerHTML = "";
+
+  const selectAll = document.getElementById("selectAllUsersCheckbox");
+  if (selectAll) {
+    selectAll.checked = false;
+    selectAll.indeterminate = false;
+  }
+  const btnBatchDelete = document.getElementById("btnBatchDeleteUsers");
+  if (btnBatchDelete) btnBatchDelete.style.display = "none";
   
   if (!adminUsers || adminUsers.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="padding: 24px; text-align: center; color: var(--text-muted);">ไม่พบข้อมูลผู้ใช้งาน</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="padding: 24px; text-align: center; color: var(--text-muted);">ไม่พบข้อมูลผู้ใช้งาน</td></tr>`;
     return;
   }
   
@@ -15983,6 +15991,9 @@ function renderAdminUsers() {
     const tr = document.createElement("tr");
     tr.style.borderBottom = "1px solid var(--border-color)";
     tr.innerHTML = `
+      <td style="width: 38px; text-align: center; padding: 10px 8px;">
+        <input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 16px; height: 16px; accent-color: var(--primary-purple); cursor: pointer; border-radius: 4px;">
+      </td>
       <td style="padding: 10px 14px; font-family: monospace; font-weight: 700; color: #1e293b; white-space: nowrap; font-size: 13px;">
         ${escapeHTML(user.teacherId || user.id || '-')}
       </td>
@@ -16012,6 +16023,126 @@ function renderAdminUsers() {
 
   if (window.lucide) lucide.createIcons();
 }
+
+window.toggleSelectAllUsers = function(isChecked) {
+  const checkboxes = document.querySelectorAll(".user-select-checkbox");
+  checkboxes.forEach(cb => {
+    cb.checked = isChecked;
+  });
+  if (typeof window.onUserSelectionChange === "function") {
+    window.onUserSelectionChange();
+  }
+};
+
+window.onUserSelectionChange = function() {
+  const checkboxes = document.querySelectorAll(".user-select-checkbox");
+  const total = checkboxes.length;
+  let checkedCount = 0;
+  checkboxes.forEach(cb => {
+    if (cb.checked) checkedCount++;
+  });
+
+  const selectAll = document.getElementById("selectAllUsersCheckbox");
+  if (selectAll) {
+    selectAll.checked = (total > 0 && checkedCount === total);
+    selectAll.indeterminate = (checkedCount > 0 && checkedCount < total);
+  }
+
+  const btnBatchDelete = document.getElementById("btnBatchDeleteUsers");
+  const countText = document.getElementById("batchDeleteUsersCountText");
+  if (btnBatchDelete) {
+    if (checkedCount > 0) {
+      btnBatchDelete.style.display = "inline-flex";
+      if (countText) countText.innerText = `ลบที่เลือก (${checkedCount})`;
+    } else {
+      btnBatchDelete.style.display = "none";
+    }
+  }
+};
+
+window.batchDeleteSelectedUsers = async function() {
+  const checkboxes = document.querySelectorAll(".user-select-checkbox:checked");
+  if (checkboxes.length === 0) {
+    showToast("กรุณาเลือกผู้ใช้งานที่ต้องการลบอย่างน้อย 1 รายการ", "warning");
+    return;
+  }
+
+  const selectedUsers = [];
+  checkboxes.forEach(cb => {
+    selectedUsers.push({
+      id: cb.getAttribute("data-user-id"),
+      teacherId: cb.getAttribute("data-teacher-id"),
+      name: cb.getAttribute("data-user-name") || cb.getAttribute("data-user-id"),
+      role: cb.getAttribute("data-role") || "L1"
+    });
+  });
+
+  // Guard: Protect currently logged-in user
+  const loggedInUserId = (typeof currentUser !== "undefined" && currentUser) ? (currentUser.id || currentUser.teacherId) : null;
+  const filteredUsers = selectedUsers.filter(u => {
+    if (loggedInUserId && (u.id === loggedInUserId || u.teacherId === loggedInUserId)) {
+      return false;
+    }
+    return true;
+  });
+
+  if (filteredUsers.length === 0) {
+    showToast("ไม่สามารถลบบัญชีของตนเองที่กำลังเข้าสู่ระบบอยู่ได้", "warning");
+    return;
+  }
+
+  if (filteredUsers.length < selectedUsers.length) {
+    showToast("ระบบข้ามการลบบัญชีที่กำลังล็อกอินใช้งานอยู่ในปัจจุบัน", "info");
+  }
+
+  const confirmMsg = `คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้งานที่เลือกจำนวน ${filteredUsers.length} คน?\n\nรายชื่อ:\n- ` + 
+    filteredUsers.slice(0, 5).map(u => `${u.name} (${u.teacherId || u.id})`).join("\n- ") + 
+    (filteredUsers.length > 5 ? `\n...และอื่นๆ อีก ${filteredUsers.length - 5} คน` : '') + 
+    `\n\nการกระทำนี้จะลบข้อมูลออกจากระบบอย่างถาวร`;
+
+  if (!confirm(confirmMsg)) return;
+
+  const targetIds = filteredUsers.map(u => u.id);
+  const userNames = filteredUsers.map(u => u.name).join(", ");
+
+  showToast(`กำลังลบผู้ใช้งาน ${targetIds.length} คน...`, "info");
+
+  // 1. Supabase batch delete
+  if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
+    try {
+      await supabase.from('users').delete().in('id', targetIds);
+    } catch (supaErr) {
+      console.warn("Direct Supabase batch user delete notice:", supaErr);
+    }
+  }
+
+  // 2. Server API batch delete
+  try {
+    await fetch('/api/users/batch-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: targetIds })
+    });
+  } catch (err) {
+    console.warn("API /api/users/batch-delete notice:", err);
+  }
+
+  // 3. Fallback / Local sync
+  if (Array.isArray(adminUsers)) {
+    adminUsers = adminUsers.filter(u => !targetIds.includes(u.id));
+    try {
+      localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+    } catch(e) {}
+  }
+
+  // 4. Audit Log
+  if (typeof logAuditAction === "function") {
+    await logAuditAction("ลบผู้ใช้งานหลายคน (Batch Delete)", `ลบผู้ใช้งานจำนวน ${targetIds.length} คน (${userNames})`);
+  }
+
+  showToast(`ลบผู้ใช้งานที่เลือก ${targetIds.length} คนเรียบร้อยแล้ว`, "success");
+  await loadAdminData();
+};
 
 function renderAuditLogs() {
   const container = document.getElementById("adminAuditList");

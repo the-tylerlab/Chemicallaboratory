@@ -2763,6 +2763,10 @@
               <p>กำหนดระดับสิทธิ์ (L1 - L4) และมอบหมายห้องปฏิบัติการสำหรับเจ้าหน้าที่ L2</p>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-danger" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none; align-items: center; gap: 7px; background: #ef4444; color: white; white-space: nowrap; height: 38px; border-radius: 8px; font-weight: 600; font-size: 13px; border: none; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); cursor: pointer; transition: all 0.2s ease;">
+                <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+                <span id="batchDeleteUsersCountText">ลบที่เลือก (0)</span>
+              </button>
               <button class="btn btn-secondary" onclick="openBatchAddUsersModal()" style="display: flex; align-items: center; gap: 7px; white-space: nowrap; height: 38px; border-radius: 8px; font-weight: 600; font-size: 13px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #334155;">
                 <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px; color: #16a34a;"></i>
                 <span>นำเข้าข้อมูล</span>
@@ -2778,6 +2782,9 @@
             <table class="data-table">
               <thead>
                 <tr>
+                  <th style="width: 38px; text-align: center; padding: 10px 8px;">
+                    <input type="checkbox" id="selectAllUsersCheckbox" onchange="toggleSelectAllUsers(this.checked)" title="เลือกทั้งหมด" style="width: 16px; height: 16px; accent-color: var(--primary-purple); cursor: pointer; border-radius: 4px;">
+                  </th>
                   <th>รหัสครู</th>
                   <th>ชื่อ - สกุล</th>
                   <th>กลุ่มสาระ / หน่วยงาน</th>

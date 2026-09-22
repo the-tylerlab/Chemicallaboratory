@@ -1544,6 +1544,37 @@ app.delete('/api/users/:id', async (req, res) => {
   res.json({ success: true });
 });
 
+// BATCH DELETE USERS ENDPOINT
+app.post('/api/users/batch-delete', async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: "No user IDs provided" });
+  }
+
+  let users = readUsers();
+  const deletedUsers = users.filter(u => ids.includes(u.id));
+  users = users.filter(u => !ids.includes(u.id));
+  writeUsers(users);
+
+  // Sync to Supabase
+  if (supabase) {
+    try {
+      await supabase.from('users').delete().in('id', ids);
+    } catch(err) {
+      console.warn("Supabase batch delete users sync error:", err.message);
+    }
+  }
+
+  // Sync to Google Sheets
+  deletedUsers.forEach(u => {
+    if (u.teacherId) {
+      syncToGoogleSheets('Users', 'DELETE', { teacherId: u.teacherId }, 'teacherId');
+    }
+  });
+
+  res.json({ success: true, deletedCount: deletedUsers.length });
+});
+
 // Helper: Normalize Thai numbers (e.g. ๑๒๓ -> 123)
 function normalizeThaiDigits(str) {
   if (!str) return '';
