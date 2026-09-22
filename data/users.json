@@ -124,5 +124,20 @@
     "password": "10797",
     "color": "#0284c7",
     "initials": "ธพ"
+  },
+  {
+    "teacherId": "10746",
+    "name": "ครูผู้สอน (รหัส 10746)",
+    "department": "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    "email": "10746@lab.school.ac.th",
+    "role": "L1",
+    "id": "u_10746",
+    "roleName": "Teacher / User",
+    "assignedRooms": [],
+    "isActive": true,
+    "createdAt": "2026-09-22T03:35:00.000Z",
+    "password": "10746",
+    "color": "#0284c7",
+    "initials": "คร"
   }
 ]

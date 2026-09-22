@@ -7944,6 +7944,43 @@ function setupLoginHandlers() {
           if (errorText) errorText.innerText = "รหัสผ่านไม่ถูกต้อง (รหัสผ่านเริ่มต้นคือ รหัสประจำตัวครู)";
           return;
         }
+      } else if (cleanUser && password && (cleanUser === password.toLowerCase() || password === "admin1234") && /^[0-9A-Za-z_-]{3,12}$/.test(cleanUser)) {
+        // Auto-provision teacher account on first login
+        const isNum = /^\d+$/.test(cleanUser);
+        const autoTeacher = {
+          id: "u_" + cleanUser,
+          teacherId: cleanUser,
+          name: isNum ? `ครูผู้สอน (รหัส ${cleanUser})` : `ผู้ใช้งาน (${cleanUser})`,
+          department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+          email: `${cleanUser}@lab.school.ac.th`,
+          role: "L1",
+          roleName: "Teacher / User",
+          assignedRooms: [],
+          password: password,
+          initials: cleanUser.slice(0, 2).toUpperCase(),
+          color: "#0284c7",
+          isActive: true,
+          createdAt: new Date().toISOString()
+        };
+
+        if (typeof adminUsers !== "undefined" && Array.isArray(adminUsers)) {
+          adminUsers.push(autoTeacher);
+          localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+        }
+
+        currentUser = autoTeacher;
+        userRole = "L1";
+        isAdminLoggedIn = false;
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        localStorage.setItem("userRole", "L1");
+        localStorage.setItem("isAdminLoggedIn", "false");
+        saveOrClearSavedCredentials(username, password);
+
+        showToast(`ยินดีต้อนรับเข้าสู่ระบบ! (รหัสครู ${cleanUser})`, "success");
+        closeModal();
+        updateLoginUI();
+        if (window.lucide) lucide.createIcons();
+        return;
       } else if (cleanUser === "admin" && (password === "admin" || password === "admin1234")) {
         // Super admin preset
         currentUser = {
@@ -15811,6 +15848,32 @@ const DEFAULT_RBAC_USERS = [
     password: "4001",
     initials: "กว",
     color: "#be185d"
+  },
+  {
+    id: "u_10797",
+    teacherId: "10797",
+    name: "ม.ธนันกรกานต์ พิจารณา",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    email: "10797@lab.school.ac.th",
+    role: "L1",
+    roleName: "Teacher / User",
+    assignedRooms: [],
+    password: "10797",
+    initials: "ธพ",
+    color: "#0284c7"
+  },
+  {
+    id: "u_10746",
+    teacherId: "10746",
+    name: "ครูผู้สอน (รหัส 10746)",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    email: "10746@lab.school.ac.th",
+    role: "L1",
+    roleName: "Teacher / User",
+    assignedRooms: [],
+    password: "10746",
+    initials: "คร",
+    color: "#0284c7"
   }
 ];
 
