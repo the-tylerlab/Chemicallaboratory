@@ -712,6 +712,11 @@ button.menu-item-link:hover {
   background: #f1f5f9;
   border-right: 1px solid var(--border-color);
   padding: 10px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
 .help-tab {
   min-height: 44px;
   padding: 0 14px;
