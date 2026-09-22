@@ -414,6 +414,89 @@ function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
   }
 }
 
+// Full 2-Way / 1-Way Sync All Data to Google Sheets
+async function syncAllToGoogleSheets(silent = false) {
+  if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) {
+    if (!silent) showToast("ไม่สามารถเชื่อมต่อ Google Sheets Webhook ได้ หรืออุปกรณ์ออฟไลน์", "warning");
+    return;
+  }
+
+  try {
+    if (!silent && typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'กำลังซิงค์ข้อมูลไปยัง Google Sheets...',
+        html: '<div style="font-size:13px; color:#64748b; line-height: 1.6;">กำลังอัปเดตข้อมูลผู้ใช้งาน 5.Users, รายการพัสดุและสารเคมี 1.Items, ธุรกรรมยืม-คืน 2.Transactions, และการจองห้อง 3.Bookings...</div>',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+    }
+
+    // 1. Clean obsolete mock demo users from Google Sheets
+    const obsoleteMockIds = ["1001", "1002", "2001", "2002", "3001", "4001", "10797"];
+    obsoleteMockIds.forEach(tId => {
+      syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: tId, id: `u_${tId}` }, 'teacherId');
+    });
+
+    // 2. Sync active Users
+    const activeUsers = (typeof adminUsers !== 'undefined' && Array.isArray(adminUsers) && adminUsers.length > 0) ? adminUsers : DEFAULT_RBAC_USERS;
+    activeUsers.forEach(u => {
+      const sheetUser = { ...u };
+      delete sheetUser.password;
+      syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
+    });
+
+    // 3. Sync all Items
+    if (typeof items !== 'undefined' && Array.isArray(items) && items.length > 0) {
+      items.forEach(it => {
+        syncToGoogleSheetsDirect('Items', 'UPSERT', it, 'code');
+      });
+    }
+
+    // 4. Sync Transactions
+    if (typeof transactions !== 'undefined' && Array.isArray(transactions) && transactions.length > 0) {
+      transactions.forEach(tx => {
+        syncToGoogleSheetsDirect('Transactions', 'UPSERT', tx, 'id');
+      });
+    }
+
+    // 5. Sync Bookings
+    if (typeof bookings !== 'undefined' && Array.isArray(bookings) && bookings.length > 0) {
+      bookings.forEach(bk => {
+        syncToGoogleSheetsDirect('Bookings', 'UPSERT', bk, 'id');
+      });
+    }
+
+    // 6. Sync Purchase Orders
+    if (typeof purchaseOrders !== 'undefined' && Array.isArray(purchaseOrders) && purchaseOrders.length > 0) {
+      purchaseOrders.forEach(po => {
+        syncToGoogleSheetsDirect('Purchase_Orders', 'UPSERT', po, 'id');
+      });
+    }
+
+    if (!silent) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: 'ซิงค์ Google Sheets สำเร็จ!',
+          html: `<div style="font-size:13.5px; color:#334155; line-height:1.6; text-align:left;">
+            <p>✅ อัปเดตรายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> ลงชีท <b>5.Users</b></p>
+            <p>✅ อัปเดตรายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> ลงชีท <b>1.Items</b></p>
+            <p>✅ ลบข้อมูลจำลองเก่าที่ไม่ได้ใช้งานออกจาก Google Sheets แล้ว</p>
+          </div>`,
+          confirmButtonColor: '#7c3aed',
+          confirmButtonText: 'ตกลง'
+        });
+      } else {
+        showToast("ซิงค์ข้อมูลไปยัง Google Sheets สำเร็จเรียบร้อยแล้ว!", "success");
+      }
+    }
+  } catch (err) {
+    console.error("Full Google Sheets sync error:", err);
+    if (!silent) showToast("เกิดข้อผิดพลาดในการซิงค์ Google Sheets: " + err.message, "error");
+  }
+}
+window.syncAllToGoogleSheets = syncAllToGoogleSheets;
+
 let isBackendOnline = false;
 let transactions = [];
 let bookings = [];
@@ -16539,108 +16622,82 @@ const DEFAULT_RBAC_USERS = [
     color: "#7c3aed"
   },
   {
-    id: "u_1001",
-    teacherId: "1001",
-    name: "ครูสมชาย รักการสอน",
-    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาเคมี)",
-    email: "somchai.t@lab.school.ac.th",
-    role: "L1",
-    roleName: "Teacher / User",
-    assignedRooms: [],
-    password: "1001",
-    initials: "สร",
-    color: "#0284c7"
-  },
-  {
-    id: "u_1002",
-    teacherId: "1002",
-    name: "ครูวิภาดา ใฝ่รู้",
-    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาฟิสิกส์)",
-    email: "wiphada.t@lab.school.ac.th",
-    role: "L1",
-    roleName: "Teacher / User",
-    assignedRooms: [],
-    password: "1002",
-    initials: "วฝ",
-    color: "#059669"
-  },
-  {
-    id: "u_2001",
-    teacherId: "2001",
-    name: "เจ้าหน้าที่ทรงศักดิ์ ดูแลแล็บเคมี",
-    department: "งานบริการห้องปฏิบัติการวิทยาศาสตร์",
-    email: "songsak.s@lab.school.ac.th",
-    role: "L2",
-    roleName: "Staff / Operator",
-    assignedRooms: ["Lab 1", "Lab 6"],
-    password: "2001",
-    initials: "ทด",
-    color: "#ea580c"
-  },
-  {
-    id: "u_2002",
-    teacherId: "2002",
-    name: "เจ้าหน้าที่นฤมล ดูแลแล็บฟิสิกส์-ชีวะ",
-    department: "งานบริการห้องปฏิบัติการวิทยาศาสตร์",
-    email: "narumon.s@lab.school.ac.th",
-    role: "L2",
-    roleName: "Staff / Operator",
-    assignedRooms: ["Lab 2", "Lab 3"],
-    password: "2002",
-    initials: "นด",
-    color: "#d97706"
-  },
-  {
-    id: "u_3001",
-    teacherId: "3001",
-    name: "ดร.นพพร หัวหน้างานบริหารห้องปฏิบัติการ",
-    department: "กลุ่มงานบริหารวิชาการและห้องปฏิบัติการ",
-    email: "nopporn.m@lab.school.ac.th",
-    role: "L3",
-    roleName: "Manager / System Manager",
-    assignedRooms: [],
-    password: "3001",
-    initials: "นห",
-    color: "#6366f1"
-  },
-  {
-    id: "u_4001",
-    teacherId: "4001",
-    name: "ผอ.เกียรติศักดิ์ วิสัยทัศน์กว้าง (ผู้บริหาร)",
-    department: "คณะกรรมการบริหารสถานศึกษา",
-    email: "director@lab.school.ac.th",
-    role: "L4",
-    roleName: "Executive / Head of Department",
-    assignedRooms: [],
-    password: "4001",
-    initials: "กว",
-    color: "#be185d"
-  },
-  {
-    id: "u_10797",
-    teacherId: "10797",
-    name: "ม.ธนันกรกานต์ พิจารณา",
-    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
-    email: "10797@lab.school.ac.th",
-    role: "L1",
-    roleName: "Teacher / User",
-    assignedRooms: [],
-    password: "10797",
-    initials: "ธพ",
-    color: "#0284c7"
-  },
-  {
     id: "u_10746",
     teacherId: "10746",
-    name: "ครูผู้สอน (รหัส 10746)",
+    name: "ม.สุวรรณ ชิดประสงค์",
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     email: "10746@lab.school.ac.th",
     role: "L1",
     roleName: "Teacher / User",
     assignedRooms: [],
     password: "10746",
-    initials: "คร",
+    initials: "สช",
     color: "#0284c7"
+  },
+  {
+    id: "u_10823",
+    teacherId: "10823",
+    name: "ม.วงศกร ด้วงเกลี้ยง",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    email: "10823@lab.school.ac.th",
+    role: "L3",
+    roleName: "Manager / System Manager",
+    assignedRooms: [],
+    password: "10823",
+    initials: "วด",
+    color: "#7c3aed"
+  },
+  {
+    id: "u_10568",
+    teacherId: "10568",
+    name: "ม.วสุรัตน์ สิริจำลองวงศ์",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    email: "10568@lab.school.ac.th",
+    role: "L4",
+    roleName: "Executive / Head of Department",
+    assignedRooms: [],
+    password: "10568",
+    initials: "วส",
+    color: "#be185d"
+  },
+  {
+    id: "u_10785",
+    teacherId: "10785",
+    name: "ม.เศรษฐกาญจน์ โกศลกาญจน์",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    email: "10785@lab.school.ac.th",
+    role: "L2",
+    roleName: "Staff / Operator",
+    assignedRooms: ["Lab 3"],
+    password: "10785",
+    initials: "ศก",
+    color: "#ea580c"
+  },
+  {
+    id: "u_10824",
+    teacherId: "10824",
+    name: "ม.พชร รัชประภาพงษ์",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    email: "10824@lab.school.ac.th",
+    role: "L2",
+    roleName: "Staff / Operator",
+    assignedRooms: ["Lab 2"],
+    password: "10824",
+    initials: "พร",
+    color: "#ea580c"
+  },
+  {
+    id: "u_10572",
+    teacherId: "10572",
+    name: "มิสพิชยาพร ประยูรอนุเทพ",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    email: "10572@lab.school.ac.th",
+    role: "L3",
+    roleName: "Manager / System Manager",
+    assignedRooms: [],
+    password: "10572",
+    initials: "พป",
+    color: "#7c3aed"
   }
 ];
 

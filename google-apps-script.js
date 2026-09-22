@@ -659,6 +659,35 @@ function doPost(e) {
     var sheet = getOrCreateCanonicalSheet(ss, table);
 
     var result = "";
+    if (action === 'REPLACE_ALL' || action === 'CLEAR_AND_SET') {
+      if (Array.isArray(data)) {
+        var lastRow = sheet.getLastRow();
+        var lastCol = sheet.getLastColumn();
+        if (lastRow > 1 && lastCol > 0) {
+          sheet.getRange(2, 1, lastRow - 1, lastCol).clearContent();
+        }
+        var headers = lastCol > 0 ? sheet.getRange(1, 1, 1, lastCol).getValues()[0] : [];
+        if (headers.length === 0 && data.length > 0) {
+          headers = Object.keys(data[0]);
+          sheet.appendRow(headers);
+        }
+        if (data.length > 0) {
+          var rows = data.map(function(item) {
+            return headers.map(function(h) {
+              var v = item[h];
+              return (typeof v === 'object' && v !== null) ? JSON.stringify(v) : (v !== undefined ? v : "");
+            });
+          });
+          sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+        }
+        return ContentService.createTextOutput(JSON.stringify({ 
+          status: "success", 
+          result: "replaced_" + data.length + "_rows",
+          table: table
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
     if (table === CANONICAL_TABS.BOOKINGS || table === 'Bookings') {
       result = (action === 'DELETE') ? deleteBookingRow(sheet, data) : upsertBookingRow(sheet, data);
       renumberBookingRows();
