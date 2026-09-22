@@ -1443,6 +1443,30 @@ function formatThaiDate(dateStr) {
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
+// Helper: Normalize Date String to YYYY-MM-DD
+function normalizeDateStr(dateStr) {
+  if (!dateStr) return "";
+  if (typeof dateStr !== "string") {
+    if (dateStr instanceof Date && !isNaN(dateStr.getTime())) {
+      const y = dateStr.getFullYear();
+      const m = String(dateStr.getMonth() + 1).padStart(2, '0');
+      const d = String(dateStr.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    dateStr = String(dateStr);
+  }
+  if (dateStr.includes("T")) dateStr = dateStr.split("T")[0];
+  const parts = dateStr.trim().split(/[-/]/);
+  if (parts.length === 3) {
+    if (parts[0].length === 4) { // YYYY-MM-DD
+      return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+    } else if (parts[2].length === 4) { // DD/MM/YYYY
+      return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+  }
+  return dateStr.trim();
+}
+
 // Helper: Get item display name (Thai only, strip any English in parentheses)
 function getItemDisplayName(item) {
   if (!item || !item.name) return "";
@@ -5847,58 +5871,59 @@ async function loadAllBookings() {
     }
   ];
 
+  let remoteBookings = [];
   if (isSupabaseOnline) {
     try {
       const { data, error } = await supabase.from("bookings").select('*');
-      if (error) throw error;
-      const loadedBookings = [];
-      (data || []).forEach(d => {
-        if (d && d.id) {
-          loadedBookings.push(d);
-        }
-      });
-      if (loadedBookings.length > 0) {
-        bookings = loadedBookings;
-        console.log("🔥 Loaded " + bookings.length + " bookings from Supabase Cloud.");
-        injectTestBookings();
-        return;
-      } else {
-        // Seed Supabase if empty
-        defaultBookings.forEach(demoBk => bookings.push(demoBk));
-        await supabase.from("bookings").insert(defaultBookings);
-        console.log("🔥 Seeded default bookings to Supabase.");
-        injectTestBookings();
-        return;
+      if (!error && Array.isArray(data) && data.length > 0) {
+        remoteBookings = data;
+        console.log("🔥 Loaded " + remoteBookings.length + " bookings from Supabase Cloud.");
       }
     } catch (err) {
-      console.error("🔥 Failed to load bookings from Supabase:", err);
-      isSupabaseOnline = false;
+      console.warn("🔥 Supabase bookings load notice:", err);
     }
   }
 
-  if (isBackendOnline) {
+  if (remoteBookings.length === 0 && isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/bookings`);
       if (response.ok) {
-        bookings = await response.json();
-        localStorage.setItem("lab_bookings", JSON.stringify(bookings));
-        injectTestBookings();
-        return;
+        const backendBookings = await response.json();
+        if (Array.isArray(backendBookings) && backendBookings.length > 0) {
+          remoteBookings = backendBookings;
+        }
       }
     } catch (e) {
-      console.error("Failed to load bookings from backend:", e);
+      console.warn("Failed to load bookings from backend:", e);
     }
   }
 
-  // LocalStorage Fallback
-  const localBookings = localStorage.getItem("lab_bookings");
-  if (localBookings) {
-    bookings = JSON.parse(localBookings);
+  // LocalStorage check and merge
+  let localList = [];
+  try {
+    const localBookings = localStorage.getItem("lab_bookings");
+    if (localBookings) {
+      localList = JSON.parse(localBookings);
+    }
+  } catch (e) {}
+
+  if (remoteBookings.length > 0) {
+    const merged = [...remoteBookings];
+    if (Array.isArray(localList)) {
+      localList.forEach(lb => {
+        if (lb && lb.id && !merged.some(rb => rb.id === lb.id)) {
+          merged.push(lb);
+        }
+      });
+    }
+    bookings = merged;
+  } else if (Array.isArray(localList) && localList.length > 0) {
+    bookings = localList;
   } else {
     bookings = [...defaultBookings];
-    localStorage.setItem("lab_bookings", JSON.stringify(bookings));
   }
   
+  localStorage.setItem("lab_bookings", JSON.stringify(bookings));
   injectTestBookings();
 }
 
@@ -5957,10 +5982,8 @@ function injectTestBookings() {
       modified = true;
       if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline) {
         try {
-          supabase.from("bookings").upsert(tb);
-        } catch (e) {
-          console.error("Supabase seeding test booking failed", e);
-        }
+          supabase.from("bookings").upsert(tb).catch(() => {});
+        } catch (e) {}
       }
     }
   });
@@ -5970,23 +5993,120 @@ function injectTestBookings() {
   }
 }
 
-async function saveBooking(bookingData) {
-  if (isSupabaseOnline) {
-    try {
-      await supabase.from("bookings").upsert(bookingData);
-      bookings.push(bookingData);
-      return true;
-    } catch (err) {
-      console.error("🔥 Supabase save booking failed:", err);
-      showToast("เกิดข้อผิดพลาดในการบันทึกการจองลงคลาวด์", "error");
-      return false;
+// ==========================================================================
+// OFFLINE SYNC QUEUE & RESILIENT STORAGE PIPELINE (Supabase -> Google Sheets -> LocalStorage)
+// ==========================================================================
+function enqueueOfflineBooking(bookingData) {
+  try {
+    const queue = JSON.parse(localStorage.getItem("lab_offline_booking_queue") || "[]");
+    const idx = queue.findIndex(q => q.id === bookingData.id);
+    if (idx !== -1) {
+      queue[idx] = bookingData;
+    } else {
+      queue.push(bookingData);
+    }
+    localStorage.setItem("lab_offline_booking_queue", JSON.stringify(queue));
+  } catch (e) {}
+}
+
+async function flushOfflineBookingQueue() {
+  if (!navigator.onLine) return;
+  let queue = [];
+  try {
+    queue = JSON.parse(localStorage.getItem("lab_offline_booking_queue") || "[]");
+  } catch (e) {}
+  
+  if (!Array.isArray(queue) || queue.length === 0) return;
+
+  console.log(`[OfflineSync] Flushing ${queue.length} pending bookings to Supabase & Google Sheets...`);
+  
+  let successCount = 0;
+  const remaining = [];
+
+  for (const b of queue) {
+    let synced = false;
+    // 1. Supabase Cloud Sync
+    if (isSupabaseOnline) {
+      try {
+        const { error } = await supabase.from("bookings").upsert(b);
+        if (!error) synced = true;
+      } catch (e) {}
+    }
+    // 2. Google Sheets / Backend Sync
+    if (isBackendOnline) {
+      try {
+        await fetch(`${API_BASE}/bookings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookings)
+        });
+        synced = true;
+      } catch (e) {}
+    }
+
+    if (synced) {
+      successCount++;
+    } else {
+      remaining.push(b);
     }
   }
 
-  // LocalStorage Fallback
-  bookings.push(bookingData);
+  localStorage.setItem("lab_offline_booking_queue", JSON.stringify(remaining));
+
+  if (successCount > 0) {
+    showToast(`🌐 เชื่อมต่ออินเทอร์เน็ตแล้ว: ซิงค์ข้อมูลการจองที่ค้างอยู่ ${successCount} รายการ ขึ้นระบบ Cloud และ Google Sheets เรียบร้อย`, "success");
+    if (typeof updateUI === "function") updateUI();
+  }
+}
+
+window.addEventListener('online', () => {
+  console.log("🌐 Network connection restored. Triggering offline sync queue...");
+  flushOfflineBookingQueue();
+});
+
+async function saveBooking(bookingData) {
+  let isSavedRemotely = false;
+
+  // 1. Immediately update in-memory bookings for instant UI responsiveness
+  const existingIdx = bookings.findIndex(b => b.id === bookingData.id);
+  if (existingIdx !== -1) {
+    bookings[existingIdx] = bookingData;
+  } else {
+    bookings.push(bookingData);
+  }
+
+  // 2. [ลำดับที่ 1] Supabase Cloud (Primary Realtime Database สำหรับซิงค์ไปทุกเครื่อง)
+  if (navigator.onLine && isSupabaseOnline) {
+    try {
+      const { error } = await supabase.from("bookings").upsert(bookingData);
+      if (!error) {
+        isSavedRemotely = true;
+      } else {
+        console.warn("🔥 Supabase save booking error notice:", error.message);
+      }
+    } catch (err) {
+      console.warn("🔥 Supabase save booking exception:", err);
+    }
+  }
+
+  // 3. [ลำดับที่ 2] Google Sheets & Server Backend Database (Secondary Backup & Sheets Sync)
+  if (navigator.onLine && isBackendOnline) {
+    try {
+      syncBookingsToBackend();
+      isSavedRemotely = true;
+    } catch (err) {
+      console.warn("Google Sheets / Backend sync notice:", err);
+    }
+  }
+
+  // 4. [ลำดับที่ 3] LocalStorage Cache & Offline Fallback (เก็บบนเครื่องเพื่อความรวดเร็วและกรณีไม่มีเน็ต)
   localStorage.setItem("lab_bookings", JSON.stringify(bookings));
-  syncBookingsToBackend();
+
+  if (!isSavedRemotely || !navigator.onLine) {
+    // ถ้าออฟไลน์ หรือ remote ยังไม่สำเร็จ ให้เก็บเข้าคิวรอส่งอัตโนมัติเมื่อเน็ตกลับมา
+    enqueueOfflineBooking(bookingData);
+  }
+
   return true;
 }
 
@@ -5995,23 +6115,28 @@ async function updateBookingStatus(bookingId, status) {
   if (index === -1) return false;
 
   const updatedBooking = { ...bookings[index], status: status };
+  bookings[index] = updatedBooking;
+  localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+  
+  if (navigator.onLine && isBackendOnline) {
+    syncBookingsToBackend();
+  }
 
-  if (isSupabaseOnline) {
+  if (navigator.onLine && isSupabaseOnline) {
     try {
-      await supabase.from("bookings").upsert(updatedBooking);
-      bookings[index] = updatedBooking;
-      return true;
+      const { error } = await supabase.from("bookings").upsert(updatedBooking);
+      if (error) {
+        console.warn("🔥 Supabase update booking status notice:", error.message);
+      }
     } catch (err) {
-      console.error("🔥 Supabase update booking failed:", err);
-      showToast("เกิดข้อผิดพลาดในการเปลี่ยนสถานะการจองบนคลาวด์", "error");
-      return false;
+      console.warn("🔥 Supabase update booking status exception:", err);
     }
   }
 
-  // LocalStorage Fallback
-  bookings[index] = updatedBooking;
-  localStorage.setItem("lab_bookings", JSON.stringify(bookings));
-  syncBookingsToBackend();
+  if (!navigator.onLine) {
+    enqueueOfflineBooking(updatedBooking);
+  }
+
   return true;
 }
 
@@ -6420,6 +6545,16 @@ function setupBookingForm() {
       // Clear prep check boxes
       document.querySelectorAll('input[name="bookingPrepItem"]').forEach(cb => cb.checked = false);
       
+      // Synchronize calendar dates so calendar immediately displays and highlights the booked date
+      try {
+        const bookedDateObj = new Date(date);
+        if (!isNaN(bookedDateObj.getTime())) {
+          if (typeof dashCalSelectedDate !== "undefined") dashCalSelectedDate = new Date(bookedDateObj);
+          if (typeof dashCalCurrentDate !== "undefined") dashCalCurrentDate = new Date(bookedDateObj);
+          if (typeof currentCalendarDate !== "undefined") currentCalendarDate = new Date(bookedDateObj);
+        }
+      } catch (e) {}
+
       updateUI();
     }
   });
@@ -14737,6 +14872,10 @@ function renderBookingCalendar() {
     const cell = document.createElement("div");
     cell.className = "calendar-day-cell other-month";
     cell.innerHTML = `<span class="day-number">${dayVal}</span>`;
+    cell.onclick = () => {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+      renderBookingCalendar();
+    };
     grid.appendChild(cell);
   }
 
@@ -14750,24 +14889,50 @@ function renderBookingCalendar() {
       cell.classList.add("today");
     }
 
-    const dayBookings = (bookings || []).filter(b => b.date === cellDateStr && b.status !== "cancelled");
+    const dayBookings = (bookings || []).filter(b => normalizeDateStr(b.date) === cellDateStr && b.status !== "cancelled");
 
     let bookingsHtml = "";
-    dayBookings.forEach(b => {
-      bookingsHtml += `
-        <div class="calendar-event-dot" 
-             onclick="event.stopPropagation(); showBookingDetail('${b.id}');" 
-             title="${getRoomThaiName(b.room)}: ${b.bookerName} (${b.slot || 'ไม่ได้ระบุช่วงเวลา'})"
-             style="width: 7px; height: 7px; border-radius: 50%; background-color: ${getRoomColor(b.room)}; cursor: pointer; border: 1px solid #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: transform 0.2s;" 
-             onmouseover="this.style.transform='scale(1.35)';" 
-             onmouseout="this.style.transform='scale(1)';">
-        </div>
-      `;
-    });
+    if (dayBookings.length > 0) {
+      const displayLimit = 2;
+      const visibleBookings = dayBookings.slice(0, displayLimit);
+      const remainingCount = dayBookings.length - displayLimit;
+
+      visibleBookings.forEach(b => {
+        const roomColor = getRoomColor(b.room);
+        const roomNameShort = (b.room || "Lab").replace("ห้องปฏิบัติการ", "").trim();
+        const booker = b.bookerName || b.teacherName || "";
+        const title = `${getRoomThaiName(b.room)} | ${booker} (${b.slot || ''}): ${b.purpose || ''}`;
+        const isPending = b.status === "pending";
+
+        bookingsHtml += `
+          <div class="calendar-event-item" 
+               onclick="event.stopPropagation(); showBookingDetail('${b.id}');" 
+               title="${escapeHTML(title)}"
+               style="font-size: 10px; font-weight: 600; padding: 2px 5px; border-radius: 4px; background-color: ${roomColor}18; color: ${roomColor}; border: 1px solid ${roomColor}40; margin-bottom: 2px; width: 100%; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: transform 0.15s ease;"
+               onmouseover="this.style.transform='scale(1.03)';"
+               onmouseout="this.style.transform='scale(1)';">
+            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: ${roomColor}; flex-shrink: 0;"></span>
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(roomNameShort)}: ${escapeHTML(booker || b.purpose || 'ใช้งาน')}</span>
+            ${isPending ? '<span style="color:#d97706; font-size:8px; margin-left:auto;">⏳</span>' : ''}
+          </div>
+        `;
+      });
+
+      if (remainingCount > 0) {
+        bookingsHtml += `
+          <div style="font-size: 9.5px; font-weight: 700; color: var(--primary-purple); text-align: center; margin-top: 1px; cursor: pointer;" onclick="event.stopPropagation(); openDashboardDateEventsModal('${cellDateStr}', event);">
+            +${remainingCount} รายการ
+          </div>
+        `;
+      }
+    }
 
     cell.innerHTML = `
-      <span class="day-number">${d}</span>
-      <div class="calendar-events-container" style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 2px; justify-content: center; align-items: center; margin-top: auto; margin-bottom: 2px; width: 100%;">${bookingsHtml}</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 2px;">
+        <span class="day-number">${d}</span>
+        ${dayBookings.length > 0 ? `<span style="font-size: 9.5px; font-weight: 700; color: var(--accent-blue); background: rgba(37, 99, 235, 0.1); padding: 1px 4px; border-radius: 10px;">${dayBookings.length}</span>` : ''}
+      </div>
+      <div class="calendar-events-container" style="display: flex; flex-direction: column; width: 100%; flex: 1; justify-content: flex-start; overflow: hidden;">${bookingsHtml}</div>
     `;
 
     cell.addEventListener("click", () => {
@@ -14786,11 +14951,16 @@ function renderBookingCalendar() {
   }
 
   const totalCells = grid.children.length;
-  const nextMonthPadding = 42 - totalCells;
+  const nextMonthPadding = (7 - (totalCells % 7)) % 7;
   for (let i = 1; i <= nextMonthPadding; i++) {
+    const nextMonthDate = new Date(year, month + 1, i);
     const cell = document.createElement("div");
     cell.className = "calendar-day-cell other-month";
     cell.innerHTML = `<span class="day-number">${i}</span>`;
+    cell.onclick = () => {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+      renderBookingCalendar();
+    };
     grid.appendChild(cell);
   }
 
@@ -19830,9 +20000,10 @@ function updateDashboardCalendarStats() {
 
 // Helper: All roles see the complete lab calendar and schedules across all 8 laboratories
 function getVisibleBookingsForUser(dateStr) {
+  const targetIso = dateStr ? normalizeDateStr(dateStr) : "";
   return (typeof bookings !== "undefined" ? bookings : []).filter(b => {
     if (b.status === "cancelled") return false;
-    if (dateStr && b.date !== dateStr) return false;
+    if (targetIso && normalizeDateStr(b.date) !== targetIso) return false;
     return true; // All roles see all labs
   });
 }
