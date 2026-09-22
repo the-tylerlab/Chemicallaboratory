@@ -15016,12 +15016,17 @@ function setupAdminClearHandlers() {
     if (confirmInput) confirmInput.value = "";
   }
 
+  const isClearAuthorized = () => {
+    const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+    return roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4"));
+  };
+
   // Bind individual clear buttons
   const btnClearInventory = document.getElementById("btnClearInventory");
   if (btnClearInventory) {
     btnClearInventory.addEventListener("click", () => {
-      if (userRole !== "admin") {
-        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+      if (!isClearAuthorized()) {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้น", "error");
         return;
       }
       openConfirmModal("inventory");
@@ -15031,8 +15036,8 @@ function setupAdminClearHandlers() {
   const btnClearTransactions = document.getElementById("btnClearTransactions");
   if (btnClearTransactions) {
     btnClearTransactions.addEventListener("click", () => {
-      if (userRole !== "admin") {
-        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+      if (!isClearAuthorized()) {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้น", "error");
         return;
       }
       openConfirmModal("transactions");
@@ -15042,8 +15047,8 @@ function setupAdminClearHandlers() {
   const btnClearBookings = document.getElementById("btnClearBookings");
   if (btnClearBookings) {
     btnClearBookings.addEventListener("click", () => {
-      if (userRole !== "admin") {
-        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+      if (!isClearAuthorized()) {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้น", "error");
         return;
       }
       openConfirmModal("bookings");
@@ -15053,8 +15058,8 @@ function setupAdminClearHandlers() {
   const btnClearPurchaseOrders = document.getElementById("btnClearPurchaseOrders");
   if (btnClearPurchaseOrders) {
     btnClearPurchaseOrders.addEventListener("click", () => {
-      if (userRole !== "admin") {
-        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+      if (!isClearAuthorized()) {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้น", "error");
         return;
       }
       document.getElementById("clearPoModal").style.display = "flex";
@@ -15069,6 +15074,10 @@ function setupAdminClearHandlers() {
       purchaseOrders = [];
       localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
       
+      for (const po of poToDelete) {
+        syncToGoogleSheetsDirect('Purchase_Orders', 'DELETE', { id: po.id }, 'id');
+      }
+
       if (isSupabaseOnline) {
         for (const po of poToDelete) {
           try {
@@ -15086,8 +15095,8 @@ function setupAdminClearHandlers() {
   const btnClearSavedPlans = document.getElementById("btnClearSavedPlans");
   if (btnClearSavedPlans) {
     btnClearSavedPlans.addEventListener("click", () => {
-      if (userRole !== "admin") {
-        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+      if (!isClearAuthorized()) {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้น", "error");
         return;
       }
       openConfirmModal("plans");
@@ -15124,8 +15133,8 @@ function setupAdminClearHandlers() {
   if (confirmBtn) {
     confirmBtn.addEventListener("click", async () => {
       if (confirmInput.value !== "CONFIRM TO DELETE") return;
-      if (userRole !== "admin") {
-        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะแอดมินเท่านั้น", "error");
+      if (!isClearAuthorized()) {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้น", "error");
         closeConfirmModal();
         return;
       }
