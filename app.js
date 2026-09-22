@@ -718,15 +718,28 @@ async function loadAllItems() {
       });
       if (loadedItems.length > 0) {
         items = loadedItems;
-        console.log("🔥 Loaded " + items.length + " items from Supabase Cloud Firestore.");
+        saveItemsToLocal();
+        console.log("🔥 Loaded " + items.length + " items from Supabase Cloud.");
         localStorage.setItem("has_seeded_items", "true");
         return;
       } else {
+        // Check if we have items stored locally before wiping
+        const localData = localStorage.getItem("lab_items");
+        if (localData) {
+          try {
+            const parsed = JSON.parse(localData);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              items = parsed;
+              return;
+            }
+          } catch (e) {}
+        }
         if (!localStorage.getItem("has_seeded_items")) {
           // Seed Supabase if empty
           console.log("🔥 Supabase collection is empty. Seeding with DEMO_DATA...");
           await supabase.from("items").insert(DEMO_DATA);
           items = [...DEMO_DATA];
+          saveItemsToLocal();
           localStorage.setItem("has_seeded_items", "true");
         } else {
           items = [];
@@ -734,10 +747,17 @@ async function loadAllItems() {
         return;
       }
     } catch (err) {
-      console.error("🔥 Failed to load from Supabase Firestore:", err);
-      // Self-healing fallback: disable Supabase for this session and alert user
+      console.error("🔥 Failed to load from Supabase:", err);
+      // Fallback to local storage if Supabase fails
+      const localData = localStorage.getItem("lab_items");
+      if (localData) {
+        try {
+          items = JSON.parse(localData);
+          return;
+        } catch (e) {}
+      }
       isSupabaseOnline = false;
-      showToast("ระบบสลับการจัดเก็บมาเป็นแบบ Local Storage สำรอง เนื่องจากยังไม่ได้ตั้งค่าสิทธิ์อ่าน/เขียนในคลาวด์ Supabase", "warning");
+      showToast("ระบบสลับการจัดเก็บมาเป็นแบบ Local Storage สำรอง", "info");
     }
   }
 
@@ -760,7 +780,12 @@ async function loadAllItems() {
   // LocalStorage Fallback
   const localData = localStorage.getItem("lab_items");
   if (localData) {
-    items = JSON.parse(localData);
+    try {
+      items = JSON.parse(localData);
+    } catch (e) {
+      items = [...DEMO_DATA];
+      saveItemsToLocal();
+    }
   } else {
     items = [...DEMO_DATA];
     saveItemsToLocal();
@@ -4303,9 +4328,18 @@ function parseCSVLine(text) {
   return result;
 }
 
-// Helper: Normalize expiry dates (YYYY-MM-DD, DD/MM/YYYY, Buddhist Era)
+// Helper: Normalize expiry dates (YYYY-MM-DD, DD/MM/YYYY, Buddhist Era, Excel Serial Numbers)
 function normalizeExpiryDateStr(val) {
-  if (!val) return "";
+  if (!val && val !== 0) return "";
+  if (val instanceof Date && !isNaN(val)) {
+    return val.toISOString().split('T')[0];
+  }
+  if (typeof val === 'number') {
+    if (val > 20000 && val < 80000) {
+      const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+      if (!isNaN(date)) return date.toISOString().split('T')[0];
+    }
+  }
   let str = String(val).trim().replace(/^"|"$/g, '');
   if (!str) return "";
   
@@ -4366,7 +4400,7 @@ async function processImportRowsMatrix(rows) {
   }
 
   for (let i = headerIndex + 1; i < rows.length; i++) {
-    const cols = (rows[i] || []).map(c => String(c ?? '').trim());
+    const cols = (rows[i] || []).map(c => (c !== null && c !== undefined) ? String(c).trim() : '');
     if (cols.length === 0 || cols.every(c => !c)) continue; // skip blank rows
     if (cols[0].startsWith('#')) continue; // skip comments
 
@@ -4407,7 +4441,7 @@ async function processImportRowsMatrix(rows) {
     const isChecked = (val) => {
       if (!val) return false;
       const normalized = String(val).trim().toLowerCase();
-      return ["y", "1", "x", "yes", "true", "/", "ใช่", "ติ๊ก"].includes(normalized);
+      return ["y", "1", "x", "yes", "true", "/", "ใช่", "ติ๊ก", "check", "v"].includes(normalized);
     };
 
     if (cols.length > 14 && isChecked(cols[14])) ghs.push("explosive");
@@ -4462,65 +4496,93 @@ async function processImportRowsMatrix(rows) {
     return;
   }
 
-  // 1. Google Sheets Direct Sync
-  importList.forEach(item => syncToGoogleSheetsDirect('Items', 'UPSERT', item, 'code'));
-
-  if (isSupabaseOnline) {
-    try {
-      let importedCount = 0;
-      
-      // Perform batch writes in chunks of 500
-      const batchLimit = 500;
-      for (let i = 0; i < importList.length; i += batchLimit) {
-        const chunk = importList.slice(i, i + batchLimit);
-        await supabase.from("items").upsert(chunk);
-        importedCount += chunk.length;
-      }
-      
-      await loadAllItems();
-      updateUI();
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          icon: 'success',
-          title: 'นำเข้าข้อมูลสำเร็จ!',
-          html: `<div style="font-size:14px; color:#334155; text-align:left; line-height:1.6;">
-            <p>บันทึกพัสดุและสารเคมีลงระบบเรียบร้อยแล้ว <b>${importedCount} รายการ</b></p>
-            ${errorCount > 0 ? `<p style="color:#e11d48; margin-top:6px;">⚠️ ข้ามแถวที่ไม่สมบูรณ์: ${errorCount} แถว</p>` : ''}
-            <p style="color:#059669; font-size:12.5px; margin-top:8px;">✅ ซิงค์ข้อมูลขึ้น Supabase Cloud และ Google Sheets อัตโนมัติ</p>
-          </div>`,
-          confirmButtonColor: '#7c3aed',
-          confirmButtonText: 'ตกลง'
-        });
-      } else {
-        showToast(`นำเข้าสำเร็จ ${importedCount} รายการ! ${errorCount > 0 ? `(ข้ามรายการผิดพลาด ${errorCount} รายการ)` : ''}`, "success");
-      }
-    } catch (err) {
-      console.error("🔥 Supabase batch import failed:", err);
-      showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูลนำเข้าคลาวด์", "error");
+  // 1. Immediately merge into local items array & local storage
+  let addedCount = 0;
+  let updatedCount = 0;
+  importList.forEach(newItem => {
+    const existingIndex = items.findIndex(it => (it.code || "").trim().toLowerCase() === (newItem.code || "").trim().toLowerCase());
+    if (existingIndex >= 0) {
+      items[existingIndex] = { ...items[existingIndex], ...newItem };
+      updatedCount++;
+    } else {
+      items.push(newItem);
+      addedCount++;
     }
-    return;
+  });
+
+  saveItemsToLocal();
+  localStorage.setItem("has_seeded_items", "true");
+
+  // 2. Reset filters so the new items are immediately visible
+  const searchInput = document.getElementById("filterSearch");
+  if (searchInput) searchInput.value = "";
+  const catSelect = document.getElementById("filterCategory");
+  if (catSelect) catSelect.value = "all";
+  const statusSelect = document.getElementById("filterStatus");
+  if (statusSelect) statusSelect.value = "all";
+
+  // 3. Immediately update UI & Render Tables
+  updateUI();
+  if (typeof renderItemsTable === "function") {
+    renderItemsTable();
   }
 
+  // 4. Background Sync: Google Sheets Direct Sync
+  try {
+    importList.forEach(item => syncToGoogleSheetsDirect('Items', 'UPSERT', item, 'code'));
+  } catch (gsErr) {
+    console.warn("⚠️ Google Sheets import sync warning:", gsErr);
+  }
+
+  // 5. Background Sync: Supabase Cloud (with fallback safety)
+  if (isSupabaseOnline && typeof supabase !== "undefined") {
+    try {
+      const batchLimit = 200;
+      for (let i = 0; i < importList.length; i += batchLimit) {
+        const chunk = importList.slice(i, i + batchLimit);
+        const { error } = await supabase.from("items").upsert(chunk, { onConflict: 'code' });
+        if (error) {
+          console.warn("⚠️ Supabase upsert error:", error);
+        }
+      }
+    } catch (err) {
+      console.warn("🔥 Supabase batch import warning:", err);
+    }
+  }
+
+  // 6. Backend API sync if available
   if (isBackendOnline) {
     try {
-      const response = await fetch(`${API_BASE}/items/import`, {
+      await fetch(`${API_BASE}/items/import`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(importList)
       });
-      if (response.ok) {
-        await loadAllItems();
-        updateUI();
-        showToast(`นำเข้าสำเร็จ ${importList.length} รายการ!`, "success");
-      } else {
-        showToast("เกิดข้อผิดพลาดในการนำเข้าข้อมูลบนเซิร์ฟเวอร์", "error");
-      }
     } catch (err) {
-      console.error("Batch import API failed, falling back:", err);
-      fallbackLocalImport(importList, errorCount);
+      console.warn("Backend API sync warning:", err);
     }
+  }
+
+  // Log activity
+  if (typeof logActivity === "function") {
+    logActivity("IMPORT_ITEMS", `นำเข้าพัสดุและสารเคมีจำนวน ${importList.length} รายการ (เพิ่มใหม่ ${addedCount}, อัปเดต ${updatedCount})`, { count: importList.length });
+  }
+
+  // 7. Show success SweetAlert / Toast
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      icon: 'success',
+      title: 'นำเข้าข้อมูลสำเร็จ!',
+      html: `<div style="font-size:14px; color:#334155; text-align:left; line-height:1.6;">
+        <p>บันทึกพัสดุและสารเคมีลงระบบเรียบร้อยแล้ว <b>${importList.length} รายการ</b></p>
+        ${errorCount > 0 ? `<p style="color:#e11d48; margin-top:6px;">⚠️ ข้ามแถวที่ไม่สมบูรณ์: ${errorCount} แถว</p>` : ''}
+        <p style="color:#059669; font-size:12.5px; margin-top:8px;">✅ อัปเดตตารางและบันทึกลงระบบทันที</p>
+      </div>`,
+      confirmButtonColor: '#7c3aed',
+      confirmButtonText: 'ตกลง'
+    });
   } else {
-    fallbackLocalImport(importList, errorCount);
+    showToast(`นำเข้าสำเร็จ ${importList.length} รายการ! ${errorCount > 0 ? `(ข้ามรายการผิดพลาด ${errorCount} รายการ)` : ''}`, "success");
   }
 }
 
