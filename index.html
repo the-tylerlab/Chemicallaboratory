@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260923_2256">
+  <link rel="stylesheet" href="style.css?v=20260923_2300">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -1822,17 +1822,17 @@
                 <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
               </div>
               <div style="display: flex; gap: 8px; align-items: center; width: 100%; margin-top: 6px;">
-                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="btn btn-secondary" style="flex: 1; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--border-radius-lg, 12px); background: #ffffff; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);" title="ซิงค์ข้อมูลกับ Google Sheets ทันที">
-                  <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb;"></i>
+                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที">
+                  <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
                   <span>ซิงค์ข้อมูล</span>
                 </button>
-                <button type="button" id="btnQuickExportBookingCSV" class="btn btn-secondary" style="flex: 1; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--border-radius-lg, 12px); background: #ffffff; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
-                  <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981;"></i>
-                  <span class="btn-text-desktop">ส่งออก Excel/CSV</span>
+                <button type="button" id="btnQuickExportBookingCSV" class="booking-action-btn">
+                  <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop">ส่งออก Excel</span>
                   <span class="btn-text-mobile">ส่งออก</span>
                 </button>
-                <button type="button" id="btnQuickExportBookingPDF" class="btn btn-secondary" style="flex: 1; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 8px 12px; border-radius: var(--border-radius-lg, 12px); background: #ffffff; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
-                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1;"></i>
+                <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn">
+                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
                   <span class="btn-text-desktop">พิมพ์รายงาน</span>
                   <span class="btn-text-mobile">พิมพ์</span>
                 </button>
