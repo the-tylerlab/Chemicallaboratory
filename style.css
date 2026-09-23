@@ -5126,6 +5126,39 @@ input[type="date"]::-webkit-date-and-time-value {
    NEW PREMIUM FEATURES: CALENDAR, CABINET MAP, STOCK FORECAST
    ========================================================================== */
 
+/* Booking Action Toolbar (Strict Equal Height 42px & No-wrap) */
+.booking-action-btn {
+  flex: 1;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 0 10px !important;
+  border-radius: var(--border-radius-lg, 12px) !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.booking-action-btn:hover {
+  background-color: var(--bg-main) !important;
+  border-color: #cbd5e1 !important;
+  transform: translateY(-1px);
+}
+
+.booking-action-btn:active {
+  transform: translateY(0);
+}
+
 /* 1. Toggle Switch View styling */
 .view-toggle-bar {
   display: flex;
