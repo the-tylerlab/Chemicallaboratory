@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260923_2348">
+  <link rel="stylesheet" href="style.css?v=20260923_2354">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -1363,33 +1363,35 @@
               </div>
             </div>
 
-            <select id="filterCategory" class="filter-select">
-              <option value="all">ทุกหมวดหมู่</option>
-              <option value="ครุภัณฑ์">ครุภัณฑ์</option>
-              <option value="สารเคมี">สารเคมี</option>
-              <option value="อุปกรณ์วิทยาศาสตร์">อุปกรณ์วิทยาศาสตร์</option>
-              <option value="เครื่องแก้ว">เครื่องแก้ว</option>
-              <option value="วัสดุสิ้นเปลือง">วัสดุสิ้นเปลือง</option>
-            </select>
+            <div class="table-filter-secondary-group">
+              <select id="filterCategory" class="filter-select">
+                <option value="all">ทุกหมวดหมู่</option>
+                <option value="ครุภัณฑ์">ครุภัณฑ์</option>
+                <option value="สารเคมี">สารเคมี</option>
+                <option value="อุปกรณ์วิทยาศาสตร์">อุปกรณ์วิทยาศาสตร์</option>
+                <option value="เครื่องแก้ว">เครื่องแก้ว</option>
+                <option value="วัสดุสิ้นเปลือง">วัสดุสิ้นเปลือง</option>
+              </select>
 
-            <select id="filterStatus" class="filter-select">
-              <option value="all">ทุกสถานะ</option>
-              <option value="normal">ปกติ</option>
-              <option value="low-stock">ใกล้หมด</option>
-              <option value="near-expiry">ใกล้หมดอายุ</option>
-              <option value="expired">หมดอายุแล้ว</option>
-            </select>
+              <select id="filterStatus" class="filter-select">
+                <option value="all">ทุกสถานะ</option>
+                <option value="normal">ปกติ</option>
+                <option value="low-stock">ใกล้หมด</option>
+                <option value="near-expiry">ใกล้หมดอายุ</option>
+                <option value="expired">หมดอายุแล้ว</option>
+              </select>
 
-            <div class="filter-buttons-group">
-              <button class="btn-icon-action" id="btnExportCSV" title="ส่งออกข้อมูลเป็น Excel (.csv)" aria-label="ส่งออก Excel">
-                <i data-lucide="file-spreadsheet"></i>
-              </button>
-              <button class="btn-icon-action btn-icon-print" id="btnPrintReport" title="พิมพ์รายงานสรุปพัสดุ (PDF / Print)" aria-label="พิมพ์รายงาน" onclick="window.print()">
-                <i data-lucide="printer"></i>
-              </button>
-              <button class="btn-icon-action btn-icon-danger admin-clear-btn" id="btnClearInventory" style="display: none;" title="ล้างคลังพัสดุทั้งหมด" aria-label="ล้างคลังพัสดุ">
-                <i data-lucide="trash-2"></i>
-              </button>
+              <div class="filter-buttons-group">
+                <button class="btn-icon-action" id="btnExportCSV" title="ส่งออกข้อมูลเป็น Excel (.csv)" aria-label="ส่งออก Excel">
+                  <i data-lucide="file-spreadsheet"></i>
+                </button>
+                <button class="btn-icon-action btn-icon-print" id="btnPrintReport" title="พิมพ์รายงานสรุปพัสดุ (PDF / Print)" aria-label="พิมพ์รายงาน" onclick="window.print()">
+                  <i data-lucide="printer"></i>
+                </button>
+                <button class="btn-icon-action btn-icon-danger admin-clear-btn" id="btnClearInventory" style="display: none;" title="ล้างคลังพัสดุทั้งหมด" aria-label="ล้างคลังพัสดุ">
+                  <i data-lucide="trash-2"></i>
+                </button>
+              </div>
             </div>
           </div>
 
