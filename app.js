@@ -424,13 +424,34 @@ async function fetchTableFromGoogleSheets(table) {
     if (json && json.status === "success" && Array.isArray(json.data)) {
       return json.data;
     }
-    return [];
   } catch (err) {
     console.warn(`[GoogleSheetsFetch] Fetch error on ${table}:`, err.message);
     return [];
   }
 }
 window.fetchTableFromGoogleSheets = fetchTableFromGoogleSheets;
+
+function sanitizeItemForSupabase(item) {
+  if (!item || typeof item !== "object") return {};
+  const allowed = [
+    'code', 'name', 'category', 'qty', 'damagedQty', 'unit',
+    'minAlert', 'expiry', 'room', 'cabinet', 'shelf',
+    'chemicalType', 'sdsUrl', 'ghs', 'createdAt'
+  ];
+  const clean = {};
+  allowed.forEach(k => {
+    if (item[k] !== undefined && item[k] !== null) {
+      clean[k] = item[k];
+    }
+  });
+  if (!clean.code && item.code) clean.code = item.code;
+  if (!clean.name && item.name) clean.name = item.name;
+  if (!clean.category) clean.category = item.category || 'สารเคมี';
+  if (clean.qty === undefined || isNaN(clean.qty)) clean.qty = Number(item.qty || 0);
+  if (!clean.unit) clean.unit = item.unit || 'ขวด';
+  return clean;
+}
+window.sanitizeItemForSupabase = sanitizeItemForSupabase;
 
 // Full 2-Way Sync All Data with Google Sheets
 async function syncAllToGoogleSheets(silent = false) {
@@ -578,8 +599,11 @@ async function syncAllToGoogleSheets(silent = false) {
       }
       if (isSupabaseOnline && typeof supabase !== "undefined") {
         try {
-          await supabase.from("items").upsert(items, { onConflict: 'code' });
-        } catch (supaErr) {}
+          const cleanList = items.map(sanitizeItemForSupabase);
+          await supabase.from("items").upsert(cleanList, { onConflict: 'code' });
+        } catch (supaErr) {
+          console.warn("Supabase items sync warning:", supaErr);
+        }
       }
     }
 
@@ -953,14 +977,7 @@ async function loadAllItems() {
   if (isSupabaseOnline && typeof supabase !== "undefined") {
     try {
       const { data, error } = await supabase.from("items").select('*');
-      if (!error && Array.isArray(data)) {
-        if (data.length === 0) {
-          items = [];
-          saveItemsToLocal();
-          localStorage.setItem("has_seeded_items", "true");
-          console.log("🔥 Supabase Cloud items table is empty (0 items).");
-          return;
-        }
+      if (!error && Array.isArray(data) && data.length > 0) {
         const loadedItems = [];
         data.forEach(d => {
           if (d && d.code) {
@@ -993,7 +1010,8 @@ async function loadAllItems() {
         // Backfill to Supabase Cloud in background
         if (isSupabaseOnline && typeof supabase !== "undefined") {
           try {
-            await supabase.from("items").upsert(items, { onConflict: 'code' });
+            const cleanItems = items.map(sanitizeItemForSupabase);
+            await supabase.from("items").upsert(cleanItems, { onConflict: 'code' });
           } catch (supaErr) {
             console.warn("Supabase backfill error:", supaErr);
           }
@@ -3540,7 +3558,7 @@ async function createItemBackend(itemData) {
 
   if (isSupabaseOnline) {
     try {
-      await supabase.from("items").upsert(itemData);
+      await supabase.from("items").upsert(sanitizeItemForSupabase(itemData), { onConflict: 'code' });
       items.push(itemData);
       return true;
     } catch (err) {
@@ -3583,7 +3601,7 @@ async function updateItemBackend(code, itemData, index) {
 
   if (isSupabaseOnline) {
     try {
-      await supabase.from("items").upsert(itemData);
+      await supabase.from("items").upsert(sanitizeItemForSupabase(itemData), { onConflict: 'code' });
       items[index] = itemData;
       return true;
     } catch (err) {
@@ -4975,7 +4993,7 @@ async function processImportRowsMatrix(rows) {
     try {
       const batchLimit = 200;
       for (let i = 0; i < importList.length; i += batchLimit) {
-        const chunk = importList.slice(i, i + batchLimit);
+        const chunk = importList.slice(i, i + batchLimit).map(sanitizeItemForSupabase);
         const { error } = await supabase.from("items").upsert(chunk, { onConflict: 'code' });
         if (error) {
           console.warn("⚠️ Supabase upsert error:", error);
