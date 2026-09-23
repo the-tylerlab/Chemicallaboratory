@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260923_2330">
+  <link rel="stylesheet" href="style.css?v=20260923_2335">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -2794,11 +2794,9 @@
         
         <!-- Users Tab -->
         <div class="admin-tab active" id="admin-users">
-          <div class="admin-tab-header" style="margin-bottom: 18px;">
-            <div class="admin-tab-title-group">
-              <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0;">จัดการสิทธิ์ผู้ใช้งาน (User & Role Management)</h2>
-              <p style="color: #64748b; font-size: 13px; margin: 0;">กำหนดระดับสิทธิ์ (L1 - L4) มอบหมายห้องปฏิบัติการ และตรวจสอบบัญชีผู้ใช้งานในระบบ</p>
-            </div>
+          <div class="admin-tab-header">
+            <h2 class="admin-tab-title">จัดการสิทธิ์ผู้ใช้งาน (User & Role Management)</h2>
+            <p class="admin-tab-desc">กำหนดระดับสิทธิ์ (L1 - L4) มอบหมายห้องปฏิบัติการ และตรวจสอบบัญชีผู้ใช้งานในระบบ</p>
           </div>
 
           <!-- FlowAI Inspired KPI Overview Cards -->
@@ -2920,9 +2918,9 @@
         
         <!-- Login Modal Hero & Announcement Settings Tab -->
         <div class="admin-tab" id="admin-login-banner" style="display: none;">
-          <div style="margin-bottom: 18px;">
-            <h2 style="margin: 0 0 4px 0; font-size: 18px; font-weight: 700; color: var(--text-main);">จัดการแบนเนอร์ & ประกาศด่วนหน้าเข้าสู่ระบบ (Login Hero & Announcement)</h2>
-            <p style="color: var(--text-muted); font-size: 13.5px; margin: 0;">ปรับแต่งการ์ดแสดงผลฝั่งซ้ายของหน้าต่างเข้าสู่ระบบ กำหนดหัวข้อประกาศ ข้อความประชาสัมพันธ์ โทนสี และภาพห้องปฏิบัติการได้ตามต้องการ</p>
+          <div class="admin-tab-header">
+            <h2 class="admin-tab-title">จัดการแบนเนอร์ & ประกาศด่วนหน้าเข้าสู่ระบบ (Login Hero & Announcement)</h2>
+            <p class="admin-tab-desc">ปรับแต่งการ์ดแสดงผลฝั่งซ้ายของหน้าต่างเข้าสู่ระบบ กำหนดหัวข้อประกาศ ข้อความประชาสัมพันธ์ โทนสี และภาพห้องปฏิบัติการได้ตามต้องการ</p>
           </div>
 
           <form id="adminLoginBannerForm" onsubmit="saveAdminLoginBanner(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
@@ -3055,9 +3053,9 @@
 
         <!-- Announcement Management Tab -->
         <div class="admin-tab" id="admin-announcement" style="display: none;">
-          <div style="margin-bottom: 18px;">
-            <h2 style="margin: 0 0 4px 0; font-size: 18px; font-weight: 700; color: var(--text-main);">จัดการประกาศหน้าแรก (Announcement Ticker)</h2>
-            <p style="color: var(--text-muted); font-size: 13.5px; margin: 0;">กำหนดข้อความประกาศ ข่าวสาร หรือข้อควรระวังความปลอดภัย และปรับแต่งความเร็ว ระยะห่าง และธีมสีของแถบตัววิ่ง</p>
+          <div class="admin-tab-header">
+            <h2 class="admin-tab-title">จัดการประกาศหน้าแรก (Announcement Ticker)</h2>
+            <p class="admin-tab-desc">กำหนดข้อความประกาศ ข่าวสาร หรือข้อควรระวังความปลอดภัย และปรับแต่งความเร็ว ระยะห่าง และธีมสีของแถบตัววิ่ง</p>
           </div>
           
           <form id="adminAnnouncementForm" onsubmit="saveAdminAnnouncement(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
@@ -3211,12 +3209,12 @@
         
         <!-- Danger Zone Tab -->
         <div class="admin-tab" id="admin-danger" style="display: none;">
-          <div style="margin-bottom: 20px;">
-            <h2 style="color: var(--accent-red); display: flex; align-items: center; gap: 8px; margin: 0 0 4px 0; font-size: 19px; font-weight: 700;">
-              <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
+          <div class="admin-tab-header">
+            <h2 class="admin-tab-title" style="color: var(--accent-red); display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
               <span>พื้นที่อันตราย (Danger zone)</span>
             </h2>
-            <p style="color: var(--text-muted); font-size: 13.5px; margin: 0;">การตั้งค่าที่ส่งผลกระทบอย่างถาวร เช่น การลบพื้นที่ทำงาน หรือโอนสิทธิ์ความเป็นเจ้าของ โปรดระมัดระวังเป็นอย่างยิ่ง</p>
+            <p class="admin-tab-desc">การตั้งค่าที่ส่งผลกระทบอย่างถาวร เช่น การลบพื้นที่ทำงาน หรือโอนสิทธิ์ความเป็นเจ้าของ โปรดระมัดระวังเป็นอย่างยิ่ง</p>
           </div>
           
           <div style="border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 22px 26px; background: rgba(239, 68, 68, 0.02); width: 100%; box-sizing: border-box;">

@@ -9605,6 +9605,25 @@ select.admin-filter-select:focus {
   color: #0f172a;
 }
 
+.admin-tab-header {
+  margin-bottom: 16px;
+}
+
+.admin-tab-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+
+.admin-tab-desc {
+  color: #64748b;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.5;
+}
+
 .admin-table-container {
   margin-top: 14px;
   border: 1px solid var(--border-color);
@@ -9641,14 +9660,24 @@ select.admin-filter-select:focus {
   vertical-align: middle;
 }
 
-/* Tablet & Mobile Breakpoint (max-width: 768px) */
+/* Tablet & Mobile Breakpoint (max-width: 768px) - Harmonized Compact Typography */
 @media (max-width: 768px) {
   #panel-admin {
     padding-bottom: 24px !important;
   }
 
+  /* Admin Header Title & Subtitle */
+  #panel-admin .header-title {
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+  }
+  #panel-admin .header-subtitle {
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+
   .admin-nav-bar {
-    padding: 4px 6px !important;
+    padding: 3px 5px !important;
     border-radius: 10px !important;
     margin-bottom: 8px !important;
     scrollbar-width: none !important;
@@ -9659,19 +9688,19 @@ select.admin-filter-select:focus {
   .admin-horizontal-menu {
     width: max-content !important;
     display: inline-flex !important;
-    gap: 4px !important;
+    gap: 3px !important;
     padding: 2px !important;
   }
   .admin-horizontal-menu .admin-menu-item {
-    height: 32px !important;
-    padding: 0 10px !important;
-    font-size: 12px !important;
-    gap: 5px !important;
+    height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+    gap: 4px !important;
   }
   .admin-horizontal-menu .admin-menu-item i,
   .admin-horizontal-menu .admin-menu-item svg {
-    width: 13px !important;
-    height: 13px !important;
+    width: 12px !important;
+    height: 12px !important;
   }
 
   .admin-content-card {
@@ -9679,47 +9708,101 @@ select.admin-filter-select:focus {
     border-radius: 12px !important;
     margin-top: 4px !important;
   }
+  
+  /* Tab Header & Typography across all tabs */
   .admin-tab-header {
     margin-bottom: 8px !important;
   }
-  .admin-tab-title-group h2 {
-    font-size: 15px !important;
-    line-height: 1.3 !important;
-    margin-bottom: 2px !important;
+  .admin-tab-title,
+  .admin-tab-title-group h2,
+  .admin-tab h2 {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+    margin: 0 0 2px 0 !important;
   }
-  .admin-tab-title-group p {
-    font-size: 11.5px !important;
+  .admin-tab-desc,
+  .admin-tab-title-group p,
+  .admin-tab p {
+    font-size: 10.5px !important;
+    line-height: 1.4 !important;
     margin: 0 !important;
+    color: #64748b !important;
   }
 
   /* Admin Form Boxes on Mobile */
   .admin-form-box {
-    padding: 12px 10px !important;
-    gap: 10px !important;
+    padding: 10px 10px !important;
+    gap: 8px !important;
     border-radius: 10px !important;
   }
 
   .admin-form-grid-2col,
   .admin-form-grid-theme-media {
     grid-template-columns: 1fr !important;
-    gap: 10px !important;
+    gap: 8px !important;
+  }
+
+  /* Form Labels & Subtitles */
+  #panel-admin .form-label,
+  #panel-admin label:not(.toggle-switch-wrapper) {
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    margin-bottom: 3px !important;
+    color: #334155 !important;
+  }
+
+  /* Form Inputs, Selects, Textareas across all tabs */
+  #panel-admin .form-control,
+  #panel-admin input[type="text"],
+  #panel-admin input[type="url"],
+  #panel-admin select,
+  #panel-admin textarea,
+  .admin-search-input,
+  .admin-filter-select {
+    font-size: 11px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    border-radius: 8px !important;
+  }
+
+  #panel-admin textarea {
+    height: auto !important;
+    min-height: 56px !important;
+    line-height: 1.4 !important;
+    padding: 8px 10px !important;
+  }
+
+  #panel-admin input::placeholder,
+  #panel-admin textarea::placeholder {
+    font-size: 10.5px !important;
+  }
+
+  #adminLoginBannerStatusText,
+  #adminAnnouncementStatusText {
+    font-size: 11px !important;
   }
 
   .ticker-theme-chips {
     display: flex !important;
     flex-wrap: wrap !important;
-    gap: 6px !important;
+    gap: 5px !important;
   }
 
   .ticker-theme-chip {
-    padding: 4px 8px !important;
-    font-size: 11.5px !important;
+    padding: 3px 7px !important;
+    font-size: 10.5px !important;
+    border-radius: 6px !important;
+  }
+
+  .admin-template-presets-label {
+    font-size: 10.5px !important;
   }
 
   .admin-template-presets-buttons {
     display: flex !important;
     flex-direction: column !important;
-    gap: 6px !important;
+    gap: 5px !important;
     width: 100% !important;
   }
 
@@ -9727,25 +9810,39 @@ select.admin-filter-select:focus {
     width: 100% !important;
     text-align: left !important;
     white-space: normal !important;
-    padding: 8px 12px !important;
-    border-radius: 8px !important;
-    font-size: 12px !important;
-    line-height: 1.4 !important;
+    padding: 6px 10px !important;
+    border-radius: 7px !important;
+    font-size: 10.5px !important;
+    line-height: 1.35 !important;
     box-sizing: border-box !important;
   }
 
   .admin-btn-save {
     width: 100% !important;
-    height: 42px !important;
-    font-size: 13px !important;
+    height: 38px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
     justify-content: center !important;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     box-sizing: border-box !important;
   }
 
   .login-hero-panel {
     min-height: auto !important;
-    padding: 20px 16px !important;
+    padding: 16px 14px !important;
+  }
+
+  .login-hero-badge {
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+  }
+
+  .login-hero-headline {
+    font-size: 14px !important;
+  }
+
+  .login-hero-subtitle {
+    font-size: 10.5px !important;
   }
 
   .ticker-preview-container {
@@ -9753,6 +9850,12 @@ select.admin-filter-select:focus {
     max-width: 100% !important;
     box-sizing: border-box !important;
     overflow: hidden !important;
+  }
+  .ticker-badge {
+    font-size: 10.5px !important;
+  }
+  .ticker-slider-val {
+    font-size: 10.5px !important;
   }
 
   /* 2x2 compact KPI Grid on Mobile */
@@ -9763,28 +9866,28 @@ select.admin-filter-select:focus {
     margin-bottom: 8px !important;
   }
   .admin-kpi-card {
-    padding: 8px 10px !important;
-    border-radius: 10px !important;
-    gap: 3px !important;
+    padding: 7px 9px !important;
+    border-radius: 9px !important;
+    gap: 2px !important;
   }
   .admin-kpi-header {
-    gap: 5px !important;
+    gap: 4px !important;
   }
   .admin-kpi-icon-wrap {
-    width: 20px !important;
-    height: 20px !important;
+    width: 18px !important;
+    height: 18px !important;
   }
   .admin-kpi-icon-wrap i,
   .admin-kpi-icon-wrap svg {
-    width: 12px !important;
-    height: 12px !important;
+    width: 11px !important;
+    height: 11px !important;
   }
   .admin-kpi-label {
-    font-size: 10.5px !important;
+    font-size: 9.5px !important;
     line-height: 1.2 !important;
   }
   .admin-kpi-val {
-    font-size: 16px !important;
+    font-size: 13.5px !important;
     margin-top: 1px !important;
   }
 
@@ -9800,9 +9903,9 @@ select.admin-filter-select:focus {
   }
   .admin-search-wrap {
     width: 100% !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
     margin: 0 !important;
     padding: 0 !important;
     flex: none !important;
@@ -9817,30 +9920,30 @@ select.admin-filter-select:focus {
     left: 10px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    width: 15px !important;
-    height: 15px !important;
+    width: 14px !important;
+    height: 14px !important;
     z-index: 5 !important;
     margin: 0 !important;
   }
   .admin-search-input {
     width: 100% !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
-    line-height: 38px !important;
-    font-size: 12.5px !important;
-    padding: 0 10px 0 34px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    line-height: 36px !important;
+    font-size: 11px !important;
+    padding: 0 10px 0 32px !important;
     border-radius: 8px !important;
     margin: 0 !important;
     box-sizing: border-box !important;
   }
   .admin-filter-select {
     width: 100% !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
-    font-size: 12px !important;
-    padding: 0 28px 0 10px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    font-size: 11px !important;
+    padding: 0 26px 0 10px !important;
     border-radius: 8px !important;
     margin: 0 !important;
     flex: none !important;
@@ -9855,16 +9958,16 @@ select.admin-filter-select:focus {
   }
   .admin-toolbar-right .btn-admin-action {
     flex: 1 1 calc(50% - 3px) !important;
-    height: 36px !important;
-    font-size: 11.5px !important;
+    height: 34px !important;
+    font-size: 11px !important;
     justify-content: center !important;
     padding: 0 8px !important;
     border-radius: 8px !important;
   }
   .admin-toolbar-right .btn-admin-action.btn-add-user {
     flex: 1 1 100% !important;
-    height: 38px !important;
-    font-size: 12.5px !important;
+    height: 36px !important;
+    font-size: 11.5px !important;
     font-weight: 600 !important;
     order: -1 !important;
     border-radius: 8px !important;
@@ -9885,8 +9988,19 @@ select.admin-filter-select:focus {
     margin-top: 6px !important;
   }
   .admin-user-mobile-card {
-    padding: 10px 12px !important;
-    border-radius: 10px !important;
+    padding: 9px 11px !important;
+    border-radius: 9px !important;
+    font-size: 11px !important;
+  }
+  .admin-user-mobile-card h4,
+  .admin-user-mobile-card .user-card-name {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+  }
+  .admin-user-mobile-card .user-card-dept,
+  .admin-user-mobile-card .user-card-email,
+  .admin-user-mobile-card .user-card-meta {
+    font-size: 10px !important;
   }
 }
 
