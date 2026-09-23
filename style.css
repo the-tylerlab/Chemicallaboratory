@@ -5738,16 +5738,89 @@ input[type="date"]::-webkit-date-and-time-value {
     height: 12px !important;
   }
   
+  .calendar-grid {
+    gap: 4px !important;
+    padding-top: 8px !important;
+  }
+
   .calendar-day-cell {
-    aspect-ratio: auto !important;
-    min-height: 48px !important;
-    padding: 4px 2px !important;
+    aspect-ratio: 1 / 1.15 !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+    border-radius: 12px !important;
+    padding: 3px 3px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    background-color: var(--bg-main, #ffffff) !important;
+    border: 1px solid var(--border-color, #e2e8f0) !important;
   }
-  .day-number {
+
+  .calendar-day-cell.other-month {
+    opacity: 0.3 !important;
+    background-color: #f8fafc !important;
+  }
+
+  .calendar-day-cell.today {
+    border-color: var(--primary-purple, #4f21a1) !important;
+    border-width: 1.5px !important;
+    background-color: rgba(124, 58, 237, 0.03) !important;
+  }
+
+  .calendar-day-cell .day-number {
     font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
   }
+
+  .calendar-day-cell.today .day-number {
+    background-color: var(--primary-purple, #4f21a1) !important;
+    color: #ffffff !important;
+    border-radius: 50% !important;
+    width: 15px !important;
+    height: 15px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+  }
+
   .calendar-weekday {
     font-size: 10px !important;
+    font-weight: 700 !important;
+    padding-bottom: 4px !important;
+  }
+
+  .calendar-events-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    margin-top: 1px !important;
+  }
+
+  .calendar-event-item {
+    height: 13px !important;
+    min-height: 13px !important;
+    max-height: 13px !important;
+    padding: 0 3px !important;
+    font-size: 7.5px !important;
+    line-height: 13px !important;
+    border-radius: 3px !important;
+    margin-bottom: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
   }
 }
 

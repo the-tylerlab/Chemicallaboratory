@@ -15514,7 +15514,8 @@ function renderBookingCalendar() {
 
     let bookingsHtml = "";
     if (dayBookings.length > 0) {
-      const displayLimit = 2;
+      const isMobile = window.innerWidth <= 768;
+      const displayLimit = isMobile ? 1 : 2;
       const visibleBookings = dayBookings.slice(0, displayLimit);
       const remainingCount = dayBookings.length - displayLimit;
 
@@ -15541,8 +15542,8 @@ function renderBookingCalendar() {
 
       if (remainingCount > 0) {
         bookingsHtml += `
-          <div style="font-size: 9.5px; font-weight: 700; color: var(--primary-purple); text-align: center; margin-top: 1px; cursor: pointer;" onclick="event.stopPropagation(); openDashboardDateEventsModal('${cellDateStr}', event);">
-            +${remainingCount} รายการ
+          <div class="calendar-more-badge" style="font-size: 9px; font-weight: 700; color: var(--primary-purple); text-align: center; margin-top: 1px; cursor: pointer; line-height: 1;" onclick="event.stopPropagation(); openDashboardDateEventsModal('${cellDateStr}', event);">
+            +${remainingCount}${isMobile ? '' : ' รายการ'}
           </div>
         `;
       }
