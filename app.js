@@ -545,11 +545,41 @@ async function syncAllToGoogleSheets(silent = false) {
       await new Promise(r => setTimeout(r, 80));
     }
 
-    // 4. Sync all Items sequentially
+    // 4. Two-way pull and sync all Items
+    try {
+      const sheetItems = await fetchTableFromGoogleSheets('1.Items');
+      if (Array.isArray(sheetItems) && sheetItems.length > 0) {
+        const validSheetItems = sheetItems.filter(it => it && it.code);
+        if (validSheetItems.length > 0) {
+          const mergedItemsMap = new Map();
+          if (Array.isArray(items)) {
+            items.forEach(it => { if (it && it.code) mergedItemsMap.set(it.code, it); });
+          }
+          validSheetItems.forEach(si => {
+            const ex = mergedItemsMap.get(si.code);
+            if (ex) {
+              mergedItemsMap.set(si.code, { ...ex, ...si });
+            } else {
+              mergedItemsMap.set(si.code, si);
+            }
+          });
+          items = Array.from(mergedItemsMap.values());
+          saveItemsToLocal();
+        }
+      }
+    } catch (e) {
+      console.warn("Pull items notice:", e);
+    }
+
     if (typeof items !== 'undefined' && Array.isArray(items) && items.length > 0) {
       for (const it of items) {
         await syncToGoogleSheetsDirect('Items', 'UPSERT', it, 'code');
-        await new Promise(r => setTimeout(r, 40));
+        await new Promise(r => setTimeout(r, 20));
+      }
+      if (isSupabaseOnline && typeof supabase !== "undefined") {
+        try {
+          await supabase.from("items").upsert(items, { onConflict: 'code' });
+        } catch (supaErr) {}
       }
     }
 
@@ -689,6 +719,7 @@ function setupRealtimeSubscriptions() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'purchase_orders' }, async (payload) => {
       console.log('Realtime change received for purchase_orders:', payload);
       await loadPurchaseOrders();
+      if (typeof syncBudgetInRealtime === "function") syncBudgetInRealtime();
       const currentPanel = document.querySelector('.panel.active');
       if (currentPanel && currentPanel.id === 'orders') renderOrdersTable();
     })
@@ -7297,30 +7328,6 @@ async function loadPurchaseOrders() {
     purchaseOrders = [...defaultOrders];
     localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
   }
-}
-
-// Setup Realtime subscriptions for multi-device sync
-function setupRealtimeSubscriptions() {
-  if (!supabase) return;
-  
-  supabase
-    .channel('public:purchase_orders')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'purchase_orders' },
-      (payload) => {
-        console.log('Realtime change received for purchase_orders!', payload);
-        // Force a sync immediately when a change is detected
-        if (typeof syncBudgetInRealtime === "function") {
-          syncBudgetInRealtime();
-        }
-      }
-    )
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        console.log('Successfully subscribed to realtime purchase_orders changes');
-      }
-    });
 }
 
 // Background synchronization for budget and purchase orders (multi-admin sync)
