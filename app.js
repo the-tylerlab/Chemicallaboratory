@@ -839,42 +839,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Load Emergency Contacts
     loadEmergencyContacts();
 
-    // First, check backend online status
-    await checkBackendStatus();
-    
     // Setup Realtime Subscriptions
     setupRealtimeSubscriptions();
-
-    // Load data
-    await loadAllItems();
-    
-    // Load borrowing transactions
-    await loadAllTransactions();
-
-    // Load room bookings
-    await loadAllBookings();
-    
-    // Load lab layouts
-    await loadLabLayouts();
-    
-    // Load purchase orders
-    await loadPurchaseOrders();
-    
-    // Load activity logs
-    await loadActivityLogs();
-    
-    // Load announcements from cloud
-    await loadAnnouncementSettings();
-    
-    // Load admin and user list
-    if (typeof loadAdminData === "function") {
-      await loadAdminData();
-    }
     
     // Load feedbacks & issues
     loadFeedbacksFromStorage();
     
-    // Set up event listeners
+    // Set up event listeners immediately (instant interactivity)
     setupNavigation();
     setupFormHandlers();
     setupFilterHandlers();
@@ -923,12 +894,36 @@ document.addEventListener("DOMContentLoaded", async () => {
       navigateToPanel("dashboard");
     }
 
-    // Initialize Lucide icons initially
+    // Render local cached state instantly (0ms perceived latency)
+    updateUI();
+    if (typeof renderItemsTable === "function") renderItemsTable();
     if (window.lucide) lucide.createIcons();
+
+    // Dismiss skeleton screen immediately so user can interact with the app without waiting
+    dismissSkeletonLoader();
+
+    // Parallel Background Cloud Synchronization (Non-blocking Stale-While-Revalidate)
+    Promise.allSettled([
+      checkBackendStatus(),
+      loadAllItems(),
+      loadAllTransactions(),
+      loadAllBookings(),
+      loadLabLayouts(),
+      loadPurchaseOrders(),
+      loadActivityLogs(),
+      loadAnnouncementSettings(),
+      typeof loadAdminData === "function" ? loadAdminData() : Promise.resolve()
+    ]).then(() => {
+      updateUI();
+      if (typeof renderItemsTable === "function") renderItemsTable();
+      if (typeof renderCabinetMap === "function") renderCabinetMap();
+      if (window.lucide) lucide.createIcons();
+    }).catch(err => {
+      console.warn("Parallel cloud sync warning:", err);
+    });
+
   } catch (err) {
     console.error("Application initialization warning:", err);
-  } finally {
-    // Hide the skeleton loading screen smoothly
     dismissSkeletonLoader();
   }
 
