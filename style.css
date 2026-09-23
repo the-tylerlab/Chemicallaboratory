@@ -9478,65 +9478,24 @@ select.admin-filter-select:focus {
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
 }
 
-@media (max-width: 990px) {
-  .admin-kpi-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .admin-toolbar-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
+/* ==========================================================================
+   ADMIN PANEL STYLES & MOBILE OPTIMIZATIONS
+   ========================================================================== */
 
-@media (max-width: 640px) {
-  .admin-nav-bar {
-    padding: 6px 8px !important;
-    border-radius: 12px !important;
-    margin-bottom: 12px !important;
-    scrollbar-width: none !important;
-  }
-  .admin-nav-bar::-webkit-scrollbar {
-    display: none !important;
-  }
-  .admin-horizontal-menu {
-    width: max-content !important;
-    display: inline-flex !important;
-    gap: 4px !important;
-    padding: 2px !important;
-  }
-  .admin-horizontal-menu .admin-menu-item {
-    height: 32px !important;
-    padding: 0 10px !important;
-    font-size: 12px !important;
-    gap: 5px !important;
-  }
-  .admin-horizontal-menu .admin-menu-item i,
-  .admin-horizontal-menu .admin-menu-item svg {
-    width: 13px !important;
-    height: 13px !important;
-  }
-
-  .admin-content-card {
-    padding: 14px 12px !important;
-    border-radius: 14px !important;
-    margin-top: 8px !important;
-  }
-  .admin-tab-header {
-    margin-bottom: 12px !important;
-  }
-/* Mobile User Cards Base Styling */
+/* Base User Cards & Table */
 .admin-users-mobile-list {
   display: none;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
 .admin-user-mobile-card {
   background: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-lg, 12px);
-  padding: 12px 14px;
+  padding: 10px 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
@@ -9570,7 +9529,7 @@ select.admin-filter-select:focus {
 
 .admin-table-container th {
   background: #f8fafc;
-  padding: 14px 16px;
+  padding: 12px 14px;
   font-weight: 600;
   font-size: 12.5px;
   color: var(--text-muted);
@@ -9579,20 +9538,21 @@ select.admin-filter-select:focus {
 }
 
 .admin-table-container td {
-  padding: 12px 16px;
+  padding: 11px 14px;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
 }
 
+/* Tablet & Mobile Breakpoint (max-width: 768px) */
 @media (max-width: 768px) {
   #panel-admin {
     padding-bottom: 24px !important;
   }
 
   .admin-nav-bar {
-    padding: 6px 8px !important;
+    padding: 4px 6px !important;
     border-radius: 10px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 8px !important;
     scrollbar-width: none !important;
   }
   .admin-nav-bar::-webkit-scrollbar {
@@ -9619,29 +9579,32 @@ select.admin-filter-select:focus {
   .admin-content-card {
     padding: 12px 10px !important;
     border-radius: 12px !important;
-    margin-top: 6px !important;
+    margin-top: 4px !important;
   }
   .admin-tab-header {
-    margin-bottom: 10px !important;
+    margin-bottom: 8px !important;
   }
   .admin-tab-title-group h2 {
     font-size: 15px !important;
     line-height: 1.3 !important;
+    margin-bottom: 2px !important;
   }
   .admin-tab-title-group p {
     font-size: 11.5px !important;
+    margin: 0 !important;
   }
 
   /* 2x2 compact KPI Grid on Mobile */
   .admin-kpi-grid {
+    display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 6px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 8px !important;
   }
   .admin-kpi-card {
     padding: 8px 10px !important;
     border-radius: 10px !important;
-    gap: 4px !important;
+    gap: 3px !important;
   }
   .admin-kpi-header {
     gap: 5px !important;
@@ -9661,52 +9624,89 @@ select.admin-filter-select:focus {
   }
   .admin-kpi-val {
     font-size: 16px !important;
-    margin-top: 2px !important;
+    margin-top: 1px !important;
   }
 
-  /* Clean Vertical Toolbar on Mobile */
+  /* Clean Vertical Toolbar on Mobile (Zero empty gaps) */
   .admin-toolbar-grid {
     display: flex !important;
     flex-direction: column !important;
     gap: 6px !important;
     width: 100% !important;
     margin-bottom: 8px !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
   }
   .admin-search-wrap {
     width: 100% !important;
-    height: 40px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex: none !important;
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+  .admin-search-wrap .admin-search-icon,
+  .admin-search-wrap svg,
+  .admin-search-wrap i {
+    position: absolute !important;
+    left: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 15px !important;
+    height: 15px !important;
+    z-index: 5 !important;
+    margin: 0 !important;
   }
   .admin-search-input {
-    height: 40px !important;
-    min-height: 40px !important;
+    width: 100% !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    line-height: 38px !important;
     font-size: 12.5px !important;
-    padding-left: 36px !important;
+    padding: 0 10px 0 34px !important;
+    border-radius: 8px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
   }
   .admin-filter-select {
     width: 100% !important;
-    height: 40px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
     font-size: 12px !important;
-    padding: 0 10px !important;
+    padding: 0 28px 0 10px !important;
+    border-radius: 8px !important;
+    margin: 0 !important;
+    flex: none !important;
+    box-sizing: border-box !important;
   }
   .admin-toolbar-right {
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 6px !important;
     width: 100% !important;
+    margin: 0 !important;
   }
   .admin-toolbar-right .btn-admin-action {
     flex: 1 1 calc(50% - 3px) !important;
-    height: 38px !important;
+    height: 36px !important;
     font-size: 11.5px !important;
     justify-content: center !important;
     padding: 0 8px !important;
+    border-radius: 8px !important;
   }
   .admin-toolbar-right .btn-admin-action.btn-add-user {
     flex: 1 1 100% !important;
-    height: 40px !important;
+    height: 38px !important;
     font-size: 12.5px !important;
     font-weight: 600 !important;
     order: -1 !important;
+    border-radius: 8px !important;
   }
 
   /* Toggle desktop table off, mobile list on */
@@ -9719,9 +9719,9 @@ select.admin-filter-select:focus {
   .admin-users-mobile-list {
     display: flex !important;
     flex-direction: column !important;
-    gap: 8px !important;
+    gap: 6px !important;
     width: 100% !important;
-    margin-top: 8px !important;
+    margin-top: 6px !important;
   }
   .admin-user-mobile-card {
     padding: 10px 12px !important;
