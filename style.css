@@ -5335,6 +5335,113 @@ input[type="date"]::-webkit-date-and-time-value {
   padding-left: 4px;
 }
 
+/* Mobile Booking Card List */
+.bookings-mobile-card-list {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.booking-mobile-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.booking-mobile-card:active {
+  background: #f8fafc;
+  transform: scale(0.99);
+}
+
+.booking-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.booking-card-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.booking-card-room {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.booking-card-purpose {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.booking-card-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  background: #f8fafc;
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-top: 2px;
+}
+
+.booking-card-meta-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11px;
+}
+
+.booking-meta-label {
+  color: var(--text-muted, #64748b);
+  flex-shrink: 0;
+}
+
+.booking-meta-val {
+  font-weight: 600;
+  color: #334155;
+  text-align: right;
+  word-break: break-word;
+}
+
+.booking-meta-val.slots-val {
+  color: #4f46e5;
+}
+
+.booking-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.booking-card-arrow {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
 /* 3. SHECU Cabinet Map styling */
 .cabinet-grid {
   display: grid;
@@ -5821,6 +5928,14 @@ input[type="date"]::-webkit-date-and-time-value {
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
+  }
+
+  /* Toggle desktop booking table to mobile cards */
+  .desktop-booking-table {
+    display: none !important;
+  }
+  .bookings-mobile-card-list {
+    display: flex !important;
   }
 }
 

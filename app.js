@@ -7204,7 +7204,8 @@ function setupBookingForm() {
 
 function renderBookingsTable() {
   const tableBody = document.getElementById("bookingsTableBody");
-  if (!tableBody) return;
+  const mobileList = document.getElementById("bookingsMobileCardList");
+  if (!tableBody && !mobileList) return;
 
   // Sort bookings: newest date first
   const sortedBookings = [...bookings].sort((a, b) => {
@@ -7216,56 +7217,109 @@ function renderBookingsTable() {
   });
 
   if (sortedBookings.length === 0) {
-    tableBody.innerHTML = `
-      <tr>
-        <td colspan="6" style="text-align: center; padding: 40px;">
-          <div class="empty-state">
-            <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
-            <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
-          </div>
-        </td>
-      </tr>
+    const emptyHtml = `
+      <div class="empty-state" style="padding: 30px 16px;">
+        <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
+        <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
+      </div>
     `;
+    if (tableBody) {
+      tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px;">${emptyHtml}</td></tr>`;
+    }
+    if (mobileList) {
+      mobileList.innerHTML = emptyHtml;
+    }
+    if (window.lucide) lucide.createIcons();
     return;
   }
 
-  let html = "";
+  let tableHtml = "";
+  let mobileHtml = "";
+
   sortedBookings.forEach(b => {
-    // Format Date nicely for display
     const formattedDate = formatThaiDate(normalizeDateStr(b.date) || b.date);
-    
-    // Split slots by comma and create a line for each slot
-    const slotHtml = (b.slot || "").split(", ").map(s => `
-      <div style="font-weight: 600; color: #6366f1; font-size: 11px; line-height: 1.3;">${s}</div>
+    const roomName = getRoomThaiName(b.room);
+    const roomColor = getRoomColor(b.room);
+    const booker = b.bookerName || b.teacherName || "-";
+    const grade = b.gradeLevel || "-";
+    const studentCountText = b.studentCount ? `${b.studentCount} คน` : "";
+    const purpose = b.purpose || b.activity || "-";
+
+    const slotList = (b.slot || "").split(", ").filter(Boolean);
+    const slotHtml = slotList.map(s => `
+      <div style="font-weight: 600; color: #4f46e5; font-size: 11px; line-height: 1.3;">${s}</div>
     `).join("");
 
     const isApproved = b.status === "approved";
     const isPending = b.status === "pending";
     const statusBadge = isApproved 
-      ? "<span style='color:#10b981; font-size:11px; font-weight:600;'>🟢 อนุมัติแล้ว</span>" 
-      : (isPending ? "<span style='color:#f59e0b; font-size:11px; font-weight:600;'>⏳ รออนุมัติ</span>" : "<span style='color:#ef4444; font-size:11px; font-weight:600;'>❌ ปฏิเสธ</span>");
+      ? "<span class='badge-status approved' style='color:#10b981; font-size:11px; font-weight:600; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:12px;'>🟢 อนุมัติแล้ว</span>" 
+      : (isPending 
+          ? "<span class='badge-status pending' style='color:#f59e0b; font-size:11px; font-weight:600; background:rgba(245,158,11,0.1); padding:2px 8px; border-radius:12px;'>⏳ รออนุมัติ</span>" 
+          : "<span class='badge-status rejected' style='color:#ef4444; font-size:11px; font-weight:600; background:rgba(239,68,68,0.1); padding:2px 8px; border-radius:12px;'>❌ ปฏิเสธ</span>");
 
-    html += `
+    // Desktop Table Row
+    tableHtml += `
       <tr class="table-clickable-row" onclick="showBookingDetail('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
         <td data-label="วัน/เดือน/ปี ที่ใช้งาน" style="font-size: 12px; font-weight: 600; color: #1e293b;">${formattedDate}</td>
         <td data-label="เวลาที่เข้าใช้">${slotHtml}</td>
         <td data-label="ระดับชั้น / นร." style="font-size: 12px;">
-          <div style="font-weight: 600; color: var(--text-main);">${b.gradeLevel || "-"}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">${b.studentCount ? `${b.studentCount} คน` : ""}</div>
+          <div style="font-weight: 600; color: var(--text-main);">${grade}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">${studentCountText}</div>
         </td>
-        <td data-label="กิจกรรมที่ใช้" style="font-size: 12px; color: var(--text-main); max-width: 220px; word-break: break-word;">${b.purpose || b.activity || "-"}</td>
-        <td data-label="ลงชื่อคุณครู" style="font-size: 12px; font-weight: 600; color: var(--text-main);">${b.bookerName || b.teacherName || "-"}</td>
+        <td data-label="กิจกรรมที่ใช้" style="font-size: 12px; color: var(--text-main); max-width: 220px; word-break: break-word;">${purpose}</td>
+        <td data-label="ลงชื่อคุณครู" style="font-size: 12px; font-weight: 600; color: var(--text-main);">${booker}</td>
         <td data-label="ห้องปฏิบัติการ">
-          <div style="margin-bottom: 2px;">
-            <span style="font-family: var(--font-sans); background-color: rgba(139, 92, 246, 0.08); color: #8b5cf6; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block;">${getRoomThaiName(b.room)}</span>
+          <div style="margin-bottom: 4px;">
+            <span style="font-family: var(--font-sans); background-color: ${roomColor}15; color: ${roomColor}; font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600; display: inline-block;">${roomName}</span>
           </div>
           <div>${statusBadge}</div>
         </td>
       </tr>
     `;
+
+    // Mobile Card View
+    mobileHtml += `
+      <div class="booking-mobile-card" onclick="showBookingDetail('${b.id}')">
+        <div class="booking-card-top">
+          <div class="booking-card-date">
+            <i data-lucide="calendar" style="width: 13px; height: 13px; color: var(--primary-purple);"></i>
+            <span>${formattedDate}</span>
+          </div>
+          <div class="booking-card-room" style="background-color: ${roomColor}15; color: ${roomColor};">
+            ${roomName}
+          </div>
+        </div>
+
+        <div class="booking-card-body">
+          <div class="booking-card-purpose">${escapeHTML(purpose)}</div>
+          
+          <div class="booking-card-meta-grid">
+            <div class="booking-card-meta-item">
+              <span class="booking-meta-label">เวลาเข้าใช้:</span>
+              <span class="booking-meta-val slots-val">${(b.slot || "-")}</span>
+            </div>
+            <div class="booking-card-meta-item">
+              <span class="booking-meta-label">ระดับชั้น:</span>
+              <span class="booking-meta-val">${grade} ${studentCountText ? `(${studentCountText})` : ''}</span>
+            </div>
+            <div class="booking-card-meta-item">
+              <span class="booking-meta-label">ผู้จอง/ครู:</span>
+              <span class="booking-meta-val">${escapeHTML(booker)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="booking-card-footer">
+          <div>${statusBadge}</div>
+          <span class="booking-card-arrow"><i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></span>
+        </div>
+      </div>
+    `;
   });
 
-  tableBody.innerHTML = html;
+  if (tableBody) tableBody.innerHTML = tableHtml;
+  if (mobileList) mobileList.innerHTML = mobileHtml;
   if (window.lucide) lucide.createIcons();
 }
 

@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260923_2344">
+  <link rel="stylesheet" href="style.css?v=20260923_2348">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -1854,19 +1854,19 @@
             </div>
 
             <!-- List View Area -->
-            <div id="bookingListViewArea" style="display: none; flex-direction: column; gap: 12px; flex: 1;">
+            <div id="bookingListViewArea" style="display: none; flex-direction: column; gap: 12px; flex: 1; width: 100%;">
 
-              <!-- Booking Table -->
-              <div class="table-container" style="margin-bottom: 0; flex: 1; overflow-x: auto;">
-                <table style="min-width: 720px;">
+              <!-- Booking Table (Desktop) -->
+              <div class="table-container booking-table-container desktop-booking-table" style="margin-bottom: 0; flex: 1; overflow-x: auto; width: 100%;">
+                <table style="width: 100%; min-width: 680px;">
                   <thead>
                     <tr>
-                      <th style="width: 14%;">วัน/เดือน/ปี ที่ใช้งาน</th>
-                      <th style="width: 14%;">เวลาที่เข้าใช้</th>
+                      <th style="width: 15%;">วัน/เดือน/ปี ที่ใช้งาน</th>
+                      <th style="width: 15%;">เวลาที่เข้าใช้</th>
                       <th style="width: 14%;">ระดับชั้น / นร.</th>
                       <th style="width: 26%;">กิจกรรมที่ใช้</th>
-                      <th style="width: 16%;">ลงชื่อคุณครู</th>
-                      <th style="width: 16%;">ห้องปฏิบัติการ</th>
+                      <th style="width: 15%;">ลงชื่อคุณครู</th>
+                      <th style="width: 15%;">ห้องปฏิบัติการ</th>
                     </tr>
                   </thead>
                   <tbody id="bookingsTableBody">
@@ -1881,6 +1881,11 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              <!-- Booking Mobile Card List -->
+              <div id="bookingsMobileCardList" class="bookings-mobile-card-list">
+                <!-- Dynamically populated on mobile -->
               </div>
             </div>
 
@@ -5509,7 +5514,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260923_2344"></script>
+  <script src="app.js?v=20260923_2348"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {
