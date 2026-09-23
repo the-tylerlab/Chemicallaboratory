@@ -3852,27 +3852,37 @@
   <div class="modal-overlay" id="importModal">
     <div class="modal-content" style="max-width: 580px;">
       <div class="modal-header">
-        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
-          <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
-          นำเข้าไฟล์พัสดุและสารเคมี (Excel / CSV)
-        </h2>
-        <button class="modal-close-btn" id="modalClose">&times;</button>
+        <div class="modal-header-left">
+          <div class="modal-header-icon-badge">
+            <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h3 class="modal-title">นำเข้าไฟล์พัสดุและสารเคมี (Excel / CSV)</h3>
+            <div class="modal-subtitle">ดาวน์โหลดไฟล์เทมเพลตและอัปโหลดเข้าสู่ฐานข้อมูลคลัง</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="modalClose" aria-label="ปิดหน้าต่าง">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
       </div>
       
       <div class="modal-body">
         <!-- Step 1: Download Template -->
         <div class="modal-step">
-          <div class="modal-step-title">1. ดาวน์โหลดไฟล์ต้นแบบเทมเพลต</div>
+          <div class="modal-step-title" style="display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #ede7ff; color: #4f21a1; font-size: 11px; font-weight: 700;">1</span>
+            <span>ดาวน์โหลดไฟล์ต้นแบบเทมเพลต</span>
+          </div>
           <div class="template-download-box" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-            <span class="template-download-text" style="font-size: 13px; color: #475569;">
-              ดาวน์โหลดไฟล์เทมเพลตเพื่อกรอกข้อมูล <b>ชีตแรกเป็นคู่มือการใช้งาน</b> และ <b>ชีตถัดไปเป็นตารางกรอกข้อมูล</b>
+            <span class="template-download-text">
+              ดาวน์โหลดไฟล์เทมเพลตเพื่อกรอกข้อมูล <strong>ชีตแรกเป็นคู่มือการใช้งาน</strong> และ <strong>ชีตถัดไปเป็นตารางกรอกข้อมูล</strong>
             </span>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; width: 100%;">
-              <a href="#" class="template-download-btn" id="btnDownloadExcelTemplate" style="background: #15803d; color: #ffffff; border: none; font-weight: 600; padding: 7px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; transition: all 0.2s;">
+              <a href="#" class="template-download-btn" id="btnDownloadExcelTemplate" style="background: #16a34a; color: #ffffff; border: 1px solid #15803d; font-weight: 600; padding: 7px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; transition: all 0.2s;">
                 <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px;"></i>
                 Excel (.xlsx) แนะนำ (2 ชีต)
               </a>
-              <a href="#" class="template-download-btn" id="btnDownloadTemplate" style="background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; font-weight: 500; padding: 7px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; transition: all 0.2s;">
+              <a href="#" class="template-download-btn" id="btnDownloadTemplate" style="background: #ffffff; color: #374151; border: 1px solid #d9dee8; font-weight: 500; padding: 7px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; transition: all 0.2s;">
                 <i data-lucide="download" style="width: 15px; height: 15px;"></i>
                 CSV (.csv)
               </a>
@@ -3881,8 +3891,11 @@
         </div>
 
         <!-- Step 2: Select File -->
-        <div class="modal-step" style="margin-top: 14px;">
-          <div class="modal-step-title">2. เลือกไฟล์ที่กรอกข้อมูลแล้ว</div>
+        <div class="modal-step" style="margin-top: 16px;">
+          <div class="modal-step-title" style="display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #ede7ff; color: #4f21a1; font-size: 11px; font-weight: 700;">2</span>
+            <span>เลือกไฟล์ที่กรอกข้อมูลแล้ว</span>
+          </div>
           <div class="file-upload-container">
             <input type="file" id="csvFileInput" class="file-upload-input" accept=".xlsx, .xls, .csv">
             <label for="csvFileInput" class="file-upload-label" style="cursor: pointer;">
@@ -3891,17 +3904,17 @@
             </label>
             <span class="file-upload-filename" id="csvFileName">ยังไม่ได้เลือกไฟล์</span>
           </div>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; line-height: 1.5;">
-            * รองรับไฟล์นามสกุล <b>.xlsx, .xls, .csv</b> (ระบบจะอ่านข้อมูลจากชีตกรอกข้อมูลอัตโนมัติ)<br>
-            * คอลัมน์จำเป็น: <b>รหัส*, ชื่อ*, หมวดหมู่*, จำนวน*, หน่วย*</b><br>
-            * ข้อมูลจะถูกนำเข้าและซิงค์ไปยัง Supabase Cloud และ Google Sheets แบบเรียลไทม์
-          </p>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 11.5px; color: #64748b; line-height: 1.6;">
+            <div>• รองรับไฟล์นามสกุล <strong>.xlsx, .xls, .csv</strong> (ระบบจะอ่านข้อมูลจากชีตกรอกข้อมูลอัตโนมัติ)</div>
+            <div>• คอลัมน์จำเป็น: <strong>รหัส*, ชื่อ*, หมวดหมู่*, จำนวน*, หน่วย*</strong></div>
+            <div>• ข้อมูลจะถูกนำเข้าและซิงค์ไปยัง Supabase Cloud และ Google Sheets แบบเรียลไทม์</div>
+          </div>
         </div>
       </div>
       
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="btnCancelImport">ยกเลิก</button>
-        <button class="btn btn-primary" id="btnConfirmImport" style="background-color: #8b5cf6;" disabled>ยืนยันการนำเข้า</button>
+        <button class="btn btn-secondary" id="btnCancelImport" style="background: #ffffff; border: 1px solid #d9dee8; color: #374151; font-weight: 600; padding: 7px 18px; border-radius: 8px; font-size: 13px;">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnConfirmImport" style="background-color: #4f21a1; color: #ffffff; border: none; font-weight: 600; padding: 7px 18px; border-radius: 8px; font-size: 13px;" disabled>ยืนยันการนำเข้า</button>
       </div>
     </div>
   </div>
@@ -4949,21 +4962,26 @@
 
   <!-- MODAL: HELP & SAFETY (SHECU Information Center) -->
   <div id="helpSafetyModal" class="modal-overlay">
-    <div class="modal-content modal-lg" style="width: 94%; max-width: 860px; height: 380px; max-height: 88vh; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 12px; border: 1px solid #d9dee8; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); font-family: 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Inter', -apple-system, sans-serif;">
+    <div class="modal-content modal-lg" style="width: 94%; max-width: 860px; height: 480px; max-height: 86vh; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 16px; border: 1px solid #d9dee8; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); font-family: 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Inter', -apple-system, sans-serif;">
       <!-- Modal Header -->
-      <div style="padding: 10px 18px; border-bottom: 1px solid #d9dee8; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; flex-shrink: 0;">
-        <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1f2937; display: flex; align-items: center; gap: 8px;">
-          <i data-lucide="book-open" style="color: #4f21a1; width: 18px; height: 18px;"></i>
-          <span>ศูนย์ข้อมูล และความปลอดภัย (SHECU Information Center)</span>
-        </h3>
-        <button class="modal-close" onclick="closeHelpSafetyModal()" style="position: relative; top: 0; right: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; border: 1px solid transparent; background: transparent; cursor: pointer; color: #64748b;" aria-label="ปิดหน้าต่าง">
+      <div class="modal-header" style="padding: 14px 20px; border-bottom: 1px solid #d9dee8; display: flex; justify-content: space-between; align-items: center; background: #ffffff; flex-shrink: 0;">
+        <div class="modal-header-left">
+          <div class="modal-header-icon-badge">
+            <i data-lucide="book-open" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h3 class="modal-title">ศูนย์ข้อมูล และความปลอดภัย</h3>
+            <div class="modal-subtitle">SHECU Information Center • มาตรฐานความปลอดภัยห้องปฏิบัติการ</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeHelpSafetyModal()" aria-label="ปิดหน้าต่าง">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
         </button>
       </div>
       
-      <div class="help-modal-body" style="display: flex; flex: 1; min-height: 0; height: calc(100% - 46px); width: 100%; overflow: hidden; box-sizing: border-box;">
+      <div class="help-modal-body" style="display: flex; flex: 1; min-height: 0; height: calc(100% - 69px); width: 100%; overflow: hidden; box-sizing: border-box;">
         <!-- Sidebar Tabs -->
-        <div class="help-modal-sidebar" style="width: 195px; flex-shrink: 0; background: #f8fafc; border-right: 1px solid #d9dee8; padding: 8px 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box;">
+        <div class="help-modal-sidebar" style="width: 200px; flex-shrink: 0; background: #f8fafc; border-right: 1px solid #d9dee8; padding: 10px 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box;">
           <ul class="help-tabs" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px;">
             <li class="help-tab active" data-target="help-tab-1">ความปลอดภัย SHECU</li>
             <li class="help-tab" data-target="help-tab-2">เอกสาร SDS</li>
