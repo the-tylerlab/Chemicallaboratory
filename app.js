@@ -912,91 +912,89 @@ async function checkBackendStatus() {
   }
 }
 
-// Load all items from either Supabase, Server API, or LocalStorage fallback
+// Load all items from either Supabase, Google Sheets, Server API, or LocalStorage fallback
 async function loadAllItems() {
-  if (isSupabaseOnline) {
+  // 1. Primary: Try Supabase Cloud
+  if (isSupabaseOnline && typeof supabase !== "undefined") {
     try {
       const { data, error } = await supabase.from("items").select('*');
-      if (error) throw error;
-      const loadedItems = [];
-      (data || []).forEach(d => {
-        if (d && d.code) {
-          loadedItems.push(d);
-        }
-      });
-      if (loadedItems.length > 0) {
-        items = loadedItems;
-        saveItemsToLocal();
-        console.log("🔥 Loaded " + items.length + " items from Supabase Cloud.");
-        localStorage.setItem("has_seeded_items", "true");
-        return;
-      } else {
-        // Check if we have items stored locally before wiping
-        const localData = localStorage.getItem("lab_items");
-        if (localData) {
-          try {
-            const parsed = JSON.parse(localData);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              items = parsed;
-              return;
-            }
-          } catch (e) {}
-        }
-        if (!localStorage.getItem("has_seeded_items")) {
-          // Seed Supabase if empty
-          console.log("🔥 Supabase collection is empty. Seeding with DEMO_DATA...");
-          await supabase.from("items").insert(DEMO_DATA);
-          items = [...DEMO_DATA];
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const loadedItems = [];
+        data.forEach(d => {
+          if (d && d.code) {
+            loadedItems.push(d);
+          }
+        });
+        if (loadedItems.length > 0) {
+          items = loadedItems;
           saveItemsToLocal();
+          console.log("🔥 Loaded " + items.length + " items from Supabase Cloud.");
           localStorage.setItem("has_seeded_items", "true");
-        } else {
-          items = [];
+          return;
         }
-        return;
       }
     } catch (err) {
-      console.error("🔥 Failed to load from Supabase:", err);
-      // Fallback to local storage if Supabase fails
-      const localData = localStorage.getItem("lab_items");
-      if (localData) {
-        try {
-          items = JSON.parse(localData);
-          return;
-        } catch (e) {}
-      }
-      isSupabaseOnline = false;
-      showToast("ระบบสลับการจัดเก็บมาเป็นแบบ Local Storage สำรอง", "info");
+      console.warn("🔥 Supabase fetch warning:", err);
     }
   }
 
+  // 2. Secondary: Fallback to Google Sheets Webhook
+  if (typeof fetchTableFromGoogleSheets === "function" && navigator.onLine) {
+    try {
+      const sheetItems = await fetchTableFromGoogleSheets("Items");
+      if (Array.isArray(sheetItems) && sheetItems.length > 0) {
+        items = sheetItems;
+        saveItemsToLocal();
+        console.log("📊 Loaded " + items.length + " items from Google Sheets.");
+        localStorage.setItem("has_seeded_items", "true");
+
+        // Backfill to Supabase Cloud in background
+        if (isSupabaseOnline && typeof supabase !== "undefined") {
+          try {
+            await supabase.from("items").upsert(items, { onConflict: 'code' });
+          } catch (supaErr) {
+            console.warn("Supabase backfill error:", supaErr);
+          }
+        }
+        return;
+      }
+    } catch (gsErr) {
+      console.warn("📊 Google Sheets fetch warning:", gsErr);
+    }
+  }
+
+  // 3. Tertiary: Try Backend Server API
   if (isBackendOnline) {
     try {
       const response = await fetch(`${API_BASE}/items`);
       if (response.ok) {
         items = await response.json();
+        saveItemsToLocal();
+        return;
       }
-      const feedRes = await fetch(`${API_BASE}/feedbacks`);
-      if (feedRes.ok) {
-        window.feedbacksData = await feedRes.json();
-      }
-      if (response.ok && feedRes.ok) return;
     } catch (err) {
-      console.error("Failed to load from backend:", err);
+      console.warn("Failed to load from backend API:", err);
     }
   }
   
-  // LocalStorage Fallback
+  // 4. Fallback: LocalStorage
   const localData = localStorage.getItem("lab_items");
   if (localData) {
     try {
-      items = JSON.parse(localData);
-    } catch (e) {
-      items = [...DEMO_DATA];
-      saveItemsToLocal();
-    }
-  } else {
+      const parsed = JSON.parse(localData);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        items = parsed;
+        return;
+      }
+    } catch (e) {}
+  }
+
+  // 5. Fresh install without internet
+  if (!localStorage.getItem("has_seeded_items")) {
     items = [...DEMO_DATA];
     saveItemsToLocal();
+  } else {
+    items = [];
   }
 }
 
