@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260923_2335">
+  <link rel="stylesheet" href="style.css?v=20260923_2339">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -2925,17 +2925,17 @@
 
           <form id="adminLoginBannerForm" onsubmit="saveAdminLoginBanner(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
             <!-- Status Toggle -->
-            <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 12px 18px; border-radius: 12px; border: 1px solid var(--border-color); width: 100%; box-sizing: border-box;">
-              <div>
-                <div style="font-weight: 600; font-size: 14px; color: var(--text-main);">แสดงการ์ดแบนเนอร์/ประกาศในหน้าเข้าสู่ระบบ</div>
-                <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px;">หากปิดใช้งาน จะแสดงเฉพาะฟอร์มเข้าสู่ระบบขนาดกะทัดรัด</div>
+            <div class="admin-toggle-box">
+              <div class="admin-toggle-text-wrap">
+                <div class="admin-toggle-title">แสดงการ์ดแบนเนอร์/ประกาศในหน้าเข้าสู่ระบบ</div>
+                <div class="admin-toggle-desc">หากปิดใช้งาน จะแสดงเฉพาะฟอร์มเข้าสู่ระบบขนาดกะทัดรัด</div>
               </div>
               <label class="toggle-switch-wrapper" for="adminLoginBannerEnabled">
                 <div class="toggle-switch">
                   <input type="checkbox" id="adminLoginBannerEnabled" checked onchange="updateLoginBannerToggleLabel(this.checked); triggerLoginBannerLivePreview();">
                   <span class="toggle-slider"></span>
                 </div>
-                <span id="adminLoginBannerStatusText" style="font-size: 13px; font-weight: 600; color: #1e293b; min-width: 54px;">เปิดใช้งาน</span>
+                <span class="admin-toggle-status" id="adminLoginBannerStatusText">เปิดใช้งาน</span>
               </label>
             </div>
 
@@ -3060,17 +3060,17 @@
           
           <form id="adminAnnouncementForm" onsubmit="saveAdminAnnouncement(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
             <!-- Status Toggle -->
-            <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 12px 18px; border-radius: 12px; border: 1px solid var(--border-color); width: 100%; box-sizing: border-box;">
-              <div>
-                <div style="font-weight: 600; font-size: 14px; color: var(--text-main);">แสดงแถบประกาศหน้าแดชบอร์ด</div>
-                <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px;">เปิดหรือปิดการแสดงแถบประกาศเลื่อนสำหรับผู้ใช้งานทั่วไป</div>
+            <div class="admin-toggle-box">
+              <div class="admin-toggle-text-wrap">
+                <div class="admin-toggle-title">แสดงแถบประกาศหน้าแดชบอร์ด</div>
+                <div class="admin-toggle-desc">เปิดหรือปิดการแสดงแถบประกาศเลื่อนสำหรับผู้ใช้งานทั่วไป</div>
               </div>
               <label class="toggle-switch-wrapper" for="adminAnnouncementEnabled">
                 <div class="toggle-switch">
                   <input type="checkbox" id="adminAnnouncementEnabled" checked onchange="updateAnnouncementToggleLabel(this.checked, 'adminAnnouncementStatusText'); triggerAnnouncementLivePreview('admin');">
                   <span class="toggle-slider"></span>
                 </div>
-                <span id="adminAnnouncementStatusText" style="font-size: 13px; font-weight: 600; color: #1e293b; min-width: 54px;">เปิดใช้งาน</span>
+                <span class="admin-toggle-status" id="adminAnnouncementStatusText">เปิดใช้งาน</span>
               </label>
             </div>
 
@@ -3164,10 +3164,10 @@
               </div>
 
               <!-- Pause on Hover Toggle -->
-              <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid #f1f5f9;">
-                <div>
-                  <div style="font-weight: 600; font-size: 13px; color: var(--text-main);">หยุดเลื่อนเมื่อนำเมาส์ชี้ (Pause on Hover)</div>
-                  <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">ช่วยให้อ่านข้อความยาวได้สะดวกเมื่อวางเคอร์เซอร์บนแถบประกาศ</div>
+              <div class="admin-toggle-row-compact">
+                <div class="admin-toggle-text-wrap">
+                  <div class="admin-toggle-title">หยุดเลื่อนเมื่อนำเมาส์ชี้ (Pause on Hover)</div>
+                  <div class="admin-toggle-desc">ช่วยให้อ่านข้อความยาวได้สะดวกเมื่อวางเคอร์เซอร์บนแถบประกาศ</div>
                 </div>
                 <label class="toggle-switch-wrapper" for="adminAnnouncementPauseHover">
                   <div class="toggle-switch">
@@ -3217,23 +3217,23 @@
             <p class="admin-tab-desc">การตั้งค่าที่ส่งผลกระทบอย่างถาวร เช่น การลบพื้นที่ทำงาน หรือโอนสิทธิ์ความเป็นเจ้าของ โปรดระมัดระวังเป็นอย่างยิ่ง</p>
           </div>
           
-          <div style="border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 22px 26px; background: rgba(239, 68, 68, 0.02); width: 100%; box-sizing: border-box;">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap;">
-              <div style="flex: 1; min-width: 280px;">
-                <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: #1e293b;">โอนสิทธิ์ความเป็นเจ้าของ</h3>
-                <p style="margin: 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.5;">โอนพื้นที่ทำงานนี้ให้ผู้อื่น คุณจะเสียสิทธิ์การเป็นแอดมินหลังจากโอนเสร็จสิ้น</p>
+          <div class="admin-danger-box">
+            <div class="admin-danger-item">
+              <div class="admin-danger-text">
+                <h3 class="admin-danger-title">โอนสิทธิ์ความเป็นเจ้าของ</h3>
+                <p class="admin-danger-desc">โอนพื้นที่ทำงานนี้ให้ผู้อื่น คุณจะเสียสิทธิ์การเป็นแอดมินหลังจากโอนเสร็จสิ้น</p>
               </div>
-              <button type="button" class="btn btn-secondary" style="border-color: var(--border-color); white-space: nowrap; padding: 8px 18px; font-size: 13px; font-weight: 600; border-radius: 8px;">โอนสิทธิ์</button>
+              <button type="button" class="btn btn-secondary admin-danger-btn">โอนสิทธิ์</button>
             </div>
             
-            <div style="height: 1px; background: rgba(239, 68, 68, 0.15); margin: 18px 0;"></div>
+            <div class="admin-danger-divider"></div>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap;">
-              <div style="flex: 1; min-width: 280px;">
-                <h3 style="margin: 0 0 6px 0; font-size: 15px; font-weight: 700; color: var(--accent-red);">ลบพื้นที่ทำงาน</h3>
-                <p style="margin: 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.5;">ลบพื้นที่ทำงานและข้อมูลทั้งหมดอย่างถาวร การกระทำนี้ไม่สามารถกู้คืนได้</p>
+            <div class="admin-danger-item">
+              <div class="admin-danger-text">
+                <h3 class="admin-danger-title danger-text">ลบพื้นที่ทำงาน</h3>
+                <p class="admin-danger-desc">ลบพื้นที่ทำงานและข้อมูลทั้งหมดอย่างถาวร การกระทำนี้ไม่สามารถกู้คืนได้</p>
               </div>
-              <button type="button" class="btn btn-danger" onclick="triggerAdminWorkspaceReset()" style="background: var(--accent-red); color: white; border: none; white-space: nowrap; padding: 8px 18px; font-size: 13px; font-weight: 600; border-radius: 8px;">ลบพื้นที่ทำงาน</button>
+              <button type="button" class="btn btn-danger admin-danger-btn" onclick="triggerAdminWorkspaceReset()">ลบพื้นที่ทำงาน</button>
             </div>
           </div>
         </div>

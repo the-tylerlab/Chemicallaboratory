@@ -9624,6 +9624,111 @@ select.admin-filter-select:focus {
   line-height: 1.5;
 }
 
+/* Admin Toggle Box & Danger Zone Base */
+.admin-toggle-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  width: 100%;
+  box-sizing: border-box;
+  gap: 12px;
+}
+
+.admin-toggle-row-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  gap: 12px;
+}
+
+.admin-toggle-text-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-toggle-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: #1e293b;
+  line-height: 1.35;
+}
+
+.admin-toggle-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.admin-toggle-status {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1e293b;
+  min-width: 50px;
+}
+
+.admin-danger-box {
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 12px;
+  padding: 18px 20px;
+  background: rgba(239, 68, 68, 0.02);
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-danger-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.admin-danger-text {
+  flex: 1;
+  min-width: 240px;
+}
+
+.admin-danger-title {
+  margin: 0 0 4px 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.admin-danger-title.danger-text {
+  color: var(--accent-red);
+}
+
+.admin-danger-desc {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.admin-danger-divider {
+  height: 1px;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.admin-danger-btn {
+  white-space: nowrap;
+  padding: 7px 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
 .admin-table-container {
   margin-top: 14px;
   border: 1px solid var(--border-color);
@@ -9728,6 +9833,54 @@ select.admin-filter-select:focus {
     line-height: 1.4 !important;
     margin: 0 !important;
     color: #64748b !important;
+  }
+
+  /* Compact Toggle Box on Mobile */
+  .admin-toggle-box {
+    padding: 8px 10px !important;
+    border-radius: 9px !important;
+    gap: 6px !important;
+  }
+  .admin-toggle-title {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    color: #1e293b !important;
+  }
+  .admin-toggle-desc {
+    font-size: 9.5px !important;
+    line-height: 1.3 !important;
+    margin-top: 1px !important;
+    color: #64748b !important;
+  }
+  .admin-toggle-status {
+    font-size: 10.5px !important;
+    min-width: 42px !important;
+  }
+  .admin-toggle-row-compact {
+    padding-top: 6px !important;
+    gap: 6px !important;
+  }
+
+  /* Compact Danger Zone on Mobile */
+  .admin-danger-box {
+    padding: 10px 10px !important;
+    border-radius: 9px !important;
+    gap: 10px !important;
+  }
+  .admin-danger-title {
+    font-size: 11.5px !important;
+    margin-bottom: 2px !important;
+  }
+  .admin-danger-desc {
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+  }
+  .admin-danger-btn {
+    font-size: 11px !important;
+    padding: 6px 12px !important;
+    width: 100% !important;
+    justify-content: center !important;
   }
 
   /* Admin Form Boxes on Mobile */
