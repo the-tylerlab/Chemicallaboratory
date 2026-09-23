@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260923_2327">
+  <link rel="stylesheet" href="style.css?v=20260923_2330">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -3083,11 +3083,16 @@
             </div>
 
             <!-- Templates -->
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; width: 100%; margin-top: -4px;">
-              <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">เทมเพลตแนะนำ:</span>
-              <button type="button" class="btn btn-secondary" onclick="applyAnnouncementPreset('standard')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px;">ชุดมาตรฐาน (PPE + Fume Hood + ฉุกเฉิน)</button>
-              <button type="button" class="btn btn-secondary" onclick="applyAnnouncementPreset('maintenance')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px;">แจ้งตรวจนับสต็อกประจำสัปดาห์</button>
-              <button type="button" class="btn btn-secondary" onclick="applyAnnouncementPreset('urgent')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px;">แจ้งเตือนปิดปรับปรุงระบบ</button>
+            <div class="admin-template-presets">
+              <div class="admin-template-presets-label">
+                <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #d97706;"></i>
+                <span>เทมเพลตข้อความแนะนำ:</span>
+              </div>
+              <div class="admin-template-presets-buttons">
+                <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('standard')">📋 ชุดมาตรฐาน (PPE + Fume Hood + ฉุกเฉิน)</button>
+                <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('maintenance')">📦 แจ้งตรวจนับสต็อกประจำสัปดาห์</button>
+                <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('urgent')">⚠️ แจ้งเตือนปิดปรับปรุงระบบ</button>
+              </div>
             </div>
 
             <!-- Customization Settings Box -->
