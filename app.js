@@ -680,6 +680,7 @@ function setupRealtimeSubscriptions() {
   // 1. Subscribe to items table
   supabase.channel('public:items')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async (payload) => {
+      if (window.isClearingData) return;
       console.log('Realtime change received for items:', payload);
       await loadAllItems();
       if (typeof updateUI === 'function') updateUI();
@@ -691,6 +692,7 @@ function setupRealtimeSubscriptions() {
   // 2. Subscribe to transactions table
   supabase.channel('public:transactions')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, async (payload) => {
+      if (window.isClearingData) return;
       console.log('Realtime change received for transactions:', payload);
       await loadAllTransactions();
       if (typeof renderTransactionsTable === 'function') renderTransactionsTable();
@@ -702,6 +704,7 @@ function setupRealtimeSubscriptions() {
   // 3. Subscribe to bookings table
   supabase.channel('public:bookings')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, async (payload) => {
+      if (window.isClearingData) return;
       console.log('Realtime change received for bookings:', payload);
       await loadAllBookings();
       if (typeof renderBookingsTable === 'function') renderBookingsTable();
@@ -950,7 +953,14 @@ async function loadAllItems() {
   if (isSupabaseOnline && typeof supabase !== "undefined") {
     try {
       const { data, error } = await supabase.from("items").select('*');
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
+        if (data.length === 0) {
+          items = [];
+          saveItemsToLocal();
+          localStorage.setItem("has_seeded_items", "true");
+          console.log("🔥 Supabase Cloud items table is empty (0 items).");
+          return;
+        }
         const loadedItems = [];
         data.forEach(d => {
           if (d && d.code) {
@@ -15260,30 +15270,30 @@ function setupAdminClearHandlers() {
       }
 
       try {
+        window.isClearingData = true;
         if (pendingClearAction === "inventory") {
           const itemsToDelete = [...items];
           items = [];
           saveItemsToLocal();
+          localStorage.setItem("has_seeded_items", "true");
           
+          if (isSupabaseOnline && typeof supabase !== "undefined") {
+            try {
+              await supabase.from("items").delete().neq("code", "___NON_EXISTENT_CODE___");
+            } catch (e) {
+              console.error("Supabase bulk clear failed:", e);
+            }
+          }
+
           for (const item of itemsToDelete) {
             syncToGoogleSheetsDirect('Items', 'DELETE', { code: item.code }, 'code');
           }
 
-          if (isSupabaseOnline) {
-            for (const item of itemsToDelete) {
-              try {
-                await supabase.from("items").delete().eq("code", item.code);
-              } catch (e) {
-                console.error("Supabase clear doc failed:", item.code, e);
-              }
-            }
-          } else if (isBackendOnline) {
+          if (isBackendOnline) {
             for (const item of itemsToDelete) {
               try {
                 await fetch(`${API_BASE}/items/${encodeURIComponent(item.code)}`, { method: "DELETE" });
-              } catch (e) {
-                console.error("Backend clear doc failed:", item.code, e);
-              }
+              } catch (e) {}
             }
           }
           showToast("ล้างข้อมูลคลังพัสดุทั้งหมดเรียบร้อยแล้ว", "success");
@@ -15293,27 +15303,18 @@ function setupAdminClearHandlers() {
           transactions = [];
           localStorage.setItem("lab_transactions", JSON.stringify(transactions));
           
+          if (isSupabaseOnline && typeof supabase !== "undefined") {
+            try {
+              await supabase.from("transactions").delete().neq("id", "___NON_EXISTENT_TX___");
+            } catch (e) {
+              console.error("Supabase bulk clear tx failed:", e);
+            }
+          }
+
           for (const tx of txsToDelete) {
             syncToGoogleSheetsDirect('Transactions', 'DELETE', { id: tx.id }, 'id');
           }
 
-          if (isSupabaseOnline) {
-            for (const tx of txsToDelete) {
-              try {
-                await supabase.from("transactions").delete().eq("id", tx.id);
-              } catch (e) {
-                console.error("Supabase clear tx failed:", tx.id, e);
-              }
-            }
-          } else if (isBackendOnline) {
-            for (const tx of txsToDelete) {
-              try {
-                await fetch(`${API_BASE}/transactions/${encodeURIComponent(tx.id)}`, { method: "DELETE" });
-              } catch (e) {
-                // local fallback
-              }
-            }
-          }
           showToast("ล้างประวัติธุรกรรมทั้งหมดเรียบร้อยแล้ว", "success");
         } 
         else if (pendingClearAction === "bookings") {
@@ -15321,30 +15322,20 @@ function setupAdminClearHandlers() {
           bookings = [];
           localStorage.setItem("lab_bookings", JSON.stringify(bookings));
           
+          if (isSupabaseOnline && typeof supabase !== "undefined") {
+            try {
+              await supabase.from("bookings").delete().neq("id", "___NON_EXISTENT_BK___");
+            } catch (e) {
+              console.error("Supabase bulk clear booking failed:", e);
+            }
+          }
+
           for (const bk of bookingsToDelete) {
             syncBookingToGoogleSheetsDirect(bk, 'DELETE');
           }
 
-          if (isSupabaseOnline) {
-            for (const bk of bookingsToDelete) {
-              try {
-                await supabase.from("bookings").delete().eq("id", bk.id);
-              } catch (e) {
-                console.error("Supabase clear booking failed:", bk.id, e);
-              }
-            }
-          } else if (isBackendOnline) {
-            for (const bk of bookingsToDelete) {
-              try {
-                await fetch(`${API_BASE}/bookings/${encodeURIComponent(bk.id)}`, { method: "DELETE" });
-              } catch (e) {
-                // local fallback
-              }
-            }
-          }
           showToast("ล้างประวัติการจองห้องปฏิบัติการทั้งหมดเรียบร้อยแล้ว", "success");
         } 
-
         else if (pendingClearAction === "plans") {
           localStorage.removeItem("saved_lab_plans");
           plannerElements = [];
@@ -15357,6 +15348,10 @@ function setupAdminClearHandlers() {
 
         // Refresh views
         updateUI();
+        if (typeof renderItemsTable === "function") renderItemsTable();
+        if (typeof renderTransactionsTable === "function") renderTransactionsTable();
+        if (typeof renderBookingsTable === "function") renderBookingsTable();
+        setTimeout(() => { window.isClearingData = false; }, 3000);
       } catch (err) {
         console.error(err);
         showToast("เกิดข้อผิดพลาดในการล้างข้อมูล", "error");
