@@ -9605,25 +9605,37 @@ select.admin-filter-select:focus {
   }
 
   .admin-table-container {
-    margin-top: 10px !important;
-    border-radius: 12px !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    display: block !important;
-    width: 100% !important;
+    display: none !important;
   }
-  .admin-table-container table {
-    min-width: 650px !important;
-    width: 100% !important;
+
+  .admin-users-mobile-list {
+    display: flex !important;
   }
-  .admin-table-container th {
-    padding: 10px 10px !important;
-    font-size: 11.5px !important;
-  }
-  .admin-table-container td {
-    padding: 10px 10px !important;
-    font-size: 12px !important;
-  }
+}
+
+/* Mobile User Cards Styling */
+.admin-users-mobile-list {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 14px;
+}
+
+.admin-user-mobile-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg, 12px);
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.admin-user-mobile-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .admin-table-container {

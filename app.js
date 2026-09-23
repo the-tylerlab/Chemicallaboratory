@@ -16862,6 +16862,8 @@ function renderAdminUsers(filteredList = null) {
   }
 
   tbody.innerHTML = "";
+  const mobileList = document.getElementById("adminUsersMobileList");
+  if (mobileList) mobileList.innerHTML = "";
 
   const selectAll = document.getElementById("selectAllUsersCheckbox");
   if (selectAll) {
@@ -16875,6 +16877,9 @@ function renderAdminUsers(filteredList = null) {
 
   if (!displayUsers || displayUsers.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" style="padding: 28px; text-align: center; color: #64748b; font-size: 13px;">ไม่พบข้อมูลผู้ใช้งานที่ตรงกับเงื่อนไข</td></tr>`;
+    if (mobileList) {
+      mobileList.innerHTML = `<div style="padding: 24px; text-align: center; color: #64748b; font-size: 13px; background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px;">ไม่พบข้อมูลผู้ใช้งานที่ตรงกับเงื่อนไข</div>`;
+    }
     return;
   }
   
@@ -16892,6 +16897,7 @@ function renderAdminUsers(filteredList = null) {
       roomsHtml = '<span class="room-badge-tag" style="background:#fdf2f8; color:#be185d; border-color:#fbcfe8; font-size: 11px; padding: 2px 7px; border-radius: 5px;">ภาพรวมทุกห้อง (Read Only)</span>';
     }
       
+    // 1. Desktop Table Row
     const tr = document.createElement("tr");
     tr.style.borderBottom = "1px solid #f1f5f9";
     tr.innerHTML = `
@@ -16923,6 +16929,36 @@ function renderAdminUsers(filteredList = null) {
       </td>
     `;
     tbody.appendChild(tr);
+
+    // 2. Mobile User Card
+    if (mobileList) {
+      const card = document.createElement("div");
+      card.className = "admin-user-mobile-card";
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+            <input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 16px; height: 16px; accent-color: #0f172a; cursor: pointer; border-radius: 4px; flex-shrink: 0;">
+            <div style="width:36px;height:36px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow: 0 2px 5px rgba(0,0,0,0.1);flex-shrink:0;">${getUserInitials(user.name)}</div>
+            <div style="min-width: 0; flex: 1;">
+              <div style="font-weight: 600; color: #0f172a; font-size: 13.5px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(user.name || '')}</div>
+              <div style="font-size: 11.5px; color: #64748b; margin-top: 1px;">ID: <span style="font-family: monospace; font-weight: 700; color: #0f172a;">${escapeHTML(user.teacherId || user.id || '-')}</span> &bull; ${escapeHTML(user.email || '-')}</div>
+            </div>
+          </div>
+          <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; cursor: pointer; padding: 5px 10px; border-radius: 6px; font-weight: 500; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; box-shadow: var(--shadow-sm); flex-shrink: 0;">
+            <i data-lucide="edit-2" style="width: 12px; height: 12px; color: #64748b;"></i>
+            <span>แก้ไข</span>
+          </button>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
+          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+            <span class="badge-role ${badgeInfo.className}" style="font-size: 11px; padding: 2px 7px; border-radius: 5px;">${badgeInfo.level} ${badgeInfo.name}</span>
+            ${roomsHtml}
+          </div>
+          <div style="font-size: 11px; color: #64748b;">${escapeHTML(user.department || 'กลุ่มสาระวิทยาศาสตร์')}</div>
+        </div>
+      `;
+      mobileList.appendChild(card);
+    }
   });
 
   if (window.lucide) lucide.createIcons();
