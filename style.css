@@ -1986,9 +1986,19 @@ input:focus, select:focus, textarea:focus {
   box-shadow: var(--shadow-sm);
   overflow-x: auto;
   overflow-y: auto;
+  min-height: 240px;
+  padding-bottom: 24px;
   max-height: calc(100vh - 240px);
   margin-bottom: 24px;
   position: relative;
+}
+
+.row-dropdown-menu {
+  z-index: 9999 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.18), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 10px !important;
+  min-width: 160px;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 table {
