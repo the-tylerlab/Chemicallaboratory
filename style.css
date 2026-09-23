@@ -9438,54 +9438,93 @@ body.admin-logged-in .public-only-section {
 .dash-schedule-card-item {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.15s ease;
+  cursor: pointer;
 }
 
 .dash-schedule-card-item:hover {
   border-color: #cbd5e1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background-color: #f8fafc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.dash-schedule-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
 }
 
 .dash-schedule-item-time {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--accent-blue, #2563eb);
+  color: #4f46e5;
+  background: #eef2ff;
+  padding: 2.5px 8px;
+  border-radius: 6px;
 }
 
 .dash-schedule-item-time svg,
 .dash-schedule-item-time i {
   width: 12px;
   height: 12px;
+  color: #4f46e5;
+}
+
+.dash-schedule-status-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.dash-schedule-status-badge.approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+.dash-schedule-status-badge.pending {
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .dash-schedule-item-title {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--text-main);
+  color: #0f172a;
   line-height: 1.35;
+  margin: 1px 0;
 }
 
-.dash-schedule-item-booker {
+.dash-schedule-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px dashed #f1f5f9;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.dash-schedule-meta-item {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  color: var(--text-muted);
+  gap: 4px;
 }
-
-.dash-schedule-item-booker svg,
-.dash-schedule-item-booker i {
+.dash-schedule-meta-item svg,
+.dash-schedule-meta-item i {
   width: 12px;
   height: 12px;
+  color: #94a3b8;
 }
 
 /* Schedule Empty State */
