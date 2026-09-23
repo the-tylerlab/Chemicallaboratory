@@ -21069,8 +21069,9 @@ function renderDashboardDailySchedule(specificDateStr) {
     html += `
       <div class="dash-schedule-group">
         <div class="dash-schedule-room-header">
-          <i data-lucide="map-pin"></i>
-          <span>${roomInfo.name} (${roomInfo.building})</span>
+          <i data-lucide="map-pin" style="color: ${roomInfo.hex || '#64748b'};"></i>
+          <span style="color: #0f172a; font-weight: 700;">${roomInfo.name}</span>
+          <span style="color: #64748b; font-weight: 500; font-size: 11.5px;">(${roomInfo.building})</span>
         </div>
         ${roomBookings.map(b => {
           const slotInfo = formatLabSlotDisplay(b.slot);

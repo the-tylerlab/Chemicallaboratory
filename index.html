@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260924_0008">
+  <link rel="stylesheet" href="style.css?v=20260924_0012">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -628,16 +628,16 @@
             <!-- Right Side: Daily Usage Schedule -->
             <div class="lab-schedule-card">
               <div class="lab-schedule-header">
-                <div class="lab-schedule-title-wrap">
+                <div class="lab-schedule-title-row">
                   <h3 class="lab-schedule-title">
                     <i data-lucide="calendar-days" style="color: var(--primary-purple); width: 18px; height: 18px;"></i>
                     <span>รายการใช้งาน</span>
                   </h3>
-                  <p class="lab-schedule-subtitle" id="dashScheduleDateSub">ประจำวันที่ 16 กันยายน 2569</p>
+                  <div class="lab-schedule-date-selector">
+                    <input type="date" id="dashScheduleDatePicker" class="dash-schedule-date-input" title="เลือกวันที่">
+                  </div>
                 </div>
-                <div class="lab-schedule-date-selector">
-                  <input type="date" id="dashScheduleDatePicker" class="dash-schedule-date-input" title="เลือกวันที่">
-                </div>
+                <p class="lab-schedule-subtitle" id="dashScheduleDateSub">ประจำวันที่ 16 กันยายน 2569</p>
               </div>
 
               <!-- List of Room Bookings for Selected Date -->
@@ -5516,7 +5516,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260924_0008"></script>
+  <script src="app.js?v=20260924_0012"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {
