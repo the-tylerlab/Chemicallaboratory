@@ -1462,6 +1462,7 @@ function setupNavigation() {
     
     if (canImport) {
       document.getElementById("importModal").classList.add("active");
+      if (window.lucide) window.lucide.createIcons();
     } else if (!loggedIn) {
       document.getElementById("loginModal").classList.add("active");
       setTimeout(() => {
