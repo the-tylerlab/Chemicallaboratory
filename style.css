@@ -9523,97 +9523,7 @@ select.admin-filter-select:focus {
   .admin-tab-header {
     margin-bottom: 12px !important;
   }
-  .admin-tab-title-group h2 {
-    font-size: 16px !important;
-    line-height: 1.3 !important;
-  }
-  .admin-tab-title-group p {
-    font-size: 12px !important;
-  }
-
-  /* 2x2 compact KPI Grid on Mobile */
-  .admin-kpi-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px !important;
-    margin-bottom: 14px !important;
-  }
-  .admin-kpi-card {
-    padding: 10px 12px !important;
-    border-radius: 12px !important;
-  }
-  .admin-kpi-header {
-    gap: 6px !important;
-  }
-  .admin-kpi-icon-wrap {
-    width: 22px !important;
-    height: 22px !important;
-  }
-  .admin-kpi-icon-wrap i,
-  .admin-kpi-icon-wrap svg {
-    width: 12px !important;
-    height: 12px !important;
-  }
-  .admin-kpi-label {
-    font-size: 11px !important;
-    line-height: 1.2 !important;
-  }
-  .admin-kpi-val {
-    font-size: 18px !important;
-    margin-top: 4px !important;
-  }
-
-  /* Clean Vertical Toolbar on Mobile */
-  .admin-toolbar-grid {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    width: 100% !important;
-  }
-  .admin-search-wrap {
-    width: 100% !important;
-  }
-  .admin-search-input {
-    height: 38px !important;
-    font-size: 13px !important;
-    padding-left: 36px !important;
-  }
-  .admin-filter-select {
-    width: 100% !important;
-    height: 38px !important;
-    font-size: 12.5px !important;
-    padding: 0 10px !important;
-  }
-  .admin-toolbar-right {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-    width: 100% !important;
-  }
-  .admin-toolbar-right .btn-admin-action {
-    flex: 1 1 calc(50% - 4px) !important;
-    height: 38px !important;
-    font-size: 12px !important;
-    justify-content: center !important;
-    padding: 0 8px !important;
-  }
-  .admin-toolbar-right .btn-admin-action.btn-add-user {
-    flex: 1 1 100% !important;
-    height: 42px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    order: -1 !important;
-  }
-
-  .admin-table-container {
-    display: none !important;
-  }
-
-  .admin-users-mobile-list {
-    display: flex !important;
-  }
-}
-
-/* Mobile User Cards Styling */
+/* Mobile User Cards Base Styling */
 .admin-users-mobile-list {
   display: none;
   flex-direction: column;
@@ -9656,6 +9566,167 @@ select.admin-filter-select:focus {
   text-align: left;
   font-size: 13.5px;
   min-width: 720px;
+}
+
+.admin-table-container th {
+  background: #f8fafc;
+  padding: 14px 16px;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.admin-table-container td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+  #panel-admin {
+    padding-bottom: 24px !important;
+  }
+
+  .admin-nav-bar {
+    padding: 6px 8px !important;
+    border-radius: 10px !important;
+    margin-bottom: 10px !important;
+    scrollbar-width: none !important;
+  }
+  .admin-nav-bar::-webkit-scrollbar {
+    display: none !important;
+  }
+  .admin-horizontal-menu {
+    width: max-content !important;
+    display: inline-flex !important;
+    gap: 4px !important;
+    padding: 2px !important;
+  }
+  .admin-horizontal-menu .admin-menu-item {
+    height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+    gap: 5px !important;
+  }
+  .admin-horizontal-menu .admin-menu-item i,
+  .admin-horizontal-menu .admin-menu-item svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .admin-content-card {
+    padding: 12px 10px !important;
+    border-radius: 12px !important;
+    margin-top: 6px !important;
+  }
+  .admin-tab-header {
+    margin-bottom: 10px !important;
+  }
+  .admin-tab-title-group h2 {
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+  }
+  .admin-tab-title-group p {
+    font-size: 11.5px !important;
+  }
+
+  /* 2x2 compact KPI Grid on Mobile */
+  .admin-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+  }
+  .admin-kpi-card {
+    padding: 8px 10px !important;
+    border-radius: 10px !important;
+    gap: 4px !important;
+  }
+  .admin-kpi-header {
+    gap: 5px !important;
+  }
+  .admin-kpi-icon-wrap {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  .admin-kpi-icon-wrap i,
+  .admin-kpi-icon-wrap svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+  .admin-kpi-label {
+    font-size: 10.5px !important;
+    line-height: 1.2 !important;
+  }
+  .admin-kpi-val {
+    font-size: 16px !important;
+    margin-top: 2px !important;
+  }
+
+  /* Clean Vertical Toolbar on Mobile */
+  .admin-toolbar-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+  .admin-search-wrap {
+    width: 100% !important;
+    height: 40px !important;
+  }
+  .admin-search-input {
+    height: 40px !important;
+    min-height: 40px !important;
+    font-size: 12.5px !important;
+    padding-left: 36px !important;
+  }
+  .admin-filter-select {
+    width: 100% !important;
+    height: 40px !important;
+    font-size: 12px !important;
+    padding: 0 10px !important;
+  }
+  .admin-toolbar-right {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .admin-toolbar-right .btn-admin-action {
+    flex: 1 1 calc(50% - 3px) !important;
+    height: 38px !important;
+    font-size: 11.5px !important;
+    justify-content: center !important;
+    padding: 0 8px !important;
+  }
+  .admin-toolbar-right .btn-admin-action.btn-add-user {
+    flex: 1 1 100% !important;
+    height: 40px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    order: -1 !important;
+  }
+
+  /* Toggle desktop table off, mobile list on */
+  #adminUsersDesktopTable,
+  .admin-table-container {
+    display: none !important;
+  }
+
+  #adminUsersMobileList,
+  .admin-users-mobile-list {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 8px !important;
+  }
+  .admin-user-mobile-card {
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+  }
 }
 
 .admin-table-container th {

@@ -636,7 +636,7 @@ async function syncAllToGoogleSheets(silent = false) {
     if (typeof renderBookingSlots === 'function') renderBookingSlots();
     if (typeof renderBookingCalendar === 'function') renderBookingCalendar();
     if (typeof renderItems === 'function') renderItems();
-    if (typeof renderAdminUsersTable === 'function') renderAdminUsersTable();
+    if (typeof renderAdminUsers === 'function') renderAdminUsers();
     if (typeof updateUI === 'function') updateUI();
 
     if (!silent) {
@@ -756,7 +756,7 @@ function setupRealtimeSubscriptions() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, async (payload) => {
       console.log('Realtime change received for users:', payload);
       if (typeof loadAdminData === 'function') await loadAdminData();
-      if (typeof renderAdminUsersTable === 'function') renderAdminUsersTable();
+      if (typeof renderAdminUsers === 'function') renderAdminUsers();
       if (typeof renderUsersTable === 'function') renderUsersTable();
     })
     .subscribe();
@@ -1686,7 +1686,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
 
   if (panelId === "admin" || panelId === "panel-admin") {
     if (typeof renderAdminPanel === "function") renderAdminPanel();
-    if (typeof renderUsersTable === "function") renderUsersTable();
+    if (typeof renderAdminUsers === "function") renderAdminUsers();
   }
 
   if (panelId === "assets") {
