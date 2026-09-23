@@ -3259,26 +3259,26 @@ function renderItemsTable() {
         ${canManageAny ? `
         <td data-label="จัดการ">
           <div class="table-actions" style="position: relative;">
-            <button class="action-icon-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex})" title="ตัวเลือกเพิ่มเติม">
+            <button class="action-icon-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this)" aria-label="ตัวเลือกเพิ่มเติม">
               <i data-lucide="more-vertical" style="width: 16px; height: 16px;"></i>
             </button>
             <div id="rowDropdown-${originalIndex}" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 50; min-width: 150px; padding: 4px; text-align: left;">
-              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); showItemDetail(event, '${item.code}')">
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); showItemDetail(event, '${item.code}')">
                 <i data-lucide="eye" style="width: 14px; height: 14px; margin-right: 8px;"></i> ดูรายละเอียด
               </button>
-              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); generateQR('${item.code}')">
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); generateQR('${item.code}')">
                 <i data-lucide="qr-code" style="width: 14px; height: 14px; margin-right: 8px;"></i> สแกน QR
               </button>
               ${(((item.category && item.category.includes('ครุภัณฑ์')) || item.isAsset) && (isL3Plus || canManageItemInRoom(item.room))) ? `
-              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); openAssetAuditModal('${item.code}')" style="color: var(--primary-purple); font-weight: 600;">
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openAssetAuditModal('${item.code}')" style="color: var(--primary-purple); font-weight: 600;">
                 <i data-lucide="clipboard-check" style="width: 14px; height: 14px; margin-right: 8px;"></i> ตรวจนับครุภัณฑ์
               </button>
               ` : ''}
               ${(isL3Plus || canManageItemInRoom(item.room)) ? `
-              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); editItem(${originalIndex})">
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); editItem(${originalIndex})">
                 <i data-lucide="edit-3" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไขรายการ
               </button>
-              <button class="dropdown-action-btn danger" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}); deleteItem(${originalIndex})">
+              <button class="dropdown-action-btn danger" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); deleteItem(${originalIndex})">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px; margin-right: 8px;"></i> ลบรายการ
               </button>
               ` : `
@@ -3306,17 +3306,45 @@ window.toggleColumn = function(className, isVisible) {
   }
 };
 
-window.toggleRowDropdown = function(index) {
+window.toggleRowDropdown = function(index, triggerBtn) {
+  const targetMenu = document.getElementById(`rowDropdown-${index}`);
+  const isCurrentlyOpen = targetMenu && targetMenu.style.display === 'block';
+
   // Hide all other dropdowns
   document.querySelectorAll('.row-dropdown-menu').forEach(menu => {
-    if (menu.id !== `rowDropdown-${index}`) {
-      menu.style.display = 'none';
-    }
+    menu.style.display = 'none';
   });
   
-  const menu = document.getElementById(`rowDropdown-${index}`);
-  if (menu) {
-    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  if (!targetMenu) return;
+
+  if (!isCurrentlyOpen) {
+    targetMenu.style.display = 'block';
+
+    // Intelligent positioning: Check if opening downwards would be clipped
+    if (triggerBtn) {
+      const btnRect = triggerBtn.getBoundingClientRect();
+      const tableContainer = triggerBtn.closest('.table-container');
+      const containerRect = tableContainer ? tableContainer.getBoundingClientRect() : null;
+      
+      const menuHeight = targetMenu.offsetHeight || 170;
+      const spaceBelow = containerRect ? (containerRect.bottom - btnRect.bottom) : (window.innerHeight - btnRect.bottom);
+      
+      if (spaceBelow < menuHeight && btnRect.top > menuHeight) {
+        // Open UPWARDS
+        targetMenu.style.top = 'auto';
+        targetMenu.style.bottom = '100%';
+        targetMenu.style.marginBottom = '6px';
+        targetMenu.style.marginTop = '0';
+      } else {
+        // Open DOWNWARDS
+        targetMenu.style.top = '100%';
+        targetMenu.style.bottom = 'auto';
+        targetMenu.style.marginTop = '6px';
+        targetMenu.style.marginBottom = '0';
+      }
+    }
+  } else {
+    targetMenu.style.display = 'none';
   }
 };
 
