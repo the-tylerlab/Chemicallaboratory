@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260923_2310">
+  <link rel="stylesheet" href="style.css?v=20260923_2315">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -2891,7 +2891,7 @@
             </div>
           </div>
 
-          <div class="admin-table-container">
+          <div class="admin-table-container" id="adminUsersDesktopTable">
             <table class="data-table">
               <thead>
                 <tr>
@@ -2910,6 +2910,11 @@
                 <!-- Dynamically populated by app.js -->
               </tbody>
             </table>
+          </div>
+
+          <!-- Mobile User Card List (Visible on mobile/small screens) -->
+          <div class="admin-users-mobile-list" id="adminUsersMobileList">
+            <!-- Dynamically populated by app.js -->
           </div>
         </div>
         
