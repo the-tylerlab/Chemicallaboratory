@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260923_2358">
+  <link rel="stylesheet" href="style.css?v=20260924_0002">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -1452,11 +1452,11 @@
               </thead>
               <tbody id="itemsTableBody">
                 <!-- Dynamically populated or empty state -->
-                <tr>
-                  <td id="emptyStateColspan" colspan="8" style="text-align: center; padding: 40px;">
-                    <div class="empty-state">
-                      <div class="empty-state-icon"><i data-lucide="package-search"></i></div>
-                      <div class="empty-state-text">ไม่พบรายการสินค้า</div>
+                <tr class="empty-state-row">
+                  <td id="emptyStateColspan" colspan="8" class="empty-state-td">
+                    <div class="empty-state-inner">
+                      <div class="empty-state-icon-circle"><i data-lucide="package-search" style="width: 24px; height: 24px; color: #94a3b8;"></i></div>
+                      <div class="empty-state-title">ไม่พบรายการสินค้า</div>
                     </div>
                   </td>
                 </tr>
@@ -5516,7 +5516,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20260923_2358"></script>
+  <script src="app.js?v=20260924_0002"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {
