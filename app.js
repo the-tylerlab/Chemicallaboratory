@@ -682,10 +682,9 @@ function setupRealtimeSubscriptions() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async (payload) => {
       console.log('Realtime change received for items:', payload);
       await loadAllItems();
-      const currentPanel = document.querySelector('.panel.active');
-      if (currentPanel && currentPanel.id === 'items') renderItemsTable();
-      else if (currentPanel && currentPanel.id === 'dashboard') updateUI();
-      else if (currentPanel && currentPanel.id === 'shecu') renderCabinetMap();
+      if (typeof updateUI === 'function') updateUI();
+      if (typeof renderItemsTable === 'function') renderItemsTable();
+      if (typeof renderCabinetMap === 'function') renderCabinetMap();
     })
     .subscribe();
 
@@ -694,9 +693,9 @@ function setupRealtimeSubscriptions() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, async (payload) => {
       console.log('Realtime change received for transactions:', payload);
       await loadAllTransactions();
-      const currentPanel = document.querySelector('.panel.active');
-      if (currentPanel && currentPanel.id === 'borrow') renderTransactionsTable();
-      renderPendingRequests();
+      if (typeof renderTransactionsTable === 'function') renderTransactionsTable();
+      if (typeof renderPendingRequests === 'function') renderPendingRequests();
+      if (typeof updateUI === 'function') updateUI();
     })
     .subscribe();
 
@@ -705,12 +704,12 @@ function setupRealtimeSubscriptions() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, async (payload) => {
       console.log('Realtime change received for bookings:', payload);
       await loadAllBookings();
-      const currentPanel = document.querySelector('.panel.active');
-      if (currentPanel && currentPanel.id === 'rooms') {
-        renderBookingsTable();
-        renderBookingSlots();
-      }
-      renderPendingRequests();
+      if (typeof renderBookingsTable === 'function') renderBookingsTable();
+      if (typeof renderBookingSlots === 'function') renderBookingSlots();
+      if (typeof renderBookingCalendar === 'function') renderBookingCalendar();
+      if (typeof renderPendingRequests === 'function') renderPendingRequests();
+      if (typeof renderTodayLabStatus === 'function') renderTodayLabStatus();
+      if (typeof updateUI === 'function') updateUI();
     })
     .subscribe();
 
@@ -720,8 +719,8 @@ function setupRealtimeSubscriptions() {
       console.log('Realtime change received for purchase_orders:', payload);
       await loadPurchaseOrders();
       if (typeof syncBudgetInRealtime === "function") syncBudgetInRealtime();
-      const currentPanel = document.querySelector('.panel.active');
-      if (currentPanel && currentPanel.id === 'orders') renderOrdersTable();
+      if (typeof renderOrdersTable === 'function') renderOrdersTable();
+      if (typeof updateUI === 'function') updateUI();
     })
     .subscribe();
 
@@ -730,6 +729,8 @@ function setupRealtimeSubscriptions() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, async (payload) => {
       console.log('Realtime change received for users:', payload);
       if (typeof loadAdminData === 'function') await loadAdminData();
+      if (typeof renderAdminUsersTable === 'function') renderAdminUsersTable();
+      if (typeof renderUsersTable === 'function') renderUsersTable();
     })
     .subscribe();
 
