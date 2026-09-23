@@ -99,7 +99,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20260923_2321">
+  <link rel="stylesheet" href="style.css?v=20260923_2325">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -2941,9 +2941,9 @@
               </label>
             </div>
 
-            <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; width: 100%; box-sizing: border-box;">
+            <div class="admin-form-box">
               <!-- Headline & Subtitle -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="admin-form-grid-2col">
                 <div>
                   <label for="adminLoginBannerHeadline" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">หัวข้อหลัก (Headline)</label>
                   <input type="text" id="adminLoginBannerHeadline" class="form-control" value="แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ" placeholder="เช่น แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ" oninput="triggerLoginBannerLivePreview()">
@@ -2961,7 +2961,7 @@
               </div>
 
               <!-- Theme & Image Option -->
-              <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px;">
+              <div class="admin-form-grid-theme-media">
                 <div>
                   <label class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">ธีมสีแบนเนอร์ (Color Palette)</label>
                   <div class="ticker-theme-chips" id="adminLoginBannerThemeChips">
@@ -3091,14 +3091,14 @@
             </div>
 
             <!-- Customization Settings Box -->
-            <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; width: 100%; box-sizing: border-box;">
+            <div class="admin-form-box">
               <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="sliders" style="width: 16px; height: 16px; color: #0284c7;"></i>
                 <span>ปรับแต่งการแสดงผลและความเร็ว (Customization & Motion)</span>
               </div>
 
               <!-- Badge Title & Theme -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="admin-form-grid-2col">
                 <div>
                   <label for="adminAnnouncementBadgeText" class="form-label" style="font-size: 12.5px; font-weight: 600; margin-bottom: 6px; display: block;">ข้อความหัวข้อป้าย (Badge Text)</label>
                   <input type="text" id="adminAnnouncementBadgeText" class="form-control" value="📢 ประกาศ & ความปลอดภัย" placeholder="เช่น 📢 ประกาศ, ⚡ ข่าวด่วน" style="font-size: 13px; height: 36px; padding: 6px 12px; width: 100%; box-sizing: border-box; border-radius: 8px;" oninput="triggerAnnouncementLivePreview('admin')">
@@ -3135,7 +3135,7 @@
               </div>
 
               <!-- Speed & Gap Sliders -->
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="admin-form-grid-2col">
                 <div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <label for="adminAnnouncementSpeed" class="form-label" style="font-size: 12.5px; font-weight: 600; margin: 0;">ความเร็วในการเลื่อน (Scroll Speed)</label>
