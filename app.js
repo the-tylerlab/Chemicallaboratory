@@ -15770,6 +15770,27 @@ function renderCabinetMap() {
     }
   }
 
+  // Dynamically synchronize the SHECU overall room standard badge
+  let totalCabinetsWithIncompatible = 0;
+  for (const cabName in cabinets) {
+    if (cabinets[cabName].hasIncompatible) {
+      totalCabinetsWithIncompatible++;
+    }
+  }
+
+  const overallBadgeEl = document.getElementById("shecuOverallStatusBadge");
+  if (overallBadgeEl) {
+    if (totalCabinetsWithIncompatible === 0) {
+      overallBadgeEl.className = "shecu-badge badge-safe";
+      overallBadgeEl.style.cssText = "font-size: 12.5px; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; padding: 4px 10px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;";
+      overallBadgeEl.innerHTML = `🟢 มาตรฐาน SHECU: ปลอดภัยทุกตู้`;
+    } else {
+      overallBadgeEl.className = "shecu-badge badge-warning";
+      overallBadgeEl.style.cssText = "font-size: 12.5px; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 6px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;";
+      overallBadgeEl.innerHTML = `🔴 มาตรฐาน SHECU: พบสารไม่เข้ากัน (${totalCabinetsWithIncompatible} ตู้)`;
+    }
+  }
+
   let roomLayout = labLayouts[activeRoom];
   if (!roomLayout) {
     roomLayout = [];
