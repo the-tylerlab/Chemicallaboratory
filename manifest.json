@@ -1,20 +1,32 @@
 {
-  "name": "SCI-PORTAL",
-  "short_name": "SCI-PORTAL",
+  "name": "SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์",
+  "short_name": "SciPortal",
+  "description": "ระบบจัดการคลังสารเคมี อุปกรณ์วิทยาศาสตร์ แผนผังตู้ SHECU และการจองห้องปฏิบัติการอัจฉริยะ",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
   "theme_color": "#4b36cc",
+  "lang": "th",
+  "categories": ["education", "productivity", "utilities"],
   "icons": [
     {
       "src": "icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ]
 }

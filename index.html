@@ -2,6 +2,65 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ</title>
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ">
+  <meta name="description" content="SciPortal แพลตฟอร์มจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ ครอบคลุมการจัดการคลังสารเคมีตามมาตรฐานความปลอดภัย SHECU การจองห้องแล็บ และระบบยืม-คืนอุปกรณ์">
+  <meta name="keywords" content="SciPortal, ระบบจัดการห้องปฏิบัติการ, คลังสารเคมี, SHECU, จองห้องแล็บ, วิทยาศาสตร์, Laboratory Management System">
+  <meta name="author" content="SciPortal Science Laboratory">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://chemicallab.vercel.app/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://chemicallab.vercel.app/">
+  <meta property="og:title" content="SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ">
+  <meta property="og:description" content="แพลตฟอร์มจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ ผังตู้จัดเก็บสารเคมี SHECU และระบบจองห้องปฏิบัติการแบบเรียลไทม์">
+  <meta property="og:image" content="https://chemicallab.vercel.app/icon-512x512.png">
+  <meta property="og:site_name" content="SciPortal">
+  <meta property="og:locale" content="th_TH">
+
+  <!-- Twitter Card -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://chemicallab.vercel.app/">
+  <meta property="twitter:title" content="SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ">
+  <meta property="twitter:description" content="แพลตฟอร์มจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ ผังตู้จัดเก็บสารเคมี SHECU และระบบจองห้องปฏิบัติการแบบเรียลไทม์">
+  <meta property="twitter:image" content="https://chemicallab.vercel.app/icon-512x512.png">
+
+  <!-- Geotagging & Local SEO (GEO Optimization) -->
+  <meta name="geo.region" content="TH">
+  <meta name="geo.placename" content="Bangkok, Thailand">
+  <meta name="geo.position" content="13.7563;100.5018">
+  <meta name="ICBM" content="13.7563, 100.5018">
+
+  <!-- JSON-LD Structured Data Schema (GEO / AI & Search Engine Rich Results) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "SciPortal",
+    "url": "https://chemicallab.vercel.app/",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "All",
+    "description": "ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ มาตรฐาน SHECU จุฬาฯ และระบบจองห้องแล็บ",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "THB"
+    },
+    "featureList": [
+      "ระบบจัดการคลังสารเคมีและเครื่องแก้ว",
+      "ผังตู้จัดเก็บสารเคมีมาตรฐานความปลอดภัย SHECU",
+      "ระบบจองห้องปฏิบัติการเรียลไทม์",
+      "ระบบยืม-คืนพัสดุและเคมีภัณฑ์",
+      "ระบบสแกน QR Code และบาร์โค้ด"
+    ]
+  }
+  </script>
+
+  <!-- Hard reset helper -->
   <script>
     if (window.location.search.includes('hardreset=1')) {
       localStorage.clear();
@@ -15,54 +74,40 @@
       window.location.href = window.location.pathname;
     }
   </script>
-  
-  <!-- Disable Browser Cache -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SciPortal - Science Laboratory & Resource Portal</title>
-  
+
   <!-- Disable automatic telephone link detection on iOS Safari -->
   <meta name="format-detection" content="telephone=no">
   
-  <!-- SEO & Meta -->
-  <meta name="description" content="SciPortal: แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ เชื่อมต่อทุกข้อมูลให้เป็นระบบ">
-  
-  <!-- Favicon (Browser Tab Icon) -->
+  <!-- Favicon & PWA Icons -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  
-  <!-- Apple / iOS Home Screen Icons & PWA Settings -->
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
   <link rel="apple-touch-icon" sizes="192x192" href="icon-192x192.png">
   <link rel="apple-touch-icon" sizes="512x512" href="icon-512x512.png">
-  <meta name="apple-mobile-web-app-title" content="SCI-PORTAL">
+  <meta name="apple-mobile-web-app-title" content="SciPortal">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#4b36cc">
+  <meta name="theme-color" content="#4F21A1">
 
   <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
-  <!-- Google Fonts -->
+
+  <!-- Google Fonts Preconnect & Performance Optimization -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="style.css?v=20260923_2205">
-  <!-- Lucide Icons Library -->
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=20260923_2235">
+
+  <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- HTML5 QR Code Scanner Library -->
-  <script src="https://unpkg.com/html5-qrcode"></script>
-  <!-- QRCode.js for generating QR Codes -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- SheetJS (xlsx) for Excel import/export -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 </head>
 <body>
 
