@@ -20663,33 +20663,76 @@ function getDashRoomInfo(roomId) {
   };
 }
 
+function formatLabSlotDisplay(slot) {
+  if (!slot) return { slotLabel: "คาบเรียน", timeRange: "08:10 - 09:50 น.", fullBadge: "08:10 - 09:50 น." };
+  const raw = String(slot).trim();
+
+  // Extract all period numbers
+  const periodMatches = Array.from(raw.matchAll(/คาบ\s*([0-9]+)/gi)).map(m => parseInt(m[1], 10));
+  const uniquePeriods = [...new Set(periodMatches)].sort((a, b) => a - b);
+
+  // Extract all times (HH:MM or HH.MM)
+  const timeMatches = Array.from(raw.matchAll(/(\d{1,2})[:.](\d{2})/g)).map(m => {
+    const hh = m[1].padStart(2, "0");
+    const mm = m[2];
+    return `${hh}:${mm}`;
+  });
+
+  let slotText = "";
+  if (uniquePeriods.length > 0) {
+    if (uniquePeriods.length === 1) {
+      slotText = `คาบ ${uniquePeriods[0]}`;
+    } else {
+      const isContiguous = uniquePeriods.every((p, idx, arr) => idx === 0 || p === arr[idx - 1] + 1);
+      if (isContiguous) {
+        slotText = `คาบ ${uniquePeriods[0]} - ${uniquePeriods[uniquePeriods.length - 1]}`;
+      } else {
+        slotText = `คาบ ${uniquePeriods.join(", ")}`;
+      }
+    }
+  }
+
+  let timeText = "";
+  if (timeMatches.length >= 2) {
+    const startTime = timeMatches[0];
+    const endTime = timeMatches[timeMatches.length - 1];
+    timeText = `${startTime} - ${endTime} น.`;
+  } else if (raw.includes("น.")) {
+    timeText = raw;
+  }
+
+  if (!slotText && !timeText) {
+    if (raw.includes("1, 2") || raw.includes("1,2")) return { slotLabel: "คาบ 1 - 2", timeRange: "08:10 - 09:50 น.", fullBadge: "คาบ 1 - 2 (08:10 - 09:50 น.)" };
+    if (raw.includes("3, 4") || raw.includes("3,4")) return { slotLabel: "คาบ 3 - 4", timeRange: "09:50 - 11:40 น.", fullBadge: "คาบ 3 - 4 (09:50 - 11:40 น.)" };
+    if (raw.includes("4, 5") || raw.includes("4,5")) return { slotLabel: "คาบ 4 - 5", timeRange: "10:50 - 12:30 น.", fullBadge: "คาบ 4 - 5 (10:50 - 12:30 น.)" };
+    if (raw.includes("6, 7") || raw.includes("6,7")) return { slotLabel: "คาบ 6 - 7", timeRange: "13:20 - 15:00 น.", fullBadge: "คาบ 6 - 7 (13:20 - 15:00 น.)" };
+    if (raw.includes("7, 8") || raw.includes("7,8")) return { slotLabel: "คาบ 7 - 8", timeRange: "14:10 - 16:00 น.", fullBadge: "คาบ 7 - 8 (14:10 - 16:00 น.)" };
+    return { slotLabel: raw, timeRange: "", fullBadge: raw };
+  }
+
+  const cleanSlot = slotText || "ช่วงเวลา";
+  const cleanTime = timeText || "";
+  const fullBadge = cleanTime ? `${cleanSlot} (${cleanTime})` : cleanSlot;
+
+  return {
+    slotLabel: cleanSlot,
+    timeRange: cleanTime,
+    fullBadge: fullBadge
+  };
+}
+
 function getDashSlotTimeRange(slot) {
-  if (!slot) return "08:10 - 09:50 น.";
-  const s = String(slot).trim();
-  if (s.includes("1, 2") || s.includes("1,2")) return "08:10 - 09:50 น.";
-  if (s.includes("3, 4") || s.includes("3,4")) return "09:50 - 11:40 น.";
-  if (s.includes("4, 5") || s.includes("4,5")) return "10:50 - 12:30 น.";
-  if (s.includes("6, 7") || s.includes("6,7")) return "13:20 - 15:00 น.";
-  if (s.includes("7, 8") || s.includes("7,8")) return "14:10 - 16:00 น.";
-  if (s === "1") return "08:10 - 09:00 น.";
-  if (s === "2") return "09:00 - 09:50 น.";
-  if (s === "3") return "09:50 - 10:40 น.";
-  if (s === "4") return "10:50 - 11:40 น.";
-  if (s === "5") return "11:40 - 12:30 น.";
-  if (s === "6") return "13:20 - 14:10 น.";
-  if (s === "7") return "14:10 - 15:00 น.";
-  if (s === "8") return "15:10 - 16:00 น.";
-  if (s.toLowerCase().includes("พัก")) return "12:30 - 13:20 น.";
-  return s.includes("น.") ? s : `${s} น.`;
+  const info = formatLabSlotDisplay(slot);
+  return info.fullBadge;
 }
 
 function getDashSlotStartTime(slot) {
-  const full = getDashSlotTimeRange(slot);
-  const parts = full.split("-");
-  if (parts.length > 0) {
-    return parts[0].trim().replace(" น.", "");
+  const info = formatLabSlotDisplay(slot);
+  if (info.timeRange) {
+    const parts = info.timeRange.split("-");
+    if (parts.length > 0) return parts[0].trim();
   }
-  return "08:10";
+  return info.slotLabel || "08:10";
 }
 
 // 1. Update top 3 summary cards
@@ -21030,19 +21073,31 @@ function renderDashboardDailySchedule(specificDateStr) {
           <span>${roomInfo.name} (${roomInfo.building})</span>
         </div>
         ${roomBookings.map(b => {
-          const timeRange = getDashSlotTimeRange(b.slot);
+          const slotInfo = formatLabSlotDisplay(b.slot);
           const purpose = b.purpose || "การเรียนการสอน / ทำการทดลอง";
           const booker = b.bookerName || "อาจารย์ผู้สอน";
+          const isPending = b.status === "pending";
+          const statusBadge = isPending 
+            ? `<span class="dash-schedule-status-badge pending">⏳ รออนุมัติ</span>`
+            : `<span class="dash-schedule-status-badge approved">🟢 อนุมัติแล้ว</span>`;
+          
+          const classInfo = (b.classLevel || b.studentCount) 
+            ? `<span class="dash-schedule-meta-item"><i data-lucide="graduation-cap"></i> ${b.classLevel || 'นักเรียน'} ${b.studentCount ? '(' + b.studentCount + ' คน)' : ''}</span>`
+            : '';
+
           return `
-            <div class="dash-schedule-card-item">
-              <div class="dash-schedule-item-time">
-                <i data-lucide="clock"></i>
-                <span>${timeRange}</span>
+            <div class="dash-schedule-card-item" onclick="if(window.showBookingDetail) showBookingDetail('${b.id || ''}')" title="คลิกเพื่อดูรายละเอียด">
+              <div class="dash-schedule-card-top">
+                <div class="dash-schedule-item-time">
+                  <i data-lucide="clock"></i>
+                  <span>${slotInfo.fullBadge}</span>
+                </div>
+                ${statusBadge}
               </div>
               <div class="dash-schedule-item-title">${purpose}</div>
-              <div class="dash-schedule-item-booker">
-                <i data-lucide="user"></i>
-                <span>ผู้จอง: ${booker}</span>
+              <div class="dash-schedule-card-meta">
+                <span class="dash-schedule-meta-item"><i data-lucide="user"></i> ผู้จอง: ${booker}</span>
+                ${classInfo}
               </div>
             </div>
           `;
