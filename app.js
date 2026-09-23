@@ -3173,21 +3173,22 @@ function renderItemsTable() {
   if (filtered.length === 0) {
     const colSpanVal = isL3Plus ? 8 : 6;
     tableBody.innerHTML = `
-      <tr>
-        <td colspan="${colSpanVal}" style="text-align: center; padding: 48px 24px;">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--text-muted);">
-            <div style="background-color: var(--bg-hover); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
-              <i data-lucide="search-X" style="width: 32px; height: 32px; color: #94a3b8;"></i>
+      <tr class="empty-state-row">
+        <td colspan="${colSpanVal}" class="empty-state-td">
+          <div class="empty-state-inner">
+            <div class="empty-state-icon-circle">
+              <i data-lucide="package-search" style="width: 24px; height: 24px; color: #94a3b8;"></i>
             </div>
-            <p style="font-size: 16px; font-weight: 500; color: var(--text-main); margin: 0;">ไม่พบรายการที่ค้นหา</p>
-            <p style="font-size: 14px; margin: 0;">ลองปรับเปลี่ยนเงื่อนไขการค้นหาหรือตัวกรอง</p>
-            <button class="btn btn-secondary" onclick="document.getElementById('filterSearch').value=''; document.getElementById('filterCategory').value='all'; document.getElementById('filterStatus').value='all'; currentPage = 1; renderItemsTable(); lucide.createIcons();" style="margin-top: 12px; display: inline-flex; align-items: center; gap: 6px;">
-              <i data-lucide="x" style="width: 16px; height: 16px;"></i> ล้างตัวกรอง
+            <div class="empty-state-title">ไม่พบรายการที่ค้นหา</div>
+            <div class="empty-state-desc">ลองปรับเปลี่ยนเงื่อนไขการค้นหาหรือตัวกรอง</div>
+            <button type="button" class="empty-state-reset-btn" onclick="document.getElementById('filterSearch').value=''; document.getElementById('filterCategory').value='all'; document.getElementById('filterStatus').value='all'; currentPage = 1; renderItemsTable(); if(window.lucide) lucide.createIcons();">
+              <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i> ล้างตัวกรอง
             </button>
           </div>
         </td>
       </tr>
     `;
+    if (window.lucide) lucide.createIcons();
     // Disable pagination buttons
     document.getElementById("btnPrevPage").disabled = true;
     document.getElementById("btnNextPage").disabled = true;
