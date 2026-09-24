@@ -9273,11 +9273,23 @@ body.admin-logged-in .public-only-section {
   width: 100%;
   overflow: hidden;
   box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.dash-cal-week-col:hover {
+  border-color: #cbd5e1;
+  background: #fcfdfe;
 }
 
 .dash-cal-week-col.today {
-  border-color: var(--accent-blue, #3b82f6);
-  background: rgba(59, 130, 246, 0.02);
+  border-color: var(--primary-purple, #7c3aed);
+  background: rgba(124, 58, 237, 0.02);
+}
+
+.dash-cal-week-col.selected {
+  border-color: var(--primary-purple, #7c3aed);
+  box-shadow: 0 0 0 1.5px var(--primary-purple, #7c3aed);
+  background: rgba(124, 58, 237, 0.04);
 }
 
 .dash-cal-week-header {
@@ -9285,6 +9297,24 @@ body.admin-logged-in .public-only-section {
   border-bottom: 1px solid #f1f5f9;
   padding-bottom: 6px;
   margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.dash-cal-week-header-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.dash-cal-week-header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
 }
 
 .dash-cal-week-day-name {
@@ -9294,44 +9324,210 @@ body.admin-logged-in .public-only-section {
 }
 
 .dash-cal-week-day-num {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-main);
 }
 
+.dash-cal-week-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 9999px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.dash-cal-week-badge.today {
+  background: #f3e8ff;
+  color: #7e22ce;
+  border: 1px solid #e9d5ff;
+}
+
+.dash-cal-week-badge.count {
+  background: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+}
+
+.dash-cal-week-badge.free {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.dash-cal-week-empty-text {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  display: block;
+}
+
+.dash-cal-week-item {
+  padding: 7px 9px;
+  margin-bottom: 5px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dash-cal-week-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.dash-cal-week-time {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent-blue, #2563eb);
+  white-space: nowrap;
+}
+
+.dash-cal-week-purpose {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main, #0f172a);
+  line-height: 1.3;
+}
+
+.dash-cal-week-booker {
+  font-size: 10.5px;
+  color: var(--text-muted, #64748b);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dash-cal-week-booker svg,
+.dash-cal-week-booker i {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+}
+
 /* Day View */
+.dash-cal-day-title-row {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dash-cal-day-title-text {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-main, #0f172a);
+}
+
 .dash-cal-day-timeline {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 480px;
+  max-height: 520px;
   overflow-y: auto;
-  padding-right: 6px;
+  padding-right: 4px;
 }
 
 .dash-cal-time-row {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
+  transition: all 0.15s ease;
+}
+
+.dash-cal-time-row.is-break {
+  background: #fffbeb;
+  border-color: #fef3c7;
+}
+
+.dash-cal-time-row.is-break .dash-cal-slot-name {
+  color: #b45309;
 }
 
 .dash-cal-time-slot {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-muted);
-  width: 90px;
+  width: 95px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dash-cal-slot-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
+}
+
+.dash-cal-slot-time {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.dash-cal-slot-empty {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+  line-height: 1.5;
 }
 
 .dash-cal-time-content {
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dash-cal-day-item {
+  padding: 9px 12px;
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
   gap: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.dash-cal-day-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dash-cal-day-item-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-main, #0f172a);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.dash-cal-day-item-booker {
+  font-size: 11.5px;
+  color: var(--text-muted, #64748b);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dash-cal-day-item-booker svg,
+.dash-cal-day-item-booker i {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
 }
 
 /* Right: Daily Usage Schedule Card */
@@ -9363,6 +9559,14 @@ body.admin-logged-in .public-only-section {
   width: 100%;
 }
 
+.lab-schedule-title-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
 .lab-schedule-title {
   display: flex;
   align-items: center;
@@ -9378,31 +9582,71 @@ body.admin-logged-in .public-only-section {
   font-size: 11.5px;
   color: var(--text-muted);
   margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.lab-schedule-date-selector {
-  display: flex;
+.dash-schedule-date-btn {
+  position: relative;
+  display: inline-flex;
   align-items: center;
-}
-
-.dash-schedule-date-input {
-  height: 30px;
-  padding: 0 8px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 11.5px;
-  color: var(--text-main);
-  font-family: inherit;
+  gap: 6px;
+  padding: 6px 11px;
   background: #f8fafc;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main, #334155);
   cursor: pointer;
-  outline: none;
-  transition: border-color 0.15s ease;
-  max-width: 140px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  user-select: none;
 }
 
-.dash-schedule-date-input:focus {
-  border-color: var(--primary-purple, #7c3aed);
+.dash-schedule-date-btn:hover {
   background: #ffffff;
+  border-color: var(--primary-purple, #7c3aed);
+  color: var(--primary-purple, #7c3aed);
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.08);
+}
+
+.dash-schedule-date-btn:active {
+  transform: scale(0.98);
+}
+
+.dash-schedule-date-btn i,
+.dash-schedule-date-btn svg {
+  flex-shrink: 0;
+}
+
+/* Completely hide native browser date input visually while keeping it clickable/tappable */
+input[type="date"].dash-schedule-date-input-hidden,
+.dash-schedule-date-input-hidden {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  z-index: 5 !important;
+  display: block !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  pointer-events: auto !important;
+  box-sizing: border-box !important;
 }
 
 .lab-schedule-body {
@@ -9677,6 +9921,120 @@ body.admin-logged-in .public-only-section {
   .lab-stats-left-group {
     grid-template-columns: 1fr;
   }
+
+  /* Mobile Calendar Card & Toolbar */
+  .lab-calendar-card {
+    padding: 14px 12px !important;
+  }
+
+  .lab-calendar-toolbar {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas:
+      "label nav"
+      "tabs tabs" !important;
+    row-gap: 10px !important;
+    column-gap: 8px !important;
+    align-items: center !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .lab-calendar-current-label {
+    grid-area: label !important;
+    text-align: left !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: var(--text-main, #0f172a) !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .lab-calendar-nav {
+    grid-area: nav !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    justify-content: flex-end !important;
+  }
+
+  .btn-cal-nav {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .btn-cal-today {
+    height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 11.5px !important;
+    border-radius: 8px !important;
+  }
+
+  .lab-calendar-view-tabs {
+    grid-area: tabs !important;
+    display: flex !important;
+    width: 100% !important;
+    background: #f1f5f9 !important;
+    padding: 3px !important;
+    border-radius: 9px !important;
+    box-sizing: border-box !important;
+    gap: 3px !important;
+  }
+
+  .btn-view-tab {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 6px 4px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+  }
+
+  /* Mobile Schedule Card & Header */
+  .lab-schedule-card {
+    padding: 14px 12px !important;
+  }
+
+  .lab-schedule-header {
+    padding-bottom: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .lab-schedule-title-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .lab-schedule-title-left {
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .lab-schedule-title {
+    font-size: 14.5px !important;
+    white-space: nowrap !important;
+  }
+
+  .lab-schedule-subtitle {
+    font-size: 11px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .dash-schedule-date-btn {
+    padding: 5px 9px !important;
+    font-size: 11.5px !important;
+    gap: 5px !important;
+    flex-shrink: 0 !important;
+  }
   
   .dash-cal-days-grid {
     gap: 4px !important;
@@ -9783,6 +10141,247 @@ body.admin-logged-in .public-only-section {
     line-height: 11px !important;
     padding: 0 2px !important;
     margin-top: 0 !important;
+  }
+
+  /* Mobile Week View (Vertical Agenda Mode) */
+  .dash-cal-week-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    min-height: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .dash-cal-week-col {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    border-radius: 12px !important;
+    padding: 10px 12px !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-sizing: border-box !important;
+    gap: 6px !important;
+  }
+
+  .dash-cal-week-col.is-free {
+    padding: 8px 12px !important;
+    background: #fafbfc !important;
+    border-color: #f1f5f9 !important;
+  }
+
+  .dash-cal-week-col.is-free .dash-cal-day-events {
+    display: none !important;
+  }
+
+  .dash-cal-week-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+    width: 100% !important;
+  }
+
+  .dash-cal-week-col.has-bookings .dash-cal-week-header {
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding-bottom: 7px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .dash-cal-week-header-left {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .dash-cal-week-header-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin-top: 0 !important;
+  }
+
+  .dash-cal-week-day-name {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: var(--text-main, #0f172a) !important;
+  }
+
+  .dash-cal-week-day-num {
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-muted, #64748b) !important;
+  }
+
+  .dash-cal-week-col.today .dash-cal-week-day-name {
+    color: var(--primary-purple, #7c3aed) !important;
+  }
+
+  .dash-cal-week-col.today {
+    border-color: var(--primary-purple, #7c3aed) !important;
+    background: #faf5ff !important;
+  }
+
+  .dash-cal-week-col.selected {
+    box-shadow: 0 0 0 1.5px var(--primary-purple, #7c3aed) !important;
+  }
+
+  .dash-cal-week-item {
+    padding: 8px 12px !important;
+    margin-bottom: 6px !important;
+    border-radius: 9px !important;
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    gap: 5px !important;
+  }
+
+  .dash-cal-week-item-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .dash-cal-week-time {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+  }
+
+  .dash-cal-week-purpose {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--text-main, #0f172a) !important;
+    line-height: 1.35 !important;
+  }
+
+  .dash-cal-week-booker {
+    font-size: 11px !important;
+    color: var(--text-muted, #64748b) !important;
+  }
+
+  /* Mobile Day View (Timeline Stack Mode) */
+  .dash-cal-day-timeline {
+    max-height: none !important;
+    overflow-y: visible !important;
+    padding-right: 0 !important;
+    gap: 8px !important;
+  }
+
+  .dash-cal-day-title-row {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .dash-cal-day-title-text {
+    font-size: 14px !important;
+  }
+
+  .dash-cal-time-row {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    border-radius: 12px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+  }
+
+  .dash-cal-time-row.is-free {
+    padding: 8px 12px !important;
+    background: #fafbfc !important;
+    border-color: #f1f5f9 !important;
+  }
+
+  .dash-cal-time-row.is-free .dash-cal-time-content {
+    display: none !important;
+  }
+
+  .dash-cal-time-slot {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    border-bottom: 1px dashed #e2e8f0 !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .dash-cal-time-row.is-free .dash-cal-time-slot {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .dash-cal-slot-name {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: var(--text-main, #0f172a) !important;
+  }
+
+  .dash-cal-slot-time {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: var(--text-muted, #64748b) !important;
+  }
+
+  .dash-cal-time-content {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+
+  .dash-cal-day-item {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 10px 12px !important;
+    background: #ffffff !important;
+    border-radius: 10px !important;
+    border: 1px solid #e2e8f0 !important;
+    gap: 5px !important;
+  }
+
+  .dash-cal-day-item-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .dash-cal-day-item-header .dash-cal-event-pill {
+    max-width: calc(100% - 90px) !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .dash-cal-day-item-title {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    color: var(--text-main, #0f172a) !important;
+    line-height: 1.35 !important;
+    margin-top: 2px !important;
+    word-break: break-word !important;
+  }
+
+  .dash-cal-day-item-booker {
+    font-size: 11.5px !important;
+    color: var(--text-muted, #64748b) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
   }
 }
 
