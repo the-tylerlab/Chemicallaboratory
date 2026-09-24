@@ -20995,24 +20995,38 @@ function renderDashboardWeekView(year, month, container) {
     const isSelected = dateStr === formatThaiDateIso(dashCalSelectedDate);
 
     const dayBookings = getVisibleBookingsForUser(dateStr);
+    const countBadge = dayBookings.length > 0 
+      ? `<span class="dash-cal-week-badge count">${dayBookings.length} รายการ</span>` 
+      : `<span class="dash-cal-week-badge free">ว่าง</span>`;
+    const todayBadge = isToday ? `<span class="dash-cal-week-badge today">วันนี้</span>` : '';
+
+    const weekdayFull = i === 4 ? 'วันพฤหัสบดี' : `วัน${THAI_WEEKDAY_NAMES[i]}`;
 
     html += `
-      <div class="dash-cal-week-col ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="selectDashboardCalendarDate('${dateStr}')" style="cursor: pointer;">
+      <div class="dash-cal-week-col ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''} ${dayBookings.length === 0 ? 'is-free' : 'has-bookings'}" onclick="selectDashboardCalendarDate('${dateStr}')" style="cursor: pointer;">
         <div class="dash-cal-week-header">
-          <div class="dash-cal-week-day-name">${THAI_WEEKDAY_NAMES[i]}</div>
-          <div class="dash-cal-week-day-num">${dayDate.getDate()} ${THAI_MONTH_NAMES_SHORT[dayDate.getMonth()]}</div>
+          <div class="dash-cal-week-header-left">
+            <span class="dash-cal-week-day-name">${weekdayFull}</span>
+            <span class="dash-cal-week-day-num">${dayDate.getDate()} ${THAI_MONTH_NAMES_SHORT[dayDate.getMonth()]}</span>
+          </div>
+          <div class="dash-cal-week-header-right">
+            ${todayBadge}
+            ${countBadge}
+          </div>
         </div>
         <div class="dash-cal-day-events">
-          ${dayBookings.length === 0 ? '<span style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 12px;">ว่างตลอดวัน</span>' : ''}
+          ${dayBookings.length === 0 ? '<span class="dash-cal-week-empty-text">ว่างตลอดวัน</span>' : ''}
           ${dayBookings.map(b => {
             const roomInfo = getDashRoomInfo(b.room);
             const timeRange = getDashSlotTimeRange(b.slot);
             return `
-              <div class="dash-schedule-card-item" style="padding: 6px 8px; margin-bottom: 4px; font-size: 11px;">
-                <span class="dash-cal-event-pill ${roomInfo.pillClass}" style="margin-bottom: 2px;">${roomInfo.name}</span>
-                <span style="font-weight: 700; color: var(--accent-blue);">${timeRange}</span>
-                <span style="font-weight: 600; color: var(--text-main);">${b.purpose || 'ใช้งานแล็บ'}</span>
-                <span style="color: var(--text-muted); font-size: 10px;">${b.bookerName || ''}</span>
+              <div class="dash-schedule-card-item dash-cal-week-item" style="border-left: 3px solid ${roomInfo.hex || '#6366f1'};">
+                <div class="dash-cal-week-item-top">
+                  <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name}</span>
+                  <span class="dash-cal-week-time">${timeRange}</span>
+                </div>
+                <div class="dash-cal-week-purpose">${b.purpose || 'ใช้งานแล็บ'}</div>
+                <div class="dash-cal-week-booker"><i data-lucide="user"></i> <span>ผู้จอง: ${b.bookerName || '-'}</span></div>
               </div>
             `;
           }).join("")}
@@ -21023,6 +21037,9 @@ function renderDashboardWeekView(year, month, container) {
 
   html += `</div>`;
   container.innerHTML = html;
+  if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+  }
 }
 
 // Day View
@@ -21043,8 +21060,9 @@ function renderDashboardDayView(year, month, container) {
   ];
 
   let html = `
-    <div style="margin-bottom: 12px; font-weight: 700; font-size: 14.5px; color: var(--text-main);">
-      ตารางใช้งานประจำวัน: ${formatThaiDateDisplay(dashCalSelectedDate)}
+    <div class="dash-cal-day-title-row">
+      <span class="dash-cal-day-title-text">ตารางใช้งานประจำวัน: ${formatThaiDateDisplay(dashCalSelectedDate)}</span>
+      <span class="dash-cal-week-badge ${dayBookings.length > 0 ? 'count' : 'free'}">${dayBookings.length > 0 ? dayBookings.length + ' รายการ' : 'ว่าง'}</span>
     </div>
     <div class="dash-cal-day-timeline">
   `;
@@ -21055,24 +21073,33 @@ function renderDashboardDayView(year, month, container) {
       return String(b.slot).includes(s.slot);
     });
 
+    const isBreak = s.slot.includes('พัก');
+    const slotTitle = isBreak ? 'พักกลางวัน' : 'คาบ ' + s.slot;
+
     html += `
-      <div class="dash-cal-time-row">
+      <div class="dash-cal-time-row ${slotBookings.length > 0 ? 'has-bookings' : 'is-free'} ${isBreak ? 'is-break' : ''}">
         <div class="dash-cal-time-slot">
-          <div>${s.slot.includes('พัก') ? 'พักกลางวัน' : 'คาบ ' + s.slot}</div>
-          <div style="font-size: 10px; font-weight: 500; opacity: 0.8;">${s.time}</div>
+          <div class="dash-cal-slot-name">${slotTitle}</div>
+          <div class="dash-cal-slot-time">${s.time} น.</div>
         </div>
         <div class="dash-cal-time-content">
-          ${slotBookings.length === 0 ? '<span style="font-size: 12px; color: #94a3b8;">ว่าง (ไม่มีการจอง)</span>' : ''}
+          ${slotBookings.length === 0 ? '<span class="dash-cal-slot-empty">ว่าง (ไม่มีการจอง)</span>' : ''}
           ${slotBookings.map(b => {
             const roomInfo = getDashRoomInfo(b.room);
+            const isPending = b.status === 'pending';
             return `
-              <div class="dash-schedule-card-item" style="padding: 8px 12px; background: #ffffff;">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                  <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name} (${roomInfo.building})</span>
-                  <span class="badge badge-green" style="font-size: 10px;">${b.status === 'pending' ? 'รออนุมัติ' : 'อนุมัติแล้ว'}</span>
+              <div class="dash-schedule-card-item dash-cal-day-item" style="border-left: 3.5px solid ${roomInfo.hex || '#6366f1'};">
+                <div class="dash-cal-day-item-header">
+                  <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name}</span>
+                  <span class="dash-schedule-status-badge ${isPending ? 'pending' : 'approved'}">
+                    ${isPending ? '⏳ รออนุมัติ' : '🟢 อนุมัติแล้ว'}
+                  </span>
                 </div>
-                <div style="font-weight: 700; font-size: 13px; color: var(--text-main); margin-top: 4px;">${b.purpose || 'ไม่มีระบุหัวข้อ'}</div>
-                <div style="font-size: 11.5px; color: var(--text-muted);">ผู้จอง: ${b.bookerName || '-'}</div>
+                <div class="dash-cal-day-item-title">${b.purpose || 'ไม่มีระบุหัวข้อ'}</div>
+                <div class="dash-cal-day-item-booker">
+                  <i data-lucide="user"></i>
+                  <span>ผู้จอง: ${b.bookerName || '-'}</span>
+                </div>
               </div>
             `;
           }).join("")}
@@ -21083,6 +21110,9 @@ function renderDashboardDayView(year, month, container) {
 
   html += `</div>`;
   container.innerHTML = html;
+  if (typeof lucide !== "undefined") {
+    lucide.createIcons();
+  }
 }
 
 // 3. Render Right-Side Daily Usage Schedule
