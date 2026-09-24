@@ -187,8 +187,8 @@
             <span class="logo-title">SciPortal</span>
           </div>
         </div>
-        <button class="btn-sidebar-collapse" id="btnToggleSidebar" aria-label="Collapse sidebar">
-          <i data-lucide="panel-left"></i>
+        <button class="btn-sidebar-collapse" id="btnToggleSidebar" aria-label="ตรึงแถบข้าง (Pin sidebar)" title="ตรึงแถบข้าง (Pin sidebar)">
+          <i data-lucide="pin" id="sidebarPinIcon"></i>
         </button>
       </div>
 
@@ -367,8 +367,9 @@
             </div>
           </div>
           <button type="button" class="btn-ticker-admin-edit" id="btnTickerAdminEdit" onclick="openAnnouncementModal()" title="แก้ไข/เพิ่มข้อความประกาศ (เฉพาะแอดมิน)" style="display: none;">
-            <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
-            <span>แก้ไขประกาศ</span>
+            <i data-lucide="edit-3" style="width: 12.5px; height: 12.5px;"></i>
+            <span class="btn-text-desktop">แก้ไขประกาศ</span>
+            <span class="btn-text-mobile">แก้ไข</span>
           </button>
         </div>
 
@@ -1836,11 +1837,13 @@
                 <button type="button" id="btnQuickExportBookingCSV" class="booking-action-btn">
                   <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
                   <span class="btn-text-desktop">ส่งออก Excel</span>
+                  <span class="btn-text-tablet">ส่งออก Excel</span>
                   <span class="btn-text-mobile">ส่งออก</span>
                 </button>
                 <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn">
                   <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
                   <span class="btn-text-desktop">พิมพ์รายงาน</span>
+                  <span class="btn-text-tablet">พิมพ์รายงาน</span>
                   <span class="btn-text-mobile">พิมพ์</span>
                 </button>
               </div>
@@ -1851,11 +1854,13 @@
               <button type="button" class="view-toggle-btn active" id="btnBookingCalendarToggle">
                 <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
                 <span class="btn-text-desktop">แบบปฏิทินรายเดือน</span>
+                <span class="btn-text-tablet">แบบปฏิทิน</span>
                 <span class="btn-text-mobile">ปฏิทิน</span>
               </button>
               <button type="button" class="view-toggle-btn" id="btnBookingListView">
                 <i data-lucide="list" style="width: 14px; height: 14px;"></i>
                 <span class="btn-text-desktop">แบบรายการ</span>
+                <span class="btn-text-tablet">แบบรายการ</span>
                 <span class="btn-text-mobile">รายการ</span>
               </button>
             </div>
@@ -2781,22 +2786,26 @@
         <li class="admin-menu-item active" data-tab="admin-users">
           <i data-lucide="users"></i>
           <span class="btn-text-desktop">จัดการสิทธิ์ผู้ใช้งาน</span>
+          <span class="btn-text-tablet">จัดการสิทธิ์ผู้ใช้งาน</span>
           <span class="btn-text-mobile">สิทธิ์ผู้ใช้</span>
         </li>
         <li class="admin-menu-item" data-tab="admin-login-banner">
           <i data-lucide="layout-template"></i>
           <span class="btn-text-desktop">แบนเนอร์ & ประกาศหน้าเข้าสู่ระบบ</span>
-          <span class="btn-text-mobile">แบนเนอร์ล็อกอิน</span>
+          <span class="btn-text-tablet">แบนเนอร์ & ประกาศ</span>
+          <span class="btn-text-mobile">แบนเนอร์</span>
         </li>
         <li class="admin-menu-item" data-tab="admin-announcement">
           <i data-lucide="megaphone"></i>
           <span class="btn-text-desktop">จัดการประกาศหน้าแรก</span>
-          <span class="btn-text-mobile">ประกาศหน้าแรก</span>
+          <span class="btn-text-tablet">จัดการประกาศ</span>
+          <span class="btn-text-mobile">ประกาศ</span>
         </li>
         <li class="admin-menu-item danger" data-tab="admin-danger">
           <i data-lucide="alert-octagon"></i>
           <span class="btn-text-desktop">พื้นที่อันตราย</span>
-          <span class="btn-text-mobile">พื้นที่อันตราย</span>
+          <span class="btn-text-tablet">พื้นที่อันตราย</span>
+          <span class="btn-text-mobile">อันตราย</span>
         </li>
       </ul>
     </div>
@@ -2887,16 +2896,22 @@
                 <span id="batchDeleteUsersCountText">ลบ (0)</span>
               </button>
               <button class="btn btn-secondary btn-admin-action" onclick="syncAllToGoogleSheets()" title="ซิงค์ข้อมูลทั้งหมดไปยัง Google Sheets ทันที" style="border-color: #cbd5e1; color: #1e293b;">
-                <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb;"></i>
-                <span>ซิงค์ Google Sheets</span>
+                <i data-lucide="refresh-cw" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                <span class="btn-text-desktop">ซิงค์ Google Sheets</span>
+                <span class="btn-text-tablet">ซิงค์ Sheets</span>
+                <span class="btn-text-mobile">ซิงค์ Sheets</span>
               </button>
               <button class="btn btn-secondary btn-admin-action" onclick="openBatchAddUsersModal()">
-                <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #16a34a;"></i>
-                <span>นำเข้าข้อมูล</span>
+                <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #16a34a;"></i>
+                <span class="btn-text-desktop">นำเข้าข้อมูล</span>
+                <span class="btn-text-tablet">นำเข้า</span>
+                <span class="btn-text-mobile">นำเข้า</span>
               </button>
               <button class="btn btn-primary btn-admin-action btn-add-user" onclick="openInviteUserModal()">
-                <i data-lucide="user-plus" style="width: 15px; height: 15px;"></i>
-                <span>เพิ่มผู้ใช้งาน / ครู</span>
+                <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                <span class="btn-text-desktop">เพิ่มผู้ใช้งาน / ครู</span>
+                <span class="btn-text-tablet">เพิ่มผู้ใช้งาน</span>
+                <span class="btn-text-mobile">เพิ่มผู้ใช้งาน</span>
               </button>
             </div>
           </div>

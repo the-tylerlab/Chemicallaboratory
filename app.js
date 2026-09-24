@@ -1489,6 +1489,15 @@ function setupNavigation() {
     btnSidebarReportIssue.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
+      const sidebar = document.getElementById("sidebar");
+      const mobileOverlay = document.getElementById("mobile-overlay");
+      if (sidebar && sidebar.classList.contains("active")) {
+        sidebar.classList.remove("active");
+      }
+      if (mobileOverlay && mobileOverlay.classList.contains("active")) {
+        mobileOverlay.classList.remove("active");
+      }
+      document.body.classList.remove("mobile-sidebar-open");
       openReportIssueModal();
     });
   }
@@ -1502,21 +1511,90 @@ function setupNavigation() {
       if (forceClose) {
         sidebar.classList.remove("active");
         if (mobileOverlay) mobileOverlay.classList.remove("active");
+        document.body.classList.remove("mobile-sidebar-open");
       } else {
-        sidebar.classList.toggle("active");
-        if (mobileOverlay) mobileOverlay.classList.toggle("active");
+        const isActive = sidebar.classList.toggle("active");
+        if (mobileOverlay) mobileOverlay.classList.toggle("active", isActive);
+        document.body.classList.toggle("mobile-sidebar-open", isActive);
       }
     };
 
-    menuToggle.addEventListener("click", () => toggleSidebar());
+    menuToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleSidebar();
+    });
     
     if (mobileCloseBtn) {
-      mobileCloseBtn.addEventListener("click", () => toggleSidebar(true));
+      mobileCloseBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleSidebar(true);
+      });
     }
     
     if (mobileOverlay) {
-      mobileOverlay.addEventListener("click", () => toggleSidebar(true));
+      mobileOverlay.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleSidebar(true);
+      });
     }
+
+    // Touch Swipe to Close & Edge Swipe to Open Gestures
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchCurrentX = 0;
+    let isSwiping = false;
+
+    sidebar.addEventListener("touchstart", (e) => {
+      if (window.innerWidth > 1024) return;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchCurrentX = touchStartX;
+      isSwiping = true;
+    }, { passive: true });
+
+    window.addEventListener("touchmove", (e) => {
+      if (!isSwiping || window.innerWidth > 1024) return;
+      touchCurrentX = e.touches[0].clientX;
+      const deltaX = touchCurrentX - touchStartX;
+      const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+
+      if (deltaY > Math.abs(deltaX) && Math.abs(deltaX) < 20) {
+        isSwiping = false;
+        sidebar.style.transform = "";
+        return;
+      }
+
+      if (sidebar.classList.contains("active") && deltaX < 0) {
+        sidebar.style.transition = "none";
+        sidebar.style.transform = `translate3d(${deltaX}px, 0, 0)`;
+        if (mobileOverlay) {
+          const progress = Math.max(0, 1 + deltaX / 280);
+          mobileOverlay.style.transition = "none";
+          mobileOverlay.style.opacity = progress;
+        }
+      }
+    }, { passive: true });
+
+    window.addEventListener("touchend", () => {
+      if (!isSwiping || window.innerWidth > 1024) return;
+      const deltaX = touchCurrentX - touchStartX;
+      sidebar.style.transition = "";
+      if (mobileOverlay) mobileOverlay.style.transition = "";
+
+      if (sidebar.classList.contains("active")) {
+        if (deltaX < -65) {
+          toggleSidebar(true);
+        } else {
+          sidebar.style.transform = "";
+          if (mobileOverlay) mobileOverlay.style.opacity = "";
+        }
+      }
+      isSwiping = false;
+      setTimeout(() => {
+        sidebar.style.transform = "";
+        if (mobileOverlay) mobileOverlay.style.opacity = "";
+      }, 50);
+    }, { passive: true });
 
     // Close sidebar clicking outside on mobile (fallback)
     document.addEventListener("click", (e) => {
@@ -1552,25 +1630,47 @@ function setupNavigation() {
   }
 
   // Sidebar Import Button triggers modal (Strictly L3 and L4 only)
-  document.getElementById("btnSidebarImport").addEventListener("click", (e) => {
-    e.preventDefault();
-    const roleLevel = getCurrentRoleLevel();
-    const canImport = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
-    
-    if (canImport) {
-      document.getElementById("importModal").classList.add("active");
-      if (window.lucide) window.lucide.createIcons();
-    } else if (!loggedIn) {
-      document.getElementById("loginModal").classList.add("active");
-      setTimeout(() => {
-        const usernameInput = document.getElementById("loginUsername");
-        if (usernameInput) usernameInput.focus();
-      }, 100);
-      lucide.createIcons();
-    } else {
-      showToast("เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้นที่มีสิทธิ์นำเข้าข้อมูล", "error");
-    }
-  });
+  const btnSidebarImport = document.getElementById("btnSidebarImport");
+  if (btnSidebarImport) {
+    btnSidebarImport.addEventListener("click", (e) => {
+      e.preventDefault();
+      
+      // Close mobile sidebar and overlay if open
+      const sidebar = document.getElementById("sidebar");
+      const mobileOverlay = document.getElementById("mobile-overlay");
+      if (sidebar && sidebar.classList.contains("active")) {
+        sidebar.classList.remove("active");
+      }
+      if (mobileOverlay && mobileOverlay.classList.contains("active")) {
+        mobileOverlay.classList.remove("active");
+      }
+      document.body.classList.remove("mobile-sidebar-open");
+
+      const loggedIn = typeof isUserLoggedIn === "function" ? isUserLoggedIn() : false;
+      const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+      const canImport = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
+      
+      if (canImport) {
+        const importModal = document.getElementById("importModal");
+        if (importModal) {
+          importModal.classList.add("active");
+        }
+        if (window.lucide) window.lucide.createIcons();
+      } else if (!loggedIn) {
+        const loginModal = document.getElementById("loginModal");
+        if (loginModal) {
+          loginModal.classList.add("active");
+          setTimeout(() => {
+            const usernameInput = document.getElementById("loginUsername");
+            if (usernameInput) usernameInput.focus();
+          }, 100);
+        }
+        if (window.lucide) window.lucide.createIcons();
+      } else {
+        showToast("เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้นที่มีสิทธิ์นำเข้าข้อมูล", "error");
+      }
+    });
+  }
 
   // "ดูทั้งหมด ->" Link on Dashboard
   const linkViewAll = document.getElementById("linkViewAll");
@@ -1608,17 +1708,69 @@ function setupSidebarCollapse() {
   const logoContainer = document.querySelector(".logo-container");
   const appContainer = document.querySelector(".app-container");
   
+  // Persisted pin state: defaults to unpinned (auto-collapse hover mode) as requested
+  const isPinnedSaved = localStorage.getItem("sciportal_sidebar_pinned");
+  const shouldBePinned = isPinnedSaved === "true";
+  
+  if (appContainer && window.innerWidth > 1024) {
+    if (shouldBePinned) {
+      appContainer.classList.remove("sidebar-collapsed");
+      if (btnToggleSidebar) {
+        btnToggleSidebar.classList.add("pinned");
+        btnToggleSidebar.setAttribute("title", "ปลดหมุดเพื่อย่ออัตโนมัติ (Unpin sidebar)");
+        btnToggleSidebar.setAttribute("aria-label", "ปลดหมุดเพื่อย่ออัตโนมัติ (Unpin sidebar)");
+      }
+    } else {
+      appContainer.classList.add("sidebar-collapsed");
+      if (btnToggleSidebar) {
+        btnToggleSidebar.classList.remove("pinned");
+        btnToggleSidebar.setAttribute("title", "ตรึงแถบข้าง (Pin sidebar)");
+        btnToggleSidebar.setAttribute("aria-label", "ตรึงแถบข้าง (Pin sidebar)");
+      }
+    }
+  }
+
   if (btnToggleSidebar && appContainer) {
     btnToggleSidebar.addEventListener("click", (e) => {
       e.stopPropagation();
-      appContainer.classList.toggle("sidebar-collapsed");
+      if (window.innerWidth <= 1024) {
+        const sidebar = document.getElementById("sidebar");
+        const mobileOverlay = document.getElementById("mobile-overlay");
+        if (sidebar) sidebar.classList.remove("active");
+        if (mobileOverlay) mobileOverlay.classList.remove("active");
+        document.body.classList.remove("mobile-sidebar-open");
+      } else {
+        const currentlyCollapsed = appContainer.classList.contains("sidebar-collapsed");
+        if (currentlyCollapsed) {
+          // Pin it open
+          appContainer.classList.remove("sidebar-collapsed");
+          btnToggleSidebar.classList.add("pinned");
+          btnToggleSidebar.setAttribute("title", "ปลดหมุดเพื่อย่ออัตโนมัติ (Unpin sidebar)");
+          btnToggleSidebar.setAttribute("aria-label", "ปลดหมุดเพื่อย่ออัตโนมัติ (Unpin sidebar)");
+          localStorage.setItem("sciportal_sidebar_pinned", "true");
+          if (typeof showToast === "function") {
+            showToast("ตรึงแถบเมนูด้านข้างแล้ว (Pinned)", "info");
+          }
+        } else {
+          // Unpin: return to auto-collapse on hover
+          appContainer.classList.add("sidebar-collapsed");
+          btnToggleSidebar.classList.remove("pinned");
+          btnToggleSidebar.setAttribute("title", "ตรึงแถบข้าง (Pin sidebar)");
+          btnToggleSidebar.setAttribute("aria-label", "ตรึงแถบข้าง (Pin sidebar)");
+          localStorage.setItem("sciportal_sidebar_pinned", "false");
+          if (typeof showToast === "function") {
+            showToast("ปลดหมุดแล้ว (แถบเมนูจะขยายอัตโนมัติเมื่อเลื่อนเมาส์ไปชี้)", "info");
+          }
+        }
+        if (window.lucide) lucide.createIcons();
+      }
     });
   }
   
   if (logoContainer && appContainer) {
     logoContainer.addEventListener("click", () => {
-      if (appContainer.classList.contains("sidebar-collapsed")) {
-        appContainer.classList.remove("sidebar-collapsed");
+      if (typeof navigateToPanel === "function") {
+        navigateToPanel("dashboard");
       }
     });
   }
@@ -1703,6 +1855,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
     sidebar.classList.remove("active");
     const mobileOverlay = document.getElementById("mobile-overlay");
     if (mobileOverlay) mobileOverlay.classList.remove("active");
+    document.body.classList.remove("mobile-sidebar-open");
   }
 
   // Set filters if navigating to All Items
@@ -8457,17 +8610,18 @@ function updateLoginUI() {
       sidebarUserAvatar.innerText = getUserInitials(currentUser.name);
       sidebarUserAvatar.style.background = getRoleColor(currentUser.role || roleLevel);
     }
+    const badgeInfo = getRoleBadgeInfo(roleLevel);
     if (sidebarUserName) {
       sidebarUserName.innerText = currentUser.name || "ผู้ใช้งาน";
+      sidebarUserName.title = `${currentUser.name || "ผู้ใช้งาน"} (${badgeInfo.full})`;
     }
     
-    const badgeInfo = getRoleBadgeInfo(roleLevel);
     if (sidebarUserRoleBadge) {
       sidebarUserRoleBadge.className = `badge-role ${badgeInfo.className}`;
       sidebarUserRoleBadge.innerText = `${badgeInfo.level} ${badgeInfo.name}`;
     }
     if (userSessionCard) {
-      userSessionCard.title = `${currentUser.name || 'ผู้ใช้งาน'} (${badgeInfo.full}) - คลิกเพื่อออกจากระบบ`;
+      userSessionCard.title = `${currentUser.name || 'ผู้ใช้งาน'} (${badgeInfo.full}) - คลิกเพื่อจัดการบัญชีหรือออกจากระบบ`;
     }
   } else {
     // Guest L0
@@ -8737,11 +8891,8 @@ function setupLoginHandlers() {
   const userSessionCard = document.getElementById("userSessionCard");
   if (userSessionCard) {
     userSessionCard.addEventListener("click", (e) => {
-      const appContainer = document.getElementById("appContainer");
-      // When sidebar is collapsed and not clicking a specific child button, clicking avatar logs out
-      if (appContainer && appContainer.classList.contains("sidebar-collapsed")) {
-        e.preventDefault();
-        performLogout();
+      if (e.target.closest("#btnSidebarLogoutQuick")) {
+        return; // Handled by btnSidebarLogoutQuick
       }
     });
   }
@@ -8749,6 +8900,16 @@ function setupLoginHandlers() {
   if (btnSidebarLogin) {
     btnSidebarLogin.addEventListener("click", (e) => {
       e.preventDefault();
+      const sidebar = document.getElementById("sidebar");
+      const mobileOverlay = document.getElementById("mobile-overlay");
+      if (sidebar && sidebar.classList.contains("active")) {
+        sidebar.classList.remove("active");
+      }
+      if (mobileOverlay && mobileOverlay.classList.contains("active")) {
+        mobileOverlay.classList.remove("active");
+      }
+      document.body.classList.remove("mobile-sidebar-open");
+
       if (isUserLoggedIn()) {
         performLogout();
       } else {
@@ -20041,7 +20202,13 @@ function renderAnnouncementTicker(customData) {
 
   // Update Badge Label
   if (badgeText) {
-    badgeText.textContent = data.badgeText || "📢 ประกาศ & ความปลอดภัย";
+    const rawBadge = data.badgeText || "📢 ประกาศ & ความปลอดภัย";
+    badgeText.textContent = rawBadge;
+    const badgeIcon = tickerBar.querySelector("#tickerBadgeMain [data-lucide], #tickerBadgeMain svg");
+    if (badgeIcon) {
+      const startsWithEmoji = /^\p{Extended_Pictographic}/u.test(rawBadge.trim());
+      badgeIcon.style.display = startsWithEmoji ? "none" : "inline-block";
+    }
   }
 
   // Apply Speed (Animation Duration) and Gap (Item Spacing)
