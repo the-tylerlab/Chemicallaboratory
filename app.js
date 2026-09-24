@@ -388,7 +388,9 @@ if (typeof supabase !== 'undefined' && supabaseUrl !== 'YOUR_SUPABASE_URL') {
 }
 
 // Global API settings
-const API_BASE = "http://localhost:3000/api";
+const API_BASE = (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
+  ? `${window.location.origin}/api`
+  : "http://localhost:3000/api";
 const GOOGLE_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
 
 async function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
@@ -417,8 +419,11 @@ async function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
 async function fetchTableFromGoogleSheets(table) {
   if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) return [];
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
     const url = `${GOOGLE_SCRIPT_WEBAPP_URL}?table=${encodeURIComponent(table)}`;
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (!response.ok) return [];
     const json = await response.json();
     if (json && json.status === "success" && Array.isArray(json.data)) {
@@ -698,8 +703,10 @@ const BOOKING_SLOTS = [
 // ==========================================================================
 // SUPABASE REALTIME SUBSCRIPTIONS
 // ==========================================================================
+let isRealtimeSubscribed = false;
 function setupRealtimeSubscriptions() {
-  if (!isSupabaseOnline) return;
+  if (!isSupabaseOnline || isRealtimeSubscribed || typeof supabase === 'undefined' || !supabase) return;
+  isRealtimeSubscribed = true;
 
   // 1. Subscribe to items table
   supabase.channel('public:items')
@@ -968,6 +975,17 @@ async function checkBackendStatus() {
 
 // Load all items from either Supabase, Google Sheets, Server API, or LocalStorage fallback
 async function loadAllItems() {
+  const triggerItemRender = () => {
+    try {
+      if (typeof renderItemsTable === "function") renderItemsTable();
+      if (typeof renderCabinetMap === "function") renderCabinetMap();
+      if (typeof updateUI === "function") updateUI();
+      if (window.lucide) lucide.createIcons();
+    } catch (e) {
+      console.warn("Error rendering items:", e);
+    }
+  };
+
   // 1. Primary: Try Supabase Cloud
   if (isSupabaseOnline && typeof supabase !== "undefined") {
     try {
@@ -984,6 +1002,7 @@ async function loadAllItems() {
           saveItemsToLocal();
           console.log("🔥 Loaded " + items.length + " items from Supabase Cloud.");
           localStorage.setItem("has_seeded_items", "true");
+          triggerItemRender();
           return;
         }
       }
@@ -1001,6 +1020,7 @@ async function loadAllItems() {
         saveItemsToLocal();
         console.log("📊 Loaded " + items.length + " items from Google Sheets.");
         localStorage.setItem("has_seeded_items", "true");
+        triggerItemRender();
 
         // Backfill to Supabase Cloud in background
         if (isSupabaseOnline && typeof supabase !== "undefined") {
@@ -1025,6 +1045,7 @@ async function loadAllItems() {
       if (response.ok) {
         items = await response.json();
         saveItemsToLocal();
+        triggerItemRender();
         return;
       }
     } catch (err) {
@@ -1039,18 +1060,41 @@ async function loadAllItems() {
       const parsed = JSON.parse(localData);
       if (Array.isArray(parsed) && parsed.length > 0) {
         items = parsed;
+        triggerItemRender();
         return;
       }
     } catch (e) {}
   }
 
-  // 5. Fresh install without internet
+  // 5. Fallback: Static database.json (for LAN / other devices accessing via web server)
+  if (typeof window !== "undefined" && window.location && window.location.protocol.startsWith('http')) {
+    try {
+      const res = await fetch('data/database.json');
+      if (res.ok) {
+        const dbJson = await res.json();
+        const staticItems = dbJson.items || (Array.isArray(dbJson) ? dbJson : []);
+        if (Array.isArray(staticItems) && staticItems.length > 0) {
+          items = staticItems;
+          saveItemsToLocal();
+          console.log("📦 Loaded " + items.length + " items from local static database.json.");
+          localStorage.setItem("has_seeded_items", "true");
+          triggerItemRender();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not fetch data/database.json fallback:", e);
+    }
+  }
+
+  // 6. Fresh install without internet
   if (!localStorage.getItem("has_seeded_items")) {
     items = [...DEMO_DATA];
     saveItemsToLocal();
   } else {
     items = [];
   }
+  triggerItemRender();
 }
 
 // Helper to save data strictly to local storage
@@ -1929,6 +1973,7 @@ function updateUI() {
   const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
   const isL3Admin = (roleLevel === "L3" || (typeof userRole !== "undefined" && userRole === "admin"));
   const isL2Staff = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
+  const isL4Executive = (roleLevel === "L4" || (typeof userRole !== "undefined" && userRole === "executive"));
   const isL3OrL4 = isL3Admin || isL4Executive;
   const poExportActions = document.getElementById("poExportActions");
   
@@ -2255,6 +2300,11 @@ async function loadEmergencyContacts() {
     }
   }
 
+  const dispAdmin = document.getElementById("dispContactAdmin");
+  const dispNurse = document.getElementById("dispContactNurse");
+  const dispFire = document.getElementById("dispContactFire");
+
+  if (dispAdmin) dispAdmin.textContent = emergencyContactsData.admin || "แอดมิน: ยังไม่ระบุ";
   if (dispNurse) dispNurse.textContent = emergencyContactsData.nurse || "ห้องพยาบาล: ยังไม่ระบุ";
   if (dispFire) dispFire.textContent = emergencyContactsData.fire || "แจ้งเหตุเพลิงไหม้: ยังไม่ระบุ";
 
@@ -5111,6 +5161,14 @@ function setupDashboardCards() {
 
 // Load transactions from Supabase or LocalStorage
 async function loadAllTransactions() {
+  const triggerTransRender = () => {
+    try {
+      if (typeof renderBorrowHistoryTable === "function") renderBorrowHistoryTable();
+      if (typeof renderTransactionTable === "function") renderTransactionTable();
+      if (typeof updateUI === "function") updateUI();
+    } catch (e) {}
+  };
+
   if (isSupabaseOnline) {
     try {
       const { data, error } = await supabase.from("transactions").select('*');
@@ -5124,10 +5182,10 @@ async function loadAllTransactions() {
       transactions = loadedTrans;
       localStorage.setItem("lab_transactions", JSON.stringify(transactions));
       console.log("🔥 Loaded " + transactions.length + " transactions from Supabase Cloud.");
+      triggerTransRender();
       return;
     } catch (err) {
-      console.error("🔥 Failed to load transactions from Supabase:", err);
-      isSupabaseOnline = false;
+      console.warn("🔥 Supabase transactions fetch notice:", err);
     }
   }
 
@@ -5137,6 +5195,7 @@ async function loadAllTransactions() {
     if (Array.isArray(sheetTx) && sheetTx.length > 0) {
       transactions = sheetTx.filter(t => t && t.id && !t.id.startsWith("tx-mock"));
       localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+      triggerTransRender();
       return;
     }
   } catch (e) {}
@@ -5149,6 +5208,7 @@ async function loadAllTransactions() {
         if (Array.isArray(json)) {
           transactions = json.filter(t => t && t.id && !t.id.startsWith("tx-mock"));
           localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+          triggerTransRender();
           return;
         }
       }
@@ -5174,6 +5234,7 @@ async function loadAllTransactions() {
     transactions = [];
   }
   localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+  triggerTransRender();
 }
 
 // Helper to save a single transaction
@@ -6519,6 +6580,11 @@ async function loadAllBookings() {
 
   bookings = Array.from(mergedMap.values());
   localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+
+  if (typeof renderBookingsTable === 'function') renderBookingsTable();
+  if (typeof renderBookingSlots === 'function') renderBookingSlots();
+  if (typeof renderBookingCalendar === 'function') renderBookingCalendar();
+  if (typeof updateUI === 'function') updateUI();
 
   if (isSupabaseOnline && sheetBookings.length > 0) {
     try {
@@ -21023,6 +21089,7 @@ function renderDashboardDayView(year, month, container) {
 function renderDashboardDailySchedule(specificDateStr) {
   const dateSub = document.getElementById("dashScheduleDateSub");
   const datePicker = document.getElementById("dashScheduleDatePicker");
+  const dateBtnText = document.getElementById("dashScheduleDateBtnText");
   const body = document.getElementById("dashScheduleBody");
   if (!body) return;
 
@@ -21031,6 +21098,12 @@ function renderDashboardDailySchedule(specificDateStr) {
 
   if (dateSub) {
     dateSub.textContent = `ประจำวันที่ ${formatThaiDateDisplay(targetDate)}`;
+  }
+  if (dateBtnText) {
+    const d = targetDate.getDate();
+    const m = THAI_MONTH_NAMES_SHORT[targetDate.getMonth()];
+    const y = (targetDate.getFullYear() + 543) % 100;
+    dateBtnText.textContent = `${d} ${m} ${y}`;
   }
   if (datePicker) {
     datePicker.value = dateStr;
