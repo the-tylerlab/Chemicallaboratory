@@ -12,7 +12,7 @@
     "initials": "AD",
     "color": "#7c3aed",
     "isActive": true,
-    "createdAt": "2026-09-16T12:00:00Z"
+    "createdAt": "2026-09-16T12:00:00+00:00"
   },
   {
     "id": "u_1001",
@@ -127,7 +127,7 @@
   },
   {
     "teacherId": "10746",
-    "name": "ครูผู้สอน (รหัส 10746)",
+    "name": "ม.สุวรรณ ชิดประสงค์",
     "department": "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     "email": "10746@lab.school.ac.th",
     "role": "L1",
@@ -135,9 +135,88 @@
     "roleName": "Teacher / User",
     "assignedRooms": [],
     "isActive": true,
-    "createdAt": "2026-09-22T03:35:00.000Z",
+    "createdAt": "2026-09-22T07:11:52.997+00:00",
     "password": "10746",
     "color": "#0284c7",
-    "initials": "คร"
+    "initials": "สช"
+  },
+  {
+    "id": "u_10823",
+    "teacherId": "10823",
+    "name": "ม.วงศกร ด้วงเกลี้ยง",
+    "department": "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    "email": "10823@lab.school.ac.th",
+    "role": "L3",
+    "roleName": "Manager / System Manager",
+    "assignedRooms": [],
+    "initials": "วด",
+    "color": "#7c3aed",
+    "password": "10823",
+    "isActive": true,
+    "createdAt": "2026-09-22T07:11:52.997+00:00"
+  },
+  {
+    "id": "u_10568",
+    "teacherId": "10568",
+    "name": "ม.วสุรัตน์ สิริจำลองวงศ์",
+    "department": "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    "email": "10568@lab.school.ac.th",
+    "role": "L4",
+    "roleName": "Executive / Head of Department",
+    "assignedRooms": [],
+    "initials": "วส",
+    "color": "#be185d",
+    "password": "10568",
+    "isActive": true,
+    "createdAt": "2026-09-22T07:11:52.997+00:00"
+  },
+  {
+    "id": "u_10785",
+    "teacherId": "10785",
+    "name": "ม.เศรษฐกาญจน์ โศภลกัญจน์",
+    "department": "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    "email": "10785@lab.school.ac.th",
+    "role": "L2",
+    "roleName": "Staff / Operator",
+    "assignedRooms": [
+      "Lab 3"
+    ],
+    "initials": "ศก",
+    "color": "#ea580c",
+    "password": "10785",
+    "isActive": true,
+    "createdAt": "2026-09-22T07:11:52.997+00:00"
+  },
+  {
+    "id": "u_10824",
+    "teacherId": "10824",
+    "name": "ม.พชร รัชประภาพงษ์",
+    "department": "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    "email": "10824@lab.school.ac.th",
+    "role": "L2",
+    "roleName": "Staff / Operator",
+    "assignedRooms": [
+      "Lab 2"
+    ],
+    "initials": "พร",
+    "color": "#ea580c",
+    "password": "10824",
+    "isActive": true,
+    "createdAt": "2026-09-22T07:11:52.997+00:00"
+  },
+  {
+    "id": "u_10572",
+    "teacherId": "10572",
+    "name": "มิสพิชชาพร ประยูรอนุเทพ",
+    "department": "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    "email": "10572@lab.school.ac.th",
+    "role": "L3",
+    "roleName": "Manager / System Manager",
+    "assignedRooms": [],
+    "initials": "พป",
+    "color": "#7c3aed",
+    "password": "10572",
+    "isActive": true,
+    "createdAt": "2026-09-22T07:13:13.582+00:00"
   }
 ]
