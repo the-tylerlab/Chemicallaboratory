@@ -4702,24 +4702,35 @@ input[type="date"]::-webkit-date-and-time-value {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
-  background: var(--primary-purple);
-  color: #ffffff;
-  border: none;
-  box-shadow: 0 4px 16px rgba(63, 27, 133, 0.25);
+  background: #ffffff;
+  border: 2px solid rgba(124, 58, 237, 0.3);
+  box-shadow: 0 8px 24px -4px rgba(79, 33, 161, 0.4), 0 2px 6px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 999;
-  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 2px;
+  overflow: visible;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.chatbot-fab img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .chatbot-fab:hover {
-  transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 6px 20px rgba(63, 27, 133, 0.4);
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 12px 28px -4px rgba(79, 33, 161, 0.5), 0 4px 10px rgba(0, 0, 0, 0.12);
+  border-color: #7c3aed;
 }
 
 .chatbot-fab:active {
@@ -4729,13 +4740,15 @@ input[type="date"]::-webkit-date-and-time-value {
 /* Pulse indicator dot */
 .chatbot-pulse-dot {
   position: absolute;
-  top: -1px;
-  right: -1px;
-  width: 10px;
-  height: 10px;
-  background-color: var(--accent-green);
-  border: 1.5px solid #ffffff;
+  top: 1px;
+  right: 1px;
+  width: 12px;
+  height: 12px;
+  background-color: #10b981;
+  border: 2px solid #ffffff;
   border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+  animation: pulseLiveDot 2s infinite;
 }
 
 /* ==========================================================================
@@ -4786,18 +4799,39 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chatbot-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
-  background-color: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background-color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   flex-shrink: 0;
+  overflow: hidden;
+  padding: 1px;
+  box-sizing: border-box;
+}
+
+.chatbot-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chatbot-avatar img.bot-thinking {
+  animation: botThinkingPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes botThinkingPulse {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.1); filter: brightness(1.15); }
+  100% { transform: scale(1); filter: brightness(1); }
 }
 
 .chatbot-title {
