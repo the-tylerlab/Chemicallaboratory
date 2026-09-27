@@ -519,23 +519,47 @@ button.menu-item-link:active {
 .footer-bottom-compact {
   display: flex;
   align-items: center;
-  padding: 0 6px;
-  height: 22px;
+  width: 100%;
+  height: 28px;
+  padding: 0 14px;
+  box-sizing: border-box;
   overflow: hidden;
   white-space: nowrap;
+  border-radius: 8px;
+  cursor: default;
+  transition: background-color 150ms ease;
+}
+
+.footer-bottom-compact:hover {
+  background-color: rgba(241, 245, 249, 0.7);
 }
 
 .footer-bottom-compact .status-dot {
-  width: 8px;
-  height: 8px;
+  width: 8px !important;
+  height: 8px !important;
+  min-width: 8px !important;
+  min-height: 8px !important;
   border-radius: 50%;
   background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
   flex-shrink: 0;
-  margin-left: 6px;
+  margin: 0 6px;
+  display: inline-block;
+  animation: statusDotPulse 2.5s infinite ease-in-out;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@keyframes statusDotPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 4.5px rgba(16, 185, 129, 0.4);
+  }
 }
 
 .footer-bottom-compact .version-text {
-  margin-left: 8px;
+  margin-left: 6px;
   font-size: 11px;
   color: #94a3b8;
   overflow: hidden;
