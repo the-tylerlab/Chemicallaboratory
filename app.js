@@ -1660,10 +1660,6 @@ function setupNavigation() {
         const loginModal = document.getElementById("loginModal");
         if (loginModal) {
           loginModal.classList.add("active");
-          setTimeout(() => {
-            const usernameInput = document.getElementById("loginUsername");
-            if (usernameInput) usernameInput.focus();
-          }, 100);
         }
         if (window.lucide) window.lucide.createIcons();
       } else {
@@ -1893,10 +1889,6 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
     document.getElementById("filterCategory").value = catFilter;
     document.getElementById("filterStatus").value = statusFilter;
     if (typeof renderItemsTable === "function") renderItemsTable();
-    const filterSearch = document.getElementById("filterSearch");
-    if (filterSearch) {
-      setTimeout(() => filterSearch.focus(), 50);
-    }
   }
   
   if (panelId === "activity-logs") {
@@ -2313,7 +2305,6 @@ function openReportIssueModal(defaultRoom = "") {
     const titleInput = document.getElementById("swalIssueTitle");
     if (titleInput) {
       titleInput.value = categoryText;
-      titleInput.focus();
     }
   };
 
@@ -2399,8 +2390,6 @@ function openReportIssueModal(defaultRoom = "") {
     cancelButtonText: 'ยกเลิก',
     didOpen: () => {
       if (window.lucide) lucide.createIcons();
-      const input = document.getElementById("swalIssueTitle");
-      if (input) input.focus();
     },
     preConfirm: () => {
       const room = document.getElementById("swalIssueRoom").value;
@@ -2939,7 +2928,11 @@ async function changeFeedbackStatus(id) {
         showCancelButton: true,
         confirmButtonText: 'บันทึก',
         cancelButtonText: 'ข้าม',
-        confirmButtonColor: '#10b981'
+        confirmButtonColor: '#10b981',
+        didOpen: () => {
+          const inp = Swal.getInput();
+          if (inp) inp.blur();
+        }
       });
       if (note) {
         fb.detail = note;
@@ -5643,10 +5636,6 @@ function setupCustomSearchableSelect() {
     } else {
       dropdownMenu.classList.add("open");
       if (chevron) chevron.style.transform = "rotate(180deg)";
-      setTimeout(() => {
-        searchInput.focus();
-        if (searchInput.value) searchInput.select();
-      }, 50);
     }
   });
 
@@ -5696,8 +5685,6 @@ function setupCustomSearchableSelect() {
 
     const existingNoResults = optionsList.querySelector(".custom-select-no-results");
     if (existingNoResults) existingNoResults.remove();
-
-    searchInput.focus();
   });
 
   // Prevent dropdown closing when clicking inside dropdown menu
@@ -8038,9 +8025,6 @@ function setupPurchaseOrders() {
       
       if (typeof showAddedAnimation === "function") showAddedAnimation("Added");
       if (typeof renderPoDrafts === "function") renderPoDrafts();
-      
-      const firstInput = document.getElementById("poProductCode");
-      if (firstInput) firstInput.focus();
     });
   }
 
@@ -8092,7 +8076,6 @@ function setupPurchaseOrders() {
       txtAnnualBudget.value = annualBudget;
       containerAnnualBudget.style.display = "none";
       annualBudgetEditForm.style.display = "flex";
-      txtAnnualBudget.focus();
     });
   }
 
@@ -8559,9 +8542,6 @@ window.editPurchaseOrder = function(orderId) {
   if (formPanel) {
     formPanel.scrollIntoView({ behavior: "smooth", block: "center" });
   }
-  
-  const firstInput = document.getElementById("poProductCode");
-  if (firstInput) firstInput.focus();
 };
 
 // ==========================================================================
@@ -8815,15 +8795,12 @@ window.openLoginModal = function() {
     if (!hasLoaded) {
       if (usernameInput) {
         usernameInput.value = "";
-        setTimeout(() => usernameInput.focus(), 50);
       }
       if (loginPasswordInput) loginPasswordInput.value = "";
       if (rememberCheckbox) rememberCheckbox.checked = false;
     } else {
       if (loginPasswordInput && !loginPasswordInput.value) {
-        setTimeout(() => loginPasswordInput.focus(), 50);
       } else if (usernameInput) {
-        setTimeout(() => usernameInput.focus(), 50);
       }
     }
 
@@ -8860,15 +8837,9 @@ window.handleGoogleOrQuickLogin = function() {
       title: "เข้าสู่ระบบด่วน",
       text: "โปรดระบุรหัสประจำตัวครู (Teacher ID) ในช่อง Login เพื่อเข้าใช้งานระบบได้ทันที",
       icon: "info",
-      confirmButtonText: "ไปที่ช่องกรอกข้อมูล",
+      confirmButtonText: "เข้าใจแล้ว",
       confirmButtonColor: "#0070f3"
-    }).then(() => {
-      const uname = document.getElementById("loginUsername");
-      if (uname) uname.focus();
     });
-  } else {
-    const uname = document.getElementById("loginUsername");
-    if (uname) uname.focus();
   }
 };
 
@@ -9184,10 +9155,6 @@ function setupAccessDeniedModal() {
       
       if (loginModal) {
         loginModal.classList.add("active");
-        setTimeout(() => {
-          const usernameInput = document.getElementById("loginUsername");
-          if (usernameInput) usernameInput.focus();
-        }, 100);
       }
       lucide.createIcons();
     });
@@ -15487,7 +15454,6 @@ function setupAdminClearHandlers() {
     }
     if (confirmModal) confirmModal.classList.add("active");
     if (typeof lucide !== 'undefined') lucide.createIcons();
-    if (confirmInput) confirmInput.focus();
   }
 
   // Close modal
@@ -17555,7 +17521,6 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (!name) {
         showToast("กรุณากรอกชื่อ - นามสกุลของผู้ใช้งาน", "warning");
-        document.getElementById("inviteUserName")?.focus();
         return;
       }
 
@@ -18567,7 +18532,6 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (!name) {
         showToast("กรุณากรอกชื่อ - นามสกุลของผู้ใช้งาน", "warning");
-        document.getElementById("editUserName")?.focus();
         return;
       }
 
@@ -19907,7 +19871,6 @@ async function saveCabinetData() {
   const name = nameInput ? nameInput.value.trim() : '';
   if (!name) {
     showToast('กรุณาระบุชื่อตู้จัดเก็บ', 'error');
-    if (nameInput) nameInput.focus();
     return;
   }
   
