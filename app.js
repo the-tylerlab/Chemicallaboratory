@@ -12641,7 +12641,7 @@ function setupChatbot() {
     } else {
       headerIcon.classList.remove("bot-thinking");
     }
-    headerIcon.src = "stock-bitol-bot.jpg";
+    headerIcon.src = "stock-bitol-bot.png";
   };
 
   const openChatbot = () => {
