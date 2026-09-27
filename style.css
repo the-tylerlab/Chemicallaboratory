@@ -12110,7 +12110,7 @@ input[type="date"].dash-schedule-date-input-hidden,
   border-radius: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   border: 1px solid var(--border-color);
-  padding: 26px 28px;
+  padding: 20px 22px;
   box-sizing: border-box;
 }
 
@@ -12124,17 +12124,17 @@ input[type="date"].dash-schedule-date-input-hidden,
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 22px;
-  padding-bottom: 18px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #f1f5f9;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
 }
 
 .admin-tab-header-left {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   max-width: 800px;
 }
 
@@ -12148,8 +12148,8 @@ input[type="date"].dash-schedule-date-input-hidden,
 .admin-tab-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 18px;
+  gap: 8px;
+  font-size: 16.5px;
   font-weight: 700;
   color: #0f172a;
   margin: 0;
@@ -12158,34 +12158,34 @@ input[type="date"].dash-schedule-date-input-hidden,
 
 .admin-tab-title i,
 .admin-tab-title svg {
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
   flex-shrink: 0;
 }
 
 .admin-tab-desc {
   color: #64748b;
-  font-size: 13px;
+  font-size: 12.5px;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 /* FlowAI Admin KPI Cards */
 .admin-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .admin-kpi-card {
   background: #ffffff;
   border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 16px 18px;
+  border-radius: 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
   box-sizing: border-box;
@@ -12200,13 +12200,13 @@ input[type="date"].dash-schedule-date-input-hidden,
 .admin-kpi-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .admin-kpi-icon-wrap {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12214,7 +12214,7 @@ input[type="date"].dash-schedule-date-input-hidden,
 }
 
 .admin-kpi-label {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: #64748b;
   white-space: nowrap;
@@ -14549,26 +14549,26 @@ select.admin-filter-select:focus {
 .admin-lab-kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .admin-lab-kpi-card {
   background: #ffffff;
   border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 16px 20px;
+  border-radius: 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  gap: 6px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .admin-lab-kpi-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1.5px);
   border-color: #cbd5e1;
-  box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 6px 16px -4px rgba(15, 23, 42, 0.06);
 }
 
 .admin-lab-rooms-grid {
