@@ -2972,14 +2972,17 @@
               <p class="admin-tab-desc">ปรับแต่งการ์ดแสดงผลฝั่งซ้ายของหน้าต่างเข้าสู่ระบบ กำหนดหัวข้อประกาศ ข้อความประชาสัมพันธ์ โทนสี และภาพห้องปฏิบัติการได้ตามต้องการ</p>
             </div>
             <div class="admin-tab-header-right">
-              <div class="admin-header-toggle-pill">
-                <span class="admin-header-toggle-label">แสดงการ์ดแบนเนอร์:</span>
-                <label class="toggle-switch-wrapper" for="adminLoginBannerEnabled" style="margin: 0;">
-                  <div class="toggle-switch">
+              <div class="admin-header-toggle-btn">
+                <span class="admin-header-toggle-label">
+                  <i data-lucide="eye" style="width: 14px; height: 14px; color: #64748b;"></i>
+                  <span>แสดงการ์ดแบนเนอร์</span>
+                </span>
+                <label class="toggle-switch-wrapper" for="adminLoginBannerEnabled" style="margin: 0; gap: 6px;">
+                  <div class="toggle-switch sm">
                     <input type="checkbox" id="adminLoginBannerEnabled" checked onchange="updateLoginBannerToggleLabel(this.checked); triggerLoginBannerLivePreview();">
                     <span class="toggle-slider"></span>
                   </div>
-                  <span class="admin-toggle-status" id="adminLoginBannerStatusText" style="font-size: 13px; font-weight: 600; color: #1e293b;">เปิดใช้งาน</span>
+                  <span class="admin-toggle-status" id="adminLoginBannerStatusText" style="font-size: 12.5px; font-weight: 600; color: #1e293b; min-width: auto;">เปิด</span>
                 </label>
               </div>
             </div>
@@ -3109,14 +3112,17 @@
               <p class="admin-tab-desc">กำหนดข้อความประกาศ ข่าวสาร หรือข้อควรระวังความปลอดภัย และปรับแต่งความเร็ว ระยะห่าง และธีมสีของแถบตัววิ่ง</p>
             </div>
             <div class="admin-tab-header-right">
-              <div class="admin-header-toggle-pill">
-                <span class="admin-header-toggle-label">แสดงแถบประกาศ:</span>
-                <label class="toggle-switch-wrapper" for="adminAnnouncementEnabled" style="margin: 0;">
-                  <div class="toggle-switch">
+              <div class="admin-header-toggle-btn">
+                <span class="admin-header-toggle-label">
+                  <i data-lucide="bell" style="width: 14px; height: 14px; color: #64748b;"></i>
+                  <span>แสดงแถบประกาศ</span>
+                </span>
+                <label class="toggle-switch-wrapper" for="adminAnnouncementEnabled" style="margin: 0; gap: 6px;">
+                  <div class="toggle-switch sm">
                     <input type="checkbox" id="adminAnnouncementEnabled" checked onchange="updateAnnouncementToggleLabel(this.checked, 'adminAnnouncementStatusText'); triggerAnnouncementLivePreview('admin');">
                     <span class="toggle-slider"></span>
                   </div>
-                  <span class="admin-toggle-status" id="adminAnnouncementStatusText" style="font-size: 13px; font-weight: 600; color: #1e293b;">เปิดใช้งาน</span>
+                  <span class="admin-toggle-status" id="adminAnnouncementStatusText" style="font-size: 12.5px; font-weight: 600; color: #1e293b; min-width: auto;">เปิด</span>
                 </label>
               </div>
             </div>
