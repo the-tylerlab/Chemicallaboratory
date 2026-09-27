@@ -2828,8 +2828,14 @@
         <!-- Users Tab -->
         <div class="admin-tab active" id="admin-users">
           <div class="admin-tab-header">
-            <h2 class="admin-tab-title">จัดการสิทธิ์ผู้ใช้งาน (User & Role Management)</h2>
-            <p class="admin-tab-desc">กำหนดระดับสิทธิ์ (L1 - L4) มอบหมายห้องปฏิบัติการ และตรวจสอบบัญชีผู้ใช้งานในระบบ</p>
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title">
+                <i data-lucide="users" style="color: #7c3aed;"></i>
+                <span>จัดการสิทธิ์ผู้ใช้งาน (User & Role Management)</span>
+              </h2>
+              <p class="admin-tab-desc">กำหนดระดับสิทธิ์ (L1 - L4) มอบหมายห้องปฏิบัติการ และตรวจสอบบัญชีผู้ใช้งานในระบบ</p>
+            </div>
+            <div class="admin-tab-header-right"></div>
           </div>
 
           <!-- FlowAI Inspired KPI Overview Cards -->
@@ -2958,8 +2964,14 @@
         <!-- Login Modal Hero & Announcement Settings Tab -->
         <div class="admin-tab" id="admin-login-banner" style="display: none;">
           <div class="admin-tab-header">
-            <h2 class="admin-tab-title">จัดการแบนเนอร์ & ประกาศด่วนหน้าเข้าสู่ระบบ (Login Hero & Announcement)</h2>
-            <p class="admin-tab-desc">ปรับแต่งการ์ดแสดงผลฝั่งซ้ายของหน้าต่างเข้าสู่ระบบ กำหนดหัวข้อประกาศ ข้อความประชาสัมพันธ์ โทนสี และภาพห้องปฏิบัติการได้ตามต้องการ</p>
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title">
+                <i data-lucide="layout-template" style="color: #0284c7;"></i>
+                <span>จัดการแบนเนอร์ & ประกาศด่วนหน้าเข้าสู่ระบบ (Login Hero & Announcement)</span>
+              </h2>
+              <p class="admin-tab-desc">ปรับแต่งการ์ดแสดงผลฝั่งซ้ายของหน้าต่างเข้าสู่ระบบ กำหนดหัวข้อประกาศ ข้อความประชาสัมพันธ์ โทนสี และภาพห้องปฏิบัติการได้ตามต้องการ</p>
+            </div>
+            <div class="admin-tab-header-right"></div>
           </div>
 
           <form id="adminLoginBannerForm" onsubmit="saveAdminLoginBanner(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
@@ -3093,8 +3105,14 @@
         <!-- Announcement Management Tab -->
         <div class="admin-tab" id="admin-announcement" style="display: none;">
           <div class="admin-tab-header">
-            <h2 class="admin-tab-title">จัดการประกาศหน้าแรก (Announcement Ticker)</h2>
-            <p class="admin-tab-desc">กำหนดข้อความประกาศ ข่าวสาร หรือข้อควรระวังความปลอดภัย และปรับแต่งความเร็ว ระยะห่าง และธีมสีของแถบตัววิ่ง</p>
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title">
+                <i data-lucide="megaphone" style="color: #ea580c;"></i>
+                <span>จัดการประกาศหน้าแรก (Announcement Ticker)</span>
+              </h2>
+              <p class="admin-tab-desc">กำหนดข้อความประกาศ ข่าวสาร หรือข้อควรระวังความปลอดภัย และปรับแต่งความเร็ว ระยะห่าง และธีมสีของแถบตัววิ่ง</p>
+            </div>
+            <div class="admin-tab-header-right"></div>
           </div>
           
           <form id="adminAnnouncementForm" onsubmit="saveAdminAnnouncement(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
@@ -3113,22 +3131,28 @@
               </label>
             </div>
 
-            <!-- Announcement Text -->
-            <div class="form-group" style="margin: 0; width: 100%;">
-              <label for="adminAnnouncementText" class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block;">ข้อความประกาศ (คั่นแต่ละข้อความด้วยเครื่องหมาย <code>|</code> หรือขึ้นบรรทัดใหม่)</label>
-              <textarea id="adminAnnouncementText" class="form-control" rows="3" placeholder="สวมใส่อุปกรณ์ PPE ทุกครั้งที่เข้าแล็บ | การทดลองที่มีไอระเหยต้องทำในตู้ดูดควัน Fume Hood | ติดต่อฉุกเฉินและอุบัติเหตุ แจ้งผ่านเมนู 'แจ้งปัญหา'" style="font-size: 13.5px; line-height: 1.6; width: 100%; min-height: 76px; padding: 10px 14px; box-sizing: border-box; border-radius: 10px;" oninput="triggerAnnouncementLivePreview('admin')"></textarea>
-            </div>
-
-            <!-- Templates -->
-            <div class="admin-template-presets">
-              <div class="admin-template-presets-label">
-                <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #d97706;"></i>
-                <span>เทมเพลตข้อความแนะนำ:</span>
+            <!-- Announcement Text Box -->
+            <div class="admin-form-box">
+              <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="message-square" style="width: 16px; height: 16px; color: #ea580c;"></i>
+                <span>ข้อความและเนื้อหาประกาศ (Announcement Content)</span>
               </div>
-              <div class="admin-template-presets-buttons">
-                <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('standard')">📋 ชุดมาตรฐาน (PPE + Fume Hood + ฉุกเฉิน)</button>
-                <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('maintenance')">📦 แจ้งตรวจนับสต็อกประจำสัปดาห์</button>
-                <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('urgent')">⚠️ แจ้งเตือนปิดปรับปรุงระบบ</button>
+              <div class="form-group" style="margin: 0; width: 100%;">
+                <label for="adminAnnouncementText" class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block;">ข้อความประกาศ (คั่นแต่ละข้อความด้วยเครื่องหมาย <code>|</code> หรือขึ้นบรรทัดใหม่)</label>
+                <textarea id="adminAnnouncementText" class="form-control" rows="3" placeholder="สวมใส่อุปกรณ์ PPE ทุกครั้งที่เข้าแล็บ | การทดลองที่มีไอระเหยต้องทำในตู้ดูดควัน Fume Hood | ติดต่อฉุกเฉินและอุบัติเหตุ แจ้งผ่านเมนู 'แจ้งปัญหา'" style="font-size: 13.5px; line-height: 1.6; width: 100%; min-height: 76px; padding: 10px 14px; box-sizing: border-box; border-radius: 10px;" oninput="triggerAnnouncementLivePreview('admin')"></textarea>
+              </div>
+
+              <!-- Templates -->
+              <div class="admin-template-presets">
+                <div class="admin-template-presets-label">
+                  <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #d97706;"></i>
+                  <span>เทมเพลตข้อความแนะนำ:</span>
+                </div>
+                <div class="admin-template-presets-buttons">
+                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('standard')">📋 ชุดมาตรฐาน (PPE + Fume Hood + ฉุกเฉิน)</button>
+                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('maintenance')">📦 แจ้งตรวจนับสต็อกประจำสัปดาห์</button>
+                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('urgent')">⚠️ แจ้งเตือนปิดปรับปรุงระบบ</button>
+                </div>
               </div>
             </div>
 
@@ -3248,15 +3272,15 @@
         
         <!-- Laboratory Rooms Management Tab -->
         <div class="admin-tab" id="admin-labs" style="display: none;">
-          <div class="admin-tab-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
-            <div>
-              <h2 class="admin-tab-title" style="display: flex; align-items: center; gap: 8px; margin: 0 0 6px 0; font-size: 19px; font-weight: 700; color: #0f172a;">
-                <i data-lucide="flask-conical" style="width: 20px; height: 20px; color: var(--primary-color);"></i>
+          <div class="admin-tab-header">
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title">
+                <i data-lucide="flask-conical" style="color: #2563eb;"></i>
                 <span>จัดการห้องปฏิบัติการ (Laboratory Rooms)</span>
               </h2>
-              <p class="admin-tab-desc" style="margin: 0; color: #64748b; font-size: 13px;">กำหนดชื่อห้อง อาคารสถานที่ และเลือกเฉดสีประจำห้องปฏิบัติการ สำหรับผังตู้จัดเก็บ SHECU และปฏิทิน</p>
+              <p class="admin-tab-desc">กำหนดชื่อห้อง อาคารสถานที่ และเลือกเฉดสีประจำห้องปฏิบัติการ สำหรับผังตู้จัดเก็บ SHECU และปฏิทิน</p>
             </div>
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div class="admin-tab-header-right">
               <button type="button" class="btn btn-secondary btn-sm" onclick="resetLabRoomsToDefault()" title="คืนค่าห้องปฏิบัติการเริ่มต้นเป็น Lab 1 - Lab 8" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
                 <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
                 <span>คืนค่าเริ่มต้น</span>
@@ -3310,11 +3334,14 @@
         <!-- Danger Zone Tab -->
         <div class="admin-tab" id="admin-danger" style="display: none;">
           <div class="admin-tab-header">
-            <h2 class="admin-tab-title" style="color: var(--accent-red); display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
-              <span>พื้นที่อันตราย (Danger zone)</span>
-            </h2>
-            <p class="admin-tab-desc">การตั้งค่าที่ส่งผลกระทบอย่างถาวร เช่น การลบพื้นที่ทำงาน หรือโอนสิทธิ์ความเป็นเจ้าของ โปรดระมัดระวังเป็นอย่างยิ่ง</p>
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title" style="color: #dc2626;">
+                <i data-lucide="alert-octagon" style="color: #dc2626;"></i>
+                <span>พื้นที่อันตราย (Danger Zone)</span>
+              </h2>
+              <p class="admin-tab-desc">การตั้งค่าที่ส่งผลกระทบอย่างถาวร เช่น การลบพื้นที่ทำงาน หรือโอนสิทธิ์ความเป็นเจ้าของ โปรดระมัดระวังเป็นอย่างยิ่ง</p>
+            </div>
+            <div class="admin-tab-header-right"></div>
           </div>
           
           <div class="admin-danger-box">
