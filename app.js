@@ -12637,12 +12637,11 @@ function setupChatbot() {
   const setChatbotIconState = (state) => {
     if (!headerIcon) return;
     if (state === "thinking") {
-      headerIcon.src = "bloub-default-cycle-thinking.gif";
-    } else if (state === "notification") {
-      headerIcon.src = "bloub-default-cycle-notification.gif";
+      headerIcon.classList.add("bot-thinking");
     } else {
-      headerIcon.src = "bloub-triangle-attentif-violet-anime.svg";
+      headerIcon.classList.remove("bot-thinking");
     }
+    headerIcon.src = "stock-bitol-bot.jpg";
   };
 
   const openChatbot = () => {
