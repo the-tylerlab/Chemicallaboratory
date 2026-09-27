@@ -8581,7 +8581,7 @@ function applyRoleToReportsPanel() {
     if (reportExportCard) reportExportCard.style.display = "none";
     if (labBookingReportCard) labBookingReportCard.style.display = "none";
     if (stockForecastCard) stockForecastCard.style.display = "flex";
-    if (reportsSubtitle) reportsSubtitle.innerText = "คาดการณ์พัสดุใกล้หมดและเตรียมสั่งซื้อ (Smart Stock & Auto-PO)";
+    if (reportsSubtitle) reportsSubtitle.innerText = "คาดการณ์พัสดุใกล้หมด (Smart Stock & Auto-PO)";
   } else {
     // L3 Admin & L4 Executive: Can view all report cards
     if (chartBookingCard) chartBookingCard.style.display = "flex";
