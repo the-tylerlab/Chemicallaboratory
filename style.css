@@ -128,20 +128,9 @@ button {
 /* Sidebar Collapse Styles (Fixed Icon Anchoring + Directional Slide Motion) */
 .sidebar {
   width: var(--sidebar-width);
-  background: #ffffff; /* White sidebar */
-  border-right: 1px solid var(--border-color);
-  color: var(--text-main);
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-/* Sidebar Container */
-.sidebar {
-  width: var(--sidebar-width);
   background-color: var(--bg-card);
   border-right: 1px solid var(--border-color);
+  color: var(--text-main);
   display: flex;
   flex-direction: column;
   position: fixed;
