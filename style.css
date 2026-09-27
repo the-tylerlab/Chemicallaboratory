@@ -6362,7 +6362,10 @@ input[type="date"]::-webkit-date-and-time-value {
     align-items: flex-start !important;
     gap: 8px;
   }
-  
+}
+
+/* Tablet Only: iPad & Mid-size screens (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
   .table-filter-bar {
     flex-direction: column !important;
     align-items: stretch !important;
@@ -6404,7 +6407,78 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
+/* Mobile Devices: <= 640px */
 @media (max-width: 640px) {
+  .table-filter-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .table-filter-bar .search-scan-group {
+    display: flex !important;
+    flex-direction: row !important;
+    min-width: 0 !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .table-filter-bar .search-box-container {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+  .table-filter-bar .search-box-container input {
+    height: 38px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    padding-left: 34px !important;
+    box-sizing: border-box !important;
+  }
+  .table-filter-bar .scan-box-container {
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 8px !important;
+  }
+  .table-filter-secondary-group {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .table-filter-secondary-group .filter-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 38px !important;
+    font-size: 13px !important;
+    padding: 0 20px 0 10px !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+  .table-filter-secondary-group .filter-buttons-group {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-top: 2px !important;
+    align-items: center !important;
+  }
+  .table-filter-secondary-group .filter-buttons-group .btn-icon-action {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+  }
   .view-toggle-bar {
     gap: 4px !important;
     padding: 3px !important;
