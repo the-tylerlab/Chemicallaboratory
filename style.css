@@ -8579,136 +8579,513 @@ body.hide-col-cas .col-cas { display: none !important; }
   }
 }
 
+/* ==========================================================================
+   SHECU STORAGE CABINET CARD (Clean & Friendly Redesign)
+   ========================================================================== */
 .cabinet-card {
-  background: white;
+  background-color: #ffffff;
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-md);
+  border-radius: 18px;
+  box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.05), 0 6px 16px -4px rgba(15, 23, 42, 0.03);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
 }
 
-.cabinet-header {
-  padding: 16px;
-  background-color: #f8fafc;
+.cabinet-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.09), 0 0 0 1px rgba(99, 102, 241, 0.15);
+  border-color: #cbd5e1;
+}
+
+.cabinet-card.has-incompatible {
+  border-color: #fca5a5;
+  box-shadow: 0 4px 16px -2px rgba(239, 68, 68, 0.08);
+}
+
+.cabinet-card.has-incompatible:hover {
+  border-color: #f87171;
+  box-shadow: 0 12px 28px -6px rgba(239, 68, 68, 0.12), 0 0 0 1px rgba(239, 68, 68, 0.2);
+}
+
+.cabinet-card.is-hidden-cabinet {
+  border-style: dashed !important;
+  border-color: #94a3b8 !important;
+  background-color: #f8fafc !important;
+  opacity: 0.8 !important;
+}
+
+/* Header */
+.cabinet-card .cabinet-header {
+  padding: 18px 20px 14px;
+  background: #ffffff;
   border-bottom: 1px solid var(--border-color);
-}
-
-.cabinet-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  width: 100%;
-  margin-bottom: 4px;
-}
-
-.cabinet-title-row h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-main);
-  margin: 0;
-}
-
-.shecu-badge {
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-  white-space: nowrap;
-  margin-left: auto;
-  flex-shrink: 0;
-  text-align: right;
-}
-
-.badge-safe {
-  background-color: #ecfdf5;
-  color: #047857;
-}
-
-.badge-warning {
-  background-color: #fff1f2;
-  color: #be123c;
-}
-
-.cabinet-type {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.cabinet-shelves {
   display: flex;
   flex-direction: column;
+  gap: 0;
+}
+
+.cabinet-card.emergency-type .cabinet-header {
+  background: #fffdf7;
+}
+
+.cabinet-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.cabinet-title-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cabinet-avatar-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.cabinet-card:hover .cabinet-avatar-icon {
+  transform: scale(1.05);
+}
+
+.cabinet-avatar-icon.chemical {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.cabinet-avatar-icon.glassware {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.cabinet-avatar-icon.emergency {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.cabinet-avatar-icon svg,
+.cabinet-avatar-icon i {
+  width: 20px;
+  height: 20px;
+}
+
+.cabinet-text-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cabinet-title-text {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cabinet-subtitle-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Status Chips */
+.shecu-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.shecu-status-chip.safe {
+  background-color: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+}
+
+.shecu-status-chip.warning {
+  background-color: #fff1f2;
+  color: #be123c;
+  border-color: #fecdd3;
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.08);
+}
+
+.shecu-status-chip.emergency {
+  background-color: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.shecu-status-chip.hidden {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+
+.status-dot-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-pulse.safe {
+  background-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+}
+
+.status-dot-pulse.warning {
+  background-color: #f43f5e;
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.35);
+  animation: pulseDot 1.8s infinite ease-in-out;
+}
+
+.status-dot-pulse.emergency {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 5px rgba(244, 63, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+}
+
+/* Incompatible Callout Banner */
+.cabinet-warning-banner {
+  margin-top: 12px;
+  background: linear-gradient(135deg, #fff1f2 0%, #fff5f5 100%);
+  border: 1px solid #fecdd3;
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cabinet-warning-banner:hover {
+  background: #ffe4e6;
+  border-color: #fda4af;
+  transform: translateY(-1px);
+}
+
+.warning-banner-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.warning-banner-icon svg,
+.warning-banner-icon i {
+  width: 15px;
+  height: 15px;
+}
+
+.warning-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.warning-banner-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9f1239;
+  line-height: 1.2;
+}
+
+.warning-banner-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #be123c;
+  line-height: 1.2;
+}
+
+.warning-banner-chevron {
+  width: 14px;
+  height: 14px;
+  color: #fb7185;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.cabinet-warning-banner:hover .warning-banner-chevron {
+  transform: translateX(3px);
+}
+
+/* Shelves Section */
+.cabinet-shelves {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   flex: 1;
 }
 
 .cabinet-shelf-item {
-  padding: 12px 16px;
-  border-bottom: 1px solid #f1f5f9;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 14px;
-  color: var(--text-main);
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  border-left: 3px solid transparent;
-}
-
-.cabinet-shelf-item:last-child {
-  border-bottom: none;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .cabinet-shelf-item:hover {
   background-color: #f8fafc;
-  border-left-color: var(--primary-color);
+  border-color: #f1f5f9;
+  transform: translateX(2px);
 }
 
-.shelf-meta {
+.shelf-label-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shelf-num-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.cabinet-shelf-item:hover .shelf-num-dot {
+  background-color: #ede9fe;
+  color: #7c3aed;
+}
+
+.shelf-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.shelf-action-group {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.item-count {
-  font-size: 12px;
-  color: var(--text-muted);
+.shelf-count-tag {
+  font-size: 11.5px;
+  padding: 3px 10px;
+  border-radius: 999px;
   font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
-.shelf-meta i {
-  width: 16px;
-  height: 16px;
+.shelf-count-tag.empty {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
   color: #94a3b8;
 }
 
+.shelf-count-tag.has-items {
+  background-color: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #6d28d9;
+  font-weight: 600;
+}
+
+.shelf-chevron-icon {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.cabinet-shelf-item:hover .shelf-chevron-icon {
+  transform: translateX(3px);
+  color: var(--primary-purple);
+}
+
+/* Card Footer */
 .cabinet-footer {
-  padding: 12px 16px;
-  background-color: #f8fafc;
+  padding: 14px 18px 16px;
   border-top: 1px solid var(--border-color);
+  background-color: #fafbfc;
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.cabinet-footer-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-chips-group {
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
 
-.capacity-bar {
+.footer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.footer-chip.chem {
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #e0f2fe;
+}
+
+.footer-chip.equip {
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.footer-total-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.footer-total-label strong {
+  color: #1e293b;
+}
+
+.cabinet-capacity-group {
   width: 100%;
-  height: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.capacity-text-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.capacity-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-cabinet-mini-action {
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.btn-cabinet-mini-action.edit {
+  color: var(--primary-color);
+}
+
+.btn-cabinet-mini-action.edit:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.btn-cabinet-mini-action.toggle {
+  color: #64748b;
+}
+
+.btn-cabinet-mini-action.toggle:hover {
   background-color: #e2e8f0;
-  border-radius: 3px;
+}
+
+.btn-cabinet-mini-action.toggle.unhide {
+  color: #059669;
+}
+
+.btn-cabinet-mini-action.toggle.unhide:hover {
+  background-color: #ecfdf5;
+}
+
+.capacity-bar-track {
+  width: 100%;
+  background-color: #e2e8f0;
+  border-radius: 999px;
+  height: 6px;
   overflow: hidden;
 }
 
-.capacity-fill {
+.capacity-bar-fill {
   height: 100%;
-  background-color: #10b981;
-  border-radius: 3px;
+  border-radius: 999px;
+  transition: width 0.4s ease;
 }
 
-.capacity-text {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: right;
-  font-weight: 500;
+.capacity-bar-fill.normal {
+  background: linear-gradient(90deg, #38bdf8 0%, #0284c7 100%);
+}
+
+.capacity-bar-fill.warning {
+  background: linear-gradient(90deg, #fbbf24 0%, #d97706 100%);
+}
+
+.capacity-bar-fill.danger {
+  background: linear-gradient(90deg, #f87171 0%, #dc2626 100%);
 }
 
 /* Workstations */
