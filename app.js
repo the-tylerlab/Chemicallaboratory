@@ -1906,6 +1906,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   if (panelId === "admin" || panelId === "panel-admin") {
     if (typeof renderAdminPanel === "function") renderAdminPanel();
     if (typeof renderAdminUsers === "function") renderAdminUsers();
+    if (typeof renderAdminLabRoomsList === "function") renderAdminLabRoomsList();
   }
 
   if (panelId === "assets") {
@@ -15893,6 +15894,37 @@ function renderBookingCalendar() {
 }
 
 /* ==========================================================================
+   LABORATORY ROOMS CONFIGURATION & MANAGEMENT SUBSYSTEM
+   ========================================================================== */
+const DEFAULT_LAB_ROOMS = [
+  { id: "Lab 1", name: "ห้องปฏิบัติการเคมี", building: "อาคารอัสสัมชัญ", pillClass: "pill-darkblue", hex: "#2563eb" },
+  { id: "Lab 2", name: "ห้องปฏิบัติการฟิสิกส์", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-green", hex: "#16a34a" },
+  { id: "Lab 3", name: "ห้องปฏิบัติการชีววิทยา", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-blue", hex: "#0284c7" },
+  { id: "Lab 4", name: "ห้องปฏิบัติการวิทยาศาสตร์", building: "อาคารราฟาเอล", pillClass: "pill-orange", hex: "#ea580c" },
+  { id: "Lab 5", name: "ห้องศูนย์ สสวท.", building: "อาคารราฟาเอล", pillClass: "pill-yellow", hex: "#eab308" },
+  { id: "Lab 6", name: "ห้องแล็บวิทย์ ม.ต้น", building: "อาคารอัสสัมชัญ", pillClass: "pill-purple", hex: "#9333ea" },
+  { id: "Lab 7", name: "ห้อง STEM CENTER", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-pink", hex: "#db2777" },
+  { id: "Lab 8", name: "ห้องแล็บวิทย์ (EP)", building: "อาคารยอห์น แมรี่", pillClass: "pill-indigo", hex: "#4f46e5" }
+];
+
+function getStoredLabRooms() {
+  try {
+    const raw = localStorage.getItem("scip_custom_lab_rooms");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.error("Error reading scip_custom_lab_rooms:", e);
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_LAB_ROOMS));
+}
+
+let DASH_LAB_ROOMS = getStoredLabRooms();
+
+/* ==========================================================================
    PREMIUM FEATURE: INTERACTIVE SHECU CABINET COMPATIBILITY MAP
    ========================================================================== */
 let currentCabinetMapRoom = "Lab 1";
@@ -16799,6 +16831,8 @@ document.addEventListener("DOMContentLoaded", () => {
           initAdminAnnouncementForm();
         } else if (targetTabId === "admin-login-banner" && typeof initLoginBannerAdmin === "function") {
           initLoginBannerAdmin();
+        } else if (targetTabId === "admin-labs" && typeof renderAdminLabRoomsList === "function") {
+          renderAdminLabRoomsList();
         }
       }
     });
@@ -17415,6 +17449,372 @@ window.batchDeleteSelectedUsers = async function() {
 
   showToast(`ลบผู้ใช้งานที่เลือก ${targetIds.length} คนเรียบร้อยแล้ว`, "success");
   await loadAdminData();
+};
+
+// ==========================================
+// ADMIN LAB ROOMS MANAGEMENT SUBSYSTEM
+// ==========================================
+
+const LAB_COLOR_PRESETS = [
+  "#2563eb", // Sapphire Blue
+  "#16a34a", // Emerald Green
+  "#0284c7", // Sky Blue
+  "#ea580c", // Vibrant Orange
+  "#d97706", // Warm Amber
+  "#7c3aed", // Royal Purple
+  "#9333ea", // Bright Violet
+  "#db2777", // Pink
+  "#4f46e5", // Indigo
+  "#0d9488", // Deep Teal
+  "#e11d48", // Rose Red
+  "#475569"  // Slate
+];
+
+window.renderAdminLabRoomsList = function() {
+  const container = document.getElementById("adminLabRoomsGrid");
+  if (!container) return;
+
+  const rooms = Array.isArray(DASH_LAB_ROOMS) ? DASH_LAB_ROOMS : [];
+
+  // Update KPI counters
+  const totalLabs = rooms.length;
+  let totalItemsCount = 0;
+  let totalCabinetsCount = 0;
+
+  const roomStats = {};
+  rooms.forEach(r => {
+    const countItems = (items || []).filter(it => (it.room || 'Lab 1') === r.id || (r.id === 'Lab 1' && (!it.room || it.room === 'None'))).length;
+    const roomCabs = (typeof labLayouts === 'object' && labLayouts && labLayouts[r.id]) ? labLayouts[r.id].length : 0;
+    roomStats[r.id] = { items: countItems, cabs: roomCabs };
+    totalItemsCount += countItems;
+    totalCabinetsCount += roomCabs;
+  });
+
+  const kpiLabsEl = document.getElementById("kpiTotalLabs");
+  if (kpiLabsEl) kpiLabsEl.textContent = totalLabs;
+  const kpiItemsEl = document.getElementById("kpiTotalLabItems");
+  if (kpiItemsEl) kpiItemsEl.textContent = totalItemsCount;
+  const kpiCabsEl = document.getElementById("kpiTotalLabCabinets");
+  if (kpiCabsEl) kpiCabsEl.textContent = totalCabinetsCount;
+
+  if (rooms.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 24px; background: #f8fafc; border-radius: 16px; border: 1.5px dashed var(--border-color); color: var(--text-muted);">
+        <i data-lucide="flask-conical" style="width: 40px; height: 40px; color: #94a3b8; margin-bottom: 10px;"></i>
+        <h4 style="margin: 0 0 6px 0; font-size: 16px; color: #1e293b; font-weight: 700;">ยังไม่มีห้องปฏิบัติการในระบบ</h4>
+        <p style="margin: 0 0 16px 0; font-size: 13px;">กดปุ่ม "เพิ่มห้องปฏิบัติการ" หรือ "คืนค่าเริ่มต้น" ด้านบนเพื่อเริ่มใช้งาน</p>
+        <button type="button" class="btn btn-primary btn-sm" onclick="resetLabRoomsToDefault()" style="border-radius: 10px;">
+          <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> คืนค่าห้องปฏิบัติการเริ่มต้น
+        </button>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
+
+  container.innerHTML = rooms.map(room => {
+    const stat = roomStats[room.id] || { items: 0, cabs: 0 };
+    const shortId = room.id.length > 6 ? room.id.substring(0, 5) : room.id;
+
+    return `
+      <div class="admin-lab-card" data-room-id="${room.id}">
+        <div class="admin-lab-card-top">
+          <div class="admin-lab-color-avatar" style="background: ${room.hex || '#6366f1'};">
+            ${shortId}
+          </div>
+          <div class="admin-lab-card-text">
+            <h3 class="admin-lab-card-title" title="${room.id} : ${room.name}">${room.id} (${room.name})</h3>
+            <p class="admin-lab-card-building">
+              <i data-lucide="building" style="width: 12px; height: 12px; flex-shrink: 0;"></i>
+              <span>${room.building || 'ไม่ระบุอาคารสถานที่'}</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="admin-lab-card-meta">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="admin-lab-color-badge" title="รหัสสีประจำห้อง">
+              <span class="admin-lab-color-dot" style="background: ${room.hex || '#6366f1'};"></span>
+              ${room.hex || '#6366f1'}
+            </span>
+            <span style="font-size: 11.5px; color: #64748b;">
+              <strong>${stat.items}</strong> พัสดุ | <strong>${stat.cabs}</strong> ตู้
+            </span>
+          </div>
+
+          <div class="admin-lab-card-actions">
+            <button type="button" class="admin-lab-btn-action edit" onclick="openLabRoomModal('${room.id.replace(/'/g, "\\'")}')" title="แก้ไขข้อมูลห้องและสี">
+              <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+              <span>แก้ไข</span>
+            </button>
+            <button type="button" class="admin-lab-btn-action delete" onclick="deleteLabRoom('${room.id.replace(/'/g, "\\'")}')" title="ลบห้องนี้">
+              <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  lucide.createIcons();
+};
+
+window.openLabRoomModal = function(roomId = null) {
+  const modal = document.getElementById("labRoomModal");
+  if (!modal) return;
+
+  const titleEl = document.getElementById("labRoomModalTitle");
+  const oldIdInput = document.getElementById("labRoomOldId");
+  const idInput = document.getElementById("labRoomIdInput");
+  const nameInput = document.getElementById("labRoomNameInput");
+  const buildingInput = document.getElementById("labRoomBuildingInput");
+  const hexInput = document.getElementById("labRoomHexInput");
+  const colorPicker = document.getElementById("labRoomColorPicker");
+
+  const rooms = Array.isArray(DASH_LAB_ROOMS) ? DASH_LAB_ROOMS : [];
+
+  let initialHex = "#2563eb";
+
+  if (roomId) {
+    const existing = rooms.find(r => r.id === roomId);
+    if (existing) {
+      if (titleEl) titleEl.textContent = `แก้ไขห้องปฏิบัติการ: ${existing.id}`;
+      if (oldIdInput) oldIdInput.value = existing.id;
+      if (idInput) idInput.value = existing.id;
+      if (nameInput) nameInput.value = existing.name || '';
+      if (buildingInput) buildingInput.value = existing.building || '';
+      initialHex = existing.hex || "#2563eb";
+    }
+  } else {
+    if (titleEl) titleEl.textContent = "เพิ่มห้องปฏิบัติการใหม่";
+    if (oldIdInput) oldIdInput.value = "";
+    
+    // Auto-suggest next Lab ID
+    let nextNum = rooms.length + 1;
+    while (rooms.some(r => r.id === `Lab ${nextNum}`)) {
+      nextNum++;
+    }
+    if (idInput) idInput.value = `Lab ${nextNum}`;
+    if (nameInput) nameInput.value = `ห้องปฏิบัติการใหม่ ${nextNum}`;
+    if (buildingInput) buildingInput.value = "อาคารวิทยาศาสตร์";
+    initialHex = LAB_COLOR_PRESETS[(nextNum - 1) % LAB_COLOR_PRESETS.length] || "#7c3aed";
+  }
+
+  if (hexInput) hexInput.value = initialHex;
+  if (colorPicker) colorPicker.value = initialHex;
+
+  renderLabColorPresets(initialHex);
+  updateLabRoomLivePreview();
+
+  modal.style.display = "flex";
+  lucide.createIcons();
+};
+
+window.closeLabRoomModal = function() {
+  const modal = document.getElementById("labRoomModal");
+  if (modal) modal.style.display = "none";
+};
+
+function renderLabColorPresets(activeHex) {
+  const container = document.getElementById("labColorPresetsContainer");
+  if (!container) return;
+
+  const currentHex = (activeHex || "#2563eb").toLowerCase();
+
+  container.innerHTML = LAB_COLOR_PRESETS.map(c => {
+    const isAct = c.toLowerCase() === currentHex;
+    return `
+      <button type="button" class="color-preset-pill ${isAct ? 'active' : ''}" 
+              style="background-color: ${c};" 
+              title="${c}" 
+              onclick="selectLabColorPreset('${c}')">
+      </button>
+    `;
+  }).join("");
+}
+
+window.selectLabColorPreset = function(hex) {
+  const hexInput = document.getElementById("labRoomHexInput");
+  const colorPicker = document.getElementById("labRoomColorPicker");
+
+  if (hexInput) hexInput.value = hex;
+  if (colorPicker) colorPicker.value = hex;
+
+  renderLabColorPresets(hex);
+  updateLabRoomLivePreview();
+};
+
+window.onLabRoomColorPickerChange = function(hex) {
+  const hexInput = document.getElementById("labRoomHexInput");
+  if (hexInput) hexInput.value = hex;
+  renderLabColorPresets(hex);
+  updateLabRoomLivePreview();
+};
+
+window.onLabRoomHexInputChange = function(val) {
+  const colorPicker = document.getElementById("labRoomColorPicker");
+  let hex = (val || "").trim();
+  if (!hex.startsWith("#")) hex = "#" + hex;
+  if (/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+    if (colorPicker) colorPicker.value = hex;
+    renderLabColorPresets(hex);
+  }
+  updateLabRoomLivePreview();
+};
+
+window.updateLabRoomLivePreview = function() {
+  const idInput = document.getElementById("labRoomIdInput");
+  const nameInput = document.getElementById("labRoomNameInput");
+  const hexInput = document.getElementById("labRoomHexInput");
+
+  const dot = document.getElementById("previewColorDot");
+  const text = document.getElementById("previewRoomText");
+
+  const roomId = idInput && idInput.value.trim() ? idInput.value.trim() : "Lab";
+  const roomName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "ห้องปฏิบัติการ";
+  const hex = hexInput && hexInput.value.trim() ? hexInput.value.trim() : "#2563eb";
+
+  if (dot) dot.style.background = hex;
+  if (text) text.textContent = `${roomId} (${roomName})`;
+};
+
+window.handleSaveLabRoom = function(e) {
+  if (e) e.preventDefault();
+
+  const oldId = document.getElementById("labRoomOldId").value.trim();
+  const newId = document.getElementById("labRoomIdInput").value.trim();
+  const name = document.getElementById("labRoomNameInput").value.trim();
+  const building = document.getElementById("labRoomBuildingInput").value.trim() || "อาคารวิทยาศาสตร์";
+  let hex = document.getElementById("labRoomHexInput").value.trim();
+
+  if (!newId || !name) {
+    if (typeof showToast === 'function') showToast("กรุณากรอกรหัสห้องและชื่อห้องปฏิบัติการ", "warning");
+    return;
+  }
+
+  if (!hex.startsWith("#")) hex = "#" + hex;
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) {
+    hex = "#2563eb";
+  }
+
+  let rooms = Array.isArray(DASH_LAB_ROOMS) ? DASH_LAB_ROOMS : [];
+
+  // Check ID collisions if renaming or adding new
+  if (oldId !== newId && rooms.some(r => r.id.toLowerCase() === newId.toLowerCase())) {
+    if (typeof showToast === 'function') showToast(`รหัสห้อง "${newId}" มีในระบบแล้ว กรุณาใช้รหัสอื่น`, "error");
+    return;
+  }
+
+  if (oldId) {
+    // Edit existing room
+    const idx = rooms.findIndex(r => r.id === oldId);
+    if (idx !== -1) {
+      rooms[idx] = {
+        ...rooms[idx],
+        id: newId,
+        name: name,
+        building: building,
+        hex: hex
+      };
+
+      // If room was renamed, sync items and layouts
+      if (oldId !== newId) {
+        if (Array.isArray(items)) {
+          items.forEach(it => {
+            if (it.room === oldId) it.room = newId;
+          });
+        }
+        if (typeof labLayouts === 'object' && labLayouts && labLayouts[oldId]) {
+          labLayouts[newId] = labLayouts[oldId];
+          delete labLayouts[oldId];
+        }
+        if (typeof currentCabinetMapRoom !== 'undefined' && currentCabinetMapRoom === oldId) {
+          currentCabinetMapRoom = newId;
+        }
+      }
+    }
+  } else {
+    // Add new room
+    rooms.push({
+      id: newId,
+      name: name,
+      building: building,
+      hex: hex,
+      pillClass: "pill-purple"
+    });
+  }
+
+  DASH_LAB_ROOMS = rooms;
+  try {
+    localStorage.setItem("scip_custom_lab_rooms", JSON.stringify(rooms));
+  } catch (err) {
+    console.warn("Error saving scip_custom_lab_rooms:", err);
+  }
+
+  closeLabRoomModal();
+
+  // Refresh all views
+  renderAdminLabRoomsList();
+  if (typeof renderCabinetRoomTabs === "function") renderCabinetRoomTabs();
+  if (typeof renderCabinetMap === "function") renderCabinetMap();
+  if (typeof renderDashboardLabCalendar === "function") renderDashboardLabCalendar();
+
+  if (typeof showToast === 'function') {
+    showToast(`บันทึกการตั้งค่า "${newId} (${name})" เรียบร้อยแล้ว`, "success");
+  }
+};
+
+window.deleteLabRoom = function(roomId) {
+  if (!roomId) return;
+
+  const count = (items || []).filter(it => it.room === roomId).length;
+  let confirmMsg = `คุณแน่ใจหรือไม่ว่าต้องการลบห้อง "${roomId}" ออกจากระบบ?`;
+  if (count > 0) {
+    confirmMsg += `\n\n⚠️ มีพัสดุ/สารเคมีบันทึกอยู่ในห้องนี้ ${count} รายการ`;
+  }
+
+  if (!confirm(confirmMsg)) return;
+
+  let rooms = Array.isArray(DASH_LAB_ROOMS) ? DASH_LAB_ROOMS : [];
+  rooms = rooms.filter(r => r.id !== roomId);
+  DASH_LAB_ROOMS = rooms;
+
+  try {
+    localStorage.setItem("scip_custom_lab_rooms", JSON.stringify(rooms));
+  } catch (err) {}
+
+  if (typeof currentCabinetMapRoom !== 'undefined' && currentCabinetMapRoom === roomId) {
+    currentCabinetMapRoom = rooms.length > 0 ? rooms[0].id : "Lab 1";
+  }
+
+  renderAdminLabRoomsList();
+  if (typeof renderCabinetRoomTabs === "function") renderCabinetRoomTabs();
+  if (typeof renderCabinetMap === "function") renderCabinetMap();
+  if (typeof renderDashboardLabCalendar === "function") renderDashboardLabCalendar();
+
+  if (typeof showToast === 'function') {
+    showToast(`ลบห้อง "${roomId}" เรียบร้อยแล้ว`, "warning");
+  }
+};
+
+window.resetLabRoomsToDefault = function() {
+  if (!confirm("คุณต้องการคืนค่าห้องปฏิบัติการเริ่มต้น (Lab 1 - Lab 8) ใช่หรือไม่?\nการแก้ไขชื่อ อาคาร และสีที่กำหนดเองทั้งหมดจะถูกรีเซ็ตกลับเป็นค่าเริ่มต้น")) return;
+
+  try {
+    localStorage.removeItem("scip_custom_lab_rooms");
+  } catch (err) {}
+
+  DASH_LAB_ROOMS = JSON.parse(JSON.stringify(DEFAULT_LAB_ROOMS));
+  if (typeof currentCabinetMapRoom !== 'undefined') currentCabinetMapRoom = "Lab 1";
+
+  renderAdminLabRoomsList();
+  if (typeof renderCabinetRoomTabs === "function") renderCabinetRoomTabs();
+  if (typeof renderCabinetMap === "function") renderCabinetMap();
+  if (typeof renderDashboardLabCalendar === "function") renderDashboardLabCalendar();
+
+  if (typeof showToast === 'function') {
+    showToast("คืนค่าห้องปฏิบัติการเริ่มต้นเรียบร้อยแล้ว", "success");
+  }
 };
 
 function renderAuditLogs() {
@@ -20845,16 +21245,8 @@ let dashCalCurrentDate = new Date();
 let dashCalSelectedDate = new Date();
 let dashCalCurrentView = "month"; // "month" | "week" | "day"
 
-const DASH_LAB_ROOMS = [
-  { id: "Lab 1", name: "ห้องปฏิบัติการเคมี", building: "อาคารอัสสัมชัญ", pillClass: "pill-darkblue", hex: "#2563eb" },
-  { id: "Lab 2", name: "ห้องปฏิบัติการฟิสิกส์", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-green", hex: "#16a34a" },
-  { id: "Lab 3", name: "ห้องปฏิบัติการชีววิทยา", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-blue", hex: "#0284c7" },
-  { id: "Lab 4", name: "ห้องปฏิบัติการวิทยาศาสตร์", building: "อาคารราฟาเอล", pillClass: "pill-orange", hex: "#ea580c" },
-  { id: "Lab 5", name: "ห้องศูนย์ สสวท.", building: "อาคารราฟาเอล", pillClass: "pill-yellow", hex: "#eab308" },
-  { id: "Lab 6", name: "ห้องแล็บวิทย์ ม.ต้น", building: "อาคารอัสสัมชัญ", pillClass: "pill-purple", hex: "#9333ea" },
-  { id: "Lab 7", name: "ห้อง STEM CENTER", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-pink", hex: "#db2777" },
-  { id: "Lab 8", name: "ห้องแล็บวิทย์ (EP)", building: "อาคารยอห์น แมรี่", pillClass: "pill-indigo", hex: "#4f46e5" }
-];
+// DASH_LAB_ROOMS is dynamically loaded from getStoredLabRooms() above
+
 
 const THAI_MONTH_NAMES_FULL = [
   "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",

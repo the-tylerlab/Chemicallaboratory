@@ -2795,6 +2795,12 @@
           <span class="btn-text-tablet">จัดการสิทธิ์ผู้ใช้งาน</span>
           <span class="btn-text-mobile">สิทธิ์ผู้ใช้</span>
         </li>
+        <li class="admin-menu-item" data-tab="admin-labs">
+          <i data-lucide="flask-conical"></i>
+          <span class="btn-text-desktop">จัดการห้องปฏิบัติการ</span>
+          <span class="btn-text-tablet">ห้องปฏิบัติการ</span>
+          <span class="btn-text-mobile">ห้องแล็บ</span>
+        </li>
         <li class="admin-menu-item" data-tab="admin-login-banner">
           <i data-lucide="layout-template"></i>
           <span class="btn-text-desktop">แบนเนอร์ & ประกาศหน้าเข้าสู่ระบบ</span>
@@ -3238,6 +3244,67 @@
               </button>
             </div>
           </form>
+        </div>
+        
+        <!-- Laboratory Rooms Management Tab -->
+        <div class="admin-tab" id="admin-labs" style="display: none;">
+          <div class="admin-tab-header" style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 20px;">
+            <div>
+              <h2 class="admin-tab-title" style="display: flex; align-items: center; gap: 8px; margin: 0 0 6px 0; font-size: 19px; font-weight: 700; color: #0f172a;">
+                <i data-lucide="flask-conical" style="width: 20px; height: 20px; color: var(--primary-color);"></i>
+                <span>จัดการห้องปฏิบัติการ (Laboratory Rooms)</span>
+              </h2>
+              <p class="admin-tab-desc" style="margin: 0; color: #64748b; font-size: 13px;">กำหนดชื่อห้อง อาคารสถานที่ และเลือกเฉดสีประจำห้องปฏิบัติการ สำหรับผังตู้จัดเก็บ SHECU และปฏิทิน</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="resetLabRoomsToDefault()" title="คืนค่าห้องปฏิบัติการเริ่มต้นเป็น Lab 1 - Lab 8" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
+                <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+                <span>คืนค่าเริ่มต้น</span>
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="openLabRoomModal()" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600;">
+                <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
+                <span>เพิ่มห้องปฏิบัติการ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- FlowAI Inspired KPI Overview Cards for Labs -->
+          <div class="admin-kpi-grid" style="margin-bottom: 24px;">
+            <div class="admin-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed;">
+                  <i data-lucide="building" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">ห้องแล็บทั้งหมด</span>
+              </div>
+              <div class="admin-kpi-val" id="kpiTotalLabs">0</div>
+            </div>
+
+            <div class="admin-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(2, 132, 199, 0.1); color: #0284c7;">
+                  <i data-lucide="box" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">พัสดุและสารเคมีในห้อง</span>
+              </div>
+              <div class="admin-kpi-val" id="kpiTotalLabItems">0</div>
+            </div>
+
+            <div class="admin-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: #059669;">
+                  <i data-lucide="layout-grid" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">ตู้จัดเก็บตามผัง SHECU</span>
+              </div>
+              <div class="admin-kpi-val" id="kpiTotalLabCabinets">0</div>
+            </div>
+          </div>
+
+          <!-- Grid of Lab Cards -->
+          <div id="adminLabRoomsGrid" class="admin-lab-rooms-grid">
+            <!-- Dynamically populated by renderAdminLabRoomsList() -->
+          </div>
         </div>
         
         <!-- Danger Zone Tab -->
@@ -4898,6 +4965,81 @@
       <div class="modal-footer" style="padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
         <button type="button" class="btn btn-secondary" id="cabinetDetailModalCloseBtn" style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; cursor: pointer;">ปิด</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: ADD / EDIT LAB ROOM (Clean & Friendly)
+       ========================================== -->
+  <div class="modal-overlay" id="labRoomModal" style="display: none; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); z-index: 9999; padding: 16px;">
+    <div class="modal-content" style="background: white; border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.2); overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border-color);">
+      <div style="padding: 20px 24px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #fafbfc;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div id="labModalHeaderIcon" style="width: 40px; height: 40px; border-radius: 12px; background: #f3e8ff; color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <i data-lucide="flask-conical" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div>
+            <h3 id="labRoomModalTitle" style="font-size: 16.5px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.3;">แก้ไขห้องปฏิบัติการ</h3>
+            <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">ปรับแต่งชื่อ อาคารสถานที่ และเลือกเฉดสีประจำห้อง</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeLabRoomModal()" class="btn-icon" style="background: transparent; border: none; cursor: pointer; color: #64748b; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center;" aria-label="ปิด">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <form id="labRoomForm" onsubmit="handleSaveLabRoom(event)" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; margin: 0;">
+        <input type="hidden" id="labRoomOldId" value="">
+
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">รหัสห้อง (Room Identifier) <span style="color: #ef4444;">*</span></label>
+          <input type="text" id="labRoomIdInput" required class="input" placeholder="เช่น Lab 1, Lab 9, STEM" style="width: 100%; border-radius: 10px; padding: 10px 14px; font-size: 13.5px;" oninput="updateLabRoomLivePreview()">
+          <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">รหัสย่อสำหรับใช้เป็นตัวอ้างอิงในระบบพัสดุและผังตู้</span>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">ชื่อห้องปฏิบัติการ <span style="color: #ef4444;">*</span></label>
+          <input type="text" id="labRoomNameInput" required class="input" placeholder="เช่น ห้องปฏิบัติการเคมี, ห้องปฏิบัติการหุ่นยนต์" style="width: 100%; border-radius: 10px; padding: 10px 14px; font-size: 13.5px;" oninput="updateLabRoomLivePreview()">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">อาคาร / สถานที่ตั้ง</label>
+          <input type="text" id="labRoomBuildingInput" class="input" placeholder="เช่น อาคารอัสสัมชัญ ชั้น 3" style="width: 100%; border-radius: 10px; padding: 10px 14px; font-size: 13.5px;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px;">สีประจำห้องปฏิบัติการ (Theme Color)</label>
+          
+          <!-- Palette Presets -->
+          <div id="labColorPresetsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="color" id="labRoomColorPicker" style="width: 44px; height: 38px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; padding: 2px;" onchange="onLabRoomColorPickerChange(this.value)">
+            <input type="text" id="labRoomHexInput" class="input" maxlength="7" placeholder="#2563eb" style="width: 110px; font-family: monospace; font-size: 13px; text-transform: uppercase; font-weight: 600;" oninput="onLabRoomHexInputChange(this.value)">
+            <span style="font-size: 12px; color: #64748b;">กดเลือกสีสำเร็จรูป หรือระบุรหัสสี Hex</span>
+          </div>
+        </div>
+
+        <!-- Live Preview Box -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px;">
+          <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block; margin-bottom: 8px;">ตัวอย่างการแสดงผลบนแท็บห้อง (Live Preview):</span>
+          <div id="labRoomLivePreview" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 24px; border: 1.5px solid var(--border-color); background: white; color: var(--text-dark); font-weight: 600; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <span id="previewColorDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2563eb;"></span>
+            <span id="previewRoomText">Lab 1 (ห้องปฏิบัติการเคมี)</span>
+            <span style="font-size: 11px; padding: 2px 7px; border-radius: 10px; background: #f1f5f9; color: var(--text-muted); font-weight: 600;">19 รายการ</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; padding-top: 12px; border-top: 1px solid #f1f5f9;">
+          <button type="button" onclick="closeLabRoomModal()" class="btn btn-secondary" style="border-radius: 10px; padding: 8px 16px; font-size: 13px;">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary" style="border-radius: 10px; padding: 8px 20px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+            <span>บันทึกห้องปฏิบัติการ</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
