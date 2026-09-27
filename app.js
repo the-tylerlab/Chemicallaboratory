@@ -8311,9 +8311,13 @@ function renderOrdersTable() {
   const grid = document.getElementById("purchaseOrdersGrid");
   const isBackoffice = isUserLoggedIn();
 
+  const isMobileOrTablet = window.innerWidth <= 1024;
   const budgetStatGrid = document.getElementById("budgetStatGrid");
   if (budgetStatGrid) {
-    if (isBackoffice) {
+    if (isMobileOrTablet) {
+      budgetStatGrid.style.gridTemplateColumns = "";
+      budgetStatGrid.style.gap = "";
+    } else if (isBackoffice) {
       budgetStatGrid.style.gridTemplateColumns = "380px 1fr 1fr";
       budgetStatGrid.style.gap = "30px";
     } else {
@@ -8325,7 +8329,7 @@ function renderOrdersTable() {
   if (formCol && grid) {
     if (isBackoffice) {
       formCol.style.display = "block";
-      grid.style.gridTemplateColumns = "380px 1fr";
+      grid.style.gridTemplateColumns = isMobileOrTablet ? "1fr" : "380px 1fr";
     } else {
       formCol.style.display = "none";
       grid.style.gridTemplateColumns = "1fr";
