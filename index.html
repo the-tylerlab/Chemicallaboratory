@@ -2504,7 +2504,9 @@
         <!-- Filter & Search Bar -->
         <div class="directory-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; background: white; padding: 12px 16px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color);">
           <div style="display: flex; align-items: center; gap: 12px;">
-            <span id="shecuOverallStatusBadge" class="shecu-badge badge-safe" style="font-size: 13px;">🟢 มาตรฐาน SHECU: ปลอดภัยทุกตู้</span>
+            <span id="shecuOverallStatusBadge" class="shecu-status-chip safe" style="font-size: 12.5px; padding: 6px 12px; cursor: default;">
+              <span class="status-dot-pulse safe"></span> มาตรฐาน SHECU: ปลอดภัยทุกตู้
+            </span>
             <div class="category-pills" style="display: flex; gap: 8px; flex-wrap: wrap;">
               <span class="badge map-filter-pill active" style="background: var(--primary-color); color: white; cursor: pointer;" onclick="filterCabinetMap('all', this)">ทั้งหมด</span>
               <span class="badge badge-outline map-filter-pill" style="cursor: pointer;" onclick="filterCabinetMap('chemical', this)">ตู้สารเคมี</span>
@@ -2589,7 +2591,7 @@
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">สารเคมีอันตราย</div>
                   </div>
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="shecu-badge badge-warning" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fef2f2; color: #e11d48; font-weight: 600;">🔴 พบสารไม่เข้ากัน</span>
+                    <span class="shecu-status-chip warning"><span class="status-dot-pulse warning"></span> พบสารไม่เข้ากัน</span>
                     <div style="position: relative;" class="dropdown-wrapper">
                       <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-B', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
                         <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
