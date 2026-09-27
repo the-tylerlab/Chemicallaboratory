@@ -16177,8 +16177,7 @@ function renderCabinetMap() {
     if (!isAdminLoggedIn && isHidden) return;
 
     const card = document.createElement("div");
-    card.className = "cabinet-card layout-element";
-    card.style.cssText = `border: ${isHidden ? '1.5px dashed #94a3b8' : '1px solid var(--border-color)'}; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: ${isHidden ? '#f8fafc' : 'white'}; overflow: hidden; display: flex; flex-direction: column; position: relative; opacity: ${isHidden ? '0.78' : '1'};`;
+    card.className = "cabinet-card layout-element" + (isHidden ? " is-hidden-cabinet" : "");
     card.setAttribute("data-id", el.id);
     card.setAttribute("data-type", el.type);
     card.setAttribute("data-subtype", el.subType || (el.name && el.name.includes('เครื่องแก้ว') ? 'glassware_cabinet' : (el.type === 'table' || el.type === 'station' ? 'station' : 'chemical_cabinet')));
@@ -16210,161 +16209,143 @@ function renderCabinetMap() {
       const isGlassware = el.subType === 'glassware_cabinet' || el.type === 'glassware_cabinet' || cabName.includes('เครื่องแก้ว');
 
       let subTitleText = 'ตู้สารเคมี/อุปกรณ์';
+      let avatarIcon = 'archive';
+      let avatarType = 'chemical';
+
       if (isEmergency) {
         subTitleText = 'ตู้ฉุกเฉิน (พักของรอจัดเก็บ)';
+        avatarIcon = 'clock';
+        avatarType = 'emergency';
       } else if (isGlassware) {
         subTitleText = 'ตู้เครื่องแก้ว';
+        avatarIcon = 'beaker';
+        avatarType = 'glassware';
       }
 
-      const badgeEmergency = `<span class="shecu-badge" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fffbeb; color: #d97706; font-weight: 600; border: 1px solid #fde68a;">🟠 ตู้พักของรอจัดเก็บ</span>`;
-      const badgeSafe = isEmergency ? badgeEmergency : `<span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>`;
-      const badgeWarning = `<span class="shecu-badge badge-warning" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #fef2f2; color: #e11d48; font-weight: 600;">🔴 พบสารไม่เข้ากัน</span>`;
-      const badgeHidden = `<span class="shecu-badge badge-hidden" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #f1f5f9; color: #64748b; font-weight: 600; border: 1px solid #cbd5e1; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="eye-off" style="width: 12px; height: 12px;"></i> ซ่อนอยู่</span>`;
-      const headerBg = isEmergency ? '#fffdf5' : '#f8fafc';
-      
-      if (!cab) {
-        const shelfArray = Array.from({ length: Math.max(shelvesCount, 4) }, (_, i) => i + 1);
-        card.innerHTML += `
-          ${editToolbarHtml}
-          <div class="cabinet-header" style="display: flex; flex-direction: column; width: 100%; box-sizing: border-box; padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: ${headerBg};">
-            <div class="cabinet-title-row" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 10px;">
-              <div style="flex: 1; min-width: 0;">
-                <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b; line-height: 1.3;">${cabName}</h3>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${subTitleText}</div>
-              </div>
-              <div style="margin-left: auto; flex-shrink: 0; display: flex; align-items: center;">
-                ${isHidden ? badgeHidden : badgeSafe}
-              </div>
-            </div>
-          </div>
-          <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-              ${shelfArray.map(i => `
-                <div class="cabinet-shelf-item" data-shelf="ชั้น ${i}" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
-                  <span style="font-size: 13px; font-weight: 500; color: #334155;">ชั้น ${i}</span>
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px;">0 รายการ</span>
-                    <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-          <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; font-size: 12px; color: var(--text-muted); background: #f8fafc; gap: 8px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
-              <div style="display: flex; gap: 12px;">
-                <span>🧪 0 สารเคมี</span>
-                <span>⚙️ 0 อุปกรณ์</span>
-              </div>
-              <span style="font-weight: 500; color: #64748b;">รวม: 0</span>
-            </div>
-            <div style="width: 100%; margin-top: 4px;">
-              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                <span>ความจุ: 0 / ${maxCap}</span>
-                ${isAdminLoggedIn ? `
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})"><i data-lucide="edit-2" style="width:12px;height:12px;"></i> แก้ไข</span>
-                    <span style="color: ${isHidden ? '#059669' : '#64748b'}; cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="toggleCabinetVisibility('${activeRoom}', '${el.id}', ${!isHidden}, event)" title="${isHidden ? 'คลิกเพื่อแสดงตู้ให้ทุกคนเห็น' : 'คลิกเพื่อซ่อนตู้นี้'}">
-                      <i data-lucide="${isHidden ? 'eye' : 'eye-off'}" style="width:12px;height:12px;"></i> ${isHidden ? 'แสดงตู้' : 'ซ่อนตู้'}
-                    </span>
-                  </div>
-                ` : ''}
-              </div>
-              <div style="width: 100%; background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden;">
-                <div style="width: 0%; background: #0ea5e9; height: 100%;"></div>
-              </div>
-            </div>
-          </div>
-        `;
+      const hasIncompat = cab && !!cab.hasIncompatible;
+      const chemCount = cab ? cab.items.filter(item => item.category === "สารเคมี").length : 0;
+      const equipCount = cab ? cab.items.filter(item => item.category === "อุปกรณ์").length : 0;
+      const totalItems = chemCount + equipCount;
+      const fillPct = Math.min(100, Math.round((totalItems / maxCap) * 100));
+      const fillClass = totalItems > maxCap ? 'danger' : (fillPct >= 85 ? 'warning' : 'normal');
+
+      // Status badge pill
+      let statusBadgeHtml = '';
+      if (isHidden) {
+        statusBadgeHtml = `<span class="shecu-status-chip hidden"><i data-lucide="eye-off" style="width: 12px; height: 12px;"></i> ซ่อนอยู่</span>`;
+      } else if (hasIncompat) {
+        statusBadgeHtml = `<span class="shecu-status-chip warning"><span class="status-dot-pulse warning"></span> พบสารไม่เข้ากัน</span>`;
+      } else if (isEmergency) {
+        statusBadgeHtml = `<span class="shecu-status-chip emergency"><span class="status-dot-pulse emergency"></span> พักของรอจัดเก็บ</span>`;
       } else {
-        const chemCount = cab.items.filter(item => item.category === "สารเคมี").length;
-        const equipCount = cab.items.filter(item => item.category === "อุปกรณ์").length;
-        const totalItems = chemCount + equipCount;
-        
-        let shelvesHtml = "";
-        const shelfNames = Object.keys(cab.shelves);
-        
-        // Build all shelves and sort naturally (ชั้น 1, ชั้น 2, ชั้น 3, ชั้น 4, ...)
-        const allShelfSet = new Set(shelfNames);
-        const targetShelvesCount = Math.max(shelvesCount, allShelfSet.size, 4);
-        for (let i = 1; i <= targetShelvesCount; i++) {
-          allShelfSet.add(`ชั้น ${i}`);
-        }
-        
-        const displayShelves = Array.from(allShelfSet).sort((a, b) => {
-          const numA = parseInt((a.match(/\d+/) || [0])[0], 10);
-          const numB = parseInt((b.match(/\d+/) || [0])[0], 10);
-          if (numA && numB && numA !== numB) {
-            return numA - numB;
-          }
-          return a.localeCompare(b, 'th', { numeric: true, sensitivity: 'base' });
-        });
-        
-        displayShelves.forEach(sName => {
-          const shelfItems = cab.shelves[sName] || [];
-          shelvesHtml += `
-            <div class="cabinet-shelf-item" data-shelf="${sName}" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
-              <span style="font-size: 13px; font-weight: 500; color: #334155;">${sName}</span>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="item-count" style="background: ${shelfItems.length > 0 ? '#ede9fe' : 'white'}; border: 1px solid ${shelfItems.length > 0 ? '#ddd6fe' : 'var(--border-color)'}; color: ${shelfItems.length > 0 ? '#7c3aed' : 'var(--text-muted)'}; font-weight: ${shelfItems.length > 0 ? '600' : '400'}; font-size: 11px; padding: 2px 8px; border-radius: 12px;">${shelfItems.length} รายการ</span>
-                <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
-              </div>
-            </div>
-          `;
-        });
+        statusBadgeHtml = `<span class="shecu-status-chip safe"><span class="status-dot-pulse safe"></span> จัดเก็บปลอดภัย</span>`;
+      }
 
-        card.innerHTML += `
-          ${editToolbarHtml}
-          <div class="cabinet-header" style="display: flex; flex-direction: column; width: 100%; box-sizing: border-box; padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: ${headerBg};">
-            <div class="cabinet-title-row" style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; gap: 10px;">
-              <div style="flex: 1; min-width: 0;">
-                <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b; line-height: 1.3;">${cabName}</h3>
-                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${subTitleText}</div>
-              </div>
-              <div style="margin-left: auto; flex-shrink: 0; display: flex; align-items: center;">
-                ${isHidden ? badgeHidden : (cab.hasIncompatible ? badgeWarning : badgeSafe)}
-              </div>
-            </div>
-            
-            ${cab.hasIncompatible ? `
-              <div style="background-color: #fef2f2; border: 1px solid #fecdd3; border-left: 3px solid #ef4444; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #dc2626; margin-top: 12px; display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box;">
-                <i data-lucide="alert-triangle" style="width: 16px; height: 16px; flex-shrink: 0; color: #ef4444;"></i>
-                <span style="font-weight: 500;">มีสารเคมีที่ไม่ควรเก็บร่วมกัน!</span>
-              </div>
-            ` : ''}
+      // Incompatible warning callout banner
+      const warningBannerHtml = hasIncompat ? `
+        <div class="cabinet-warning-banner" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')" title="คลิกเพื่อดูรายละเอียดสารที่ไม่ควรเก็บร่วมกัน">
+          <div class="warning-banner-icon">
+            <i data-lucide="alert-triangle"></i>
           </div>
-          <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
-            <div style="display: flex; flex-direction: column; gap: 6px;">
-              ${shelvesHtml}
-            </div>
+          <div class="warning-banner-text">
+            <span class="warning-banner-title">มีสารเคมีที่ไม่ควรเก็บร่วมกัน!</span>
+            <span class="warning-banner-sub">คลิกเพื่อตรวจสอบรายการสารที่ขัดแย้ง</span>
           </div>
-          <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; font-size: 12px; color: var(--text-muted); background: #f8fafc; gap: 8px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
-              <div style="display: flex; gap: 12px;">
-                <span style="font-weight: 600; color: #0284c7;">🧪 ${chemCount} สารเคมี</span>
-                <span style="color: #475569;">⚙️ ${equipCount} อุปกรณ์</span>
-              </div>
-              <span style="font-weight: 500; color: #64748b;">รวม: ${totalItems}</span>
+          <i data-lucide="chevron-right" class="warning-banner-chevron"></i>
+        </div>
+      ` : '';
+
+      // Prepare shelves
+      const shelfNames = cab ? Object.keys(cab.shelves) : [];
+      const allShelfSet = new Set(shelfNames);
+      const targetShelvesCount = Math.max(shelvesCount, allShelfSet.size, 4);
+      for (let i = 1; i <= targetShelvesCount; i++) {
+        allShelfSet.add(`ชั้น ${i}`);
+      }
+
+      const displayShelves = Array.from(allShelfSet).sort((a, b) => {
+        const numA = parseInt((a.match(/\d+/) || [0])[0], 10);
+        const numB = parseInt((b.match(/\d+/) || [0])[0], 10);
+        if (numA && numB && numA !== numB) {
+          return numA - numB;
+        }
+        return a.localeCompare(b, 'th', { numeric: true, sensitivity: 'base' });
+      });
+
+      const shelvesHtml = displayShelves.map((sName, idx) => {
+        const shelfItems = (cab && cab.shelves[sName]) ? cab.shelves[sName] : [];
+        const count = shelfItems.length;
+        const numMatch = sName.match(/\d+/);
+        const shelfNum = numMatch ? numMatch[0] : (idx + 1);
+
+        return `
+          <div class="cabinet-shelf-item" data-shelf="${sName}" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')">
+            <div class="shelf-label-group">
+              <span class="shelf-num-dot">${shelfNum}</span>
+              <span class="shelf-title">${sName}</span>
             </div>
-            <div style="width: 100%; margin-top: 4px;">
-              <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                <span>ความจุ: ${totalItems} / ${maxCap}</span>
-                ${isAdminLoggedIn ? `
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="color: var(--primary-color); cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})"><i data-lucide="edit-2" style="width:12px;height:12px;"></i> แก้ไข</span>
-                    <span style="color: ${isHidden ? '#059669' : '#64748b'}; cursor: pointer; display: flex; align-items: center; gap: 4px;" onclick="toggleCabinetVisibility('${activeRoom}', '${el.id}', ${!isHidden}, event)" title="${isHidden ? 'คลิกเพื่อแสดงตู้ให้ทุกคนเห็น' : 'คลิกเพื่อซ่อนตู้นี้'}">
-                      <i data-lucide="${isHidden ? 'eye' : 'eye-off'}" style="width:12px;height:12px;"></i> ${isHidden ? 'แสดงตู้' : 'ซ่อนตู้'}
-                    </span>
-                  </div>
-                ` : ''}
-              </div>
-              <div style="width: 100%; background: #e2e8f0; border-radius: 4px; height: 6px; overflow: hidden;">
-                <div style="width: ${Math.min(100, (totalItems/maxCap)*100)}%; background: ${totalItems > maxCap ? '#ef4444' : '#0ea5e9'}; height: 100%;"></div>
-              </div>
+            <div class="shelf-action-group">
+              <span class="shelf-count-tag ${count > 0 ? 'has-items' : 'empty'}">${count} รายการ</span>
+              <i data-lucide="chevron-right" class="shelf-chevron-icon"></i>
             </div>
           </div>
         `;
-      }
+      }).join('');
+
+      if (hasIncompat) card.classList.add('has-incompatible');
+      if (isEmergency) card.classList.add('emergency-type');
+
+      card.innerHTML += `
+        ${editToolbarHtml}
+        <div class="cabinet-header">
+          <div class="cabinet-header-top">
+            <div class="cabinet-title-lockup">
+              <div class="cabinet-avatar-icon ${avatarType}">
+                <i data-lucide="${avatarIcon}"></i>
+              </div>
+              <div class="cabinet-text-info">
+                <h3 class="cabinet-title-text" title="${cabName}">${cabName}</h3>
+                <span class="cabinet-subtitle-text">${subTitleText}</span>
+              </div>
+            </div>
+            ${statusBadgeHtml}
+          </div>
+          ${warningBannerHtml}
+        </div>
+
+        <div class="cabinet-shelves">
+          ${shelvesHtml}
+        </div>
+
+        <div class="cabinet-footer">
+          <div class="cabinet-footer-meta">
+            <div class="footer-chips-group">
+              <span class="footer-chip chem"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> ${chemCount} สารเคมี</span>
+              <span class="footer-chip equip"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> ${equipCount} อุปกรณ์</span>
+            </div>
+            <span class="footer-total-label">รวม: <strong>${totalItems}</strong></span>
+          </div>
+
+          <div class="cabinet-capacity-group">
+            <div class="capacity-text-row">
+              <span>ความจุ: <strong>${totalItems}</strong> / ${maxCap} (${fillPct}%)</span>
+              ${isAdminLoggedIn ? `
+                <div class="capacity-admin-actions">
+                  <button type="button" class="btn-cabinet-mini-action edit" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})">
+                    <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> แก้ไข
+                  </button>
+                  <button type="button" class="btn-cabinet-mini-action toggle ${isHidden ? 'unhide' : ''}" onclick="toggleCabinetVisibility('${activeRoom}', '${el.id}', ${!isHidden}, event)" title="${isHidden ? 'แสดงตู้นี้ให้ทุกคนเห็น' : 'ซ่อนตู้นี้จากผู้ใช้ทั่วไป'}">
+                    <i data-lucide="${isHidden ? 'eye' : 'eye-off'}" style="width: 12px; height: 12px;"></i> ${isHidden ? 'แสดงตู้' : 'ซ่อนตู้'}
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+            <div class="capacity-bar-track">
+              <div class="capacity-bar-fill ${fillClass}" style="width: ${fillPct}%;"></div>
+            </div>
+          </div>
+        </div>
+      `;
     }
     
     if (isLayoutEditMode) {
