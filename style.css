@@ -2108,11 +2108,11 @@ input:focus, select:focus, textarea:focus {
     justify-content: center;
   }
 
-  /* 2 Dropdowns + Action Buttons Row (Mobile) */
+  /* 2 Dropdowns (Row 2) + Action Buttons (Row 3) for Mobile - Zero Overflow */
   .table-filter-secondary-group {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto !important;
-    gap: 6px !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
     width: 100% !important;
     align-items: center !important;
     box-sizing: border-box !important;
@@ -2123,9 +2123,9 @@ input:focus, select:focus, textarea:focus {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    height: 36px !important;
-    font-size: 12px !important;
-    padding: 0 18px 0 8px !important;
+    height: 38px !important;
+    font-size: 13px !important;
+    padding: 0 22px 0 10px !important;
     border-radius: 8px !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
@@ -2135,21 +2135,21 @@ input:focus, select:focus, textarea:focus {
 
   .table-filter-secondary-group .filter-buttons-group,
   .filter-buttons-group {
+    grid-column: 1 / -1 !important;
     display: flex !important;
-    gap: 5px !important;
-    width: auto !important;
-    max-width: none !important;
-    margin: 0 !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 2px 0 0 0 !important;
     align-items: center !important;
-    flex-shrink: 0 !important;
   }
 
   .table-filter-secondary-group .filter-buttons-group .btn-icon-action,
   .filter-buttons-group .btn-icon-action {
-    width: 34px !important;
-    height: 34px !important;
-    min-width: 34px !important;
-    max-width: 34px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
     padding: 0 !important;
     border-radius: 8px !important;
     display: inline-flex !important;
@@ -2162,19 +2162,8 @@ input:focus, select:focus, textarea:focus {
   .table-filter-secondary-group .filter-buttons-group .btn-icon-action i,
   .filter-buttons-group .btn-icon-action svg,
   .filter-buttons-group .btn-icon-action i {
-    width: 15px !important;
-    height: 15px !important;
-  }
-
-  @media (max-width: 360px) {
-    .table-filter-secondary-group {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
-    }
-    .table-filter-secondary-group .filter-buttons-group {
-      grid-column: 1 / -1 !important;
-      justify-content: flex-end !important;
-      margin-top: 2px !important;
-    }
+    width: 16px !important;
+    height: 16px !important;
   }
 }
 
