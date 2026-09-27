@@ -778,21 +778,23 @@
           <!-- 4. Stock Forecast & Auto-PO Card -->
           <div class="card-container" id="stockForecastCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-              <h2 class="card-title" style="display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="trending-down" style="width: 16px; height: 16px; color: #ef4444;"></i>
-                <span class="title-desktop">พยากรณ์ความต้องการสต็อกและสารเคมีใกล้หมดเชิงรุก (Stock Forecast & Auto-PO)</span>
-                <span class="title-mobile">พยากรณ์ความต้องการ<span class="keep-word">สต็อก</span> (Auto-PO)</span>
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 10px;">
+                <div class="forecast-header-icon-box">
+                  <i data-lucide="sparkles" style="width: 17px; height: 17px; color: #d97706;"></i>
+                </div>
+                <span class="title-desktop">คาดการณ์พัสดุใกล้หมด & เตรียมสั่งซื้อ (Smart Stock & Auto-PO)</span>
+                <span class="title-mobile">พัสดุใกล้หมด (Auto-PO)</span>
               </h2>
-              <span class="badge-borrowed" id="forecastWarningCount" style="font-weight: 700; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); font-size: 11px; margin-right: 12px; white-space: nowrap;">0 รายการต้องเติมสต็อก</span>
+              <span class="forecast-count-pill warning" id="forecastWarningCount">0 รายการใกล้หมด</span>
             </div>
-            <div class="forecast-card-content" style="padding: 20px 0 0 0;">
-              <p class="forecast-card-desc" style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; text-align: left;">
-                ระบบวิเคราะห์ประวัติความถี่ในการยืม-คืนย้อนหลัง 60 วัน และเปรียบเทียบระดับเตือนสต็อกต่ำ เพื่อคาดการณ์วันที่ของจะหมดคลังเชิงล่วงหน้า 30 วัน พร้อมมีปุ่มสั่งสร้างใบเบิกซื้อพัสดุชั่วคราวให้อัตโนมัติ (Auto-PO)
+            <div class="forecast-card-content" style="padding: 16px 0 0 0;">
+              <p class="forecast-card-desc">
+                วิเคราะห์อัตราการใช้งานย้อนหลัง 60 วัน เพื่อแจ้งเตือนสารเคมีและอุปกรณ์ที่ใกล้หมดล่วงหน้า พร้อมเพิ่มลงในใบสั่งซื้อ (Auto-PO) ได้ในคลิกเดียว
               </p>
               <div class="forecast-list" id="stockForecastList">
                 <div class="empty-state" style="padding: 30px;">
                   <div class="empty-state-icon"><i data-lucide="check-circle" style="color: var(--accent-green);"></i></div>
-                  <div class="empty-state-text" style="color: var(--text-muted);">พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งานล่วงหน้า 30 วัน</div>
+                  <div class="empty-state-text" style="color: var(--text-muted);">พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งาน ไม่พบรายการใกล้หมด</div>
                 </div>
               </div>
             </div>
