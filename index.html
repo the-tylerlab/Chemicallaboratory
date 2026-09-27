@@ -2185,19 +2185,21 @@
               <span>กลับหน้าเพิ่มสาร/อุปกรณ์</span>
             </button>
 
-            <!-- Global Academic Context -->
-            <div class="po-academic-context-box">
-              <div class="context-label">
-                <i data-lucide="calendar" style="width: 15px; height: 15px;"></i>
-                <span>ปีการศึกษา:</span>
+            <!-- Global Academic Context Pill -->
+            <div class="po-academic-context-pill">
+              <div class="po-pill-group">
+                <i data-lucide="calendar" class="po-pill-icon"></i>
+                <span class="po-pill-label">ปีการศึกษา:</span>
+                <input type="text" id="poAcademicYear" class="po-pill-input" placeholder="2567" maxlength="4" value="2567" required>
               </div>
-              <input type="text" id="poAcademicYear" class="form-control" placeholder="2567" maxlength="4" value="2567" required>
-              
-              <span class="context-label" style="margin-left: 2px;">เทอม:</span>
-              <select id="poSemester" class="form-control" required>
-                <option value="1">1</option>
-                <option value="2">2</option>
-              </select>
+              <div class="po-pill-divider"></div>
+              <div class="po-pill-group">
+                <span class="po-pill-label">เทอม:</span>
+                <select id="poSemester" class="po-pill-select" required>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                </select>
+              </div>
             </div>
           </div>
         </header>

@@ -4991,54 +4991,112 @@ input[type="date"]::-webkit-date-and-time-value {
   color: var(--primary-purple) !important;
 }
 
-.po-academic-context-box {
+.po-academic-context-pill {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 8px !important;
   height: 42px !important;
-  padding: 0 12px !important;
-  border-radius: var(--border-radius-md) !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  padding: 0 14px !important;
+  background-color: #ffffff !important;
   border: 1px solid var(--border-color) !important;
-  background-color: var(--bg-body) !important;
+  border-radius: var(--border-radius-md) !important;
   box-sizing: border-box !important;
   white-space: nowrap !important;
+  gap: 8px !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast) !important;
   flex-shrink: 0 !important;
 }
 
-.po-academic-context-box .context-label {
+.po-academic-context-pill:hover {
+  border-color: #cbd5e1 !important;
+}
+
+.po-pill-group {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px !important;
-  color: var(--text-muted) !important;
+  gap: 6px !important;
+}
+
+.po-pill-icon {
+  width: 15px !important;
+  height: 15px !important;
+  color: var(--primary-purple) !important;
+  flex-shrink: 0 !important;
+}
+
+.po-pill-label {
   font-size: 13px !important;
   font-weight: 500 !important;
+  color: var(--text-muted) !important;
   white-space: nowrap !important;
 }
 
-.po-academic-context-box input.form-control,
-.po-academic-context-box select.form-control {
-  height: 30px !important;
-  line-height: 30px !important;
-  font-size: 13.5px !important;
-  font-weight: 600 !important;
-  color: var(--text-main) !important;
-  background-color: #ffffff !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
-  border-radius: 6px !important;
-  padding: 0 8px !important;
+.po-pill-input {
+  width: 52px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  line-height: 28px !important;
+  padding: 0 4px !important;
   margin: 0 !important;
-  box-sizing: border-box !important;
-}
-
-.po-academic-context-box input#poAcademicYear {
-  width: 76px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-main) !important;
   text-align: center !important;
+  background-color: #f1f5f9 !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
 }
 
-.po-academic-context-box select#poSemester {
-  width: 68px !important;
-  padding: 0 24px 0 10px !important;
+.po-pill-input:focus {
+  background-color: #ffffff !important;
+  border-color: var(--primary-purple) !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15) !important;
+}
+
+.po-pill-divider {
+  width: 1px !important;
+  height: 18px !important;
+  background-color: var(--border-color) !important;
+  margin: 0 4px !important;
+  flex-shrink: 0 !important;
+}
+
+.po-pill-select {
+  width: 46px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  max-height: 28px !important;
+  line-height: 28px !important;
+  padding: 0 18px 0 8px !important;
+  margin: 0 !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-main) !important;
+  background-color: #f1f5f9 !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  outline: none !important;
+  box-sizing: border-box !important;
   cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 5px center !important;
+  background-size: 11px !important;
+  transition: all 0.2s ease !important;
+}
+
+.po-pill-select:focus {
+  background-color: #ffffff !important;
+  border-color: var(--primary-purple) !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.15) !important;
 }
 
 #purchaseOrderForm .form-actions {
