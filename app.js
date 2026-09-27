@@ -3407,7 +3407,7 @@ function renderItemsTable() {
     const colSpanVal = isL3Plus ? 8 : 6;
     tableBody.innerHTML = `
       <tr class="empty-state-row">
-        <td colspan="${colSpanVal}" class="empty-state-td">
+        <td colspan="${colSpanVal}" class="empty-state-td" style="text-align: center; vertical-align: middle; padding: 56px 24px;">
           <div class="empty-state-inner">
             <div class="empty-state-icon-circle">
               <i data-lucide="package-search" style="width: 24px; height: 24px; color: #94a3b8;"></i>
