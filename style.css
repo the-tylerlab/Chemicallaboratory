@@ -520,8 +520,8 @@ button.menu-item-link:active {
   display: flex;
   align-items: center;
   width: 100%;
-  height: 28px;
-  padding: 0 14px;
+  height: 26px;
+  padding: 0 10px;
   box-sizing: border-box;
   overflow: hidden;
   white-space: nowrap;
@@ -535,15 +535,15 @@ button.menu-item-link:active {
 }
 
 .footer-bottom-compact .status-dot {
-  width: 8px !important;
-  height: 8px !important;
-  min-width: 8px !important;
-  min-height: 8px !important;
+  width: 7px !important;
+  height: 7px !important;
+  min-width: 7px !important;
+  min-height: 7px !important;
   border-radius: 50%;
   background: #10b981;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
   flex-shrink: 0;
-  margin: 0 6px;
+  margin: 0 10.5px;
   display: inline-block;
   animation: statusDotPulse 2.5s infinite ease-in-out;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -554,13 +554,15 @@ button.menu-item-link:active {
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
   }
   50% {
-    box-shadow: 0 0 0 4.5px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 0 3.5px rgba(16, 185, 129, 0.35);
   }
 }
 
 .footer-bottom-compact .version-text {
-  margin-left: 6px;
-  font-size: 11px;
+  margin-left: 2px;
+  font-size: 10px !important;
+  font-weight: 500;
+  letter-spacing: -0.2px;
   color: #94a3b8;
   overflow: hidden;
   white-space: nowrap;
@@ -734,8 +736,9 @@ button.menu-item-link:active {
 
 .version-text {
   color: #64748b;
-  font-size: 11.5px;
+  font-size: 10px;
   font-weight: 500;
+  letter-spacing: -0.2px;
   white-space: nowrap;
   overflow: hidden;
 }
