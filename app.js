@@ -8581,7 +8581,7 @@ function applyRoleToReportsPanel() {
     if (reportExportCard) reportExportCard.style.display = "none";
     if (labBookingReportCard) labBookingReportCard.style.display = "none";
     if (stockForecastCard) stockForecastCard.style.display = "flex";
-    if (reportsSubtitle) reportsSubtitle.innerText = "พยากรณ์ความต้องการสต็อกและรายการสั่งซื้อพัสดุ (Auto-PO)";
+    if (reportsSubtitle) reportsSubtitle.innerText = "คาดการณ์พัสดุใกล้หมดและเตรียมสั่งซื้อ (Smart Stock & Auto-PO)";
   } else {
     // L3 Admin & L4 Executive: Can view all report cards
     if (chartBookingCard) chartBookingCard.style.display = "flex";
@@ -16589,25 +16589,22 @@ function renderStockForecast() {
 
   if (warningCountSpan) {
     const scopeText = (roleLevel === "L2" && currentUser?.assignedRooms?.length > 0) ? ` (${currentUser.assignedRooms.join(", ")})` : "";
-    warningCountSpan.innerText = `${forecastItems.length} รายการต้องเติมสต็อก${scopeText}`;
     if (forecastItems.length > 0) {
-      warningCountSpan.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
-      warningCountSpan.style.color = "#ef4444";
-      warningCountSpan.style.borderColor = "rgba(239, 68, 68, 0.2)";
+      warningCountSpan.className = "forecast-count-pill warning";
+      warningCountSpan.innerHTML = `<i data-lucide="alert-triangle" style="width: 12px; height: 12px;"></i> <span>ใกล้หมด ${forecastItems.length} รายการ${scopeText}</span>`;
     } else {
-      warningCountSpan.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
-      warningCountSpan.style.color = "#10b981";
-      warningCountSpan.style.borderColor = "rgba(16, 185, 129, 0.2)";
+      warningCountSpan.className = "forecast-count-pill success";
+      warningCountSpan.innerHTML = `<i data-lucide="check-circle-2" style="width: 12px; height: 12px;"></i> <span>สต็อกพร้อมใช้งาน${scopeText}</span>`;
     }
   }
 
   if (forecastItems.length === 0) {
     const emptyNotice = roleLevel === "L2" 
-      ? `พัสดุและสารเคมีในห้องที่คุณรับผิดชอบมีสต็อกเพียงพอสำหรับการใช้งานล่วงหน้า 30 วัน`
-      : `พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งานล่วงหน้า 30 วัน`;
+      ? `พัสดุและสารเคมีในห้องที่คุณรับผิดชอบมีสต็อกเพียงพอ ไม่พบรายการที่ต้องเติมสต็อก`
+      : `พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งาน ไม่พบรายการใกล้หมด`;
     listContainer.innerHTML = `
       <div class="empty-state" style="padding: 30px;">
-        <div class="empty-state-icon"><i data-lucide="check-circle" style="color: var(--accent-green);"></i></div>
+        <div class="empty-state-icon"><i data-lucide="check-circle-2" style="color: var(--accent-green);"></i></div>
         <div class="empty-state-text" style="color: var(--text-muted);">${emptyNotice}</div>
       </div>
     `;
@@ -16625,45 +16622,72 @@ function renderStockForecast() {
     let badgeClass = "";
 
     if (item.qty === 0) {
-      statusLabel = "สินค้าหมดคลัง";
+      statusLabel = "สินค้าหมดแล้ว";
       badgeClass = "critical";
     } else if (days <= 10) {
-      statusLabel = `หมดคลังใน ~${Math.ceil(days)} วัน`;
+      statusLabel = `คาดว่าจะหมดใน ~${Math.ceil(days)} วัน`;
       badgeClass = "critical";
     } else if (days <= 30) {
-      statusLabel = `หมดคลังใน ~${Math.ceil(days)} วัน`;
+      statusLabel = `คาดว่าจะหมดใน ~${Math.ceil(days)} วัน`;
       badgeClass = "warning";
     } else {
-      statusLabel = "ระดับสต็อกต่ำกว่า Min Alert";
+      statusLabel = "สต็อกต่ำกว่าเกณฑ์";
       badgeClass = "warning";
     }
 
     const velocityText = velocity > 0 ? `${velocity.toFixed(2)} ${item.unit || 'ชิ้น'}/วัน` : "ไม่มีประวัติการใช้";
-    const locText = [item.room, item.cabinet, item.shelf].filter(Boolean).join(" > ") || "ไม่ได้ระบุ";
+    const locText = [item.room, item.cabinet, item.shelf].filter(Boolean).join(" • ") || "ไม่ได้ระบุตำแหน่ง";
+
+    const isChem = (item.category || '').includes('สารเคมี');
+    const isGlass = (item.category || '').includes('แก้ว') || (item.category || '').includes('เครื่องแก้ว');
+    const isEq = (item.category || '').includes('อุปกรณ์') || (item.category || '').includes('เครื่องมือ');
+    const catClass = isChem ? 'chemical' : (isGlass ? 'glassware' : (isEq ? 'equipment' : 'general'));
+    const catIcon = isChem ? 'flask-conical' : (isGlass ? 'beaker' : (isEq ? 'microscope' : 'box'));
+
+    const qtyClass = item.qty === 0 ? 'chip-danger' : 'chip-warning';
 
     html += `
       <div class="forecast-item">
-        <div class="forecast-info">
-          <div class="forecast-name">${item.name}</div>
-          <div class="forecast-meta">
-            <span>รหัส: <strong>${item.code}</strong></span>
-            <span class="meta-divider">•</span>
-            <span>สถานที่: <strong>${locText}</strong></span>
+        <div class="forecast-item-lead">
+          <div class="forecast-cat-icon ${catClass}" title="${item.category || 'พัสดุ'}">
+            <i data-lucide="${catIcon}" style="width: 20px; height: 20px;"></i>
           </div>
-          <div class="forecast-meta" style="margin-top: 4px;">
-            <span>คงเหลือ: <strong>${item.qty} ${item.unit || 'หน่วย'}</strong></span>
-            <span class="meta-divider">•</span>
-            <span>ความถี่ในการใช้งาน: <strong>${velocityText}</strong></span>
-            <span class="meta-divider">•</span>
-            <span>ค่าเตือนสต็อกต่ำ: <strong>${item.minAlert || 0} ${item.unit || 'หน่วย'}</strong></span>
+          <div class="forecast-info">
+            <div class="forecast-header-line">
+              <span class="forecast-code-pill">${item.code}</span>
+              <span class="forecast-name">${item.name}</span>
+            </div>
+            
+            <div class="forecast-loc-line">
+              <i data-lucide="map-pin" style="width: 12px; height: 12px; flex-shrink: 0; color: #94a3b8;"></i>
+              <span>${locText}</span>
+            </div>
+
+            <div class="forecast-chips-grid">
+              <span class="forecast-chip ${qtyClass}">
+                <i data-lucide="package" style="width: 12px; height: 12px;"></i>
+                <span>คงเหลือ: <strong>${item.qty} ${item.unit || 'หน่วย'}</strong></span>
+              </span>
+              <span class="forecast-chip chip-neutral">
+                <i data-lucide="bell" style="width: 12px; height: 12px;"></i>
+                <span>จุดเตือน: <strong>${item.minAlert || 0} ${item.unit || 'หน่วย'}</strong></span>
+              </span>
+              <span class="forecast-chip chip-neutral">
+                <i data-lucide="activity" style="width: 12px; height: 12px;"></i>
+                <span>ใช้เฉลี่ย: <strong>${velocityText}</strong></span>
+              </span>
+            </div>
           </div>
         </div>
         
-        <div class="forecast-actions" style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-          <span class="forecast-status-badge ${badgeClass}">${statusLabel}</span>
-          <button type="button" class="btn-auto-po" onclick="addAutoPurchaseOrder('${item.code}')">
+        <div class="forecast-actions">
+          <span class="forecast-status-badge ${badgeClass}">
+            <span class="badge-dot"></span>
+            <span>${statusLabel}</span>
+          </span>
+          <button type="button" class="btn-auto-po" onclick="addAutoPurchaseOrder('${item.code}')" title="สั่งซื้อ ${item.name} ทันที">
             <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
-            <span class="btn-text-desktop">เพิ่มในใบเสนอซื้อ (Add to PO)</span>
+            <span class="btn-text-desktop">สั่งซื้อเพิ่ม (Add to PO)</span>
             <span class="btn-text-mobile">สั่งซื้อ (Auto-PO)</span>
           </button>
         </div>
