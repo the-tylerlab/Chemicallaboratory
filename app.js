@@ -1708,27 +1708,36 @@ function setupSidebarCollapse() {
   const logoContainer = document.querySelector(".logo-container");
   const appContainer = document.querySelector(".app-container");
   
-  // Persisted pin state: defaults to unpinned (auto-collapse hover mode) as requested
+  // Persisted pin state: defaults to pinned (expanded) on desktop
   const isPinnedSaved = localStorage.getItem("sciportal_sidebar_pinned");
-  const shouldBePinned = isPinnedSaved === "true";
+  const shouldBePinned = isPinnedSaved !== "false";
   
   if (appContainer && window.innerWidth > 1024) {
     if (shouldBePinned) {
       appContainer.classList.remove("sidebar-collapsed");
       if (btnToggleSidebar) {
         btnToggleSidebar.classList.add("pinned");
-        btnToggleSidebar.setAttribute("title", "ปลดหมุดเพื่อย่ออัตโนมัติ (Unpin sidebar)");
-        btnToggleSidebar.setAttribute("aria-label", "ปลดหมุดเพื่อย่ออัตโนมัติ (Unpin sidebar)");
+        btnToggleSidebar.setAttribute("title", "ย่อแถบเมนู (Collapse sidebar)");
+        btnToggleSidebar.setAttribute("aria-label", "ย่อแถบเมนู (Collapse sidebar)");
       }
     } else {
       appContainer.classList.add("sidebar-collapsed");
       if (btnToggleSidebar) {
         btnToggleSidebar.classList.remove("pinned");
-        btnToggleSidebar.setAttribute("title", "ตรึงแถบข้าง (Pin sidebar)");
-        btnToggleSidebar.setAttribute("aria-label", "ตรึงแถบข้าง (Pin sidebar)");
+        btnToggleSidebar.setAttribute("title", "ขยายแถบเมนู (Expand sidebar)");
+        btnToggleSidebar.setAttribute("aria-label", "ขยายแถบเมนู (Expand sidebar)");
       }
     }
   }
+
+  // Ensure all menu items have a title tooltip for collapsed mode
+  document.querySelectorAll(".sidebar .menu-item-link").forEach(link => {
+    const span = link.querySelector("span");
+    if (span && !link.getAttribute("title")) {
+      const text = span.textContent.trim();
+      if (text) link.setAttribute("title", text);
+    }
+  });
 
   if (btnToggleSidebar && appContainer) {
     btnToggleSidebar.addEventListener("click", (e) => {
@@ -1742,26 +1751,27 @@ function setupSidebarCollapse() {
       } else {
         const currentlyCollapsed = appContainer.classList.contains("sidebar-collapsed");
         if (currentlyCollapsed) {
-          // Pin it open
+          // Expand & Pin it open
           appContainer.classList.remove("sidebar-collapsed");
           btnToggleSidebar.classList.add("pinned");
-          btnToggleSidebar.setAttribute("title", "ปลดหมุดเพื่อย่ออัตโนมัติ (Unpin sidebar)");
-          btnToggleSidebar.setAttribute("aria-label", "ปลดหมุดเพื่อย่ออัตโนมัติ (Unpin sidebar)");
+          btnToggleSidebar.setAttribute("title", "ย่อแถบเมนู (Collapse sidebar)");
+          btnToggleSidebar.setAttribute("aria-label", "ย่อแถบเมนู (Collapse sidebar)");
           localStorage.setItem("sciportal_sidebar_pinned", "true");
           if (typeof showToast === "function") {
-            showToast("ตรึงแถบเมนูด้านข้างแล้ว (Pinned)", "info");
+            showToast("ขยายแถบเมนูด้านข้างแล้ว (Expanded)", "info");
           }
         } else {
-          // Unpin: return to auto-collapse on hover
+          // Collapse sidebar
           appContainer.classList.add("sidebar-collapsed");
           btnToggleSidebar.classList.remove("pinned");
-          btnToggleSidebar.setAttribute("title", "ตรึงแถบข้าง (Pin sidebar)");
-          btnToggleSidebar.setAttribute("aria-label", "ตรึงแถบข้าง (Pin sidebar)");
+          btnToggleSidebar.setAttribute("title", "ขยายแถบเมนู (Expand sidebar)");
+          btnToggleSidebar.setAttribute("aria-label", "ขยายแถบเมนู (Expand sidebar)");
           localStorage.setItem("sciportal_sidebar_pinned", "false");
           if (typeof showToast === "function") {
-            showToast("ปลดหมุดแล้ว (แถบเมนูจะขยายอัตโนมัติเมื่อเลื่อนเมาส์ไปชี้)", "info");
+            showToast("ย่อแถบเมนูด้านข้างแล้ว (Collapsed)", "info");
           }
         }
+        btnToggleSidebar.blur();
         if (window.lucide) lucide.createIcons();
       }
     });
@@ -1769,7 +1779,19 @@ function setupSidebarCollapse() {
   
   if (logoContainer && appContainer) {
     logoContainer.addEventListener("click", () => {
-      if (typeof navigateToPanel === "function") {
+      if (appContainer.classList.contains("sidebar-collapsed")) {
+        appContainer.classList.remove("sidebar-collapsed");
+        if (btnToggleSidebar) {
+          btnToggleSidebar.classList.add("pinned");
+          btnToggleSidebar.setAttribute("title", "ย่อแถบเมนู (Collapse sidebar)");
+          btnToggleSidebar.setAttribute("aria-label", "ย่อแถบเมนู (Collapse sidebar)");
+        }
+        localStorage.setItem("sciportal_sidebar_pinned", "true");
+        if (typeof showToast === "function") {
+          showToast("ขยายแถบเมนูด้านข้างแล้ว (Expanded)", "info");
+        }
+        if (window.lucide) lucide.createIcons();
+      } else if (typeof navigateToPanel === "function") {
         navigateToPanel("dashboard");
       }
     });

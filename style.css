@@ -169,19 +169,13 @@ button {
   width: calc(100% - 72px);
 }
 
-/* Desktop Hover-to-Expand (Auto-peek) Interaction for Sidebar */
+/* Desktop Collapsed Sidebar */
 @media (min-width: 1025px) {
   .app-container.sidebar-collapsed .sidebar {
     width: 72px;
     z-index: 95;
-    transition: width 0.28s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.28s cubic-bezier(0.2, 0, 0, 1);
-  }
-
-  .app-container.sidebar-collapsed .sidebar:hover,
-  .app-container.sidebar-collapsed .sidebar:focus-within {
-    width: var(--sidebar-width, 250px) !important;
-    box-shadow: 6px 0 28px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
-    background: #ffffff !important;
+    box-shadow: none;
+    transition: width 0.28s cubic-bezier(0.2, 0, 0, 1);
   }
 }
 
@@ -201,13 +195,13 @@ button {
   transition: opacity 0.2s cubic-bezier(0.2, 0, 0, 1), transform 0.24s cubic-bezier(0.2, 0, 0, 1), max-width 0.28s cubic-bezier(0.2, 0, 0, 1), margin 0.28s cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* Rules applied ONLY when sidebar is collapsed AND NOT hovered */
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .logo-text,
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .menu-item-link span,
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) #sidebarLoginText,
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .version-text,
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .menu-badge,
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar .badge {
+/* Rules applied when sidebar is collapsed */
+.app-container.sidebar-collapsed .logo-text,
+.app-container.sidebar-collapsed .menu-item-link span,
+.app-container.sidebar-collapsed #sidebarLoginText,
+.app-container.sidebar-collapsed .version-text,
+.app-container.sidebar-collapsed .menu-badge,
+.app-container.sidebar-collapsed .sidebar .badge {
   opacity: 0 !important;
   max-width: 0 !important;
   width: 0 !important;
@@ -219,7 +213,7 @@ button {
   transition: opacity 0.12s ease 0s, transform 0.12s ease 0s, max-width 0.24s cubic-bezier(0.2, 0, 0, 1) 0s, margin 0.24s cubic-bezier(0.2, 0, 0, 1) 0s !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar-section-title {
+.app-container.sidebar-collapsed .sidebar-section-title {
   height: 1px;
   background: var(--border-color);
   margin: 10px 4px;
@@ -230,18 +224,39 @@ button {
   overflow: hidden;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .btn-sidebar-collapse {
-  display: none !important;
+.app-container.sidebar-collapsed .sidebar-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 2px 0 12px 0 !important;
+  width: 100% !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar-header {
-  justify-content: center;
-  padding: 2px 0 14px 0;
-  width: 100%;
-  display: flex;
+.app-container.sidebar-collapsed .btn-sidebar-collapse {
+  display: flex !important;
+  width: 34px !important;
+  height: 34px !important;
+  margin: 0 auto !important;
+  border-radius: 8px !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #64748b !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .logo-container {
+.app-container.sidebar-collapsed .btn-sidebar-collapse:hover {
+  background: #ede9fe !important;
+  color: var(--primary-purple, #7c3aed) !important;
+  border-color: #ddd6fe !important;
+  transform: scale(1.05);
+}
+
+.app-container.sidebar-collapsed .logo-container {
   margin: 0 auto;
   justify-content: center;
   align-items: center;
@@ -253,7 +268,7 @@ button {
   padding: 0;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .logo-icon-container {
+.app-container.sidebar-collapsed .logo-icon-container {
   margin: 0 auto;
   width: 44px;
   height: 38px;
@@ -263,15 +278,15 @@ button {
   padding: 0;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .logo-icon-container img {
+.app-container.sidebar-collapsed .logo-icon-container img {
   width: 22px !important;
   height: 22px !important;
   margin: 0 auto;
   display: block;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar-menu,
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar-menu-bottom {
+.app-container.sidebar-collapsed .sidebar-menu,
+.app-container.sidebar-collapsed .sidebar-menu-bottom {
   padding-left: 0 !important;
   margin: 0 !important;
   width: 100% !important;
@@ -280,8 +295,8 @@ button {
   align-items: center !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar-menu li,
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar-menu-bottom li {
+.app-container.sidebar-collapsed .sidebar-menu li,
+.app-container.sidebar-collapsed .sidebar-menu-bottom li {
   width: 100% !important;
   display: flex !important;
   justify-content: center !important;
@@ -290,7 +305,7 @@ button {
   padding: 0 !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .menu-item-link {
+.app-container.sidebar-collapsed .menu-item-link {
   width: 44px !important;
   height: 38px !important;
   margin: 0 auto !important;
@@ -303,8 +318,8 @@ button {
   box-sizing: border-box !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .menu-item-link svg,
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .menu-item-link i {
+.app-container.sidebar-collapsed .menu-item-link svg,
+.app-container.sidebar-collapsed .menu-item-link i {
   margin: 0 auto !important;
   width: 20px !important;
   height: 20px !important;
@@ -314,8 +329,8 @@ button {
   flex-shrink: 0 !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar-bottom-menu .menu-item-link,
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar-footer .menu-item-link {
+.app-container.sidebar-collapsed .sidebar-bottom-menu .menu-item-link,
+.app-container.sidebar-collapsed .sidebar-footer .menu-item-link {
   width: 44px !important;
   height: 38px !important;
   margin: 0 auto !important;
@@ -326,14 +341,14 @@ button {
   gap: 0 !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .footer-bottom-compact {
+.app-container.sidebar-collapsed .footer-bottom-compact {
   justify-content: center !important;
   padding: 0 !important;
   height: 24px !important;
   min-height: 24px !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .footer-bottom-compact .version-text {
+.app-container.sidebar-collapsed .footer-bottom-compact .version-text {
   opacity: 0 !important;
   max-width: 0 !important;
   width: 0 !important;
@@ -346,7 +361,7 @@ button {
 }
 
 /* Collapsed Sidebar User Session Card */
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .user-session-card {
+.app-container.sidebar-collapsed .user-session-card {
   width: 44px !important;
   height: 48px !important;
   padding: 0 !important;
@@ -360,12 +375,12 @@ button {
   cursor: pointer;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .user-session-card:hover {
+.app-container.sidebar-collapsed .user-session-card:hover {
   background: #f1f5f9 !important;
   border-color: #e2e8f0 !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .user-session-profile {
+.app-container.sidebar-collapsed .user-session-profile {
   justify-content: center !important;
   align-items: center !important;
   margin: 0 !important;
@@ -373,7 +388,7 @@ button {
   flex: none !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .user-session-info {
+.app-container.sidebar-collapsed .user-session-info {
   opacity: 0 !important;
   max-width: 0 !important;
   width: 0 !important;
@@ -386,7 +401,7 @@ button {
   transition: opacity 0.12s ease 0s, transform 0.12s ease 0s, max-width 0.22s ease 0s !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .btn-sidebar-logout-icon {
+.app-container.sidebar-collapsed .btn-sidebar-logout-icon {
   opacity: 0 !important;
   max-width: 0 !important;
   width: 0 !important;
@@ -398,41 +413,15 @@ button {
   transition: opacity 0.12s ease 0s, transform 0.12s ease 0s, max-width 0.22s ease 0s !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) #sidebarUserRoomsArea {
+.app-container.sidebar-collapsed #sidebarUserRoomsArea {
   display: none !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover):not(:focus-within) .sidebar-user-avatar {
+.app-container.sidebar-collapsed .sidebar-user-avatar {
   width: 34px !important;
   height: 34px !important;
   margin: 0 auto !important;
   font-size: 13px !important;
-}
-
-/* Smooth micro-delay for text reveal on hover */
-@media (min-width: 1025px) {
-  .app-container.sidebar-collapsed .sidebar:hover .logo-text,
-  .app-container.sidebar-collapsed .sidebar:focus-within .logo-text,
-  .app-container.sidebar-collapsed .sidebar:hover .menu-item-link span,
-  .app-container.sidebar-collapsed .sidebar:focus-within .menu-item-link span,
-  .app-container.sidebar-collapsed .sidebar:hover #sidebarLoginText,
-  .app-container.sidebar-collapsed .sidebar:focus-within #sidebarLoginText,
-  .app-container.sidebar-collapsed .sidebar:hover .version-text,
-  .app-container.sidebar-collapsed .sidebar:focus-within .version-text,
-  .app-container.sidebar-collapsed .sidebar:hover .menu-badge,
-  .app-container.sidebar-collapsed .sidebar:focus-within .menu-badge,
-  .app-container.sidebar-collapsed .sidebar:hover .sidebar .badge,
-  .app-container.sidebar-collapsed .sidebar:focus-within .sidebar .badge,
-  .app-container.sidebar-collapsed .sidebar:hover .user-session-info,
-  .app-container.sidebar-collapsed .sidebar:focus-within .user-session-info,
-  .app-container.sidebar-collapsed .sidebar:hover .btn-sidebar-logout-icon,
-  .app-container.sidebar-collapsed .sidebar:focus-within .btn-sidebar-logout-icon {
-    opacity: 1 !important;
-    max-width: 220px !important;
-    pointer-events: auto !important;
-    transform: translateX(0) scale(1) !important;
-    transition: opacity 0.2s cubic-bezier(0.2, 0, 0, 1) 0.06s, transform 0.24s cubic-bezier(0.2, 0, 0, 1) 0.06s, max-width 0.28s cubic-bezier(0.2, 0, 0, 1) !important;
-  }
 }
 
 .sidebar-nav::-webkit-scrollbar {
