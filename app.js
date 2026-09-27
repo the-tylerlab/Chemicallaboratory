@@ -1750,8 +1750,10 @@ function setupSidebarCollapse() {
         document.body.classList.remove("mobile-sidebar-open");
       } else {
         const currentlyCollapsed = appContainer.classList.contains("sidebar-collapsed");
+        const sidebar = document.getElementById("sidebar") || document.querySelector(".sidebar");
         if (currentlyCollapsed) {
           // Expand & Pin it open
+          if (sidebar) sidebar.classList.remove("collapse-animating");
           appContainer.classList.remove("sidebar-collapsed");
           btnToggleSidebar.classList.add("pinned");
           btnToggleSidebar.setAttribute("title", "ย่อแถบเมนู (Collapse sidebar)");
@@ -1761,7 +1763,13 @@ function setupSidebarCollapse() {
             showToast("ขยายแถบเมนูด้านข้างแล้ว (Expanded)", "info");
           }
         } else {
-          // Collapse sidebar
+          // Collapse sidebar & temporarily suppress hover so user sees it collapse immediately
+          if (sidebar) {
+            sidebar.classList.add("collapse-animating");
+            sidebar.addEventListener("mouseleave", () => {
+              sidebar.classList.remove("collapse-animating");
+            }, { once: true });
+          }
           appContainer.classList.add("sidebar-collapsed");
           btnToggleSidebar.classList.remove("pinned");
           btnToggleSidebar.setAttribute("title", "ขยายแถบเมนู (Expand sidebar)");

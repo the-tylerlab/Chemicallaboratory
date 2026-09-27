@@ -179,7 +179,14 @@ button {
     width: 72px;
     z-index: 95;
     box-shadow: none;
-    transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Desktop Hover-to-Expand (Auto-peek) Interaction */
+  .app-container.sidebar-collapsed .sidebar:not(.collapse-animating):hover {
+    width: var(--sidebar-width, 250px) !important;
+    box-shadow: 6px 0 28px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+    background-color: var(--bg-card, #ffffff) !important;
   }
 }
 
@@ -203,13 +210,19 @@ button {
               margin 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Rules applied when sidebar is collapsed */
-.app-container.sidebar-collapsed .logo-text,
-.app-container.sidebar-collapsed .menu-item-link span,
-.app-container.sidebar-collapsed #sidebarLoginText,
-.app-container.sidebar-collapsed .version-text,
-.app-container.sidebar-collapsed .menu-badge,
-.app-container.sidebar-collapsed .sidebar .badge {
+/* Rules applied ONLY when sidebar is collapsed AND NOT hovered */
+.app-container.sidebar-collapsed .sidebar:not(:hover) .logo-text,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .logo-text,
+.app-container.sidebar-collapsed .sidebar:not(:hover) .menu-item-link span,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .menu-item-link span,
+.app-container.sidebar-collapsed .sidebar:not(:hover) #sidebarLoginText,
+.app-container.sidebar-collapsed .sidebar.collapse-animating #sidebarLoginText,
+.app-container.sidebar-collapsed .sidebar:not(:hover) .version-text,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .version-text,
+.app-container.sidebar-collapsed .sidebar:not(:hover) .menu-badge,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .menu-badge,
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar .badge,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar .badge {
   opacity: 0 !important;
   max-width: 0 !important;
   width: 0 !important;
@@ -224,7 +237,8 @@ button {
               margin 0.32s cubic-bezier(0.16, 1, 0.3, 1) 0s !important;
 }
 
-.app-container.sidebar-collapsed .sidebar-section-title {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar-section-title,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar-section-title {
   height: 1px !important;
   background: var(--border-color) !important;
   margin: 10px 4px !important;
@@ -236,7 +250,8 @@ button {
   transition: opacity 0.18s ease, margin 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.app-container.sidebar-collapsed .sidebar-header {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar-header,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar-header {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
@@ -247,7 +262,8 @@ button {
   transition: padding 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.app-container.sidebar-collapsed .btn-sidebar-collapse {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .btn-sidebar-collapse,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .btn-sidebar-collapse {
   display: flex !important;
   width: 34px !important;
   height: 34px !important;
@@ -265,18 +281,21 @@ button {
               color 0.15s ease !important;
 }
 
-.app-container.sidebar-collapsed .btn-sidebar-collapse:hover {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .btn-sidebar-collapse:hover,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .btn-sidebar-collapse:hover {
   background: #ede9fe !important;
   color: var(--primary-purple, #7c3aed) !important;
   border-color: #ddd6fe !important;
   transform: scale(1.06);
 }
 
-.app-container.sidebar-collapsed .btn-sidebar-collapse:active {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .btn-sidebar-collapse:active,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .btn-sidebar-collapse:active {
   transform: scale(0.94);
 }
 
-.app-container.sidebar-collapsed .logo-container {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .logo-container,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .logo-container {
   margin: 0 auto;
   justify-content: center;
   align-items: center;
@@ -290,16 +309,19 @@ button {
   transition: background-color 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.app-container.sidebar-collapsed .logo-container:hover {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .logo-container:hover,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .logo-container:hover {
   background-color: #f1f5f9;
   transform: scale(1.04);
 }
 
-.app-container.sidebar-collapsed .logo-container:active {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .logo-container:active,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .logo-container:active {
   transform: scale(0.96);
 }
 
-.app-container.sidebar-collapsed .logo-icon-container {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .logo-icon-container,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .logo-icon-container {
   margin: 0 auto;
   width: 44px;
   height: 38px;
@@ -309,15 +331,18 @@ button {
   padding: 0;
 }
 
-.app-container.sidebar-collapsed .logo-icon-container img {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .logo-icon-container img,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .logo-icon-container img {
   width: 22px !important;
   height: 22px !important;
   margin: 0 auto;
   display: block;
 }
 
-.app-container.sidebar-collapsed .sidebar-menu,
-.app-container.sidebar-collapsed .sidebar-menu-bottom {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar-menu,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar-menu,
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar-menu-bottom,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar-menu-bottom {
   padding-left: 0 !important;
   margin: 0 !important;
   width: 100% !important;
@@ -326,8 +351,10 @@ button {
   align-items: center !important;
 }
 
-.app-container.sidebar-collapsed .sidebar-menu li,
-.app-container.sidebar-collapsed .sidebar-menu-bottom li {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar-menu li,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar-menu li,
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar-menu-bottom li,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar-menu-bottom li {
   width: 100% !important;
   display: flex !important;
   justify-content: center !important;
@@ -336,7 +363,8 @@ button {
   padding: 0 !important;
 }
 
-.app-container.sidebar-collapsed .menu-item-link {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .menu-item-link,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .menu-item-link {
   width: 44px !important;
   height: 38px !important;
   margin: 0 auto !important;
@@ -353,18 +381,22 @@ button {
               transform 0.12s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.app-container.sidebar-collapsed .menu-item-link:hover {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .menu-item-link:hover,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .menu-item-link:hover {
   background-color: #f1f5f9 !important;
   color: #0f172a !important;
   transform: scale(1.04);
 }
 
-.app-container.sidebar-collapsed .menu-item-link:active {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .menu-item-link:active,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .menu-item-link:active {
   transform: scale(0.96);
 }
 
-.app-container.sidebar-collapsed .menu-item-link svg,
-.app-container.sidebar-collapsed .menu-item-link i {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .menu-item-link svg,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .menu-item-link svg,
+.app-container.sidebar-collapsed .sidebar:not(:hover) .menu-item-link i,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .menu-item-link i {
   margin: 0 auto !important;
   width: 20px !important;
   height: 20px !important;
@@ -374,8 +406,10 @@ button {
   flex-shrink: 0 !important;
 }
 
-.app-container.sidebar-collapsed .sidebar-bottom-menu .menu-item-link,
-.app-container.sidebar-collapsed .sidebar-footer .menu-item-link {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar-bottom-menu .menu-item-link,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar-bottom-menu .menu-item-link,
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar-footer .menu-item-link,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar-footer .menu-item-link {
   width: 44px !important;
   height: 38px !important;
   margin: 0 auto !important;
@@ -386,14 +420,16 @@ button {
   gap: 0 !important;
 }
 
-.app-container.sidebar-collapsed .footer-bottom-compact {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .footer-bottom-compact,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .footer-bottom-compact {
   justify-content: center !important;
   padding: 0 !important;
   height: 24px !important;
   min-height: 24px !important;
 }
 
-.app-container.sidebar-collapsed .footer-bottom-compact .version-text {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .footer-bottom-compact .version-text,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .footer-bottom-compact .version-text {
   opacity: 0 !important;
   max-width: 0 !important;
   width: 0 !important;
@@ -406,7 +442,8 @@ button {
 }
 
 /* Collapsed Sidebar User Session Card */
-.app-container.sidebar-collapsed .user-session-card {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .user-session-card,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .user-session-card {
   width: 44px !important;
   height: 48px !important;
   padding: 0 !important;
@@ -424,17 +461,20 @@ button {
               transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.app-container.sidebar-collapsed .user-session-card:hover {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .user-session-card:hover,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .user-session-card:hover {
   background: #f1f5f9 !important;
   border-color: #e2e8f0 !important;
   transform: scale(1.04);
 }
 
-.app-container.sidebar-collapsed .user-session-card:active {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .user-session-card:active,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .user-session-card:active {
   transform: scale(0.96);
 }
 
-.app-container.sidebar-collapsed .user-session-profile {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .user-session-profile,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .user-session-profile {
   justify-content: center !important;
   align-items: center !important;
   margin: 0 !important;
@@ -442,7 +482,8 @@ button {
   flex: none !important;
 }
 
-.app-container.sidebar-collapsed .user-session-info {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .user-session-info,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .user-session-info {
   opacity: 0 !important;
   max-width: 0 !important;
   width: 0 !important;
@@ -455,7 +496,8 @@ button {
   transition: opacity 0.12s ease 0s, transform 0.12s ease 0s, max-width 0.22s ease 0s !important;
 }
 
-.app-container.sidebar-collapsed .btn-sidebar-logout-icon {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .btn-sidebar-logout-icon,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .btn-sidebar-logout-icon {
   opacity: 0 !important;
   max-width: 0 !important;
   width: 0 !important;
@@ -467,16 +509,39 @@ button {
   transition: opacity 0.12s ease 0s, transform 0.12s ease 0s, max-width 0.22s ease 0s !important;
 }
 
-.app-container.sidebar-collapsed #sidebarUserRoomsArea {
+.app-container.sidebar-collapsed .sidebar:not(:hover) #sidebarUserRoomsArea,
+.app-container.sidebar-collapsed .sidebar.collapse-animating #sidebarUserRoomsArea {
   display: none !important;
 }
 
-.app-container.sidebar-collapsed .sidebar-user-avatar {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .sidebar-user-avatar,
+.app-container.sidebar-collapsed .sidebar.collapse-animating .sidebar-user-avatar {
   width: 34px !important;
   height: 34px !important;
   margin: 0 auto !important;
   font-size: 13px !important;
 }
+
+/* Smooth micro-delay for text reveal on hover in collapsed mode */
+@media (min-width: 1025px) {
+  .app-container.sidebar-collapsed .sidebar:not(.collapse-animating):hover .logo-text,
+  .app-container.sidebar-collapsed .sidebar:not(.collapse-animating):hover .menu-item-link span,
+  .app-container.sidebar-collapsed .sidebar:not(.collapse-animating):hover #sidebarLoginText,
+  .app-container.sidebar-collapsed .sidebar:not(.collapse-animating):hover .version-text,
+  .app-container.sidebar-collapsed .sidebar:not(.collapse-animating):hover .menu-badge,
+  .app-container.sidebar-collapsed .sidebar:not(.collapse-animating):hover .sidebar .badge,
+  .app-container.sidebar-collapsed .sidebar:not(.collapse-animating):hover .user-session-info,
+  .app-container.sidebar-collapsed .sidebar:not(.collapse-animating):hover .btn-sidebar-logout-icon {
+    opacity: 1 !important;
+    max-width: 220px !important;
+    pointer-events: auto !important;
+    transform: translate3d(0, 0, 0) scale(1) !important;
+    transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.05s,
+                transform 0.24s cubic-bezier(0.16, 1, 0.3, 1) 0.05s,
+                max-width 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+}
+
 
 .sidebar-nav::-webkit-scrollbar {
   width: 4px;
