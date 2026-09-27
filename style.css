@@ -2099,17 +2099,22 @@ input:focus, select:focus, textarea:focus {
     flex: 1 1 auto !important;
     min-width: 0 !important;
     position: relative !important;
-    height: 40px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     box-sizing: border-box !important;
   }
 
   .table-filter-bar .search-box-container input,
-  .search-box-container input {
-    height: 40px !important;
+  .search-box-container input,
+  #filterSearch {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     line-height: normal !important;
-    font-size: 13px !important;
-    border-radius: 9px !important;
-    padding: 0 12px 0 34px !important;
+    font-size: 13.5px !important;
+    border-radius: 10px !important;
+    padding: 0 12px 0 38px !important;
     width: 100% !important;
     box-sizing: border-box !important;
     border: 1px solid var(--border-color) !important;
@@ -2121,21 +2126,25 @@ input:focus, select:focus, textarea:focus {
   .search-box-container svg,
   .search-box-container i {
     position: absolute !important;
-    left: 11px !important;
+    left: 12px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    width: 15px !important;
-    height: 15px !important;
+    width: 17px !important;
+    height: 17px !important;
     color: var(--text-muted) !important;
     pointer-events: none !important;
   }
 
   .table-filter-bar .scan-box-container,
   .scan-box-container {
-    flex: 0 0 40px !important;
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 9px !important;
+    flex: 0 0 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    border-radius: 10px !important;
     box-sizing: border-box !important;
     position: relative !important;
     background-color: #ffffff !important;
@@ -2144,6 +2153,7 @@ input:focus, select:focus, textarea:focus {
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
+    margin: 0 !important;
     overflow: hidden !important;
   }
 
@@ -2165,7 +2175,7 @@ input:focus, select:focus, textarea:focus {
     background: none !important;
     padding: 0 !important;
     margin: 0 !important;
-    border-radius: 9px !important;
+    border-radius: 10px !important;
     box-sizing: border-box !important;
   }
 
@@ -2173,11 +2183,11 @@ input:focus, select:focus, textarea:focus {
   .table-filter-bar #btnTriggerCameraScan i,
   #btnTriggerCameraScan svg,
   #btnTriggerCameraScan i {
-    width: 18px !important;
-    height: 18px !important;
+    width: 20px !important;
+    height: 20px !important;
   }
 
-  /* Clean 2nd Row: Category + Status (50/50 flex) + 3 Action Buttons with equal 40px height */
+  /* Clean 2nd Row: Category + Status (50/50 flex) + 3 Action Buttons with equal 44px height */
   .table-filter-secondary-group {
     display: flex !important;
     flex-direction: row !important;
@@ -2195,12 +2205,14 @@ input:focus, select:focus, textarea:focus {
     flex: 1 1 0 !important;
     min-width: 0 !important;
     width: 0 !important;
-    height: 40px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     line-height: normal !important;
-    font-size: 12px !important;
+    font-size: 12.5px !important;
     font-weight: 500 !important;
-    padding: 0 22px 0 10px !important;
-    border-radius: 9px !important;
+    padding: 0 24px 0 10px !important;
+    border-radius: 10px !important;
     border: 1px solid var(--border-color) !important;
     background-color: #ffffff !important;
     color: var(--text-dark) !important;
@@ -2212,7 +2224,7 @@ input:focus, select:focus, textarea:focus {
     appearance: none !important;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
-    background-position: right 7px center !important;
+    background-position: right 8px center !important;
     background-size: 11px 11px !important;
   }
 
@@ -2220,22 +2232,25 @@ input:focus, select:focus, textarea:focus {
   .filter-buttons-group {
     display: flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 5px !important;
     flex: 0 0 auto !important;
     width: auto !important;
     max-width: none !important;
+    height: 44px !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
   .table-filter-secondary-group .filter-buttons-group .btn-icon-action,
   .filter-buttons-group .btn-icon-action {
-    width: 36px !important;
-    height: 40px !important;
-    min-width: 36px !important;
-    max-width: 36px !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     padding: 0 !important;
-    border-radius: 9px !important;
+    border-radius: 10px !important;
     border: 1px solid var(--border-color) !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -2262,8 +2277,8 @@ input:focus, select:focus, textarea:focus {
   .table-filter-secondary-group .filter-buttons-group .btn-icon-action i,
   .filter-buttons-group .btn-icon-action svg,
   .filter-buttons-group .btn-icon-action i {
-    width: 15px !important;
-    height: 15px !important;
+    width: 17px !important;
+    height: 17px !important;
   }
 }
 
@@ -6480,16 +6495,21 @@ input[type="date"]::-webkit-date-and-time-value {
     flex: 1 1 auto !important;
     min-width: 0 !important;
     position: relative !important;
-    height: 40px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     box-sizing: border-box !important;
   }
   .table-filter-bar .search-box-container input,
-  .search-box-container input {
-    height: 40px !important;
+  .search-box-container input,
+  #filterSearch {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     line-height: normal !important;
-    font-size: 13px !important;
-    border-radius: 9px !important;
-    padding: 0 12px 0 34px !important;
+    font-size: 13.5px !important;
+    border-radius: 10px !important;
+    padding: 0 12px 0 38px !important;
     width: 100% !important;
     box-sizing: border-box !important;
     border: 1px solid var(--border-color) !important;
@@ -6500,20 +6520,24 @@ input[type="date"]::-webkit-date-and-time-value {
   .search-box-container svg,
   .search-box-container i {
     position: absolute !important;
-    left: 11px !important;
+    left: 12px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    width: 15px !important;
-    height: 15px !important;
+    width: 17px !important;
+    height: 17px !important;
     color: var(--text-muted) !important;
     pointer-events: none !important;
   }
   .table-filter-bar .scan-box-container,
   .scan-box-container {
-    flex: 0 0 40px !important;
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 9px !important;
+    flex: 0 0 44px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    border-radius: 10px !important;
     box-sizing: border-box !important;
     position: relative !important;
     background-color: #ffffff !important;
@@ -6522,6 +6546,7 @@ input[type="date"]::-webkit-date-and-time-value {
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
+    margin: 0 !important;
     overflow: hidden !important;
   }
   .table-filter-bar .scan-box-container input,
@@ -6541,18 +6566,18 @@ input[type="date"]::-webkit-date-and-time-value {
     background: none !important;
     padding: 0 !important;
     margin: 0 !important;
-    border-radius: 9px !important;
+    border-radius: 10px !important;
     box-sizing: border-box !important;
   }
   .table-filter-bar #btnTriggerCameraScan svg,
   .table-filter-bar #btnTriggerCameraScan i,
   #btnTriggerCameraScan svg,
   #btnTriggerCameraScan i {
-    width: 18px !important;
-    height: 18px !important;
+    width: 20px !important;
+    height: 20px !important;
   }
 
-  /* Row 2: 2 Dropdowns (50/50 flex) + 3 Action Buttons with equal 40px height */
+  /* Row 2: 2 Dropdowns (50/50 flex) + 3 Action Buttons with equal 44px height */
   .table-filter-secondary-group {
     display: flex !important;
     flex-direction: row !important;
@@ -6569,12 +6594,14 @@ input[type="date"]::-webkit-date-and-time-value {
     flex: 1 1 0 !important;
     min-width: 0 !important;
     width: 0 !important;
-    height: 40px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     line-height: normal !important;
-    font-size: 12px !important;
+    font-size: 12.5px !important;
     font-weight: 500 !important;
-    padding: 0 22px 0 10px !important;
-    border-radius: 9px !important;
+    padding: 0 24px 0 10px !important;
+    border-radius: 10px !important;
     border: 1px solid var(--border-color) !important;
     background-color: #ffffff !important;
     color: var(--text-dark) !important;
@@ -6586,28 +6613,31 @@ input[type="date"]::-webkit-date-and-time-value {
     appearance: none !important;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
-    background-position: right 7px center !important;
+    background-position: right 8px center !important;
     background-size: 11px 11px !important;
   }
   .table-filter-secondary-group .filter-buttons-group,
   .filter-buttons-group {
     display: flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 5px !important;
     flex: 0 0 auto !important;
     width: auto !important;
     max-width: none !important;
+    height: 44px !important;
     margin: 0 !important;
     padding: 0 !important;
   }
   .table-filter-secondary-group .filter-buttons-group .btn-icon-action,
   .filter-buttons-group .btn-icon-action {
-    width: 36px !important;
-    height: 40px !important;
-    min-width: 36px !important;
-    max-width: 36px !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
     padding: 0 !important;
-    border-radius: 9px !important;
+    border-radius: 10px !important;
     border: 1px solid var(--border-color) !important;
     display: inline-flex !important;
     align-items: center !important;
@@ -6631,8 +6661,8 @@ input[type="date"]::-webkit-date-and-time-value {
   .table-filter-secondary-group .filter-buttons-group .btn-icon-action i,
   .filter-buttons-group .btn-icon-action svg,
   .filter-buttons-group .btn-icon-action i {
-    width: 15px !important;
-    height: 15px !important;
+    width: 17px !important;
+    height: 17px !important;
   }
   .view-toggle-bar {
     gap: 4px !important;
