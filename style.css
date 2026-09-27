@@ -14516,6 +14516,188 @@ select.admin-filter-select:focus {
   }
 }
 
+/* ==========================================================================
+   ADMIN LAB ROOMS MANAGEMENT (Clean & Friendly)
+   ========================================================================== */
+.admin-lab-rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.admin-lab-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.admin-lab-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
+}
+
+.admin-lab-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-lab-color-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 13.5px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease;
+}
+
+.admin-lab-card:hover .admin-lab-color-avatar {
+  transform: scale(1.06);
+}
+
+.admin-lab-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-lab-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-lab-card-building {
+  font-size: 12px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.admin-lab-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 12px;
+  color: #64748b;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-lab-color-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #334155;
+}
+
+.admin-lab-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.admin-lab-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.admin-lab-btn-action {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 5px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.admin-lab-btn-action.edit {
+  color: var(--primary-color);
+  background: #f5f3ff;
+  border-color: #ede9fe;
+}
+
+.admin-lab-btn-action.edit:hover {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.admin-lab-btn-action.delete {
+  color: #ef4444;
+  background: #fef2f2;
+  border-color: #fee2e2;
+}
+
+.admin-lab-btn-action.delete:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.color-preset-pill {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 2.5px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 0;
+  outline: none;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.color-preset-pill:hover {
+  transform: scale(1.15);
+}
+
+.color-preset-pill.active {
+  border-color: #0f172a;
+  transform: scale(1.12);
+  box-shadow: 0 0 0 2px white, 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
 
 
 
