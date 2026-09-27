@@ -4964,6 +4964,105 @@ input[type="date"]::-webkit-date-and-time-value {
 /* ==========================================================================
    PURCHASE ORDERS SECTION
    ========================================================================== */
+/* Purchase Orders Header Controls */
+.po-header-back-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  height: 42px !important;
+  padding: 0 16px !important;
+  border-radius: var(--border-radius-md) !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: #ffffff !important;
+  color: var(--text-main) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.po-header-back-btn:hover {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: var(--primary-purple) !important;
+}
+
+.po-academic-context-box {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 42px !important;
+  padding: 0 12px !important;
+  border-radius: var(--border-radius-md) !important;
+  border: 1px solid var(--border-color) !important;
+  background-color: var(--bg-body) !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+.po-academic-context-box .context-label {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  color: var(--text-muted) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+}
+
+.po-academic-context-box input.form-control,
+.po-academic-context-box select.form-control {
+  height: 30px !important;
+  line-height: 30px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: var(--text-main) !important;
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 6px !important;
+  padding: 0 8px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.po-academic-context-box input#poAcademicYear {
+  width: 76px !important;
+  text-align: center !important;
+}
+
+.po-academic-context-box select#poSemester {
+  width: 68px !important;
+  padding: 0 24px 0 10px !important;
+  cursor: pointer !important;
+}
+
+#purchaseOrderForm .form-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+#purchaseOrderForm .form-actions .btn {
+  height: 42px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  border-radius: var(--border-radius-md) !important;
+  box-sizing: border-box !important;
+}
+
+#purchaseOrderForm #btnResetPurchaseOrder {
+  height: 42px !important;
+  padding: 0 20px !important;
+}
+
 .purchase-orders-grid {
   display: grid;
   grid-template-columns: 380px 1fr;
@@ -8787,8 +8886,11 @@ body.hide-col-cas .col-cas { display: none !important; }
   }
   .unified-page-header-right {
     width: 100%;
-    justify-content: flex-start;
-    gap: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 }
 @media (max-width: 640px) {
@@ -8797,6 +8899,7 @@ body.hide-col-cas .col-cas { display: none !important; }
   }
   .unified-page-header-right {
     justify-content: flex-start;
+    gap: 10px;
   }
 }
 
