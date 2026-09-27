@@ -137,13 +137,25 @@ button {
   top: 0;
   bottom: 0;
   left: 0;
+/* Sidebar Container */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
   z-index: 50;
   padding: 16px 12px 10px 12px;
   box-shadow: none;
   overflow: hidden;
   height: 100vh;
   box-sizing: border-box;
-  transition: width 0.28s cubic-bezier(0.2, 0, 0, 1);
+  will-change: width;
+  transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1);
   contain: layout paint;
 }
 
@@ -156,7 +168,10 @@ button {
   padding: 32px 32px 96px 32px;
   min-height: 100vh;
   box-sizing: border-box;
-  transition: margin-left 0.28s cubic-bezier(0.2, 0, 0, 1), max-width 0.28s cubic-bezier(0.2, 0, 0, 1), width 0.28s cubic-bezier(0.2, 0, 0, 1);
+  will-change: margin-left, width, max-width;
+  transition: margin-left 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              max-width 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              width 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .app-container.sidebar-collapsed .sidebar {
@@ -175,7 +190,7 @@ button {
     width: 72px;
     z-index: 95;
     box-shadow: none;
-    transition: width 0.28s cubic-bezier(0.2, 0, 0, 1);
+    transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
@@ -191,8 +206,12 @@ button {
   overflow: hidden;
   opacity: 1;
   max-width: 220px;
-  transform: translateX(0);
-  transition: opacity 0.2s cubic-bezier(0.2, 0, 0, 1), transform 0.24s cubic-bezier(0.2, 0, 0, 1), max-width 0.28s cubic-bezier(0.2, 0, 0, 1), margin 0.28s cubic-bezier(0.2, 0, 0, 1);
+  transform: translate3d(0, 0, 0);
+  will-change: opacity, transform, max-width;
+  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.05s,
+              transform 0.26s cubic-bezier(0.16, 1, 0.3, 1) 0.03s,
+              max-width 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              margin 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Rules applied when sidebar is collapsed */
@@ -209,19 +228,23 @@ button {
   margin-right: 0 !important;
   padding: 0 !important;
   pointer-events: none !important;
-  transform: translateX(-8px) !important;
-  transition: opacity 0.12s ease 0s, transform 0.12s ease 0s, max-width 0.24s cubic-bezier(0.2, 0, 0, 1) 0s, margin 0.24s cubic-bezier(0.2, 0, 0, 1) 0s !important;
+  transform: translate3d(-10px, 0, 0) !important;
+  transition: opacity 0.14s ease 0s,
+              transform 0.18s cubic-bezier(0.16, 1, 0.3, 1) 0s,
+              max-width 0.32s cubic-bezier(0.16, 1, 0.3, 1) 0s,
+              margin 0.32s cubic-bezier(0.16, 1, 0.3, 1) 0s !important;
 }
 
 .app-container.sidebar-collapsed .sidebar-section-title {
-  height: 1px;
-  background: var(--border-color);
-  margin: 10px 4px;
-  padding: 0;
-  opacity: 0.6;
-  transform: none;
-  font-size: 0;
-  overflow: hidden;
+  height: 1px !important;
+  background: var(--border-color) !important;
+  margin: 10px 4px !important;
+  padding: 0 !important;
+  opacity: 0.6 !important;
+  transform: none !important;
+  font-size: 0 !important;
+  overflow: hidden !important;
+  transition: opacity 0.18s ease, margin 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .app-container.sidebar-collapsed .sidebar-header {
@@ -232,6 +255,7 @@ button {
   gap: 8px !important;
   padding: 2px 0 12px 0 !important;
   width: 100% !important;
+  transition: padding 0.32s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .app-container.sidebar-collapsed .btn-sidebar-collapse {
@@ -246,14 +270,21 @@ button {
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
-  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              border-color 0.15s ease,
+              color 0.15s ease !important;
 }
 
 .app-container.sidebar-collapsed .btn-sidebar-collapse:hover {
   background: #ede9fe !important;
   color: var(--primary-purple, #7c3aed) !important;
   border-color: #ddd6fe !important;
-  transform: scale(1.05);
+  transform: scale(1.06);
+}
+
+.app-container.sidebar-collapsed .btn-sidebar-collapse:active {
+  transform: scale(0.94);
 }
 
 .app-container.sidebar-collapsed .logo-container {
@@ -266,6 +297,17 @@ button {
   display: flex;
   cursor: pointer;
   padding: 0;
+  border-radius: 8px;
+  transition: background-color 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-container.sidebar-collapsed .logo-container:hover {
+  background-color: #f1f5f9;
+  transform: scale(1.04);
+}
+
+.app-container.sidebar-collapsed .logo-container:active {
+  transform: scale(0.96);
 }
 
 .app-container.sidebar-collapsed .logo-icon-container {
@@ -316,6 +358,20 @@ button {
   gap: 0 !important;
   border-radius: 8px !important;
   box-sizing: border-box !important;
+  transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              color 0.15s ease,
+              transform 0.12s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.app-container.sidebar-collapsed .menu-item-link:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  transform: scale(1.04);
+}
+
+.app-container.sidebar-collapsed .menu-item-link:active {
+  transform: scale(0.96);
 }
 
 .app-container.sidebar-collapsed .menu-item-link svg,
@@ -356,8 +412,8 @@ button {
   padding: 0 !important;
   overflow: hidden !important;
   pointer-events: none !important;
-  transform: translateX(-6px) !important;
-  transition: opacity 0.12s ease 0s, transform 0.12s ease 0s, max-width 0.24s cubic-bezier(0.2, 0, 0, 1) !important;
+  transform: translate3d(-6px, 0, 0) !important;
+  transition: opacity 0.12s ease 0s, transform 0.12s ease 0s, max-width 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 /* Collapsed Sidebar User Session Card */
@@ -373,11 +429,20 @@ button {
   border: 1px solid transparent !important;
   box-shadow: none !important;
   cursor: pointer;
+  transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .app-container.sidebar-collapsed .user-session-card:hover {
   background: #f1f5f9 !important;
   border-color: #e2e8f0 !important;
+  transform: scale(1.04);
+}
+
+.app-container.sidebar-collapsed .user-session-card:active {
+  transform: scale(0.96);
 }
 
 .app-container.sidebar-collapsed .user-session-profile {
@@ -397,7 +462,7 @@ button {
   padding: 0 !important;
   overflow: hidden !important;
   pointer-events: none !important;
-  transform: translateX(-8px) !important;
+  transform: translate3d(-8px, 0, 0) !important;
   transition: opacity 0.12s ease 0s, transform 0.12s ease 0s, max-width 0.22s ease 0s !important;
 }
 
@@ -519,7 +584,7 @@ button {
 
 .btn-sidebar-collapse {
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
   color: #94a3b8;
   display: flex;
@@ -527,9 +592,12 @@ button {
   justify-content: center;
   width: 32px;
   height: 32px;
-  padding: 4px;
+  padding: 0;
   border-radius: 8px;
-  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              border-color 0.15s ease,
+              color 0.15s ease;
   flex-shrink: 0;
 }
 
@@ -538,9 +606,14 @@ button {
   color: var(--text-dark, #0f172a);
 }
 
+.btn-sidebar-collapse:active {
+  transform: scale(0.92);
+}
+
 .btn-sidebar-collapse.pinned {
   color: var(--primary-purple, #7c3aed);
   background: rgba(124, 58, 237, 0.08);
+  border-color: rgba(124, 58, 237, 0.15);
 }
 
 .btn-sidebar-collapse.pinned i,
@@ -554,7 +627,8 @@ button {
   width: 17px;
   height: 17px;
   stroke-width: 2;
-  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.2s;
+  transform-origin: 50% 50%;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
 }
 
 /* Sidebar Menu */
@@ -597,7 +671,11 @@ button.menu-item-link {
   box-sizing: border-box;
   overflow: hidden;
   position: relative;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  will-change: width, transform;
+  transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              color 0.15s ease,
+              transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .menu-item-link:hover,
@@ -608,7 +686,7 @@ button.menu-item-link:hover {
 
 .menu-item-link:active,
 button.menu-item-link:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .menu-item-link.active {
@@ -684,7 +762,13 @@ button.menu-item-link:active {
   box-sizing: border-box;
   width: 100%;
   cursor: pointer;
-  transition: width 0.28s cubic-bezier(0.2, 0, 0, 1), padding 0.28s cubic-bezier(0.2, 0, 0, 1), background-color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.1s ease;
+  will-change: width, padding;
+  transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.18s ease,
+              border-color 0.18s ease,
+              box-shadow 0.18s ease,
+              transform 0.1s ease;
 }
 
 .user-session-card:hover {
@@ -694,7 +778,7 @@ button.menu-item-link:active {
 }
 
 .user-session-card:active {
-  transform: scale(0.99);
+  transform: scale(0.97);
 }
 
 .user-session-profile {
@@ -807,6 +891,20 @@ button.menu-item-link:active {
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
   flex-shrink: 0;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .main-content,
+  .menu-item-link,
+  .logo-text,
+  .menu-item-link span,
+  .user-session-card,
+  .btn-sidebar-collapse,
+  .btn-sidebar-collapse svg,
+  .btn-sidebar-collapse i {
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .footer-bottom-compact:hover .status-dot {
