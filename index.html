@@ -2971,25 +2971,21 @@
               </h2>
               <p class="admin-tab-desc">ปรับแต่งการ์ดแสดงผลฝั่งซ้ายของหน้าต่างเข้าสู่ระบบ กำหนดหัวข้อประกาศ ข้อความประชาสัมพันธ์ โทนสี และภาพห้องปฏิบัติการได้ตามต้องการ</p>
             </div>
-            <div class="admin-tab-header-right"></div>
+            <div class="admin-tab-header-right">
+              <div class="admin-header-toggle-pill">
+                <span class="admin-header-toggle-label">แสดงการ์ดแบนเนอร์:</span>
+                <label class="toggle-switch-wrapper" for="adminLoginBannerEnabled" style="margin: 0;">
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="adminLoginBannerEnabled" checked onchange="updateLoginBannerToggleLabel(this.checked); triggerLoginBannerLivePreview();">
+                    <span class="toggle-slider"></span>
+                  </div>
+                  <span class="admin-toggle-status" id="adminLoginBannerStatusText" style="font-size: 13px; font-weight: 600; color: #1e293b;">เปิดใช้งาน</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           <form id="adminLoginBannerForm" onsubmit="saveAdminLoginBanner(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
-            <!-- Status Toggle -->
-            <div class="admin-toggle-box">
-              <div class="admin-toggle-text-wrap">
-                <div class="admin-toggle-title">แสดงการ์ดแบนเนอร์/ประกาศในหน้าเข้าสู่ระบบ</div>
-                <div class="admin-toggle-desc">หากปิดใช้งาน จะแสดงเฉพาะฟอร์มเข้าสู่ระบบขนาดกะทัดรัด</div>
-              </div>
-              <label class="toggle-switch-wrapper" for="adminLoginBannerEnabled">
-                <div class="toggle-switch">
-                  <input type="checkbox" id="adminLoginBannerEnabled" checked onchange="updateLoginBannerToggleLabel(this.checked); triggerLoginBannerLivePreview();">
-                  <span class="toggle-slider"></span>
-                </div>
-                <span class="admin-toggle-status" id="adminLoginBannerStatusText">เปิดใช้งาน</span>
-              </label>
-            </div>
-
             <div class="admin-form-box">
               <!-- Headline & Subtitle -->
               <div class="admin-form-grid-2col">
@@ -3112,25 +3108,21 @@
               </h2>
               <p class="admin-tab-desc">กำหนดข้อความประกาศ ข่าวสาร หรือข้อควรระวังความปลอดภัย และปรับแต่งความเร็ว ระยะห่าง และธีมสีของแถบตัววิ่ง</p>
             </div>
-            <div class="admin-tab-header-right"></div>
+            <div class="admin-tab-header-right">
+              <div class="admin-header-toggle-pill">
+                <span class="admin-header-toggle-label">แสดงแถบประกาศ:</span>
+                <label class="toggle-switch-wrapper" for="adminAnnouncementEnabled" style="margin: 0;">
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="adminAnnouncementEnabled" checked onchange="updateAnnouncementToggleLabel(this.checked, 'adminAnnouncementStatusText'); triggerAnnouncementLivePreview('admin');">
+                    <span class="toggle-slider"></span>
+                  </div>
+                  <span class="admin-toggle-status" id="adminAnnouncementStatusText" style="font-size: 13px; font-weight: 600; color: #1e293b;">เปิดใช้งาน</span>
+                </label>
+              </div>
+            </div>
           </div>
           
           <form id="adminAnnouncementForm" onsubmit="saveAdminAnnouncement(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
-            <!-- Status Toggle -->
-            <div class="admin-toggle-box">
-              <div class="admin-toggle-text-wrap">
-                <div class="admin-toggle-title">แสดงแถบประกาศหน้าแดชบอร์ด</div>
-                <div class="admin-toggle-desc">เปิดหรือปิดการแสดงแถบประกาศเลื่อนสำหรับผู้ใช้งานทั่วไป</div>
-              </div>
-              <label class="toggle-switch-wrapper" for="adminAnnouncementEnabled">
-                <div class="toggle-switch">
-                  <input type="checkbox" id="adminAnnouncementEnabled" checked onchange="updateAnnouncementToggleLabel(this.checked, 'adminAnnouncementStatusText'); triggerAnnouncementLivePreview('admin');">
-                  <span class="toggle-slider"></span>
-                </div>
-                <span class="admin-toggle-status" id="adminAnnouncementStatusText">เปิดใช้งาน</span>
-              </label>
-            </div>
-
             <!-- Announcement Text Box -->
             <div class="admin-form-box">
               <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
