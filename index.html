@@ -4651,38 +4651,59 @@
 
     <!-- Chat Messages -->
     <div class="chatbot-body" id="chatbotBody">
-      <!-- Welcome Message Card -->
+      <!-- Welcome Message Card (Clean & Friendly Conversational UI) -->
       <div class="chat-message bot welcome-card">
-        <div class="welcome-card-header">
-          <span class="welcome-badge">
-            <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i>
-            <span>ผู้ช่วยห้องปฏิบัติการ</span>
-          </span>
-          <span class="welcome-time">Stoki AI</span>
+        <div class="welcome-card-title">
+          <span>สวัสดีครับ! ยินดีต้อนรับครับ</span>
+          <span class="welcome-wave">👋</span>
         </div>
-        <div class="welcome-card-body">
-          <p class="welcome-greeting">สวัสดีครับ! 👋 ยินดีต้อนรับสู่ระบบคลังแล็บอัจฉริยะ</p>
-          <p class="welcome-desc">
-            ผมคือ <span class="highlight-name">Stoki-bitol (สต็อกบิทอล)</span> พร้อมช่วยจัดการและตรวจสอบสต็อกสารเคมี อุปกรณ์ในห้องแล็บ สามารถพิมพ์คำถามหรือกดเลือกหัวข้อแนะนำด่วนด้านล่างได้เลยครับ
-          </p>
-        </div>
+        <p class="welcome-card-text">
+          ผมคือ <strong class="bot-name-text">Stoki-bitol (สต็อกบิทอล)</strong> ผู้ช่วยประจำห้องปฏิบัติการ พร้อมช่วยคุณค้นหาพัสดุ ตรวจสอบสต็อกสารเคมี และช่วยคำนวณสูตรเคมีได้อย่างรวดเร็วครับ
+        </p>
       </div>
       
-      <!-- Suggestion chips inside body -->
+      <!-- Suggestion Action Cards Grid -->
       <div class="chat-suggestions-title">
         <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #7c3aed;"></i>
-        <span>คำถามหรือคำสั่งที่แนะนำ:</span>
+        <span>คำสั่งและคำถามด่วนที่พบบ่อย:</span>
       </div>
       <div class="chat-suggestions" id="chatSuggestions">
-        <button type="button" class="chat-suggestion-chip" data-query="ค้นหาสารเคมี"><span class="chip-icon">🔍</span><span>ค้นหาพัสดุ</span></button>
-        <button type="button" class="chat-suggestion-chip" data-query="เช็คของใกล้หมดคลัง"><span class="chip-icon">⚠️</span><span>สต็อกต่ำ</span></button>
-        <button type="button" class="chat-suggestion-chip" data-query="เช็คสารเคมีหมดอายุ"><span class="chip-icon">⏰</span><span>หมดอายุ</span></button>
-        <button type="button" class="chat-suggestion-chip" data-query="วิธีใช้งานระบบ"><span class="chip-icon">📖</span><span>แนะนำระบบ</span></button>
-        <button type="button" class="chat-suggestion-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O"><span class="chip-icon">🧪</span><span>ดุลสมการเคมี</span></button>
-        <button type="button" class="chat-suggestion-chip" data-query="คำนวณมวลโมเลกุล"><span class="chip-icon">⚖️</span><span>คำนวณมวลโมเลกุล</span></button>
-        <button type="button" class="chat-suggestion-chip" data-query="ปฐมพยาบาลสารเคมีหก"><span class="chip-icon">🚨</span><span>ปฐมพยาบาลสารหก</span></button>
-        <button type="button" class="chat-suggestion-chip" data-query="เตรียมสารละลาย"><span class="chip-icon">💧</span><span>วิธีเตรียมสารละลาย</span></button>
-        <button type="button" class="chat-suggestion-chip" data-query="จำแนกของเสีย"><span class="chip-icon">🗑️</span><span>จำแนกของเสีย</span></button>
+        <button type="button" class="chat-suggestion-chip" data-query="ค้นหาสารเคมี">
+          <span class="chip-icon">🔍</span>
+          <span class="chip-label">ค้นหาพัสดุ/สารเคมี</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="เช็คของใกล้หมดคลัง">
+          <span class="chip-icon">⚠️</span>
+          <span class="chip-label">ตรวจเช็คสต็อกต่ำ</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="เช็คสารเคมีหมดอายุ">
+          <span class="chip-icon">⏰</span>
+          <span class="chip-label">เช็คสารหมดอายุ</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O">
+          <span class="chip-icon">🧪</span>
+          <span class="chip-label">ดุลสมการเคมี</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="คำนวณมวลโมเลกุล">
+          <span class="chip-icon">⚖️</span>
+          <span class="chip-label">คำนวณมวลโมเลกุล</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="เตรียมสารละลาย">
+          <span class="chip-icon">💧</span>
+          <span class="chip-label">วิธีเตรียมสารละลาย</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="ปฐมพยาบาลสารเคมีหก">
+          <span class="chip-icon">🚨</span>
+          <span class="chip-label">ปฐมพยาบาลสารหก</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="จำแนกของเสีย">
+          <span class="chip-icon">🗑️</span>
+          <span class="chip-label">จำแนกประเภทของเสีย</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip full-width" data-query="วิธีใช้งานระบบ">
+          <span class="chip-icon">📖</span>
+          <span class="chip-label">แนะนำวิธีการใช้งานระบบคลัง</span>
+        </button>
       </div>
     </div>
 
