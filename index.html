@@ -4651,10 +4651,21 @@
 
     <!-- Chat Messages -->
     <div class="chatbot-body" id="chatbotBody">
-      <!-- Welcome Message -->
-      <div class="chat-message bot">
-        <p style="margin: 0 0 10px 0;">สวัสดีครับ! ยินดีต้อนรับสู่ระบบคลังแล็บอัจฉริยะ</p>
-        <p style="margin: 0; line-height: 1.6;">ผมคือ <b style="color: #6d28d9;">Stoki-bitol (สต็อกบิทอล)</b> ผู้ช่วยจัดการสต็อกสารเคมีและอุปกรณ์ห้องแล็บส่วนตัวของคุณ สามารถพิมพ์ค้นหาสารเคมี พัสดุคงคลัง หรือคลิกเลือกข้อสอบถามด่วนด้านล่างได้เลยครับ</p>
+      <!-- Welcome Message Card -->
+      <div class="chat-message bot welcome-card">
+        <div class="welcome-card-header">
+          <span class="welcome-badge">
+            <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i>
+            <span>ผู้ช่วยห้องปฏิบัติการ</span>
+          </span>
+          <span class="welcome-time">Stoki AI</span>
+        </div>
+        <div class="welcome-card-body">
+          <p class="welcome-greeting">สวัสดีครับ! 👋 ยินดีต้อนรับสู่ระบบคลังแล็บอัจฉริยะ</p>
+          <p class="welcome-desc">
+            ผมคือ <span class="highlight-name">Stoki-bitol (สต็อกบิทอล)</span> พร้อมช่วยจัดการและตรวจสอบสต็อกสารเคมี อุปกรณ์ในห้องแล็บ สามารถพิมพ์คำถามหรือกดเลือกหัวข้อแนะนำด่วนด้านล่างได้เลยครับ
+          </p>
+        </div>
       </div>
       
       <!-- Suggestion chips inside body -->
