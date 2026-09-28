@@ -194,7 +194,7 @@ if (localStorage.getItem("force_restore_mock") !== "done_v1") {
 const USER_CREDENTIALS = {
   admin: {
     username: "admin",
-    password: "C#8m!K2$vL" // รหัสผ่านของเจ้าหน้าที่แล็บ (Admin)
+    password: "Admin@Lab2805" // รหัสผ่านของเจ้าหน้าที่แล็บ (Admin)
   },
   teacher: {
     username: "teacher",
@@ -9041,8 +9041,8 @@ function setupLoginHandlers() {
           (password === userPass) ||
           (teacherIdStr && password === teacherIdStr) ||
           (password.toLowerCase() === userPass.toLowerCase()) ||
-          (cleanUser === "admin" && password === "C#8m!K2$vL") ||
-          (password === "C#8m!K2$vL");
+          (cleanUser === "admin" && password === "Admin@Lab2805") ||
+          (password === "Admin@Lab2805");
 
         if (isPassMatch) {
           currentUser = fallbackUser;
@@ -9065,7 +9065,7 @@ function setupLoginHandlers() {
           if (errorText) errorText.innerText = "รหัสผ่านไม่ถูกต้อง (รหัสผ่านเริ่มต้นคือ รหัสประจำตัวครู)";
           return;
         }
-      } else if (cleanUser === "admin" && password === "C#8m!K2$vL") {
+      } else if (cleanUser === "admin" && password === "Admin@Lab2805") {
         // Super admin preset
         currentUser = {
           id: "u_admin",
@@ -16964,7 +16964,7 @@ const DEFAULT_RBAC_USERS = [
     role: "L3",
     roleName: "Manager / System Manager",
     assignedRooms: [],
-    password: "C#8m!K2$vL",
+    password: "Admin@Lab2805",
     initials: "AD",
     color: "#7c3aed"
   },
