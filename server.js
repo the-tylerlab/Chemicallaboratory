@@ -1641,8 +1641,8 @@ app.post('/api/auth/login', async (req, res) => {
       (cleanPass === userPass) ||
       (teacherIdStr && cleanPass === teacherIdStr) ||
       (cleanPass.toLowerCase() === userPass.toLowerCase()) ||
-      (cleanUser === 'admin' && cleanPass === 'C#8m!K2$vL') ||
-      (cleanPass === 'C#8m!K2$vL'); // admin emergency master pass
+      (cleanUser === 'admin' && cleanPass === 'Admin@Lab2805') ||
+      (cleanPass === 'Admin@Lab2805'); // admin emergency master pass
 
     if (isPasswordCorrect) {
       return res.json({
@@ -1669,7 +1669,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   // Fallback for default hardcoded quick accounts
-  if (cleanUser === 'admin' && cleanPass === 'C#8m!K2$vL') {
+  if (cleanUser === 'admin' && cleanPass === 'Admin@Lab2805') {
     return res.json({
       success: true,
       user: {
