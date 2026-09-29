@@ -4,12 +4,23 @@
   "description": "Chemical Laboratory library system and scientific equipment management backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "migrate": "node scripts/migrate.js",
+    "seed:demo": "node scripts/seed_demo.js",
+    "seed:clean": "node scripts/seed_demo.js --clean",
+    "test:security": "node scripts/test_security_suite.js",
+    "test:p1-database": "node scripts/test_p1_database.js",
+    "test:p2-inventory": "node scripts/test_p2_inventory.js",
+    "test:p2-modules": "node scripts/test_p2_modules.js",
+    "test:all": "npm run test:security && npm run test:p1-database && npm run test:p2-inventory && npm run test:p2-modules"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.3",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
+    "dotenv": "^18.0.4",
     "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3",
     "sharp": "^0.35.4",
     "web-push": "^3.6.7"
   },

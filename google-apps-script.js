@@ -68,6 +68,7 @@ function resolveSheetName(tableName) {
 }
 
 function getOrCreateCanonicalSheet(ss, tableName) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
   var resolvedName = resolveSheetName(tableName) || tableName;
   var sheet = ss.getSheetByName(resolvedName);
   if (sheet) return sheet;
@@ -214,6 +215,7 @@ function autoOrganizeCleanSheets() {
 // SETUP 0.DASHBOARD SHEET
 // -------------------------------------------------------------
 function setupDashboardSheet(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
   var dashSheet = ss.getSheetByName(CANONICAL_TABS.DASHBOARD);
   if (!dashSheet) {
     dashSheet = ss.insertSheet(CANONICAL_TABS.DASHBOARD, 0);
@@ -297,13 +299,59 @@ function setupDashboardSheet(ss) {
   dashSheet.getRange('E13').setValue('ยอดรวมงบประมาณจัดซื้อ:');
   dashSheet.getRange('G13').setFormula("=IFERROR(SUM('4.Purchase_Orders'!G2:G), 0)").setFontWeight('bold').setFontColor('#15803d').setHorizontalAlignment('right');
 
+  // กล่องที่ 5: ตารางรายละเอียดบัญชีจำลองสำหรับทดสอบระบบ (System Mock & Archetype Accounts)
+  dashSheet.getRange('A16:G16').merge()
+           .setValue('🧪 รายละเอียดบัญชีจำลองสำหรับทดสอบระบบ (System Mock & Archetype Accounts)')
+           .setBackground('#0f172a')
+           .setFontColor('#ffffff')
+           .setFontSize(11)
+           .setFontWeight('bold')
+           .setHorizontalAlignment('center')
+           .setVerticalAlignment('middle');
+  dashSheet.setRowHeight(16, 32);
+
+  dashSheet.getRange('A17:G17').merge()
+           .setValue('💡 บัญชีจำลองจัดวางไว้ที่แถว 2-8 ของชีต 5.Users สำหรับทดสอบสิทธิ์ L1-L4 โดยไม่รบกวนข้อมูลคุณครูจริง (แถว 9-15)')
+           .setFontSize(9)
+           .setFontColor('#64748b')
+           .setHorizontalAlignment('center');
+  dashSheet.setRowHeight(17, 20);
+
+  // Table Headers
+  dashSheet.getRange('A18').setValue('รหัส (ID)').setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+  dashSheet.getRange('B18').setValue('สิทธิ์').setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+  dashSheet.getRange('C18').setValue('ชื่อบัญชีจำลอง').setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+  dashSheet.getRange('D18:G18').merge().setValue('บทบาทและวัตถุประสงค์ในการทดสอบระบบ').setBackground('#1e293b').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+  dashSheet.setRowHeight(18, 28);
+
+  var mockData = [
+    ['1001', 'L1', 'ครูสมชาย รักการสอน', 'ครูผู้สอนทั่วไป: ทดสอบการจองห้องแล็บ และยื่นคำขอเบิกสารเคมี'],
+    ['1002', 'L1', 'ครูวิภาดา ใฝ่รู้', 'ครูผู้สอนทั่วไป: ทดสอบการตรวจสอบตารางแล็บ และติดตามสถานะคำขอ'],
+    ['2001', 'L2', 'ม.ธนันกรกานต์ พิจารณา', 'เจ้าหน้าที่แล็บเคมี (Lab 1, 6): ทดสอบการอนุมัติคำขอ, จ่ายสารเคมี, ปรับยอดสต็อก'],
+    ['2002', 'L2', 'เจ้าหน้าที่นฤมล', 'เจ้าหน้าที่แล็บฟิสิกส์-ชีวะ (Lab 2, 3): ทดสอบจัดการครุภัณฑ์ บันทึกซ่อมบำรุง'],
+    ['3001', 'L3', 'ดร.นพพร', 'หัวหน้างานแล็บ: ทดสอบบริหารจัดการระบบคลังรวม อนุมัติการจัดซื้อ และดู Audit Logs'],
+    ['4001', 'L4', 'ผอ.เกียรติศักดิ์ วิสัยทัศน์กว้าง', 'ผู้บริหารระดับสูง: ทดสอบภาพรวมสถิติ แดชบอร์ดสรุปผล และอนุมัติงบประมาณ PO'],
+    ['10797', 'L1', 'ม.ธนันกรกานต์ พิจารณา', 'ครูผู้สอนทั่วไป: ทดสอบบัญชีคุณครูประจำกลุ่มสาระวิทย์']
+  ];
+
+  for (var mIdx = 0; mIdx < mockData.length; mIdx++) {
+    var rNum = 19 + mIdx;
+    var row = mockData[mIdx];
+    var bg = (mIdx % 2 === 0) ? '#f8fafc' : '#ffffff';
+    dashSheet.getRange('A' + rNum).setValue(row[0]).setFontWeight('bold').setHorizontalAlignment('center').setBackground(bg);
+    dashSheet.getRange('B' + rNum).setValue(row[1]).setFontWeight('bold').setFontColor(row[1] === 'L4' ? '#be185d' : (row[1] === 'L3' ? '#7c3aed' : (row[1] === 'L2' ? '#ea580c' : '#0284c7'))).setHorizontalAlignment('center').setBackground(bg);
+    dashSheet.getRange('C' + rNum).setValue(row[2]).setBackground(bg);
+    dashSheet.getRange('D' + rNum + ':G' + rNum).merge().setValue(row[3]).setFontColor('#334155').setBackground(bg);
+    dashSheet.setRowHeight(rNum, 24);
+  }
+
   // ปรับขนาดและสไตล์ของตารางแดชบอร์ด
-  dashSheet.setColumnWidth(1, 230);
-  dashSheet.setColumnWidth(2, 20);
-  dashSheet.setColumnWidth(3, 100);
-  dashSheet.setColumnWidth(4, 30);
-  dashSheet.setColumnWidth(5, 230);
-  dashSheet.setColumnWidth(6, 20);
+  dashSheet.setColumnWidth(1, 160);
+  dashSheet.setColumnWidth(2, 60);
+  dashSheet.setColumnWidth(3, 220);
+  dashSheet.setColumnWidth(4, 80);
+  dashSheet.setColumnWidth(5, 150);
+  dashSheet.setColumnWidth(6, 60);
   dashSheet.setColumnWidth(7, 100);
 }
 
@@ -311,6 +359,7 @@ function setupDashboardSheet(ss) {
 // SETUP & MIGRATE BOOKINGS SHEET (3.Bookings)
 // -------------------------------------------------------------
 function setupAndMigrateBookingsSheet(ss) {
+  if (!ss) ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(CANONICAL_TABS.BOOKINGS) || ss.getSheetByName('Bookings');
   if (!sheet) {
     sheet = ss.insertSheet(CANONICAL_TABS.BOOKINGS, 3);
@@ -709,8 +758,22 @@ function cleanAllMockAndSeedData() {
     for (var i = data.length - 1; i >= 0; i--) {
       var uId = String(data[i][0] || '');
       var tId = String(data[i][1] || '');
-      if (obsoleteMockIds.indexOf(tId) !== -1 || obsoleteMockIds.indexOf(uId.replace('u_', '')) !== -1) {
+      if (obsoleteMockIds.indexOf(tId) !== -1 || obsoleteMockIds.indexOf(uId.replace('u_', '')) !== -1 || tId.indexOf('T_P1_') === 0 || uId.indexOf('u_T_P1_') === 0) {
         uSheet.deleteRow(i + 2);
+        cleanedCount++;
+      }
+    }
+  }
+
+  // 4. Clean 1.Items (Remove non-CHEM test items)
+  var itemSheet = ss.getSheetByName(CANONICAL_TABS.ITEMS) || ss.getSheetByName('1.Items');
+  if (itemSheet && itemSheet.getLastRow() >= 2) {
+    var lastRow = itemSheet.getLastRow();
+    var data = itemSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = data.length - 1; i >= 0; i--) {
+      var code = String(data[i][0] || '').trim();
+      if (code && code.indexOf('CHEM-') !== 0) {
+        itemSheet.deleteRow(i + 2);
         cleanedCount++;
       }
     }
@@ -746,6 +809,14 @@ function doPost(e) {
     }
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    if (action === 'SETUP_DASHBOARD' || action === 'REFRESH_DASHBOARD' || action === 'UPDATE_DASHBOARD') {
+      setupDashboardSheet(ss);
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: "success", 
+        message: "Dashboard successfully updated with mock accounts table." 
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
 
     if (action === 'GET_DATA' || action === 'FETCH' || action === 'READ') {
       var sheet = ss.getSheetByName(table);
