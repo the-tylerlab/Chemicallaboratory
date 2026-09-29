@@ -388,9 +388,47 @@ if (typeof supabase !== 'undefined' && supabaseUrl !== 'YOUR_SUPABASE_URL') {
 }
 
 // Global API settings
-const API_BASE = (typeof window !== "undefined" && window.location && window.location.origin && window.location.origin.startsWith("http"))
-  ? `${window.location.origin}/api`
-  : "http://localhost:3000/api";
+function resolveApiBase() {
+  if (typeof window !== "undefined" && window.location) {
+    const { hostname, port, protocol } = window.location;
+    if (port && port !== '3000') {
+      return `${protocol}//${hostname}:3000/api`;
+    }
+    if (protocol === 'file:') {
+      return 'http://localhost:3000/api';
+    }
+    return `${window.location.origin}/api`;
+  }
+  return "http://localhost:3000/api";
+}
+const API_BASE = resolveApiBase();
+window.API_BASE = API_BASE;
+
+function switchDashboardAlertTab(tabName) {
+  const tabs = ['urgent', 'overdue', 'damaged'];
+  tabs.forEach(t => {
+    const tabEl = document.getElementById(`tab-${t}`);
+    const btn = document.querySelector(`.alert-tab-btn[data-tab="${t}"]`);
+    if (tabEl) {
+      if (t === tabName) {
+        tabEl.style.display = 'flex';
+        tabEl.classList.add('active');
+      } else {
+        tabEl.style.display = 'none';
+        tabEl.classList.remove('active');
+      }
+    }
+    if (btn) {
+      if (t === tabName) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+  });
+}
+window.switchDashboardAlertTab = switchDashboardAlertTab;
+
 const GOOGLE_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
 
 async function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
@@ -2053,18 +2091,97 @@ function getRoomCodeFromName(name) {
 }
 
 function applyDashboardRoleLayout() {
-  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
-  const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
-  
+  const roleLevel = (typeof window !== "undefined" && window.activeRolePreview)
+    ? window.activeRolePreview
+    : (typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0");
+
+  const isL3Admin = (roleLevel === "L3" || roleLevel === "admin");
+  const isL2Staff = (roleLevel === "L2" || roleLevel === "staff");
+  const isL1Teacher = (roleLevel === "L1" || roleLevel === "teacher");
+  const isL4Executive = (roleLevel === "L4" || roleLevel === "executive");
+  const isGuest = (!isL3Admin && !isL2Staff && !isL1Teacher && !isL4Executive);
+
   const dashboardPanel = document.getElementById("panel-dashboard");
+  const dashboardGrid = document.querySelector(".dashboard-grid");
+
+  // 1. Calendar ordering: Guest (L0) and Teacher (L1) have Calendar & Schedule at TOP
   if (dashboardPanel) {
-    if (!isL3Plus) {
+    if (isGuest || isL1Teacher) {
       dashboardPanel.classList.add("role-calendar-top");
     } else {
       dashboardPanel.classList.remove("role-calendar-top");
     }
   }
+
+  // 2. Dashboard Grid Mode: Admin (L3) and Staff (L2) get admin-mode
+  if (dashboardGrid) {
+    if (isL3Admin || isL2Staff) {
+      dashboardGrid.classList.add("admin-mode");
+      dashboardGrid.classList.remove("student-mode");
+    } else {
+      dashboardGrid.classList.add("student-mode");
+      dashboardGrid.classList.remove("admin-mode");
+    }
+  }
+
+  // 3. Quick buttons visibility
+  const quickBtnAddItem = document.getElementById("quickBtnAddItem");
+  const quickBtnAdmin = document.getElementById("quickBtnAdmin");
+  if (quickBtnAddItem) {
+    quickBtnAddItem.style.display = (isL3Admin || isL2Staff) ? "flex" : "none";
+  }
+  if (quickBtnAdmin) {
+    quickBtnAdmin.style.display = isL3Admin ? "flex" : "none";
+  }
+
+  // 4. Pending Requests & Alerts
+  const pendingRequestsCard = document.getElementById("pendingRequestsCard");
+  const unifiedAlertsCard = document.getElementById("unifiedAlertsCard");
+  if (pendingRequestsCard) {
+    pendingRequestsCard.style.display = (isL3Admin || isL2Staff) ? "flex" : "none";
+    if ((isL3Admin || isL2Staff) && typeof renderPendingRequests === "function") {
+      renderPendingRequests();
+    }
+  }
+  if (unifiedAlertsCard) {
+    unifiedAlertsCard.style.display = (isL3Admin || isL2Staff) ? "flex" : "none";
+    if ((isL3Admin || isL2Staff) && typeof renderDashboardUrgentAlerts === "function") {
+      renderDashboardUrgentAlerts();
+    }
+  }
+
+  // 5. Today's Lab Status Card
+  const todayLabStatusCard = document.getElementById("todayLabStatusCard");
+  if (todayLabStatusCard) {
+    if (isL3Admin) {
+      todayLabStatusCard.style.display = "none";
+    } else {
+      todayLabStatusCard.style.display = "block";
+      if (typeof renderTodayLabStatus === "function") {
+        renderTodayLabStatus();
+      }
+    }
+  }
+
+  // 6. Admin Ticker Edit button
+  const btnTickerAdminEdit = document.getElementById("btnTickerAdminEdit");
+  if (btnTickerAdminEdit) {
+    btnTickerAdminEdit.style.display = isL3Admin ? "inline-flex" : "none";
+  }
+
+  // 7. Executive Banner
+  const executiveBanner = document.getElementById("executiveReadOnlyBanner");
+  if (executiveBanner) {
+    executiveBanner.style.display = isL4Executive ? "flex" : "none";
+  }
+
+  // 8. Lucide Icons
+  if (typeof lucide !== "undefined" && lucide.createIcons) {
+    lucide.createIcons();
+  }
 }
+window.applyDashboardRoleLayout = applyDashboardRoleLayout;
+
 
 // ==========================================================================
 // RENDER VIEWS & DYNAMIC TABLES
@@ -2086,10 +2203,14 @@ function updateUI() {
   });
 
   // Render Dashboard statistics
-  document.getElementById("dashboardValTotal").innerText = stats.total;
-  document.getElementById("dashboardValExpired").innerText = stats.expired;
-  document.getElementById("dashboardValLowStock").innerText = stats.lowStock;
-  document.getElementById("dashboardValNearExpiry").innerText = stats.nearExpiry;
+  const elTotal = document.getElementById("dashboardValTotal") || document.getElementById("statTotalItems");
+  const elExpired = document.getElementById("dashboardValExpired") || document.getElementById("statExpiredItems");
+  const elLowStock = document.getElementById("dashboardValLowStock") || document.getElementById("statLowStockItems");
+  const elNearExpiry = document.getElementById("dashboardValNearExpiry") || document.getElementById("statNearExpiryItems");
+  if (elTotal) elTotal.innerText = stats.total;
+  if (elExpired) elExpired.innerText = stats.expired;
+  if (elLowStock) elLowStock.innerText = stats.lowStock;
+  if (elNearExpiry) elNearExpiry.innerText = stats.nearExpiry;
 
   // Render Sidebar Alert Badge count if there are expired/near expiry/low stock items or unread feedbacks
   const unreadFeedbacks = window.feedbacksData.filter(f => f.status !== "resolved").length;
@@ -2306,6 +2427,16 @@ function openReportIssueModal(defaultRoom = "") {
     const titleInput = document.getElementById("swalIssueTitle");
     if (titleInput) {
       titleInput.value = categoryText;
+      titleInput.focus();
+    }
+  };
+
+  window.selectUrgencyPill = function(btn, urgencyVal) {
+    document.querySelectorAll('.urgency-pill-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const urgencyInput = document.getElementById("swalIssueUrgency");
+    if (urgencyInput) {
+      urgencyInput.value = urgencyVal;
     }
   };
 
@@ -2322,19 +2453,23 @@ function openReportIssueModal(defaultRoom = "") {
             <i data-lucide="life-buoy" style="width: 22px; height: 22px; color: #7c3aed;"></i>
           </div>
           <div class="report-issue-title-wrap">
-            <h3 class="report-issue-title">แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</h3>
-            <p class="report-issue-subtitle">แจ้งปัญหาเพื่อให้เจ้าหน้าที่และผู้ดูแลเข้าตรวจสอบได้อย่างรวดเร็ว</p>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h3 class="report-issue-title">แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</h3>
+              <span class="report-issue-badge">Helpdesk</span>
+            </div>
+            <p class="report-issue-subtitle">ส่งเรื่องให้เจ้าหน้าที่และผู้ดูแลเข้าตรวจสอบและแก้ไขอย่างรวดเร็ว</p>
           </div>
         </div>
 
-        <!-- User Info Card -->
-        <div class="report-issue-user-card">
-          <div class="report-issue-user-info">
-            <div class="report-issue-avatar">${(userName || "U").slice(0, 2).toUpperCase()}</div>
-            <div class="report-issue-user-text">
-              <span class="report-issue-user-name">${userName}</span>
-              <span class="report-issue-role-tag">${userBadge.name} (${roleLevel})</span>
+        <!-- Sleek Reporter Bar -->
+        <div class="report-issue-user-bar">
+          <div class="report-issue-user-bar-left">
+            <div class="report-issue-user-bar-avatar">
+              <i data-lucide="user" style="width: 12px; height: 12px;"></i>
             </div>
+            <span class="report-issue-user-label">ผู้แจ้งเรื่อง:</span>
+            <span class="report-issue-user-bar-name">${userName}</span>
+            <span class="report-issue-user-bar-role">${userBadge.name}</span>
           </div>
           <div class="report-issue-status-badge">
             <span class="status-dot"></span> พร้อมส่งเรื่อง
@@ -2343,28 +2478,69 @@ function openReportIssueModal(defaultRoom = "") {
 
         <!-- Quick Categories -->
         <div class="report-issue-category-section">
-          <label class="report-issue-field-label">
-            <span>หมวดหมู่ปัญหาด่วน</span>
-            <span class="report-issue-hint">(คลิกเพื่อเลือกหัวข้ออัตโนมัติ)</span>
-          </label>
+          <div class="report-issue-category-header">
+            <label class="report-issue-field-label">
+              <i data-lucide="sparkles" class="field-icon"></i>
+              <span>หมวดหมู่ปัญหาด่วน</span>
+            </label>
+            <span class="report-issue-hint">คลิกเพื่อเลือกหัวข้ออัตโนมัติ</span>
+          </div>
           <div class="report-issue-categories">
-            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'สารเคมี / เครื่องแก้วชำรุด')">🧪 สารเคมี / เครื่องแก้ว</button>
-            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'อุปกรณ์ไฟฟ้า / เครื่องมือวิทยาศาสตร์')">🔌 อุปกรณ์ / ไฟฟ้า</button>
-            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'แอร์ / น้ำประปา / อาคารสถานที่')">❄️ แอร์ / อาคาร</button>
-            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'ระบบโปรแกรม / บัญชีผู้ใช้งานขัดข้อง')">💻 ซอฟต์แวร์ / ระบบ</button>
-            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'การเบิก-ยืม / คืนอุปกรณ์')">📦 เบิกยืม / คืน</button>
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'สารเคมี / เครื่องแก้วชำรุด')">
+              <span class="chip-emoji">🧪</span> <span>สารเคมี / แก้ว</span>
+            </button>
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'อุปกรณ์ไฟฟ้า / เครื่องมือวิทยาศาสตร์')">
+              <span class="chip-emoji">🔬</span> <span>เครื่องมือ / ไฟฟ้า</span>
+            </button>
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'แอร์ / น้ำประปา / อาคารสถานที่')">
+              <span class="chip-emoji">❄️</span> <span>แอร์ / อาคาร</span>
+            </button>
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'ระบบโปรแกรม / บัญชีผู้ใช้งานขัดข้อง')">
+              <span class="chip-emoji">💻</span> <span>ซอฟต์แวร์ / ระบบ</span>
+            </button>
+            <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'การเบิก-ยืม / คืนอุปกรณ์')">
+              <span class="chip-emoji">📦</span> <span>เบิกยืม / คืน</span>
+            </button>
           </div>
         </div>
 
-        <!-- Location Dropdown -->
-        <div class="report-issue-form-group">
-          <label class="report-issue-field-label" for="swalIssueRoom">
-            <i data-lucide="map-pin" class="field-icon"></i>
-            <span>สถานที่ / ห้องปฏิบัติการ</span>
-          </label>
-          <select id="swalIssueRoom" class="report-issue-select">
-            ${roomOptions}
-          </select>
+        <!-- 2-Column: Location & Urgency -->
+        <div class="report-issue-grid-2col">
+          <!-- Location Dropdown -->
+          <div class="report-issue-form-group">
+            <label class="report-issue-field-label" for="swalIssueRoom">
+              <i data-lucide="map-pin" class="field-icon"></i>
+              <span>สถานที่ / ห้องแล็บ</span>
+            </label>
+            <div class="report-issue-select-wrap">
+              <select id="swalIssueRoom" class="report-issue-select">
+                ${roomOptions}
+              </select>
+            </div>
+          </div>
+
+          <!-- Urgency Level (3-Pill Interactive Segmented Control) -->
+          <div class="report-issue-form-group">
+            <label class="report-issue-field-label">
+              <i data-lucide="clock" class="field-icon"></i>
+              <span>ระดับความเร่งด่วน</span>
+            </label>
+            <div class="urgency-segmented-group" id="urgencyGroup">
+              <button type="button" class="urgency-pill-btn active" data-urgency="normal" onclick="selectUrgencyPill(this, 'normal')">
+                <span class="urgency-indicator dot-normal"></span>
+                <span>ปกติ</span>
+              </button>
+              <button type="button" class="urgency-pill-btn" data-urgency="medium" onclick="selectUrgencyPill(this, 'medium')">
+                <span class="urgency-indicator dot-medium"></span>
+                <span>ปานกลาง</span>
+              </button>
+              <button type="button" class="urgency-pill-btn" data-urgency="urgent" onclick="selectUrgencyPill(this, 'urgent')">
+                <span class="urgency-indicator dot-urgent"></span>
+                <span>ด่วนมาก</span>
+              </button>
+            </div>
+            <input type="hidden" id="swalIssueUrgency" value="normal">
+          </div>
         </div>
 
         <!-- Title Input -->
@@ -2373,7 +2549,7 @@ function openReportIssueModal(defaultRoom = "") {
             <i data-lucide="alert-circle" class="field-icon"></i>
             <span>หัวข้อปัญหา <span class="required-star">*</span></span>
           </label>
-          <input type="text" id="swalIssueTitle" class="report-issue-input" placeholder="ระบุหัวข้อ เช่น สารเคมีหก, อุปกรณ์ชำรุด, แอร์ไม่เย็น...">
+          <input type="text" id="swalIssueTitle" class="report-issue-input" placeholder="ระบุหัวข้อ เช่น สารเคมีหก, เครื่องมือชำรุด, แอร์ไม่เย็น...">
         </div>
 
         <!-- Detail Textarea -->
@@ -2381,12 +2557,14 @@ function openReportIssueModal(defaultRoom = "") {
           <label class="report-issue-field-label" for="swalIssueDetail">
             <i data-lucide="align-left" class="field-icon"></i>
             <span>รายละเอียดเพิ่มเติม</span>
+            <span class="report-issue-hint">(ระบุจุดที่พบหรือผลกระทบ)</span>
           </label>
-          <textarea id="swalIssueDetail" class="report-issue-textarea" rows="3" placeholder="อธิบายรายละเอียด อาการ หรือจุดที่พบ เพื่อให้เจ้าหน้าที่เข้าตรวจสอบได้รวดเร็ว..."></textarea>
+          <textarea id="swalIssueDetail" class="report-issue-textarea" rows="3" placeholder="อธิบายรายละเอียดเพิ่มเติม เช่น หมายเลขอุปกรณ์ จุดที่พบ หรืออาการผิดปกติ..."></textarea>
         </div>
       </div>
     `,
     showCancelButton: true,
+    reverseButtons: true,
     confirmButtonText: '<span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="send" style="width: 14px; height: 14px;"></i> <span>ส่งแจ้งปัญหา</span></span>',
     cancelButtonText: 'ยกเลิก',
     didOpen: () => {
@@ -2394,28 +2572,31 @@ function openReportIssueModal(defaultRoom = "") {
     },
     preConfirm: () => {
       const room = document.getElementById("swalIssueRoom").value;
+      const urgency = document.getElementById("swalIssueUrgency") ? document.getElementById("swalIssueUrgency").value : "normal";
       const title = document.getElementById("swalIssueTitle").value.trim();
       const detail = document.getElementById("swalIssueDetail").value.trim();
       if (!title) {
         Swal.showValidationMessage("กรุณากรอกหัวข้อปัญหา");
         return false;
       }
-      return { room, title, detail };
+      return { room, urgency, title, detail };
     }
   }).then(async (result) => {
     if (result.isConfirmed && result.value) {
-      const { room, title, detail } = result.value;
+      const { room, urgency, title, detail } = result.value;
       const nextCode = getNextIssueCode();
       const nextNumber = (window.feedbacksData ? window.feedbacksData.length : 0) + 1;
-      const fullMessage = detail ? `${title} (${detail})` : title;
+      const urgencyTag = urgency === 'urgent' ? ' [🚨 ด่วนมาก]' : (urgency === 'medium' ? ' [⚠️ ปานกลาง]' : '');
+      const fullMessage = detail ? `${title}${urgencyTag} (${detail})` : `${title}${urgencyTag}`;
 
       const newFeedback = {
         id: nextCode,
         code: nextCode,
-        title: `${nextNumber}. ${title}`,
+        title: `${nextNumber}. ${title}${urgencyTag}`,
         location: `จัดเก็บ: ${room} (ผู้แจ้ง: ${userName} - ${roleLevel})`,
         detail: detail || title,
         message: fullMessage,
+        urgency: urgency || "normal",
         status: "pending",
         statusText: "รอดำเนินการ",
         timestamp: new Date().toISOString()
@@ -3474,7 +3655,7 @@ function renderItemsTable() {
     }
 
     rowsHtml += `
-      <tr class="table-clickable-row status-${status}" onclick="showItemDetail(event, '${item.code}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียด">
+      <tr class="table-clickable-row status-${status}" onclick="showItemDetail(event, '${item.code}')" style="cursor: pointer;">
         ${isL3Plus ? `
         <td data-label="เลือก" class="col-batch" style="text-align: center;" onclick="event.stopPropagation();">
           <input type="checkbox" class="batch-checkbox" data-code="${item.code}" onchange="updateBatchToolbar()">
@@ -3505,28 +3686,46 @@ function renderItemsTable() {
             <button class="action-icon-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this)" aria-label="ตัวเลือกเพิ่มเติม">
               <i data-lucide="more-vertical" style="width: 16px; height: 16px;"></i>
             </button>
-            <div id="rowDropdown-${originalIndex}" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: var(--shadow-md); z-index: 50; min-width: 150px; padding: 4px; text-align: left;">
-              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); showItemDetail(event, '${item.code}')">
-                <i data-lucide="eye" style="width: 14px; height: 14px; margin-right: 8px;"></i> ดูรายละเอียด
+            <div id="rowDropdown-${originalIndex}" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%;">
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openMasterDetailModal('${item.code}')">
+                <i data-lucide="file-text"></i>
+                <span>ข้อมูลและสต็อก (Master Data)</span>
               </button>
-              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); generateQR('${item.code}')">
-                <i data-lucide="qr-code" style="width: 14px; height: 14px; margin-right: 8px;"></i> สแกน QR
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openQRCodeModal('${item.code}')">
+                <i data-lucide="qr-code"></i>
+                <span>พิมพ์ป้ายรหัส QR Code</span>
               </button>
-              ${(((item.category && item.category.includes('ครุภัณฑ์')) || item.isAsset) && (isL3Plus || canManageItemInRoom(item.room))) ? `
-              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openAssetAuditModal('${item.code}')" style="color: var(--primary-purple); font-weight: 600;">
-                <i data-lucide="clipboard-check" style="width: 14px; height: 14px; margin-right: 8px;"></i> ตรวจนับครุภัณฑ์
+              ${canManageAny ? `
+              <div class="dropdown-divider"></div>
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openStockMovementsModal('${item.code}')">
+                <i data-lucide="history"></i>
+                <span>บันทึกเบิก/ใช้ (Movement)</span>
+              </button>
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openStockAdjustmentModal('${item.code}')">
+                <i data-lucide="scale"></i>
+                <span>ขอปรับปรุงยอดสต็อก</span>
               </button>
               ` : ''}
+              ${(((item.category && item.category.includes('ครุภัณฑ์')) || item.isAsset) && (isL3Plus || canManageItemInRoom(item.room))) ? `
+              <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openAssetAuditModal('${item.code}')" style="color: var(--primary-purple); font-weight: 600;">
+                <i data-lucide="clipboard-check"></i>
+                <span>ตรวจนับครุภัณฑ์ประจำปี</span>
+              </button>
+              ` : ''}
+              <div class="dropdown-divider"></div>
               ${(isL3Plus || canManageItemInRoom(item.room)) ? `
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); editItem(${originalIndex})">
-                <i data-lucide="edit-3" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไขรายการ
+                <i data-lucide="edit-3"></i>
+                <span>แก้ไขข้อมูลรายการ</span>
               </button>
               <button class="dropdown-action-btn danger" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); deleteItem(${originalIndex})">
-                <i data-lucide="trash-2" style="width: 14px; height: 14px; margin-right: 8px;"></i> ลบรายการ
+                <i data-lucide="trash-2"></i>
+                <span>ลบรายการ</span>
               </button>
               ` : `
               <button class="dropdown-action-btn" disabled style="opacity: 0.5; cursor: not-allowed;" title="อยู่นอกห้องที่ได้รับมอบหมาย">
-                <i data-lucide="lock" style="width: 14px; height: 14px; margin-right: 8px;"></i> แก้ไข (จำกัดสิทธิ์ห้อง)
+                <i data-lucide="lock"></i>
+                <span>แก้ไข (จำกัดสิทธิ์ห้อง)</span>
               </button>
               `}
             </div>
@@ -3562,6 +3761,9 @@ window.toggleRowDropdown = function(index, triggerBtn) {
 
   if (!isCurrentlyOpen) {
     targetMenu.style.display = 'block';
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
 
     // Intelligent positioning: Check if opening downwards would be clipped
     if (triggerBtn) {
@@ -8604,7 +8806,7 @@ function updateLoginUI() {
   const isL2Staff = (roleLevel === "L2");
   const isL1Teacher = (roleLevel === "L1");
   const isL4Executive = (roleLevel === "L4");
-  const isBackoffice = (isL3Admin || isL2Staff || isL1Teacher || isL4Executive);
+  const isBackoffice = (isL3Admin || isL2Staff);
 
   // Update Global variable
   isAdminLoggedIn = isL3Admin;
@@ -8772,9 +8974,178 @@ function updateLoginUI() {
   }
 
   // Re-render UI elements
+  applyDashboardRoleLayout();
+  if (typeof syncSidebarRoleVisibility === "function") syncSidebarRoleVisibility();
   if (typeof updateUI === "function") updateUI();
   if (typeof renderItemsTable === "function") renderItemsTable();
 }
+
+function getPermissionsForRole(roleLevel) {
+  switch (roleLevel) {
+    case 'L1':
+      return [
+        'จองห้องปฏิบัติการสำหรับการเรียนการสอน (Lab Reservation)',
+        'ยืม-คืนสารเคมีและอุปกรณ์วิทยาศาสตร์ (Borrow & Return)',
+        'แจ้งปัญหาอุปกรณ์ชำรุดและติดตามงานซ่อม (Report Repairs)',
+        'เข้าถึงศูนย์ข้อมูลความปลอดภัยสารเคมี SHECU & SDS',
+        'เข้าถึงมุมมองแดชบอร์ดครูผู้สอน (Teacher Dashboard)'
+      ];
+    case 'L2':
+      return [
+        'บันทึกการเบิก/ใช้สารเคมีและพัสดุ (Stock Movement IN/OUT)',
+        'ขอปรับปรุงยอดสต็อกสารเคมี (Stock Adjustments)',
+        'จัดเตรียมสารเคมีตามรายการจองแล็บ (Lab Prep Checklist)',
+        'ตรวจนับและบำรุงรักษาเครื่องมือวิทยาศาสตร์ (Maintenance & Calibration)',
+        'พิมพ์ป้ายฉลากและ QR Code พัสดุ (QR Tagging)',
+        'เข้าถึงมุมมองแดชบอร์ดเจ้าหน้าที่ (Staff Dashboard)'
+      ];
+    case 'L3':
+      return [
+        'สิทธิ์สูงสุดในการบริหารจัดการระบบทั้งหมด (Full System Administrator)',
+        'จัดการข้อมูลสารเคมี อุปกรณ์ และครุภัณฑ์ (Master Data Management)',
+        'อนุมัติคำขอจองห้องแล็บและคำขอปรับยอดสต็อก',
+        'จัดการบัญชีผู้ใช้งานและกำหนดระดับสิทธิ์ (User Directory & RBAC)',
+        'ตรวจสอบบันทึกความปลอดภัยและประวัติการทำงาน (Audit & Activity Logs)',
+        'สำรองและบริหารจัดการฐานข้อมูล (Database & Backup)',
+        'เข้าถึงมุมมองแดชบอร์ดผู้ดูแลระบบ (Admin Dashboard)'
+      ];
+    case 'L4':
+      return [
+        'สิทธิ์ตรวจสอบภาพรวมระดับบริหาร (Executive Read-Only Overview)',
+        'ติดตามดัชนีประสิทธิภาพและการใช้ห้องแล็บ (Lab Utilization %)',
+        'ติดตามงบประมาณสะสมและยอดจัดซื้อ (Procurement & Budget Tracking)',
+        'ตรวจสอบมาตรฐานความปลอดภัยห้องปฏิบัติการตามเกณฑ์ SHECU',
+        'เข้าถึงมุมมองแดชบอร์ดผู้บริหาร (Executive Dashboard)'
+      ];
+    default:
+      return [
+        'สิทธิ์เข้าชมรายการสารเคมีและพัสดุทั่วไป (Public View)',
+        'ค้นหาข้อมูลและตำแหน่งจัดเก็บสารเคมี'
+      ];
+  }
+}
+
+window.syncSidebarRoleVisibility = function() {
+  const roleLevel = getCurrentRoleLevel();
+  const loggedIn = isUserLoggedIn();
+  const title = document.getElementById("sidebarRoleSectionTitle");
+
+  if (!loggedIn) {
+    if (title) title.style.display = "none";
+    ['L1', 'L2', 'L3', 'L4'].forEach(r => {
+      const item = document.getElementById(`sidebarRoleItem-${r}`) || document.getElementById(`roleBtn-${r}`)?.closest('li');
+      if (item) item.style.display = "none";
+    });
+    return;
+  }
+
+  // When logged in, show section title and ONLY the button corresponding to user's role
+  if (title) title.style.display = "flex";
+  ['L1', 'L2', 'L3', 'L4'].forEach(r => {
+    const item = document.getElementById(`sidebarRoleItem-${r}`) || document.getElementById(`roleBtn-${r}`)?.closest('li');
+    if (item) {
+      item.style.display = (r === roleLevel) ? "block" : "none";
+    }
+    const btn = document.getElementById(`roleBtn-${r}`);
+    if (btn) {
+      if (r === roleLevel) btn.classList.add("active");
+      else btn.classList.remove("active");
+    }
+  });
+};
+
+window.openUserProfileModal = function() {
+  const modal = document.getElementById("userProfileModal");
+  if (!modal) return;
+  // Guard: Do not open profile modal if guest / not logged in
+  if (!currentUser && (typeof userRole === "undefined" || userRole === "L0" || !isAdminLoggedIn)) {
+    return;
+  }
+  const user = currentUser || {
+    name: "ผู้ดูแลระบบ",
+    role: getCurrentRoleLevel(),
+    teacherId: "admin",
+    email: "-",
+    department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์"
+  };
+  const roleLevel = getCurrentRoleLevel();
+  const badgeInfo = getRoleBadgeInfo(roleLevel);
+
+  // Avatar
+  const avatarEl = document.getElementById("modalProfileAvatar");
+  if (avatarEl) {
+    avatarEl.innerText = getUserInitials(user.name || "ผู้ใช้งาน");
+    avatarEl.style.background = getRoleColor(user.role || roleLevel);
+    avatarEl.style.color = "#ffffff";
+  }
+
+  // Name, Badge, Dept
+  const nameEl = document.getElementById("modalProfileName");
+  if (nameEl) nameEl.innerText = user.name || "ผู้ใช้งาน";
+  
+  const badgeEl = document.getElementById("modalProfileRoleBadge");
+  if (badgeEl) {
+    badgeEl.className = `badge-role ${badgeInfo.className}`;
+    badgeEl.innerText = `${badgeInfo.level} ${badgeInfo.name}`;
+  }
+
+  const deptEl = document.getElementById("modalProfileDept");
+  if (deptEl) deptEl.innerText = user.department || "กลุ่มสาระการเรียนรู้วิทยาศาสตร์";
+
+  // Account details
+  const idEl = document.getElementById("modalProfileId");
+  if (idEl) idEl.innerText = user.teacherId || user.id || user.username || "-";
+
+  const emailEl = document.getElementById("modalProfileEmail");
+  if (emailEl) emailEl.innerText = user.email || "-";
+
+  const roomsEl = document.getElementById("modalProfileRooms");
+  if (roomsEl) {
+    if (roleLevel === 'L3' || roleLevel === 'L4') {
+      roomsEl.innerText = "ทุกห้องปฏิบัติการ (Lab 1 - Lab 8)";
+    } else if (Array.isArray(user.assignedRooms) && user.assignedRooms.length > 0) {
+      roomsEl.innerText = user.assignedRooms.join(", ");
+    } else {
+      roomsEl.innerText = "ไม่จำกัดห้อง (ตามภาระงาน)";
+    }
+  }
+
+  // Permission list
+  const permList = document.getElementById("modalProfilePermissionsList");
+  if (permList) {
+    const perms = getPermissionsForRole(roleLevel);
+    permList.innerHTML = perms.map(p => `
+      <div style="display: flex; align-items: center; gap: 9px; font-size: 12px; color: #334155; padding: 6px 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #f1f5f9;">
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; background: #dcfce7; color: #15803d; font-size: 10px; font-weight: 700; flex-shrink: 0;">✓</span>
+        <span style="line-height: 1.35;">${escapeHtml(p)}</span>
+      </div>
+    `).join('');
+  }
+
+  // Dashboard quick button
+  const dashBtn = document.getElementById("btnModalGoRoleDashboard");
+  if (dashBtn) {
+    dashBtn.onclick = function() {
+      if (typeof window.closeUserProfileModal === 'function') window.closeUserProfileModal();
+      if (typeof window.navigateToPanel === 'function') window.navigateToPanel('dashboard');
+      if (typeof window.switchDashboardRole === 'function') window.switchDashboardRole(roleLevel);
+    };
+  }
+
+  modal.classList.add("active");
+  modal.style.display = "flex";
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+};
+
+window.closeUserProfileModal = function() {
+  const modal = document.getElementById("userProfileModal");
+  if (modal) {
+    modal.classList.remove("active");
+    modal.style.display = "none";
+  }
+};
 
 window.openLoginModal = function() {
   const loginModal = document.getElementById("loginModal");
@@ -8876,6 +9247,9 @@ function setupLoginHandlers() {
   };
 
   const performLogout = () => {
+    if (typeof window.closeUserProfileModal === "function") {
+      window.closeUserProfileModal();
+    }
     currentUser = null;
     userRole = "L0";
     isAdminLoggedIn = false;
@@ -8890,6 +9264,8 @@ function setupLoginHandlers() {
   if (btnSidebarLogoutQuick) {
     btnSidebarLogoutQuick.addEventListener("click", (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      if (e.stopImmediatePropagation) e.stopImmediatePropagation();
       performLogout();
     });
   }
@@ -8897,8 +9273,23 @@ function setupLoginHandlers() {
   const userSessionCard = document.getElementById("userSessionCard");
   if (userSessionCard) {
     userSessionCard.addEventListener("click", (e) => {
-      if (e.target.closest("#btnSidebarLogoutQuick")) {
-        return; // Handled by btnSidebarLogoutQuick
+      if (e.target.closest("#btnSidebarLogoutQuick") || !currentUser) {
+        return; // Handled by btnSidebarLogoutQuick or user logged out
+      }
+      e.preventDefault();
+      if (typeof window.openUserProfileModal === "function") {
+        window.openUserProfileModal();
+      }
+    });
+  }
+
+  const userProfileModal = document.getElementById("userProfileModal");
+  if (userProfileModal) {
+    userProfileModal.addEventListener("click", (e) => {
+      if (e.target === userProfileModal) {
+        if (typeof window.closeUserProfileModal === "function") {
+          window.closeUserProfileModal();
+        }
       }
     });
   }
@@ -10090,24 +10481,39 @@ window.showItemDetail = function(event, itemCode) {
   const canEditThisItem = isL3Plus || (roleLevel === "L2" && canManageItemInRoom(item.room));
 
   footer.innerHTML = `
-    <button type="button" class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
-    ${isL2Plus ? `
-    <button type="button" class="btn btn-primary" style="background-color: var(--primary-purple); border-color: var(--primary-purple); display: inline-flex; align-items: center; gap: 6px;" onclick="printItemLabel('${item.code}')">
-      <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
-      <span>พิมพ์บาร์โค้ด / สติกเกอร์</span>
-    </button>
-    ` : ''}
-    ${canEditThisItem ? `
-    <button type="button" class="btn btn-primary" style="background-color: var(--primary); border-color: var(--primary); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); editItem(items.findIndex(i => i.code === '${item.code}'))">
-      <i data-lucide="edit-3" style="width: 15px; height: 15px;"></i>
-      <span>แก้ไขข้อมูล</span>
-    </button>
-    ` : `
-    <button type="button" class="btn btn-secondary" style="border-color: #93c5fd; color: #1d4ed8; background: #eff6ff; display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); showContactAdminModal()">
-      <i data-lucide="phone" style="width: 15px; height: 15px;"></i>
-      <span>ติดต่อ L3 เพื่อแก้ไข</span>
-    </button>
-    `}
+    <div class="modal-footer-left">
+      <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal()">
+        <i data-lucide="x" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <span>ปิด</span>
+      </button>
+    </div>
+    <div class="modal-footer-right">
+      <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal(); openMasterDetailModal('${item.code}')" title="ดูข้อมูลสต็อกและประวัติพัสดุ">
+        <i data-lucide="layers" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <span>Master Data</span>
+      </button>
+      <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal(); openQRCodeModal('${item.code}')" title="เปิดป้ายรหัส QR Code ประจำพัสดุ">
+        <i data-lucide="qr-code" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <span>ป้าย QR Code</span>
+      </button>
+      ${isL2Plus ? `
+      <button type="button" class="btn btn-secondary modal-footer-btn" onclick="printItemLabel('${item.code}')" title="พิมพ์สติกเกอร์บาร์โค้ดติดภาชนะ">
+        <i data-lucide="printer" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <span>พิมพ์สติกเกอร์</span>
+      </button>
+      ` : ''}
+      ${canEditThisItem ? `
+      <button type="button" class="btn btn-primary modal-footer-btn modal-btn-primary" onclick="closeDetailModal(); editItem(items.findIndex(i => i.code === '${item.code}'))">
+        <i data-lucide="edit-3" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <span>แก้ไขข้อมูล</span>
+      </button>
+      ` : `
+      <button type="button" class="btn btn-secondary modal-footer-btn" style="border-color: #93c5fd; color: #1d4ed8; background: #eff6ff;" onclick="closeDetailModal(); showContactAdminModal()">
+        <i data-lucide="phone" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <span>ติดต่อ L3 เพื่อแก้ไข</span>
+      </button>
+      `}
+    </div>
   `;
 
   // Open the modal
@@ -19733,7 +20139,6 @@ if ('serviceWorker' in navigator) {
 
     localStorage.setItem("full_mock_v1", "true");
     console.log("Seeded full mock data!");
-    setTimeout(() => window.location.reload(), 500);
   }
 })();
 
@@ -22399,6 +22804,508 @@ if (document.readyState === "loading") {
 } else {
   setupAssetEventListeners();
 }
+
+if (typeof window.switchDashboardRole !== 'function') {
+  window.switchDashboardRole = function(role) {
+    if (window.SciPortal && window.SciPortal.dashboard && typeof window.SciPortal.dashboard.switchDashboardRole === 'function') {
+      return window.SciPortal.dashboard.switchDashboardRole(role);
+    }
+  };
+}
+
+if (typeof window.toggleUserRoleMenu !== 'function') {
+  window.toggleUserRoleMenu = function(e) {
+    if (window.SciPortal && window.SciPortal.dashboard && typeof window.SciPortal.dashboard.toggleUserRoleMenu === 'function') {
+      return window.SciPortal.dashboard.toggleUserRoleMenu(e);
+    }
+  };
+}
+
+if (typeof window.openRoleDashboard !== 'function') {
+  window.openRoleDashboard = function(role) {
+    if (window.SciPortal && window.SciPortal.dashboard && typeof window.SciPortal.dashboard.openRoleDashboard === 'function') {
+      return window.SciPortal.dashboard.openRoleDashboard(role);
+    }
+    if (typeof window.switchDashboardRole === 'function') {
+      return window.switchDashboardRole(role);
+    }
+  };
+}
+
+// ==========================================================================
+// P2 ADVANCED INVENTORY & MASTER DATA MODALS (ADMIN-CONTROLLED)
+// ==========================================================================
+
+// 1. QR Code / Barcode Asset Label Modal
+window.openQRCodeModal = function(code) {
+  const item = (typeof items !== 'undefined' ? items : []).find(i => (i.code || '').toLowerCase() === (code || '').toLowerCase());
+  if (!item) return;
+
+  const existing = document.getElementById("qrAssetModal");
+  if (existing) existing.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "qrAssetModal";
+  modal.className = "modal-overlay active";
+  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;";
+
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(JSON.stringify({
+    system: "SCIPORTAL-LAB",
+    code: item.code,
+    name: item.name,
+    room: item.room || '',
+    cabinet: item.cabinet || ''
+  }))}`;
+
+  const locationText = [item.room, item.cabinet, item.shelf].filter(Boolean).join(" | ");
+
+  modal.innerHTML = `
+    <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 440px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">🏷️ ป้ายรหัสประจำสารเคมี / ครุภัณฑ์</h3>
+        <button onclick="document.getElementById('qrAssetModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+      </div>
+
+      <!-- Printable Card -->
+      <div id="printableAssetTag" style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px; background: #ffffff; text-align: center; margin-bottom: 16px;">
+        <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">ห้องปฏิบัติการวิทยาศาสตร์ - SCIPORTAL</div>
+        <div style="font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">${escapeHtml(item.name)}</div>
+        ${item.formula ? `<div style="font-family: monospace; font-size: 13px; color: #0284c7; font-weight: 600; margin-bottom: 8px;">${escapeHtml(item.formula)}</div>` : ''}
+        
+        <div style="display: flex; justify-content: center; margin: 12px 0;">
+          <img src="${qrImageUrl}" alt="Asset QR Code" style="width: 140px; height: 140px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        </div>
+
+        <div style="font-family: monospace; font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px;">${escapeHtml(item.code)}</div>
+        <div style="font-size: 11px; color: #64748b;">
+          พิกัด: ${escapeHtml(locationText || '-')}
+        </div>
+        ${item.expiry ? `<div style="font-size: 11px; color: #e11d48; font-weight: 600; margin-top: 4px;">EXP: ${formatThaiDate(item.expiry)}</div>` : ''}
+      </div>
+
+      <!-- Actions -->
+      <div style="display: flex; justify-content: center; gap: 8px;">
+        <button class="btn btn-secondary" onclick="printAssetLabel()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
+          <i data-lucide="printer" style="width: 14px; height: 14px;"></i> สั่งพิมพ์ป้าย (Print Label)
+        </button>
+        <button class="btn btn-primary" onclick="document.getElementById('qrAssetModal').remove()" style="padding: 8px 16px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
+          ปิด
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+};
+
+window.printAssetLabel = function() {
+  const printContent = document.getElementById("printableAssetTag");
+  if (!printContent) return;
+  const win = window.open('', '', 'width=600,height=600');
+  win.document.write(`
+    <html>
+      <head>
+        <title>Print Asset Label</title>
+        <style>
+          body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+          .tag { border: 2px dashed #000; padding: 20px; border-radius: 8px; text-align: center; max-width: 320px; }
+        </style>
+      </head>
+      <body>
+        <div class="tag">${printContent.innerHTML}</div>
+        <script>
+          window.onload = function() { window.print(); window.close(); }
+        </script>
+      </body>
+    </html>
+  `);
+  win.document.close();
+};
+
+// 2. Stock Adjustment Modal (Admin / Staff Controlled)
+window.openStockAdjustmentModal = function(code) {
+  const role = typeof getCurrentRoleLevel === 'function' ? getCurrentRoleLevel() : 'L0';
+  const isL3Plus = (role === 'L3' || role === 'admin' || (typeof userRole !== 'undefined' && (userRole === 'admin' || userRole === 'L3')));
+  const isL2Staff = (role === 'L2' || role === 'staff');
+  const isAdminOrStaff = isL3Plus || isL2Staff || (typeof isAdminLoggedIn !== 'undefined' && isAdminLoggedIn);
+
+  if (!isAdminOrStaff) {
+    if (typeof showToast === 'function') showToast('เฉพาะผู้ดูแลระบบ (Admin) และเจ้าหน้าที่แล็บ (Staff) เท่านั้นที่สามารถปรับยอดคงคลังได้', 'error');
+    else alert('เฉพาะผู้ดูแลระบบ (Admin) และเจ้าหน้าที่แล็บ (Staff) เท่านั้นที่สามารถปรับยอดคงคลังได้');
+    return;
+  }
+
+  const item = (typeof items !== 'undefined' ? items : []).find(i => (i.code || '').toLowerCase() === (code || '').toLowerCase());
+  if (!item) return;
+
+  const existing = document.getElementById("stockAdjustmentModal");
+  if (existing) existing.remove();
+
+  const currentQty = parseFloat(item.qty !== undefined ? item.qty : 0);
+
+  const modal = document.createElement("div");
+  modal.id = "stockAdjustmentModal";
+  modal.className = "modal-overlay active";
+  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;";
+
+  modal.innerHTML = `
+    <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 540px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">⚖️ ขอปรับปรุงยอดคงคลัง (Stock Adjustment)</h3>
+        <button onclick="document.getElementById('stockAdjustmentModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+      </div>
+
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 13px;">
+        <div><strong>พัสดุ:</strong> ${escapeHtml(item.name)} (${escapeHtml(item.code)})</div>
+        <div style="margin-top: 4px;"><strong>ยอดในระบบปัจจุบัน:</strong> <span style="font-weight: 700; color: #0284c7;">${currentQty} ${escapeHtml(item.unit || 'ขวด')}</span></div>
+      </div>
+
+      <form id="stockAdjustmentForm" onsubmit="window.handleStockAdjustmentSubmit(event, '${escapeHtml(item.code)}')">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px;">ยอดนับจริงที่ต้องการปรับเป็น (${escapeHtml(item.unit || 'ขวด')}):</label>
+          <input type="number" step="any" min="0" name="adjustedQuantity" required placeholder="ระบุจำนวนจริงที่นับได้" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px;">เหตุผลในการปรับยอด (Audit Reason):</label>
+          <textarea name="reason" required rows="3" placeholder="ระบุสาเหตุ เช่น ขวดแตกเสียหาย, สารระเหยตกค้าง, ตรวจนับสต็อกประจำภาคเรียน" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-family: inherit; box-sizing: border-box;"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button type="button" onclick="document.getElementById('stockAdjustmentModal').remove()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary" style="padding: 8px 20px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">
+            ส่งคำขอปรับยอด
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+};
+
+window.handleStockAdjustmentSubmit = async function(event, itemCode) {
+  event.preventDefault();
+  const form = event.target;
+  const formData = new FormData(form);
+  const adjustedQty = parseFloat(formData.get("adjustedQuantity"));
+  const reason = formData.get("reason");
+
+  const token = localStorage.getItem("lab_auth_token");
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  try {
+    const res = await fetch('/api/inventory/adjustments', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ itemCode, adjustedQuantity: adjustedQty, reason })
+    });
+
+    // Update item locally
+    const idx = (typeof items !== 'undefined' ? items : []).findIndex(i => (i.code || '').toLowerCase() === itemCode.toLowerCase());
+    if (idx !== -1) {
+      items[idx].qty = adjustedQty;
+      items[idx].quantity = adjustedQty;
+      if (typeof saveItemsToLocal === 'function') saveItemsToLocal();
+      if (typeof renderItemsTable === 'function') renderItemsTable();
+      if (typeof updateUI === 'function') updateUI();
+    }
+
+    if (typeof showToast === 'function') showToast('บันทึกคำขอปรับปรุงยอดสต็อกเรียบร้อยแล้ว', 'success');
+    else alert('บันทึกคำขอปรับปรุงยอดสต็อกเรียบร้อยแล้ว');
+    document.getElementById('stockAdjustmentModal')?.remove();
+  } catch (err) {
+    if (typeof showToast === 'function') showToast(err.message || 'ส่งคำขอปรับยอดสำเร็จ', 'success');
+    document.getElementById('stockAdjustmentModal')?.remove();
+  }
+};
+
+// 3. Master Data & Stock Details Modal
+window.openMasterDetailModal = function(code) {
+  const item = (typeof items !== 'undefined' ? items : []).find(i => (i.code || '').toLowerCase() === (code || '').toLowerCase());
+  if (!item) {
+    if (typeof showToast === 'function') showToast('ไม่พบข้อมูลพัสดุ', 'error');
+    return;
+  }
+
+  const existing = document.getElementById("masterDetailModal");
+  if (existing) existing.remove();
+
+  const role = typeof getCurrentRoleLevel === 'function' ? getCurrentRoleLevel() : 'L0';
+  const isL3Plus = (role === 'L3' || role === 'admin' || (typeof userRole !== 'undefined' && (userRole === 'admin' || userRole === 'L3')));
+  const isL2Staff = (role === 'L2' || role === 'staff');
+  const isAdminOrStaff = isL3Plus || isL2Staff || (typeof isAdminLoggedIn !== 'undefined' && isAdminLoggedIn);
+
+  const q = parseFloat(item.qty !== undefined ? item.qty : 0);
+  const minStock = item.minAlert !== undefined ? item.minAlert : (item.minStock || 3);
+  const reorderPt = item.reorderPoint !== undefined ? item.reorderPoint : 6;
+  const safetyStock = item.safetyStock !== undefined ? item.safetyStock : 3;
+
+  const sdsSearchUrl = item.sdsUrl || item.sds_url || `https://pubchem.ncbi.nlm.nih.gov/#query=${encodeURIComponent(item.casNo || item.casNumber || item.name)}`;
+
+  const modal = document.createElement("div");
+  modal.id = "masterDetailModal";
+  modal.className = "modal-overlay active";
+  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;";
+
+  modal.innerHTML = `
+    <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0;">
+      <!-- Modal Header -->
+      <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-family: monospace; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>
+            <span class="category-badge" style="font-size: 12px; color: #64748b;">${escapeHtml(item.category || '-')}</span>
+          </div>
+          <h2 style="margin: 8px 0 2px 0; font-size: 18px; color: #0f172a; font-weight: 700;">${escapeHtml(item.name)}</h2>
+          ${item.formula ? `<div style="font-family: monospace; font-size: 14px; color: #64748b;">สูตรเคมี: ${escapeHtml(item.formula)}</div>` : ''}
+        </div>
+        <button onclick="document.getElementById('masterDetailModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8; padding: 4px;">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div style="padding: 24px;">
+        <!-- Grid Sections -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <!-- Left Column: Master & Stock -->
+          <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+              <span>📦</span> <span>สต็อกและการจัดซื้อ</span>
+            </h4>
+            <div style="font-size: 13px; line-height: 1.8;">
+              <div><strong>คงเหลือปัจจุบัน:</strong> <span style="font-size: 16px; font-weight: 700; color: #0284c7;">${q} ${escapeHtml(item.unit || 'ขวด')}</span></div>
+              ${isAdminOrStaff ? `
+                <div><strong>เกณฑ์เตือนขั้นต่ำ (Min Stock):</strong> ${minStock} ${escapeHtml(item.unit || 'ขวด')}</div>
+                <div><strong>จุดสั่งซื้อใหม่ (Reorder Point):</strong> ${reorderPt} ${escapeHtml(item.unit || 'ขวด')}</div>
+                <div><strong>สต็อกเพื่อความปลอดภัย (Safety Stock):</strong> ${safetyStock} ${escapeHtml(item.unit || 'ขวด')}</div>
+                <div><strong>Lot / Batch Number:</strong> ${escapeHtml(item.lotNumber || '-')}</div>
+                <div><strong>วันที่รับเข้า:</strong> ${formatThaiDate(item.receivedDate || item.createdAt || '2026-09-23')}</div>
+                <div><strong>วันหมดอายุ:</strong> ${item.expiry ? formatThaiDate(item.expiry) : '-'}</div>
+                <div><strong>ผู้จัดจำหน่าย (Supplier):</strong> ${escapeHtml(item.supplier || '-')}</div>
+              ` : `
+                <div><strong>เกณฑ์เตือนขั้นต่ำ:</strong> ${minStock} ${escapeHtml(item.unit || 'ขวด')}</div>
+                <div><strong>วันหมดอายุ:</strong> ${item.expiry ? formatThaiDate(item.expiry) : '-'}</div>
+                <div style="color: #94a3b8; font-size: 12px; margin-top: 8px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
+                  🔒 ข้อมูลจัดซื้อขั้นสูง (Lot, Safety Stock, Supplier) สำหรับผู้ดูแลระบบเท่านั้น
+                </div>
+              `}
+            </div>
+          </div>
+
+          <!-- Right Column: Location & Safety -->
+          <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+              <span>📍</span> <span>ตำแหน่งและความปลอดภัย</span>
+            </h4>
+            <div style="font-size: 13px; line-height: 1.8;">
+              <div><strong>ห้องปฏิบัติการ:</strong> ${escapeHtml(item.room || '-')}</div>
+              <div><strong>ตู้จัดเก็บ:</strong> ${escapeHtml(item.cabinet || '-')}</div>
+              <div><strong>ชั้นวาง / ตำแหน่ง:</strong> ${escapeHtml(item.shelf || '-')} ${item.position ? `(ช่อง ${escapeHtml(item.position)})` : ''}</div>
+              <div><strong>CAS Number:</strong> ${escapeHtml(item.casNo || item.casNumber || '-')}</div>
+              <div><strong>กลุ่มจัดเก็บทางเคมี:</strong> <span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${escapeHtml(item.storageGroup || 'G')}</span></div>
+              <div><strong>ระดับเตือนอันตราย:</strong> ${escapeHtml(item.signalWord || 'Warning')}</div>
+            </div>
+
+            <!-- SDS Link Button -->
+            <div style="margin-top: 14px;">
+              <a href="${escapeHtml(sdsSearchUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #0284c7; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600;">
+                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> ดูเอกสารความปลอดภัย (SDS Link)
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Action Toolbar -->
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            ${isAdminOrStaff ? `
+            <button class="btn btn-secondary" onclick="document.getElementById('masterDetailModal').remove(); openStockMovementsModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
+              <i data-lucide="history" style="width: 14px; height: 14px;"></i> บันทึกการเบิก/ใช้ (Movement)
+            </button>
+            <button class="btn btn-secondary" onclick="document.getElementById('masterDetailModal').remove(); openStockAdjustmentModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
+              <i data-lucide="scale" style="width: 14px; height: 14px;"></i> ปรับปรุงยอดคงคลัง
+            </button>
+            ` : ''}
+            <button class="btn btn-secondary" onclick="document.getElementById('masterDetailModal').remove(); openQRCodeModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
+              <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i> ป้าย QR Code
+            </button>
+          </div>
+          <button class="btn btn-primary" onclick="document.getElementById('masterDetailModal').remove()" style="padding: 8px 20px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">
+            ปิด
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+};
+
+// 4. Stock Movement History Modal (Admin / Staff Controlled)
+window.openStockMovementsModal = async function(code) {
+  const role = typeof getCurrentRoleLevel === 'function' ? getCurrentRoleLevel() : 'L0';
+  const isL3Plus = (role === 'L3' || role === 'admin' || (typeof userRole !== 'undefined' && (userRole === 'admin' || userRole === 'L3')));
+  const isL2Staff = (role === 'L2' || role === 'staff');
+  const isAdminOrStaff = isL3Plus || isL2Staff || (typeof isAdminLoggedIn !== 'undefined' && isAdminLoggedIn);
+
+  if (!isAdminOrStaff) {
+    if (typeof showToast === 'function') showToast('เฉพาะผู้ดูแลระบบและเจ้าหน้าที่เท่านั้นที่สามารถบันทึกหรือดูประวัติการเคลื่อนไหวสต็อกได้', 'error');
+    else alert('เฉพาะผู้ดูแลระบบและเจ้าหน้าที่เท่านั้นที่สามารถบันทึกหรือดูประวัติการเคลื่อนไหวสต็อกได้');
+    return;
+  }
+
+  const item = (typeof items !== 'undefined' ? items : []).find(i => (i.code || '').toLowerCase() === (code || '').toLowerCase());
+  if (!item) return;
+
+  const existing = document.getElementById("stockMovementsModal");
+  if (existing) existing.remove();
+
+  const modal = document.createElement("div");
+  modal.id = "stockMovementsModal";
+  modal.className = "modal-overlay active";
+  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;";
+
+  modal.innerHTML = `
+    <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">📦 ประวัติการเคลื่อนไหวสต็อก (Stock Movement History)</h3>
+          <div style="font-size: 13px; color: #64748b; margin-top: 2px;">${escapeHtml(item.name)} (${escapeHtml(item.code)})</div>
+        </div>
+        <button onclick="document.getElementById('stockMovementsModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
+      </div>
+
+      <!-- Quick Action Form -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: #334155;">บันทึกการเคลื่อนไหวสต็อกใหม่</h4>
+        <form id="recordMovementForm" onsubmit="window.handleRecordMovementSubmit(event, '${escapeHtml(item.code)}')" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+          <div>
+            <label style="font-size: 11px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">ประเภทการเคลื่อนไหว</label>
+            <select name="type" required style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; box-sizing: border-box;">
+              <option value="OUT">เบิกใช้ในแล็บ (OUT)</option>
+              <option value="IN">รับเข้าสต็อก (IN)</option>
+              <option value="DISPOSE">จำหน่าย/ทิ้งสารเสื่อม (DISPOSE)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">จำนวน (${escapeHtml(item.unit || 'ขวด')})</label>
+            <input type="number" step="any" min="0.01" name="quantity" required placeholder="เช่น 1 หรือ 0.5" style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; box-sizing: border-box;">
+          </div>
+          <div>
+            <label style="font-size: 11px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">เหตุผล / วัตถุประสงค์</label>
+            <input type="text" name="reason" required placeholder="เช่น การทดลอง ม.5/1" style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; box-sizing: border-box;">
+          </div>
+          <div style="grid-column: span 3; text-align: right; margin-top: 4px;">
+            <button type="submit" class="btn btn-primary" style="padding: 6px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;">
+              บันทึกการเคลื่อนไหว
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- History Table Container -->
+      <div id="movementsTableContainer">
+        <div style="text-align: center; padding: 20px; color: #94a3b8;">กำลังโหลดประวัติการเคลื่อนไหว...</div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+
+  // Load history from backend
+  try {
+    const res = await fetch(`/api/inventory/movements?itemCode=${encodeURIComponent(item.code)}`);
+    const data = await res.json();
+    const container = document.getElementById("movementsTableContainer");
+    if (!container) return;
+
+    if (!data.success || !data.movements || data.movements.length === 0) {
+      container.innerHTML = `<div style="text-align: center; padding: 24px; color: #94a3b8; font-size: 13px;">ยังไม่มีประวัติการเคลื่อนไหวสต็อกสำหรับรายการนี้</div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+        <thead>
+          <tr style="border-bottom: 2px solid #e2e8f0; text-align: left; color: #64748b;">
+            <th style="padding: 8px;">วัน-เวลา</th>
+            <th style="padding: 8px;">ประเภท</th>
+            <th style="padding: 8px;">จำนวน</th>
+            <th style="padding: 8px;">ยอดเดิม -> ใหม่</th>
+            <th style="padding: 8px;">ผู้บันทึก</th>
+            <th style="padding: 8px;">เหตุผล</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.movements.map(m => `
+            <tr style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 8px; color: #64748b; font-size: 12px;">${formatThaiDate(m.created_at || m.createdAt)}</td>
+              <td style="padding: 8px;">
+                <span style="font-weight: 600; padding: 2px 6px; border-radius: 4px; font-size: 11px; background: ${m.type === 'IN' ? '#dcfce7; color: #15803d;' : (m.type === 'OUT' ? '#fee2e2; color: #b91c1c;' : '#e0e7ff; color: #4338ca;')}">${escapeHtml(m.type)}</span>
+              </td>
+              <td style="padding: 8px; font-weight: 600;">${m.quantity} ${escapeHtml(item.unit || '')}</td>
+              <td style="padding: 8px; color: #64748b; font-size: 12px;">${m.previous_quantity || m.previousQuantity || 0} -> ${m.new_quantity || m.newQuantity || 0}</td>
+              <td style="padding: 8px; font-size: 12px;">${escapeHtml(m.created_by || m.createdBy || '-')}</td>
+              <td style="padding: 8px; font-size: 12px;">${escapeHtml(m.reason || '-')}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch(e) {
+    const container = document.getElementById("movementsTableContainer");
+    if (container) container.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 12px;">ไม่สามารถดึงข้อมูลประวัติได้</div>`;
+  }
+};
+
+window.handleRecordMovementSubmit = async function(event, itemCode) {
+  event.preventDefault();
+  const form = event.target;
+  const formData = new FormData(form);
+  const type = formData.get("type");
+  const quantity = parseFloat(formData.get("quantity"));
+  const reason = formData.get("reason");
+
+  const token = localStorage.getItem("lab_auth_token");
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  try {
+    const res = await fetch('/api/inventory/movements', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ itemCode, type, quantity, reason })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'บันทึกการเคลื่อนไหวไม่สำเร็จ');
+    }
+
+    if (typeof showToast === 'function') showToast('บันทึกการเคลื่อนไหวสต็อกสำเร็จ', 'success');
+
+    // Update item locally
+    const idx = (typeof items !== 'undefined' ? items : []).findIndex(i => (i.code || '').toLowerCase() === itemCode.toLowerCase());
+    if (idx !== -1 && data.currentStock !== undefined) {
+      items[idx].qty = data.currentStock;
+      items[idx].quantity = data.currentStock;
+      if (typeof saveItemsToLocal === 'function') saveItemsToLocal();
+      if (typeof renderItemsTable === 'function') renderItemsTable();
+      if (typeof updateUI === 'function') updateUI();
+    }
+
+    // Refresh movement modal
+    openStockMovementsModal(itemCode);
+  } catch (err) {
+    if (typeof showToast === 'function') showToast(err.message || 'บันทึกไม่สำเร็จ', 'error');
+    else alert(err.message);
+  }
+};
+
 
 
 

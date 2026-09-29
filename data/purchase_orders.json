@@ -1,14 +1,77 @@
 [
   {
-    "id": "ord-1787155488182-xez026cj5",
+    "id": "PO-1790664814625",
+    "title": "จัดซื้อบีกเกอร์และกระบอกตวงประจำปี 2569",
+    "items": [
+      {
+        "code": "GLAS-001",
+        "name": "Beaker 250mL",
+        "qty": 20
+      }
+    ],
+    "estimatedCost": 4500,
+    "totalPrice": 4500,
+    "supplierName": "บจก. ไซแอนติฟิค ซัพพลาย",
+    "quotationRef": "",
+    "invoiceRef": "INV-2026-9901",
+    "reason": "",
+    "priority": "medium",
+    "requester": "ม.สุวรรณ ชิดประสงค์",
+    "teacherId": "10746",
+    "department": "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+    "status": "received",
+    "receivingStatus": "received",
+    "approvalChain": [
+      {
+        "step": 1,
+        "role": "Requester",
+        "status": "submitted",
+        "by": "ม.สุวรรณ ชิดประสงค์",
+        "timestamp": "2026-09-29T06:53:34.625Z"
+      },
+      {
+        "step": 2,
+        "role": "L3",
+        "status": "approved",
+        "by": "อาจารย์ผู้ดูแลระบบ (Admin)",
+        "comments": "อนุมัติตามงบหมวดวัสดุการศึกษา",
+        "timestamp": "2026-09-29T06:53:34.632Z"
+      }
+    ],
+    "createdAt": "2026-09-29T06:53:34.625Z",
+    "reviewedBy": "อาจารย์ผู้ดูแลระบบ (Admin)",
+    "reviewedAt": "2026-09-29T06:53:34.632Z"
+  },
+  {
+    "id": "ord-1788056114890-4oaztx5li",
     "code": "3019310",
-    "name": "Dropper 10cm",
+    "name": "หลอดหยดแก้ว 10 ซม. (10 อันต่อชุด)",
+    "unitPrice": 110,
+    "quantity": 3,
+    "totalPrice": 280.5,
+    "budget": null,
+    "discount": 15,
+    "date": "2026-08-30",
+    "createdAt": "2026-09-29T06:53:34.624Z",
     "academicYear": "2569",
     "semester": "1",
-    "unitPrice": 20,
+    "updatedAt": "2026-09-29T06:53:34.624Z",
+    "is_deleted": false
+  },
+  {
+    "id": "ord-1788056177905-wgsk7o09e",
+    "code": "3018160",
+    "name": "ลูกยางปิเปต",
+    "unitPrice": 45,
     "quantity": 10,
-    "totalPrice": 170,
+    "totalPrice": 382.5,
+    "budget": null,
     "discount": 15,
-    "date": "2026-08-19"
+    "date": "2026-08-30",
+    "createdAt": "2026-09-29T06:53:34.624Z",
+    "academicYear": "2569",
+    "semester": "1",
+    "updatedAt": "2026-09-29T06:53:34.624Z",
+    "is_deleted": false
   }
 ]

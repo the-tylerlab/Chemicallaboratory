@@ -1,177 +1,49 @@
 [
   {
-    "id": "book_mock_pending_001",
-    "room": "Lab 2",
-    "date": "2026-07-13",
-    "slot": "6, 7",
-    "gradeLevel": "ม.4/1",
-    "studentCount": 36,
-    "bookerName": "สมหญิง ทดสอบจอง",
-    "purpose": "เพื่อทดสอบการทำปฏิกิริยาเคมีเบื้องต้น",
-    "prepItems": [
+    "id": "BK_LIVE_1790698747888",
+    "room": "Lab 1",
+    "date": "2026-09-30",
+    "timeSlot": "09:20 - 10:10",
+    "slot": "09:20 - 10:10",
+    "purpose": "ทดสอบระบบการจองแล็บ Realtime Sync",
+    "teacherId": "10824",
+    "teacherName": "ม.พชร รัชประภาพงษ์",
+    "className": "ม.5/2",
+    "studentCount": 32,
+    "experimentName": "การทดสอบปฏิกิริยากรด-เบส",
+    "requiredEquipment": [],
+    "requiredChemicals": [],
+    "preparationChecklist": [
       {
-        "qty": 1,
-        "code": "CHEM-002"
+        "task": "จัดเตรียมสารเคมีตามสูตร",
+        "done": false
       },
       {
-        "qty": 2,
-        "code": "GW-001"
+        "task": "ตรวจสอบเครื่องแก้วและอุปกรณ์",
+        "done": false
+      },
+      {
+        "task": "จัดวางอุปกรณ์ประจำโต๊ะปฏิบัติการ",
+        "done": false
+      }
+    ],
+    "cleanupChecklist": [
+      {
+        "task": "ตรวจนับเครื่องแก้วส่งคืน",
+        "done": false
+      },
+      {
+        "task": "แยกขยะสารเคมีอันตราย",
+        "done": false
+      },
+      {
+        "task": "ทำความสะอาดและปิดวาล์วแก๊ส",
+        "done": false
       }
     ],
     "status": "pending",
-    "createdAt": "2026-07-13T14:12:05.188Z"
-  },
-  {
-    "id": "book_mock_001",
-    "room": "Lab 1",
-    "date": "2026-07-13",
-    "slot": "3",
-    "gradeLevel": "ม.5/2",
-    "studentCount": 38,
-    "bookerName": "สมชาย รักการสอน",
-    "purpose": "ทำ Lab เรื่องการไทเทรตกรด-เบส",
-    "prepItems": [
-      {
-        "qty": 2,
-        "code": "CHEM-001"
-      }
-    ],
-    "status": "approved",
-    "createdAt": "2026-07-13T14:12:05.188Z"
-  },
-  {
-    "id": "book_mock_002",
-    "room": "Lab 2",
-    "date": "2026-07-14",
-    "slot": "4, 5",
-    "gradeLevel": "ม.4/3",
-    "studentCount": 35,
-    "bookerName": "สมหญิง ใจดี",
-    "purpose": "ทดลองเรื่องกลศาสตร์แรงและการหมุน",
-    "prepItems": [
-      {
-        "qty": 1,
-        "code": "CHEM-003"
-      }
-    ],
-    "status": "approved",
-    "createdAt": "2026-07-13T14:12:05.188Z"
-  },
-  {
-    "id": "book_mock_003",
-    "room": "Lab 3",
-    "date": "2026-07-15",
-    "slot": "1, 2",
-    "gradeLevel": "ม.6/1",
-    "studentCount": 32,
-    "bookerName": "มานะ ขยันเรียน",
-    "purpose": "ศึกษาการดูดจ่ายสารเคมีและเซลล์พืชด้วยกล้องจุลทรรศน์",
-    "prepItems": [
-      {
-        "qty": 2,
-        "code": "GW-002"
-      }
-    ],
-    "status": "approved",
-    "createdAt": "2026-07-13T14:12:05.188Z"
-  },
-  {
-    "id": "book_mock_004",
-    "room": "Lab 1",
-    "date": "2026-07-16",
-    "slot": "5, 6",
-    "bookerName": "นางสาววิภา ใฝ่เรียน",
-    "purpose": "สกัดคลอโรฟิลล์เพื่อวัดอัตราการสังเคราะห์แสง",
-    "prepItems": [
-      {
-        "qty": 1,
-        "code": "CHEM-002"
-      }
-    ],
-    "status": "pending",
-    "createdAt": "2026-07-13T14:12:05.188Z"
-  },
-  {
-    "id": "book_mock_005",
-    "room": "Lab 2",
-    "date": "2026-07-11",
-    "slot": "3",
-    "bookerName": "นายชูชาติ รักชาติ",
-    "purpose": "ทดสอบแรงลอยตัวและกระแสไฟฟ้าเบื้องต้น",
-    "prepItems": [
-      {
-        "qty": 1,
-        "code": "EQ-001"
-      }
-    ],
-    "status": "approved",
-    "createdAt": "2026-07-11T14:12:05.188Z"
-  },
-  {
-    "id": "book_1783951939965_vynza",
-    "room": "Lab 4",
-    "date": "2026-07-13",
-    "slot": "คาบ 6: 13:20 - 14:10, คาบ 7: 14:10 - 15:00",
-    "bookerName": "Wongsakorn",
-    "purpose": "The",
-    "prepItems": [],
-    "status": "pending",
-    "createdAt": "2026-07-13T14:12:19.965Z"
-  },
-  {
-    "id": "book_1783951959439_qyd4z",
-    "room": "Lab 4",
-    "date": "2026-07-13",
-    "slot": "คาบ 1: 08:10 - 09:00, คาบ 2: 09:00 - 09:50",
-    "bookerName": "Wongsakorn",
-    "purpose": "I",
-    "prepItems": [],
-    "status": "rejected",
-    "createdAt": "2026-07-13T14:12:39.439Z"
-  },
-  {
-    "id": "test_booking_001",
-    "room": "Lab 1",
-    "date": "2026-07-08",
-    "slot": "1, 2",
-    "bookerName": "อ.สมศักดิ์ รักเรียน",
-    "purpose": "การไทเทรตหาความเข้มข้นของสารละลายกรด-เบส",
-    "prepItems": [],
-    "status": "approved",
-    "createdAt": "2026-07-13T14:12:42.178Z"
-  },
-  {
-    "id": "test_booking_002",
-    "room": "Lab 2",
-    "date": "2026-07-08",
-    "slot": "3, 4",
-    "bookerName": "อ.วีระ ชนะศึก",
-    "purpose": "การวัดสนามแม่เหล็กและการทดลองวงจรไฟฟ้า",
-    "prepItems": [],
-    "status": "approved",
-    "createdAt": "2026-07-13T14:12:42.178Z"
-  },
-  {
-    "id": "test_booking_003",
-    "room": "Lab 3",
-    "date": "2026-07-08",
-    "slot": "5, 6",
-    "bookerName": "อ.สิริมา นามดี",
-    "purpose": "ศึกษากระบวนการแบ่งเซลล์พืชและการส่องกล้องจุลทรรศน์",
-    "prepItems": [],
-    "status": "approved",
-    "createdAt": "2026-07-13T14:12:42.178Z"
-  },
-  {
-    "id": "test_booking_004",
-    "room": "Lab 7",
-    "date": "2026-07-08",
-    "slot": "7, 8",
-    "bookerName": "อ.พรเทพ เกียรติดี",
-    "purpose": "คลาส STEM: การจำลองการทำงานและต่อระบบเซนเซอร์",
-    "prepItems": [],
-    "status": "approved",
-    "createdAt": "2026-07-13T14:12:42.178Z"
+    "createdAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-09-29T16:19:08.634Z"
   },
   {
     "id": "book_mock_today_01",
@@ -180,9 +52,12 @@
     "slot": "1, 2",
     "bookerName": "แก้วกาญจน์ เฮงทองเลิศ",
     "purpose": "Present Project การทดลองเคมี ม.5",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_today_02",
@@ -191,9 +66,12 @@
     "slot": "4, 5",
     "bookerName": "ชุติมา ผาสุข",
     "purpose": "นวัตกรรม ม.รัชกฤช ฟิสิกส์การเคลื่อนที่",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_today_03",
@@ -202,9 +80,12 @@
     "slot": "6, 7",
     "bookerName": "ภัสสร โชวเซ็ง",
     "purpose": "สอบวิชา STEM Activity ม.2/3",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_today_04",
@@ -213,9 +94,12 @@
     "slot": "7, 8",
     "bookerName": "ชุติมา ผาสุข",
     "purpose": "นวัตกรรม ม.2/2 มิสปริญา",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_today_05",
@@ -224,9 +108,12 @@
     "slot": "8",
     "bookerName": "อาจารย์กฤษณะ รุ่งเรือง",
     "purpose": "เตรียมความพร้อมแล็บวิทย์ ม.ต้น",
-    "prepItems": null,
+    "prepItems": [],
     "status": "pending",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_01",
@@ -235,9 +122,12 @@
     "slot": "2, 3",
     "bookerName": "ม.รัชกฤช สุขใจ",
     "purpose": "working จัดเตรียมโครงงานวิทยาศาสตร์",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_02",
@@ -246,9 +136,12 @@
     "slot": "1, 2",
     "bookerName": "อ.พรทิพย์ มั่งมี",
     "purpose": "ใช้ในการแข่งขันโอลิมปิกวิชาการ",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_03",
@@ -257,9 +150,12 @@
     "slot": "2, 3",
     "bookerName": "ครูสมชาย รักการสอน",
     "purpose": "working สังเกตการแบ่งเซลล์พืช",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_04",
@@ -268,9 +164,12 @@
     "slot": "1, 2",
     "bookerName": "มิสปริยากรณ์ ใจงาม",
     "purpose": "จัดการเรียนการสอนศูนย์ สสวท.",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_05",
@@ -279,9 +178,12 @@
     "slot": "2, 3",
     "bookerName": "Teacher David",
     "purpose": "เรียนวิชาเลือกเสรี Science Lab EP",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_06",
@@ -290,9 +192,12 @@
     "slot": "1, 2",
     "bookerName": "มิสปริยากรณ์",
     "purpose": "มิสปริยากรณ์ (เคมีปฏิบัติการ)",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_07",
@@ -301,9 +206,12 @@
     "slot": "3, 4",
     "bookerName": "ครูวิภาดา ใฝ่รู้",
     "purpose": "Students Presentation STEM",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_08",
@@ -312,9 +220,12 @@
     "slot": "1, 2",
     "bookerName": "เจ้าหน้าที่ทรงศักดิ์",
     "purpose": "จัดกิจกรรมอบรมสะเต็ม",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_09",
@@ -323,9 +234,12 @@
     "slot": "1",
     "bookerName": "Teacher Sarah",
     "purpose": "Present Gr.5-6 Science Expo",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_10",
@@ -334,9 +248,12 @@
     "slot": "1, 2",
     "bookerName": "Mr. Robert",
     "purpose": "Eng Lab IEP Program",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_11",
@@ -345,9 +262,12 @@
     "slot": "1, 2",
     "bookerName": "มิสปริยากรณ์",
     "purpose": "มิสปริยากรณ์ (เคมีทดลอง)",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_12",
@@ -356,9 +276,12 @@
     "slot": "1, 2",
     "bookerName": "แก้วกาญจน์ เฮงทองเลิศ",
     "purpose": "Present Project การทดลองเคมี ม.5",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_13",
@@ -367,9 +290,12 @@
     "slot": "1, 2",
     "bookerName": "มิสปริยากรณ์",
     "purpose": "จัดการเรียนการสอนวิทยาศาสตร์",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_14",
@@ -378,9 +304,12 @@
     "slot": "2",
     "bookerName": "ม.รัชกฤช",
     "purpose": "ม.รัชกฤช: 3/5",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_15",
@@ -389,9 +318,12 @@
     "slot": "2",
     "bookerName": "อาจารย์กฤษณะ",
     "purpose": "กิจกรรม board game ป.6",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_16",
@@ -400,9 +332,12 @@
     "slot": "3",
     "bookerName": "มิสปริยากรณ์",
     "purpose": "มิสปริยากรณ์ (ไทย): 1/6",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_17",
@@ -411,9 +346,12 @@
     "slot": "7",
     "bookerName": "ครูวิภาดา ใฝ่รู้",
     "purpose": "การเรียนการสอน Innovative",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   },
   {
     "id": "book_mock_18",
@@ -422,8 +360,11 @@
     "slot": "8",
     "bookerName": "TED Club Advisor",
     "purpose": "TED Club กิจกรรมวิทย์",
-    "prepItems": null,
+    "prepItems": [],
     "status": "approved",
-    "createdAt": "2026-09-23T10:34:44.536Z"
+    "createdAt": "2026-09-23T10:34:44.536Z",
+    "teacherId": "",
+    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "is_deleted": false
   }
 ]

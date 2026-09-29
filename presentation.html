@@ -1010,15 +1010,37 @@
       }
     }
 
-    function handleGuardSubmit(e) {
+    async function handleGuardSubmit(e) {
       e.preventDefault();
       const pwd = document.getElementById("guardPassword").value;
-      if (pwd === "admin1234" || pwd === "admin" || pwd === "00000") {
-        localStorage.setItem("isAdminLoggedIn", "true");
-        localStorage.setItem("userRole", "admin");
-        document.getElementById("adminGuardOverlay").style.display = "none";
-      } else {
-        alert("รหัสผ่านไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (Admin) เท่านั้น");
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "กำลังตรวจสอบสิทธิ์...";
+      }
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: 'admin', password: pwd })
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.token && (data.user.role === 'L3' || data.user.role === 'admin')) {
+          localStorage.setItem("lab_auth_token", data.token);
+          localStorage.setItem("isAdminLoggedIn", "true");
+          localStorage.setItem("userRole", "admin");
+          localStorage.setItem("currentUser", JSON.stringify(data.user));
+          document.getElementById("adminGuardOverlay").style.display = "none";
+        } else {
+          alert("รหัสผ่านไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าถึง (เฉพาะผู้ดูแลระบบ Admin เท่านั้น)");
+        }
+      } catch (err) {
+        alert("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อตรวจสอบสิทธิ์ได้");
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "ยืนยันและเปิดสไลด์";
+        }
       }
     }
 

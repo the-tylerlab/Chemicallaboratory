@@ -1,12 +1,30 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const webpush = require('web-push');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const JWT_SECRET = process.env.JWT_SECRET || 'lab_jwt_secret_dev_2844067e13c352e4b87d6bdde865f8e6';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
+
+// In-memory blacklist for revoked tokens (logout)
+const revokedTokens = new Set();
+
+// Clean up expired tokens periodically (every 1 hour)
+setInterval(() => {
+  // If memory grows large, clear old invalid tokens
+  if (revokedTokens.size > 10000) {
+    revokedTokens.clear();
+  }
+}, 3600000);
 
 // Initialize Supabase Client for dual cloud synchronization
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://avzneyaalenbyawfvykp.supabase.co';
@@ -48,6 +66,10 @@ const PUSH_SUBSCRIPTIONS_FILE = path.join(DB_DIR, 'push_subscriptions.json');
 const VAPID_KEYS_FILE = path.join(DB_DIR, 'vapid_keys.json');
 const ANNOUNCEMENTS_FILE = path.join(DB_DIR, 'announcements.json');
 const EMERGENCY_CONTACTS_FILE = path.join(DB_DIR, 'emergency_contacts.json');
+const STOCK_MOVEMENTS_FILE = path.join(DB_DIR, 'stock_movements.json');
+const STOCK_ADJUSTMENTS_FILE = path.join(DB_DIR, 'stock_adjustments.json');
+const EQUIPMENT_MAINTENANCE_FILE = path.join(DB_DIR, 'equipment_maintenance.json');
+const EQUIPMENT_REPAIRS_FILE = path.join(DB_DIR, 'equipment_repairs.json');
 
 // Ensure data directory exists
 if (!fs.existsSync(DB_DIR)) {
@@ -181,8 +203,9 @@ function readDatabase() {
     
     // Create file if not exists
     if (!fs.existsSync(DB_FILE)) {
-      fs.writeFileSync(DB_FILE, JSON.stringify(DEFAULT_SEEDS, null, 2), 'utf-8');
-      return DEFAULT_SEEDS;
+      const initial = NODE_ENV === 'production' ? [] : DEFAULT_SEEDS;
+      fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
+      return initial;
     }
     
     const data = fs.readFileSync(DB_FILE, 'utf-8');
@@ -193,18 +216,32 @@ function readDatabase() {
   }
 }
 
-// Helper: Save items to database
-function writeDatabase(items) {
+// Helper: Safe JSON File Writer (prevents touching file timestamp if content is unchanged, avoiding infinite reload loops)
+function safeWriteJson(filePath, data) {
   try {
-    if (!fs.existsSync(DB_DIR)) {
-      fs.mkdirSync(DB_DIR, { recursive: true });
+    const jsonStr = JSON.stringify(data, null, 2);
+    if (fs.existsSync(filePath)) {
+      try {
+        const existing = fs.readFileSync(filePath, 'utf-8');
+        if (existing === jsonStr) {
+          return true; // Content unchanged, do not touch file!
+        }
+      } catch (readErr) {}
+    } else {
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(DB_FILE, JSON.stringify(items, null, 2), 'utf-8');
+    fs.writeFileSync(filePath, jsonStr, 'utf-8');
     return true;
   } catch (err) {
-    console.error("Error writing database:", err);
+    console.error("Error writing " + filePath + ":", err.message);
     return false;
   }
+}
+
+// Helper: Save items to database
+function writeDatabase(items) {
+  return safeWriteJson(DB_FILE, items);
 }
 
 // Helper: Read budget from database
@@ -223,19 +260,14 @@ function readBudget() {
 
 // Helper: Save budget to database
 function writeBudget(budgetData) {
-  try {
-    fs.writeFileSync(BUDGET_FILE, JSON.stringify(budgetData, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    return false;
-  }
+  return safeWriteJson(BUDGET_FILE, budgetData);
 }
 
 // Helper: Read purchase orders from database
 function readPurchaseOrders() {
   try {
     if (!fs.existsSync(PURCHASE_ORDERS_FILE)) {
-      const defaultOrders = [
+      const defaultOrders = NODE_ENV === 'production' ? [] : [
         {
           id: "ord-mock-001",
           code: "CHEM-001",
@@ -257,7 +289,7 @@ function readPurchaseOrders() {
           discount: 10
         }
       ];
-      fs.writeFileSync(PURCHASE_ORDERS_FILE, JSON.stringify(defaultOrders, null, 2), 'utf-8');
+      safeWriteJson(PURCHASE_ORDERS_FILE, defaultOrders);
       return defaultOrders;
     }
     const data = fs.readFileSync(PURCHASE_ORDERS_FILE, 'utf-8');
@@ -269,19 +301,14 @@ function readPurchaseOrders() {
 
 // Helper: Save purchase orders to database
 function writePurchaseOrders(orders) {
-  try {
-    fs.writeFileSync(PURCHASE_ORDERS_FILE, JSON.stringify(orders, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    return false;
-  }
+  return safeWriteJson(PURCHASE_ORDERS_FILE, orders);
 }
 
 // Helper: Read bookings from database
 function readBookings() {
   try {
     if (!fs.existsSync(BOOKINGS_FILE)) {
-      fs.writeFileSync(BOOKINGS_FILE, JSON.stringify([], null, 2), 'utf-8');
+      safeWriteJson(BOOKINGS_FILE, []);
       return [];
     }
     const data = fs.readFileSync(BOOKINGS_FILE, 'utf-8');
@@ -293,19 +320,14 @@ function readBookings() {
 
 // Helper: Save bookings to database
 function writeBookings(bookings) {
-  try {
-    fs.writeFileSync(BOOKINGS_FILE, JSON.stringify(bookings, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    return false;
-  }
+  return safeWriteJson(BOOKINGS_FILE, bookings);
 }
 
 // Helper: Read layouts from database
 function readLayouts() {
   try {
     if (!fs.existsSync(LAYOUTS_FILE)) {
-      fs.writeFileSync(LAYOUTS_FILE, JSON.stringify({}, null, 2), 'utf-8');
+      safeWriteJson(LAYOUTS_FILE, {});
       return {};
     }
     const data = fs.readFileSync(LAYOUTS_FILE, 'utf-8');
@@ -317,19 +339,14 @@ function readLayouts() {
 
 // Helper: Save layouts to database
 function writeLayouts(layouts) {
-  try {
-    fs.writeFileSync(LAYOUTS_FILE, JSON.stringify(layouts, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    return false;
-  }
+  return safeWriteJson(LAYOUTS_FILE, layouts);
 }
 
 // Helper: Read transactions from database
 function readTransactions() {
   try {
     if (!fs.existsSync(TRANSACTIONS_FILE)) {
-      fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify([], null, 2), 'utf-8');
+      safeWriteJson(TRANSACTIONS_FILE, []);
       return [];
     }
     const data = fs.readFileSync(TRANSACTIONS_FILE, 'utf-8');
@@ -341,12 +358,83 @@ function readTransactions() {
 
 // Helper: Save transactions to database
 function writeTransactions(transactions) {
+  return safeWriteJson(TRANSACTIONS_FILE, transactions);
+}
+
+// Helper: Read stock movements
+function readStockMovements() {
   try {
-    fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify(transactions, null, 2), 'utf-8');
-    return true;
+    if (!fs.existsSync(STOCK_MOVEMENTS_FILE)) {
+      safeWriteJson(STOCK_MOVEMENTS_FILE, []);
+      return [];
+    }
+    const data = fs.readFileSync(STOCK_MOVEMENTS_FILE, 'utf-8');
+    return JSON.parse(data);
   } catch (err) {
-    return false;
+    return [];
   }
+}
+
+// Helper: Save stock movements
+function writeStockMovements(movements) {
+  return safeWriteJson(STOCK_MOVEMENTS_FILE, movements);
+}
+
+// Helper: Read stock adjustments
+function readStockAdjustments() {
+  try {
+    if (!fs.existsSync(STOCK_ADJUSTMENTS_FILE)) {
+      safeWriteJson(STOCK_ADJUSTMENTS_FILE, []);
+      return [];
+    }
+    const data = fs.readFileSync(STOCK_ADJUSTMENTS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+// Helper: Save stock adjustments
+function writeStockAdjustments(adjustments) {
+  return safeWriteJson(STOCK_ADJUSTMENTS_FILE, adjustments);
+}
+
+// Helper: Read equipment maintenance logs
+function readEquipmentMaintenance() {
+  try {
+    if (!fs.existsSync(EQUIPMENT_MAINTENANCE_FILE)) {
+      safeWriteJson(EQUIPMENT_MAINTENANCE_FILE, []);
+      return [];
+    }
+    const data = fs.readFileSync(EQUIPMENT_MAINTENANCE_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+// Helper: Write equipment maintenance logs
+function writeEquipmentMaintenance(logs) {
+  return safeWriteJson(EQUIPMENT_MAINTENANCE_FILE, logs);
+}
+
+// Helper: Read equipment repair requests
+function readEquipmentRepairs() {
+  try {
+    if (!fs.existsSync(EQUIPMENT_REPAIRS_FILE)) {
+      safeWriteJson(EQUIPMENT_REPAIRS_FILE, []);
+      return [];
+    }
+    const data = fs.readFileSync(EQUIPMENT_REPAIRS_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch (err) {
+    return [];
+  }
+}
+
+// Helper: Write equipment repair requests
+function writeEquipmentRepairs(repairs) {
+  return safeWriteJson(EQUIPMENT_REPAIRS_FILE, repairs);
 }
 
 // Helper: Read users
@@ -357,7 +445,7 @@ function readUsers() {
         { id: "u1", name: "Admin User", email: "admin@organisation.com", role: "admin", initials: "A", color: "var(--primary-purple)" },
         { id: "u2", name: "Staff Member", email: "staff@organisation.com", role: "staff", initials: "S", color: "#3b82f6" }
       ];
-      fs.writeFileSync(USERS_FILE, JSON.stringify(defaultUsers, null, 2), 'utf-8');
+      safeWriteJson(USERS_FILE, defaultUsers);
       return defaultUsers;
     }
     const data = fs.readFileSync(USERS_FILE, 'utf-8');
@@ -368,19 +456,14 @@ function readUsers() {
 }
 
 function writeUsers(users) {
-  try {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    return false;
-  }
+  return safeWriteJson(USERS_FILE, users);
 }
 
 // Helper: Read audit logs
 function readAuditLogs() {
   try {
     if (!fs.existsSync(AUDIT_LOGS_FILE)) {
-      fs.writeFileSync(AUDIT_LOGS_FILE, JSON.stringify([], null, 2), 'utf-8');
+      safeWriteJson(AUDIT_LOGS_FILE, []);
       return [];
     }
     const data = fs.readFileSync(AUDIT_LOGS_FILE, 'utf-8');
@@ -391,11 +474,165 @@ function readAuditLogs() {
 }
 
 function writeAuditLogs(logs) {
+  return safeWriteJson(AUDIT_LOGS_FILE, logs);
+}
+
+// ==========================================
+// SECURITY, AUTHENTICATION & RBAC MIDDLEWARES
+// ==========================================
+
+// Helper: Normalize user role string
+function normalizeRole(role) {
+  if (!role) return 'L0';
+  const r = String(role).toUpperCase().trim();
+  if (r === 'ADMIN' || r === 'L3') return 'L3';
+  if (r === 'STAFF' || r === 'L2') return 'L2';
+  if (r === 'TEACHER' || r === 'L1') return 'L1';
+  if (r === 'EXECUTIVE' || r === 'L4') return 'L4';
+  return r;
+}
+
+// Helper: Verify password with bcrypt (supports legacy plaintext upgrade)
+function verifyPassword(inputPassword, storedPasswordOrHash) {
+  if (!inputPassword || !storedPasswordOrHash) return false;
+  const strHash = String(storedPasswordOrHash).trim();
+  if (strHash.startsWith('$2a$') || strHash.startsWith('$2b$')) {
+    return bcrypt.compareSync(inputPassword, strHash);
+  }
+  // Plaintext match for migration
+  return inputPassword === strHash;
+}
+
+// Helper: Sanitize user object (never leak password / password hash)
+function sanitizeUser(u) {
+  if (!u) return null;
+  const copy = { ...u };
+  delete copy.password;
+  delete copy.password_hash;
+  return copy;
+}
+
+// Middleware: Authenticate JWT Token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      code: 'AUTH_REQUIRED',
+      message: 'กรุณาเข้าสู่ระบบก่อนทำรายการ (Authentication required)'
+    });
+  }
+
+  if (revokedTokens.has(token)) {
+    return res.status(401).json({
+      success: false,
+      code: 'TOKEN_REVOKED',
+      message: 'เซสชันนี้ได้ออกจากระบบแล้ว กรุณาเข้าสู่ระบบใหม่'
+    });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          code: 'TOKEN_EXPIRED',
+          message: 'เซสชันการใช้งานหมดอายุ กรุณาเข้าสู่ระบบใหม่ (Session expired)'
+        });
+      }
+      return res.status(403).json({
+        success: false,
+        code: 'TOKEN_INVALID',
+        message: 'โทเค็นยืนยันตัวตนไม่ถูกต้อง (Invalid token)'
+      });
+    }
+    req.user = decoded;
+    req.token = token;
+    next();
+  });
+}
+
+// Middleware: Optional Authentication (attaches req.user if token is present and valid)
+function optionalAuth(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+  if (!token || revokedTokens.has(token)) {
+    req.user = null;
+    return next();
+  }
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    req.user = err ? null : decoded;
+    req.token = token;
+    next();
+  });
+}
+
+// Middleware: Role-Based Access Control (RBAC)
+function requireRole(...allowedRoles) {
+  const normalizedAllowed = allowedRoles.map(r => normalizeRole(r));
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        code: 'AUTH_REQUIRED',
+        message: 'กรุณาเข้าสู่ระบบก่อนทำรายการ'
+      });
+    }
+    const userRole = normalizeRole(req.user.role || req.user.roleLevel);
+    if (!normalizedAllowed.includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        code: 'FORBIDDEN',
+        message: `คุณไม่มีสิทธิ์เข้าถึงฟังก์ชันนี้ (ต้องการ ${allowedRoles.join('/')} แต่คุณคือ ${userRole})`
+      });
+    }
+    next();
+  };
+}
+
+// Helper: Check if user has permission to manage items/bookings in a specific room
+function canUserAccessRoom(user, targetRoom) {
+  if (!user) return false;
+  const role = normalizeRole(user.role || user.roleLevel);
+  if (role === 'L3' || role === 'L4') return true; // Admins and Executives have global room access
+  if (role === 'L2') {
+    if (!user.assignedRooms || user.assignedRooms.length === 0) return true; // Unrestricted staff
+    return user.assignedRooms.some(r => String(r).toLowerCase().trim() === String(targetRoom || '').toLowerCase().trim());
+  }
+  return false;
+}
+
+// Enhanced Central Audit Log Function
+function recordAuditLog({ actorId, actorName, actorRole, action, resource, resourceId, details, req }) {
   try {
-    fs.writeFileSync(AUDIT_LOGS_FILE, JSON.stringify(logs, null, 2), 'utf-8');
-    return true;
-  } catch (err) {
-    return false;
+    const logs = readAuditLogs();
+    const user = req ? req.user : null;
+    const newLog = {
+      id: 'log-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      timestamp: new Date().toISOString(),
+      actorId: actorId || (user ? (user.teacherId || user.id) : 'system'),
+      actorName: actorName || (user ? user.name : 'ระบบอัตโนมัติ'),
+      actorRole: actorRole || (user ? (user.role || user.roleLevel) : 'L0'),
+      action: action || 'ACTION',
+      resource: resource || 'general',
+      resourceId: resourceId ? String(resourceId) : '',
+      details: typeof details === 'object' ? JSON.stringify(details) : (details || ''),
+      ip: req ? (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '') : ''
+    };
+    logs.unshift(newLog);
+    if (logs.length > 500) logs.pop();
+    writeAuditLogs(logs);
+
+    if (supabase) {
+      supabase.from('audit_logs').insert([newLog]).then(null, err => {
+        console.warn('Supabase audit log sync notice:', err.message);
+      });
+    }
+    return newLog;
+  } catch (e) {
+    console.error('Audit log write error:', e.message);
   }
 }
 
@@ -552,213 +789,196 @@ async function fetchGoogleSheetTable(table) {
 }
 
 // ==========================================================================
-// DUAL-SOURCE LIVE SYNC HELPERS (Supabase + Google Sheets + Local)
+// SOURCE OF TRUTH: SUPABASE (with Local Offline Standby & Google Sheets Backup)
 // ==========================================================================
 
 let itemsCache = null;
 let lastItemsFetch = 0;
 
 async function fetchLiveItems(forceRefresh = false) {
-  const localItems = readDatabase();
   if (!forceRefresh && itemsCache && (Date.now() - lastItemsFetch < 15000)) {
     return itemsCache;
   }
 
-  let merged = [...localItems];
-
-  // 1. Supabase items
+  // 1. Primary Source of Truth: Supabase
   if (supabase) {
     try {
       const { data: supaItems, error } = await supabase.from('items').select('*');
       if (!error && Array.isArray(supaItems) && supaItems.length > 0) {
-        supaItems.forEach(si => {
-          if (!si.code) return;
-          const idx = merged.findIndex(i => String(i.code).toLowerCase() === String(si.code).toLowerCase());
-          if (idx !== -1) {
-            merged[idx] = { ...merged[idx], ...si };
-          } else {
-            merged.push(si);
-          }
+        const activeItems = supaItems.filter(item => {
+          if (item.is_deleted === true || item.isDeleted === true) return false;
+          if (NODE_ENV === 'production' && String(item.code || '').startsWith('DEMO-')) return false;
+          return true;
         });
+
+        const normalized = activeItems.map(item => ({
+          ...item,
+          qty: Number(item.qty !== undefined ? item.qty : (item.quantity !== undefined ? item.quantity : 0)),
+          minAlert: Number(item.minAlert !== undefined ? item.minAlert : (item.min_alert !== undefined ? item.min_alert : 5)),
+          damagedQty: Number(item.damagedQty !== undefined ? item.damagedQty : (item.damaged_qty !== undefined ? item.damaged_qty : 0)),
+          createdAt: item.createdAt || item.created_at || new Date().toISOString(),
+          updatedAt: item.updatedAt || item.updated_at || new Date().toISOString(),
+          createdBy: item.createdBy || item.created_by || 'system',
+          updatedBy: item.updatedBy || item.updated_by || 'system',
+          is_deleted: false
+        }));
+
+        if (!fs.existsSync(DB_FILE)) writeDatabase(normalized);
+        itemsCache = normalized;
+        lastItemsFetch = Date.now();
+        return normalized;
       }
     } catch(e) {
-      console.warn("Supabase fetch items notice:", e.message);
+      console.warn("[SourceOfTruth:Supabase] Items read notice:", e.message);
     }
   }
 
-  // 2. Google Sheets Items
-  const sheetItems = await fetchGoogleSheetTable('Items');
-  if (Array.isArray(sheetItems) && sheetItems.length > 0) {
-    sheetItems.forEach(si => {
-      if (!si.code) return;
-      const idx = merged.findIndex(i => String(i.code).toLowerCase() === String(si.code).toLowerCase());
-      if (idx !== -1) {
-        merged[idx] = { ...merged[idx], ...si };
-      } else {
-        merged.push(si);
-      }
-    });
-  }
-
-  writeDatabase(merged);
-  itemsCache = merged;
+  // 2. Standby Offline Backup (Local JSON)
+  const localItems = readDatabase().filter(i => !i.is_deleted && !(NODE_ENV === 'production' && String(i.code || '').startsWith('DEMO-')));
+  itemsCache = localItems;
   lastItemsFetch = Date.now();
-  return merged;
+  return localItems;
 }
 
 let bookingsCache = null;
 let lastBookingsFetch = 0;
 
 async function fetchLiveBookings(forceRefresh = false) {
-  const localBookings = readBookings();
   if (!forceRefresh && bookingsCache && (Date.now() - lastBookingsFetch < 15000)) {
     return bookingsCache;
   }
 
-  let merged = [...localBookings];
-
-  // 1. Supabase bookings
+  // 1. Primary Source of Truth: Supabase
   if (supabase) {
     try {
       const { data: supaBookings, error } = await supabase.from('bookings').select('*');
-      if (!error && Array.isArray(supaBookings) && supaBookings.length > 0) {
-        supaBookings.forEach(sb => {
-          if (!sb.id) return;
-          const idx = merged.findIndex(b => String(b.id) === String(sb.id));
-          if (idx !== -1) {
-            merged[idx] = { ...merged[idx], ...sb };
-          } else {
-            merged.push(sb);
-          }
+      if (!error && Array.isArray(supaBookings)) {
+        const activeBookings = supaBookings.filter(b => {
+          if (b.is_deleted === true || b.isDeleted === true) return false;
+          if (NODE_ENV === 'production' && String(b.id || '').startsWith('demo_')) return false;
+          return true;
         });
+
+        const normalized = activeBookings.map(b => ({
+          ...b,
+          slot: b.slot || b.time_slot || '',
+          bookerName: b.bookerName || b.booker_name || '',
+          prepItems: b.prepItems || b.prep_items || [],
+          teacherId: b.teacherId || b.teacher_id || '',
+          createdAt: b.createdAt || b.created_at || new Date().toISOString(),
+          updatedAt: b.updatedAt || b.updated_at || new Date().toISOString(),
+          is_deleted: false
+        }));
+
+        if (!fs.existsSync(BOOKINGS_FILE)) writeBookings(normalized);
+        bookingsCache = normalized;
+        lastBookingsFetch = Date.now();
+        return normalized;
       }
     } catch(e) {
-      console.warn("Supabase fetch bookings notice:", e.message);
+      console.warn("[SourceOfTruth:Supabase] Bookings read notice:", e.message);
     }
   }
 
-  // 2. Google Sheets Bookings
-  const sheetBookings = await fetchGoogleSheetTable('Bookings');
-  if (Array.isArray(sheetBookings) && sheetBookings.length > 0) {
-    sheetBookings.forEach(sb => {
-      if (!sb.id && !sb.room && !sb.date) return;
-      const id = sb.id || `bk_${sb.room}_${sb.date}_${sb.slot}`;
-      sb.id = id;
-      const idx = merged.findIndex(b => String(b.id) === String(id) || (b.room === sb.room && b.date === sb.date && b.slot === sb.slot));
-      if (idx !== -1) {
-        merged[idx] = { ...merged[idx], ...sb };
-      } else {
-        merged.push(sb);
-      }
-    });
-  }
-
-  writeBookings(merged);
-  bookingsCache = merged;
+  // 2. Standby Offline Backup
+  const localBookings = readBookings().filter(b => !b.is_deleted && !(NODE_ENV === 'production' && String(b.id || '').startsWith('demo_')));
+  bookingsCache = localBookings;
   lastBookingsFetch = Date.now();
-  return merged;
+  return localBookings;
 }
 
 let transactionsCache = null;
 let lastTransactionsFetch = 0;
 
 async function fetchLiveTransactions(forceRefresh = false) {
-  const localTxs = readTransactions();
   if (!forceRefresh && transactionsCache && (Date.now() - lastTransactionsFetch < 15000)) {
     return transactionsCache;
   }
 
-  let merged = [...localTxs];
-
-  // 1. Supabase transactions
+  // 1. Primary Source of Truth: Supabase
   if (supabase) {
     try {
       const { data: supaTxs, error } = await supabase.from('transactions').select('*');
-      if (!error && Array.isArray(supaTxs) && supaTxs.length > 0) {
-        supaTxs.forEach(st => {
-          if (!st.id) return;
-          const idx = merged.findIndex(t => String(t.id) === String(st.id));
-          if (idx !== -1) {
-            merged[idx] = { ...merged[idx], ...st };
-          } else {
-            merged.push(st);
-          }
+      if (!error && Array.isArray(supaTxs)) {
+        const activeTxs = supaTxs.filter(tx => {
+          if (tx.is_deleted === true || tx.isDeleted === true) return false;
+          if (NODE_ENV === 'production' && String(tx.id || '').startsWith('tx-mock')) return false;
+          return true;
         });
+
+        const normalized = activeTxs.map(tx => ({
+          ...tx,
+          itemCode: tx.itemCode || tx.item_code || '',
+          itemName: tx.itemName || tx.item_name || '',
+          expectedReturnDate: tx.expectedReturnDate || tx.expected_return_date || null,
+          returnDate: tx.returnDate || tx.return_date || null,
+          damagedQty: Number(tx.damagedQty !== undefined ? tx.damagedQty : (tx.damaged_qty !== undefined ? tx.damaged_qty : 0)),
+          createdAt: tx.createdAt || tx.created_at || new Date().toISOString(),
+          updatedAt: tx.updatedAt || tx.updated_at || new Date().toISOString(),
+          is_deleted: false
+        }));
+
+        if (!fs.existsSync(TRANSACTIONS_FILE)) writeTransactions(normalized);
+        transactionsCache = normalized;
+        lastTransactionsFetch = Date.now();
+        return normalized;
       }
     } catch(e) {
-      console.warn("Supabase fetch transactions notice:", e.message);
+      console.warn("[SourceOfTruth:Supabase] Transactions read notice:", e.message);
     }
   }
 
-  // 2. Google Sheets Transactions
-  const sheetTxs = await fetchGoogleSheetTable('Transactions');
-  if (Array.isArray(sheetTxs) && sheetTxs.length > 0) {
-    sheetTxs.forEach(st => {
-      if (!st.id) return;
-      const idx = merged.findIndex(t => String(t.id) === String(st.id));
-      if (idx !== -1) {
-        merged[idx] = { ...merged[idx], ...st };
-      } else {
-        merged.push(st);
-      }
-    });
-  }
-
-  writeTransactions(merged);
-  transactionsCache = merged;
+  // 2. Standby Offline Backup
+  const localTxs = readTransactions().filter(tx => !tx.is_deleted && !(NODE_ENV === 'production' && String(tx.id || '').startsWith('tx-mock')));
+  transactionsCache = localTxs;
   lastTransactionsFetch = Date.now();
-  return merged;
+  return localTxs;
 }
 
 let poCache = null;
 let lastPoFetch = 0;
 
 async function fetchLivePurchaseOrders(forceRefresh = false) {
-  const localOrders = readPurchaseOrders();
   if (!forceRefresh && poCache && (Date.now() - lastPoFetch < 15000)) {
     return poCache;
   }
 
-  let merged = [...localOrders];
-
-  // 1. Supabase purchase orders
+  // 1. Primary Source of Truth: Supabase
   if (supabase) {
     try {
       const { data: supaPOs, error } = await supabase.from('purchase_orders').select('*');
-      if (!error && Array.isArray(supaPOs) && supaPOs.length > 0) {
-        supaPOs.forEach(spo => {
-          if (!spo.id) return;
-          const idx = merged.findIndex(o => String(o.id) === String(spo.id));
-          if (idx !== -1) {
-            merged[idx] = { ...merged[idx], ...spo };
-          } else {
-            merged.push(spo);
-          }
+      if (!error && Array.isArray(supaPOs)) {
+        const activePOs = supaPOs.filter(po => {
+          if (po.is_deleted === true || po.isDeleted === true) return false;
+          if (NODE_ENV === 'production' && String(po.id || '').startsWith('ord-mock-')) return false;
+          return true;
         });
+
+        const normalized = activePOs.map(po => ({
+          ...po,
+          unitPrice: Number(po.unitPrice !== undefined ? po.unitPrice : (po.unit_price !== undefined ? po.unit_price : 0)),
+          totalPrice: Number(po.totalPrice !== undefined ? po.totalPrice : (po.total_price !== undefined ? po.total_price : 0)),
+          academicYear: po.academicYear || po.academic_year || '2569',
+          createdAt: po.createdAt || po.created_at || new Date().toISOString(),
+          updatedAt: po.updatedAt || po.updated_at || new Date().toISOString(),
+          is_deleted: false
+        }));
+
+        if (!fs.existsSync(PURCHASE_ORDERS_FILE)) writePurchaseOrders(normalized);
+        poCache = normalized;
+        lastPoFetch = Date.now();
+        return normalized;
       }
     } catch(e) {
-      console.warn("Supabase fetch POs notice:", e.message);
+      console.warn("[SourceOfTruth:Supabase] Purchase orders read notice:", e.message);
     }
   }
 
-  // 2. Google Sheets Purchase Orders
-  const sheetPOs = await fetchGoogleSheetTable('Purchase_Orders');
-  if (Array.isArray(sheetPOs) && sheetPOs.length > 0) {
-    sheetPOs.forEach(spo => {
-      if (!spo.id) return;
-      const idx = merged.findIndex(o => String(o.id) === String(spo.id));
-      if (idx !== -1) {
-        merged[idx] = { ...merged[idx], ...spo };
-      } else {
-        merged.push(spo);
-      }
-    });
-  }
-
-  writePurchaseOrders(merged);
-  poCache = merged;
+  // 2. Standby Offline Backup
+  const localOrders = readPurchaseOrders().filter(po => !po.is_deleted && !(NODE_ENV === 'production' && String(po.id || '').startsWith('ord-mock-')));
+  poCache = localOrders;
   lastPoFetch = Date.now();
-  return merged;
+  return localOrders;
 }
 
 async function fetchLiveBudget() {
@@ -768,7 +988,7 @@ async function fetchLiveBudget() {
       const { data } = await supabase.from('system').select('value').eq('key', 'budget').maybeSingle();
       if (data && data.value && data.value.budget !== undefined) {
         budgetObj = data.value;
-        writeBudget(budgetObj);
+        if (!fs.existsSync(BUDGET_FILE)) writeBudget(budgetObj);
       }
     } catch(e) {}
   }
@@ -782,7 +1002,7 @@ async function fetchLiveAnnouncements() {
       const { data } = await supabase.from('system').select('value').eq('key', 'lab_announcement_settings').maybeSingle();
       if (data && data.value) {
         ann = { ...ann, ...data.value };
-        writeAnnouncements(ann);
+        if (!fs.existsSync(ANNOUNCEMENTS_FILE)) writeAnnouncements(ann);
       }
     } catch(e) {}
   }
@@ -904,11 +1124,21 @@ app.get('/api/items', async (req, res) => {
   res.json(items);
 });
 
-// 2. POST /api/items — Create a new item
-app.post('/api/items', async (req, res) => {
+// 2. POST /api/items — Create a new item (L2 Staff or L3 Admin)
+app.post('/api/items', authenticateToken, requireRole('L2', 'L3'), async (req, res) => {
   const newItem = req.body;
+  if (newItem.qty === undefined && newItem.quantity !== undefined) {
+    newItem.qty = newItem.quantity;
+  }
   if (!newItem.code || !newItem.name || !newItem.category || newItem.qty === undefined || !newItem.unit) {
     return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  // Room access control for L2 staff
+  if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, newItem.room)) {
+    return res.status(403).json({
+      error: `เจ้าหน้าที่ไม่มีสิทธิ์เพิ่มพัสดุในห้อง ${newItem.room || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+    });
   }
 
   const items = await fetchLiveItems();
@@ -919,28 +1149,47 @@ app.post('/api/items', async (req, res) => {
     return res.status(409).json({ error: `Item code ${newItem.code} already exists` });
   }
 
-  // Add creation timestamp
-  newItem.createdAt = newItem.createdAt || new Date().toISOString();
+  // Add creation and audit metadata
+  const now = new Date().toISOString();
+  const actor = req.user?.teacherId || req.user?.name || 'system';
+  newItem.createdAt = newItem.createdAt || now;
+  newItem.created_at = newItem.createdAt;
+  newItem.updatedAt = now;
+  newItem.updated_at = now;
+  newItem.createdBy = actor;
+  newItem.created_by = actor;
+  newItem.updatedBy = actor;
+  newItem.updated_by = actor;
+  newItem.is_deleted = false;
   
   items.push(newItem);
   writeDatabase(items);
   itemsCache = items;
 
-  // Sync to Supabase
+  // 1. Sync to Supabase (Primary Source of Truth)
   if (supabase) {
-    supabase.from('items').upsert(newItem, { onConflict: 'code' }).catch(err => {
-      console.warn("Supabase upsert item err:", err.message);
+    supabase.from('items').upsert(newItem, { onConflict: 'code' }).then(null, err => {
+      console.warn("[SourceOfTruth:Supabase] upsert item err:", err.message);
     });
   }
 
-  // Sync to Google Sheets in Real-time
+  // 2. Export / Backup to Google Sheets (Asynchronous Outbound Sink)
   syncToGoogleSheets('Items', 'UPSERT', newItem, 'code');
+
+  // Audit Log
+  recordAuditLog({
+    action: 'ITEM_CREATE',
+    resource: 'items',
+    resourceId: newItem.code,
+    details: `เพิ่มพัสดุ/สารเคมี: ${newItem.name} (${newItem.code}, จำนวน: ${newItem.qty} ${newItem.unit}, ห้อง: ${newItem.room})`,
+    req
+  });
   
   res.status(201).json(newItem);
 });
 
-// 3. PUT /api/items/:code — Update an existing item
-app.put('/api/items/:code', async (req, res) => {
+// 3. PUT /api/items/:code — Update an existing item (L2 Staff or L3 Admin)
+app.put('/api/items/:code', authenticateToken, requireRole('L2', 'L3'), async (req, res) => {
   const codeToUpdate = req.params.code.toLowerCase();
   const updatedData = req.body;
   
@@ -951,56 +1200,97 @@ app.put('/api/items/:code', async (req, res) => {
     return res.status(404).json({ error: "Item not found" });
   }
 
-  // Preserve creation date
+  // Room access control for L2 staff
+  if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, items[index].room)) {
+    return res.status(403).json({
+      error: `เจ้าหน้าที่ไม่มีสิทธิ์แก้ไขพัสดุในห้อง ${items[index].room || 'ไม่ระบุ'}`
+    });
+  }
+
+  // Preserve creation date and update audit fields
+  const now = new Date().toISOString();
+  const actor = req.user?.teacherId || req.user?.name || 'system';
   updatedData.createdAt = items[index].createdAt;
+  updatedData.created_at = items[index].createdAt;
+  updatedData.updatedAt = now;
+  updatedData.updated_at = now;
+  updatedData.updatedBy = actor;
+  updatedData.updated_by = actor;
   
   items[index] = { ...items[index], ...updatedData };
   writeDatabase(items);
   itemsCache = items;
 
-  // Sync to Supabase
+  // 1. Sync to Supabase (Primary Source of Truth)
   if (supabase) {
-    supabase.from('items').upsert(items[index], { onConflict: 'code' }).catch(err => {
-      console.warn("Supabase update item err:", err.message);
+    supabase.from('items').upsert(items[index], { onConflict: 'code' }).then(null, err => {
+      console.warn("[SourceOfTruth:Supabase] update item err:", err.message);
     });
   }
 
-  // Sync to Google Sheets in Real-time
+  // 2. Export / Backup to Google Sheets (Asynchronous Outbound Sink)
   syncToGoogleSheets('Items', 'UPSERT', items[index], 'code');
+
+  // Audit Log
+  recordAuditLog({
+    action: 'ITEM_UPDATE',
+    resource: 'items',
+    resourceId: req.params.code,
+    details: `แก้ไขข้อมูลพัสดุ: ${items[index].name} (${req.params.code}, คงเหลือ: ${items[index].qty} ${items[index].unit})`,
+    req
+  });
   
   res.json(items[index]);
 });
 
-// 4. DELETE /api/items/:code — Delete an item
-app.delete('/api/items/:code', async (req, res) => {
+// 4. DELETE /api/items/:code — Soft Delete an item (Strictly L3 Admin)
+app.delete('/api/items/:code', authenticateToken, requireRole('L3'), async (req, res) => {
   const codeToDelete = req.params.code.toLowerCase();
   const items = await fetchLiveItems();
+  const itemToDelete = items.find(item => item.code.toLowerCase() === codeToDelete);
   
-  const initialLength = items.length;
-  const filteredItems = items.filter(item => item.code.toLowerCase() !== codeToDelete);
-  
-  if (filteredItems.length === initialLength) {
+  if (!itemToDelete) {
     return res.status(404).json({ error: "Item not found" });
   }
-  
+
+  const actor = req.user?.teacherId || req.user?.name || 'admin';
+  const now = new Date().toISOString();
+
+  // 1. Soft Delete in Supabase (Primary Source of Truth)
+  if (supabase) {
+    try {
+      await supabase.from('items').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).eq('code', itemToDelete.code);
+    } catch(err) {
+      console.warn("[SourceOfTruth:Supabase] Soft delete item err:", err.message);
+    }
+  }
+
+  // 2. Update local backup cache
+  const filteredItems = items.filter(item => item.code.toLowerCase() !== codeToDelete);
   writeDatabase(filteredItems);
   itemsCache = filteredItems;
 
-  // Sync to Supabase
-  if (supabase) {
-    supabase.from('items').delete().eq('code', req.params.code).catch(err => {
-      console.warn("Supabase delete item err:", err.message);
-    });
-  }
+  // 3. Export / Backup to Google Sheets
+  syncToGoogleSheets('Items', 'DELETE', { code: itemToDelete.code }, 'code');
 
-  // Sync to Google Sheets in Real-time
-  syncToGoogleSheets('Items', 'DELETE', { code: codeToDelete }, 'code');
+  // Audit Log
+  recordAuditLog({
+    action: 'ITEM_DELETE',
+    resource: 'items',
+    resourceId: req.params.code,
+    details: `ลบพัสดุออกจากคลัง (Soft Delete): ${itemToDelete.name} (${itemToDelete.code})`,
+    req
+  });
 
-  res.json({ success: true, message: `Item ${codeToDelete} removed successfully` });
+  res.json({ success: true, message: `Item ${codeToDelete} removed successfully (soft deleted)` });
 });
 
-// 5. POST /api/items/import — Batch Import
-app.post('/api/items/import', async (req, res) => {
+// 5. POST /api/items/import — Batch Import (Strictly L3 Admin)
+app.post('/api/items/import', authenticateToken, requireRole('L3'), async (req, res) => {
   const importedItems = req.body;
   if (!Array.isArray(importedItems)) {
     return res.status(400).json({ error: "Data must be an array" });
@@ -1037,11 +1327,20 @@ app.post('/api/items/import', async (req, res) => {
     writeDatabase(items);
     itemsCache = items;
     if (supabase && newItemsToSync.length > 0) {
-      supabase.from('items').upsert(newItemsToSync, { onConflict: 'code' }).catch(err => {
+      supabase.from('items').upsert(newItemsToSync, { onConflict: 'code' }).then(null, err => {
         console.warn("Supabase batch import items err:", err.message);
       });
     }
   }
+
+  // Audit Log
+  recordAuditLog({
+    action: 'ITEMS_IMPORT',
+    resource: 'items',
+    resourceId: 'batch',
+    details: `นำเข้าข้อมูลพัสดุสำเร็จ ${successCount} รายการ (ข้อผิดพลาด ${errorCount} รายการ)`,
+    req
+  });
 
   res.json({ 
     success: true, 
@@ -1050,80 +1349,1903 @@ app.post('/api/items/import', async (req, res) => {
   });
 });
 
+// ==========================================================================
+// 🟡 P2 — INVENTORY: ADVANCED ENDPOINTS (Alerts, Movements, Adjustments, QR, Compatibility)
+// ==========================================================================
+
+// Chemical Incompatibility Matrix Definition
+const INCOMPATIBILITY_RULES = [
+  { groupA: 'Acids', groupB: 'Bases', severity: 'danger', message: 'ปฏิกิริยาสะเทินคายความร้อนสูง อาจเกิดการเดือดและกระเด็นรุนแรง' },
+  { groupA: 'Flammable Liquids', groupB: 'Oxidizers', severity: 'extreme', message: 'สารไวไฟและสารออกซิไดซ์ ห้ามเก็บร่วมกันเด็ดขาด เสี่ยงเกิดเพลิงไหม้หรือระเบิด' },
+  { groupA: 'Acids', groupB: 'Cyanides/Sulfides', severity: 'extreme', message: 'อาจเกิดก๊าซพิษร้ายแรง เช่น ไฮโดรเจนไซยาไนด์ หรือไฮโดรเจนซัลไฟด์' },
+  { groupA: 'Water-Reactive', groupB: 'Acids', severity: 'extreme', message: 'เกิดก๊าซไฮโดรเจนไวไฟสูงและปฏิกิริยารุนแรง' },
+  { groupA: 'Nitric Acid', groupB: 'Organic Solvents', severity: 'danger', message: 'กรดไนตริกเข้มข้นทำปฏิกิริยารุนแรงกับตัวทำละลายอินทรีย์' }
+];
+
+// 1. GET /api/inventory/alerts — Real-time Multi-factor Alerts
+app.get('/api/inventory/alerts', async (req, res) => {
+  try {
+    const items = await fetchLiveItems();
+    const now = new Date();
+    const future30 = new Date(now.getTime() + 30 * 86400000);
+    const todayStr = now.toISOString().slice(0, 10);
+
+    const expired = [];
+    const nearExpiry = [];
+    const lowStock = [];
+    const reorderNeeded = [];
+
+    // Group items by cabinet to detect chemical storage conflicts
+    const cabinetMap = {};
+
+    items.forEach(item => {
+      const q = parseFloat(item.qty !== undefined ? item.qty : (item.quantity || 0));
+      const minStock = parseFloat(item.minAlert !== undefined ? item.minAlert : (item.minStock || 5));
+      const reorderPt = parseFloat(item.reorderPoint !== undefined ? item.reorderPoint : (minStock * 2));
+
+      // Low stock & Reorder alert
+      if (q <= minStock) {
+        lowStock.push({
+          code: item.code,
+          name: item.name,
+          currentQty: q,
+          minStock,
+          unit: item.unit || 'ชิ้น',
+          room: item.room,
+          cabinet: item.cabinet
+        });
+      } else if (q <= reorderPt) {
+        reorderNeeded.push({
+          code: item.code,
+          name: item.name,
+          currentQty: q,
+          reorderPoint: reorderPt,
+          unit: item.unit || 'ชิ้น',
+          room: item.room
+        });
+      }
+
+      // Expiry alerts
+      const expStr = item.expiry || item.expiryDate || item.expiry_date;
+      if (expStr) {
+        const expDate = new Date(expStr);
+        if (expDate < now) {
+          expired.push({
+            code: item.code,
+            name: item.name,
+            expiryDate: expStr,
+            lotNumber: item.lotNumber || item.lot_number || '-',
+            room: item.room,
+            cabinet: item.cabinet
+          });
+        } else if (expDate <= future30) {
+          nearExpiry.push({
+            code: item.code,
+            name: item.name,
+            expiryDate: expStr,
+            lotNumber: item.lotNumber || item.lot_number || '-',
+            daysRemaining: Math.ceil((expDate - now) / 86400000),
+            room: item.room,
+            cabinet: item.cabinet
+          });
+        }
+      }
+
+      // Storage compatibility bucket
+      if (item.category === 'สารเคมี') {
+        const locKey = `${item.room || 'Unknown'} > ${item.cabinet || 'Unknown'}`;
+        if (!cabinetMap[locKey]) cabinetMap[locKey] = [];
+        cabinetMap[locKey].push(item);
+      }
+    });
+
+    // Detect compatibility conflicts
+    const compatibilityAlerts = [];
+    Object.entries(cabinetMap).forEach(([location, chemList]) => {
+      if (chemList.length < 2) return;
+      for (let i = 0; i < chemList.length; i++) {
+        for (let j = i + 1; j < chemList.length; j++) {
+          const a = chemList[i];
+          const b = chemList[j];
+          const groupA = a.storageGroup || a.chemicalType || (a.name.includes('กรด') ? 'Acids' : (a.name.includes('ไฮดรอกไซด์') ? 'Bases' : 'General'));
+          const groupB = b.storageGroup || b.chemicalType || (b.name.includes('กรด') ? 'Acids' : (b.name.includes('ไฮดรอกไซด์') ? 'Bases' : 'General'));
+
+          INCOMPATIBILITY_RULES.forEach(rule => {
+            const match1 = (groupA === rule.groupA && groupB === rule.groupB) || (groupA === rule.groupB && groupB === rule.groupA);
+            if (match1) {
+              compatibilityAlerts.push({
+                location,
+                itemA: { code: a.code, name: a.name, group: groupA },
+                itemB: { code: b.code, name: b.name, group: groupB },
+                severity: rule.severity,
+                warning: rule.message
+              });
+            }
+          });
+        }
+      }
+    });
+
+    res.json({
+      success: true,
+      timestamp: now.toISOString(),
+      counts: {
+        expired: expired.length,
+        nearExpiry: nearExpiry.length,
+        lowStock: lowStock.length,
+        reorderNeeded: reorderNeeded.length,
+        compatibilityAlerts: compatibilityAlerts.length,
+        totalAlerts: expired.length + nearExpiry.length + lowStock.length + compatibilityAlerts.length
+      },
+      alerts: {
+        expired,
+        nearExpiry,
+        lowStock,
+        reorderNeeded,
+        compatibilityAlerts
+      }
+    });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 2. GET /api/inventory/movements — Stock Movement History (Audit Trail)
+app.get('/api/inventory/movements', optionalAuth, async (req, res) => {
+  try {
+    const { itemCode, type, limit = 50 } = req.query;
+    let movements = [];
+
+    if (supabase) {
+      try {
+        let query = supabase.from('stock_movements').select('*').order('created_at', { ascending: false }).limit(parseInt(limit));
+        if (itemCode) query = query.eq('item_code', itemCode);
+        if (type) query = query.eq('type', type);
+        const { data, error } = await query;
+        if (!error && Array.isArray(data)) {
+          movements = data;
+        }
+      } catch(e) {}
+    }
+
+    if (movements.length === 0) {
+      movements = readStockMovements();
+      if (itemCode) movements = movements.filter(m => m.item_code === itemCode || m.itemCode === itemCode);
+      if (type) movements = movements.filter(m => m.type === type);
+      movements.sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt));
+      movements = movements.slice(0, parseInt(limit));
+    }
+
+    res.json({ success: true, count: movements.length, movements });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 3. POST /api/inventory/movements — Record Manual Stock Movement (IN, OUT, DISPOSE)
+app.post('/api/inventory/movements', authenticateToken, requireRole('L2', 'L3'), async (req, res) => {
+  try {
+    const { itemCode, type, quantity, reason, referenceId, lotNumber } = req.body;
+    const delta = parseFloat(quantity);
+
+    if (!itemCode || !type || isNaN(delta) || delta <= 0) {
+      return res.status(400).json({ error: "ข้อมูลไม่ครบถ้วน: ต้องระบุ itemCode, type ('IN', 'OUT', 'DISPOSE') และจำนวน > 0" });
+    }
+
+    const items = await fetchLiveItems();
+    const itemIndex = items.findIndex(i => (i.code || '').toLowerCase() === itemCode.toLowerCase());
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: `ไม่พบพัสดุรหัส ${itemCode}` });
+    }
+
+    const item = items[itemIndex];
+    const prevQty = parseFloat(item.qty !== undefined ? item.qty : (item.quantity || 0));
+    let newQty = prevQty;
+
+    if (type === 'IN' || type === 'RETURN') {
+      newQty = prevQty + delta;
+    } else if (type === 'OUT' || type === 'DISPOSE') {
+      if (prevQty < delta) {
+        return res.status(400).json({ error: `ยอดคงเหลือไม่พอ (คงเหลือ ${prevQty}, ต้องการตัด ${delta})` });
+      }
+      newQty = prevQty - delta;
+    } else {
+      return res.status(400).json({ error: `ประเภทการเคลื่อนไหว '${type}' ไม่ถูกต้อง` });
+    }
+
+    const now = new Date().toISOString();
+    const actor = req.user?.teacherId || req.user?.name || 'system';
+
+    // Update Item Quantity
+    item.qty = newQty;
+    item.quantity = newQty;
+    item.updatedAt = now;
+    item.updated_at = now;
+    item.updatedBy = actor;
+    item.updated_by = actor;
+
+    writeDatabase(items);
+    itemsCache = items;
+
+    if (supabase) {
+      supabase.from('items').update({
+        qty: newQty,
+        updated_at: now,
+        updated_by: actor
+      }).eq('code', item.code).then(null, () => {});
+    }
+
+    // Record Stock Movement Log
+    const movement = {
+      id: `mov_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      item_code: item.code,
+      itemCode: item.code,
+      item_name: item.name,
+      itemName: item.name,
+      type: type,
+      quantity: delta,
+      previous_quantity: prevQty,
+      previousQuantity: prevQty,
+      new_quantity: newQty,
+      newQuantity: newQty,
+      unit: item.unit || 'ชิ้น',
+      reason: reason || `บันทึกการเคลื่อนไหวสต็อก (${type})`,
+      reference_id: referenceId || null,
+      lot_number: lotNumber || item.lotNumber || item.lot_number || null,
+      is_deleted: false,
+      created_at: now,
+      createdAt: now,
+      created_by: actor,
+      createdBy: actor
+    };
+
+    const localMovements = readStockMovements();
+    localMovements.unshift(movement);
+    writeStockMovements(localMovements);
+
+    if (supabase) {
+      supabase.from('stock_movements').insert([movement]).then(null, () => {});
+    }
+
+    // Google Sheets Backup
+    syncToGoogleSheets('Items', 'UPSERT', item, 'code');
+
+    // Audit Log
+    recordAuditLog({
+      action: 'STOCK_MOVEMENT',
+      resource: 'inventory',
+      resourceId: item.code,
+      details: `ปรับสต็อก ${type}: ${item.name} (${prevQty} -> ${newQty} ${item.unit}) โดย ${actor}, เหตุผล: ${reason || '-'}`,
+      req
+    });
+
+    res.status(201).json({ success: true, movement, currentStock: newQty });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 4. GET /api/inventory/adjustments — List Stock Adjustments
+app.get('/api/inventory/adjustments', optionalAuth, async (req, res) => {
+  try {
+    const { status } = req.query;
+    let list = [];
+
+    if (supabase) {
+      try {
+        let query = supabase.from('stock_adjustments').select('*').order('created_at', { ascending: false });
+        if (status) query = query.eq('status', status);
+        const { data, error } = await query;
+        if (!error && Array.isArray(data)) list = data;
+      } catch(e) {}
+    }
+
+    if (list.length === 0) {
+      list = readStockAdjustments();
+      if (status) list = list.filter(a => a.status === status);
+      list.sort((a, b) => new Date(b.created_at || b.requestedAt) - new Date(a.created_at || a.requestedAt));
+    }
+
+    res.json({ success: true, count: list.length, adjustments: list });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 5. POST /api/inventory/adjustments — Request Stock Adjustment (Staff L2 / Admin L3)
+app.post('/api/inventory/adjustments', authenticateToken, requireRole('L2', 'L3'), async (req, res) => {
+  try {
+    const { itemCode, adjustedQuantity, reason } = req.body;
+    const targetQty = parseFloat(adjustedQuantity);
+
+    if (!itemCode || isNaN(targetQty) || targetQty < 0 || !reason) {
+      return res.status(400).json({ error: "ต้องระบุ itemCode, adjustedQuantity (>= 0) และ reason ให้ชัดเจน" });
+    }
+
+    const items = await fetchLiveItems();
+    const item = items.find(i => (i.code || '').toLowerCase() === itemCode.toLowerCase());
+    if (!item) {
+      return res.status(404).json({ error: `ไม่พบพัสดุรหัส ${itemCode}` });
+    }
+
+    const currentQty = parseFloat(item.qty !== undefined ? item.qty : (item.quantity || 0));
+    const now = new Date().toISOString();
+    const actorId = req.user?.teacherId || req.user?.id || 'system';
+    const actorName = req.user?.name || req.user?.username || actorId;
+
+    const adjustment = {
+      id: `adj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      item_code: item.code,
+      itemCode: item.code,
+      item_name: item.name,
+      itemName: item.name,
+      current_quantity: currentQty,
+      currentQuantity: currentQty,
+      adjusted_quantity: targetQty,
+      adjustedQuantity: targetQty,
+      difference: targetQty - currentQty,
+      unit: item.unit || 'ชิ้น',
+      reason: reason.trim(),
+      status: 'pending',
+      requested_by: actorId,
+      requestedBy: actorId,
+      requested_by_name: actorName,
+      requestedByName: actorName,
+      requested_at: now,
+      requestedAt: now,
+      is_deleted: false,
+      created_at: now,
+      updated_at: now
+    };
+
+    const localAdj = readStockAdjustments();
+    localAdj.unshift(adjustment);
+    writeStockAdjustments(localAdj);
+
+    if (supabase) {
+      supabase.from('stock_adjustments').insert([adjustment]).then(null, () => {});
+    }
+
+    recordAuditLog({
+      action: 'STOCK_ADJUSTMENT_REQUEST',
+      resource: 'inventory',
+      resourceId: item.code,
+      details: `ส่งคำขอปรับยอดสต็อก: ${item.name} (${currentQty} -> ${targetQty} ${item.unit}), เหตุผล: ${reason}`,
+      req
+    });
+
+    res.status(201).json({ success: true, adjustment });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 6. POST /api/inventory/adjustments/:id/review — Approve/Reject Adjustment (Strictly L3 Admin or L4 Executive)
+app.post('/api/inventory/adjustments/:id/review', authenticateToken, requireRole('L3', 'L4'), async (req, res) => {
+  try {
+    const { action, reviewNotes } = req.body;
+    if (action !== 'approved' && action !== 'rejected') {
+      return res.status(400).json({ error: "action ต้องเป็น 'approved' หรือ 'rejected'" });
+    }
+
+    const localAdj = readStockAdjustments();
+    const index = localAdj.findIndex(a => a.id === req.params.id);
+    if (index === -1) {
+      return res.status(404).json({ error: "ไม่พบคำขอปรับยอดสต็อกนี้" });
+    }
+
+    const adj = localAdj[index];
+    if (adj.status !== 'pending') {
+      return res.status(400).json({ error: `คำขอนี้ได้รับการพิจารณาไปแล้ว (${adj.status})` });
+    }
+
+    const now = new Date().toISOString();
+    const reviewerId = req.user?.teacherId || req.user?.id || 'admin';
+    const reviewerName = req.user?.name || reviewerId;
+
+    adj.status = action;
+    adj.reviewed_by = reviewerId;
+    adj.reviewedBy = reviewerId;
+    adj.reviewed_by_name = reviewerName;
+    adj.reviewedByName = reviewerName;
+    adj.reviewed_at = now;
+    adj.reviewedAt = now;
+    adj.review_notes = reviewNotes || '';
+    adj.reviewNotes = reviewNotes || '';
+    adj.updated_at = now;
+
+    // If approved, update actual item stock and append to movements!
+    if (action === 'approved') {
+      const items = await fetchLiveItems();
+      const itemIndex = items.findIndex(i => (i.code || '').toLowerCase() === adj.item_code.toLowerCase());
+      if (itemIndex !== -1) {
+        const item = items[itemIndex];
+        const prevStock = item.qty;
+        item.qty = adj.adjusted_quantity;
+        item.quantity = adj.adjusted_quantity;
+        item.updatedAt = now;
+        item.updated_at = now;
+        item.updatedBy = reviewerId;
+        item.updated_by = reviewerId;
+
+        writeDatabase(items);
+        itemsCache = items;
+
+        if (supabase) {
+          supabase.from('items').update({
+            qty: adj.adjusted_quantity,
+            updated_at: now,
+            updated_by: reviewerId
+          }).eq('code', item.code).then(null, () => {});
+        }
+
+        // Record stock movement
+        const movement = {
+          id: `mov_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          item_code: item.code,
+          itemCode: item.code,
+          item_name: item.name,
+          itemName: item.name,
+          type: 'ADJUST',
+          quantity: Math.abs(adj.difference),
+          previous_quantity: prevStock,
+          previousQuantity: prevStock,
+          new_quantity: adj.adjusted_quantity,
+          newQuantity: adj.adjusted_quantity,
+          unit: item.unit || 'ชิ้น',
+          reason: `อนุมัติการปรับยอดคงคลัง: ${adj.reason}`,
+          reference_id: adj.id,
+          is_deleted: false,
+          created_at: now,
+          createdAt: now,
+          created_by: reviewerId,
+          createdBy: reviewerId
+        };
+
+        const movements = readStockMovements();
+        movements.unshift(movement);
+        writeStockMovements(movements);
+
+        if (supabase) {
+          supabase.from('stock_movements').insert([movement]).then(null, () => {});
+        }
+
+        syncToGoogleSheets('Items', 'UPSERT', item, 'code');
+      }
+    }
+
+    writeStockAdjustments(localAdj);
+
+    if (supabase) {
+      supabase.from('stock_adjustments').update({
+        status: action,
+        reviewed_by: reviewerId,
+        reviewed_by_name: reviewerName,
+        reviewed_at: now,
+        review_notes: reviewNotes || '',
+        updated_at: now
+      }).eq('id', adj.id).then(null, () => {});
+    }
+
+    recordAuditLog({
+      action: action === 'approved' ? 'STOCK_ADJUSTMENT_APPROVE' : 'STOCK_ADJUSTMENT_REJECT',
+      resource: 'inventory',
+      resourceId: adj.item_code,
+      details: `${action === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ'}การปรับยอดสต็อก: ${adj.item_name} (${adj.current_quantity} -> ${adj.adjusted_quantity}) โดย ${reviewerName}`,
+      req
+    });
+
+    res.json({ success: true, adjustment: adj });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 7. GET /api/inventory/compatibility — Chemical Storage Compatibility Checker
+app.get('/api/inventory/compatibility', async (req, res) => {
+  try {
+    const { groupA, groupB } = req.query;
+    if (!groupA || !groupB) {
+      return res.json({
+        success: true,
+        supportedGroups: ['Acids', 'Bases', 'Flammable Liquids', 'Oxidizers', 'Toxics', 'Water-Reactive', 'General'],
+        rules: INCOMPATIBILITY_RULES
+      });
+    }
+
+    const conflict = INCOMPATIBILITY_RULES.find(rule => 
+      (rule.groupA.toLowerCase() === groupA.toLowerCase() && rule.groupB.toLowerCase() === groupB.toLowerCase()) ||
+      (rule.groupA.toLowerCase() === groupB.toLowerCase() && rule.groupB.toLowerCase() === groupA.toLowerCase())
+    );
+
+    res.json({
+      success: true,
+      compatible: !conflict,
+      severity: conflict ? conflict.severity : 'safe',
+      message: conflict ? conflict.message : 'สารทั้งสองกลุ่มสามารถจัดเก็บในตู้เดียวกันได้ตามมาตรฐานความปลอดภัย',
+      recommendation: conflict ? 'ต้องแยกเก็บคนละตู้จัดเก็บ หรือมีถาดรองรับสารรั่วไหลทุติยภูมิ (Secondary Containment) แยกต่างหาก' : 'จัดเก็บได้ตามปกติ'
+    });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 8. GET /api/inventory/qr/:code — QR / Barcode Data Payload
+app.get('/api/inventory/qr/:code', async (req, res) => {
+  try {
+    const items = await fetchLiveItems();
+    const item = items.find(i => (i.code || '').toLowerCase() === req.params.code.toLowerCase());
+    if (!item) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    const payload = {
+      format: "SCIPORTAL-LAB-V2",
+      code: item.code,
+      name: item.name,
+      category: item.category,
+      lotNumber: item.lotNumber || item.lot_number || 'N/A',
+      location: `${item.room || '-'} / ${item.cabinet || '-'} / ${item.shelf || '-'}`,
+      expiry: item.expiry || item.expiryDate || '-',
+      cas: item.casNumber || item.cas_number || '-',
+      hazards: item.ghs || [],
+      directUrl: `/index.html?item=${encodeURIComponent(item.code)}`
+    };
+
+    res.json({
+      success: true,
+      code: item.code,
+      qrString: JSON.stringify(payload),
+      summary: payload
+    });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// 🟡 P2 — EQUIPMENT MASTER & MAINTENANCE ENDPOINTS
+// ==========================================
+
+// GET /api/equipment/assets — List all scientific instruments and equipment
+app.get('/api/equipment/assets', optionalAuth, async (req, res) => {
+  try {
+    const items = await fetchLiveItems();
+    let equipmentItems = items.filter(it => it.category !== 'สารเคมี' && !it.is_deleted);
+    if (equipmentItems.length === 0) {
+      equipmentItems = items.filter(it => !it.is_deleted);
+    }
+    
+    const assets = equipmentItems.map((it, idx) => ({
+      code: it.code,
+      name: it.name,
+      category: it.category || 'อุปกรณ์วิทยาศาสตร์',
+      assetId: it.assetId || it.asset_id || `คร.${(it.room || '67').replace(/\D/g, '') || '67'}-${String(idx + 1).padStart(4, '0')}`,
+      serialNumber: it.serialNumber || it.serial_number || `SN-${it.code.replace(/[^a-zA-Z0-9]/g, '')}`,
+      location: {
+        room: it.room || 'Lab 1',
+        cabinet: it.cabinet || 'ตู้ A',
+        shelf: it.shelf || 'ชั้น 1',
+        position: it.position || '-'
+      },
+      condition: it.condition || (Number(it.qty || it.quantity || 0) <= 0 ? 'damaged' : 'good'),
+      quantity: Number(it.qty || it.quantity || 0),
+      unit: it.unit || 'เครื่อง',
+      purchaseDate: it.purchaseDate || it.purchase_date || '2024-01-15',
+      warrantyExpiry: it.warrantyExpiry || it.warranty_expiry || '2027-01-15',
+      supplier: it.supplier || 'บริษัท สื่อวิทยาศาสตร์ จำกัด',
+      maintenanceSchedule: it.maintenanceSchedule || it.maintenance_schedule || '6_months',
+      lastMaintenanceDate: it.lastMaintenanceDate || it.last_maintenance_date || '2026-01-10',
+      nextMaintenanceDate: it.nextMaintenanceDate || it.next_maintenance_date || '2026-07-10',
+      calibrationDate: it.calibrationDate || it.calibration_date || '2026-02-01',
+      nextCalibrationDate: it.nextCalibrationDate || it.next_calibration_date || '2027-02-01',
+      calibrationCertificate: it.calibrationCertificate || it.calibration_certificate || `CERT-CAL-${it.code}`
+    }));
+
+    res.json({ success: true, count: assets.length, data: assets });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/equipment/maintenance — List maintenance logs
+app.get('/api/equipment/maintenance', optionalAuth, async (req, res) => {
+  try {
+    let logs = [];
+    if (supabase) {
+      try {
+        const { data, error } = await supabase.from('equipment_maintenance_logs').select('*').order('performed_at', { ascending: false });
+        if (!error && Array.isArray(data) && data.length > 0) logs = data;
+      } catch(e) {}
+    }
+    if (logs.length === 0) {
+      logs = readEquipmentMaintenance();
+    }
+    res.json({ success: true, count: logs.length, data: logs });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/equipment/maintenance — Create maintenance / calibration log
+app.post('/api/equipment/maintenance', authenticateToken, requireRole('L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { itemCode, assetId, type, status, technician, cost, performedAt, nextDueDate, notes, certificateUrl } = req.body;
+    if (!itemCode) return res.status(400).json({ error: "itemCode is required" });
+
+    const newLog = {
+      id: `maint_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      item_code: itemCode,
+      asset_id: assetId || '',
+      type: type || 'maintenance',
+      status: status || 'completed',
+      technician: technician || req.user.name,
+      cost: parseFloat(cost || 0),
+      performed_at: performedAt || new Date().toISOString(),
+      next_due_date: nextDueDate || null,
+      notes: notes || '',
+      certificate_url: certificateUrl || '',
+      created_by: req.user.teacherId || req.user.id || 'staff',
+      created_at: new Date().toISOString()
+    };
+
+    const logs = readEquipmentMaintenance();
+    logs.unshift(newLog);
+    writeEquipmentMaintenance(logs);
+
+    if (supabase) {
+      supabase.from('equipment_maintenance_logs').insert([newLog]).then(null, () => {});
+      const updates = {};
+      if (type === 'calibration') {
+        updates.calibration_date = newLog.performed_at.split('T')[0];
+        if (nextDueDate) updates.next_calibration_date = nextDueDate;
+        if (certificateUrl) updates.calibration_certificate = certificateUrl;
+      } else {
+        updates.last_maintenance_date = newLog.performed_at.split('T')[0];
+        if (nextDueDate) updates.next_maintenance_date = nextDueDate;
+      }
+      supabase.from('items').update(updates).eq('code', itemCode).then(null, () => {});
+    }
+
+    recordAuditLog({
+      action: 'EQUIPMENT_MAINTENANCE',
+      resource: 'equipment',
+      resourceId: itemCode,
+      details: `บันทึกการบำรุงรักษา/สอบเทียบเครื่องมือ ${itemCode} (${type}) โดย ${newLog.technician}`,
+      req
+    });
+
+    res.status(201).json({ success: true, log: newLog });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/equipment/repairs — List broken / under repair items
+app.get('/api/equipment/repairs', optionalAuth, async (req, res) => {
+  try {
+    let repairs = [];
+    if (supabase) {
+      try {
+        const { data, error } = await supabase.from('equipment_repairs').select('*').order('created_at', { ascending: false });
+        if (!error && Array.isArray(data) && data.length > 0) repairs = data;
+      } catch(e) {}
+    }
+    if (repairs.length === 0) {
+      repairs = readEquipmentRepairs();
+    }
+    res.json({ success: true, count: repairs.length, data: repairs });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/equipment/repairs — Report broken equipment
+app.post('/api/equipment/repairs', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { itemCode, assetId, itemName, issueDescription, priority } = req.body;
+    if (!itemCode || !issueDescription) {
+      return res.status(400).json({ error: "itemCode and issueDescription are required" });
+    }
+
+    const items = await fetchLiveItems();
+    const item = items.find(i => (i.code || '').toLowerCase() === itemCode.toLowerCase());
+
+    const newRepair = {
+      id: `rep_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      item_code: itemCode,
+      asset_id: assetId || (item ? item.asset_id : ''),
+      item_name: itemName || (item ? item.name : itemCode),
+      issue_description: issueDescription,
+      reported_by: req.user.name || req.user.teacherId || 'ครูผู้แจ้ง',
+      reported_at: new Date().toISOString(),
+      repair_status: 'reported',
+      priority: priority || 'medium',
+      technician_notes: '',
+      repair_cost: 0,
+      created_at: new Date().toISOString()
+    };
+
+    const repairs = readEquipmentRepairs();
+    repairs.unshift(newRepair);
+    writeEquipmentRepairs(repairs);
+
+    if (item) {
+      item.condition = 'under_repair';
+      writeDatabase(items);
+      itemsCache = items;
+    }
+
+    if (supabase) {
+      supabase.from('equipment_repairs').insert([newRepair]).then(null, () => {});
+      supabase.from('items').update({ condition: 'under_repair' }).eq('code', itemCode).then(null, () => {});
+    }
+
+    recordAuditLog({
+      action: 'EQUIPMENT_REPAIR_REPORT',
+      resource: 'equipment',
+      resourceId: itemCode,
+      details: `แจ้งเครื่องมือชำรุด/ส่งซ่อม: ${newRepair.item_name} - อาการ: ${issueDescription}`,
+      req
+    });
+
+    res.status(201).json({ success: true, repair: newRepair });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PATCH /api/equipment/repairs/:id — Update repair progress / status
+app.patch('/api/equipment/repairs/:id', authenticateToken, requireRole('L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { repairStatus, technicianNotes, repairCost } = req.body;
+
+    const repairs = readEquipmentRepairs();
+    const rep = repairs.find(r => r.id === id);
+    if (!rep) return res.status(404).json({ error: "Repair record not found" });
+
+    const now = new Date().toISOString();
+    if (repairStatus) rep.repair_status = repairStatus;
+    if (technicianNotes !== undefined) rep.technician_notes = technicianNotes;
+    if (repairCost !== undefined) rep.repair_cost = parseFloat(repairCost || 0);
+
+    if (repairStatus === 'repaired') {
+      rep.resolved_at = now;
+      rep.resolved_by = req.user.name;
+
+      const items = await fetchLiveItems();
+      const item = items.find(i => (i.code || '').toLowerCase() === (rep.item_code || '').toLowerCase());
+      if (item) {
+        item.condition = 'good';
+        writeDatabase(items);
+        itemsCache = items;
+        if (supabase) {
+          supabase.from('items').update({ condition: 'good' }).eq('code', item.code).then(null, () => {});
+        }
+      }
+    } else if (repairStatus === 'decommissioned') {
+      const items = await fetchLiveItems();
+      const item = items.find(i => (i.code || '').toLowerCase() === (rep.item_code || '').toLowerCase());
+      if (item) {
+        item.condition = 'decommissioned';
+        writeDatabase(items);
+        itemsCache = items;
+        if (supabase) {
+          supabase.from('items').update({ condition: 'decommissioned' }).eq('code', item.code).then(null, () => {});
+        }
+      }
+    }
+
+    writeEquipmentRepairs(repairs);
+    if (supabase) {
+      supabase.from('equipment_repairs').update({
+        repair_status: rep.repair_status,
+        technician_notes: rep.technician_notes,
+        repair_cost: rep.repair_cost,
+        resolved_at: rep.resolved_at || null,
+        resolved_by: rep.resolved_by || null
+      }).eq('id', id).then(null, () => {});
+    }
+
+    recordAuditLog({
+      action: 'EQUIPMENT_REPAIR_UPDATE',
+      resource: 'equipment',
+      resourceId: rep.item_code,
+      details: `อัปเดตสถานะการซ่อม ${rep.item_name} เป็น ${rep.repair_status} โดย ${req.user.name}`,
+      req
+    });
+
+    res.json({ success: true, repair: rep });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/equipment/qr/:code — QR payload for equipment asset tag
+app.get('/api/equipment/qr/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+    const items = await fetchLiveItems();
+    const item = items.find(i => (i.code || '').toLowerCase() === code.toLowerCase());
+    if (!item) return res.status(404).json({ error: "Equipment not found" });
+
+    const payload = {
+      format: "SCIPORTAL-EQ-V2",
+      assetId: item.asset_id || item.assetId || `EQ-${item.code}`,
+      code: item.code,
+      name: item.name,
+      category: item.category,
+      condition: item.condition || 'good',
+      location: `${item.room || 'Lab 1'} / ${item.cabinet || '-'} / ${item.shelf || '-'}`,
+      serialNumber: item.serial_number || item.serialNumber || '-',
+      nextCalibration: item.next_calibration_date || item.nextCalibrationDate || '-',
+      nextMaintenance: item.next_maintenance_date || item.nextMaintenanceDate || '-',
+      directUrl: `/index.html?asset=${encodeURIComponent(item.code)}`
+    };
+
+    res.json({
+      success: true,
+      code: item.code,
+      qrString: JSON.stringify(payload),
+      summary: payload
+    });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/equipment/history/:code — Borrow history for this equipment
+app.get('/api/equipment/history/:code', optionalAuth, async (req, res) => {
+  try {
+    const { code } = req.params;
+    const transactions = await fetchLiveTransactions();
+    const history = transactions.filter(tx => (tx.itemCode || tx.item_code || '').toLowerCase() === code.toLowerCase());
+    res.json({ success: true, count: history.length, data: history });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// 🟡 P2 — LABORATORY BOOKING & ROOM AVAILABILITY
+// ==========================================
+
+// GET /api/bookings/availability — Interactive room availability matrix (Lab 1 - Lab 8)
+app.get('/api/bookings/availability', async (req, res) => {
+  try {
+    const { date } = req.query;
+    const checkDate = date || new Date().toISOString().split('T')[0];
+    const bookings = await fetchLiveBookings();
+
+    const rooms = ['Lab 1', 'Lab 2', 'Lab 3', 'Lab 4', 'Lab 5', 'Lab 6', 'Lab 7', 'Lab 8'];
+    const standardSlots = [
+      '08:30 - 10:20',
+      '10:30 - 12:20',
+      '13:00 - 14:50',
+      '15:00 - 16:50'
+    ];
+
+    const matrix = rooms.map(room => {
+      const roomBookings = bookings.filter(b => 
+        (b.room || '').toLowerCase() === room.toLowerCase() &&
+        (b.date || '') === checkDate &&
+        b.status !== 'cancelled' &&
+        b.status !== 'rejected'
+      );
+
+      const slots = standardSlots.map(slot => {
+        const found = roomBookings.find(b => (b.timeSlot || b.slot || '') === slot);
+        return {
+          slot,
+          isAvailable: !found,
+          booking: found ? {
+            id: found.id,
+            teacherName: found.teacherName || found.bookerName,
+            className: found.className || found.class_name || '-',
+            experimentName: found.experimentName || found.experiment_name || found.purpose || '-',
+            status: found.status
+          } : null
+        };
+      });
+
+      return {
+        room,
+        date: checkDate,
+        totalBookings: roomBookings.length,
+        isFullyBooked: slots.every(s => !s.isAvailable),
+        slots
+      };
+    });
+
+    res.json({ success: true, date: checkDate, availability: matrix });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/bookings/check-conflict — Real-time booking conflict detector
+app.post('/api/bookings/check-conflict', async (req, res) => {
+  try {
+    const { room, date, timeSlot, excludeId } = req.body;
+    if (!room || !date || !timeSlot) {
+      return res.status(400).json({ error: "room, date, and timeSlot are required" });
+    }
+
+    const bookings = await fetchLiveBookings();
+    const conflict = bookings.find(b => 
+      b.id !== excludeId &&
+      (b.room || '').toLowerCase() === room.toLowerCase() &&
+      b.date === date &&
+      (b.timeSlot || b.slot) === timeSlot &&
+      b.status !== 'cancelled' &&
+      b.status !== 'rejected'
+    );
+
+    res.json({
+      hasConflict: !!conflict,
+      conflictingBooking: conflict ? {
+        id: conflict.id,
+        teacherName: conflict.teacherName || conflict.bookerName,
+        purpose: conflict.purpose || conflict.experimentName,
+        status: conflict.status
+      } : null
+    });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/bookings (Public can view to check room availability calendar)
+app.get('/api/bookings', async (req, res) => {
+  const bookings = await fetchLiveBookings();
+  res.json(bookings);
+});
+
+// POST /api/bookings — Authenticated Users (L1 Teachers, L2 Staff, L3 Admin, L4 Executive)
+app.post('/api/bookings', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const payload = req.body;
+
+    // Handle single booking submission
+    if (!Array.isArray(payload) && payload && typeof payload === 'object') {
+      const bookings = await fetchLiveBookings();
+      const newBooking = {
+        id: payload.id || `BK-${Date.now()}`,
+        room: payload.room || 'Lab 1',
+        date: payload.date || new Date().toISOString().split('T')[0],
+        timeSlot: payload.timeSlot || payload.slot || '08:30 - 10:20',
+        slot: payload.timeSlot || payload.slot || '08:30 - 10:20',
+        purpose: payload.purpose || payload.experimentName || 'การเรียนการสอนปฏิบัติการ',
+        teacherId: payload.teacherId || req.user.teacherId || req.user.id || '',
+        teacherName: payload.teacherName || req.user.name || 'ครูผู้สอน',
+        className: payload.className || payload.class_name || 'ม.5/1',
+        studentCount: parseInt(payload.studentCount || payload.student_count || 30),
+        experimentName: payload.experimentName || payload.experiment_name || payload.purpose || 'การทดลองวิทยาศาสตร์',
+        requiredEquipment: payload.requiredEquipment || payload.required_equipment || [],
+        requiredChemicals: payload.requiredChemicals || payload.required_chemicals || [],
+        preparationChecklist: payload.preparationChecklist || payload.preparation_checklist || [
+          { task: "จัดเตรียมสารเคมีตามสูตร", done: false },
+          { task: "ตรวจสอบเครื่องแก้วและอุปกรณ์", done: false },
+          { task: "จัดวางอุปกรณ์ประจำโต๊ะปฏิบัติการ", done: false }
+        ],
+        cleanupChecklist: payload.cleanupChecklist || payload.cleanup_checklist || [
+          { task: "ตรวจนับเครื่องแก้วส่งคืน", done: false },
+          { task: "แยกขยะสารเคมีอันตราย", done: false },
+          { task: "ทำความสะอาดและปิดวาล์วแก๊ส", done: false }
+        ],
+        status: payload.status || 'pending',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      // Conflict detection unless override is explicitly specified
+      const conflict = bookings.find(b => 
+        (b.room || '').toLowerCase() === newBooking.room.toLowerCase() &&
+        b.date === newBooking.date &&
+        (b.timeSlot || b.slot) === newBooking.timeSlot &&
+        b.status !== 'cancelled' &&
+        b.status !== 'rejected'
+      );
+
+      if (conflict && !payload.conflictOverride) {
+        return res.status(409).json({
+          error: `ห้อง ${newBooking.room} ในช่วงเวลา ${newBooking.timeSlot} ของวันที่ ${newBooking.date} มีผู้จองแล้ว`,
+          conflict
+        });
+      }
+
+      bookings.unshift(newBooking);
+      writeBookings(bookings);
+      bookingsCache = bookings;
+
+      if (supabase) {
+        supabase.from('bookings').insert([{
+          id: newBooking.id,
+          room: newBooking.room,
+          date: newBooking.date,
+          slot: newBooking.slot || newBooking.timeSlot || '',
+          bookerName: newBooking.teacherName || newBooking.teacherId || '',
+          purpose: newBooking.purpose || newBooking.experimentName || '',
+          prepItems: newBooking.requiredChemicals || newBooking.requiredEquipment || [],
+          status: newBooking.status || 'pending',
+          createdAt: newBooking.createdAt || new Date().toISOString()
+        }]).then(null, (err) => console.error("Supabase booking insert error:", err));
+      }
+
+      syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(newBooking), 'id');
+
+      recordAuditLog({
+        action: 'BOOKING_CREATE',
+        resource: 'bookings',
+        resourceId: newBooking.id,
+        details: `สร้างคำขอจองห้อง ${newBooking.room} วันที่ ${newBooking.date} (${newBooking.timeSlot}) โดย ${newBooking.teacherName}`,
+        req
+      });
+
+      return res.status(201).json({ success: true, booking: newBooking });
+    }
+
+    // Array batch submission (backward compatibility)
+    const bookings = payload;
+    writeBookings(bookings);
+    bookingsCache = bookings;
+    if (Array.isArray(bookings)) {
+      if (supabase) {
+        supabase.from('bookings').upsert(bookings, { onConflict: 'id' }).then(null, () => {});
+      }
+      bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(b), 'id'));
+    }
+
+    recordAuditLog({
+      action: 'BOOKING_BATCH_UPDATE',
+      resource: 'bookings',
+      resourceId: Array.isArray(bookings) && bookings.length > 0 ? bookings[0].id : 'booking',
+      details: `บันทึก/อัปเดตข้อมูลการจองห้องปฏิบัติการชุดรวม`,
+      req
+    });
+
+    res.json({ success: true });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/bookings/:id/review — Approve or Reject Booking (Staff L2 / Admin L3)
+app.post('/api/bookings/:id/review', authenticateToken, requireRole('L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, reason } = req.body;
+    if (action !== 'approved' && action !== 'rejected') {
+      return res.status(400).json({ error: "Action must be 'approved' or 'rejected'" });
+    }
+
+    const bookings = await fetchLiveBookings();
+    const bk = bookings.find(b => b.id === id);
+    if (!bk) return res.status(404).json({ error: "Booking not found" });
+
+    const now = new Date().toISOString();
+    bk.status = action;
+    bk.reviewed_by = req.user.name;
+    bk.reviewedBy = req.user.name;
+    bk.reviewed_at = now;
+    bk.reviewedAt = now;
+    if (action === 'rejected') {
+      bk.rejection_reason = reason || 'ห้องไม่พร้อมใช้งานหรือเกิดข้อขัดข้อง';
+      bk.rejectionReason = bk.rejection_reason;
+    }
+
+    writeBookings(bookings);
+    bookingsCache = bookings;
+
+    if (supabase) {
+      supabase.from('bookings').update({
+        status: action,
+        reviewed_by: req.user.name,
+        reviewed_at: now,
+        rejection_reason: bk.rejection_reason || null
+      }).eq('id', id).then(null, () => {});
+    }
+
+    recordAuditLog({
+      action: action === 'approved' ? 'BOOKING_APPROVE' : 'BOOKING_REJECT',
+      resource: 'bookings',
+      resourceId: id,
+      details: `${action === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ'}การจองห้อง ${bk.room} (${bk.date}) โดย ${req.user.name}`,
+      req
+    });
+
+    res.json({ success: true, booking: bk });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/bookings/:id/checklist — Update Preparation / Cleanup Checklist
+app.post('/api/bookings/:id/checklist', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { type, index, done } = req.body; // type: 'preparation' or 'cleanup'
+
+    const bookings = await fetchLiveBookings();
+    const bk = bookings.find(b => b.id === id);
+    if (!bk) return res.status(404).json({ error: "Booking not found" });
+
+    const checklistKey = type === 'cleanup' ? 'cleanupChecklist' : 'preparationChecklist';
+    if (!bk[checklistKey]) bk[checklistKey] = [];
+
+    if (index >= 0 && index < bk[checklistKey].length) {
+      bk[checklistKey][index].done = !!done;
+      bk[checklistKey][index].updatedAt = new Date().toISOString();
+      bk[checklistKey][index].updatedBy = req.user.name;
+    }
+
+    writeBookings(bookings);
+    bookingsCache = bookings;
+
+    if (supabase) {
+      const supaKey = type === 'cleanup' ? 'cleanup_checklist' : 'preparation_checklist';
+      supabase.from('bookings').update({
+        [supaKey]: bk[checklistKey]
+      }).eq('id', id).then(null, () => {});
+    }
+
+    res.json({ success: true, checklist: bk[checklistKey] });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/bookings/:id/cancel — Cancel Booking
+app.post('/api/bookings/:id/cancel', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const bookings = await fetchLiveBookings();
+    const bk = bookings.find(b => b.id === id);
+    if (!bk) return res.status(404).json({ error: "Booking not found" });
+
+    const now = new Date().toISOString();
+    bk.status = 'cancelled';
+    bk.cancelled_at = now;
+    bk.cancelled_by = req.user.name;
+
+    writeBookings(bookings);
+    bookingsCache = bookings;
+
+    if (supabase) {
+      supabase.from('bookings').update({
+        status: 'cancelled',
+        cancelled_at: now,
+        cancelled_by: req.user.name
+      }).eq('id', id).then(null, () => {});
+    }
+
+    recordAuditLog({
+      action: 'BOOKING_CANCEL',
+      resource: 'bookings',
+      resourceId: id,
+      details: `ยกเลิกการจองห้อง ${bk.room} (${bk.date}) โดย ${req.user.name}`,
+      req
+    });
+
+    res.json({ success: true, booking: bk });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// 🟡 P2 — BORROW / RETURN WORKFLOW & DUE DATES
+// ==========================================
+
+// GET /api/transactions — Role-based data access (optionalAuth)
+app.get('/api/transactions', optionalAuth, async (req, res) => {
+  const transactions = await fetchLiveTransactions();
+  if (!req.user) {
+    return res.json(transactions);
+  }
+  const role = normalizeRole(req.user.role || req.user.roleLevel);
+
+  if (role === 'L3' || role === 'L4' || role === 'L2') {
+    return res.json(transactions);
+  }
+
+  const myName = String(req.user.name || '').toLowerCase().trim();
+  const myId = String(req.user.teacherId || req.user.id || '').toLowerCase().trim();
+  const filtered = transactions.filter(tx => {
+    const b = String(tx.borrower || tx.teacherId || '').toLowerCase().trim();
+    return b.includes(myName) || b.includes(myId) || (myId && b === myId);
+  });
+  res.json(filtered);
+});
+
+// POST /api/transactions — Authenticated (L1 Teachers, L2 Staff, L3 Admin)
+app.post('/api/transactions', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  const transactions = req.body;
+  writeTransactions(transactions);
+  transactionsCache = transactions;
+  if (Array.isArray(transactions)) {
+    if (supabase) {
+      supabase.from('transactions').upsert(transactions, { onConflict: 'id' }).then(null, () => {});
+    }
+    transactions.forEach(tx => syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id'));
+  }
+
+  recordAuditLog({
+    action: 'TRANSACTION_CREATE',
+    resource: 'transactions',
+    resourceId: Array.isArray(transactions) && transactions.length > 0 ? transactions[0].id : 'transaction',
+    details: `บันทึกรายการขอยืม-คืน/เบิกสารเคมีและอุปกรณ์`,
+    req
+  });
+
+  res.json({ success: true });
+});
+
+// POST /api/borrow/request — Digital Borrow Request with Stock Check
+app.post('/api/borrow/request', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { itemCode, quantity, dueDate, responsiblePerson, notes } = req.body;
+    if (!itemCode) return res.status(400).json({ error: "itemCode is required" });
+
+    const reqQty = parseFloat(quantity || 1);
+    const items = await fetchLiveItems();
+    const item = items.find(i => (i.code || '').toLowerCase() === itemCode.toLowerCase());
+    if (!item) return res.status(404).json({ error: "ไม่พบข้อมูลพัสดุในระบบ" });
+
+    const currentStock = parseFloat(item.qty || item.quantity || 0);
+    if (currentStock < reqQty) {
+      return res.status(400).json({
+        error: `ยอดคงเหลือในคลังไม่เพียงพอ (คงเหลือ: ${currentStock} ${item.unit || 'ชิ้น'})`
+      });
+    }
+
+    const isDirectApproved = ['L2', 'L3', 'L4'].includes(req.user.roleLevel || req.user.role);
+
+    const newTx = {
+      id: `TX-${Date.now()}`,
+      itemCode: item.code,
+      item_code: item.code,
+      itemName: item.name,
+      item_name: item.name,
+      category: item.category,
+      quantity: reqQty,
+      unit: item.unit || 'ชิ้น',
+      borrower: req.user.name || 'ผู้ยืม',
+      teacherId: req.user.teacherId || req.user.id || '',
+      responsiblePerson: responsiblePerson || req.user.name,
+      borrowDate: new Date().toISOString(),
+      dueDate: dueDate || new Date(Date.now() + 7 * 86400000).toISOString(),
+      expectedReturnDate: dueDate || new Date(Date.now() + 7 * 86400000).toISOString(),
+      returnDate: null,
+      status: 'borrowed',
+      approvalStatus: isDirectApproved ? 'approved' : 'pending',
+      approvedBy: isDirectApproved ? req.user.name : null,
+      approvedAt: isDirectApproved ? new Date().toISOString() : null,
+      damagedStatus: 'none',
+      notes: notes || '',
+      createdAt: new Date().toISOString()
+    };
+
+    // If auto-approved, deduct stock immediately
+    if (isDirectApproved) {
+      item.qty = Math.max(0, currentStock - reqQty);
+      item.quantity = item.qty;
+      writeDatabase(items);
+      itemsCache = items;
+      if (supabase) {
+        supabase.from('items').update({ qty: item.qty }).eq('code', item.code).then(null, () => {});
+      }
+    }
+
+    const txs = await fetchLiveTransactions();
+    txs.unshift(newTx);
+    writeTransactions(txs);
+    transactionsCache = txs;
+
+    if (supabase) {
+      const supaTx = {
+        id: newTx.id,
+        itemCode: newTx.itemCode || newTx.item_code,
+        itemName: newTx.itemName || newTx.item_name,
+        qty: Number(newTx.quantity || newTx.qty || 1),
+        borrower: newTx.borrower || '',
+        date: newTx.borrowDate ? newTx.borrowDate.split('T')[0] : new Date().toISOString().split('T')[0],
+        type: newTx.type || 'BORROW',
+        status: newTx.status || 'borrowed',
+        notes: newTx.notes || '',
+        expectedReturnDate: newTx.expectedReturnDate || newTx.dueDate || '',
+        bookingId: newTx.bookingId || '',
+        room: newTx.room || '',
+        slot: newTx.slot || '',
+        supervisingTeacher: newTx.responsiblePerson || newTx.teacherId || '',
+        returnDate: newTx.returnDate || null,
+        damagedQty: Number(newTx.damagedQty || 0),
+        createdAt: newTx.createdAt || new Date().toISOString()
+      };
+      supabase.from('transactions').insert([supaTx]).then(null, (err) => console.error("Supabase tx insert error:", err));
+    }
+
+    syncToGoogleSheets('Transactions', 'UPSERT', newTx, 'id');
+    if (isDirectApproved) {
+      syncToGoogleSheets('Items', 'UPSERT', item, 'code');
+    }
+
+    recordAuditLog({
+      action: 'BORROW_REQUEST',
+      resource: 'transactions',
+      resourceId: newTx.id,
+      details: `ทำรายการขอยืม: ${newTx.itemName} จำนวน ${reqQty} ${newTx.unit} โดย ${newTx.borrower}`,
+      req
+    });
+
+    res.status(201).json({ success: true, transaction: newTx });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /api/borrow/:id/return — Return item with condition check and stock restock
+app.post('/api/borrow/:id/return', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { condition, damagedStatus, damageFine, damageNotes } = req.body;
+
+    const txs = await fetchLiveTransactions();
+    const tx = txs.find(t => t.id === id);
+    if (!tx) return res.status(404).json({ error: "ไม่พบข้อมูลรายการยืม" });
+    if (tx.status === 'returned') return res.status(400).json({ error: "รายการนี้ส่งคืนแล้ว" });
+
+    const now = new Date().toISOString();
+    tx.status = 'returned';
+    tx.returnDate = now;
+    tx.return_date = now;
+    tx.condition = condition || 'สมบูรณ์';
+    tx.damagedStatus = damagedStatus || 'none';
+    tx.damageFine = parseFloat(damageFine || 0);
+    tx.damageNotes = damageNotes || '';
+
+    // Restock item if condition is good or minor
+    if (tx.damagedStatus !== 'missing' && tx.damagedStatus !== 'severe_damage') {
+      const items = await fetchLiveItems();
+      const item = items.find(i => (i.code || '').toLowerCase() === (tx.itemCode || tx.item_code || '').toLowerCase());
+      if (item) {
+        item.qty = parseFloat(item.qty || 0) + parseFloat(tx.quantity || 1);
+        item.quantity = item.qty;
+        writeDatabase(items);
+        itemsCache = items;
+        if (supabase) {
+          supabase.from('items').update({ qty: item.qty }).eq('code', item.code).then(null, () => {});
+        }
+      }
+    }
+
+    writeTransactions(txs);
+    transactionsCache = txs;
+
+    if (supabase) {
+      supabase.from('transactions').update({
+        status: 'returned',
+        return_date: now,
+        damaged_status: tx.damagedStatus,
+        damage_fine: tx.damageFine,
+        damage_notes: tx.damageNotes
+      }).eq('id', id).then(null, () => {});
+    }
+
+    recordAuditLog({
+      action: 'BORROW_RETURN',
+      resource: 'transactions',
+      resourceId: id,
+      details: `บันทึกรับคืน: ${tx.itemName} สภาพ: ${tx.condition} รับคืนโดย ${req.user.name}`,
+      req
+    });
+
+    res.json({ success: true, transaction: tx });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/borrow/overdue — List overdue loans
+app.get('/api/borrow/overdue', optionalAuth, async (req, res) => {
+  try {
+    const txs = await fetchLiveTransactions();
+    const now = new Date();
+
+    const overdue = txs.filter(tx => {
+      if (tx.status === 'returned') return false;
+      const due = tx.dueDate || tx.expectedReturnDate;
+      if (!due) return false;
+      return new Date(due) < now;
+    }).map(tx => {
+      const due = new Date(tx.dueDate || tx.expectedReturnDate);
+      const daysOverdue = Math.max(1, Math.floor((now.getTime() - due.getTime()) / 86400000));
+      return {
+        ...tx,
+        daysOverdue
+      };
+    });
+
+    res.json({ success: true, count: overdue.length, overdue });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/borrow/quick-scan/:code — Quick asset lookup for QR scanning
+app.get('/api/borrow/quick-scan/:code', optionalAuth, async (req, res) => {
+  try {
+    const { code } = req.params;
+    const items = await fetchLiveItems();
+    const item = items.find(i => (i.code || '').toLowerCase() === code.toLowerCase());
+    if (!item) return res.status(404).json({ error: "Item not found" });
+
+    const txs = await fetchLiveTransactions();
+    const activeLoan = txs.find(t => 
+      (t.itemCode || t.item_code || '').toLowerCase() === code.toLowerCase() &&
+      t.status === 'borrowed'
+    );
+
+    res.json({
+      success: true,
+      item: {
+        code: item.code,
+        name: item.name,
+        category: item.category,
+        stock: item.qty || item.quantity || 0,
+        unit: item.unit || 'ชิ้น',
+        location: `${item.room || '-'} / ${item.cabinet || '-'}`
+      },
+      activeLoan: activeLoan || null
+    });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// 🟡 P2 — PROCUREMENT & BUDGET REAL-TIME TRACKING
+// ==========================================
+
 // GET /api/budget
 app.get('/api/budget', async (req, res) => {
   const budget = await fetchLiveBudget();
   res.json(budget);
 });
 
-// POST /api/budget
-app.post('/api/budget', async (req, res) => {
+// POST /api/budget — Strictly L3 Admin
+app.post('/api/budget', authenticateToken, requireRole('L3'), async (req, res) => {
   const data = req.body;
   writeBudget(data);
   if (supabase) {
-    supabase.from('system').upsert({ key: 'budget', value: data }).catch(e => {});
+    supabase.from('system').upsert({ key: 'budget', value: data }).then(null, () => {});
   }
+
+  recordAuditLog({
+    action: 'BUDGET_UPDATE',
+    resource: 'system',
+    resourceId: 'budget',
+    details: `อัปเดตงบประมาณห้องแล็บ: ${data.budget} บาท`,
+    req
+  });
+
   res.json({ success: true, budget: data.budget });
 });
 
-// GET /api/purchase-orders
-app.get('/api/purchase-orders', async (req, res) => {
-  const orders = await fetchLivePurchaseOrders();
-  res.json(orders);
+// GET /api/budget/summary — Real-time budget analytics & remaining balances
+app.get('/api/budget/summary', optionalAuth, async (req, res) => {
+  try {
+    const budgetData = await fetchLiveBudget();
+    const totalBudget = parseFloat(budgetData?.budget || 150000);
+    const purchaseOrders = await fetchLivePurchaseOrders();
+
+    const approvedPOs = purchaseOrders.filter(po => po.status === 'approved' || po.status === 'received' || po.status === 'ordered');
+    const spentBudget = approvedPOs.reduce((sum, po) => sum + parseFloat(po.totalPrice || po.estimatedCost || 0), 0);
+    const remainingBudget = Math.max(0, totalBudget - spentBudget);
+    const utilizationRate = totalBudget > 0 ? ((spentBudget / totalBudget) * 100).toFixed(1) : 0;
+
+    res.json({
+      success: true,
+      fiscalYear: 2026,
+      totalBudget,
+      spentBudget,
+      remainingBudget,
+      utilizationRate: Number(utilizationRate),
+      totalPurchaseOrders: purchaseOrders.length,
+      pendingApprovalCount: purchaseOrders.filter(po => po.status === 'pending').length
+    });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// POST /api/purchase-orders
-app.post('/api/purchase-orders', async (req, res) => {
+// GET /api/purchase-orders — Role-based data access control
+app.get('/api/purchase-orders', optionalAuth, async (req, res) => {
+  const orders = await fetchLivePurchaseOrders();
+  if (!req.user) {
+    return res.status(401).json({ error: "Authentication required to view purchase orders" });
+  }
+
+  const role = normalizeRole(req.user.role || req.user.roleLevel);
+  if (role === 'L3' || role === 'L4') {
+    return res.json(orders);
+  }
+
+  const myId = String(req.user.teacherId || req.user.id || '').toLowerCase().trim();
+  const myName = String(req.user.name || '').toLowerCase().trim();
+  const filtered = orders.filter(po => {
+    const reqStr = String(po.requester || po.teacherId || po.createdByName || '').toLowerCase().trim();
+    return reqStr.includes(myId) || reqStr.includes(myName) || (myId && reqStr === myId);
+  });
+  res.json(filtered);
+});
+
+// POST /api/purchase-orders — Authenticated (L1 Teachers, L2 Staff, L3 Admin, L4 Executive)
+app.post('/api/purchase-orders', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
   const orders = req.body;
   writePurchaseOrders(orders);
   poCache = orders;
   if (Array.isArray(orders)) {
     if (supabase) {
-      supabase.from('purchase_orders').upsert(orders, { onConflict: 'id' }).catch(e => {});
+      supabase.from('purchase_orders').upsert(orders, { onConflict: 'id' }).then(null, () => {});
     }
     orders.forEach(po => syncToGoogleSheets('Purchase_Orders', 'UPSERT', po, 'id'));
   }
+
+  recordAuditLog({
+    action: 'PURCHASE_ORDER_CREATE',
+    resource: 'purchase_orders',
+    resourceId: Array.isArray(orders) ? `${orders.length} items` : 'order',
+    details: `บันทึกรายการขอจัดซื้อพัสดุ/สารเคมี (${Array.isArray(orders) ? orders.length : 1} รายการ)`,
+    req
+  });
+
   res.json({ success: true });
 });
 
-// GET /api/bookings
-app.get('/api/bookings', async (req, res) => {
-  const bookings = await fetchLiveBookings();
-  res.json(bookings);
-});
+// POST /api/procurement/orders — Submit Purchase Request with Approval Chain
+app.post('/api/procurement/orders', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { title, items, estimatedCost, supplierName, quotationRef, reason, priority } = req.body;
+    const poList = await fetchLivePurchaseOrders();
 
-// POST /api/bookings
-app.post('/api/bookings', async (req, res) => {
-  const bookings = req.body;
-  writeBookings(bookings);
-  bookingsCache = bookings;
-  if (Array.isArray(bookings)) {
+    const newPO = {
+      id: `PO-${Date.now()}`,
+      title: title || 'คำขอจัดซื้อสารเคมีและวัสดุห้องปฏิบัติการ',
+      items: Array.isArray(items) ? items : [],
+      estimatedCost: parseFloat(estimatedCost || 0),
+      totalPrice: parseFloat(estimatedCost || 0),
+      supplierName: supplierName || 'บริษัท เคมีภัณฑ์สากล จำกัด',
+      quotationRef: quotationRef || '',
+      invoiceRef: '',
+      reason: reason || '',
+      priority: priority || 'medium',
+      requester: req.user.name || 'ผู้ขอจัดซื้อ',
+      teacherId: req.user.teacherId || req.user.id || '',
+      department: req.user.department || 'วิทยาศาสตร์และเทคโนโลยี',
+      status: 'pending', // pending, approved, ordered, received, rejected
+      receivingStatus: 'unreceived',
+      approvalChain: [
+        {
+          step: 1,
+          role: 'Requester',
+          status: 'submitted',
+          by: req.user.name,
+          timestamp: new Date().toISOString()
+        }
+      ],
+      createdAt: new Date().toISOString()
+    };
+
+    poList.unshift(newPO);
+    writePurchaseOrders(poList);
+    poCache = poList;
+
     if (supabase) {
-      supabase.from('bookings').upsert(bookings, { onConflict: 'id' }).catch(e => {});
+      supabase.from('purchase_orders').insert([newPO]).then(null, () => {});
     }
-    bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(b), 'id'));
+
+    recordAuditLog({
+      action: 'PROCUREMENT_PR_SUBMIT',
+      resource: 'purchase_orders',
+      resourceId: newPO.id,
+      details: `ยื่นคำขอจัดซื้อ ${newPO.title} มูลค่า ${newPO.estimatedCost} บาท โดย ${newPO.requester}`,
+      req
+    });
+
+    res.status(201).json({ success: true, order: newPO });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
   }
-  res.json({ success: true });
 });
 
-// GET /api/transactions
-app.get('/api/transactions', async (req, res) => {
-  const transactions = await fetchLiveTransactions();
-  res.json(transactions);
-});
+// POST /api/procurement/orders/:id/review — Approve or Reject Purchase Request (Admin L3 / Executive L4)
+app.post('/api/procurement/orders/:id/review', authenticateToken, requireRole('L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, comments } = req.body;
+    if (action !== 'approved' && action !== 'rejected') {
+      return res.status(400).json({ error: "Action must be 'approved' or 'rejected'" });
+    }
 
-// POST /api/transactions
-app.post('/api/transactions', async (req, res) => {
-  const transactions = req.body;
-  writeTransactions(transactions);
-  transactionsCache = transactions;
-  if (Array.isArray(transactions)) {
+    const orders = await fetchLivePurchaseOrders();
+    const po = orders.find(p => p.id === id);
+    if (!po) return res.status(404).json({ error: "Purchase order not found" });
+
+    po.status = action;
+    po.reviewedBy = req.user.name;
+    po.reviewedAt = new Date().toISOString();
+    if (!po.approvalChain) po.approvalChain = [];
+    po.approvalChain.push({
+      step: 2,
+      role: req.user.roleLevel || 'Executive',
+      status: action,
+      by: req.user.name,
+      comments: comments || '',
+      timestamp: new Date().toISOString()
+    });
+
+    writePurchaseOrders(orders);
+    poCache = orders;
+
     if (supabase) {
-      supabase.from('transactions').upsert(transactions, { onConflict: 'id' }).catch(e => {});
+      supabase.from('purchase_orders').update({
+        status: action,
+        reviewed_by: req.user.name,
+        approval_chain: po.approvalChain
+      }).eq('id', id).then(null, () => {});
     }
-    transactions.forEach(tx => syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id'));
+
+    recordAuditLog({
+      action: action === 'approved' ? 'PROCUREMENT_APPROVE' : 'PROCUREMENT_REJECT',
+      resource: 'purchase_orders',
+      resourceId: id,
+      details: `${action === 'approved' ? 'อนุมัติ' : 'ปฏิเสธ'}คำขอจัดซื้อ ${po.title} (${po.estimatedCost} บ.) โดย ${req.user.name}`,
+      req
+    });
+
+    res.json({ success: true, order: po });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
   }
-  res.json({ success: true });
+});
+
+// POST /api/procurement/orders/:id/receive — Receiving Goods & Auto-Restock Inventory
+app.post('/api/procurement/orders/:id/receive', authenticateToken, requireRole('L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { invoiceRef, receivedItems, isFullReceiving } = req.body;
+
+    const orders = await fetchLivePurchaseOrders();
+    const po = orders.find(p => p.id === id);
+    if (!po) return res.status(404).json({ error: "Purchase order not found" });
+
+    const now = new Date().toISOString();
+    po.receivingStatus = isFullReceiving ? 'received' : 'partial';
+    po.status = isFullReceiving ? 'received' : po.status;
+    if (invoiceRef) po.invoiceRef = invoiceRef;
+
+    // Auto-restock items into inventory & create movements
+    const items = await fetchLiveItems();
+    const movements = readStockMovements();
+
+    if (Array.isArray(receivedItems)) {
+      receivedItems.forEach(rcv => {
+        const item = items.find(i => (i.code || '').toLowerCase() === (rcv.code || '').toLowerCase());
+        const rcvQty = parseFloat(rcv.receivedQty || rcv.qty || 0);
+        if (item && rcvQty > 0) {
+          item.qty = parseFloat(item.qty || 0) + rcvQty;
+          item.quantity = item.qty;
+
+          // Record IN movement
+          movements.unshift({
+            id: `mov_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            item_code: item.code,
+            itemCode: item.code,
+            item_name: item.name,
+            itemName: item.name,
+            type: 'IN',
+            quantity: rcvQty,
+            balance_after: item.qty,
+            balanceAfter: item.qty,
+            reason: `รับพัสดุเข้าคลังจากใบสั่งซื้อ ${po.id}`,
+            actor: req.user.name,
+            actor_id: req.user.teacherId || req.user.id || 'staff',
+            created_at: now
+          });
+        }
+      });
+
+      writeDatabase(items);
+      itemsCache = items;
+      writeStockMovements(movements);
+
+      if (supabase) {
+        items.forEach(it => {
+          supabase.from('items').update({ qty: it.qty }).eq('code', it.code).then(null, () => {});
+        });
+      }
+    }
+
+    writePurchaseOrders(orders);
+    poCache = orders;
+
+    recordAuditLog({
+      action: 'PROCUREMENT_RECEIVE',
+      resource: 'purchase_orders',
+      resourceId: id,
+      details: `ตรวจรับพัสดุเข้าคลังจาก ${po.id} (สถานะ: ${po.receivingStatus}) โดย ${req.user.name}`,
+      req
+    });
+
+    res.json({ success: true, order: po });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==========================================
+// 🟡 P2 — ROLE-BASED DASHBOARD AGGREGATOR
+// ==========================================
+
+// GET /api/dashboard/role-view — Dynamic role-customized dashboard payload
+app.get('/api/dashboard/role-view', optionalAuth, async (req, res) => {
+  try {
+    const roleOverride = req.query.role; // Allows previewing any role
+    let activeRole = 'L1';
+    if (roleOverride) {
+      activeRole = normalizeRole(roleOverride);
+    } else if (req.user) {
+      activeRole = normalizeRole(req.user.role || req.user.roleLevel);
+    }
+
+    const items = await fetchLiveItems();
+    const bookings = await fetchLiveBookings();
+    const transactions = await fetchLiveTransactions();
+    const purchaseOrders = await fetchLivePurchaseOrders();
+    const budgetData = await fetchLiveBudget();
+
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const future30 = new Date(now.getTime() + 30 * 86400000);
+
+    // Common alerts
+    const expiredCount = items.filter(it => it.expiry && new Date(it.expiry) < now).length;
+    const lowStockCount = items.filter(it => {
+      const q = parseFloat(it.qty || it.quantity || 0);
+      const min = parseFloat(it.minAlert || it.minStock || 5);
+      return q <= min;
+    }).length;
+    const nearExpiryCount = items.filter(it => {
+      if (!it.expiry) return false;
+      const exp = new Date(it.expiry);
+      return exp >= now && exp <= future30;
+    }).length;
+
+    // 1. TEACHER DASHBOARD (L1)
+    if (activeRole === 'L1') {
+      const myId = String(req.user?.teacherId || req.user?.id || 't1').toLowerCase();
+      const myName = String(req.user?.name || '').toLowerCase();
+
+      const myBookings = bookings.filter(b => {
+        const tId = String(b.teacherId || b.teacher_id || '').toLowerCase();
+        const tName = String(b.teacherName || b.bookerName || '').toLowerCase();
+        return tId.includes(myId) || tName.includes(myName);
+      });
+
+      const myBorrowings = transactions.filter(tx => {
+        const b = String(tx.borrower || tx.teacherId || '').toLowerCase();
+        return b.includes(myId) || b.includes(myName);
+      });
+
+      const upcomingClasses = myBookings.filter(b => b.date >= todayStr && b.status === 'approved');
+
+      return res.json({
+        success: true,
+        role: 'Teacher',
+        roleLevel: 'L1',
+        data: {
+          myBookingsCount: myBookings.length,
+          myActiveBookings: myBookings.filter(b => b.status === 'approved' || b.status === 'pending'),
+          myBorrowingsCount: myBorrowings.length,
+          myActiveLoans: myBorrowings.filter(tx => tx.status === 'borrowed'),
+          upcomingClasses,
+          notifications: [
+            { text: `คุณมีห้องปฏิบัติการจองแล้ว ${myBookings.filter(b => b.status === 'approved').length} รายการ`, type: 'info' },
+            { text: `พัสดุรอส่งคืน ${myBorrowings.filter(t => t.status === 'borrowed').length} รายการ`, type: 'warning' }
+          ]
+        }
+      });
+    }
+
+    // 2. STAFF DASHBOARD (L2)
+    if (activeRole === 'L2') {
+      const todayPreparations = bookings.filter(b => b.date === todayStr && b.status === 'approved');
+      const borrowReturnDueToday = transactions.filter(t => {
+        if (t.status === 'returned') return false;
+        const due = (t.dueDate || t.expectedReturnDate || '').split('T')[0];
+        return due === todayStr;
+      });
+      const pendingBookings = bookings.filter(b => b.status === 'pending');
+      const repairs = readEquipmentRepairs().filter(r => r.repair_status === 'reported' || r.repair_status === 'under_repair');
+
+      return res.json({
+        success: true,
+        role: 'Staff',
+        roleLevel: 'L2',
+        data: {
+          lowStockCount,
+          expiredCount,
+          nearExpiryCount,
+          todayPreparations,
+          borrowReturnDueToday,
+          pendingRequestsCount: pendingBookings.length,
+          pendingBookings,
+          maintenanceDueCount: repairs.length,
+          equipmentUnderRepair: repairs
+        }
+      });
+    }
+
+    // 3. ADMIN DASHBOARD (L3)
+    if (activeRole === 'L3') {
+      const users = readUsers();
+      const auditLogs = readAuditLogs();
+      const totalInventoryValue = items.reduce((sum, it) => sum + (parseFloat(it.qty || 0) * (parseFloat(it.unitPrice || 120))), 0);
+
+      return res.json({
+        success: true,
+        role: 'Admin',
+        roleLevel: 'L3',
+        data: {
+          totalItems: items.length,
+          totalInventoryValue: Math.round(totalInventoryValue),
+          totalUsers: users.length,
+          activeBookingsCount: bookings.filter(b => b.status === 'approved').length,
+          pendingProcurementsCount: purchaseOrders.filter(po => po.status === 'pending').length,
+          totalAuditEvents: auditLogs.length,
+          recentAuditLogs: auditLogs.slice(0, 5),
+          budgetSummary: {
+            total: budgetData?.budget || 150000,
+            pendingPOs: purchaseOrders.filter(po => po.status === 'pending').length
+          }
+        }
+      });
+    }
+
+    // 4. EXECUTIVE DASHBOARD (L4)
+    const totalLabs = 8;
+    const bookedRoomsThisMonth = new Set(bookings.filter(b => b.status === 'approved').map(b => b.room)).size;
+    const labUtilizationRate = Math.min(100, Math.round((bookedRoomsThisMonth / totalLabs) * 100));
+    const totalInventoryValue = items.reduce((sum, it) => sum + (parseFloat(it.qty || 0) * (parseFloat(it.unitPrice || 120))), 0);
+    const totalBudget = parseFloat(budgetData?.budget || 150000);
+    const spentBudget = purchaseOrders
+      .filter(po => po.status === 'approved' || po.status === 'received')
+      .reduce((sum, po) => sum + parseFloat(po.totalPrice || po.estimatedCost || 0), 0);
+
+    return res.json({
+      success: true,
+      role: 'Executive',
+      roleLevel: 'L4',
+      data: {
+        totalLabs,
+        labUtilizationRate: `${labUtilizationRate}%`,
+        totalInventoryValue: Math.round(totalInventoryValue),
+        chemicalUsageCount: transactions.filter(t => t.category === 'สารเคมี').length,
+        budgetUsage: {
+          totalBudget,
+          spentBudget,
+          remainingBudget: Math.max(0, totalBudget - spentBudget),
+          usagePercent: `${totalBudget > 0 ? Math.round((spentBudget / totalBudget) * 100) : 0}%`
+        },
+        monthlyExpenditure: spentBudget,
+        safetyIncidentsCount: 0
+      }
+    });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ==========================================
@@ -1241,111 +3363,102 @@ function getRoleColor(role) {
 let usersCache = null;
 let lastUsersFetch = 0;
 
-// Fetch Live Users from Supabase + Google Sheets + Local database
+// Fetch Live Users — Supabase as Single Source of Truth with Local Standby Backup
 async function fetchLiveUsers(forceRefresh = false) {
-  const localUsers = readUsers();
-  
   if (!forceRefresh && usersCache && (Date.now() - lastUsersFetch < 15000)) {
     return usersCache;
   }
 
-  let merged = [...localUsers];
-
-  // 1. Fetch from Supabase Users Table
+  // 1. Primary Source of Truth: Supabase
   if (supabase) {
     try {
       const { data: supaUsers, error } = await supabase.from('users').select('*');
       if (!error && Array.isArray(supaUsers) && supaUsers.length > 0) {
-        supaUsers.forEach(su => {
-          const tId = String(su.teacherId || su.id || '').trim();
-          if (!tId) return;
-          const idx = merged.findIndex(u => String(u.teacherId || '').trim().toLowerCase() === tId.toLowerCase());
-          const cleanUser = {
+        const localUsers = readUsers();
+        const activeUsers = supaUsers.filter(u => u.is_deleted !== true && u.isDeleted !== true);
+
+        const cleanUsers = activeUsers.map(su => {
+          const tId = String(su.teacherId || su.teacher_id || su.id || '').trim();
+          const localMatch = localUsers.find(u => String(u.teacherId || '').toLowerCase() === tId.toLowerCase() || u.id === su.id);
+          const existingPass = localMatch ? localMatch.password : null;
+          let userPass = su.password || existingPass;
+          if (!userPass || (!userPass.startsWith('$2a$') && !userPass.startsWith('$2b$'))) {
+            userPass = (existingPass && (existingPass.startsWith('$2a$') || existingPass.startsWith('$2b$')))
+              ? existingPass
+              : bcrypt.hashSync(String(userPass || tId), 10);
+          }
+
+          return {
             id: su.id || ("u_" + tId),
             teacherId: tId,
+            teacher_id: tId,
             name: su.name || `ครู (${tId})`,
             department: su.department || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี',
             email: su.email || `${tId.toLowerCase()}@lab.school.ac.th`,
             role: su.role || 'L1',
-            roleName: su.roleName || 'Teacher / User',
-            assignedRooms: Array.isArray(su.assignedRooms) ? su.assignedRooms : (typeof su.assignedRooms === 'string' && su.assignedRooms ? su.assignedRooms.split(',').map(s => s.trim()) : []),
+            roleName: su.roleName || su.role_name || 'Teacher / User',
+            assignedRooms: Array.isArray(su.assignedRooms) ? su.assignedRooms : (typeof su.assignedRooms === 'string' && su.assignedRooms ? su.assignedRooms.split(',').map(s => s.trim()) : (Array.isArray(su.assigned_rooms) ? su.assigned_rooms : [])),
             initials: su.initials || calculateUserInitials(su.name) || 'U',
             color: su.color || getRoleColor(su.role),
-            password: su.password || tId,
-            isActive: su.isActive !== false,
-            createdAt: su.createdAt || new Date().toISOString()
+            password: userPass,
+            isActive: su.isActive !== false && su.is_active !== false,
+            createdAt: su.createdAt || su.created_at || new Date().toISOString(),
+            updatedAt: su.updatedAt || su.updated_at || new Date().toISOString(),
+            createdBy: su.createdBy || su.created_by || 'system',
+            updatedBy: su.updatedBy || su.updated_by || 'system',
+            is_deleted: false
           };
-
-          if (idx !== -1) {
-            merged[idx] = { ...merged[idx], ...cleanUser };
-          } else {
-            merged.push(cleanUser);
-          }
         });
+
+        if (!fs.existsSync(USERS_FILE)) writeUsers(cleanUsers);
+        usersCache = cleanUsers;
+        lastUsersFetch = Date.now();
+        return cleanUsers;
       }
     } catch(e) {
-      console.warn("Could not fetch live users from Supabase:", e.message);
+      console.warn("[SourceOfTruth:Supabase] Users read notice:", e.message);
     }
   }
 
-  // 2. Fetch from Google Sheets Users Tab
-  if (GOOGLE_SCRIPT_URL) {
-    try {
-      const fetchUrl = `${GOOGLE_SCRIPT_URL}?table=Users`;
-      const res = await fetch(fetchUrl, { method: 'GET' });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.status === 'success' && Array.isArray(json.data) && json.data.length > 0) {
-          json.data.forEach(sheetUser => {
-            const tId = String(sheetUser.teacherId || sheetUser.id || '').trim();
-            if (!tId) return;
-            const idx = merged.findIndex(u => String(u.teacherId || '').trim().toLowerCase() === tId.toLowerCase());
-            const cleanUser = {
-              id: sheetUser.id || ("u_" + tId),
-              teacherId: tId,
-              name: sheetUser.name || `ครู (${tId})`,
-              department: sheetUser.department || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี',
-              email: sheetUser.email || `${tId.toLowerCase()}@lab.school.ac.th`,
-              role: sheetUser.role || 'L1',
-              roleName: sheetUser.roleName || 'Teacher / User',
-              assignedRooms: typeof sheetUser.assignedRooms === 'string' && sheetUser.assignedRooms ? sheetUser.assignedRooms.split(',').map(s => s.trim()) : (Array.isArray(sheetUser.assignedRooms) ? sheetUser.assignedRooms : []),
-              initials: sheetUser.initials || calculateUserInitials(sheetUser.name) || 'U',
-              color: sheetUser.color || getRoleColor(sheetUser.role),
-              password: sheetUser.password || tId,
-              isActive: sheetUser.isActive !== false && sheetUser.isActive !== 'false',
-              createdAt: sheetUser.createdAt || new Date().toISOString()
-            };
-
-            if (idx !== -1) {
-              merged[idx] = { ...merged[idx], ...cleanUser };
-            } else {
-              merged.push(cleanUser);
-            }
-          });
-        }
-      }
-    } catch(e) {
-      console.warn("Could not fetch live users from Google Sheets:", e.message);
-    }
-  }
-
-  writeUsers(merged);
-  usersCache = merged;
+  // 2. Standby Offline Backup
+  const localUsers = readUsers().filter(u => !u.is_deleted);
+  usersCache = localUsers;
   lastUsersFetch = Date.now();
-  return merged;
+  return localUsers;
 }
 
-// USERS
-app.get('/api/users', async (req, res) => {
+// USERS — Safe Directory for authenticated/guest, Full list strictly for L3 Admin
+app.get('/api/users', optionalAuth, async (req, res) => {
   const users = await fetchLiveUsers();
-  const refreshedUsers = users.map(u => ({
-    ...u,
-    initials: calculateUserInitials(u.name) || u.initials || 'U'
+  const role = req.user ? normalizeRole(req.user.role || req.user.roleLevel) : 'L0';
+
+  if (role === 'L3') {
+    // Admin gets full user list with password stripped
+    const adminView = users.map(u => sanitizeUser({
+      ...u,
+      initials: calculateUserInitials(u.name) || u.initials || 'U'
+    }));
+    return res.json(adminView);
+  }
+
+  // Non-admins / guest: Safe public directory without sensitive credentials
+  const safeDirectory = users.map(u => ({
+    id: u.id,
+    teacherId: u.teacherId,
+    name: u.name,
+    department: u.department,
+    role: u.role,
+    roleName: u.roleName,
+    assignedRooms: u.assignedRooms,
+    initials: calculateUserInitials(u.name) || u.initials || 'U',
+    color: u.color,
+    isActive: u.isActive
   }));
-  res.json(refreshedUsers);
+  res.json(safeDirectory);
 });
 
-app.post('/api/users', async (req, res) => {
+// CREATE USER — Strictly L3 Admin
+app.post('/api/users', authenticateToken, requireRole('L3'), async (req, res) => {
   const users = readUsers();
   const newUser = req.body;
   newUser.id = "u_" + (newUser.teacherId || Date.now());
@@ -1360,14 +3473,25 @@ app.post('/api/users', async (req, res) => {
   newUser.role = newUser.role || 'L1';
   newUser.roleName = roleNames[newUser.role] || 'Teacher / User';
   newUser.teacherId = (newUser.teacherId || '').trim();
+  newUser.teacher_id = newUser.teacherId;
   newUser.assignedRooms = Array.isArray(newUser.assignedRooms) ? newUser.assignedRooms : [];
   newUser.isActive = newUser.isActive !== false;
-  newUser.createdAt = newUser.createdAt || new Date().toISOString();
+  
+  const now = new Date().toISOString();
+  const actor = req.user?.teacherId || req.user?.name || 'system';
+  newUser.createdAt = newUser.createdAt || now;
+  newUser.created_at = newUser.createdAt;
+  newUser.updatedAt = now;
+  newUser.updated_at = now;
+  newUser.createdBy = actor;
+  newUser.created_by = actor;
+  newUser.updatedBy = actor;
+  newUser.updated_by = actor;
+  newUser.is_deleted = false;
 
-  // If password not set, default password is the teacherId
-  if (!newUser.password) {
-    newUser.password = newUser.teacherId;
-  }
+  // Securely hash password with bcrypt
+  const rawPass = String(newUser.password || newUser.teacherId || '1234').trim();
+  newUser.password = bcrypt.hashSync(rawPass, 10);
   
   // Assign avatar color strictly based on role
   newUser.color = getRoleColor(newUser.role);
@@ -1375,25 +3499,35 @@ app.post('/api/users', async (req, res) => {
   
   users.push(newUser);
   writeUsers(users);
-  
-  // Sync to Google Sheets
-  const copy = { ...newUser };
-  delete copy.password;
-  syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
+  usersCache = users;
 
-  // Sync to Supabase
+  // 1. Sync to Supabase (Primary Source of Truth)
   if (supabase) {
     try {
       await supabase.from('users').upsert(newUser, { onConflict: 'id' });
     } catch(err) {
-      console.warn("Supabase user sync error:", err.message);
+      console.warn("[SourceOfTruth:Supabase] user sync error:", err.message);
     }
   }
 
-  res.json({ success: true, user: newUser });
+  // 2. Export / Backup to Google Sheets (Asynchronous Outbound Sink)
+  const copy = sanitizeUser(newUser);
+  syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
+
+  // Audit Log
+  recordAuditLog({
+    action: 'USER_CREATE',
+    resource: 'users',
+    resourceId: newUser.id,
+    details: `เพิ่มผู้ใช้ใหม่: ${newUser.name} (${newUser.teacherId}, Role: ${newUser.role})`,
+    req
+  });
+
+  res.json({ success: true, user: sanitizeUser(newUser) });
 });
 
-app.post('/api/users/batch', async (req, res) => {
+// BATCH CREATE USERS — Strictly L3 Admin
+app.post('/api/users/batch', authenticateToken, requireRole('L3'), async (req, res) => {
   const users = readUsers();
   const incomingList = req.body;
   if (!Array.isArray(incomingList) || incomingList.length === 0) {
@@ -1428,7 +3562,13 @@ app.post('/api/users/batch', async (req, res) => {
     const name = (u.name || '').trim();
     const dept = (u.department || '').trim() || 'กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี';
     const email = (u.email || '').trim() || `${teacherId.toLowerCase()}@lab.school.ac.th`;
-    const password = u.password || teacherId;
+    
+    // Hash password with bcrypt
+    const rawPass = String(u.password || teacherId).trim();
+    const hashedPassword = (rawPass.startsWith('$2a$') || rawPass.startsWith('$2b$'))
+      ? rawPass
+      : bcrypt.hashSync(rawPass, 10);
+
     const defaultColor = cleanRole === 'L2' ? '#ea580c' : cleanRole === 'L3' ? '#7c3aed' : cleanRole === 'L4' ? '#be185d' : '#0284c7';
 
     const formattedUser = {
@@ -1440,7 +3580,7 @@ app.post('/api/users/batch', async (req, res) => {
       role: cleanRole,
       roleName: roleNames[cleanRole] || 'Teacher / User',
       assignedRooms: assignedRooms,
-      password: password,
+      password: hashedPassword,
       initials: calculateUserInitials(name),
       color: u.color || defaultColor,
       isActive: u.isActive !== false,
@@ -1458,8 +3598,7 @@ app.post('/api/users/batch', async (req, res) => {
       processedUsers.push(formattedUser);
     }
 
-    const copy = { ...formattedUser };
-    delete copy.password;
+    const copy = sanitizeUser(formattedUser);
     syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
   });
 
@@ -1474,16 +3613,26 @@ app.post('/api/users/batch', async (req, res) => {
     }
   }
 
+  // Audit Log
+  recordAuditLog({
+    action: 'USERS_BATCH_CREATE',
+    resource: 'users',
+    resourceId: 'batch',
+    details: `นำเข้า/อัปเดตผู้ใช้งานจำนวนรวม ${processedUsers.length} รายการ (เพิ่ม ${addedCount}, แก้ไข ${updatedCount})`,
+    req
+  });
+
   res.json({
     success: true,
     addedCount: addedCount,
     updatedCount: updatedCount,
     totalProcessed: processedUsers.length,
-    users: users
+    users: users.map(u => sanitizeUser(u))
   });
 });
 
-app.put('/api/users/:id', async (req, res) => {
+// UPDATE USER — Strictly L3 Admin
+app.put('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res) => {
   const users = readUsers();
   const index = users.findIndex(u => u.id === req.params.id);
   if (index !== -1) {
@@ -1503,11 +3652,19 @@ app.put('/api/users/:id', async (req, res) => {
     if (req.body.assignedRooms) {
       updated.assignedRooms = Array.isArray(req.body.assignedRooms) ? req.body.assignedRooms : [];
     }
+
+    // If password is being changed, hash it with bcrypt
+    if (req.body.password && typeof req.body.password === 'string') {
+      const p = req.body.password.trim();
+      if (p && !p.startsWith('$2a$') && !p.startsWith('$2b$')) {
+        updated.password = bcrypt.hashSync(p, 10);
+      }
+    }
+
     users[index] = updated;
     writeUsers(users);
 
-    const copy = { ...users[index] };
-    delete copy.password;
+    const copy = sanitizeUser(users[index]);
     syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
 
     // Sync to Supabase
@@ -1519,33 +3676,63 @@ app.put('/api/users/:id', async (req, res) => {
       }
     }
 
-    res.json({ success: true, user: users[index] });
+    // Audit Log
+    recordAuditLog({
+      action: 'USER_UPDATE',
+      resource: 'users',
+      resourceId: users[index].id,
+      details: `แก้ไขข้อมูลผู้ใช้: ${users[index].name} (${users[index].teacherId})`,
+      req
+    });
+
+    res.json({ success: true, user: sanitizeUser(users[index]) });
   } else {
     res.status(404).json({ error: "User not found" });
   }
 });
 
-app.delete('/api/users/:id', async (req, res) => {
+// DELETE USER — Strictly L3 Admin (Soft Delete)
+app.delete('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res) => {
   let users = readUsers();
   const userToDelete = users.find(u => u.id === req.params.id);
   users = users.filter(u => u.id !== req.params.id);
   writeUsers(users);
+  usersCache = users;
+
+  const actor = req.user?.teacherId || req.user?.name || 'admin';
+  const now = new Date().toISOString();
 
   if (userToDelete) {
-    syncToGoogleSheets('Users', 'DELETE', { teacherId: userToDelete.teacherId }, 'teacherId');
+    // 1. Soft Delete in Supabase (Primary Source of Truth)
     if (supabase) {
       try {
-        await supabase.from('users').delete().eq('id', req.params.id);
+        await supabase.from('users').update({
+          is_deleted: true,
+          deleted_at: now,
+          deleted_by: actor
+        }).eq('id', req.params.id);
       } catch(err) {
-        console.warn("Supabase delete user sync error:", err.message);
+        console.warn("[SourceOfTruth:Supabase] Soft delete user notice:", err.message);
       }
     }
+
+    // 2. Export / Backup to Google Sheets
+    syncToGoogleSheets('Users', 'DELETE', { teacherId: userToDelete.teacherId }, 'teacherId');
+
+    // Audit Log
+    recordAuditLog({
+      action: 'USER_DELETE',
+      resource: 'users',
+      resourceId: req.params.id,
+      details: `ลบผู้ใช้งาน (Soft Delete): ${userToDelete.name} (${userToDelete.teacherId})`,
+      req
+    });
   }
-  res.json({ success: true });
+  res.json({ success: true, message: "User soft deleted successfully" });
 });
 
-// BATCH DELETE USERS ENDPOINT
-app.post('/api/users/batch-delete', async (req, res) => {
+// BATCH DELETE USERS ENDPOINT — Strictly L3 Admin (Soft Delete)
+app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async (req, res) => {
   const { ids } = req.body;
   if (!Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ error: "No user IDs provided" });
@@ -1555,21 +3742,38 @@ app.post('/api/users/batch-delete', async (req, res) => {
   const deletedUsers = users.filter(u => ids.includes(u.id));
   users = users.filter(u => !ids.includes(u.id));
   writeUsers(users);
+  usersCache = users;
 
-  // Sync to Supabase
+  const actor = req.user?.teacherId || req.user?.name || 'admin';
+  const now = new Date().toISOString();
+
+  // 1. Soft Delete in Supabase (Primary Source of Truth)
   if (supabase) {
     try {
-      await supabase.from('users').delete().in('id', ids);
+      await supabase.from('users').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).in('id', ids);
     } catch(err) {
-      console.warn("Supabase batch delete users sync error:", err.message);
+      console.warn("[SourceOfTruth:Supabase] Soft batch delete users notice:", err.message);
     }
   }
 
-  // Sync to Google Sheets
+  // 2. Export / Backup to Google Sheets
   deletedUsers.forEach(u => {
     if (u.teacherId) {
       syncToGoogleSheets('Users', 'DELETE', { teacherId: u.teacherId }, 'teacherId');
     }
+  });
+
+  // Audit Log
+  recordAuditLog({
+    action: 'USERS_BATCH_DELETE',
+    resource: 'users',
+    resourceId: 'batch',
+    details: `ลบผู้ใช้งานจำนวน ${deletedUsers.length} รายการ (Soft Delete)`,
+    req
   });
 
   res.json({ success: true, deletedCount: deletedUsers.length });
@@ -1614,11 +3818,13 @@ app.post('/api/auth/login', async (req, res) => {
       if (uName && uName === cleanUser) return true;
       if (uNameWithoutTitle && uNameWithoutTitle === cleanUser) return true;
 
-      // 2. Partial match on name (e.g. searching first name "สมชาย" in "ครูสมชาย รักการสอน")
+      // 2. Partial match on name
       if (cleanUser.length >= 3 && (uName.includes(cleanUser) || cleanUser.includes(uNameWithoutTitle))) return true;
 
-      // 3. Admin alias
-      if (cleanUser === 'admin' && (u.role === 'L3' || u.role === 'admin' || tId === 'admin')) return true;
+      // 3. Admin alias (match specific admin user account)
+      if (cleanUser === 'admin') {
+        if (tId === 'admin' || uId === 'u_admin' || uEmail.startsWith('admin@')) return true;
+      }
 
       return false;
     });
@@ -1634,19 +3840,55 @@ app.post('/api/auth/login', async (req, res) => {
 
   if (user) {
     const userPass = String(user.password || user.teacherId || user.id || '').trim();
-    const teacherIdStr = normalizeThaiDigits(String(user.teacherId || '')).trim();
     
-    // Check password match (supports custom password, teacherId, or admin master fallback)
-    const isPasswordCorrect = 
-      (cleanPass === userPass) ||
-      (teacherIdStr && cleanPass === teacherIdStr) ||
-      (cleanPass.toLowerCase() === userPass.toLowerCase()) ||
-      (cleanUser === 'admin' && cleanPass === 'Admin@Lab2805') ||
-      (cleanPass === 'Admin@Lab2805'); // admin emergency master pass
+    // Check password match securely with bcrypt (or upgrade legacy plaintext)
+    const isPasswordCorrect = verifyPassword(cleanPass, userPass);
 
     if (isPasswordCorrect) {
+      // If user had a legacy plaintext password, upgrade it to bcrypt hash now!
+      if (!userPass.startsWith('$2a$') && !userPass.startsWith('$2b$')) {
+        const hashed = bcrypt.hashSync(cleanPass, 10);
+        user.password = hashed;
+        const localAll = readUsers();
+        const lIdx = localAll.findIndex(u => u.id === user.id || u.teacherId === user.teacherId);
+        if (lIdx !== -1) {
+          localAll[lIdx].password = hashed;
+          writeUsers(localAll);
+        }
+        if (supabase) {
+          supabase.from('users').update({ password: hashed }).eq('id', user.id).then(null, () => {});
+        }
+      }
+
+      // Generate JWT Token with secure claims & expiration
+      const tokenPayload = {
+        jti: crypto.randomUUID ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2)),
+        id: user.id,
+        teacherId: user.teacherId || user.id,
+        name: user.name,
+        role: user.role || 'L1',
+        roleLevel: normalizeRole(user.role || 'L1'),
+        department: user.department || '',
+        assignedRooms: user.assignedRooms || []
+      };
+
+      const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+      // Record Audit Log for successful login
+      recordAuditLog({
+        actorId: user.teacherId || user.id,
+        actorName: user.name,
+        actorRole: user.role || 'L1',
+        action: 'USER_LOGIN',
+        resource: 'auth',
+        resourceId: user.id,
+        details: `เข้าสู่ระบบสำเร็จในฐานะ ${user.name} (${user.role || 'L1'})`,
+        req
+      });
+
       return res.json({
         success: true,
+        token,
         user: {
           id: user.id,
           teacherId: user.teacherId || user.id,
@@ -1661,30 +3903,22 @@ app.post('/api/auth/login', async (req, res) => {
         }
       });
     } else {
+      recordAuditLog({
+        actorId: user.teacherId || user.id,
+        actorName: user.name,
+        actorRole: user.role || 'L0',
+        action: 'LOGIN_FAILED',
+        resource: 'auth',
+        resourceId: user.id,
+        details: `รหัสผ่านไม่ถูกต้องสำหรับชื่อผู้ใช้ ${cleanUser}`,
+        req
+      });
+
       return res.status(401).json({ 
         success: false, 
         message: "รหัสผ่านไม่ถูกต้อง (รหัสผ่านเริ่มต้นของท่านคือ รหัสประจำตัวครู)" 
       });
     }
-  }
-
-  // Fallback for default hardcoded quick accounts
-  if (cleanUser === 'admin' && cleanPass === 'Admin@Lab2805') {
-    return res.json({
-      success: true,
-      user: {
-        id: "u_admin",
-        teacherId: "admin",
-        name: "ผู้ดูแลระบบ (Admin)",
-        email: "admin@lab.school.ac.th",
-        role: "L3",
-        roleName: "Manager / System Manager",
-        department: "งานบริหารระบบห้องปฏิบัติการ",
-        assignedRooms: [],
-        initials: "AD",
-        color: "#7c3aed"
-      }
-    });
   }
 
   return res.status(401).json({ 
@@ -1693,22 +3927,45 @@ app.post('/api/auth/login', async (req, res) => {
   });
 });
 
-// AUDIT LOGS
-app.get('/api/audit-logs', (req, res) => {
+// AUTH LOGOUT ENDPOINT (Server-side Session Revocation)
+app.post('/api/auth/logout', authenticateToken, (req, res) => {
+  if (req.token) {
+    revokedTokens.add(req.token);
+  }
+  recordAuditLog({
+    actorId: req.user.teacherId || req.user.id,
+    actorName: req.user.name,
+    actorRole: req.user.role,
+    action: 'USER_LOGOUT',
+    resource: 'auth',
+    resourceId: req.user.id,
+    details: `ออกจากระบบ (${req.user.name})`,
+    req
+  });
+  res.json({ success: true, message: 'ออกจากระบบเรียบร้อยแล้ว' });
+});
+
+// AUTH ME ENDPOINT (Verify session token and return user info)
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+  res.json({
+    success: true,
+    user: req.user
+  });
+});
+
+// AUDIT LOGS — Protected: strictly L3 Admin and L4 Executive only
+app.get('/api/audit-logs', authenticateToken, requireRole('L3', 'L4'), (req, res) => {
   res.json(readAuditLogs());
 });
 
-app.post('/api/audit-logs', (req, res) => {
-  const logs = readAuditLogs();
-  const newLog = req.body;
-  newLog.id = "log-" + Date.now();
-  newLog.timestamp = new Date().toISOString();
-  logs.unshift(newLog); // prepend to top
-  
-  // Keep only last 100 logs
-  if (logs.length > 100) logs.pop();
-  
-  writeAuditLogs(logs);
+app.post('/api/audit-logs', authenticateToken, (req, res) => {
+  const newLog = recordAuditLog({
+    action: req.body.action || 'CUSTOM_EVENT',
+    resource: req.body.resource || 'system',
+    resourceId: req.body.resourceId || '',
+    details: req.body.details || req.body.actionText || '',
+    req
+  });
   syncToGoogleSheets('Audit_Logs', 'UPSERT', newLog, 'id');
   res.json({ success: true, log: newLog });
 });
@@ -1718,10 +3975,17 @@ app.get('/api/layouts', (req, res) => {
   res.json(readLayouts());
 });
 
-// POST /api/layouts
-app.post('/api/layouts', (req, res) => {
+// POST /api/layouts — Strictly L3 Admin
+app.post('/api/layouts', authenticateToken, requireRole('L3'), (req, res) => {
   const success = writeLayouts(req.body);
   if (success) {
+    recordAuditLog({
+      action: 'LAYOUTS_UPDATE',
+      resource: 'layouts',
+      resourceId: 'all',
+      details: 'อัปเดตและบันทึกผังตู้จัดเก็บสารเคมี (Cabinet Layouts)',
+      req
+    });
     res.json({ success: true });
   } else {
     res.status(500).json({ error: "Failed to save layouts" });
@@ -1733,7 +3997,7 @@ app.get('/api/feedbacks', (req, res) => {
   res.json(readFeedbacks());
 });
 
-app.post('/api/feedbacks', (req, res) => {
+app.post('/api/feedbacks', optionalAuth, (req, res) => {
   const feedbacks = readFeedbacks();
   const newFeedback = req.body;
   newFeedback.id = newFeedback.id || "fb-" + Date.now();
@@ -1746,7 +4010,7 @@ app.post('/api/feedbacks', (req, res) => {
   res.json({ success: true, feedback: newFeedback });
 });
 
-app.put('/api/feedbacks/:id', (req, res) => {
+app.put('/api/feedbacks/:id', authenticateToken, requireRole('L2', 'L3'), (req, res) => {
   const feedbacks = readFeedbacks();
   const index = feedbacks.findIndex(f => f.id === req.params.id);
   if (index !== -1) {
@@ -1763,9 +4027,17 @@ app.get('/api/announcements', (req, res) => {
   res.json(readAnnouncements());
 });
 
-app.post('/api/announcements', (req, res) => {
+// POST /api/announcements — Strictly L3 Admin
+app.post('/api/announcements', authenticateToken, requireRole('L3'), (req, res) => {
   const success = writeAnnouncements(req.body);
   if (success) {
+    recordAuditLog({
+      action: 'ANNOUNCEMENT_UPDATE',
+      resource: 'announcements',
+      resourceId: 'ticker',
+      details: `อัปเดตข้อความประกาศ: ${req.body.text || ''}`,
+      req
+    });
     res.json({ success: true, settings: req.body });
   } else {
     res.status(500).json({ error: "Failed to save announcements" });
@@ -1777,10 +4049,18 @@ app.get('/api/emergency-contacts', (req, res) => {
   res.json(readEmergencyContacts());
 });
 
-app.post('/api/emergency-contacts', (req, res) => {
+// POST /api/emergency-contacts — Strictly L3 Admin
+app.post('/api/emergency-contacts', authenticateToken, requireRole('L3'), (req, res) => {
   const success = writeEmergencyContacts(req.body);
   if (success) {
     syncToGoogleSheets('Announcements', 'UPSERT', { ...readAnnouncements(), emergencyContacts: req.body }, 'badgeText');
+    recordAuditLog({
+      action: 'EMERGENCY_CONTACTS_UPDATE',
+      resource: 'emergency_contacts',
+      resourceId: 'contacts',
+      details: 'อัปเดตข้อมูลผู้ติดต่อกรณีฉุกเฉินประจำห้องแล็บ',
+      req
+    });
     res.json({ success: true, contacts: req.body });
   } else {
     res.status(500).json({ error: "Failed to save emergency contacts" });
@@ -1949,8 +4229,8 @@ app.post('/api/notify-admins', async (req, res) => {
   res.json({ success: true });
 });
 
-// POST Quick-Approve directly from Push Notification action button
-app.post('/api/quick-approve', (req, res) => {
+// POST Quick-Approve directly from Push Notification action button (L2 Staff or L3 Admin)
+app.post('/api/quick-approve', authenticateToken, requireRole('L2', 'L3'), (req, res) => {
   const { id, type } = req.body;
   if (!id) {
     return res.status(400).json({ error: "Missing request ID" });
@@ -1966,20 +4246,23 @@ app.post('/api/quick-approve', (req, res) => {
       return res.json({ success: true, message: "คำขอนี้ได้รับการอนุมัติไปแล้ว" });
     }
 
+    // Verify room access for L2 staff
+    if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, bookings[bkIndex].room)) {
+      return res.status(403).json({ error: `เจ้าหน้าที่ไม่มีสิทธิ์อนุมัติการจองห้อง ${bookings[bkIndex].room}` });
+    }
+
     bookings[bkIndex].status = "approved";
     bookings[bkIndex].approvedAt = new Date().toISOString();
     writeBookings(bookings);
 
-    // Add Audit log
-    const logs = readAuditLogs();
-    logs.unshift({
-      id: "log-" + Date.now(),
+    // Central Audit Log
+    recordAuditLog({
       action: "QUICK_APPROVE_BOOKING",
-      details: `อนุมัติการจองห้อง ${bookings[bkIndex].room} ของ ${bookings[bkIndex].bookerName} ผ่าน Push Notification`,
-      timestamp: new Date().toISOString(),
-      user: "Admin (Push Action)"
+      resource: "bookings",
+      resourceId: id,
+      details: `อนุมัติการจองห้อง ${bookings[bkIndex].room} ของ ${bookings[bkIndex].bookerName}`,
+      req
     });
-    writeAuditLogs(logs);
 
     return res.json({ 
       success: true, 
@@ -2002,6 +4285,11 @@ app.post('/api/quick-approve', (req, res) => {
 
     if (itemIndex !== -1) {
       const item = items[itemIndex];
+      // Verify room access for L2 staff
+      if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, item.room)) {
+        return res.status(403).json({ error: `เจ้าหน้าที่ไม่มีสิทธิ์อนุมัติรายการในห้อง ${item.room}` });
+      }
+
       if (item.qty < (tx.qty || 1)) {
         return res.status(400).json({ error: `สต็อกคงเหลือไม่พอ (${item.qty} ${item.unit || ''})` });
       }
@@ -2013,16 +4301,14 @@ app.post('/api/quick-approve', (req, res) => {
     transactions[txIndex].approvedAt = new Date().toISOString();
     writeTransactions(transactions);
 
-    // Add Audit log
-    const logs = readAuditLogs();
-    logs.unshift({
-      id: "log-" + Date.now(),
+    // Central Audit Log
+    recordAuditLog({
       action: "QUICK_APPROVE_BORROW",
-      details: `อนุมัติคำขอยืม ${tx.itemName} จำนวน ${tx.qty} โดย ${tx.borrower} ผ่าน Push Notification`,
-      timestamp: new Date().toISOString(),
-      user: "Admin (Push Action)"
+      resource: "transactions",
+      resourceId: id,
+      details: `อนุมัติคำขอยืม ${tx.itemName} จำนวน ${tx.qty} โดย ${tx.borrower}`,
+      req
     });
-    writeAuditLogs(logs);
 
     return res.json({ 
       success: true, 
@@ -2033,8 +4319,8 @@ app.post('/api/quick-approve', (req, res) => {
   res.status(400).json({ error: "Unknown request type" });
 });
 
-// DANGER ZONE (Clear Workspace)
-app.delete('/api/workspace', (req, res) => {
+// DANGER ZONE (Clear Workspace) — Strictly L3 Admin
+app.delete('/api/workspace', authenticateToken, requireRole('L3'), (req, res) => {
   try {
     // Clear the core arrays but keep the files
     fs.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf-8');
@@ -2042,12 +4328,15 @@ app.delete('/api/workspace', (req, res) => {
     fs.writeFileSync(TRANSACTIONS_FILE, JSON.stringify([], null, 2), 'utf-8');
     fs.writeFileSync(PURCHASE_ORDERS_FILE, JSON.stringify([], null, 2), 'utf-8');
     fs.writeFileSync(FEEDBACKS_FILE, JSON.stringify([], null, 2), 'utf-8');
-    // Audit logs remain for compliance, or clear them too depending on requirement. Let's clear them too for this demo.
-    fs.writeFileSync(AUDIT_LOGS_FILE, JSON.stringify([], null, 2), 'utf-8');
     
-    // Add a final audit log for the reset action itself
-    const finalLog = [{ id: "log-reset", action: "RESET_WORKSPACE", details: "Workspace was completely reset.", timestamp: new Date().toISOString(), user: "Admin" }];
-    fs.writeFileSync(AUDIT_LOGS_FILE, JSON.stringify(finalLog, null, 2), 'utf-8');
+    // Record reset action in audit logs
+    recordAuditLog({
+      action: "RESET_WORKSPACE",
+      resource: "workspace",
+      resourceId: "all",
+      details: "รีเซ็ตและล้างข้อมูล Workspace ทั้งหมด",
+      req
+    });
     
     res.json({ success: true, message: "Workspace has been completely cleared." });
   } catch (err) {

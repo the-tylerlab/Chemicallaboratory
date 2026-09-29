@@ -93,10 +93,7 @@
   <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- Google Fonts Preconnect & Performance Optimization -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Fonts are self-hosted in /fonts/ directory — no external request needed -->
 
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="style.css?v=20260924_0012">
@@ -217,13 +214,13 @@
             </a>
           </li>
 
-          <li id="menuItemAddItem">
+          <li id="menuItemAddItem" style="display: none;">
             <a href="#" class="menu-item-link" data-target="add-item">
               <i data-lucide="plus-circle"></i>
               <span>เพิ่มรายการ</span>
             </a>
           </li>
-          <li id="menuItemImport">
+          <li id="menuItemImport" style="display: none;">
             <a href="#" class="menu-item-link" id="btnSidebarImport">
               <i data-lucide="file-up"></i>
               <span>นำเข้าข้อมูล</span>
@@ -291,7 +288,7 @@
       <!-- Sidebar Footer (User Profile, Role Status & Login/Logout) -->
       <div class="sidebar-footer" id="sidebarUserProfileArea">
         <!-- Logged In User Card -->
-        <div class="user-session-card" id="userSessionCard" style="display: none;">
+        <div class="user-session-card" id="userSessionCard" style="display: none;" title="คลิกเพื่อดูโปรไฟล์ของคุณ">
           <div class="user-session-profile">
             <div id="sidebarUserAvatar" class="sidebar-user-avatar">AD</div>
             <div class="user-session-info">
@@ -301,7 +298,7 @@
               </div>
             </div>
           </div>
-          <button type="button" class="btn-sidebar-logout-icon" id="btnSidebarLogoutQuick" title="ออกจากระบบ" aria-label="ออกจากระบบ">
+          <button type="button" class="btn-sidebar-logout-icon" id="btnSidebarLogoutQuick" title="ออกจากระบบ" aria-label="ออกจากระบบ" onclick="event.stopPropagation();">
             <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
           </button>
         </div>
@@ -670,7 +667,7 @@
         </div>
 
         <!-- Today's Lab Status Widget (Full Width 4-Column Grid, Public Only) -->
-        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 20px; width: 100%; box-sizing: border-box; display: none;">
+        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 20px; width: 100%; box-sizing: border-box;">
           <div class="card-header" style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px;">
             <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 0; white-space: nowrap;">
               <i data-lucide="door-open" style="color: var(--primary-color); width: 16px; height: 16px;"></i>
@@ -4294,20 +4291,101 @@
   </div>
 
   <!-- ==========================================
+       MODAL: USER PROFILE & PERMISSIONS (CLEAN & FRIENDLY UX)
+       ========================================== -->
+  <div class="modal-overlay" id="userProfileModal" style="display: none; align-items: center; justify-content: center; z-index: 10000; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(6px);">
+    <div class="modal-content" style="max-width: 600px; width: 94%; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(226, 232, 240, 0.85); overflow: hidden; background: #ffffff; padding: 0; position: relative;">
+      
+      <!-- Top Decorative Banner -->
+      <div style="height: 64px; background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%); position: relative;">
+        <!-- Close Button (X) -->
+        <button type="button" class="modal-close-btn" id="userProfileModalClose" aria-label="Close" onclick="if(window.closeUserProfileModal){window.closeUserProfileModal();}" title="ปิดหน้าต่าง" style="position: absolute; top: 14px; right: 14px; background: #ffffff; border: 1px solid #cbd5e1; color: #475569; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1); z-index: 2;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- User Profile Header Card (Avatar + Info) -->
+      <div style="padding: 0 24px; margin-top: -32px; display: flex; align-items: flex-end; gap: 14px; position: relative;">
+        <div id="modalProfileAvatar" style="width: 60px; height: 60px; border-radius: 50%; background: #7c3aed; color: #ffffff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); border: 3.5px solid #ffffff; flex-shrink: 0;">
+          วด
+        </div>
+        <div style="flex: 1; min-width: 0; padding-bottom: 2px;">
+          <h3 id="modalProfileName" style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ม.วงศกร ด้วงเกลี้ยง
+          </h3>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap;">
+            <span id="modalProfileRoleBadge" class="badge-role badge-role-l3" style="background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 12px;">L3 ผู้ดูแลระบบ</span>
+            <span id="modalProfileDept" style="font-size: 11.5px; color: #64748b; font-weight: 500;">กลุ่มสาระการเรียนรู้วิทยาศาสตร์</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Body: Information Grid & Role Permissions -->
+      <div class="modal-body" style="padding: 18px 26px 26px 26px; max-height: 65vh; overflow-y: auto;">
+        <!-- Account Details Box -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 13px 15px; margin-bottom: 16px;">
+          <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 9px; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="user-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+            <span>ข้อมูลบัญชีผู้ใช้งาน</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; font-size: 12.5px;">
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">รหัสผู้ใช้</span>
+              <span id="modalProfileId" style="font-weight: 600; color: #1e293b;">-</span>
+            </div>
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">อีเมลติดต่อ</span>
+              <span id="modalProfileEmail" style="font-weight: 600; color: #1e293b; word-break: break-all;">-</span>
+            </div>
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">ห้องปฏิบัติการที่รับผิดชอบ</span>
+              <span id="modalProfileRooms" style="font-weight: 600; color: #1e293b;">ทุกห้องปฏิบัติการ</span>
+            </div>
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">สถานะการใช้งาน</span>
+              <span id="modalProfileStatus" style="font-weight: 600; color: #059669; display: inline-flex; align-items: center; gap: 5px;">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                เข้าสู่ระบบอยู่ (Active)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role Permissions & Privileges -->
+        <div>
+          <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 9px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <span>สิทธิ์การใช้งานที่ได้รับ</span>
+            </div>
+            <span style="font-size: 10.5px; color: #64748b; font-weight: 500;">ตามระดับสิทธิ์</span>
+          </div>
+          <div id="modalProfilePermissionsList" style="display: flex; flex-direction: column; gap: 5px;">
+            <!-- Generated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
        MODAL: DETAIL VIEW DIALOG
        ========================================== -->
   <div class="modal-overlay" id="detailModal">
-    <div class="modal-content" style="max-width: 520px;">
+    <div class="modal-content" style="max-width: 660px; width: 94vw;">
       <div class="modal-header">
         <h2 class="modal-title" id="detailModalTitle" style="display: flex; align-items: center; gap: 8px;">
           <!-- Icon & Title dynamically added -->
-        </h3>
+        </h2>
         <button class="modal-close-btn" id="detailModalClose">&times;</button>
       </div>
-      <div class="modal-body" id="detailModalBody" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; font-size: 14px;">
+      <div class="modal-body" id="detailModalBody" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; font-size: 14px; max-height: calc(85vh - 130px); overflow-y: auto;">
         <!-- Content dynamically added -->
       </div>
-      <div class="modal-footer" id="detailModalFooter" style="padding: 16px 24px; display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--border-color);">
+      <div class="modal-footer" id="detailModalFooter" style="padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--border-color); background: #f8fafc;">
         <!-- Buttons dynamically added -->
       </div>
     </div>
