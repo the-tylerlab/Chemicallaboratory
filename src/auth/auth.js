@@ -37,7 +37,7 @@ export async function login(username, password) {
   const data = await res.json();
   if (res.ok && data.success && data.user && data.token) {
     setAuthToken(data.token);
-    setCurrentUser(data.user);
+    setCurrentUser(data.user, data.token);
     if (typeof window.updateLoginUI === 'function') {
       window.updateLoginUI();
     }
@@ -62,8 +62,14 @@ export async function logout(notify = true) {
   setAuthToken(null);
   setCurrentUser(null);
 
-  // Clear sensitive local storage
-  localStorage.removeItem("lab_saved_credentials");
+  // Clear sensitive local storage and purge legacy auth keys
+  if (typeof localStorage !== "undefined") {
+    localStorage.removeItem("lab_saved_credentials");
+    localStorage.removeItem("currentUser");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("isAdminLoggedIn");
+    localStorage.removeItem("userRoleLevel");
+  }
 
   if (notify && typeof window.showToast === 'function') {
     window.showToast("ออกจากระบบเรียบร้อยแล้ว", "info");
@@ -94,7 +100,7 @@ export async function verifySession() {
     if (res.ok) {
       const data = await res.json();
       if (data && data.success && data.user) {
-        setCurrentUser(data.user);
+        setCurrentUser(data.user, token);
         if (typeof window.updateLoginUI === 'function') {
           window.updateLoginUI();
         }

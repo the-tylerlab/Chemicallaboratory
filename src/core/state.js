@@ -54,21 +54,16 @@ export const state = {
   sidebarOpen: false
 };
 
-// Initialize session state from localStorage
-try {
-  const savedUser = localStorage.getItem("currentUser");
-  if (savedUser) {
-    state.currentUser = JSON.parse(savedUser);
-    state.userRole = state.currentUser.role || 'L1';
-    state.isAdminLoggedIn = (state.userRole === 'L3' || state.userRole === 'admin');
-  } else {
-    state.userRole = localStorage.getItem("userRole") || 'L0';
-    state.isAdminLoggedIn = (state.userRole === 'L3' || state.userRole === 'admin');
-  }
-} catch (e) {
-  state.currentUser = null;
-  state.userRole = 'L0';
-  state.isAdminLoggedIn = false;
+// SECURITY POLICY:
+// LocalStorage is strictly for UI preferences and sanitized offline caches.
+// NEVER persist passwords, password hashes, admin credentials, authorization decisions,
+// or permanent privileged roles in LocalStorage. Actual user permissions MUST originate from the server.
+if (typeof localStorage !== "undefined") {
+  localStorage.removeItem("currentUser");
+  localStorage.removeItem("userRole");
+  localStorage.removeItem("isAdminLoggedIn");
+  localStorage.removeItem("userRoleLevel");
+  localStorage.removeItem("lab_saved_credentials");
 }
 
 // Global subscribers for reactive state changes
@@ -85,23 +80,31 @@ export function notifyStateChange(property, value) {
   });
 }
 
-// State mutators
-export function setCurrentUser(user) {
-  state.currentUser = user;
-  if (user) {
-    state.userRole = user.role || 'L1';
-    state.isAdminLoggedIn = (state.userRole === 'L3' || state.userRole === 'admin');
-    localStorage.setItem("currentUser", JSON.stringify(user));
-    localStorage.setItem("userRole", state.userRole);
-    localStorage.setItem("isAdminLoggedIn", state.isAdminLoggedIn ? "true" : "false");
+// State mutators (Pure in-memory session management)
+export function setCurrentUser(user, token) {
+  state.currentUser = user || null;
+  if (user && user.role) {
+    state.userRole = user.role;
+    state.isAdminLoggedIn = (user.role === 'L3' || user.role === 'admin');
+    if (token) {
+      localStorage.setItem("lab_auth_token", token);
+    }
   } else {
     state.userRole = 'L0';
     state.isAdminLoggedIn = false;
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("isAdminLoggedIn");
+    state.currentUser = null;
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("lab_auth_token");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("isAdminLoggedIn");
+      localStorage.removeItem("userRoleLevel");
+      localStorage.removeItem("lab_saved_credentials");
+    }
   }
-  notifyStateChange('currentUser', user);
+  notifyStateChange('currentUser', state.currentUser);
+  notifyStateChange('userRole', state.userRole);
+  notifyStateChange('isAdminLoggedIn', state.isAdminLoggedIn);
 }
 
 export function setItems(newItems) {

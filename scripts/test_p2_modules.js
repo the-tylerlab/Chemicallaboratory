@@ -244,6 +244,12 @@ async function run() {
     assert.strictEqual(checkRes.status, 200);
     pass("Lab preparation checklist progress saved");
 
+    // Clean up test booking to maintain test idempotency
+    await fetch(`${BASE_URL}/api/bookings/${bookingId}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` }
+    });
+
     // --- 3. Borrow / Return Workflow ---
     console.log("\n--- 3. Borrow / Return Workflow ---");
     const borrowReqRes = await fetch(`${BASE_URL}/api/borrow/request`, {
