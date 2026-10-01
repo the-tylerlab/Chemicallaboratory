@@ -12,7 +12,7 @@ const { createClient } = require('@supabase/supabase-js');
 const MIGRATIONS_DIR = path.join(__dirname, '..', 'migrations');
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://avzneyaalenbyawfvykp.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {

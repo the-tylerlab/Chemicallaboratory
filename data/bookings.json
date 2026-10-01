@@ -1,22 +1,44 @@
 [
   {
-    "id": "BK_LIVE_1790698747888",
-    "room": "Lab 1",
-    "date": "2026-09-30",
-    "timeSlot": "09:20 - 10:10",
-    "slot": "09:20 - 10:10",
-    "purpose": "ทดสอบระบบการจองแล็บ Realtime Sync",
-    "teacherId": "10824",
-    "teacherName": "ม.พชร รัชประภาพงษ์",
+    "id": "BK-1790836872285",
+    "room": "Lab 2",
+    "date": "2026-10-15",
+    "timeSlot": "10:30 - 12:20",
+    "slot": "10:30 - 12:20",
+    "purpose": "การทดลองไทเทรตกรด-เบส",
+    "teacherId": "10746",
+    "teacherName": "ม.สุวรรณ ชิดประสงค์",
     "className": "ม.5/2",
-    "studentCount": 32,
-    "experimentName": "การทดสอบปฏิกิริยากรด-เบส",
-    "requiredEquipment": [],
-    "requiredChemicals": [],
+    "studentCount": 42,
+    "experimentName": "Acid-Base Titration",
+    "requiredEquipment": [
+      {
+        "name": "Burette 50mL",
+        "qty": 10
+      },
+      {
+        "name": "Erlenmeyer Flask",
+        "qty": 42
+      }
+    ],
+    "requiredChemicals": [
+      {
+        "name": "HCl 0.1M",
+        "qty": 500,
+        "unit": "mL"
+      },
+      {
+        "name": "NaOH 0.1M",
+        "qty": 500,
+        "unit": "mL"
+      }
+    ],
     "preparationChecklist": [
       {
         "task": "จัดเตรียมสารเคมีตามสูตร",
-        "done": false
+        "done": true,
+        "updatedAt": "2026-10-01T06:41:12.300Z",
+        "updatedBy": "อาจารย์ผู้ดูแลระบบ (Admin)"
       },
       {
         "task": "ตรวจสอบเครื่องแก้วและอุปกรณ์",
@@ -41,9 +63,15 @@
         "done": false
       }
     ],
-    "status": "pending",
-    "createdAt": "2026-09-29T16:19:08.634Z",
-    "updatedAt": "2026-09-29T16:19:08.634Z"
+    "status": "cancelled",
+    "createdAt": "2026-10-01T06:41:12.285Z",
+    "updatedAt": "2026-10-01T06:41:12.285Z",
+    "reviewed_by": "อาจารย์ผู้ดูแลระบบ (Admin)",
+    "reviewedBy": "อาจารย์ผู้ดูแลระบบ (Admin)",
+    "reviewed_at": "2026-10-01T06:41:12.295Z",
+    "reviewedAt": "2026-10-01T06:41:12.295Z",
+    "cancelled_at": "2026-10-01T06:41:12.302Z",
+    "cancelled_by": "อาจารย์ผู้ดูแลระบบ (Admin)"
   },
   {
     "id": "book_mock_today_01",
@@ -56,7 +84,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -70,7 +98,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -84,7 +112,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -98,7 +126,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -112,7 +140,7 @@
     "status": "pending",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -126,7 +154,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -140,7 +168,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -154,7 +182,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -168,7 +196,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -182,7 +210,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -196,7 +224,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -210,7 +238,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -224,7 +252,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -238,7 +266,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -252,7 +280,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -266,7 +294,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -280,7 +308,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -294,7 +322,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -308,7 +336,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -322,7 +350,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -336,7 +364,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -350,7 +378,7 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   },
   {
@@ -364,7 +392,32 @@
     "status": "approved",
     "createdAt": "2026-09-23T10:34:44.536Z",
     "teacherId": "",
-    "updatedAt": "2026-09-29T16:19:08.634Z",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
+    "is_deleted": false
+  },
+  {
+    "id": "BK-1790836848908",
+    "room": "Lab 2",
+    "date": "2026-10-15",
+    "slot": "10:30 - 12:20",
+    "bookerName": "ม.สุวรรณ ชิดประสงค์",
+    "purpose": "การทดลองไทเทรตกรด-เบส",
+    "prepItems": [
+      {
+        "qty": 500,
+        "name": "HCl 0.1M",
+        "unit": "mL"
+      },
+      {
+        "qty": 500,
+        "name": "NaOH 0.1M",
+        "unit": "mL"
+      }
+    ],
+    "status": "cancelled",
+    "createdAt": "2026-10-01T06:40:48.908Z",
+    "teacherId": "",
+    "updatedAt": "2026-10-01T06:41:12.283Z",
     "is_deleted": false
   }
 ]

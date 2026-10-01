@@ -44,11 +44,14 @@ export function canUserAccessRoom(user, room) {
   // L3 Admin and L4 Executive have unrestricted access to all rooms
   if (role === 'L3' || role === 'L4') return true;
 
-  // L2 Staff can access their assigned rooms
+  // L2 Staff can access ONLY explicitly assigned rooms. Empty or missing assignedRooms = NO PERMISSION.
   if (role === 'L2') {
-    const assigned = user.assignedRooms || [];
-    if (!room) return true; // General item without specific room
-    if (assigned.length === 0) return true; // If none assigned, default to all
+    if (!room || String(room).trim() === '') return false;
+    let assigned = user.assignedRooms;
+    if (typeof assigned === 'string' && assigned.trim()) {
+      assigned = assigned.split(/[,;\n]/).map(s => s.trim()).filter(Boolean);
+    }
+    if (!Array.isArray(assigned) || assigned.length === 0) return false;
     return assigned.some(r => isRoomMatching(r, room));
   }
 

@@ -10,22 +10,31 @@ const bcrypt = require('bcryptjs');
 const { createClient } = require('@supabase/supabase-js');
 
 const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://avzneyaalenbyawfvykp.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_iqpHDJXb983_PwFSoSDV9w_kd2pvKoj';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('❌ SUPABASE_URL and SUPABASE_KEY must be set in .env or environment.');
+  process.exit(1);
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 async function migrate() {
   console.log('🔄 Starting user password hashing & Supabase synchronization...');
   
-  if (!fs.existsSync(USERS_FILE)) {
-    console.error('❌ users.json not found at', USERS_FILE);
+  const targetFile = fs.existsSync(USERS_FILE)
+    ? USERS_FILE
+    : path.join(__dirname, '..', 'data', 'users.example.json');
+
+  if (!fs.existsSync(targetFile)) {
+    console.error('❌ User source file not found at', targetFile);
     process.exit(1);
   }
 
-  const raw = fs.readFileSync(USERS_FILE, 'utf8');
+  const raw = fs.readFileSync(targetFile, 'utf8');
   let users = JSON.parse(raw);
-  console.log(`📋 Found ${users.length} users in local file.`);
+  console.log(`📋 Found ${users.length} users in ${path.basename(targetFile)}.`);
 
   // 1. Fetch any users already in Supabase to merge
   try {

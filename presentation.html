@@ -997,17 +997,30 @@
   <script>
     lucide.createIcons();
 
-    // Check Admin Session Guard
-    function checkAdminAccess() {
-      const isAdminLoggedIn = localStorage.getItem("isAdminLoggedIn") === "true";
-      const userRole = localStorage.getItem("userRole") || "";
-      const isL3 = (userRole === "admin" || userRole === "L3");
-
-      if (!isAdminLoggedIn && !isL3) {
+    // Check Admin Session Guard — Strictly verified against server API
+    async function checkAdminAccess() {
+      const token = localStorage.getItem("lab_auth_token") || "";
+      if (!token) {
         document.getElementById("adminGuardOverlay").style.display = "flex";
-      } else {
-        document.getElementById("adminGuardOverlay").style.display = "none";
+        return;
       }
+
+      try {
+        const res = await fetch('/api/auth/me', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.success && data.user && (data.user.role === 'L3' || data.user.role === 'admin')) {
+            document.getElementById("adminGuardOverlay").style.display = "none";
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn("Session verification error:", e);
+      }
+
+      document.getElementById("adminGuardOverlay").style.display = "flex";
     }
 
     async function handleGuardSubmit(e) {
@@ -1027,9 +1040,9 @@
         const data = await res.json();
         if (res.ok && data.success && data.token && (data.user.role === 'L3' || data.user.role === 'admin')) {
           localStorage.setItem("lab_auth_token", data.token);
-          localStorage.setItem("isAdminLoggedIn", "true");
-          localStorage.setItem("userRole", "admin");
-          localStorage.setItem("currentUser", JSON.stringify(data.user));
+          localStorage.removeItem("isAdminLoggedIn");
+          localStorage.removeItem("userRole");
+          localStorage.removeItem("currentUser");
           document.getElementById("adminGuardOverlay").style.display = "none";
         } else {
           alert("รหัสผ่านไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าถึง (เฉพาะผู้ดูแลระบบ Admin เท่านั้น)");

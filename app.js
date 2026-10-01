@@ -11,42 +11,112 @@ const itemsPerPage = 10;
 let fileToImport = null;
 
 // RBAC State Management (L0 - L4)
-const initUrlParams = typeof window !== "undefined" && window.location ? new URLSearchParams(window.location.search) : null;
-if (initUrlParams && initUrlParams.get("admin") === "true") {
-  localStorage.setItem("userRole", "admin");
-  localStorage.setItem("isAdminLoggedIn", "true");
-  localStorage.setItem("userRoleLevel", "L3");
-  localStorage.setItem("currentUser", JSON.stringify({ id: "admin", name: "ผู้ดูแลระบบ", role: "admin", roleLevel: "L3" }));
+// URL parameters must NEVER escalate privileges. Admin status strictly requires an authenticated server session/JWT token.
+// SECURITY POLICY:
+// LocalStorage is strictly for UI preferences and sanitized offline caches.
+// NEVER persist passwords, password hashes, admin credentials, authorization decisions,
+// or permanent privileged roles in LocalStorage. Actual user permissions MUST originate from the server.
+if (typeof localStorage !== "undefined") {
+  localStorage.removeItem("userRoleLevel");
+  localStorage.removeItem("userRole");
+  localStorage.removeItem("isAdminLoggedIn");
+  localStorage.removeItem("currentUser");
+  localStorage.removeItem("lab_saved_credentials");
 }
 
 let currentUser = null;
-try {
-  const savedUser = localStorage.getItem("currentUser");
-  if (savedUser) {
-    currentUser = JSON.parse(savedUser);
+let userRole = "L0";
+let isAdminLoggedIn = false;
+const authToken = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
+
+// Helper: Restore and verify active session strictly from server
+async function restoreAndVerifySession() {
+  const token = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
+  if (!token) {
+    currentUser = null;
+    userRole = "L0";
+    isAdminLoggedIn = false;
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("isAdminLoggedIn");
+      localStorage.removeItem("userRoleLevel");
+    }
+    if (typeof updateLoginUI === "function") updateLoginUI();
+    return null;
   }
-} catch (e) {
-  currentUser = null;
+
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && data.user) {
+        currentUser = data.user;
+        userRole = (data.user.role || 'L1');
+        isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+        if (typeof window.setCurrentUser === "function") {
+          window.setCurrentUser(data.user, token);
+        }
+        if (typeof updateLoginUI === "function") updateLoginUI();
+        return currentUser;
+      }
+    }
+    // Token is invalid, expired, revoked, or server rejected authentication -> Logout immediately
+    console.warn("[Auth] Token invalid or expired (status: " + res.status + "), logging out");
+    currentUser = null;
+    userRole = "L0";
+    isAdminLoggedIn = false;
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("lab_auth_token");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("isAdminLoggedIn");
+      localStorage.removeItem("userRoleLevel");
+      localStorage.removeItem("lab_saved_credentials");
+    }
+    if (typeof window.setCurrentUser === "function") {
+      window.setCurrentUser(null);
+    }
+    if (typeof updateLoginUI === "function") updateLoginUI();
+    return null;
+  } catch (err) {
+    console.warn("[Auth] Server session verification failed (offline or network error):", err.message);
+    // STRICT SECURITY: Do NOT restore privileged user from localStorage without server verification
+    currentUser = null;
+    userRole = "L0";
+    isAdminLoggedIn = false;
+    if (typeof window.setCurrentUser === "function") {
+      window.setCurrentUser(null);
+    }
+    if (typeof updateLoginUI === "function") updateLoginUI();
+    return null;
+  }
 }
 
-// User role initialization
-let userRole = currentUser ? currentUser.role : (localStorage.getItem("userRole") || "L0");
-let isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+// Immediate asynchronous session verification trigger on app bootstrap
+if (typeof window !== "undefined") {
+  window.restoreAndVerifySession = restoreAndVerifySession;
+  window.__sessionVerificationPromise = restoreAndVerifySession();
+}
 
 // Helper: Normalize and get current user role level (L0, L1, L2, L3, L4)
 function getCurrentRoleLevel() {
-  if (currentUser && currentUser.role) {
-    if (currentUser.role.startsWith("L")) return currentUser.role;
-    if (currentUser.role === "admin") return "L3";
-    if (currentUser.role === "staff") return "L2";
-    if (currentUser.role === "teacher") return "L1";
-    if (currentUser.role === "executive") return "L4";
+  const token = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
+  // Strict rule: Any role above L0 strictly requires BOTH an active JWT token and verified currentUser
+  if (!token || !currentUser) {
+    return "L0";
   }
-  if (userRole === "admin" || userRole === "L3") return "L3";
-  if (userRole === "staff" || userRole === "L2") return "L2";
-  if (userRole === "teacher" || userRole === "L1") return "L1";
-  if (userRole === "executive" || userRole === "L4") return "L4";
-  return "L0"; // Guest
+  let role = "L0";
+  if (currentUser.role) {
+    if (currentUser.role.startsWith("L")) role = currentUser.role;
+    else if (currentUser.role === "admin") role = "L3";
+    else if (currentUser.role === "staff") role = "L2";
+    else if (currentUser.role === "teacher") role = "L1";
+    else if (currentUser.role === "executive") role = "L4";
+  }
+  return role;
 }
 
 // Role Badge & Label Helper
@@ -103,8 +173,9 @@ function isExecutiveMode() {
 }
 
 function canAccessAdminSection() {
+  const token = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
   const r = getCurrentRoleLevel();
-  return r === "L3" || r === "admin";
+  return (r === "L3" || r === "admin") && !!token;
 }
 
 function canManageItemInRoom(itemRoom) {
@@ -112,7 +183,7 @@ function canManageItemInRoom(itemRoom) {
   if (r === "L3" || r === "L4" || r === "admin" || r === "executive") return true;
   if (r === "L2" || (typeof userRole !== "undefined" && userRole === "staff")) {
     const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
-    if (assigned.length === 0) return true; // If no restriction specified, allow
+    if (assigned.length === 0) return false; // Strict: No assigned rooms = ZERO permission
     if (!itemRoom) return false;
     return assigned.some(ar => isRoomMatch(itemRoom, ar));
   }
@@ -128,7 +199,7 @@ function canApproveBookingForRoom(room) {
   if (r === "L3" || r === "L4" || r === "admin" || r === "executive") return true;
   if (r === "L2" || (typeof userRole !== "undefined" && userRole === "staff")) {
     const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
-    if (assigned.length === 0) return true;
+    if (assigned.length === 0) return false; // Strict: No assigned rooms = ZERO permission
     if (!room) return false;
     return assigned.some(ar => isRoomMatch(room, ar));
   }
@@ -181,26 +252,32 @@ window.feedbacksData = [
   }
 ]; // Store user feedbacks
 
-// TEMPORARY: Force restore mock data on next reload for user testing
-if (localStorage.getItem("force_restore_mock") !== "done_v1") {
-  localStorage.removeItem("lab_items");
+// PRODUCTION SAFETY: Never wipe or reset user LocalStorage on runtime load.
+// Demo/mock data is isolated to seed scripts (npm run seed:demo).
+try {
+  localStorage.removeItem("force_restore_mock");
   localStorage.removeItem("has_seeded_items");
-  localStorage.removeItem("lab_transactions");
-  localStorage.removeItem("lab_purchase_orders");
-  localStorage.setItem("force_restore_mock", "done_v1");
-}
+  localStorage.removeItem("has_seeded_po");
+  localStorage.removeItem("full_mock_v1");
+} catch (e) {}
 
-// Configuration for login credentials (edit here to change username and password)
-const USER_CREDENTIALS = {
-  admin: {
-    username: "admin",
-    password: "Admin@Lab2805" // รหัสผ่านของเจ้าหน้าที่แล็บ (Admin)
-  },
-  teacher: {
-    username: "teacher",
-    password: "teacher1234" // รหัสผ่านของครูผู้สอน (Teacher)
+// Purge any legacy cached passwords or credentials from frontend localStorage
+try {
+  localStorage.removeItem("lab_saved_credentials");
+  const cachedUsers = JSON.parse(localStorage.getItem("lab_admin_users") || "null");
+  if (Array.isArray(cachedUsers)) {
+    let touched = false;
+    cachedUsers.forEach(u => {
+      if (u) {
+        if ('password' in u) { delete u.password; touched = true; }
+        if ('password_hash' in u) { delete u.password_hash; touched = true; }
+        if ('passwordHash' in u) { delete u.passwordHash; touched = true; }
+        if ('hash' in u) { delete u.hash; touched = true; }
+      }
+    });
+    if (touched) localStorage.setItem("lab_admin_users", JSON.stringify(cachedUsers));
   }
-};
+} catch (e) {}
 
 // Constant Categories and Units
 const CATEGORIES = ["สารเคมี", "อุปกรณ์วิทยาศาสตร์", "เครื่องแก้ว", "วัสดุสิ้นเปลือง"];
@@ -217,175 +294,63 @@ function formatCurrency(val) {
   return num.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// Default Demo Data to populate LocalStorage if empty
-const DEMO_DATA = [
-  {
-    code: "CHEM-001",
-    name: "กรดไฮโดรคลอริก 37% (Hydrochloric Acid)",
-    category: "สารเคมี",
-    qty: 3, // Somchai borrowed 2, remaining 3
-    unit: "ขวด",
-    minAlert: 2,
-    expiry: "2027-12-31",
-    room: "Lab 1",
-    cabinet: "ตู้ A",
-    shelf: "ชั้น 2",
-    createdAt: "2026-05-01T10:00:00.000Z"
-  },
-  {
-    code: "CHEM-002",
-    name: "เอทานอล 95% (Ethanol)",
-    category: "สารเคมี",
-    qty: 1,
-    unit: "ขวด",
-    minAlert: 2, // Low stock!
-    expiry: "2027-05-15",
-    room: "Lab 1",
-    cabinet: "ตู้ A",
-    shelf: "ชั้น 1",
-    createdAt: "2026-05-10T11:30:00.000Z"
-  },
-  {
-    code: "CHEM-003",
-    name: "โซเดียมไฮดรอกไซด์ (Sodium Hydroxide)",
-    category: "สารเคมี",
-    qty: 2, // Somying borrowed 1, remaining 2
-    unit: "ขวด",
-    minAlert: 1,
-    expiry: "2026-04-12", // Expired! (Before May 2026)
-    room: "Lab 2",
-    cabinet: "ตู้ B",
-    shelf: "ชั้น 3",
-    createdAt: "2026-05-05T08:15:00.000Z"
-  },
-  {
-    code: "EQ-001",
-    name: "เครื่องชั่งดิจิตอล 4 ตำแหน่ง (Digital Balance)",
-    category: "อุปกรณ์วิทยาศาสตร์",
-    qty: 2,
-    unit: "เครื่อง",
-    minAlert: 1,
-    expiry: "", // No expiry
-    room: "Lab 1",
-    cabinet: "โต๊ะชั่งน้ำหนัก",
-    shelf: "มุมขวา",
-    createdAt: "2026-04-20T09:00:00.000Z"
-  },
-  {
-    code: "GW-001",
-    name: "บีกเกอร์ขนาด 250 มล. (Beaker 250ml)",
-    category: "เครื่องแก้ว",
-    qty: 11, // Mana returned 3 good and 1 damaged (original 12 - 1 damaged = 11)
-    damagedQty: 1,
-    unit: "ชิ้น",
-    minAlert: 5,
-    expiry: "",
-    room: "Lab 2",
-    cabinet: "ตู้เก็บเครื่องแก้ว",
-    shelf: "ชั้น A",
-    createdAt: "2026-05-12T14:20:00.000Z"
-  },
-  {
-    code: "GW-002",
-    name: "ปิเปตขนาด 10 มล. (Pipette 10ml)",
-    category: "เครื่องแก้ว",
-    qty: 8,
-    unit: "ชิ้น",
-    minAlert: 10, // Low stock! (8 <= 10)
-    expiry: "",
-    room: "Lab 2",
-    cabinet: "ตู้เก็บเครื่องแก้ว",
-    shelf: "ชั้น B",
-    createdAt: "2026-05-15T15:00:00.000Z"
-  },
-  {
-    code: "CHEM-004",
-    name: "โพแทสเซียมเปอร์แมงกาเนต (Potassium Permanganate)",
-    category: "สารเคมี",
-    qty: 2,
-    unit: "ขวด",
-    minAlert: 1,
-    expiry: "2026-06-15", // Near expiry (18 days remaining from May 28, 2026)
-    room: "Lab 1",
-    cabinet: "ตู้ B",
-    shelf: "ชั้น 1",
-    createdAt: "2026-05-18T10:45:00.000Z"
-  },
-  {
-    code: "CHEM-005",
-    name: "กรดซัลฟิวริก 98% (Sulfuric Acid)",
-    category: "สารเคมี",
-    qty: 4,
-    unit: "ขวด",
-    minAlert: 2,
-    expiry: "2027-10-15",
-    room: "Lab 1",
-    cabinet: "ตู้ A",
-    shelf: "ชั้น 3",
-    createdAt: "2026-05-20T09:30:00.000Z"
-  },
-  {
-    code: "EQ-002",
-    name: "เครื่องวัดความเป็นกรด-ด่าง (pH Meter)",
-    category: "อุปกรณ์วิทยาศาสตร์",
-    qty: 0,
-    unit: "เครื่อง",
-    minAlert: 1,
-    expiry: "",
-    room: "Lab 2",
-    cabinet: "ตู้เก็บเครื่องมือ",
-    shelf: "ชั้น 1",
-    createdAt: "2026-05-22T14:00:00.000Z"
-  },
-  {
-    code: "GW-003",
-    name: "หลอดทดลองขนาดใหญ่ 25 มม. (Test Tube 25mm)",
-    category: "เครื่องแก้ว",
-    qty: 25,
-    unit: "ชิ้น",
-    minAlert: 10,
-    expiry: "",
-    room: "Lab 1",
-    cabinet: "ตู้เก็บเครื่องแก้ว",
-    shelf: "ชั้น C",
-    createdAt: "2026-05-25T11:15:00.000Z"
-  },
-  {
-    code: "CHEM-006",
-    name: "แอมโมเนียโซลูชัน 25% (Ammonia Solution)",
-    category: "สารเคมี",
-    qty: 2,
-    unit: "ขวด",
-    minAlert: 1,
-    expiry: "2026-06-25",
-    room: "Lab 2",
-    cabinet: "ตู้ A",
-    shelf: "ชั้น 2",
-    createdAt: "2026-05-26T15:45:00.000Z"
-  }
-];
+// PRODUCTION SAFETY: No hardcoded demo data in production runtime.
+// For isolated testing or development seeding, run: npm run seed:demo
+const DEMO_DATA = [];
 
-// Supabase Configuration
-const supabaseUrl = 'https://avzneyaalenbyawfvykp.supabase.co';
-const supabaseKey = 'sb_publishable_iqpHDJXb983_PwFSoSDV9w_kd2pvKoj';
-
-var supabase = window.supabase || null;
+// ─── SUPABASE CONFIGURATION ───────────────────────────────────────────────────
+// Credentials are NOT hardcoded here. They are fetched at runtime from the
+// backend /api/config endpoint which reads them from environment variables.
+var supabase = null;
 let isSupabaseOnline = false;
 
-// Initialize Supabase Client
-if (typeof supabase !== 'undefined' && supabaseUrl !== 'YOUR_SUPABASE_URL') {
+async function initSupabaseFromConfig() {
   try {
-    // Note: We use window.supabase which is provided by the CDN script
+    const res = await fetch('/api/config');
+    if (!res.ok) throw new Error('Config endpoint returned ' + res.status);
+    const cfg = await res.json();
+    const supabaseUrl = cfg.supabaseUrl;
+    const supabaseKey = cfg.supabaseKey;
+
+    // Populate Google Script URL from server config (never hardcoded in frontend)
+    if (cfg.googleScriptUrl) {
+      GOOGLE_SCRIPT_WEBAPP_URL = cfg.googleScriptUrl;
+      // Also expose on window for src/core/api.js syncToGoogleSheetsDirect()
+      window.GOOGLE_SCRIPT_WEBAPP_URL = cfg.googleScriptUrl;
+    }
+
+    // Store environment and architecture metadata
+    window.__APP_ENV__ = cfg.nodeEnv || 'development';
+    window.__IS_PRODUCTION__ = Boolean(cfg.isProduction);
+    window.__APP_ARCHITECTURE__ = cfg.architecture || {
+      sourceOfTruth: 'Supabase',
+      cacheLayer: 'LocalStorage/IndexedDB',
+      backupIntegration: 'GoogleSheets',
+      mockData: 'development_only'
+    };
+
+    if (!supabaseUrl || !supabaseKey) {
+      console.log('🚀 Supabase not configured on server. Operating in LocalStorage Cache / Local API mode.');
+      return;
+    }
+    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
+      console.log('🚀 Supabase CDN script missing. Operating in LocalStorage Cache / Local API mode.');
+      return;
+    }
     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    // Expose on window so src/core/api.js getClientSupabase() can reference it
+    window.__supabaseClient = supabase;
     isSupabaseOnline = true;
-    console.log("🚀 Supabase initialized successfully. Operating in Cloud Sync Mode.");
+    console.log('🚀 Supabase initialized as Production Source of Truth. LocalStorage acts as Cache.');
   } catch (err) {
-    console.error("🚀 Supabase initialization failed:", err);
+    console.warn('🚀 Supabase initialization failed — running in offline cache mode:', err.message);
     isSupabaseOnline = false;
   }
-} else {
-  console.log("🚀 Supabase not configured or script missing. Operating in LocalStorage / Local API mode.");
 }
+
+// Bootstrap Supabase — called at startup; all code that depends on `supabase`
+// must tolerate it being null until this resolves.
+initSupabaseFromConfig();
 
 // Global API settings
 function resolveApiBase() {
@@ -429,7 +394,9 @@ function switchDashboardAlertTab(tabName) {
 }
 window.switchDashboardAlertTab = switchDashboardAlertTab;
 
-const GOOGLE_SCRIPT_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
+// GOOGLE_SCRIPT_WEBAPP_URL is loaded from /api/config at startup — never hardcoded here.
+// All downstream guards (`if (!GOOGLE_SCRIPT_WEBAPP_URL)`) remain intact.
+let GOOGLE_SCRIPT_WEBAPP_URL = null;
 
 async function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
   if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) return;
@@ -496,7 +463,8 @@ function sanitizeItemForSupabase(item) {
 }
 window.sanitizeItemForSupabase = sanitizeItemForSupabase;
 
-// Full 2-Way Sync All Data with Google Sheets
+// Outbound Export / Backup Integration: Push Authoritative State to Google Sheets
+// ARCHITECTURE NOTE: Google Sheets is an Export/Reporting/Backup integration, NEVER a primary database.
 async function syncAllToGoogleSheets(silent = false) {
   if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) {
     if (!silent) showToast("ไม่สามารถเชื่อมต่อ Google Sheets Webhook ได้ หรืออุปกรณ์ออฟไลน์", "warning");
@@ -506,181 +474,53 @@ async function syncAllToGoogleSheets(silent = false) {
   try {
     if (!silent && typeof Swal !== 'undefined') {
       Swal.fire({
-        title: 'กำลังซิงค์ข้อมูลกับ Google Sheets...',
-        html: '<div style="font-size:13px; color:#64748b; line-height: 1.6;">กำลังดึงข้อมูลและอัปเดต 3.Bookings, 1.Items, 2.Transactions, และ 5.Users...</div>',
+        title: 'กำลังสำรองข้อมูลไปยัง Google Sheets...',
+        html: '<div style="font-size:13px; color:#64748b; line-height: 1.6;">กำลังส่งออกข้อมูลตามสถาปัตยกรรม (Supabase -> Google Sheets Backup): 1.Items, 2.Transactions, 3.Bookings, 4.Purchase_Orders, และ 5.Users...</div>',
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
       });
     }
 
-    // 1. Pull latest Bookings from Google Sheets
-    let pulledBookingsCount = 0;
-    try {
-      const sheetBookings = await fetchTableFromGoogleSheets('3.Bookings');
-      if (Array.isArray(sheetBookings) && sheetBookings.length > 0) {
-        const validSheetBookings = sheetBookings
-          .filter(b => {
-            if (!b || !b.id) return false;
-            if (b.id.startsWith("book_mock") || b.id.startsWith("test_booking") || b.id.startsWith("book_20260711") || b.id.startsWith("book_20260713")) return false;
-            const hasDate = b.date && String(b.date).trim() !== "" && String(b.date).trim() !== "-";
-            const hasBooker = (b.bookerName && String(b.bookerName).trim() !== "" && String(b.bookerName).trim() !== "-") ||
-                              (b.teacherName && String(b.teacherName).trim() !== "" && String(b.teacherName).trim() !== "-");
-            const hasPurpose = (b.purpose && String(b.purpose).trim() !== "" && String(b.purpose).trim() !== "-") ||
-                               (b.activity && String(b.activity).trim() !== "" && String(b.activity).trim() !== "-");
-            return hasDate && (hasBooker || hasPurpose);
-          })
-          .map(b => {
-            const normDate = normalizeDateStr(b.date);
-            const rawRoom = b.room || b.roomFullName || "Lab 1";
-            const cleanRoom = (typeof getRoomCodeFromName === 'function' ? getRoomCodeFromName(rawRoom) : rawRoom);
-            const rawStatus = b.status || "approved";
-            const status = (rawStatus === "approved" || rawStatus === "อนุมัติแล้ว") ? "approved" 
-                         : ((rawStatus === "pending" || rawStatus === "รออนุมัติ") ? "pending" : "rejected");
-            
-            let booker = b.bookerName || b.teacherName || "";
-            if (booker === "-") booker = "";
-            let purpose = b.purpose || b.activity || "";
-            if (purpose === "-") purpose = "";
-            let grade = b.gradeLevel || "";
-            if (grade === "-") grade = "";
-            let count = b.studentCount || "";
-            if (count === "-") count = "";
-
-            return {
-              id: b.id,
-              room: cleanRoom,
-              date: normDate,
-              slot: (b.slot && b.slot !== "-") ? b.slot : "คาบ 1",
-              gradeLevel: grade,
-              studentCount: count,
-              purpose: purpose || "การเรียนการสอนวิทยาศาสตร์",
-              bookerName: booker || "คุณครูผู้สอน",
-              teacherName: booker || "คุณครูผู้สอน",
-              status: status,
-              createdAt: b.createdAt || new Date().toISOString()
-            };
-          });
-
-        if (validSheetBookings.length > 0) {
-          pulledBookingsCount = validSheetBookings.length;
-          const mergedBookingsMap = new Map();
-          if (Array.isArray(bookings)) {
-            bookings.forEach(b => { if (b && b.id) mergedBookingsMap.set(b.id, b); });
-          }
-          validSheetBookings.forEach(sb => {
-            const ex = mergedBookingsMap.get(sb.id);
-            if (ex) {
-              mergedBookingsMap.set(sb.id, { ...ex, ...sb });
-            } else {
-              mergedBookingsMap.set(sb.id, sb);
-            }
-          });
-          bookings = Array.from(mergedBookingsMap.values());
-          localStorage.setItem("lab_bookings", JSON.stringify(bookings));
-        }
-      }
-    } catch (e) {
-      console.warn("Pull bookings notice:", e);
-    }
-
-    // 2. Clean obsolete mock demo bookings, users, and transactions from Google Sheets
-    const obsoleteMockIds = ["1001", "1002", "2001", "2002", "3001", "4001", "10797"];
-    for (const tId of obsoleteMockIds) {
-      await syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: tId, id: `u_${tId}` }, 'teacherId');
-      await new Promise(r => setTimeout(r, 40));
-    }
-    const mockTxIds = ["tx-mock-pending-001", "tx-mock-001", "tx-mock-002", "tx-mock-003", "tx-mock-004", "tx-mock-005", "tx-mock-006"];
-    for (const tId of mockTxIds) {
-      await syncToGoogleSheetsDirect('Transactions', 'DELETE', { id: tId }, 'id');
-      await new Promise(r => setTimeout(r, 40));
-    }
-    const mockBkIds = ["book_mock_today_01", "book_mock_today_02", "book_mock_today_03", "book_mock_today_04", "book_mock_today_05", "book_mock_01", "book_mock_02", "book_mock_03", "book_mock_04", "book_mock_05", "book_mock_06", "book_mock_07", "book_mock_08", "book_mock_09", "book_mock_10", "book_mock_11", "book_mock_12", "book_mock_13", "book_mock_14", "book_mock_15", "book_mock_16", "book_mock_17", "book_mock_18", "test_booking_001", "test_booking_002", "test_booking_003", "test_booking_004", "book_mock_002", "book_20260713141205", "book_20260713141242", "book_20260711141205"];
-    for (const bId of mockBkIds) {
-      await syncToGoogleSheetsDirect('Bookings', 'DELETE', { id: bId }, 'id');
-      await new Promise(r => setTimeout(r, 40));
-    }
-
-    // 3. Sync active Users sequentially
-    const activeUsers = (typeof adminUsers !== 'undefined' && Array.isArray(adminUsers) && adminUsers.length > 0) ? adminUsers : DEFAULT_RBAC_USERS;
+    // 1. Export active Users to Google Sheets (5.Users)
+    const activeUsers = (typeof adminUsers !== 'undefined' && Array.isArray(adminUsers) && adminUsers.length > 0) ? adminUsers : (typeof DEFAULT_RBAC_USERS !== 'undefined' ? DEFAULT_RBAC_USERS : []);
     for (const u of activeUsers) {
       const sheetUser = { ...u };
       delete sheetUser.password;
       await syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
-      await new Promise(r => setTimeout(r, 80));
+      await new Promise(r => setTimeout(r, 40));
     }
 
-    // 4. Two-way pull and sync all Items
-    try {
-      const sheetItems = await fetchTableFromGoogleSheets('1.Items');
-      if (Array.isArray(sheetItems) && sheetItems.length > 0) {
-        const validSheetItems = sheetItems.filter(it => it && it.code);
-        if (validSheetItems.length > 0) {
-          const mergedItemsMap = new Map();
-          if (Array.isArray(items)) {
-            items.forEach(it => { if (it && it.code) mergedItemsMap.set(it.code, it); });
-          }
-          validSheetItems.forEach(si => {
-            const ex = mergedItemsMap.get(si.code);
-            if (ex) {
-              mergedItemsMap.set(si.code, { ...ex, ...si });
-            } else {
-              mergedItemsMap.set(si.code, si);
-            }
-          });
-          items = Array.from(mergedItemsMap.values());
-          saveItemsToLocal();
-        }
-      }
-    } catch (e) {
-      console.warn("Pull items notice:", e);
-    }
-
+    // 2. Export Items to Google Sheets (1.Items)
     if (typeof items !== 'undefined' && Array.isArray(items) && items.length > 0) {
       for (const it of items) {
         await syncToGoogleSheetsDirect('Items', 'UPSERT', it, 'code');
         await new Promise(r => setTimeout(r, 20));
       }
-      if (isSupabaseOnline && typeof supabase !== "undefined") {
-        try {
-          const cleanList = items.map(sanitizeItemForSupabase);
-          await supabase.from("items").upsert(cleanList, { onConflict: 'code' });
-        } catch (supaErr) {
-          console.warn("Supabase items sync warning:", supaErr);
-        }
-      }
     }
 
-    // 5. Sync Transactions
+    // 3. Export Transactions to Google Sheets (2.Transactions)
     if (typeof transactions !== 'undefined' && Array.isArray(transactions) && transactions.length > 0) {
       for (const tx of transactions) {
         await syncToGoogleSheetsDirect('Transactions', 'UPSERT', tx, 'id');
-        await new Promise(r => setTimeout(r, 40));
+        await new Promise(r => setTimeout(r, 30));
       }
     }
 
-    // 6. Push Bookings to Google Sheets
+    // 4. Export Bookings to Google Sheets (3.Bookings)
     if (typeof bookings !== 'undefined' && Array.isArray(bookings) && bookings.length > 0) {
       for (const bk of bookings) {
         await syncToGoogleSheetsDirect('Bookings', 'UPSERT', bk, 'id');
-        await new Promise(r => setTimeout(r, 60));
-      }
-    }
-
-    // 7. Sync Purchase Orders
-    if (typeof purchaseOrders !== 'undefined' && Array.isArray(purchaseOrders) && purchaseOrders.length > 0) {
-      for (const po of purchaseOrders) {
-        await syncToGoogleSheetsDirect('Purchase_Orders', 'UPSERT', po, 'id');
         await new Promise(r => setTimeout(r, 40));
       }
     }
 
-    // Refresh UI components
-    if (typeof renderBookingsTable === 'function') renderBookingsTable();
-    if (typeof renderBookingSlots === 'function') renderBookingSlots();
-    if (typeof renderBookingCalendar === 'function') renderBookingCalendar();
-    if (typeof renderItems === 'function') renderItems();
-    if (typeof renderAdminUsers === 'function') renderAdminUsers();
-    if (typeof updateUI === 'function') updateUI();
+    // 5. Export Purchase Orders to Google Sheets (4.Purchase_Orders)
+    if (typeof purchaseOrders !== 'undefined' && Array.isArray(purchaseOrders) && purchaseOrders.length > 0) {
+      for (const po of purchaseOrders) {
+        await syncToGoogleSheetsDirect('Purchase_Orders', 'UPSERT', po, 'id');
+        await new Promise(r => setTimeout(r, 30));
+      }
+    }
 
     if (!silent) {
       if (typeof Swal !== 'undefined') {
@@ -689,37 +529,60 @@ async function syncAllToGoogleSheets(silent = false) {
         }
         Swal.fire({
           icon: 'success',
-          title: 'ซิงค์ข้อมูล Google Sheets สำเร็จ!',
+          title: 'สำรองข้อมูลไปยัง Google Sheets สำเร็จ!',
           html: `<div style="font-size:13.5px; color:#334155; line-height:1.7; text-align:left;">
-            <p>✅ ซิงค์รายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> (ชีท <b>5.Users</b>)</p>
-            <p>✅ ซิงค์รายการจองห้องปฏิบัติการ <b>${bookings.length} รายการ</b> (ชีท <b>3.Bookings</b>)</p>
-            <p>✅ ซิงค์รายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> (ชีท <b>1.Items</b>)</p>
-            <p>✅ ซิงค์ประวัติธุรกรรมและการสั่งซื้อเรียบร้อยแล้ว</p>
+            <p>✅ ส่งออกรายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> (ชีท <b>5.Users</b>)</p>
+            <p>✅ ส่งออกรายการจองห้องปฏิบัติการ <b>${(typeof bookings !== 'undefined' ? bookings.length : 0)} รายการ</b> (ชีท <b>3.Bookings</b>)</p>
+            <p>✅ ส่งออกรายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> (ชีท <b>1.Items</b>)</p>
+            <p>✅ ส่งออกประวัติธุรกรรมและการสั่งซื้อเพื่อเป็นสมุดทะเบียนและรายงานวิชาการเรียบร้อยแล้ว</p>
           </div>`,
           showConfirmButton: true,
-          confirmButtonColor: '#7c3aed',
-          confirmButtonText: 'ตกลง',
-          didOpen: () => {
-            if (typeof Swal.hideLoading === 'function') {
-              Swal.hideLoading();
-            }
-          }
+          confirmButtonColor: '#2563eb'
         });
       } else {
-        showToast("ซิงค์ข้อมูลกับ Google Sheets สำเร็จเรียบร้อยแล้ว!", "success");
+        showToast('สำรองข้อมูลไปยัง Google Sheets เรียบร้อยแล้ว', 'success');
       }
     }
   } catch (err) {
-    console.error("Full Google Sheets sync error:", err);
-    if (typeof Swal !== 'undefined' && typeof Swal.hideLoading === 'function') {
-      Swal.hideLoading();
+    console.error("Google Sheets backup export failed:", err);
+    if (!silent) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'error',
+          title: 'การสำรองข้อมูลล้มเหลว',
+          text: err.message || 'ไม่สามารถติดต่อ Google Apps Script Webhook ได้'
+        });
+      } else {
+        showToast('การสำรองข้อมูลล้มเหลว: ' + err.message, 'error');
+      }
     }
-    if (!silent) showToast("เกิดข้อผิดพลาดในการซิงค์ Google Sheets: " + err.message, "error");
   }
 }
 window.syncAllToGoogleSheets = syncAllToGoogleSheets;
 
 let isBackendOnline = false;
+
+// ==========================================================================
+// OFFLINE SECURITY GUARD
+// Blocks ALL write/auth actions when backend auth server is unreachable.
+// Offline mode = read cached data ONLY.
+// ==========================================================================
+function requireOnline(actionLabel) {
+  if (isBackendOnline) return false; // online → allow
+  const msg = `ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนได้ กรุณาลองใหม่ (${actionLabel || 'การดำเนินการนี้'} ต้องการการเชื่อมต่อเซิร์ฟเวอร์)`;
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      icon: 'warning',
+      title: 'ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนได้',
+      text: 'กรุณาลองใหม่ โหมด Offline อนุญาตให้อ่านข้อมูลที่แคชไว้เท่านั้น ไม่สามารถดำเนินการเพิ่ม/แก้ไข/ลบ/อนุมัติ/จัดการผู้ใช้ได้',
+      confirmButtonColor: '#7c3aed',
+      confirmButtonText: 'ตกลง'
+    });
+  } else if (typeof showToast === 'function') {
+    showToast(msg, 'error');
+  }
+  return true; // offline → block
+}
 let transactions = [];
 let bookings = [];
 let selectedSlots = [];
@@ -878,6 +741,9 @@ function dismissSkeletonLoader() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
+    // 0. Verify JWT session with backend /api/auth/me before initializing UI or data
+    await (window.__sessionVerificationPromise || restoreAndVerifySession());
+
     // Update system version dynamically
     fetchAppVersion();
 
@@ -921,17 +787,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateLoginUI();
     setupSidebarCollapse();
     
-    // Support URL query parameters for direct navigation & screenshot automation
+    // Support URL query parameters for direct navigation
     const urlParams = new URLSearchParams(window.location.search);
     const targetPanel = urlParams.get("panel");
-    const forceAdmin = urlParams.get("admin");
-    if (forceAdmin === "true") {
-      isAdminLoggedIn = true;
-      userRole = "admin";
-      currentUser = { id: "admin", name: "ผู้ดูแลระบบ", role: "admin", roleLevel: "L3" };
-      localStorage.setItem("isAdminLoggedIn", "true");
-      localStorage.setItem("userRole", "admin");
-    }
 
     if (targetPanel && typeof navigateToPanel === "function") {
       navigateToPanel(targetPanel);
@@ -4318,6 +4176,8 @@ function setupFormHandlers() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    if (requireOnline('บันทึก/แก้ไขข้อมูลพัสดุ')) return;
+
     if (isExecutiveMode()) {
       showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถเพิ่มหรือแก้ไขรายการได้", "warning");
       return;
@@ -4711,6 +4571,8 @@ window.editItem = function(index) {
 
 // Global Delete Action
 window.deleteItem = async function(index) {
+  if (requireOnline('ลบรายการพัสดุ')) return;
+
   const roleLevel = getCurrentRoleLevel();
   const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
 
@@ -6488,6 +6350,8 @@ function renderTransactionsTable() {
 }
 // Quick click action to Return currently borrowed item
 window.returnBorrowedItem = async function(transId) {
+  if (requireOnline('คืนพัสดุ')) return;
+
   if (isExecutiveMode()) {
     showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถทำรายการคืนพัสดุได้", "warning");
     return;
@@ -7766,6 +7630,8 @@ function renderBookingsTable() {
 }
 
 window.cancelBookingRecord = async function(bookingId) {
+  if (requireOnline('ยกเลิกการจอง')) return;
+
   const booking = bookings.find(b => b.id === bookingId);
   if (!booking) return;
 
@@ -8156,6 +8022,7 @@ function setupPurchaseOrders() {
   if (form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault();
+      if (requireOnline('บันทึกใบสั่งซื้อ')) return;
  
       const code = document.getElementById("poProductCode").value.trim();
       const name = document.getElementById("poProductName").value.trim();
@@ -8686,6 +8553,8 @@ function renderOrdersTable() {
 }
 
 window.deletePurchaseOrder = function(orderId) {
+  if (requireOnline('ลบใบสั่งซื้อ')) return;
+
   showConfirmModal(
     "ยืนยันการลบข้อมูล",
     "คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
@@ -8754,21 +8623,6 @@ window.editPurchaseOrder = function(orderId) {
 // ==========================================================================
 // ROLE-BASED ACCESS CONTROL (RBAC: L0 - L4) LOGIN SYSTEM
 // ==========================================================================
-function fillLoginPreset(teacherId, password) {
-  const usernameInput = document.getElementById("loginUsername");
-  const loginPasswordInput = document.getElementById("loginPassword");
-  const errorMsg = document.getElementById("loginErrorMsg");
-  const adminLoginForm = document.getElementById("adminLoginForm");
-  
-  if (usernameInput) usernameInput.value = teacherId;
-  if (loginPasswordInput) loginPasswordInput.value = password;
-  if (errorMsg) errorMsg.style.display = "none";
-
-  // Auto-submit login form immediately
-  if (adminLoginForm) {
-    adminLoginForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
-  }
-}
 
 // Role-based visibility for reports panel (L2 can only view PO section)
 function applyRoleToReportsPanel() {
@@ -8802,10 +8656,11 @@ function applyRoleToReportsPanel() {
 function updateLoginUI() {
   const roleLevel = getCurrentRoleLevel();
   const loggedIn = isUserLoggedIn();
-  const isL3Admin = (roleLevel === "L3");
+  const token = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
+  const isL3Admin = (roleLevel === "L3") && !!token;
   const isL2Staff = (roleLevel === "L2");
   const isL1Teacher = (roleLevel === "L1");
-  const isL4Executive = (roleLevel === "L4");
+  const isL4Executive = (roleLevel === "L4") && !!token;
   const isBackoffice = (isL3Admin || isL2Staff);
 
   // Update Global variable
@@ -9162,22 +9017,19 @@ window.openLoginModal = function() {
       const saved = JSON.parse(localStorage.getItem("lab_saved_credentials") || "null");
       if (saved && saved.username) {
         if (usernameInput) usernameInput.value = saved.username;
-        if (loginPasswordInput) loginPasswordInput.value = saved.password || "";
         if (rememberCheckbox) rememberCheckbox.checked = true;
         hasLoaded = true;
       }
     } catch (e) {}
 
+    // Security: Passwords must NEVER be prefilled or persisted in localStorage
+    if (loginPasswordInput) loginPasswordInput.value = "";
+
     if (!hasLoaded) {
       if (usernameInput) {
         usernameInput.value = "";
       }
-      if (loginPasswordInput) loginPasswordInput.value = "";
       if (rememberCheckbox) rememberCheckbox.checked = false;
-    } else {
-      if (loginPasswordInput && !loginPasswordInput.value) {
-      } else if (usernameInput) {
-      }
     }
 
     if (typeof applyLoginBannerUI === "function") {
@@ -9195,23 +9047,23 @@ window.handleForgotPasswordClick = function() {
       title: "ลืมรหัสผ่าน?",
       html: `
         <div style="font-size: 13.5px; line-height: 1.6; color: #475569; text-align: left;">
-          <p style="margin: 0 0 8px 0;">💡 <strong>รหัสผ่านเริ่มต้นของระบบ:</strong> ใช้รหัสประจำตัวครู (Teacher ID) เช่น <code>T101</code> หรือ <code>1001</code></p>
-          <p style="margin: 0;">หากท่านเปลี่ยนรหัสผ่านแล้วลืม โปรดติดต่อผู้ดูแลระบบ (Admin) หรือแจ้งปัญหาผ่านศูนย์ข้อมูลเพื่อขอรีเซ็ตรหัสผ่านครับ</p>
+          <p style="margin: 0 0 8px 0;">💡 หากท่านลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ (Admin) เพื่อขอรีเซ็ตรหัสผ่านใหม่</p>
+          <p style="margin: 0;">การยืนยันตัวตนทั้งหมดจะได้รับการประมวลผลผ่านระบบความปลอดภัยของเซิร์ฟเวอร์เท่านั้น</p>
         </div>
       `,
       confirmButtonText: "เข้าใจแล้ว",
       confirmButtonColor: "#0070f3"
     });
   } else {
-    alert("รหัสผ่านเริ่มต้นคือ รหัสประจำตัวครู (Teacher ID) หากท่านลืมรหัสผ่านโปรดติดต่อผู้ดูแลระบบ");
+    alert("หากท่านลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ (Admin) เพื่อขอรีเซ็ตรหัสผ่าน");
   }
 };
 
 window.handleGoogleOrQuickLogin = function() {
   if (typeof Swal !== "undefined") {
     Swal.fire({
-      title: "เข้าสู่ระบบด่วน",
-      text: "โปรดระบุรหัสประจำตัวครู (Teacher ID) ในช่อง Login เพื่อเข้าใช้งานระบบได้ทันที",
+      title: "เข้าสู่ระบบ",
+      text: "โปรดระบุรหัสประจำตัวครู (Teacher ID) และรหัสผ่านเพื่อเข้าใช้งานระบบ",
       icon: "info",
       confirmButtonText: "เข้าใจแล้ว",
       confirmButtonColor: "#0070f3"
@@ -9230,14 +9082,13 @@ function setupLoginHandlers() {
   const loginPasswordInput = document.getElementById("loginPassword");
   const eyeIcon = document.getElementById("eyeIcon");
 
-  const saveOrClearSavedCredentials = (uname, pwd) => {
+  const saveOrClearSavedCredentials = (uname) => {
     const rememberCheckbox = document.getElementById("loginRememberMe");
     const shouldSave = rememberCheckbox ? rememberCheckbox.checked : false;
     if (shouldSave) {
       try {
         localStorage.setItem("lab_saved_credentials", JSON.stringify({
           username: uname,
-          password: pwd,
           savedAt: new Date().toISOString()
         }));
       } catch (e) {}
@@ -9247,19 +9098,37 @@ function setupLoginHandlers() {
   };
 
   const performLogout = () => {
+    const token = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
+    if (token) {
+      try {
+        fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => {});
+      } catch (e) {}
+    }
     if (typeof window.closeUserProfileModal === "function") {
       window.closeUserProfileModal();
     }
     currentUser = null;
     userRole = "L0";
     isAdminLoggedIn = false;
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("isAdminLoggedIn");
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("isAdminLoggedIn");
+      localStorage.removeItem("lab_auth_token");
+      localStorage.removeItem("userRoleLevel");
+      localStorage.removeItem("lab_saved_credentials");
+    }
+    if (typeof window.setCurrentUser === "function") {
+      window.setCurrentUser(null);
+    }
     showToast("ออกจากระบบเรียบร้อยแล้ว", "info");
     updateLoginUI();
     if (window.lucide) lucide.createIcons();
   };
+  window.performLogout = performLogout;
 
   if (btnSidebarLogoutQuick) {
     btnSidebarLogoutQuick.addEventListener("click", (e) => {
@@ -9365,9 +9234,19 @@ function setupLoginHandlers() {
         if (errorText) errorText.innerText = "กรุณาระบุรหัสประจำตัวครู (Teacher ID) หรือชื่อผู้ใช้งาน";
         return;
       }
+      if (!password) {
+        if (errorMsg) errorMsg.style.display = "flex";
+        if (errorText) errorText.innerText = "กรุณากรอกรหัสผ่าน";
+        return;
+      }
+
+      const submitBtn = adminLoginForm.querySelector("button[type='submit']");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
 
       try {
-        // Try backend auth login endpoint
+        // Authenticate strictly with backend server JWT endpoint
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -9375,75 +9254,16 @@ function setupLoginHandlers() {
         });
 
         const data = await res.json();
-        if (res.ok && data.success && data.user) {
+        if (res.ok && data.success && data.user && data.token) {
           currentUser = data.user;
           userRole = currentUser.role || "L1";
+          localStorage.setItem("lab_auth_token", data.token);
           isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
           
           localStorage.setItem("currentUser", JSON.stringify(currentUser));
           localStorage.setItem("userRole", userRole);
           localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
-          saveOrClearSavedCredentials(username, password);
-
-          const badgeInfo = getRoleBadgeInfo(userRole);
-          showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
-          closeModal();
-          updateLoginUI();
-          if (window.lucide) lucide.createIcons();
-          return;
-        } else if (res.status === 401 || !data.success) {
-          // If server explicitly returned 401 with message, display message
-          if (errorMsg) errorMsg.style.display = "flex";
-          if (errorText) errorText.innerText = data.message || "รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง";
-          return;
-        }
-      } catch (err) {
-        console.warn("Backend auth unavailable, trying local fallback credentials:", err);
-      }
-
-      // Local offline fallback matching
-      let fallbackUser = null;
-      const allUsersPool = (typeof adminUsers !== "undefined" && Array.isArray(adminUsers) && adminUsers.length > 0)
-        ? adminUsers
-        : (typeof DEFAULT_RBAC_USERS !== "undefined" ? DEFAULT_RBAC_USERS : []);
-
-      const cleanUser = username.toLowerCase();
-      fallbackUser = allUsersPool.find(u => {
-        const tId = normalizeInput(String(u.teacherId || '')).toLowerCase();
-        const uEmail = String(u.email || '').toLowerCase();
-        const uId = String(u.id || '').toLowerCase();
-        const uName = String(u.name || '').toLowerCase();
-        const uNameNoTitle = uName.replace(/^(ครู|อาจารย์|อ\.|ม\.|มิส|นาย|นางสาว|นาง|น\.ส\.|ดร\.|ผอ\.)\s*/, '');
-
-        if (tId && (tId === cleanUser || Number(tId) === Number(cleanUser))) return true;
-        if (uEmail && uEmail === cleanUser) return true;
-        if (uId && uId === cleanUser) return true;
-        if (uName && uName === cleanUser) return true;
-        if (uNameNoTitle && uNameNoTitle === cleanUser) return true;
-        if (cleanUser.length >= 3 && (uName.includes(cleanUser) || cleanUser.includes(uNameNoTitle))) return true;
-        if (cleanUser === "admin" && (u.role === "L3" || u.role === "admin")) return true;
-        return false;
-      });
-
-      if (fallbackUser) {
-        const userPass = String(fallbackUser.password || fallbackUser.teacherId || fallbackUser.id || '').trim();
-        const teacherIdStr = normalizeInput(String(fallbackUser.teacherId || '')).trim();
-        const isPassMatch = 
-          (password === userPass) ||
-          (teacherIdStr && password === teacherIdStr) ||
-          (password.toLowerCase() === userPass.toLowerCase()) ||
-          (cleanUser === "admin" && password === "Admin@Lab2805") ||
-          (password === "Admin@Lab2805");
-
-        if (isPassMatch) {
-          currentUser = fallbackUser;
-          userRole = fallbackUser.role || "L1";
-          isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
-          
-          localStorage.setItem("currentUser", JSON.stringify(currentUser));
-          localStorage.setItem("userRole", userRole);
-          localStorage.setItem("isAdminLoggedIn", isAdminLoggedIn ? "true" : "false");
-          saveOrClearSavedCredentials(username, password);
+          saveOrClearSavedCredentials(username);
 
           const badgeInfo = getRoleBadgeInfo(userRole);
           showToast(`เข้าสู่ระบบสำเร็จในฐานะ ${currentUser.name} (${badgeInfo.full})`, "success");
@@ -9453,37 +9273,17 @@ function setupLoginHandlers() {
           return;
         } else {
           if (errorMsg) errorMsg.style.display = "flex";
-          if (errorText) errorText.innerText = "รหัสผ่านไม่ถูกต้อง (รหัสผ่านเริ่มต้นคือ รหัสประจำตัวครู)";
+          if (errorText) errorText.innerText = data.message || "รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง";
           return;
         }
-      } else if (cleanUser === "admin" && password === "Admin@Lab2805") {
-        // Super admin preset
-        currentUser = {
-          id: "u_admin",
-          teacherId: "admin",
-          name: "ผู้ดูแลระบบ (Admin)",
-          email: "admin@lab.school.ac.th",
-          role: "L3",
-          roleName: "Manager / System Manager",
-          department: "งานบริหารระบบห้องปฏิบัติการ",
-          assignedRooms: [],
-          initials: "AD",
-          color: "#7c3aed"
-        };
-        userRole = "L3";
-        isAdminLoggedIn = true;
-        localStorage.setItem("currentUser", JSON.stringify(currentUser));
-        localStorage.setItem("userRole", "L3");
-        localStorage.setItem("isAdminLoggedIn", "true");
-        saveOrClearSavedCredentials(username, password);
-
-        showToast("เข้าสู่ระบบในฐานะ ผู้ดูแลระบบ (L3) สำเร็จ!", "success");
-        closeModal();
-        updateLoginUI();
-        if (window.lucide) lucide.createIcons();
-      } else {
+      } catch (err) {
+        console.error("Backend auth error:", err);
         if (errorMsg) errorMsg.style.display = "flex";
-        if (errorText) errorText.innerText = "ไม่พบบัญชีผู้ใช้นี้ในระบบ กรุณาตรวจสอบรหัสประจำตัวครู";
+        if (errorText) errorText.innerText = "ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนได้ กรุณาลองใหม่";
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+        }
       }
     });
   }
@@ -10060,6 +9860,8 @@ window.togglePendingRequestDetails = function(headerElement) {
 }
 
 window.approveBookingRequest = async function(bookingId) {
+  if (requireOnline('อนุมัติการจอง')) return;
+
   const roleLevel = getCurrentRoleLevel();
   if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "L4" && roleLevel !== "admin" && roleLevel !== "executive") {
     showToast("คุณไม่มีสิทธิ์ในการอนุมัติการจองห้องแล็บ", "error");
@@ -10090,6 +9892,8 @@ window.approveBookingRequest = async function(bookingId) {
 };
 
 window.rejectBookingRequest = async function(bookingId) {
+  if (requireOnline('ปฏิเสธการจอง')) return;
+
   const roleLevel = getCurrentRoleLevel();
   if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "L4" && roleLevel !== "admin" && roleLevel !== "executive") {
     showToast("คุณไม่มีสิทธิ์ในการปฏิเสธการจองห้องแล็บ", "error");
@@ -10122,6 +9926,8 @@ window.rejectBookingRequest = async function(bookingId) {
 };
 
 window.approveBorrowRequest = async function(txId) {
+  if (requireOnline('อนุมัติการยืมพัสดุ')) return;
+
   const roleLevel = getCurrentRoleLevel();
   if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "L4" && roleLevel !== "admin" && roleLevel !== "executive") {
     showToast("คุณไม่มีสิทธิ์ในการอนุมัติคำขอยืมพัสดุ", "error");
@@ -10171,6 +9977,8 @@ window.approveBorrowRequest = async function(txId) {
 };
 
 window.rejectBorrowRequest = async function(txId) {
+  if (requireOnline('ปฏิเสธคำขอยืม')) return;
+
   const roleLevel = getCurrentRoleLevel();
   if (roleLevel !== "L2" && roleLevel !== "L3" && roleLevel !== "L4" && roleLevel !== "admin" && roleLevel !== "executive") {
     showToast("คุณไม่มีสิทธิ์ในการปฏิเสธคำขอยืมพัสดุ", "error");
@@ -17370,7 +17178,6 @@ const DEFAULT_RBAC_USERS = [
     role: "L3",
     roleName: "Manager / System Manager",
     assignedRooms: [],
-    password: "Admin@Lab2805",
     initials: "AD",
     color: "#7c3aed"
   },
@@ -17383,7 +17190,6 @@ const DEFAULT_RBAC_USERS = [
     role: "L1",
     roleName: "Teacher / User",
     assignedRooms: [],
-    password: "10746",
     initials: "สช",
     color: "#0284c7"
   },
@@ -17396,7 +17202,6 @@ const DEFAULT_RBAC_USERS = [
     role: "L3",
     roleName: "Manager / System Manager",
     assignedRooms: [],
-    password: "10823",
     initials: "วด",
     color: "#7c3aed"
   },
@@ -17409,7 +17214,6 @@ const DEFAULT_RBAC_USERS = [
     role: "L4",
     roleName: "Executive / Head of Department",
     assignedRooms: [],
-    password: "10568",
     initials: "วส",
     color: "#be185d"
   },
@@ -17422,7 +17226,6 @@ const DEFAULT_RBAC_USERS = [
     role: "L2",
     roleName: "Staff / Operator",
     assignedRooms: ["Lab 3"],
-    password: "10785",
     initials: "ศก",
     color: "#ea580c"
   },
@@ -17435,7 +17238,6 @@ const DEFAULT_RBAC_USERS = [
     role: "L2",
     roleName: "Staff / Operator",
     assignedRooms: ["Lab 2"],
-    password: "10824",
     initials: "พร",
     color: "#ea580c"
   },
@@ -17448,7 +17250,6 @@ const DEFAULT_RBAC_USERS = [
     role: "L3",
     roleName: "Manager / System Manager",
     assignedRooms: [],
-    password: "10572",
     initials: "พป",
     color: "#7c3aed"
   }
@@ -17773,6 +17574,8 @@ window.onUserSelectionChange = function() {
 };
 
 window.batchDeleteSelectedUsers = async function() {
+  if (requireOnline('ลบผู้ใช้')) return;
+
   const checkboxes = document.querySelectorAll(".user-select-checkbox:checked");
   if (checkboxes.length === 0) {
     showToast("กรุณาเลือกผู้ใช้งานที่ต้องการลบอย่างน้อย 1 รายการ", "warning");
@@ -18362,7 +18165,6 @@ document.addEventListener("DOMContentLoaded", () => {
         role: role,
         roleName: roleNames[role] || 'Teacher / User',
         assignedRooms: assignedRooms,
-        password: teacherId,
         isActive: true,
         createdAt: new Date().toISOString(),
         initials: getUserInitials(name),
@@ -18372,9 +18174,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let isSaved = false;
 
       // 1. Google Sheets Direct Sync
-      const sheetUser = { ...newUserObj };
-      delete sheetUser.password;
-      syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
+      syncToGoogleSheetsDirect('Users', 'UPSERT', { ...newUserObj }, 'teacherId');
       
       // 2. Direct Supabase Upsert
       if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
@@ -19133,6 +18933,8 @@ function parseUserPastedText(text) {
 }
 
 async function submitBatchAddUsers() {
+  if (requireOnline('นำเข้าข้อมูลผู้ใช้')) return;
+
   const validUsersToSave = batchUserList.filter(u => u.teacherId && u.teacherId.trim() && u.name && u.name.trim());
   if (validUsersToSave.length === 0) {
     showToast("ไม่มีข้อมูลที่สมบูรณ์สำหรับบันทึก กรุณากรอก Teacher ID และชื่อ - สกุล", "warning");
@@ -19172,7 +18974,6 @@ async function submitBatchAddUsers() {
           role: u.role || 'L1',
           roleName: roleNames[u.role || 'L1'] || 'Teacher / User',
           assignedRooms: rooms,
-          password: teacherId,
           isActive: true,
           createdAt: new Date().toISOString(),
           initials: getUserInitials(u.name),
@@ -19185,9 +18986,7 @@ async function submitBatchAddUsers() {
 
       // 1.1 Google Sheets Direct Batch Sync
       formattedForSupabase.forEach(u => {
-        const sheetUser = { ...u };
-        delete sheetUser.password;
-        syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
+        syncToGoogleSheetsDirect('Users', 'UPSERT', { ...u }, 'teacherId');
       });
     } catch (supaErr) {
       console.warn("Direct Supabase batch insert failed:", supaErr);
@@ -19237,7 +19036,6 @@ async function submitBatchAddUsers() {
         role: u.role || 'L1',
         roleName: roleNames[u.role || 'L1'] || 'Teacher / User',
         assignedRooms: rooms,
-        password: teacherId,
         isActive: true,
         createdAt: new Date().toISOString(),
         initials: getUserInitials(u.name),
@@ -19337,6 +19135,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (formEditUser) {
     formEditUser.addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (requireOnline('แก้ไขข้อมูลผู้ใช้')) return;
+
       const id = document.getElementById("editUserId").value;
       const teacherId = (document.getElementById("editUserTeacherId")?.value || "").trim();
       const name = (document.getElementById("editUserName")?.value || "").trim();
@@ -19360,9 +19160,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const updatedUserPayload = { id, teacherId, name, department: dept, email, role, assignedRooms };
 
       // 1. Google Sheets Direct Sync
-      const sheetUser = { ...updatedUserPayload };
-      delete sheetUser.password;
-      syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
+      syncToGoogleSheetsDirect('Users', 'UPSERT', { ...updatedUserPayload }, 'teacherId');
 
       // 2. Direct Supabase Update
       if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {

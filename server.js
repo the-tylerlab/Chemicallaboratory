@@ -12,7 +12,26 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
-const JWT_SECRET = process.env.JWT_SECRET || 'lab_jwt_secret_dev_2844067e13c352e4b87d6bdde865f8e6';
+const IS_PRODUCTION = NODE_ENV === 'production';
+// ─── JWT SECRET ENFORCEMENT ──────────────────────────────────────────────────
+// NO fallback, NO default, NO hardcoded secret — ever.
+// The server MUST NOT start if JWT_SECRET is absent from the environment.
+if (!process.env.JWT_SECRET) {
+  console.error('');
+  console.error('╔══════════════════════════════════════════════════════════════╗');
+  console.error('║  FATAL: JWT_SECRET environment variable is not set.          ║');
+  console.error('║                                                              ║');
+  console.error('║  Generate a secure secret and add it to your .env file:      ║');
+  console.error('║    node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))" ║');
+  console.error('║                                                              ║');
+  console.error('║  Then set in .env:  JWT_SECRET=<generated_value>            ║');
+  console.error('║                                                              ║');
+  console.error('║  The server will NOT start without this value.              ║');
+  console.error('╚══════════════════════════════════════════════════════════════╝');
+  console.error('');
+  process.exit(1);
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 
 // In-memory blacklist for revoked tokens (logout)
@@ -26,15 +45,21 @@ setInterval(() => {
   }
 }, 3600000);
 
-// Initialize Supabase Client for dual cloud synchronization
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://avzneyaalenbyawfvykp.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_iqpHDJXb983_PwFSoSDV9w_kd2pvKoj';
+// ─── SUPABASE CONFIGURATION ───────────────────────────────────────────────────
+// Values MUST come from environment variables. No hardcoded fallbacks.
+// Supabase is optional (graceful degradation); missing vars disable cloud sync.
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
 let supabase = null;
-try {
-  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-  console.log("🚀 Supabase connected in server backend");
-} catch(e) {
-  console.warn("Supabase init failed in server:", e.message);
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.warn('⚠️  SUPABASE_URL or SUPABASE_KEY not set — Supabase cloud sync disabled. Set these in .env to enable.');
+} else {
+  try {
+    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('🚀 Supabase connected in server backend');
+  } catch(e) {
+    console.warn('Supabase init failed in server:', e.message);
+  }
 }
 
 // Enable CORS and JSON parsing
@@ -59,6 +84,7 @@ const PURCHASE_ORDERS_FILE = path.join(DB_DIR, 'purchase_orders.json');
 const BOOKINGS_FILE = path.join(DB_DIR, 'bookings.json');
 const TRANSACTIONS_FILE = path.join(DB_DIR, 'transactions.json');
 const USERS_FILE = path.join(DB_DIR, 'users.json');
+const USERS_EXAMPLE_FILE = path.join(DB_DIR, 'users.example.json');
 const AUDIT_LOGS_FILE = path.join(DB_DIR, 'audit_logs.json');
 const LAYOUTS_FILE = path.join(DB_DIR, 'layouts.json');
 const FEEDBACKS_FILE = path.join(DB_DIR, 'feedbacks.json');
@@ -78,6 +104,13 @@ if (!fs.existsSync(DB_DIR)) {
 
 // Initialize VAPID Keys for Web Push
 function getOrGenerateVapidKeys() {
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    return {
+      publicKey: process.env.VAPID_PUBLIC_KEY,
+      privateKey: process.env.VAPID_PRIVATE_KEY
+    };
+  }
+
   try {
     if (fs.existsSync(VAPID_KEYS_FILE)) {
       const keys = JSON.parse(fs.readFileSync(VAPID_KEYS_FILE, 'utf-8'));
@@ -92,7 +125,7 @@ function getOrGenerateVapidKeys() {
 
 const vapidKeys = getOrGenerateVapidKeys();
 webpush.setVapidDetails(
-  'mailto:admin@chemlab.local',
+  process.env.VAPID_SUBJECT || 'mailto:admin@chemlab.local',
   vapidKeys.publicKey,
   vapidKeys.privateKey
 );
@@ -437,16 +470,22 @@ function writeEquipmentRepairs(repairs) {
   return safeWriteJson(EQUIPMENT_REPAIRS_FILE, repairs);
 }
 
-// Helper: Read users
+// Helper: Read users (Strictly Development / Offline Mock Data)
 function readUsers() {
+  if (IS_PRODUCTION) {
+    // SECURITY: In production, user profiles and credentials MUST NOT be loaded from local files
+    return [];
+  }
   try {
     if (!fs.existsSync(USERS_FILE)) {
-      const defaultUsers = [
-        { id: "u1", name: "Admin User", email: "admin@organisation.com", role: "admin", initials: "A", color: "var(--primary-purple)" },
-        { id: "u2", name: "Staff Member", email: "staff@organisation.com", role: "staff", initials: "S", color: "#3b82f6" }
-      ];
-      safeWriteJson(USERS_FILE, defaultUsers);
-      return defaultUsers;
+      if (fs.existsSync(USERS_EXAMPLE_FILE)) {
+        try {
+          const exampleData = fs.readFileSync(USERS_EXAMPLE_FILE, 'utf-8');
+          safeWriteJson(USERS_FILE, JSON.parse(exampleData));
+          return JSON.parse(exampleData);
+        } catch (e) {}
+      }
+      return [];
     }
     const data = fs.readFileSync(USERS_FILE, 'utf-8');
     return JSON.parse(data);
@@ -456,6 +495,10 @@ function readUsers() {
 }
 
 function writeUsers(users) {
+  if (IS_PRODUCTION) {
+    // SECURITY: In production, local user file modification is disabled
+    return false;
+  }
   return safeWriteJson(USERS_FILE, users);
 }
 
@@ -592,15 +635,51 @@ function requireRole(...allowedRoles) {
   };
 }
 
+// Helper: Normalize room name for strict & robust comparison
+function normalizeRoomIdentifier(str) {
+  if (!str) return '';
+  str = String(str).toLowerCase().trim();
+  const m = str.match(/(?:lab|ห้อง|ห้องปฏิบัติการ|ห้องแล็บ)\s*([0-9]+|[a-z]+)/i);
+  if (m) {
+    return `lab_${m[1]}`;
+  }
+  return str.replace(/\s+/g, '_');
+}
+
+function isRoomMatching(roomA, roomB) {
+  if (!roomA || !roomB) return false;
+  const strA = String(roomA).toLowerCase().trim();
+  const strB = String(roomB).toLowerCase().trim();
+  if (strA === strB) return true;
+  const normA = normalizeRoomIdentifier(roomA);
+  const normB = normalizeRoomIdentifier(roomB);
+  if (normA && normB && normA === normB) return true;
+  return strA.includes(strB) || strB.includes(strA);
+}
+
 // Helper: Check if user has permission to manage items/bookings in a specific room
+// SECURITY RULE: Empty assignedRooms strictly gives NO permission. Explicit permission required.
 function canUserAccessRoom(user, targetRoom) {
   if (!user) return false;
   const role = normalizeRole(user.role || user.roleLevel);
-  if (role === 'L3' || role === 'L4') return true; // Admins and Executives have global room access
+  // Admins and Executives have global room access
+  if (role === 'L3' || role === 'L4') return true;
+
+  // Staff (L2): MUST have explicitly assigned rooms. Empty or missing assignedRooms = NO PERMISSION.
   if (role === 'L2') {
-    if (!user.assignedRooms || user.assignedRooms.length === 0) return true; // Unrestricted staff
-    return user.assignedRooms.some(r => String(r).toLowerCase().trim() === String(targetRoom || '').toLowerCase().trim());
+    if (!targetRoom || String(targetRoom).trim() === '') {
+      return false; // Items or actions without a designated room cannot be managed by room-scoped staff
+    }
+    let assigned = user.assignedRooms;
+    if (typeof assigned === 'string' && assigned.trim()) {
+      assigned = assigned.split(/[,;\n]/).map(s => s.trim()).filter(Boolean);
+    }
+    if (!Array.isArray(assigned) || assigned.length === 0) {
+      return false; // Strict: No assigned rooms = ZERO permission
+    }
+    return assigned.some(r => isRoomMatching(r, targetRoom));
   }
+
   return false;
 }
 
@@ -732,7 +811,9 @@ function writeEmergencyContacts(contacts) {
 // ==========================================================================
 // GOOGLE SHEETS REAL-TIME BACKUP SYNC DISPATCHER
 // ==========================================================================
-const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
+// GOOGLE_SCRIPT_URL must be set in .env to enable Google Sheets sync.
+// If absent, all syncToGoogleSheets() calls are silently skipped (graceful no-op).
+const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || null;
 
 async function syncToGoogleSheets(table, action, data, keyField = 'id') {
   if (!GOOGLE_SCRIPT_URL) return;
@@ -1039,8 +1120,8 @@ function formatBookingForSync(b) {
   };
 }
 
-// Full Cloud Sync Aggregator Endpoint
-app.get('/api/sync/all-cloud-data', async (req, res) => {
+// Full Cloud Sync Aggregator Endpoint — Strictly L3 Admin
+app.get('/api/sync/all-cloud-data', authenticateToken, requireRole('L3'), async (req, res) => {
   try {
     const [users, items, bookings, transactions, purchaseOrders, budget, announcements] = await Promise.all([
       fetchLiveUsers(true),
@@ -1063,7 +1144,7 @@ app.get('/api/sync/all-cloud-data', async (req, res) => {
         purchaseOrders: purchaseOrders.length
       },
       data: {
-        users,
+        users: users.map(u => sanitizeUser(u)),
         items,
         bookings,
         transactions,
@@ -1077,8 +1158,8 @@ app.get('/api/sync/all-cloud-data', async (req, res) => {
   }
 });
 
-// Manual / Full Trigger: Sync All Tables to Google Sheets
-app.post('/api/sync-google-sheets', async (req, res) => {
+// Manual / Full Trigger: Sync All Tables to Google Sheets — Strictly L3 Admin
+app.post('/api/sync-google-sheets', authenticateToken, requireRole('L3'), async (req, res) => {
   try {
     const items = await fetchLiveItems(false);
     const transactions = await fetchLiveTransactions(false);
@@ -1116,6 +1197,26 @@ app.get('/api/version', (req, res) => {
   } catch (e) {
     res.json({ version: '2.6.0', pwa: true });
   }
+});
+
+// ─── PUBLIC CLIENT CONFIG ENDPOINT ───────────────────────────────────────────
+// Serves Supabase anon/publishable key + URL to the frontend.
+// The anon key is RLS-scoped and designed for client use, but must NOT be
+// hardcoded in source — it is loaded from .env and served at runtime only.
+app.get('/api/config', (req, res) => {
+  res.json({
+    supabaseUrl: SUPABASE_URL || null,
+    supabaseKey: SUPABASE_KEY || null,
+    googleScriptUrl: GOOGLE_SCRIPT_URL || null,
+    nodeEnv: NODE_ENV,
+    isProduction: IS_PRODUCTION,
+    architecture: {
+      sourceOfTruth: 'Supabase',
+      cacheLayer: 'LocalStorage/IndexedDB',
+      backupIntegration: 'GoogleSheets',
+      mockData: 'development_only'
+    }
+  });
 });
 
 // 1. GET /api/items — Fetch all items from cloud & local
@@ -1363,7 +1464,7 @@ const INCOMPATIBILITY_RULES = [
 ];
 
 // 1. GET /api/inventory/alerts — Real-time Multi-factor Alerts
-app.get('/api/inventory/alerts', async (req, res) => {
+app.get('/api/inventory/alerts', optionalAuth, async (req, res) => {
   try {
     const items = await fetchLiveItems();
     const now = new Date();
@@ -1539,6 +1640,11 @@ app.post('/api/inventory/movements', authenticateToken, requireRole('L2', 'L3'),
     }
 
     const item = items[itemIndex];
+    if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, item.room)) {
+      return res.status(403).json({
+        error: `เจ้าหน้าที่ไม่มีสิทธิ์ทำรายการเคลื่อนไหวสต็อกพัสดุในห้อง ${item.room || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+      });
+    }
     const prevQty = parseFloat(item.qty !== undefined ? item.qty : (item.quantity || 0));
     let newQty = prevQty;
 
@@ -1666,6 +1772,12 @@ app.post('/api/inventory/adjustments', authenticateToken, requireRole('L2', 'L3'
     const item = items.find(i => (i.code || '').toLowerCase() === itemCode.toLowerCase());
     if (!item) {
       return res.status(404).json({ error: `ไม่พบพัสดุรหัส ${itemCode}` });
+    }
+
+    if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, item.room)) {
+      return res.status(403).json({
+        error: `เจ้าหน้าที่ไม่มีสิทธิ์ขอปรับยอดสต็อกพัสดุในห้อง ${item.room || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+      });
     }
 
     const currentQty = parseFloat(item.qty !== undefined ? item.qty : (item.quantity || 0));
@@ -1971,7 +2083,14 @@ app.get('/api/equipment/maintenance', optionalAuth, async (req, res) => {
 app.post('/api/equipment/maintenance', authenticateToken, requireRole('L2', 'L3', 'L4'), async (req, res) => {
   try {
     const { itemCode, assetId, type, status, technician, cost, performedAt, nextDueDate, notes, certificateUrl } = req.body;
-    if (!itemCode) return res.status(400).json({ error: "itemCode is required" });
+    const items = await fetchLiveItems();
+    const item = items.find(i => (i.code || '').toLowerCase() === itemCode.toLowerCase());
+    const targetRoom = item ? item.room : req.body.room;
+    if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, targetRoom)) {
+      return res.status(403).json({
+        error: `เจ้าหน้าที่ไม่มีสิทธิ์บันทึกการบำรุงรักษาอุปกรณ์ในห้อง ${targetRoom || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+      });
+    }
 
     const newLog = {
       id: `maint_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -2104,6 +2223,15 @@ app.patch('/api/equipment/repairs/:id', authenticateToken, requireRole('L2', 'L3
     const repairs = readEquipmentRepairs();
     const rep = repairs.find(r => r.id === id);
     if (!rep) return res.status(404).json({ error: "Repair record not found" });
+
+    const items = await fetchLiveItems();
+    const item = items.find(i => (i.code || '').toLowerCase() === (rep.item_code || '').toLowerCase());
+    const targetRoom = item ? item.room : rep.room;
+    if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, targetRoom)) {
+      return res.status(403).json({
+        error: `เจ้าหน้าที่ไม่มีสิทธิ์อัปเดตงานซ่อมอุปกรณ์ในห้อง ${targetRoom || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+      });
+    }
 
     const now = new Date().toISOString();
     if (repairStatus) rep.repair_status = repairStatus;
@@ -2309,16 +2437,29 @@ app.post('/api/bookings', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4')
 
     // Handle single booking submission
     if (!Array.isArray(payload) && payload && typeof payload === 'object') {
+      const callerRole = normalizeRole(req.user.role || req.user.roleLevel);
+      const canManageOthers = (callerRole === 'L2' || callerRole === 'L3' || callerRole === 'L4');
+      const teacherId = canManageOthers ? (payload.teacherId || req.user.teacherId || req.user.id || '') : (req.user.teacherId || req.user.id || '');
+      const teacherName = canManageOthers ? (payload.teacherName || req.user.name || 'ครูผู้สอน') : (req.user.name || 'ครูผู้สอน');
+      const bookingStatus = (canManageOthers && payload.status === 'approved') ? 'approved' : 'pending';
+
+      const targetRoom = payload.room || 'Lab 1';
+      if (callerRole === 'L2' && !canUserAccessRoom(req.user, targetRoom)) {
+        return res.status(403).json({
+          error: `เจ้าหน้าที่ไม่มีสิทธิ์สร้างหรือจัดการการจองในห้อง ${targetRoom} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+        });
+      }
+
       const bookings = await fetchLiveBookings();
       const newBooking = {
         id: payload.id || `BK-${Date.now()}`,
-        room: payload.room || 'Lab 1',
+        room: targetRoom,
         date: payload.date || new Date().toISOString().split('T')[0],
         timeSlot: payload.timeSlot || payload.slot || '08:30 - 10:20',
         slot: payload.timeSlot || payload.slot || '08:30 - 10:20',
         purpose: payload.purpose || payload.experimentName || 'การเรียนการสอนปฏิบัติการ',
-        teacherId: payload.teacherId || req.user.teacherId || req.user.id || '',
-        teacherName: payload.teacherName || req.user.name || 'ครูผู้สอน',
+        teacherId,
+        teacherName,
         className: payload.className || payload.class_name || 'ม.5/1',
         studentCount: parseInt(payload.studentCount || payload.student_count || 30),
         experimentName: payload.experimentName || payload.experiment_name || payload.purpose || 'การทดลองวิทยาศาสตร์',
@@ -2334,7 +2475,7 @@ app.post('/api/bookings', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4')
           { task: "แยกขยะสารเคมีอันตราย", done: false },
           { task: "ทำความสะอาดและปิดวาล์วแก๊ส", done: false }
         ],
-        status: payload.status || 'pending',
+        status: bookingStatus,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -2388,6 +2529,15 @@ app.post('/api/bookings', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4')
 
     // Array batch submission (backward compatibility)
     const bookings = payload;
+    const callerRole = normalizeRole(req.user.role || req.user.roleLevel);
+    if (callerRole === 'L2' && Array.isArray(bookings)) {
+      const unauthorized = bookings.find(b => !canUserAccessRoom(req.user, b.room));
+      if (unauthorized) {
+        return res.status(403).json({
+          error: `เจ้าหน้าที่ไม่มีสิทธิ์จัดการข้อมูลการจองในห้อง ${unauthorized.room || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+        });
+      }
+    }
     writeBookings(bookings);
     bookingsCache = bookings;
     if (Array.isArray(bookings)) {
@@ -2423,6 +2573,12 @@ app.post('/api/bookings/:id/review', authenticateToken, requireRole('L2', 'L3', 
     const bookings = await fetchLiveBookings();
     const bk = bookings.find(b => b.id === id);
     if (!bk) return res.status(404).json({ error: "Booking not found" });
+
+    if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, bk.room)) {
+      return res.status(403).json({
+        error: `เจ้าหน้าที่ไม่มีสิทธิ์อนุมัติหรือปฏิเสธการจองในห้อง ${bk.room || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+      });
+    }
 
     const now = new Date().toISOString();
     bk.status = action;
@@ -2471,6 +2627,17 @@ app.post('/api/bookings/:id/checklist', authenticateToken, requireRole('L1', 'L2
     const bk = bookings.find(b => b.id === id);
     if (!bk) return res.status(404).json({ error: "Booking not found" });
 
+    const callerRole = normalizeRole(req.user.role || req.user.roleLevel);
+    const isOwner = (bk.teacherId && (bk.teacherId === req.user.teacherId || bk.teacherId === req.user.id));
+    if (callerRole === 'L1' && !isOwner) {
+      return res.status(403).json({ error: "คุณสามารถแก้ไขเช็กลิสต์ได้เฉพาะรายการจองของตนเองเท่านั้น" });
+    }
+    if (callerRole === 'L2' && !canUserAccessRoom(req.user, bk.room)) {
+      return res.status(403).json({
+        error: `เจ้าหน้าที่ไม่มีสิทธิ์แก้ไขเช็กลิสต์ในห้อง ${bk.room || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+      });
+    }
+
     const checklistKey = type === 'cleanup' ? 'cleanupChecklist' : 'preparationChecklist';
     if (!bk[checklistKey]) bk[checklistKey] = [];
 
@@ -2504,6 +2671,17 @@ app.post('/api/bookings/:id/cancel', authenticateToken, requireRole('L1', 'L2', 
     const bk = bookings.find(b => b.id === id);
     if (!bk) return res.status(404).json({ error: "Booking not found" });
 
+    const callerRole = normalizeRole(req.user.role || req.user.roleLevel);
+    const isOwner = (bk.teacherId && (bk.teacherId === req.user.teacherId || bk.teacherId === req.user.id));
+    if (callerRole === 'L1' && !isOwner) {
+      return res.status(403).json({ error: "คุณสามารถยกเลิกได้เฉพาะรายการจองของตนเองเท่านั้น" });
+    }
+    if (callerRole === 'L2' && !isOwner && !canUserAccessRoom(req.user, bk.room)) {
+      return res.status(403).json({
+        error: `เจ้าหน้าที่ไม่มีสิทธิ์ยกเลิกการจองในห้อง ${bk.room || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+      });
+    }
+
     const now = new Date().toISOString();
     bk.status = 'cancelled';
     bk.cancelled_at = now;
@@ -2514,9 +2692,7 @@ app.post('/api/bookings/:id/cancel', authenticateToken, requireRole('L1', 'L2', 
 
     if (supabase) {
       supabase.from('bookings').update({
-        status: 'cancelled',
-        cancelled_at: now,
-        cancelled_by: req.user.name
+        status: 'cancelled'
       }).eq('id', id).then(null, () => {});
     }
 
@@ -2538,12 +2714,9 @@ app.post('/api/bookings/:id/cancel', authenticateToken, requireRole('L1', 'L2', 
 // 🟡 P2 — BORROW / RETURN WORKFLOW & DUE DATES
 // ==========================================
 
-// GET /api/transactions — Role-based data access (optionalAuth)
-app.get('/api/transactions', optionalAuth, async (req, res) => {
+// GET /api/transactions — Role-based data access (Authenticated)
+app.get('/api/transactions', authenticateToken, async (req, res) => {
   const transactions = await fetchLiveTransactions();
-  if (!req.user) {
-    return res.json(transactions);
-  }
   const role = normalizeRole(req.user.role || req.user.roleLevel);
 
   if (role === 'L3' || role === 'L4' || role === 'L2') {
@@ -2559,9 +2732,18 @@ app.get('/api/transactions', optionalAuth, async (req, res) => {
   res.json(filtered);
 });
 
-// POST /api/transactions — Authenticated (L1 Teachers, L2 Staff, L3 Admin)
-app.post('/api/transactions', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+// POST /api/transactions — Authenticated (Strictly L2 Staff, L3 Admin, L4 Executive)
+app.post('/api/transactions', authenticateToken, requireRole('L2', 'L3', 'L4'), async (req, res) => {
   const transactions = req.body;
+  const role = normalizeRole(req.user.role || req.user.roleLevel);
+  if (role === 'L2' && Array.isArray(transactions)) {
+    const unauthorized = transactions.find(t => t.room && !canUserAccessRoom(req.user, t.room));
+    if (unauthorized) {
+      return res.status(403).json({
+        error: `เจ้าหน้าที่ไม่มีสิทธิ์บันทึกประวัติการยืม-คืนในห้อง ${unauthorized.room} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+      });
+    }
+  }
   writeTransactions(transactions);
   transactionsCache = transactions;
   if (Array.isArray(transactions)) {
@@ -2600,7 +2782,8 @@ app.post('/api/borrow/request', authenticateToken, requireRole('L1', 'L2', 'L3',
       });
     }
 
-    const isDirectApproved = ['L2', 'L3', 'L4'].includes(req.user.roleLevel || req.user.role);
+    const userRole = normalizeRole(req.user.roleLevel || req.user.role);
+    const isDirectApproved = (userRole === 'L3' || userRole === 'L4') || (userRole === 'L2' && canUserAccessRoom(req.user, item.room));
 
     const newTx = {
       id: `TX-${Date.now()}`,
@@ -2609,6 +2792,7 @@ app.post('/api/borrow/request', authenticateToken, requireRole('L1', 'L2', 'L3',
       itemName: item.name,
       item_name: item.name,
       category: item.category,
+      room: item.room || '',
       quantity: reqQty,
       unit: item.unit || 'ชิ้น',
       borrower: req.user.name || 'ผู้ยืม',
@@ -2685,8 +2869,8 @@ app.post('/api/borrow/request', authenticateToken, requireRole('L1', 'L2', 'L3',
   }
 });
 
-// POST /api/borrow/:id/return — Return item with condition check and stock restock
-app.post('/api/borrow/:id/return', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+// POST /api/borrow/:id/return — Return item with condition check and stock restock (L2 Staff / L3 Admin / L4 Exec)
+app.post('/api/borrow/:id/return', authenticateToken, requireRole('L2', 'L3', 'L4'), async (req, res) => {
   try {
     const { id } = req.params;
     const { condition, damagedStatus, damageFine, damageNotes } = req.body;
@@ -2695,6 +2879,15 @@ app.post('/api/borrow/:id/return', authenticateToken, requireRole('L1', 'L2', 'L
     const tx = txs.find(t => t.id === id);
     if (!tx) return res.status(404).json({ error: "ไม่พบข้อมูลรายการยืม" });
     if (tx.status === 'returned') return res.status(400).json({ error: "รายการนี้ส่งคืนแล้ว" });
+
+    const items = await fetchLiveItems();
+    const item = items.find(i => (i.code || '').toLowerCase() === (tx.itemCode || tx.item_code || '').toLowerCase());
+    const targetRoom = item ? item.room : tx.room;
+    if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, targetRoom)) {
+      return res.status(403).json({
+        error: `เจ้าหน้าที่ไม่มีสิทธิ์บันทึกการส่งคืนพัสดุในห้อง ${targetRoom || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
+      });
+    }
 
     const now = new Date().toISOString();
     tx.status = 'returned';
@@ -2751,13 +2944,21 @@ app.post('/api/borrow/:id/return', authenticateToken, requireRole('L1', 'L2', 'L
 app.get('/api/borrow/overdue', optionalAuth, async (req, res) => {
   try {
     const txs = await fetchLiveTransactions();
+    const role = normalizeRole(req.user.role || req.user.roleLevel);
+    const myId = String(req.user.teacherId || req.user.id || '').toLowerCase().trim();
+    const myName = String(req.user.name || '').toLowerCase().trim();
     const now = new Date();
 
     const overdue = txs.filter(tx => {
       if (tx.status === 'returned') return false;
       const due = tx.dueDate || tx.expectedReturnDate;
       if (!due) return false;
-      return new Date(due) < now;
+      if (new Date(due) >= now) return false;
+      if (role === 'L1') {
+        const b = String(tx.borrower || tx.teacherId || '').toLowerCase().trim();
+        return b.includes(myName) || b.includes(myId) || (myId && b === myId);
+      }
+      return true;
     }).map(tx => {
       const due = new Date(tx.dueDate || tx.expectedReturnDate);
       const daysOverdue = Math.max(1, Math.floor((now.getTime() - due.getTime()) / 86400000));
@@ -2809,7 +3010,7 @@ app.get('/api/borrow/quick-scan/:code', optionalAuth, async (req, res) => {
 // ==========================================
 
 // GET /api/budget
-app.get('/api/budget', async (req, res) => {
+app.get('/api/budget', optionalAuth, async (req, res) => {
   const budget = await fetchLiveBudget();
   res.json(budget);
 });
@@ -3031,6 +3232,20 @@ app.post('/api/procurement/orders/:id/receive', authenticateToken, requireRole('
     const movements = readStockMovements();
 
     if (Array.isArray(receivedItems)) {
+      const callerRole = normalizeRole(req.user.role || req.user.roleLevel);
+      if (callerRole === 'L2') {
+        const unauthorized = receivedItems.find(rcv => {
+          const item = items.find(i => (i.code || '').toLowerCase() === (rcv.code || '').toLowerCase());
+          const room = item ? item.room : rcv.room;
+          return room && !canUserAccessRoom(req.user, room);
+        });
+        if (unauthorized) {
+          return res.status(403).json({
+            error: "เจ้าหน้าที่ไม่มีสิทธิ์รับพัสดุเข้าห้องที่ตนเองไม่ได้ดูแล"
+          });
+        }
+      }
+
       receivedItems.forEach(rcv => {
         const item = items.find(i => (i.code || '').toLowerCase() === (rcv.code || '').toLowerCase());
         const rcvQty = parseFloat(rcv.receivedQty || rcv.qty || 0);
@@ -3092,12 +3307,18 @@ app.post('/api/procurement/orders/:id/receive', authenticateToken, requireRole('
 // GET /api/dashboard/role-view — Dynamic role-customized dashboard payload
 app.get('/api/dashboard/role-view', optionalAuth, async (req, res) => {
   try {
-    const roleOverride = req.query.role; // Allows previewing any role
-    let activeRole = 'L1';
-    if (roleOverride) {
-      activeRole = normalizeRole(roleOverride);
-    } else if (req.user) {
-      activeRole = normalizeRole(req.user.role || req.user.roleLevel);
+    const roleRank = { 'L0': 0, 'L1': 1, 'L2': 2, 'L3': 3, 'L4': 4 };
+    const userRole = req.user ? normalizeRole(req.user.role || req.user.roleLevel) : 'L0';
+    let activeRole = req.user ? userRole : 'L1';
+
+    const requestedRole = req.query.role ? normalizeRole(req.query.role) : null;
+    if (requestedRole) {
+      // Admin (L3) and Executive (L4) can preview any dashboard view; others can preview at or below their rank
+      const userMaxRank = roleRank[userRole] || 0;
+      const requestedRank = roleRank[requestedRole] || 0;
+      if (req.user && (userRole === 'L3' || userRole === 'L4' || requestedRank <= userMaxRank)) {
+        activeRole = requestedRole;
+      }
     }
 
     const items = await fetchLiveItems();
@@ -3363,29 +3584,24 @@ function getRoleColor(role) {
 let usersCache = null;
 let lastUsersFetch = 0;
 
-// Fetch Live Users — Supabase as Single Source of Truth with Local Standby Backup
+// Fetch Live Users — Supabase / Database as Single Source of Truth
 async function fetchLiveUsers(forceRefresh = false) {
   if (!forceRefresh && usersCache && (Date.now() - lastUsersFetch < 15000)) {
     return usersCache;
   }
 
-  // 1. Primary Source of Truth: Supabase
+  // 1. Primary Source of Truth: Supabase Database
   if (supabase) {
     try {
       const { data: supaUsers, error } = await supabase.from('users').select('*');
       if (!error && Array.isArray(supaUsers) && supaUsers.length > 0) {
-        const localUsers = readUsers();
         const activeUsers = supaUsers.filter(u => u.is_deleted !== true && u.isDeleted !== true);
 
         const cleanUsers = activeUsers.map(su => {
           const tId = String(su.teacherId || su.teacher_id || su.id || '').trim();
-          const localMatch = localUsers.find(u => String(u.teacherId || '').toLowerCase() === tId.toLowerCase() || u.id === su.id);
-          const existingPass = localMatch ? localMatch.password : null;
-          let userPass = su.password || existingPass;
+          let userPass = su.password;
           if (!userPass || (!userPass.startsWith('$2a$') && !userPass.startsWith('$2b$'))) {
-            userPass = (existingPass && (existingPass.startsWith('$2a$') || existingPass.startsWith('$2b$')))
-              ? existingPass
-              : bcrypt.hashSync(String(userPass || tId), 10);
+            userPass = bcrypt.hashSync(String(userPass || tId), 10);
           }
 
           return {
@@ -3410,7 +3626,7 @@ async function fetchLiveUsers(forceRefresh = false) {
           };
         });
 
-        if (!fs.existsSync(USERS_FILE)) writeUsers(cleanUsers);
+        // NOTE: Production database users are NEVER written to a local JSON file
         usersCache = cleanUsers;
         lastUsersFetch = Date.now();
         return cleanUsers;
@@ -3420,7 +3636,13 @@ async function fetchLiveUsers(forceRefresh = false) {
     }
   }
 
-  // 2. Standby Offline Backup
+  // 2. Production Security Guard: In production, users MUST come from the database backend
+  if (IS_PRODUCTION) {
+    console.error("[Auth:Security] In production mode, authentication and users MUST come from database backend. Local fallback rejected.");
+    return [];
+  }
+
+  // 3. Standby Offline Mock (Development Only)
   const localUsers = readUsers().filter(u => !u.is_deleted);
   usersCache = localUsers;
   lastUsersFetch = Date.now();
@@ -3792,6 +4014,12 @@ function normalizeThaiDigits(str) {
 // AUTH LOGIN ENDPOINT (Supports Teacher ID, Email, Name, or ID)
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
+  if (IS_PRODUCTION && !supabase) {
+    return res.status(503).json({
+      success: false,
+      message: "ระบบยืนยันตัวตนในโหมด Production ต้องเชื่อมต่อฐานข้อมูลหลัก กรุณาตรวจสอบการตั้งค่าฐานข้อมูล"
+    });
+  }
   let users = await fetchLiveUsers();
   
   const rawUser = normalizeThaiDigits((username || '').trim());
@@ -3849,11 +4077,13 @@ app.post('/api/auth/login', async (req, res) => {
       if (!userPass.startsWith('$2a$') && !userPass.startsWith('$2b$')) {
         const hashed = bcrypt.hashSync(cleanPass, 10);
         user.password = hashed;
-        const localAll = readUsers();
-        const lIdx = localAll.findIndex(u => u.id === user.id || u.teacherId === user.teacherId);
-        if (lIdx !== -1) {
-          localAll[lIdx].password = hashed;
-          writeUsers(localAll);
+        if (!IS_PRODUCTION) {
+          const localAll = readUsers();
+          const lIdx = localAll.findIndex(u => u.id === user.id || u.teacherId === user.teacherId);
+          if (lIdx !== -1) {
+            localAll[lIdx].password = hashed;
+            writeUsers(localAll);
+          }
         }
         if (supabase) {
           supabase.from('users').update({ password: hashed }).eq('id', user.id).then(null, () => {});
@@ -4128,15 +4358,15 @@ app.get('/api/push-vapid-public-key', (req, res) => {
   res.json({ publicKey: vapidKeys.publicKey });
 });
 
-// GET Push Subscriptions status
-app.get('/api/push-subscriptions', (req, res) => {
+// GET Push Subscriptions status — Strictly L3 Admin
+app.get('/api/push-subscriptions', authenticateToken, requireRole('L3'), (req, res) => {
   const subs = readPushSubscriptions();
   res.json({ count: subs.length, subscriptions: subs });
 });
 
-// POST Save Push Subscription
-app.post('/api/push-subscriptions', (req, res) => {
-  const { subscription, userRole, deviceName } = req.body;
+// POST Save Push Subscription — Authenticated
+app.post('/api/push-subscriptions', authenticateToken, (req, res) => {
+  const { subscription, deviceName } = req.body;
   if (!subscription || !subscription.endpoint) {
     return res.status(400).json({ error: "Invalid subscription data" });
   }
@@ -4147,7 +4377,9 @@ app.post('/api/push-subscriptions', (req, res) => {
   const record = {
     id: "sub_" + Date.now(),
     subscription,
-    userRole: userRole || "admin",
+    userRole: normalizeRole(req.user.role || req.user.roleLevel),
+    userId: req.user.id || req.user.teacherId,
+    userName: req.user.name || 'User',
     deviceName: deviceName || "Browser",
     updatedAt: new Date().toISOString()
   };
@@ -4162,8 +4394,8 @@ app.post('/api/push-subscriptions', (req, res) => {
   res.json({ success: true, count: subs.length });
 });
 
-// DELETE Push Subscription
-app.delete('/api/push-subscriptions', (req, res) => {
+// DELETE Push Subscription — Authenticated
+app.delete('/api/push-subscriptions', authenticateToken, (req, res) => {
   const { endpoint } = req.body;
   let subs = readPushSubscriptions();
   subs = subs.filter(s => s.subscription && s.subscription.endpoint !== endpoint);
@@ -4171,8 +4403,8 @@ app.delete('/api/push-subscriptions', (req, res) => {
   res.json({ success: true, count: subs.length });
 });
 
-// POST Send Test Push Notification
-app.post('/api/test-push', async (req, res) => {
+// POST Send Test Push Notification — Strictly L3 Admin
+app.post('/api/test-push', authenticateToken, requireRole('L3'), async (req, res) => {
   const subs = readPushSubscriptions();
   if (subs.length === 0) {
     return res.status(400).json({ error: "ยังไม่มีอุปกรณ์แอดมินลงทะเบียนรับแจ้งเตือน" });
@@ -4193,8 +4425,8 @@ app.post('/api/test-push', async (req, res) => {
   res.json({ success: true, sentToCount: subs.length });
 });
 
-// POST Trigger Push Notification for new request
-app.post('/api/notify-admins', async (req, res) => {
+// POST Trigger Push Notification for new request — Authenticated
+app.post('/api/notify-admins', authenticateToken, async (req, res) => {
   const { type, id, title, booker, item, date, room, qty, unit } = req.body;
   
   let pushTitle = "🔔 มีคำขอใหม่รอการอนุมัติ";

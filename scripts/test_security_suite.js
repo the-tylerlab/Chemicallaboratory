@@ -80,10 +80,13 @@ async function runTestSuite() {
     // Test 1 & 2: Authentication & Password Hashing
     // -------------------------------------------------------------
     console.log("--- 1. Authentication & Password Hashing ---");
-    // Verify data/users.json has no plaintext passwords
-    const usersData = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../data/users.json'), 'utf8'));
+    // Verify data/users.example.json or data/users.json has no plaintext passwords
+    const usersFile = fs.existsSync(path.resolve(__dirname, '../data/users.json'))
+      ? path.resolve(__dirname, '../data/users.json')
+      : path.resolve(__dirname, '../data/users.example.json');
+    const usersData = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
     const allHashed = usersData.every(u => u.password && u.password.startsWith('$2b$10$'));
-    assert(allHashed, "All passwords in data/users.json are hashed with bcrypt ($2b$10$)");
+    assert(allHashed, "All passwords in user dataset are hashed with bcrypt ($2b$10$)");
 
     // Invalid login
     const failLogin = await request({
@@ -105,7 +108,7 @@ async function runTestSuite() {
     const teacherLogin = await request({
       host: 'localhost', port: 3000, path: '/api/auth/login', method: 'POST',
       headers: { 'Content-Type': 'application/json' }
-    }, { username: '10746', password: '10746' });
+    }, { username: '1001', password: '1001' });
     assert(teacherLogin.status === 200 && teacherLogin.body.user.role === 'L1', "Teacher login returns L1 user profile");
     const teacherToken = teacherLogin.body.token;
 

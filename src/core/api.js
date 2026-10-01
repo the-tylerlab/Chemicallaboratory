@@ -2,6 +2,10 @@
  * @file api.js
  * @description Centralized API Client, Token Management, and Sync Services
  * Module: core/api
+ *
+ * SECURITY: No credentials are stored in this file.
+ * - Supabase config is fetched at runtime from /api/config (see app.js initSupabaseFromConfig)
+ * - Google Script URL is fetched at runtime from /api/config (see app.js initSupabaseFromConfig)
  */
 
 // Base API URL Resolver (Supports port 3000 Express server, port 5500 Live Server, Vite, and production)
@@ -21,26 +25,20 @@ export function resolveApiBase() {
 
 export const API_BASE = resolveApiBase();
 
-// Direct Supabase Client (For instant frontend fallback if backend server is offline)
-export const SUPABASE_URL = "https://avzneyaalenbyawfvykp.supabase.co";
-export const SUPABASE_KEY = "sb_publishable_iqpHDJXb983_PwFSoSDV9w_kd2pvKoj";
-let _supabaseClient = null;
-
+/**
+ * Returns the Supabase client initialized by app.js bootstrap (initSupabaseFromConfig).
+ * Returns null if Supabase has not been configured (offline / local mode).
+ *
+ * NOTE: No credentials are stored here. The client is initialized in app.js
+ * by fetching config from the backend /api/config endpoint at startup.
+ */
 export function getClientSupabase() {
-  if (_supabaseClient) return _supabaseClient;
-  if (typeof window !== "undefined" && window.supabase && typeof window.supabase.createClient === "function") {
-    try {
-      _supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      return _supabaseClient;
-    } catch(e) {
-      console.warn("Failed to init client Supabase:", e);
-    }
+  // Delegate to the globally initialized client from app.js bootstrap
+  if (typeof window !== "undefined" && window.__supabaseClient) {
+    return window.__supabaseClient;
   }
   return null;
 }
-
-// Google Sheets Webhook URL
-export const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec";
 
 // Token Management
 export function getAuthToken() {
@@ -121,9 +119,16 @@ if (typeof window !== "undefined" && window.fetch && !window.__FETCH_INTERCEPTOR
   };
 }
 
-// Direct Google Sheets Synchronization Helper
+/**
+ * Direct Google Sheets Synchronization Helper.
+ *
+ * The webhook URL is NOT stored in this file. It is fetched at startup by
+ * initSupabaseFromConfig() in app.js from /api/config and stored in
+ * window.GOOGLE_SCRIPT_WEBAPP_URL. This function reads it at call-time.
+ */
 export async function syncToGoogleSheetsDirect(sheetName, action, payload, keyField = 'code') {
-  if (!GOOGLE_SCRIPT_URL) return;
+  const url = (typeof window !== 'undefined') ? window.GOOGLE_SCRIPT_WEBAPP_URL : null;
+  if (!url) return;
   try {
     const body = {
       sheetName,
@@ -132,7 +137,7 @@ export async function syncToGoogleSheetsDirect(sheetName, action, payload, keyFi
       keyField,
       timestamp: new Date().toISOString()
     };
-    await fetch(GOOGLE_SCRIPT_URL, {
+    await fetch(url, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
