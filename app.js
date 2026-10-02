@@ -83,9 +83,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "AD",
-    color: "#7c3aed",
-    password: "$2b$10$pxxBw5uNIIYrwtUsKNBEjOakJNprgrzcKjdyiCtwQgba4P6eY1bGu",
-    display_password: "SciAdmin@2026"
+    color: "#7c3aed"
   },
   {
     id: "u_10823",
@@ -96,9 +94,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "วด",
-    color: "#7c3aed",
-    password: "$2b$10$pxxBw5uNIIYrwtUsKNBEjOakJNprgrzcKjdyiCtwQgba4P6eY1bGu",
-    display_password: "SciAdmin@2026"
+    color: "#7c3aed"
   },
   {
     id: "u_10572",
@@ -109,9 +105,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "พป",
-    color: "#7c3aed",
-    password: "$2b$10$p9S.14.XdbUzvI/5jByRveydpvsgZjeApu37sQ2k9rPU8oBP/IG/K",
-    display_password: "10572"
+    color: "#7c3aed"
   },
   {
     id: "u_4001",
@@ -122,9 +116,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "คณะกรรมการบริหารสถานศึกษา",
     assignedRooms: [],
     initials: "กว",
-    color: "#be185d",
-    password: "$2b$10$LEXlUiJq1lmAz0GG6DVT5e5zREFsh2kDzPtgZYSmSAuHK9rn5GadK",
-    display_password: "4001"
+    color: "#be185d"
   },
   {
     id: "u_10568",
@@ -135,9 +127,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "วส",
-    color: "#be185d",
-    password: "$2b$10$kebmE/bTciWUdmRx82u9vu4kXKjrAIp4/fYxFwLHmDXJYJnwqfKSm",
-    display_password: "10568"
+    color: "#be185d"
   },
   {
     id: "u_2001",
@@ -148,9 +138,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "งานบริการห้องปฏิบัติการวิทยาศาสตร์",
     assignedRooms: ["Lab 1", "Lab 6"],
     initials: "ธพ",
-    color: "#ea580c",
-    password: "$2b$10$FX1KnNRlIZLjKOiNL1195.AY8r3D.54B4AZ8I0TzsKhR.FZmxAA/K",
-    display_password: "2001"
+    color: "#ea580c"
   },
   {
     id: "u_2002",
@@ -161,9 +149,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "งานบริการห้องปฏิบัติการวิทยาศาสตร์",
     assignedRooms: ["Lab 2", "Lab 3"],
     initials: "นด",
-    color: "#ea580c",
-    password: "$2b$10$2E2fZ0rKyvwbGURMR28k2OYfy0dcYu/JbT5u4W8LsgFCVJB/RCxze",
-    display_password: "2002"
+    color: "#ea580c"
   },
   {
     id: "u_10785",
@@ -174,9 +160,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: ["Lab 3"],
     initials: "ศก",
-    color: "#ea580c",
-    password: "$2b$10$n0Hmi5OnXKaoMgKDgX4iHukDHzl5stmKJmiV3n.zIedtLd8jYzyoq",
-    display_password: "10785"
+    color: "#ea580c"
   },
   {
     id: "u_10824",
@@ -187,9 +171,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: ["Lab 2"],
     initials: "พร",
-    color: "#ea580c",
-    password: "$2b$10$/E5yygavr9ItQoKVH.oQ5OJz4q7XdQFXBJzx0q5gB1Nql.ugWiWCC",
-    display_password: "10824"
+    color: "#ea580c"
   },
   {
     id: "u_1001",
@@ -200,9 +182,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาเคมี)",
     assignedRooms: [],
     initials: "สร",
-    color: "#0284c7",
-    password: "$2b$10$n/967NV.zZCaXgPDSlHsQOXsHVohYKRP3zavkPd3kpMizNODlJuli",
-    display_password: "1001"
+    color: "#0284c7"
   },
   {
     id: "u_1002",
@@ -213,9 +193,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาฟิสิกส์)",
     assignedRooms: [],
     initials: "วฝ",
-    color: "#0284c7",
-    password: "$2b$10$O9TFF1XRMqpxdwcZJIHtgusYCmn0witKOSwoWzH3Qh.edkzceB0uK",
-    display_password: "1002"
+    color: "#0284c7"
   },
   {
     id: "u_10746",
@@ -226,9 +204,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "สช",
-    color: "#0284c7",
-    password: "$2b$10$grhnP8MuKcWl8KtIHKdBGeLqduY6v06q.b9UizwaZqBUBzNatPXq6",
-    display_password: "10746"
+    color: "#0284c7"
   },
   {
     id: "u_10797",
@@ -239,9 +215,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "ธพ",
-    color: "#0284c7",
-    password: "$2b$10$Z7xBflCXrUSkZIQCr7/bBOvqr1U3xawQoqUGky.0mwssJ1AqvIEtW",
-    display_password: "10797"
+    color: "#0284c7"
   }
 ];
 if (typeof window !== "undefined") {
@@ -309,24 +283,7 @@ async function restoreAndVerifySession() {
       return null;
     }
 
-    if (token.startsWith('sb_session_')) {
-      const storedUser = localStorage.getItem("currentUser");
-      if (storedUser) {
-        try {
-          const u = JSON.parse(storedUser);
-          if (u && u.id) {
-            currentUser = u;
-            userRole = (u.role || 'L1');
-            isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
-            if (typeof window.setCurrentUser === "function") {
-              window.setCurrentUser(u, token);
-            }
-            safeTriggerLoginUI();
-            return currentUser;
-          }
-        } catch (_) {}
-      }
-    }
+    // Strictly require server-verified JWT token (No mock or client-side tokens allowed)
 
     try {
       const res = await fetch((typeof API_BASE !== 'undefined' ? API_BASE : resolveApiBase()) + '/auth/me', {
@@ -9644,7 +9601,7 @@ function setupLoginHandlers() {
         let authSuccess = false;
         let authData = null;
 
-        // 1. Try Authenticating with backend server JWT endpoint
+        // Authenticate strictly with backend server JWT endpoint (Strict Zero-Trust)
         try {
           const res = await fetch('/api/auth/login', {
             method: 'POST',
@@ -9661,111 +9618,17 @@ function setupLoginHandlers() {
             if (errorMsg) errorMsg.style.display = "flex";
             if (errorText) errorText.innerText = errData.message || "รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง";
             return;
+          } else {
+            const errData = await res.json().catch(() => ({}));
+            if (errorMsg) errorMsg.style.display = "flex";
+            if (errorText) errorText.innerText = errData.message || "เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์";
+            return;
           }
         } catch (apiErr) {
-          console.warn("[Auth] Backend /api/auth/login unreachable, trying Cloud Supabase fallback...", apiErr);
-        }
-
-        // 2. Direct Supabase Cloud Fallback (for Vercel static deployment or offline cache)
-        if (!authSuccess && typeof supabase !== 'undefined' && supabase) {
-          const { data: supaUsers, error: supaErr } = await supabase.from('users').select('*');
-          if (!supaErr && Array.isArray(supaUsers)) {
-            const cleanUser = String(username).trim().toLowerCase();
-            const cleanPass = String(password).trim();
-            const found = supaUsers.find(u => {
-              const uId = String(u.id || '').trim().toLowerCase();
-              const tId = String(u.teacherId || u.teacher_id || '').trim().toLowerCase();
-              const uName = String(u.name || '').trim().toLowerCase();
-              if (cleanUser === 'admin' && (tId === 'admin' || uId === 'u_admin' || uName.includes('admin'))) return true;
-              return tId === cleanUser || uId === cleanUser || uName === cleanUser;
-            });
-
-            if (found) {
-              let pwMatch = false;
-              if (typeof dcodeIO !== 'undefined' && dcodeIO.bcrypt) {
-                try {
-                  pwMatch = dcodeIO.bcrypt.compareSync(cleanPass, found.password || '');
-                } catch (_) {}
-              }
-              if (!pwMatch) {
-                const targetTeacherId = String(found.teacherId || found.teacher_id || '').trim();
-                if (cleanPass === targetTeacherId) pwMatch = true;
-                if ((targetTeacherId === 'admin' || targetTeacherId === '10823') && cleanPass === 'SciAdmin@2026') pwMatch = true;
-              }
-
-              if (pwMatch) {
-                authSuccess = true;
-                const fakeToken = 'sb_session_' + found.id + '_' + Date.now();
-                authData = {
-                  success: true,
-                  token: fakeToken,
-                  user: {
-                    id: found.id,
-                    teacherId: found.teacherId || found.teacher_id || found.id,
-                    name: found.name,
-                    role: found.role || 'L1',
-                    roleName: found.roleName || found.role || 'Teacher',
-                    assignedRooms: found.assignedRooms || [],
-                    initials: found.initials || 'U',
-                    color: found.color || '#3b82f6'
-                  }
-                };
-              } else {
-                if (errorMsg) errorMsg.style.display = "flex";
-                if (errorText) errorText.innerText = "รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบรหัสผ่านของท่าน";
-                return;
-              }
-            }
-          }
-        }
-
-        // 3. System Built-in Registry Fallback (100% resilient when offline, static Vercel, or cold start)
-        if (!authSuccess && typeof SYSTEM_USERS_REGISTRY !== 'undefined' && Array.isArray(SYSTEM_USERS_REGISTRY)) {
-          const cleanUser = String(username).trim().toLowerCase();
-          const cleanPass = String(password).trim();
-          const found = SYSTEM_USERS_REGISTRY.find(u => {
-            const uId = String(u.id || '').trim().toLowerCase();
-            const tId = String(u.teacherId || '').trim().toLowerCase();
-            const uName = String(u.name || '').trim().toLowerCase();
-            if (cleanUser === 'admin' && (tId === 'admin' || uId === 'u_admin' || uName.includes('admin'))) return true;
-            return tId === cleanUser || uId === cleanUser || uName === cleanUser;
-          });
-
-          if (found) {
-            let pwMatch = false;
-            if (cleanPass === found.display_password || cleanPass === found.teacherId) {
-              pwMatch = true;
-            }
-            if (!pwMatch && typeof dcodeIO !== 'undefined' && dcodeIO.bcrypt) {
-              try {
-                pwMatch = dcodeIO.bcrypt.compareSync(cleanPass, found.password || '');
-              } catch (_) {}
-            }
-
-            if (pwMatch) {
-              authSuccess = true;
-              const fakeToken = 'sb_session_' + found.id + '_' + Date.now();
-              authData = {
-                success: true,
-                token: fakeToken,
-                user: {
-                  id: found.id,
-                  teacherId: found.teacherId,
-                  name: found.name,
-                  role: found.role || 'L1',
-                  roleName: found.roleName || 'Teacher',
-                  department: found.department || '',
-                  assignedRooms: found.assignedRooms || [],
-                  initials: found.initials || 'U',
-                  color: found.color || '#3b82f6'
-                }
-              };
-            } else {
-              if (errorMsg) errorMsg.style.display = "flex";
-              if (errorText) errorText.innerText = "รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบรหัสผ่านของท่าน";
-              return;
-            }
-          }
+          console.warn("[Auth] Backend /api/auth/login unreachable:", apiErr);
+          if (errorMsg) errorMsg.style.display = "flex";
+          if (errorText) errorText.innerText = "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อยืนยันตัวตนได้ กรุณาตรวจสอบการเชื่อมต่อเครือข่าย";
+          return;
         }
 
         if (authSuccess && authData && authData.user) {
@@ -17967,14 +17830,13 @@ function renderAdminUsers(filteredList = null) {
       <td style="padding: 11px 14px; white-space: nowrap;">
         <span class="badge-role ${badgeInfo.className}" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px;">${badgeInfo.level} ${badgeInfo.name}</span>
       </td>
-      <td style="padding: 11px 14px; min-width: 110px;">${roomsHtml}</td>
-      <td style="padding: 11px 14px; white-space: nowrap;">
+      <td style="padding: 11px 14px; white-space: nowrap; width: 190px; min-width: 190px;">
         <div style="display: flex; align-items: center; gap: 6px;">
-          <span class="user-pass-val" id="user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="font-family: monospace; font-size: 12.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 7px; border-radius: 6px; color: #475569; min-width: 75px; text-align: center; letter-spacing: 1.5px;">••••••••</span>
-          <button type="button" onclick="toggleAdminUserPassEye('${escapeHTML(user.id)}')" title="แสดง/ซ่อนรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b;">
+          <span class="user-pass-val" id="user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="display: inline-block; font-family: monospace; font-size: 12.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 7px; border-radius: 6px; color: #475569; width: 128px; min-width: 128px; max-width: 128px; text-align: center; letter-spacing: 1px; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">••••••••</span>
+          <button type="button" onclick="toggleAdminUserPassEye('${escapeHTML(user.id)}')" title="แสดง/ซ่อนรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;">
             <i data-lucide="eye" id="user-eye-${escapeHTML(user.id)}" style="width: 14px; height: 14px;"></i>
           </button>
-          <button type="button" onclick="copyAdminUserPass('${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}')" title="คัดลอกรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b;">
+          <button type="button" onclick="copyAdminUserPass('${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}')" title="คัดลอกรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;">
             <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
           </button>
         </div>
@@ -18026,7 +17888,7 @@ function renderAdminUsers(filteredList = null) {
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
             <span style="font-size: 11px; color: #64748b;">รหัสผ่าน:</span>
-            <span class="user-pass-val" id="mobile-user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="font-family: monospace; font-size: 11.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 1px 6px; border-radius: 4px; color: #475569;">••••••••</span>
+            <span class="user-pass-val" id="mobile-user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="display: inline-block; font-family: monospace; font-size: 11.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 1px 6px; border-radius: 4px; color: #475569; width: 118px; min-width: 118px; max-width: 118px; text-align: center; letter-spacing: 1px; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">••••••••</span>
             <button type="button" onclick="toggleAdminUserPassEye('${escapeHTML(user.id)}', true)" title="แสดง/ซ่อน" style="background: none; border: none; cursor: pointer; padding: 1px; color: #64748b;">
               <i data-lucide="eye" id="mobile-user-eye-${escapeHTML(user.id)}" style="width: 13px; height: 13px;"></i>
             </button>
@@ -19698,11 +19560,11 @@ window.toggleAdminUserPassEye = function(userId, isMobile = false) {
   const realPass = span.getAttribute("data-pass") || "";
   if (span.textContent.trim() === "••••••••") {
     span.textContent = realPass;
-    span.style.letterSpacing = "normal";
+    span.style.letterSpacing = "0.5px";
     if (icon) icon.setAttribute("data-lucide", "eye-off");
   } else {
     span.textContent = "••••••••";
-    span.style.letterSpacing = isMobile ? "normal" : "1.5px";
+    span.style.letterSpacing = "1px";
     if (icon) icon.setAttribute("data-lucide", "eye");
   }
   if (window.lucide) lucide.createIcons();

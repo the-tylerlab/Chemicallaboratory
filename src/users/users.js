@@ -160,13 +160,13 @@ export function renderUsersTable() {
         </td>
         <td><span style="font-size: 12px; color: #64748b;">${escapeHtml(rooms)}</span></td>
         <td><span style="font-size: 12px; color: #64748b;">${escapeHtml(u.department || '-')}</span></td>
-        <td>
+        <td style="white-space: nowrap; width: 190px; min-width: 190px;">
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="user-pass-val" id="mod-user-pass-${tId}" data-pass="${pass}" style="font-family: monospace; font-size: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #475569;">••••••••</span>
-            <button type="button" onclick="if(window.toggleAdminUserPassEye) toggleAdminUserPassEye('${tId}');" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b;" title="แสดง/ซ่อนรหัสผ่าน">
-              <i data-lucide="eye" style="width: 13px; height: 13px;"></i>
+            <span class="user-pass-val" id="mod-user-pass-${tId}" data-pass="${pass}" style="display: inline-block; font-family: monospace; font-size: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 7px; border-radius: 6px; color: #475569; width: 128px; min-width: 128px; max-width: 128px; text-align: center; letter-spacing: 1px; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">••••••••</span>
+            <button type="button" onclick="if(window.toggleAdminUserPassEye) toggleAdminUserPassEye('${tId}');" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;" title="แสดง/ซ่อนรหัสผ่าน">
+              <i data-lucide="eye" id="user-eye-${tId}" style="width: 13px; height: 13px;"></i>
             </button>
-            <button type="button" onclick="if(window.copyAdminUserPass) copyAdminUserPass('${pass}');" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b;" title="คัดลอกรหัสผ่าน">
+            <button type="button" onclick="if(window.copyAdminUserPass) copyAdminUserPass('${pass}');" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;" title="คัดลอกรหัสผ่าน">
               <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
             </button>
           </div>
