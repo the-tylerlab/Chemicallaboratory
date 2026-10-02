@@ -43,7 +43,7 @@ setInterval(() => {
   if (revokedTokens.size > 10000) {
     revokedTokens.clear();
   }
-}, 3600000);
+}, 3600000).unref();
 
 // ─── SUPABASE CONFIGURATION ───────────────────────────────────────────────────
 // Values MUST come from environment variables. No hardcoded fallbacks.
@@ -535,15 +535,48 @@ function normalizeRole(role) {
   return r;
 }
 
-// Helper: Verify password with bcrypt (supports legacy plaintext upgrade)
-function verifyPassword(inputPassword, storedPasswordOrHash) {
+// Breached historical credentials from Git history that are permanently revoked
+const LEAKED_HISTORICAL_PASSWORDS = new Set([
+  'admin',
+  'admin1234',
+  'teacher1234',
+  'Admin@Lab2026',
+  'C#8m!K2$vL',
+  'Admin@Lab2805',
+  '1001',
+  '1002',
+  '2001',
+  '2002',
+  '3001',
+  '4001',
+  '10746',
+  '10797',
+  '10823',
+  '10568',
+  '10785',
+  '10824',
+  '10572',
+  '1234',
+  'password',
+  '12345678'
+]);
+
+// Helper: Verify password with bcrypt (rejects breached passwords and plaintext)
+function verifyPassword(inputPassword, storedPasswordOrHash, user = null) {
   if (!inputPassword || !storedPasswordOrHash) return false;
+  const cleanInput = String(inputPassword).trim();
+  
+  // Guard 1: Never allow historical leaked passwords
+  if (LEAKED_HISTORICAL_PASSWORDS.has(cleanInput)) return false;
+  
+  // Guard 2: Never allow password that matches user's teacherId
+  if (user && user.teacherId && cleanInput === String(user.teacherId).trim()) return false;
+  
   const strHash = String(storedPasswordOrHash).trim();
   if (strHash.startsWith('$2a$') || strHash.startsWith('$2b$')) {
-    return bcrypt.compareSync(inputPassword, strHash);
+    return bcrypt.compareSync(cleanInput, strHash);
   }
-  // Plaintext match for migration
-  return inputPassword === strHash;
+  return false;
 }
 
 // Helper: Sanitize user object (never leak password / password hash)
@@ -585,7 +618,7 @@ function authenticateToken(req, res, next) {
           message: 'เซสชันการใช้งานหมดอายุ กรุณาเข้าสู่ระบบใหม่ (Session expired)'
         });
       }
-      return res.status(403).json({
+      return res.status(401).json({
         success: false,
         code: 'TOKEN_INVALID',
         message: 'โทเค็นยืนยันตัวตนไม่ถูกต้อง (Invalid token)'
@@ -1592,7 +1625,7 @@ app.get('/api/inventory/alerts', optionalAuth, async (req, res) => {
 });
 
 // 2. GET /api/inventory/movements — Stock Movement History (Audit Trail)
-app.get('/api/inventory/movements', optionalAuth, async (req, res) => {
+app.get('/api/inventory/movements', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
   try {
     const { itemCode, type, limit = 50 } = req.query;
     let movements = [];
@@ -1732,7 +1765,7 @@ app.post('/api/inventory/movements', authenticateToken, requireRole('L2', 'L3'),
 });
 
 // 4. GET /api/inventory/adjustments — List Stock Adjustments
-app.get('/api/inventory/adjustments', optionalAuth, async (req, res) => {
+app.get('/api/inventory/adjustments', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
   try {
     const { status } = req.query;
     let list = [];
@@ -3009,8 +3042,8 @@ app.get('/api/borrow/quick-scan/:code', optionalAuth, async (req, res) => {
 // 🟡 P2 — PROCUREMENT & BUDGET REAL-TIME TRACKING
 // ==========================================
 
-// GET /api/budget
-app.get('/api/budget', optionalAuth, async (req, res) => {
+// GET /api/budget — Authenticated (Teachers, Staff, Admins, Executives)
+app.get('/api/budget', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
   const budget = await fetchLiveBudget();
   res.json(budget);
 });
@@ -3034,8 +3067,8 @@ app.post('/api/budget', authenticateToken, requireRole('L3'), async (req, res) =
   res.json({ success: true, budget: data.budget });
 });
 
-// GET /api/budget/summary — Real-time budget analytics & remaining balances
-app.get('/api/budget/summary', optionalAuth, async (req, res) => {
+// GET /api/budget/summary — Real-time budget analytics & remaining balances (Authenticated)
+app.get('/api/budget/summary', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
   try {
     const budgetData = await fetchLiveBudget();
     const totalBudget = parseFloat(budgetData?.budget || 150000);
@@ -3600,9 +3633,11 @@ async function fetchLiveUsers(forceRefresh = false) {
         const cleanUsers = activeUsers.map(su => {
           const tId = String(su.teacherId || su.teacher_id || su.id || '').trim();
           let userPass = su.password;
+          // Security: Never default to Teacher ID as password
           if (!userPass || (!userPass.startsWith('$2a$') && !userPass.startsWith('$2b$'))) {
-            userPass = bcrypt.hashSync(String(userPass || tId), 10);
+            userPass = '$2b$10$LOCKED_REQUIRES_ADMIN_PASSWORD_RESET_9999999999999999999';
           }
+          const mustChange = Boolean(su.must_change_password || su.mustChangePassword);
 
           return {
             id: su.id || ("u_" + tId),
@@ -3617,6 +3652,9 @@ async function fetchLiveUsers(forceRefresh = false) {
             initials: su.initials || calculateUserInitials(su.name) || 'U',
             color: su.color || getRoleColor(su.role),
             password: userPass,
+            must_change_password: mustChange,
+            mustChangePassword: mustChange,
+            password_changed_at: su.password_changed_at || null,
             isActive: su.isActive !== false && su.is_active !== false,
             createdAt: su.createdAt || su.created_at || new Date().toISOString(),
             updatedAt: su.updatedAt || su.updated_at || new Date().toISOString(),
@@ -4067,28 +4105,33 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   if (user) {
-    const userPass = String(user.password || user.teacherId || user.id || '').trim();
+    const userPass = String(user.password || '').trim();
     
-    // Check password match securely with bcrypt (or upgrade legacy plaintext)
-    const isPasswordCorrect = verifyPassword(cleanPass, userPass);
+    // Explicit Guard against Breached Git History Passwords and Teacher ID
+    const tId = String(user.teacherId || '').trim();
+    if (LEAKED_HISTORICAL_PASSWORDS.has(cleanPass) || (tId && cleanPass === tId)) {
+      recordAuditLog({
+        actorId: user.teacherId || user.id,
+        actorName: user.name,
+        actorRole: user.role || 'L0',
+        action: 'LOGIN_REJECTED_BREACHED_PASSWORD',
+        resource: 'auth',
+        resourceId: user.id,
+        details: `ปฏิเสธการเข้าสู่ระบบ: ตรวจพบการใช้รหัสผ่านเดิมที่ถูกเพิกถอนความปลอดภัย (${cleanUser})`,
+        req
+      });
+      return res.status(401).json({
+        success: false,
+        code: 'CREDENTIAL_REVOKED_SECURITY_RESET',
+        message: 'รหัสผ่านเดิมนี้ถูกยกเลิกถาวรเนื่องจากตรวจพบนโยบายความปลอดภัย บัญชีของท่านถูกรีเซ็ตเรียบร้อยแล้ว กรุณาติดต่อผู้ดูแลระบบเพื่อขอรับรหัสผ่านชั่วคราวใหม่'
+      });
+    }
+
+    // Check password match securely with bcrypt
+    const isPasswordCorrect = verifyPassword(cleanPass, userPass, user);
 
     if (isPasswordCorrect) {
-      // If user had a legacy plaintext password, upgrade it to bcrypt hash now!
-      if (!userPass.startsWith('$2a$') && !userPass.startsWith('$2b$')) {
-        const hashed = bcrypt.hashSync(cleanPass, 10);
-        user.password = hashed;
-        if (!IS_PRODUCTION) {
-          const localAll = readUsers();
-          const lIdx = localAll.findIndex(u => u.id === user.id || u.teacherId === user.teacherId);
-          if (lIdx !== -1) {
-            localAll[lIdx].password = hashed;
-            writeUsers(localAll);
-          }
-        }
-        if (supabase) {
-          supabase.from('users').update({ password: hashed }).eq('id', user.id).then(null, () => {});
-        }
-      }
+      const mustChange = Boolean(user.must_change_password || user.mustChangePassword);
 
       // Generate JWT Token with secure claims & expiration
       const tokenPayload = {
@@ -4099,7 +4142,8 @@ app.post('/api/auth/login', async (req, res) => {
         role: user.role || 'L1',
         roleLevel: normalizeRole(user.role || 'L1'),
         department: user.department || '',
-        assignedRooms: user.assignedRooms || []
+        assignedRooms: user.assignedRooms || [],
+        mustChangePassword: mustChange
       };
 
       const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
@@ -4112,13 +4156,14 @@ app.post('/api/auth/login', async (req, res) => {
         action: 'USER_LOGIN',
         resource: 'auth',
         resourceId: user.id,
-        details: `เข้าสู่ระบบสำเร็จในฐานะ ${user.name} (${user.role || 'L1'})`,
+        details: `เข้าสู่ระบบสำเร็จในฐานะ ${user.name} (${user.role || 'L1'})${mustChange ? ' [จำเป็นต้องเปลี่ยนรหัสผ่าน]' : ''}`,
         req
       });
 
       return res.json({
         success: true,
         token,
+        must_change_password: mustChange,
         user: {
           id: user.id,
           teacherId: user.teacherId || user.id,
@@ -4129,7 +4174,8 @@ app.post('/api/auth/login', async (req, res) => {
           department: user.department || '',
           assignedRooms: user.assignedRooms || [],
           initials: calculateUserInitials(user.name) || user.initials || 'U',
-          color: user.color || '#3b82f6'
+          color: user.color || '#3b82f6',
+          must_change_password: mustChange
         }
       });
     } else {
@@ -4146,7 +4192,7 @@ app.post('/api/auth/login', async (req, res) => {
 
       return res.status(401).json({ 
         success: false, 
-        message: "รหัสผ่านไม่ถูกต้อง (รหัสผ่านเริ่มต้นของท่านคือ รหัสประจำตัวครู)" 
+        message: "รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบรหัสผ่านของท่านหรือติดต่อผู้ดูแลระบบ" 
       });
     }
   }
@@ -4173,6 +4219,122 @@ app.post('/api/auth/logout', authenticateToken, (req, res) => {
     req
   });
   res.json({ success: true, message: 'ออกจากระบบเรียบร้อยแล้ว' });
+});
+
+// AUTH CHANGE PASSWORD ENDPOINT (Enforces strong passwords, prohibits leaked/teacherId passwords)
+app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+  
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ success: false, message: "กรุณาระบุรหัสผ่านปัจจุบันและรหัสผ่านใหม่" });
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ success: false, message: "รหัสผ่านใหม่และการยืนยันรหัสผ่านไม่ตรงกัน" });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({ success: false, message: "รหัสผ่านใหม่ต้องมีความยาวอย่างน้อย 8 ตัวอักษร" });
+  }
+
+  if (newPassword === currentPassword) {
+    return res.status(400).json({ success: false, message: "รหัสผ่านใหม่ต้องไม่ซ้ำกับรหัสผ่านเดิม" });
+  }
+
+  const cleanNew = normalizeThaiDigits(newPassword.trim());
+  const teacherId = String(req.user.teacherId || '').trim();
+
+  // Guard: Rule 1 & Rule 5 - Cannot use leaked passwords or Teacher ID
+  if (LEAKED_HISTORICAL_PASSWORDS.has(cleanNew) || (teacherId && cleanNew === teacherId)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "รหัสผ่านใหม่มีความเสี่ยงสูงหรือเดาง่ายเกินไป (ห้ามใช้รหัสประจำตัวครูหรือรหัสผ่านทั่วไป)" 
+    });
+  }
+
+  const users = await fetchLiveUsers(true);
+  const user = users.find(u => u.id === req.user.id || u.teacherId === req.user.teacherId);
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: "ไม่พบข้อมูลผู้ใช้ในระบบ" });
+  }
+
+  // Verify current password
+  const isCurrentValid = verifyPassword(currentPassword, user.password, user);
+  if (!isCurrentValid) {
+    return res.status(401).json({ success: false, message: "รหัสผ่านปัจจุบันไม่ถูกต้อง" });
+  }
+
+  // Hash new password with bcrypt (10 rounds)
+  const newHash = bcrypt.hashSync(cleanNew, 10);
+  user.password = newHash;
+  user.must_change_password = false;
+  user.mustChangePassword = false;
+  user.password_changed_at = new Date().toISOString();
+  user.updatedAt = new Date().toISOString();
+  user.updatedBy = req.user.teacherId || req.user.id;
+
+  // Persist locally if non-production
+  if (!IS_PRODUCTION) {
+    const localUsers = readUsers();
+    const lIdx = localUsers.findIndex(u => u.id === user.id || u.teacherId === user.teacherId);
+    if (lIdx !== -1) {
+      localUsers[lIdx].password = newHash;
+      localUsers[lIdx].must_change_password = false;
+      localUsers[lIdx].mustChangePassword = false;
+      localUsers[lIdx].password_changed_at = user.password_changed_at;
+      writeUsers(localUsers);
+    }
+  }
+
+  // Persist to Supabase if connected
+  if (supabase) {
+    try {
+      await supabase.from('users').update({
+        password: newHash,
+        must_change_password: false,
+        password_changed_at: user.password_changed_at,
+        updated_at: user.updatedAt,
+        updated_by: user.updatedBy
+      }).eq('id', user.id);
+    } catch(err) {
+      console.warn("[Auth:ChangePassword] Supabase update notice:", err.message);
+    }
+  }
+
+  // Issue fresh JWT without mustChangePassword restriction
+  const tokenPayload = {
+    jti: crypto.randomUUID ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2)),
+    id: user.id,
+    teacherId: user.teacherId || user.id,
+    name: user.name,
+    role: user.role || 'L1',
+    roleLevel: normalizeRole(user.role || 'L1'),
+    department: user.department || '',
+    assignedRooms: user.assignedRooms || [],
+    mustChangePassword: false
+  };
+
+  const newToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+
+  // Record Audit Log (DO NOT log the password!)
+  recordAuditLog({
+    actorId: user.teacherId || user.id,
+    actorName: user.name,
+    actorRole: user.role || 'L1',
+    action: 'USER_PASSWORD_CHANGE',
+    resource: 'auth',
+    resourceId: user.id,
+    details: `ผู้ใช้ ${user.name} (${user.teacherId}) ได้เปลี่ยนรหัสผ่านใหม่เรียบร้อยแล้ว`,
+    req
+  });
+
+  return res.json({
+    success: true,
+    message: "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว",
+    token: newToken,
+    must_change_password: false
+  });
 });
 
 // AUTH ME ENDPOINT (Verify session token and return user info)
@@ -4222,8 +4384,8 @@ app.post('/api/layouts', authenticateToken, requireRole('L3'), (req, res) => {
   }
 });
 
-// FEEDBACKS
-app.get('/api/feedbacks', (req, res) => {
+// FEEDBACKS — Restricted to Lab Staff & Admins
+app.get('/api/feedbacks', authenticateToken, requireRole('L2', 'L3', 'L4'), (req, res) => {
   res.json(readFeedbacks());
 });
 
@@ -4577,10 +4739,15 @@ app.delete('/api/workspace', authenticateToken, requireRole('L3'), (req, res) =>
 });
 
 // Start Express Web Server
-app.listen(PORT, () => {
-  console.log(`=======================================================`);
-  console.log(`🧪 Laboratory Management System Backend running!`);
-  console.log(`🌐 Server available at: http://localhost:${PORT}`);
-  console.log(`🗃️ Database file: ${DB_FILE}`);
-  console.log(`=======================================================`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(`🧪 Laboratory Management System Backend running!`);
+    console.log(`🌐 Server available at: http://localhost:${PORT}`);
+    console.log(`🗃️ Database file: ${DB_FILE}`);
+    console.log(`=======================================================`);
+  });
+}
+
+module.exports = app;
+
