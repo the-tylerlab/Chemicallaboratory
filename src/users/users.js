@@ -31,10 +31,16 @@ export async function fetchUsers() {
     const local = localStorage.getItem("lab_admin_users");
     if (local) {
       adminUsersList = JSON.parse(local);
-      renderUsersTable();
     }
   } catch (e) {}
 
+  if (!adminUsersList || adminUsersList.length === 0) {
+    if (typeof window !== 'undefined' && window.SYSTEM_USERS_REGISTRY) {
+      adminUsersList = [...window.SYSTEM_USERS_REGISTRY];
+    }
+  }
+
+  renderUsersTable();
   return adminUsersList;
 }
 
