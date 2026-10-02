@@ -1,28 +1,29 @@
 [
   {
-    "id": "TX-1790836872307",
-    "itemCode": "CHEM-009",
-    "item_code": "CHEM-009",
-    "itemName": "กรดไนทริก 7 M (Nitric Acid 7 M)",
-    "item_name": "กรดไนทริก 7 M (Nitric Acid 7 M)",
+    "id": "TX-1790927131218",
+    "itemCode": "CHEM-012",
+    "item_code": "CHEM-012",
+    "itemName": "กรดซัลฟิวริกเข้มข้น 18 M (Sulfuric Acid 18 M)",
+    "item_name": "กรดซัลฟิวริกเข้มข้น 18 M (Sulfuric Acid 18 M)",
     "category": "สารเคมี",
+    "room": "Lab 1",
     "quantity": 1,
     "unit": "ขวด",
     "borrower": "อาจารย์ผู้ดูแลระบบ (Admin)",
     "teacherId": "admin",
     "responsiblePerson": "ครูสมชาย",
-    "borrowDate": "2026-10-01T06:41:12.307Z",
+    "borrowDate": "2026-10-02T07:45:31.218Z",
     "dueDate": "2026-10-20",
     "expectedReturnDate": "2026-10-20",
-    "returnDate": "2026-10-01T06:41:12.365Z",
+    "returnDate": "2026-10-02T07:45:31.279Z",
     "status": "returned",
     "approvalStatus": "approved",
     "approvedBy": "อาจารย์ผู้ดูแลระบบ (Admin)",
-    "approvedAt": "2026-10-01T06:41:12.307Z",
+    "approvedAt": "2026-10-02T07:45:31.218Z",
     "damagedStatus": "none",
     "notes": "ยืมสาธิตการตกผลึก",
-    "createdAt": "2026-10-01T06:41:12.307Z",
-    "return_date": "2026-10-01T06:41:12.365Z",
+    "createdAt": "2026-10-02T07:45:31.218Z",
+    "return_date": "2026-10-02T07:45:31.279Z",
     "condition": "สมบูรณ์",
     "damageFine": 0,
     "damageNotes": ""
@@ -45,7 +46,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-01T06:40:48.934Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   },
   {
@@ -66,7 +67,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-22T16:04:03.231Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   },
   {
@@ -87,7 +88,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-19T16:04:03.232Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   },
   {
@@ -108,7 +109,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-21T16:04:03.232Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   },
   {
@@ -129,7 +130,7 @@
     "returnDate": "2026-09-19",
     "damagedQty": 1,
     "createdAt": "2026-09-17T16:04:03.232Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   },
   {
@@ -150,7 +151,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-21T16:04:03.232Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   },
   {
@@ -171,7 +172,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-22T16:04:03.232Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   },
   {
@@ -192,7 +193,7 @@
     "returnDate": "2026-09-21",
     "damagedQty": 0,
     "createdAt": "2026-09-20T16:04:03.232Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   },
   {
@@ -213,7 +214,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-01T06:36:30.756Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   },
   {
@@ -234,7 +235,70 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-01T06:39:08.185Z",
-    "updatedAt": "2026-10-01T06:41:12.358Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
+    "is_deleted": false
+  },
+  {
+    "id": "TX-1790836872307",
+    "itemCode": "CHEM-009",
+    "itemName": "กรดไนทริก 7 M (Nitric Acid 7 M)",
+    "qty": 1,
+    "borrower": "อาจารย์ผู้ดูแลระบบ (Admin)",
+    "date": "2026-10-01",
+    "type": "BORROW",
+    "status": "borrowed",
+    "notes": "ยืมสาธิตการตกผลึก",
+    "expectedReturnDate": "2026-10-20",
+    "bookingId": "",
+    "room": "",
+    "slot": "",
+    "supervisingTeacher": "ครูสมชาย",
+    "returnDate": null,
+    "damagedQty": 0,
+    "createdAt": "2026-10-01T06:41:12.307Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
+    "is_deleted": false
+  },
+  {
+    "id": "TX-1790927088498",
+    "itemCode": "CHEM-014",
+    "itemName": "กรดซัลฟิวริก 6 M (Sulfuric Acid 6 M)",
+    "qty": 1,
+    "borrower": "อาจารย์ผู้ดูแลระบบ (Admin)",
+    "date": "2026-10-02",
+    "type": "BORROW",
+    "status": "borrowed",
+    "notes": "ยืมสาธิตการตกผลึก",
+    "expectedReturnDate": "2026-10-20",
+    "bookingId": "",
+    "room": "Lab 1",
+    "slot": "",
+    "supervisingTeacher": "ครูสมชาย",
+    "returnDate": null,
+    "damagedQty": 0,
+    "createdAt": "2026-10-02T07:44:48.498Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
+    "is_deleted": false
+  },
+  {
+    "id": "TX-1790927115756",
+    "itemCode": "CHEM-039",
+    "itemName": "แคลเซียมคลอไรด์ (Calcium Chloride, CaCl2)",
+    "qty": 1,
+    "borrower": "อาจารย์ผู้ดูแลระบบ (Admin)",
+    "date": "2026-10-02",
+    "type": "BORROW",
+    "status": "borrowed",
+    "notes": "ยืมสาธิตการตกผลึก",
+    "expectedReturnDate": "2026-10-20",
+    "bookingId": "",
+    "room": "Lab 1",
+    "slot": "",
+    "supervisingTeacher": "ครูสมชาย",
+    "returnDate": null,
+    "damagedQty": 0,
+    "createdAt": "2026-10-02T07:45:15.756Z",
+    "updatedAt": "2026-10-02T07:45:31.270Z",
     "is_deleted": false
   }
 ]

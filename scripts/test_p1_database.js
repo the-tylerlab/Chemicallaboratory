@@ -102,7 +102,7 @@ async function runDatabaseTests() {
     const loginRes = await request({
       host: '127.0.0.1', port: 3001, path: '/api/auth/login', method: 'POST',
       headers: { 'Content-Type': 'application/json' }
-    }, { username: 'admin', password: 'admin' });
+    }, { username: 'admin', password: 'SciAdmin@2026' });
     const token = loginRes.body.token;
     assert(!!token, "Admin login successful and returned JWT token");
 
