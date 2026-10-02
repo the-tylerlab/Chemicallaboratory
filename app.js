@@ -17830,6 +17830,7 @@ function renderAdminUsers(filteredList = null) {
       <td style="padding: 11px 14px; white-space: nowrap;">
         <span class="badge-role ${badgeInfo.className}" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px;">${badgeInfo.level} ${badgeInfo.name}</span>
       </td>
+      <td style="padding: 11px 14px; min-width: 110px;">${roomsHtml}</td>
       <td style="padding: 11px 14px; white-space: nowrap; width: 190px; min-width: 190px;">
         <div style="display: flex; align-items: center; gap: 6px;">
           <span class="user-pass-val" id="user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="display: inline-block; font-family: monospace; font-size: 12.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 7px; border-radius: 6px; color: #475569; width: 128px; min-width: 128px; max-width: 128px; text-align: center; letter-spacing: 1px; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">••••••••</span>
