@@ -2943,6 +2943,7 @@
                   <th>กลุ่มสาระ / หน่วยงาน</th>
                   <th>ระดับสิทธิ์ (Role)</th>
                   <th>ห้องที่ได้รับมอบหมาย</th>
+                  <th style="white-space: nowrap;">รหัสผ่าน (Password)</th>
                   <th style="text-align: center;">จัดการ</th>
                 </tr>
               </thead>
@@ -3830,10 +3831,44 @@
               </div>
             </div>
 
-            <!-- Password Reset Note -->
-            <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--text-muted);">
-              <i data-lucide="info" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
-              <span>รหัสผ่านเริ่มต้นของผู้ใช้คือ <b>รหัสประจำตัวครู (Teacher ID)</b></span>
+            <!-- Password Management Section for L3 Admin -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
+              <div style="font-weight: 700; font-size: 13px; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="key" style="width: 15px; height: 15px; color: #7c3aed;"></i>
+                  <span>การจัดการรหัสผ่านผู้ใช้งาน (Password Management)</span>
+                </div>
+                <span style="font-size: 11px; background: #e0e7ff; color: #4338ca; padding: 2px 7px; border-radius: 4px; font-weight: 600;">L3 Admin Only</span>
+              </div>
+              
+              <!-- Current Password Display -->
+              <div style="margin-bottom: 10px;">
+                <label style="display: block; font-size: 12px; color: #64748b; margin-bottom: 4px; font-weight: 500;">รหัสผ่านปัจจุบันของผู้ใช้:</label>
+                <div style="display: flex; gap: 6px;">
+                  <input type="password" id="editUserCurrentPass" readonly class="form-control" style="flex: 1; padding: 7px 10px; font-family: monospace; font-size: 13px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;" value="">
+                  <button type="button" class="btn btn-sm" onclick="toggleEditUserPassVisibility()" style="padding: 7px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;" title="แสดง/ซ่อนรหัสผ่าน">
+                    <i data-lucide="eye" id="editUserPassEyeIcon" style="width: 14px; height: 14px; color: #64748b;"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm" onclick="copyEditUserPassword()" style="padding: 7px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;" title="คัดลอกรหัสผ่าน">
+                    <i data-lucide="copy" style="width: 14px; height: 14px; color: #64748b;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Reset to Teacher ID & Set New Password -->
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1;">
+                <button type="button" class="btn btn-sm" onclick="adminResetUserToTeacherId()" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                  <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+                  <span>รีเซ็ตเป็น Teacher ID</span>
+                </button>
+                
+                <div style="display: flex; gap: 6px; flex: 1; min-width: 200px;">
+                  <input type="text" id="editUserNewCustomPass" placeholder="ตั้งรหัสผ่านใหม่..." class="form-control" style="flex: 1; padding: 6px 10px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                  <button type="button" class="btn btn-sm" onclick="adminApplyCustomPassword()" style="background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                    บันทึกรหัสใหม่
+                  </button>
+                </div>
+              </div>
             </div>
 
           </div>

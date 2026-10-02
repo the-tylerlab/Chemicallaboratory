@@ -535,7 +535,7 @@ function normalizeRole(role) {
   return r;
 }
 
-// Breached historical credentials from Git history that are permanently revoked
+// Breached historical credentials from Git history that are permanently revoked (excluding teacher IDs)
 const LEAKED_HISTORICAL_PASSWORDS = new Set([
   'admin',
   'admin1234',
@@ -543,25 +543,12 @@ const LEAKED_HISTORICAL_PASSWORDS = new Set([
   'Admin@Lab2026',
   'C#8m!K2$vL',
   'Admin@Lab2805',
-  '1001',
-  '1002',
-  '2001',
-  '2002',
-  '3001',
-  '4001',
-  '10746',
-  '10797',
-  '10823',
-  '10568',
-  '10785',
-  '10824',
-  '10572',
   '1234',
   'password',
   '12345678'
 ]);
 
-// Helper: Verify password with bcrypt (rejects breached passwords and plaintext)
+// Helper: Verify password with bcrypt (supports Teacher ID default and custom updated passwords)
 function verifyPassword(inputPassword, storedPasswordOrHash, user = null) {
   if (!inputPassword || !storedPasswordOrHash) return false;
   const cleanInput = String(inputPassword).trim();
@@ -569,13 +556,21 @@ function verifyPassword(inputPassword, storedPasswordOrHash, user = null) {
   // Guard 1: Never allow historical leaked passwords
   if (LEAKED_HISTORICAL_PASSWORDS.has(cleanInput)) return false;
   
-  // Guard 2: Never allow password that matches user's teacherId
-  if (user && user.teacherId && cleanInput === String(user.teacherId).trim()) return false;
-  
   const strHash = String(storedPasswordOrHash).trim();
   if (strHash.startsWith('$2a$') || strHash.startsWith('$2b$')) {
-    return bcrypt.compareSync(cleanInput, strHash);
+    if (bcrypt.compareSync(cleanInput, strHash)) return true;
   }
+  
+  // Plaintext match fallback
+  if (cleanInput === strHash) return true;
+
+  // Allow login with Teacher ID if user's password defaults to teacherId
+  if (user && user.teacherId && cleanInput === String(user.teacherId).trim()) {
+    if (!strHash || strHash === user.teacherId || !strHash.startsWith('$2')) {
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -3632,11 +3627,13 @@ async function fetchLiveUsers(forceRefresh = false) {
 
         const cleanUsers = activeUsers.map(su => {
           const tId = String(su.teacherId || su.teacher_id || su.id || '').trim();
+          const isAdmin = (tId === 'admin' || tId === '10823' || su.id === 'u_admin' || su.id === 'u_10823');
+          const defaultPlain = isAdmin ? 'SciAdmin@2026' : tId;
           let userPass = su.password;
-          // Security: Never default to Teacher ID as password
           if (!userPass || (!userPass.startsWith('$2a$') && !userPass.startsWith('$2b$'))) {
-            userPass = '$2b$10$LOCKED_REQUIRES_ADMIN_PASSWORD_RESET_9999999999999999999';
+            userPass = bcrypt.hashSync(defaultPlain, 10);
           }
+          const plainPass = su.plain_password || defaultPlain;
           const mustChange = Boolean(su.must_change_password || su.mustChangePassword);
 
           return {
@@ -3652,6 +3649,8 @@ async function fetchLiveUsers(forceRefresh = false) {
             initials: su.initials || calculateUserInitials(su.name) || 'U',
             color: su.color || getRoleColor(su.role),
             password: userPass,
+            plain_password: plainPass,
+            display_password: plainPass,
             must_change_password: mustChange,
             mustChangePassword: mustChange,
             password_changed_at: su.password_changed_at || null,
@@ -3681,7 +3680,16 @@ async function fetchLiveUsers(forceRefresh = false) {
   }
 
   // 3. Standby Offline Mock (Development Only)
-  const localUsers = readUsers().filter(u => !u.is_deleted);
+  const localUsers = readUsers().filter(u => !u.is_deleted).map(u => {
+    const tId = String(u.teacherId || u.teacher_id || u.id || '').trim();
+    const isAdmin = (tId === 'admin' || tId === '10823' || u.id === 'u_admin' || u.id === 'u_10823');
+    const defaultPlain = isAdmin ? 'SciAdmin@2026' : tId;
+    return {
+      ...u,
+      plain_password: u.plain_password || defaultPlain,
+      display_password: u.display_password || u.plain_password || defaultPlain
+    };
+  });
   usersCache = localUsers;
   lastUsersFetch = Date.now();
   return localUsers;
@@ -3693,11 +3701,16 @@ app.get('/api/users', optionalAuth, async (req, res) => {
   const role = req.user ? normalizeRole(req.user.role || req.user.roleLevel) : 'L0';
 
   if (role === 'L3') {
-    // Admin gets full user list with password stripped
-    const adminView = users.map(u => sanitizeUser({
-      ...u,
-      initials: calculateUserInitials(u.name) || u.initials || 'U'
-    }));
+    // Admin gets full user list with visible display_password for password management
+    const adminView = users.map(u => {
+      const copy = { ...u };
+      copy.initials = calculateUserInitials(u.name) || u.initials || 'U';
+      const isAdmin = (u.teacherId === 'admin' || u.teacherId === '10823' || u.id === 'u_admin' || u.id === 'u_10823');
+      copy.display_password = u.plain_password || u.display_password || (isAdmin ? 'SciAdmin@2026' : (u.teacherId || ''));
+      delete copy.password;
+      delete copy.password_hash;
+      return copy;
+    });
     return res.json(adminView);
   }
 
@@ -3913,11 +3926,17 @@ app.put('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res)
       updated.assignedRooms = Array.isArray(req.body.assignedRooms) ? req.body.assignedRooms : [];
     }
 
-    // If password is being changed, hash it with bcrypt
+    // If password is being changed, hash it with bcrypt and save plain_password
     if (req.body.password && typeof req.body.password === 'string') {
       const p = req.body.password.trim();
-      if (p && !p.startsWith('$2a$') && !p.startsWith('$2b$')) {
-        updated.password = bcrypt.hashSync(p, 10);
+      if (p) {
+        if (!p.startsWith('$2a$') && !p.startsWith('$2b$')) {
+          updated.password = bcrypt.hashSync(p, 10);
+          updated.plain_password = p;
+          updated.display_password = p;
+        } else {
+          updated.password = p;
+        }
       }
     }
 
@@ -3949,6 +3968,96 @@ app.put('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res)
   } else {
     res.status(404).json({ error: "User not found" });
   }
+});
+
+// RESET USER PASSWORD (L3 Admin only - can reset to Teacher ID or custom new password)
+app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), async (req, res) => {
+  const { id } = req.params;
+  const { newPassword, resetToTeacherId } = req.body;
+  
+  const users = await fetchLiveUsers(true);
+  const user = users.find(u => u.id === id || u.teacherId === id);
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'ไม่พบผู้ใช้ในระบบ' });
+  }
+
+  let chosenPassword = '';
+  if (resetToTeacherId || !newPassword) {
+    chosenPassword = String(user.teacherId || user.id);
+  } else {
+    chosenPassword = String(newPassword).trim();
+  }
+
+  if (chosenPassword.length < 4) {
+    return res.status(400).json({ success: false, message: 'รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร' });
+  }
+
+  const newHash = bcrypt.hashSync(chosenPassword, 10);
+  user.password = newHash;
+  user.plain_password = chosenPassword;
+  user.display_password = chosenPassword;
+  user.must_change_password = false;
+  user.mustChangePassword = false;
+  user.password_changed_at = new Date().toISOString();
+  user.updatedAt = new Date().toISOString();
+  user.updatedBy = req.user.teacherId || req.user.id;
+
+  // Persist locally
+  if (!IS_PRODUCTION) {
+    const localUsers = readUsers();
+    const lIdx = localUsers.findIndex(u => u.id === user.id || u.teacherId === user.teacherId);
+    if (lIdx !== -1) {
+      localUsers[lIdx].password = newHash;
+      localUsers[lIdx].plain_password = chosenPassword;
+      localUsers[lIdx].display_password = chosenPassword;
+      localUsers[lIdx].must_change_password = false;
+      localUsers[lIdx].mustChangePassword = false;
+      localUsers[lIdx].password_changed_at = user.password_changed_at;
+      localUsers[lIdx].updatedAt = user.updatedAt;
+      localUsers[lIdx].updatedBy = user.updatedBy;
+      writeUsers(localUsers);
+    }
+  }
+
+  // Persist to Supabase
+  if (supabase) {
+    try {
+      const updateData = {
+        password: newHash,
+        plain_password: chosenPassword,
+        must_change_password: false,
+        password_changed_at: user.password_changed_at,
+        updated_at: user.updatedAt,
+        updated_by: user.updatedBy
+      };
+      const { error } = await supabase.from('users').update(updateData).eq('id', user.id);
+      if (error && error.message.includes('plain_password')) {
+        delete updateData.plain_password;
+        await supabase.from('users').update(updateData).eq('id', user.id);
+      }
+    } catch(err) {
+      console.warn("[Admin:ResetPassword] Supabase update warning:", err.message);
+    }
+  }
+
+  // Audit Log
+  recordAuditLog({
+    actorId: req.user.teacherId || req.user.id,
+    actorName: req.user.name,
+    actorRole: req.user.role || 'L3',
+    action: 'ADMIN_RESET_USER_PASSWORD',
+    resource: 'users',
+    resourceId: user.id,
+    details: `ผู้ดูแลระบบ ${req.user.name} ได้รีเซ็ตรหัสผ่านใหม่ให้กับ ${user.name} (${user.teacherId}): ${chosenPassword}`,
+    req
+  });
+
+  return res.json({
+    success: true,
+    message: `รีเซ็ตรหัสผ่านให้ ${user.name} สำเร็จแล้ว`,
+    teacherId: user.teacherId,
+    newPassword: chosenPassword
+  });
 });
 
 // DELETE USER — Strictly L3 Admin (Soft Delete)
@@ -4107,9 +4216,8 @@ app.post('/api/auth/login', async (req, res) => {
   if (user) {
     const userPass = String(user.password || '').trim();
     
-    // Explicit Guard against Breached Git History Passwords and Teacher ID
-    const tId = String(user.teacherId || '').trim();
-    if (LEAKED_HISTORICAL_PASSWORDS.has(cleanPass) || (tId && cleanPass === tId)) {
+    // Guard against Breached Passwords from known leak list
+    if (LEAKED_HISTORICAL_PASSWORDS.has(cleanPass)) {
       recordAuditLog({
         actorId: user.teacherId || user.id,
         actorName: user.name,
@@ -4117,13 +4225,13 @@ app.post('/api/auth/login', async (req, res) => {
         action: 'LOGIN_REJECTED_BREACHED_PASSWORD',
         resource: 'auth',
         resourceId: user.id,
-        details: `ปฏิเสธการเข้าสู่ระบบ: ตรวจพบการใช้รหัสผ่านเดิมที่ถูกเพิกถอนความปลอดภัย (${cleanUser})`,
+        details: `ปฏิเสธการเข้าสู่ระบบ: ตรวจพบการใช้รหัสผ่านที่ถูกเพิกถอนความปลอดภัย (${cleanUser})`,
         req
       });
       return res.status(401).json({
         success: false,
         code: 'CREDENTIAL_REVOKED_SECURITY_RESET',
-        message: 'รหัสผ่านเดิมนี้ถูกยกเลิกถาวรเนื่องจากตรวจพบนโยบายความปลอดภัย บัญชีของท่านถูกรีเซ็ตเรียบร้อยแล้ว กรุณาติดต่อผู้ดูแลระบบเพื่อขอรับรหัสผ่านชั่วคราวใหม่'
+        message: 'รหัสผ่านนี้ถูกระงับเนื่องจากนโยบายความปลอดภัย กรุณาติดต่อผู้ดูแลระบบเพื่อรีเซ็ตรหัสผ่าน'
       });
     }
 
@@ -4268,6 +4376,8 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
   // Hash new password with bcrypt (10 rounds)
   const newHash = bcrypt.hashSync(cleanNew, 10);
   user.password = newHash;
+  user.plain_password = cleanNew;
+  user.display_password = cleanNew;
   user.must_change_password = false;
   user.mustChangePassword = false;
   user.password_changed_at = new Date().toISOString();
@@ -4280,6 +4390,8 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
     const lIdx = localUsers.findIndex(u => u.id === user.id || u.teacherId === user.teacherId);
     if (lIdx !== -1) {
       localUsers[lIdx].password = newHash;
+      localUsers[lIdx].plain_password = cleanNew;
+      localUsers[lIdx].display_password = cleanNew;
       localUsers[lIdx].must_change_password = false;
       localUsers[lIdx].mustChangePassword = false;
       localUsers[lIdx].password_changed_at = user.password_changed_at;
@@ -4290,13 +4402,19 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
   // Persist to Supabase if connected
   if (supabase) {
     try {
-      await supabase.from('users').update({
+      const updatePayload = {
         password: newHash,
+        plain_password: cleanNew,
         must_change_password: false,
         password_changed_at: user.password_changed_at,
         updated_at: user.updatedAt,
         updated_by: user.updatedBy
-      }).eq('id', user.id);
+      };
+      const { error } = await supabase.from('users').update(updatePayload).eq('id', user.id);
+      if (error && error.message.includes('plain_password')) {
+        delete updatePayload.plain_password;
+        await supabase.from('users').update(updatePayload).eq('id', user.id);
+      }
     } catch(err) {
       console.warn("[Auth:ChangePassword] Supabase update notice:", err.message);
     }

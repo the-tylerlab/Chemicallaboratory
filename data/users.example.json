@@ -11,13 +11,17 @@
     "assignedRooms": [],
     "initials": "AD",
     "color": "#7c3aed",
-    "password": "$2b$10$IOEUon7YTZL8MkL.Nioxb.K9xrADOZnQkz2FlFcMHkWs1U9kf8Iku",
+    "password": "$2b$10$pxxBw5uNIIYrwtUsKNBEjOakJNprgrzcKjdyiCtwQgba4P6eY1bGu",
     "isActive": true,
     "createdAt": "2026-10-01T00:00:00.000Z",
     "updatedAt": "2026-10-01T00:00:00.000Z",
     "createdBy": "system",
     "updatedBy": "system",
-    "is_deleted": false
+    "is_deleted": false,
+    "plain_password": "SciAdmin@2026",
+    "display_password": "SciAdmin@2026",
+    "must_change_password": false,
+    "mustChangePassword": false
   },
   {
     "id": "u_1001",
@@ -31,13 +35,17 @@
     "assignedRooms": [],
     "initials": "สด",
     "color": "#0284c7",
-    "password": "$2b$10$yb8oF9cIDYr1StRvuxY3GeoXsYX08svATnQjKQD.cprBz8gx3/kQG",
+    "password": "$2b$10$c5HWr1yiAdqz0/k1/0k8k.ATjxCQlGQstrZaqdaOhZCLZXH13BQ4W",
     "isActive": true,
     "createdAt": "2026-10-01T00:00:00.000Z",
     "updatedAt": "2026-10-01T00:00:00.000Z",
     "createdBy": "system",
     "updatedBy": "system",
-    "is_deleted": false
+    "is_deleted": false,
+    "plain_password": "1001",
+    "display_password": "1001",
+    "must_change_password": false,
+    "mustChangePassword": false
   },
   {
     "id": "u_2001",
@@ -54,13 +62,17 @@
     ],
     "initials": "สล",
     "color": "#ea580c",
-    "password": "$2b$10$i5gY56kcsfS6Tfh2K7WbL.0l6Q5oupYVzUFIoL33L6eVLYyC381Ey",
+    "password": "$2b$10$v3q9DCn3doUDAxhZ7xLwQ.de5Bhrpv1ezdp7LBdQcbI5wmh4.O9Fy",
     "isActive": true,
     "createdAt": "2026-10-01T00:00:00.000Z",
     "updatedAt": "2026-10-01T00:00:00.000Z",
     "createdBy": "system",
     "updatedBy": "system",
-    "is_deleted": false
+    "is_deleted": false,
+    "plain_password": "2001",
+    "display_password": "2001",
+    "must_change_password": false,
+    "mustChangePassword": false
   },
   {
     "id": "u_4001",
@@ -74,12 +86,16 @@
     "assignedRooms": [],
     "initials": "ผจ",
     "color": "#be185d",
-    "password": "$2b$10$OgX9n56mMNx3F1krO7bKVOnvMXJNhDaZiHbMjbwsotjUkvnvEvJVq",
+    "password": "$2b$10$IdTsGCqE5jK45fSv1GuUkuWeLajHhX2U3uQQmrALO51MLRGR51Q.W",
     "isActive": true,
     "createdAt": "2026-10-01T00:00:00.000Z",
     "updatedAt": "2026-10-01T00:00:00.000Z",
     "createdBy": "system",
     "updatedBy": "system",
-    "is_deleted": false
+    "is_deleted": false,
+    "plain_password": "4001",
+    "display_password": "4001",
+    "must_change_password": false,
+    "mustChangePassword": false
   }
 ]

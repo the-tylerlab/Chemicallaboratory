@@ -134,6 +134,8 @@ export function renderUsersTable() {
     const color = getRoleColor(r);
     const rooms = Array.isArray(u.assignedRooms) ? u.assignedRooms.join(', ') : (u.assignedRooms || '-');
 
+    const pass = escapeHtml(u.display_password || u.plain_password || u.teacherId || '');
+
     return `
       <tr>
         <td style="font-family: monospace; font-size: 13px; font-weight: 600;">${tId}</td>
@@ -152,9 +154,23 @@ export function renderUsersTable() {
         </td>
         <td><span style="font-size: 12px; color: #64748b;">${escapeHtml(rooms)}</span></td>
         <td><span style="font-size: 12px; color: #64748b;">${escapeHtml(u.department || '-')}</span></td>
-        <td style="text-align: right;">
+        <td>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="user-pass-val" id="mod-user-pass-${tId}" data-pass="${pass}" style="font-family: monospace; font-size: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #475569;">••••••••</span>
+            <button type="button" onclick="if(window.toggleAdminUserPassEye) toggleAdminUserPassEye('${tId}');" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b;" title="แสดง/ซ่อนรหัสผ่าน">
+              <i data-lucide="eye" style="width: 13px; height: 13px;"></i>
+            </button>
+            <button type="button" onclick="if(window.copyAdminUserPass) copyAdminUserPass('${pass}');" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b;" title="คัดลอกรหัสผ่าน">
+              <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
+            </button>
+          </div>
+        </td>
+        <td style="text-align: right; white-space: nowrap;">
           <button class="action-btn" title="แก้ไขสิทธิ์" onclick="openEditUserModal('${tId}')">
             <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+          </button>
+          <button class="action-btn" style="color: #c2410c;" title="รีเซ็ตรหัสผ่าน" onclick="if(window.quickResetUserPassword) quickResetUserPassword('${u.id || tId}');">
+            <i data-lucide="key-round" style="width: 14px; height: 14px;"></i>
           </button>
           <button class="action-btn" style="color: #ef4444;" title="ลบผู้ใช้" onclick="confirmDeleteUser('${tId}', '${name}')">
             <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
