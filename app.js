@@ -17811,45 +17811,45 @@ function renderAdminUsers(filteredList = null) {
     const tr = document.createElement("tr");
     tr.style.borderBottom = "1px solid #f1f5f9";
     tr.innerHTML = `
-      <td style="width: 38px; text-align: center; padding: 11px 8px;">
-        <input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 15px; height: 15px; accent-color: #0f172a; cursor: pointer; border-radius: 4px;">
+      <td style="width: 36px; text-align: center; padding: 9px 4px;">
+        <input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 14px; height: 14px; accent-color: #0f172a; cursor: pointer; border-radius: 4px;">
       </td>
-      <td style="padding: 11px 14px; font-family: monospace; font-weight: 700; color: #0f172a; white-space: nowrap; font-size: 13px;">
+      <td style="padding: 9px 8px; font-family: monospace; font-weight: 700; color: #0f172a; white-space: nowrap; font-size: 12.5px; width: 75px;">
         ${escapeHTML(user.teacherId || user.id || '-')}
       </td>
-      <td style="padding: 11px 14px;">
-        <div style="display: flex; align-items: center; gap: 10px; min-width: 180px;">
-          <div style="width:34px;height:34px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow: 0 2px 5px rgba(0,0,0,0.1);flex-shrink:0;">${getUserInitials(user.name)}</div>
+      <td style="padding: 9px 8px;">
+        <div style="display: flex; align-items: center; gap: 8px; min-width: 145px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;box-shadow: 0 1px 3px rgba(0,0,0,0.1);flex-shrink:0;">${getUserInitials(user.name)}</div>
           <div>
-            <div style="font-weight: 600; color: #0f172a; font-size: 13px; line-height: 1.3;">${escapeHTML(user.name || '')}</div>
-            <div style="font-size: 11px; color: #64748b;">${escapeHTML(user.email || '-')}</div>
+            <div style="font-weight: 600; color: #0f172a; font-size: 12px; line-height: 1.3;">${escapeHTML(user.name || '')}</div>
+            <div style="font-size: 10.5px; color: #64748b;">${escapeHTML(user.email || '-')}</div>
           </div>
         </div>
       </td>
-      <td style="padding: 11px 14px; color: #475569; font-size: 12.5px; min-width: 130px; line-height: 1.3;">${escapeHTML(user.department || 'กลุ่มสาระวิทยาศาสตร์')}</td>
-      <td style="padding: 11px 14px; white-space: nowrap;">
-        <span class="badge-role ${badgeInfo.className}" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px;">${badgeInfo.level} ${badgeInfo.name}</span>
+      <td style="padding: 9px 8px; color: #475569; font-size: 11.5px; max-width: 140px; line-height: 1.3;">${escapeHTML(user.department || 'กลุ่มสาระวิทยาศาสตร์')}</td>
+      <td style="padding: 9px 8px; white-space: nowrap;">
+        <span class="badge-role ${badgeInfo.className}" style="font-size: 11px; padding: 2px 7px; border-radius: 5px;">${badgeInfo.level} ${badgeInfo.name}</span>
       </td>
-      <td style="padding: 11px 14px; min-width: 110px;">${roomsHtml}</td>
-      <td style="padding: 11px 14px; white-space: nowrap; width: 190px; min-width: 190px;">
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span class="user-pass-val" id="user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="display: inline-block; font-family: monospace; font-size: 12.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 7px; border-radius: 6px; color: #475569; width: 128px; min-width: 128px; max-width: 128px; text-align: center; letter-spacing: 1px; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">••••••••</span>
-          <button type="button" onclick="toggleAdminUserPassEye('${escapeHTML(user.id)}')" title="แสดง/ซ่อนรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;">
-            <i data-lucide="eye" id="user-eye-${escapeHTML(user.id)}" style="width: 14px; height: 14px;"></i>
+      <td style="padding: 9px 8px; font-size: 11.5px; max-width: 120px;">${roomsHtml}</td>
+      <td style="padding: 9px 6px; white-space: nowrap; width: 145px; min-width: 145px; text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+          <span class="user-pass-val" id="user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="display: inline-block; font-family: monospace; font-size: 11.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 4px; border-radius: 5px; color: #475569; width: 104px; min-width: 104px; max-width: 104px; text-align: center; letter-spacing: 0.5px; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">••••••••</span>
+          <button type="button" onclick="toggleAdminUserPassEye('${escapeHTML(user.id)}')" title="แสดง/ซ่อนรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;">
+            <i data-lucide="eye" id="user-eye-${escapeHTML(user.id)}" style="width: 13px; height: 13px;"></i>
           </button>
-          <button type="button" onclick="copyAdminUserPass('${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}')" title="คัดลอกรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;">
+          <button type="button" onclick="copyAdminUserPass('${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}')" title="คัดลอกรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;">
             <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
           </button>
         </div>
       </td>
-      <td style="padding: 11px 14px; text-align: center; white-space: nowrap;">
-        <div style="display: inline-flex; gap: 4px;">
-          <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);" title="แก้ไขข้อมูล">
-            <i data-lucide="edit-2" style="width: 12px; height: 12px; color: #64748b;"></i>
+      <td style="padding: 9px 6px; text-align: center; white-space: nowrap; width: 125px;">
+        <div style="display: inline-flex; gap: 4px; justify-content: center;">
+          <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; cursor: pointer; padding: 3px 6px; border-radius: 5px; font-weight: 500; font-size: 11.5px; display: inline-flex; align-items: center; gap: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);" title="แก้ไขข้อมูล">
+            <i data-lucide="edit-2" style="width: 11px; height: 11px; color: #64748b;"></i>
             <span>แก้ไข</span>
           </button>
-          <button class="btn btn-sm" onclick="quickResetUserPassword('${user.id}')" style="background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; gap: 3px;" title="รีเซ็ต/จัดการรหัสผ่าน">
-            <i data-lucide="key-round" style="width: 12px; height: 12px;"></i>
+          <button class="btn btn-sm" onclick="quickResetUserPassword('${user.id}')" style="background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; cursor: pointer; padding: 3px 6px; border-radius: 5px; font-weight: 500; font-size: 11.5px; display: inline-flex; align-items: center; gap: 2px;" title="รีเซ็ต/จัดการรหัสผ่าน">
+            <i data-lucide="key-round" style="width: 11px; height: 11px;"></i>
             <span>รหัสผ่าน</span>
           </button>
         </div>

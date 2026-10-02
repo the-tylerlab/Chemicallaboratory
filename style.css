@@ -13244,22 +13244,21 @@ select.admin-filter-select:focus {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 13.5px;
-  min-width: 720px;
+  font-size: 12.5px;
 }
 
 .admin-table-container th {
   background: #f8fafc;
-  padding: 12px 14px;
+  padding: 10px 8px;
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
 }
 
 .admin-table-container td {
-  padding: 11px 14px;
+  padding: 8px 8px;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
 }
@@ -13899,16 +13898,16 @@ select.admin-filter-select:focus {
 
 .admin-table-container th {
   background: #f8fafc;
-  padding: 14px 16px;
+  padding: 10px 8px;
   font-weight: 600;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
 }
 
 .admin-table-container td {
-  padding: 12px 16px;
+  padding: 8px 8px;
   border-bottom: 1px solid var(--border-color);
   vertical-align: middle;
 }
@@ -15579,9 +15578,9 @@ select.admin-filter-select:focus {
 /* Fixed-width User Password Box */
 .user-pass-val {
   display: inline-block !important;
-  width: 128px !important;
-  min-width: 128px !important;
-  max-width: 128px !important;
+  width: 104px !important;
+  min-width: 104px !important;
+  max-width: 104px !important;
   text-align: center !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
@@ -15589,21 +15588,22 @@ select.admin-filter-select:focus {
   white-space: nowrap !important;
   vertical-align: middle !important;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
-  font-size: 12.5px !important;
+  font-size: 11.5px !important;
   background: #f8fafc !important;
   border: 1px solid #e2e8f0 !important;
-  padding: 3px 8px !important;
-  border-radius: 6px !important;
+  padding: 2px 4px !important;
+  border-radius: 5px !important;
   color: #475569 !important;
+  letter-spacing: 0.5px !important;
 }
 
 @media (max-width: 768px) {
   .admin-user-mobile-card .user-pass-val {
-    width: 118px !important;
-    min-width: 118px !important;
-    max-width: 118px !important;
-    font-size: 11.5px !important;
-    padding: 2px 6px !important;
+    width: 104px !important;
+    min-width: 104px !important;
+    max-width: 104px !important;
+    font-size: 11px !important;
+    padding: 2px 4px !important;
   }
 }
 
