@@ -96,7 +96,7 @@
   <!-- Fonts are self-hosted in /fonts/ directory — no external request needed -->
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20261002_pwfixed">
+  <link rel="stylesheet" href="style.css?v=20261002_fit">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -2936,16 +2936,16 @@
             <table class="data-table">
               <thead>
                 <tr>
-                  <th style="width: 38px; text-align: center; padding: 10px 8px;">
-                    <input type="checkbox" id="selectAllUsersCheckbox" onchange="toggleSelectAllUsers(this.checked)" title="เลือกทั้งหมด" style="width: 16px; height: 16px; accent-color: var(--primary-purple); cursor: pointer; border-radius: 4px;">
+                  <th style="width: 36px; text-align: center; padding: 9px 4px;">
+                    <input type="checkbox" id="selectAllUsersCheckbox" onchange="toggleSelectAllUsers(this.checked)" title="เลือกทั้งหมด" style="width: 14px; height: 14px; accent-color: var(--primary-purple); cursor: pointer; border-radius: 4px;">
                   </th>
-                  <th>รหัสครู (ID)</th>
-                  <th>ชื่อผู้ใช้งาน (Member Name)</th>
-                  <th>กลุ่มสาระ / หน่วยงาน</th>
-                  <th>ระดับสิทธิ์ (Role)</th>
-                  <th>ห้องที่ได้รับมอบหมาย</th>
-                  <th style="white-space: nowrap; width: 190px; min-width: 190px;">รหัสผ่าน (Password)</th>
-                  <th style="text-align: center;">จัดการ</th>
+                  <th style="padding: 9px 8px; width: 75px; white-space: nowrap;">รหัสครู (ID)</th>
+                  <th style="padding: 9px 8px; min-width: 150px;">ชื่อผู้ใช้งาน (Member Name)</th>
+                  <th style="padding: 9px 8px;">กลุ่มสาระ / หน่วยงาน</th>
+                  <th style="padding: 9px 8px; white-space: nowrap;">ระดับสิทธิ์ (Role)</th>
+                  <th style="padding: 9px 8px;">ห้องที่ได้รับมอบหมาย</th>
+                  <th style="white-space: nowrap; width: 145px; text-align: center; padding: 9px 6px;">รหัสผ่าน (Password)</th>
+                  <th style="text-align: center; width: 125px; white-space: nowrap; padding: 9px 6px;">จัดการ</th>
                 </tr>
               </thead>
               <tbody id="adminUsersTableBody">
@@ -5862,7 +5862,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261002_tablefix"></script>
+  <script src="app.js?v=20261002_fit"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {
