@@ -15,8 +15,10 @@ export function isUserLoggedIn() {
 
 // Check if user has administrator access
 export function canAccessAdminSection() {
+  const token = getAuthToken();
   const r = state.userRole;
-  return r === 'L3' || r === 'admin' || (state.currentUser && (state.currentUser.role === 'L3' || state.currentUser.role === 'admin'));
+  const isL3 = r === 'L3' || r === 'admin' || (state.currentUser && (state.currentUser.role === 'L3' || state.currentUser.role === 'admin'));
+  return Boolean(isL3 && token);
 }
 
 // Perform login with backend API
@@ -62,6 +64,10 @@ export async function logout(notify = true) {
   setAuthToken(null);
   setCurrentUser(null);
 
+  if (typeof window !== 'undefined' && typeof window.closeUserProfileModal === 'function') {
+    window.closeUserProfileModal();
+  }
+
   // Clear sensitive local storage and purge legacy auth keys
   if (typeof localStorage !== "undefined") {
     localStorage.removeItem("lab_saved_credentials");
@@ -71,15 +77,15 @@ export async function logout(notify = true) {
     localStorage.removeItem("userRoleLevel");
   }
 
-  if (notify && typeof window.showToast === 'function') {
+  if (notify && typeof window !== 'undefined' && typeof window.showToast === 'function') {
     window.showToast("ออกจากระบบเรียบร้อยแล้ว", "info");
   }
 
-  if (typeof window.updateLoginUI === 'function') {
+  if (typeof window !== 'undefined' && typeof window.updateLoginUI === 'function') {
     window.updateLoginUI();
   }
 
-  if (window.lucide) window.lucide.createIcons();
+  if (typeof window !== 'undefined' && window.lucide) window.lucide.createIcons();
 }
 
 // Verify active session with backend /api/auth/me
@@ -101,7 +107,7 @@ export async function verifySession() {
       const data = await res.json();
       if (data && data.success && data.user) {
         setCurrentUser(data.user, token);
-        if (typeof window.updateLoginUI === 'function') {
+        if (typeof window !== 'undefined' && typeof window.updateLoginUI === 'function') {
           window.updateLoginUI();
         }
         return data.user;
@@ -116,10 +122,41 @@ export async function verifySession() {
   return null;
 }
 
+// Change Password Function
+export async function changePassword(currentPassword, newPassword, confirmPassword) {
+  const token = getAuthToken();
+  if (!token) throw new Error('กรุณาเข้าสู่ระบบก่อนเปลี่ยนรหัสผ่าน');
+
+  const res = await fetch('/api/auth/change-password', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
+  }
+
+  if (data.token) {
+    setAuthToken(data.token);
+  }
+  return data;
+}
+
+// Backward-compatible alias
+export const restoreAndVerifySession = verifySession;
+
 // Mount to window for global backwards compatibility
 if (typeof window !== 'undefined') {
   window.isUserLoggedIn = isUserLoggedIn;
   window.canAccessAdminSection = canAccessAdminSection;
   window.performLogout = logout;
   window.verifySession = verifySession;
+  window.restoreAndVerifySession = restoreAndVerifySession;
+  window.labLogin = login;
+  window.changePassword = changePassword;
 }

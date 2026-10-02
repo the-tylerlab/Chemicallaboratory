@@ -9,10 +9,12 @@
     "seed:demo": "node scripts/seed_demo.js",
     "seed:clean": "node scripts/seed_demo.js --clean",
     "test:security": "node scripts/test_security_suite.js",
+    "test:date": "node scripts/test_system_date.js",
+    "test:auth": "node scripts/test_auth_domain.js",
     "test:p1-database": "node scripts/test_p1_database.js",
     "test:p2-inventory": "node scripts/test_p2_inventory.js",
     "test:p2-modules": "node scripts/test_p2_modules.js",
-    "test:all": "npm run test:security && npm run test:p1-database && npm run test:p2-inventory && npm run test:p2-modules"
+    "test:all": "npm run test:security && npm run test:date && npm run test:auth && npm run test:p1-database && npm run test:p2-inventory && npm run test:p2-modules"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.3",

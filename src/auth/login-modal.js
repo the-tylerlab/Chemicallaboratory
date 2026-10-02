@@ -103,6 +103,7 @@ function saveOrClearSavedUsername(uname) {
 
 // Setup Event Listeners for Login UI
 export function setupLoginHandlers() {
+  if (typeof document === 'undefined') return;
   const btnSidebarLogin = document.getElementById("btnSidebarLogin");
   const btnSidebarLogoutQuick = document.getElementById("btnSidebarLogoutQuick");
   const loginModalClose = document.getElementById("loginModalClose");
@@ -230,6 +231,7 @@ export function setupLoginHandlers() {
 
 // Update Topbar / Sidebar Login UI
 export function updateLoginUI() {
+  if (typeof document === 'undefined') return;
   const loggedIn = isUserLoggedIn();
   const user = state.currentUser;
   const isL3 = state.isAdminLoggedIn;

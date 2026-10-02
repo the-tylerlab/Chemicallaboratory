@@ -31,6 +31,19 @@ const authToken = typeof localStorage !== "undefined" ? (localStorage.getItem("l
 
 // Helper: Restore and verify active session strictly from server
 async function restoreAndVerifySession() {
+  if (typeof window !== "undefined" && window.SciPortal && window.SciPortal.auth && typeof window.SciPortal.auth.verifySession === "function") {
+    try {
+      const user = await window.SciPortal.auth.verifySession();
+      if (user) {
+        currentUser = user;
+        userRole = user.role || "L1";
+        isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+        if (typeof updateLoginUI === "function") updateLoginUI();
+        return currentUser;
+      }
+    } catch (e) {}
+  }
+
   const token = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
   if (!token) {
     currentUser = null;
@@ -283,9 +296,75 @@ try {
 const CATEGORIES = ["สารเคมี", "อุปกรณ์วิทยาศาสตร์", "เครื่องแก้ว", "วัสดุสิ้นเปลือง"];
 const UNITS = ["ขวด", "หลอด", "ชิ้น", "อัน", "เครื่อง", "กล่อง"];
 
-// Current date tracking for expiration checks (Using system date or simulated date)
-// Today's date reference: 2026-05-28
-const TODAY = new Date('2026-05-28');
+// System Date Provider
+// In production: Always uses real current date/time (new Date()).
+// For demo/automated testing: Injected via test configuration:
+//  - window.__TEST_CONFIG__?.simulatedDate
+//  - globalThis.__TEST_CONFIG__?.simulatedDate
+//  - window.__SIMULATED_DATE__
+//  - URL parameter ?testDate=YYYY-MM-DD or ?simulatedDate=YYYY-MM-DD
+function getSystemDate() {
+  if (typeof window !== 'undefined') {
+    if (window.__TEST_CONFIG__ && window.__TEST_CONFIG__.simulatedDate) {
+      const d = new Date(window.__TEST_CONFIG__.simulatedDate);
+      if (!isNaN(d.getTime())) return d;
+    }
+    if (window.__SIMULATED_DATE__) {
+      const d = new Date(window.__SIMULATED_DATE__);
+      if (!isNaN(d.getTime())) return d;
+    }
+    try {
+      if (window.location && window.location.search) {
+        const params = new URLSearchParams(window.location.search);
+        const urlDate = params.get('testDate') || params.get('simulatedDate');
+        if (urlDate) {
+          const d = new Date(urlDate);
+          if (!isNaN(d.getTime())) return d;
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (typeof globalThis !== 'undefined' && globalThis.__TEST_CONFIG__ && globalThis.__TEST_CONFIG__.simulatedDate) {
+    const d = new Date(globalThis.__TEST_CONFIG__.simulatedDate);
+    if (!isNaN(d.getTime())) return d;
+  }
+  if (typeof process !== 'undefined' && process.env && process.env.TEST_SIMULATED_DATE) {
+    const d = new Date(process.env.TEST_SIMULATED_DATE);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  return new Date();
+}
+
+// Current date formatted as YYYY-MM-DD
+function getSystemISODate() {
+  const d = getSystemDate();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Backward-compatible dynamic Date proxy for any existing references to TODAY
+var TODAY = new Proxy(new Date(), {
+  get(target, prop) {
+    if (prop === Symbol.toPrimitive) {
+      return (hint) => {
+        const current = getSystemDate();
+        if (hint === 'number') return current.getTime();
+        if (hint === 'string') return current.toISOString();
+        return current.getTime();
+      };
+    }
+    const current = getSystemDate();
+    const val = current[prop];
+    return typeof val === 'function' ? val.bind(current) : val;
+  },
+  valueOf() {
+    return getSystemDate().valueOf();
+  }
+});
 
 // Helper to format currency
 function formatCurrency(val) {
@@ -1822,12 +1901,14 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
 // ITEM STATUS CALCULATION LOGIC
 // ==========================================================================
 function getItemStatus(item) {
+  const today = getSystemDate();
+  const todayClean = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
   // 1. Expired Check
   if (item.expiry) {
     const expDate = new Date(item.expiry);
     // Strip time for clean date comparison
     const expClean = new Date(expDate.getFullYear(), expDate.getMonth(), expDate.getDate());
-    const todayClean = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
     
     if (expClean < todayClean) {
       return "expired";
@@ -1838,7 +1919,6 @@ function getItemStatus(item) {
   if (item.expiry) {
     const expDate = new Date(item.expiry);
     const expClean = new Date(expDate.getFullYear(), expDate.getMonth(), expDate.getDate());
-    const todayClean = new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate());
     
     const diffTime = expClean - todayClean;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -3747,7 +3827,7 @@ function renderNotificationsList(stats) {
       `;
     } else if (status === "near-expiry") {
       const expDate = new Date(item.expiry);
-      const diffTime = expDate - TODAY;
+      const diffTime = expDate - getSystemDate();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
       nearExpiryHtml += `
@@ -9098,6 +9178,12 @@ function setupLoginHandlers() {
   };
 
   const performLogout = () => {
+    if (typeof window !== "undefined" && window.SciPortal && window.SciPortal.auth && typeof window.SciPortal.auth.logout === "function") {
+      currentUser = null;
+      userRole = "L0";
+      isAdminLoggedIn = false;
+      return window.SciPortal.auth.logout();
+    }
     const token = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
     if (token) {
       try {
@@ -9581,8 +9667,9 @@ function renderDashboardOverdueAlerts() {
   const countBadge = document.getElementById("dashboardOverdueCount");
   if (!container) return;
 
+  const currentIsoDate = getSystemISODate();
   const overdueTrans = transactions.filter(tx => {
-    return tx.type === "borrow" && tx.status === "borrowed" && tx.expectedReturnDate && tx.expectedReturnDate < "2026-05-28";
+    return tx.type === "borrow" && tx.status === "borrowed" && tx.expectedReturnDate && tx.expectedReturnDate < currentIsoDate;
   });
 
   if (overdueTrans.length === 0) {
@@ -9622,7 +9709,7 @@ function renderDashboardOverdueAlerts() {
 
 function getOverdueDays(expectedDateStr) {
   const exp = new Date(expectedDateStr);
-  const diffTime = TODAY.getTime() - exp.getTime();
+  const diffTime = getSystemDate().getTime() - exp.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays > 0 ? diffDays : 0;
 }
@@ -13829,8 +13916,7 @@ function generateBotResponse(query) {
 
   // 3. CHECK EXPIRED
   if (q.includes("หมดอายุ") || q.includes("expired") || q === "เช็คสารเคมีหมดอายุ") {
-    // Expiration date reference is TODAY (2026-05-28)
-    const today = new Date('2026-05-28');
+    const today = getSystemDate();
     const expiredList = items.filter(item => {
       if (!item.expiry) return false;
       const exp = new Date(item.expiry);
@@ -22879,7 +22965,7 @@ window.openMasterDetailModal = function(code) {
                 <div><strong>จุดสั่งซื้อใหม่ (Reorder Point):</strong> ${reorderPt} ${escapeHtml(item.unit || 'ขวด')}</div>
                 <div><strong>สต็อกเพื่อความปลอดภัย (Safety Stock):</strong> ${safetyStock} ${escapeHtml(item.unit || 'ขวด')}</div>
                 <div><strong>Lot / Batch Number:</strong> ${escapeHtml(item.lotNumber || '-')}</div>
-                <div><strong>วันที่รับเข้า:</strong> ${formatThaiDate(item.receivedDate || item.createdAt || '2026-09-23')}</div>
+                <div><strong>วันที่รับเข้า:</strong> ${formatThaiDate(item.receivedDate || item.createdAt || getSystemISODate())}</div>
                 <div><strong>วันหมดอายุ:</strong> ${item.expiry ? formatThaiDate(item.expiry) : '-'}</div>
                 <div><strong>ผู้จัดจำหน่าย (Supplier):</strong> ${escapeHtml(item.supplier || '-')}</div>
               ` : `
@@ -23016,7 +23102,9 @@ window.openStockMovementsModal = async function(code) {
 
   // Load history from backend
   try {
-    const res = await fetch(`/api/inventory/movements?itemCode=${encodeURIComponent(item.code)}`);
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem("lab_auth_token") : "";
+    const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+    const res = await fetch(`/api/inventory/movements?itemCode=${encodeURIComponent(item.code)}`, { headers });
     const data = await res.json();
     const container = document.getElementById("movementsTableContainer");
     if (!container) return;
