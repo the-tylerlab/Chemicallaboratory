@@ -17537,11 +17537,28 @@ function renderAdminUsers(filteredList = null) {
         <span class="badge-role ${badgeInfo.className}" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px;">${badgeInfo.level} ${badgeInfo.name}</span>
       </td>
       <td style="padding: 11px 14px; min-width: 110px;">${roomsHtml}</td>
+      <td style="padding: 11px 14px; white-space: nowrap;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span class="user-pass-val" id="user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="font-family: monospace; font-size: 12.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 7px; border-radius: 6px; color: #475569; min-width: 75px; text-align: center; letter-spacing: 1.5px;">••••••••</span>
+          <button type="button" onclick="toggleAdminUserPassEye('${escapeHTML(user.id)}')" title="แสดง/ซ่อนรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b;">
+            <i data-lucide="eye" id="user-eye-${escapeHTML(user.id)}" style="width: 14px; height: 14px;"></i>
+          </button>
+          <button type="button" onclick="copyAdminUserPass('${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}')" title="คัดลอกรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b;">
+            <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
+          </button>
+        </div>
+      </td>
       <td style="padding: 11px 14px; text-align: center; white-space: nowrap;">
-        <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; cursor: pointer; padding: 4px 10px; border-radius: 6px; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
-          <i data-lucide="edit-2" style="width: 12px; height: 12px; color: #64748b;"></i>
-          <span>แก้ไข</span>
-        </button>
+        <div style="display: inline-flex; gap: 4px;">
+          <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);" title="แก้ไขข้อมูล">
+            <i data-lucide="edit-2" style="width: 12px; height: 12px; color: #64748b;"></i>
+            <span>แก้ไข</span>
+          </button>
+          <button class="btn btn-sm" onclick="quickResetUserPassword('${user.id}')" style="background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-weight: 500; font-size: 12px; display: inline-flex; align-items: center; gap: 3px;" title="รีเซ็ต/จัดการรหัสผ่าน">
+            <i data-lucide="key-round" style="width: 12px; height: 12px;"></i>
+            <span>รหัสผ่าน</span>
+          </button>
+        </div>
       </td>
     `;
     tbody.appendChild(tr);
@@ -17560,17 +17577,29 @@ function renderAdminUsers(filteredList = null) {
               <div style="font-size: 11.5px; color: #64748b; margin-top: 1px;">ID: <span style="font-family: monospace; font-weight: 700; color: #0f172a;">${escapeHTML(user.teacherId || user.id || '-')}</span> &bull; ${escapeHTML(user.email || '-')}</div>
             </div>
           </div>
-          <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; cursor: pointer; padding: 5px 10px; border-radius: 6px; font-weight: 500; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; box-shadow: var(--shadow-sm); flex-shrink: 0;">
-            <i data-lucide="edit-2" style="width: 12px; height: 12px; color: #64748b;"></i>
-            <span>แก้ไข</span>
-          </button>
+          <div style="display: flex; gap: 4px; flex-shrink: 0;">
+            <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; cursor: pointer; padding: 5px 8px; border-radius: 6px; font-weight: 500; font-size: 11.5px; display: inline-flex; align-items: center; gap: 3px;" title="แก้ไข">
+              <i data-lucide="edit-2" style="width: 12px; height: 12px; color: #64748b;"></i>
+              <span>แก้ไข</span>
+            </button>
+            <button class="btn btn-sm" onclick="quickResetUserPassword('${user.id}')" style="background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; cursor: pointer; padding: 5px 8px; border-radius: 6px; font-weight: 500; font-size: 11.5px; display: inline-flex; align-items: center; gap: 3px;" title="รีเซ็ต">
+              <i data-lucide="key-round" style="width: 12px; height: 12px;"></i>
+              <span>รหัสผ่าน</span>
+            </button>
+          </div>
         </div>
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
           <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
             <span class="badge-role ${badgeInfo.className}" style="font-size: 11px; padding: 2px 7px; border-radius: 5px;">${badgeInfo.level} ${badgeInfo.name}</span>
             ${roomsHtml}
           </div>
-          <div style="font-size: 11px; color: #64748b;">${escapeHTML(user.department || 'กลุ่มสาระวิทยาศาสตร์')}</div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 11px; color: #64748b;">รหัสผ่าน:</span>
+            <span class="user-pass-val" id="mobile-user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="font-family: monospace; font-size: 11.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 1px 6px; border-radius: 4px; color: #475569;">••••••••</span>
+            <button type="button" onclick="toggleAdminUserPassEye('${escapeHTML(user.id)}', true)" title="แสดง/ซ่อน" style="background: none; border: none; cursor: pointer; padding: 1px; color: #64748b;">
+              <i data-lucide="eye" id="mobile-user-eye-${escapeHTML(user.id)}" style="width: 13px; height: 13px;"></i>
+            </button>
+          </div>
         </div>
       `;
       mobileList.appendChild(card);
@@ -19206,6 +19235,18 @@ function openEditUserModal(id) {
     cb.checked = assigned.includes(cb.value);
   });
 
+  // Populate Password for L3 Admin
+  const passVal = user.display_password || user.plain_password || user.teacherId || "";
+  const elCurrentPass = document.getElementById("editUserCurrentPass");
+  if (elCurrentPass) {
+    elCurrentPass.value = passVal;
+    elCurrentPass.type = "password";
+  }
+  const elNewCustomPass = document.getElementById("editUserNewCustomPass");
+  if (elNewCustomPass) elNewCustomPass.value = "";
+  const elEyeIcon = document.getElementById("editUserPassEyeIcon");
+  if (elEyeIcon) elEyeIcon.setAttribute("data-lucide", "eye");
+
   toggleAssignedRoomsField('edit');
   document.getElementById("modalEditUser").style.display = "flex";
   if (window.lucide) lucide.createIcons();
@@ -19215,6 +19256,218 @@ function closeEditUserModal() {
   const modal = document.getElementById("modalEditUser");
   if (modal) modal.style.display = "none";
 }
+
+// Global Password Visibility & Reset Handlers for Admin
+window.toggleAdminUserPassEye = function(userId, isMobile = false) {
+  const spanId = isMobile ? `mobile-user-pass-${userId}` : `user-pass-${userId}`;
+  const iconId = isMobile ? `mobile-user-eye-${userId}` : `user-eye-${userId}`;
+  const span = document.getElementById(spanId);
+  const icon = document.getElementById(iconId);
+  if (!span) return;
+  const realPass = span.getAttribute("data-pass") || "";
+  if (span.textContent.trim() === "••••••••") {
+    span.textContent = realPass;
+    span.style.letterSpacing = "normal";
+    if (icon) icon.setAttribute("data-lucide", "eye-off");
+  } else {
+    span.textContent = "••••••••";
+    span.style.letterSpacing = isMobile ? "normal" : "1.5px";
+    if (icon) icon.setAttribute("data-lucide", "eye");
+  }
+  if (window.lucide) lucide.createIcons();
+};
+
+window.copyAdminUserPass = function(passText) {
+  if (!passText) return;
+  navigator.clipboard.writeText(passText).then(() => {
+    if (typeof showToast === 'function') showToast("คัดลอกรหัสผ่านเรียบร้อยแล้ว: " + passText, "success");
+  }).catch(() => {
+    prompt("คัดลอกรหัสผ่าน:", passText);
+  });
+};
+
+window.toggleEditUserPassVisibility = function() {
+  const elInput = document.getElementById("editUserCurrentPass");
+  const elIcon = document.getElementById("editUserPassEyeIcon");
+  if (!elInput) return;
+  if (elInput.type === "password") {
+    elInput.type = "text";
+    if (elIcon) elIcon.setAttribute("data-lucide", "eye-off");
+  } else {
+    elInput.type = "password";
+    if (elIcon) elIcon.setAttribute("data-lucide", "eye");
+  }
+  if (window.lucide) lucide.createIcons();
+};
+
+window.copyEditUserPassword = function() {
+  const elInput = document.getElementById("editUserCurrentPass");
+  if (!elInput || !elInput.value) return;
+  navigator.clipboard.writeText(elInput.value).then(() => {
+    if (typeof showToast === 'function') showToast("คัดลอกรหัสผ่านเรียบร้อยแล้ว: " + elInput.value, "success");
+  }).catch(() => {
+    prompt("คัดลอกรหัสผ่าน:", elInput.value);
+  });
+};
+
+window.adminResetUserToTeacherId = async function() {
+  const userId = document.getElementById("editUserId")?.value;
+  const teacherId = document.getElementById("editUserTeacherId")?.value;
+  const userName = document.getElementById("editUserName")?.value;
+  if (!userId || !teacherId) return;
+
+  const result = await Swal.fire({
+    title: `รีเซ็ตรหัสผ่านเป็น Teacher ID?`,
+    html: `ต้องการรีเซ็ตรหัสผ่านของ <b>${userName}</b> ให้กลับเป็นรหัสประจำตัวครู (<code>${teacherId}</code>) ใช่หรือไม่?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#4f46e5',
+    cancelButtonColor: '#94a3b8',
+    confirmButtonText: 'ยืนยันรีเซ็ต',
+    cancelButtonText: 'ยกเลิก'
+  });
+
+  if (!result.isConfirmed) return;
+
+  try {
+    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({ resetToTeacherId: true })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'ไม่สามารถรีเซ็ตได้');
+
+    // Update local state
+    const user = adminUsers.find(u => u.id === userId);
+    if (user) {
+      user.display_password = teacherId;
+      user.plain_password = teacherId;
+    }
+    const elCurrentPass = document.getElementById("editUserCurrentPass");
+    if (elCurrentPass) elCurrentPass.value = teacherId;
+    renderAdminUsers();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'รีเซ็ตสำเร็จ',
+      text: `รหัสผ่านใหม่คือ ${teacherId}`,
+      confirmButtonColor: '#4f46e5'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: err.message, confirmButtonColor: '#4f46e5' });
+  }
+};
+
+window.adminApplyCustomPassword = async function() {
+  const userId = document.getElementById("editUserId")?.value;
+  const userName = document.getElementById("editUserName")?.value;
+  const newPass = document.getElementById("editUserNewCustomPass")?.value?.trim();
+
+  if (!newPass || newPass.length < 4) {
+    if (typeof showToast === 'function') showToast("กรุณาระบุรหัสผ่านใหม่อย่างน้อย 4 ตัวอักษร", "warning");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({ newPassword: newPass })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'ไม่สามารถตั้งรหัสผ่านได้');
+
+    // Update local state
+    const user = adminUsers.find(u => u.id === userId);
+    if (user) {
+      user.display_password = newPass;
+      user.plain_password = newPass;
+    }
+    const elCurrentPass = document.getElementById("editUserCurrentPass");
+    if (elCurrentPass) elCurrentPass.value = newPass;
+    const elNewCustomPass = document.getElementById("editUserNewCustomPass");
+    if (elNewCustomPass) elNewCustomPass.value = "";
+    renderAdminUsers();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'บันทึกรหัสผ่านใหม่สำเร็จ',
+      html: `ตั้งรหัสผ่านใหม่ให้ <b>${userName}</b> เรียบร้อยแล้ว: <code>${newPass}</code>`,
+      confirmButtonColor: '#0284c7'
+    });
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: err.message, confirmButtonColor: '#0284c7' });
+  }
+};
+
+window.quickResetUserPassword = async function(userId) {
+  const user = adminUsers.find(u => u.id === userId);
+  if (!user) return;
+  const tId = user.teacherId || user.id;
+
+  const { value: formValues } = await Swal.fire({
+    title: `🔑 จัดการรหัสผ่าน: ${user.name}`,
+    html: `
+      <div style="text-align: left; font-size: 13.5px; line-height: 1.6;">
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">
+          <div style="font-size: 12px; color: #64748b;">รหัสผ่านปัจจุบัน:</div>
+          <div style="font-family: monospace; font-size: 15px; font-weight: 700; color: #1e293b;">${user.display_password || user.plain_password || tId}</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-weight: 600; margin-bottom: 4px;">ระบุรหัสผ่านใหม่ที่ต้องการ (หรือเว้นว่างเพื่อรีเซ็ตเป็น Teacher ID):</label>
+          <input id="swal-new-password" class="swal2-input" placeholder="พิมพ์รหัสผ่านใหม่ หรือปล่อยว่าง..." style="margin: 0; width: 100%; font-size: 14px; padding: 8px 12px;">
+        </div>
+      </div>
+    `,
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: 'บันทึกรหัสผ่าน',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#4f46e5',
+    preConfirm: () => {
+      const val = document.getElementById('swal-new-password').value.trim();
+      return { newPassword: val || tId, isDefault: !val };
+    }
+  });
+
+  if (!formValues) return;
+
+  try {
+    const res = await fetch(`/api/users/${encodeURIComponent(userId)}/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      },
+      body: JSON.stringify({
+        newPassword: formValues.newPassword,
+        resetToTeacherId: formValues.isDefault
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || 'ไม่สามารถรีเซ็ตได้');
+
+    user.display_password = formValues.newPassword;
+    user.plain_password = formValues.newPassword;
+    renderAdminUsers();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'บันทึกเรียบร้อย',
+      html: `รหัสผ่านของ <b>${user.name}</b> คือ: <code>${formValues.newPassword}</code>`,
+      confirmButtonColor: '#4f46e5'
+    });
+  } catch (e) {
+    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: e.message, confirmButtonColor: '#4f46e5' });
+  }
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   const formEditUser = document.getElementById("formEditUser");
