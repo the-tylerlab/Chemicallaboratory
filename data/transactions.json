@@ -1,6 +1,6 @@
 [
   {
-    "id": "TX-1790927919563",
+    "id": "TX-1790928106229",
     "itemCode": "CHEM-009",
     "item_code": "CHEM-009",
     "itemName": "กรดไนทริก 7 M (Nitric Acid 7 M)",
@@ -12,18 +12,18 @@
     "borrower": "อาจารย์ผู้ดูแลระบบ (Admin)",
     "teacherId": "admin",
     "responsiblePerson": "ครูสมชาย",
-    "borrowDate": "2026-10-02T07:58:39.563Z",
+    "borrowDate": "2026-10-02T08:01:46.229Z",
     "dueDate": "2026-10-20",
     "expectedReturnDate": "2026-10-20",
-    "returnDate": "2026-10-02T07:58:39.630Z",
+    "returnDate": "2026-10-02T08:01:46.300Z",
     "status": "returned",
     "approvalStatus": "approved",
     "approvedBy": "อาจารย์ผู้ดูแลระบบ (Admin)",
-    "approvedAt": "2026-10-02T07:58:39.563Z",
+    "approvedAt": "2026-10-02T08:01:46.229Z",
     "damagedStatus": "none",
     "notes": "ยืมสาธิตการตกผลึก",
-    "createdAt": "2026-10-02T07:58:39.563Z",
-    "return_date": "2026-10-02T07:58:39.630Z",
+    "createdAt": "2026-10-02T08:01:46.229Z",
+    "return_date": "2026-10-02T08:01:46.300Z",
     "condition": "สมบูรณ์",
     "damageFine": 0,
     "damageNotes": ""
@@ -46,7 +46,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-01T06:40:48.934Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -67,7 +67,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-22T16:04:03.231Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -88,7 +88,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-19T16:04:03.232Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -109,7 +109,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-21T16:04:03.232Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -130,7 +130,7 @@
     "returnDate": "2026-09-19",
     "damagedQty": 1,
     "createdAt": "2026-09-17T16:04:03.232Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -151,7 +151,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-21T16:04:03.232Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -172,7 +172,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-09-22T16:04:03.232Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -193,7 +193,7 @@
     "returnDate": "2026-09-21",
     "damagedQty": 0,
     "createdAt": "2026-09-20T16:04:03.232Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -214,7 +214,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-01T06:36:30.756Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -235,7 +235,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-01T06:39:08.185Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -256,7 +256,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-01T06:41:12.307Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -277,7 +277,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-02T07:44:48.498Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -298,7 +298,7 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-02T07:45:15.756Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   },
   {
@@ -319,7 +319,28 @@
     "returnDate": null,
     "damagedQty": 0,
     "createdAt": "2026-10-02T07:45:31.218Z",
-    "updatedAt": "2026-10-02T07:58:39.623Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
+    "is_deleted": false
+  },
+  {
+    "id": "TX-1790927919563",
+    "itemCode": "CHEM-009",
+    "itemName": "กรดไนทริก 7 M (Nitric Acid 7 M)",
+    "qty": 1,
+    "borrower": "อาจารย์ผู้ดูแลระบบ (Admin)",
+    "date": "2026-10-02",
+    "type": "BORROW",
+    "status": "borrowed",
+    "notes": "ยืมสาธิตการตกผลึก",
+    "expectedReturnDate": "2026-10-20",
+    "bookingId": "",
+    "room": "Lab 1",
+    "slot": "",
+    "supervisingTeacher": "ครูสมชาย",
+    "returnDate": null,
+    "damagedQty": 0,
+    "createdAt": "2026-10-02T07:58:39.563Z",
+    "updatedAt": "2026-10-02T08:01:46.293Z",
     "is_deleted": false
   }
 ]
