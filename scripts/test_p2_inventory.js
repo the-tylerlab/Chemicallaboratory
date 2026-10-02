@@ -89,7 +89,7 @@ async function runInventoryTests() {
     const loginRes = await request({
       host: '127.0.0.1', port: 3002, path: '/api/auth/login', method: 'POST',
       headers: { 'Content-Type': 'application/json' }
-    }, { username: 'admin', password: 'admin' });
+    }, { username: 'admin', password: 'SciAdmin@2026' });
     const token = loginRes.body.token;
     assert(!!token, "Admin login successful with valid JWT");
 
@@ -159,7 +159,8 @@ async function runInventoryTests() {
 
     // Query movement history
     const histRes = await request({
-      host: '127.0.0.1', port: 3002, path: `/api/inventory/movements?itemCode=${testCode}`, method: 'GET'
+      host: '127.0.0.1', port: 3002, path: `/api/inventory/movements?itemCode=${testCode}`, method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     assert(histRes.status === 200 && histRes.body.movements.length > 0, "GET /api/inventory/movements retrieves movement history");
     assert(histRes.body.movements[0].type === 'OUT', "Movement log accurately records OUT transaction type");

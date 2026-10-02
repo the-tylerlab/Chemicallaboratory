@@ -67,7 +67,7 @@ async function run() {
     const adminLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'admin', password: 'admin' })
+      body: JSON.stringify({ username: 'admin', password: 'SciAdmin@2026' })
     });
     const adminData = await adminLoginRes.json();
     adminToken = adminData.token;
@@ -286,7 +286,9 @@ async function run() {
 
     // --- 4. Procurement & Budget Auto-Restock ---
     console.log("\n--- 4. Procurement & Budget Tracking ---");
-    const budgetSumRes = await fetch(`${BASE_URL}/api/budget/summary`);
+    const budgetSumRes = await fetch(`${BASE_URL}/api/budget/summary`, {
+      headers: { 'Authorization': `Bearer ${teacherToken}` }
+    });
     assert.strictEqual(budgetSumRes.status, 200);
     const budgetSum = await budgetSumRes.json();
     assert.ok(budgetSum.totalBudget >= 0);

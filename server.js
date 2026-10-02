@@ -1227,6 +1227,16 @@ app.get('/api/version', (req, res) => {
   }
 });
 
+// GET /api/health — System health check
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    supabaseConnected: Boolean(supabase),
+    version: require('./package.json').version || '2.6.0'
+  });
+});
+
 // ─── PUBLIC CLIENT CONFIG ENDPOINT ───────────────────────────────────────────
 // Serves Supabase anon/publishable key + URL to the frontend.
 // The anon key is RLS-scoped and designed for client use, but must NOT be

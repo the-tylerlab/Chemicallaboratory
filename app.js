@@ -1,14 +1,77 @@
+// Base API URL Resolver (Supports port 3000 Express server, port 5500 Live Server, Vite, and production)
+function resolveApiBase() {
+  if (typeof window !== "undefined" && window.location) {
+    const { hostname, port, protocol } = window.location;
+    if (port && port !== '3000') {
+      return `${protocol}//${hostname}:3000/api`;
+    }
+    if (protocol === 'file:') {
+      return 'http://localhost:3000/api';
+    }
+    return `${window.location.origin}/api`;
+  }
+  return "http://localhost:3000/api";
+}
+var API_BASE = resolveApiBase();
+if (typeof window !== "undefined") {
+  window.API_BASE = API_BASE;
+  window.resolveApiBase = resolveApiBase;
+}
+
+// Global fetch rewriter to seamlessly route /api/ requests to API_BASE and attach JWT token
+if (typeof window !== "undefined" && window.fetch && !window.__GLOBAL_FETCH_INTERCEPTOR_INSTALLED__) {
+  window.__GLOBAL_FETCH_INTERCEPTOR_INSTALLED__ = true;
+  const _origFetch = window.fetch;
+  window.fetch = function(resource, init) {
+    let urlStr = typeof resource === 'string' ? resource : (resource && resource.url) ? resource.url : '';
+    let newResource = resource;
+
+    // Rewrite relative /api/ to API_BASE when accessed from port other than 3000 (e.g. Live Server 5500)
+    if (urlStr.startsWith('/api') && API_BASE.startsWith('http') && !API_BASE.includes(window.location.host)) {
+      urlStr = urlStr.replace(/^\/api/, API_BASE);
+      if (typeof resource === 'string') {
+        newResource = urlStr;
+      } else if (resource && typeof resource === 'object' && resource.url) {
+        newResource = new Request(urlStr, resource);
+      }
+    }
+
+    const token = typeof localStorage !== 'undefined' ? (localStorage.getItem("lab_auth_token") || '') : '';
+    if (token && typeof urlStr === 'string' && (urlStr.includes('/api/') || urlStr.startsWith(API_BASE))) {
+      const options = init ? { ...init } : {};
+      const headers = new Headers(options.headers || (resource && resource.headers ? resource.headers : {}));
+      if (!headers.has('Authorization') && !headers.has('authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      options.headers = headers;
+      return _origFetch(newResource, options);
+    }
+
+    return _origFetch(newResource, init);
+  };
+}
+
 // ==========================================================================
 // STATE MANAGEMENT & INITIALIZATION
 // ==========================================================================
 
-// Global state variable
+// Global state variables
 let items = [];
+let transactions = [];
+let bookings = [];
 let labLayouts = {};
 let activityLogs = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let fileToImport = null;
+var isBackendOnline = false;
+var supabase = null;
+let isSupabaseOnline = false;
+var GOOGLE_SCRIPT_WEBAPP_URL = null;
+
+if (typeof window !== "undefined") {
+  if (!window.feedbacksData) window.feedbacksData = [];
+}
 
 // RBAC State Management (L0 - L4)
 // URL parameters must NEVER escalate privileges. Admin status strictly requires an authenticated server session/JWT token.
@@ -29,81 +92,101 @@ let userRole = "L0";
 let isAdminLoggedIn = false;
 const authToken = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
 
+// Helper: Safely trigger login UI without crashing if DOM or dependencies not ready
+function safeTriggerLoginUI() {
+  if (typeof document !== "undefined" && document.readyState !== "loading" && typeof updateLoginUI === "function") {
+    try {
+      updateLoginUI();
+    } catch (e) {
+      console.warn("Deferred updateLoginUI warning:", e);
+    }
+  }
+}
+
 // Helper: Restore and verify active session strictly from server
 async function restoreAndVerifySession() {
-  if (typeof window !== "undefined" && window.SciPortal && window.SciPortal.auth && typeof window.SciPortal.auth.verifySession === "function") {
-    try {
-      const user = await window.SciPortal.auth.verifySession();
-      if (user) {
-        currentUser = user;
-        userRole = user.role || "L1";
-        isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
-        if (typeof updateLoginUI === "function") updateLoginUI();
-        return currentUser;
-      }
-    } catch (e) {}
-  }
-
-  const token = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
-  if (!token) {
-    currentUser = null;
-    userRole = "L0";
-    isAdminLoggedIn = false;
-    if (typeof localStorage !== "undefined") {
-      localStorage.removeItem("currentUser");
-      localStorage.removeItem("userRole");
-      localStorage.removeItem("isAdminLoggedIn");
-      localStorage.removeItem("userRoleLevel");
-    }
-    if (typeof updateLoginUI === "function") updateLoginUI();
-    return null;
-  }
-
   try {
-    const res = await fetch('/api/auth/me', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.success && data.user) {
-        currentUser = data.user;
-        userRole = (data.user.role || 'L1');
-        isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
-        if (typeof window.setCurrentUser === "function") {
-          window.setCurrentUser(data.user, token);
+    if (typeof window !== "undefined" && window.SciPortal && window.SciPortal.auth && typeof window.SciPortal.auth.verifySession === "function") {
+      try {
+        const user = await window.SciPortal.auth.verifySession();
+        if (user) {
+          currentUser = user;
+          userRole = user.role || "L1";
+          isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+          safeTriggerLoginUI();
+          return currentUser;
         }
-        if (typeof updateLoginUI === "function") updateLoginUI();
-        return currentUser;
+      } catch (e) {}
+    }
+
+    const token = typeof localStorage !== "undefined" ? (localStorage.getItem("lab_auth_token") || "") : "";
+    if (!token) {
+      currentUser = null;
+      userRole = "L0";
+      isAdminLoggedIn = false;
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("isAdminLoggedIn");
+        localStorage.removeItem("userRoleLevel");
       }
+      safeTriggerLoginUI();
+      return null;
     }
-    // Token is invalid, expired, revoked, or server rejected authentication -> Logout immediately
-    console.warn("[Auth] Token invalid or expired (status: " + res.status + "), logging out");
+
+    try {
+      const res = await fetch((typeof API_BASE !== 'undefined' ? API_BASE : resolveApiBase()) + '/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && data.user) {
+          currentUser = data.user;
+          userRole = (data.user.role || 'L1');
+          isAdminLoggedIn = (userRole === "L3" || userRole === "admin");
+          if (typeof window.setCurrentUser === "function") {
+            window.setCurrentUser(data.user, token);
+          }
+          safeTriggerLoginUI();
+          return currentUser;
+        }
+      }
+      // Token is invalid, expired, revoked, or server rejected authentication -> Logout immediately
+      console.warn("[Auth] Token invalid or expired (status: " + res.status + "), logging out");
+      currentUser = null;
+      userRole = "L0";
+      isAdminLoggedIn = false;
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("lab_auth_token");
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("isAdminLoggedIn");
+        localStorage.removeItem("userRoleLevel");
+        localStorage.removeItem("lab_saved_credentials");
+      }
+      if (typeof window.setCurrentUser === "function") {
+        window.setCurrentUser(null);
+      }
+      safeTriggerLoginUI();
+      return null;
+    } catch (err) {
+      console.warn("[Auth] Server session verification failed (offline or network error):", err.message);
+      // STRICT SECURITY: Do NOT restore privileged user from localStorage without server verification
+      currentUser = null;
+      userRole = "L0";
+      isAdminLoggedIn = false;
+      if (typeof window.setCurrentUser === "function") {
+        window.setCurrentUser(null);
+      }
+      safeTriggerLoginUI();
+      return null;
+    }
+  } catch (outerErr) {
+    console.warn("[Auth] Unexpected error during session restore:", outerErr);
     currentUser = null;
     userRole = "L0";
     isAdminLoggedIn = false;
-    if (typeof localStorage !== "undefined") {
-      localStorage.removeItem("lab_auth_token");
-      localStorage.removeItem("currentUser");
-      localStorage.removeItem("userRole");
-      localStorage.removeItem("isAdminLoggedIn");
-      localStorage.removeItem("userRoleLevel");
-      localStorage.removeItem("lab_saved_credentials");
-    }
-    if (typeof window.setCurrentUser === "function") {
-      window.setCurrentUser(null);
-    }
-    if (typeof updateLoginUI === "function") updateLoginUI();
-    return null;
-  } catch (err) {
-    console.warn("[Auth] Server session verification failed (offline or network error):", err.message);
-    // STRICT SECURITY: Do NOT restore privileged user from localStorage without server verification
-    currentUser = null;
-    userRole = "L0";
-    isAdminLoggedIn = false;
-    if (typeof window.setCurrentUser === "function") {
-      window.setCurrentUser(null);
-    }
-    if (typeof updateLoginUI === "function") updateLoginUI();
+    safeTriggerLoginUI();
     return null;
   }
 }
@@ -111,7 +194,10 @@ async function restoreAndVerifySession() {
 // Immediate asynchronous session verification trigger on app bootstrap
 if (typeof window !== "undefined") {
   window.restoreAndVerifySession = restoreAndVerifySession;
-  window.__sessionVerificationPromise = restoreAndVerifySession();
+  window.__sessionVerificationPromise = restoreAndVerifySession().catch(err => {
+    console.warn("[Auth] Top-level session promise handled:", err);
+    return null;
+  });
 }
 
 // Helper: Normalize and get current user role level (L0, L1, L2, L3, L4)
@@ -380,12 +466,14 @@ const DEMO_DATA = [];
 // ─── SUPABASE CONFIGURATION ───────────────────────────────────────────────────
 // Credentials are NOT hardcoded here. They are fetched at runtime from the
 // backend /api/config endpoint which reads them from environment variables.
-var supabase = null;
-let isSupabaseOnline = false;
+supabase = null;
+isSupabaseOnline = false;
 
 async function initSupabaseFromConfig() {
   try {
-    const res = await fetch('/api/config');
+    const apiBase = typeof resolveApiBase === 'function' ? resolveApiBase() : '/api';
+    const configUrl = apiBase.endsWith('/api') ? `${apiBase}/config` : `${apiBase}/api/config`;
+    const res = await fetch(configUrl);
     if (!res.ok) throw new Error('Config endpoint returned ' + res.status);
     const cfg = await res.json();
     const supabaseUrl = cfg.supabaseUrl;
@@ -421,6 +509,14 @@ async function initSupabaseFromConfig() {
     window.__supabaseClient = supabase;
     isSupabaseOnline = true;
     console.log('🚀 Supabase initialized as Production Source of Truth. LocalStorage acts as Cache.');
+
+    // Crucial: Set up realtime subscriptions and immediately load cloud items to overwrite stale local cache
+    setupRealtimeSubscriptions();
+    if (typeof loadAllItems === 'function') await loadAllItems();
+    if (typeof loadAllTransactions === 'function') await loadAllTransactions();
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof renderItemsTable === 'function') renderItemsTable();
+    if (typeof renderCabinetMap === 'function') renderCabinetMap();
   } catch (err) {
     console.warn('🚀 Supabase initialization failed — running in offline cache mode:', err.message);
     isSupabaseOnline = false;
@@ -445,7 +541,7 @@ function resolveApiBase() {
   }
   return "http://localhost:3000/api";
 }
-const API_BASE = resolveApiBase();
+API_BASE = resolveApiBase();
 window.API_BASE = API_BASE;
 
 function switchDashboardAlertTab(tabName) {
@@ -475,7 +571,7 @@ window.switchDashboardAlertTab = switchDashboardAlertTab;
 
 // GOOGLE_SCRIPT_WEBAPP_URL is loaded from /api/config at startup — never hardcoded here.
 // All downstream guards (`if (!GOOGLE_SCRIPT_WEBAPP_URL)`) remain intact.
-let GOOGLE_SCRIPT_WEBAPP_URL = null;
+GOOGLE_SCRIPT_WEBAPP_URL = GOOGLE_SCRIPT_WEBAPP_URL || null;
 
 async function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
   if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) return;
@@ -639,7 +735,7 @@ async function syncAllToGoogleSheets(silent = false) {
 }
 window.syncAllToGoogleSheets = syncAllToGoogleSheets;
 
-let isBackendOnline = false;
+isBackendOnline = false;
 
 // ==========================================================================
 // OFFLINE SECURITY GUARD
@@ -662,8 +758,8 @@ function requireOnline(actionLabel) {
   }
   return true; // offline → block
 }
-let transactions = [];
-let bookings = [];
+transactions = transactions || [];
+bookings = bookings || [];
 let selectedSlots = [];
 let selectedBorrowItems = [];
 // isAdminLoggedIn is managed by RBAC at the top of app.js
@@ -820,34 +916,14 @@ function dismissSkeletonLoader() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    // 0. Verify JWT session with backend /api/auth/me before initializing UI or data
-    await (window.__sessionVerificationPromise || restoreAndVerifySession());
-
-    // Update system version dynamically
-    fetchAppVersion();
-
-    // Load Emergency Contacts
-    loadEmergencyContacts();
-
-    // Setup Realtime Subscriptions
-    setupRealtimeSubscriptions();
-    
-    // Load feedbacks & issues
-    loadFeedbacksFromStorage();
-    
-    // Set up event listeners immediately (instant interactivity)
+    // 1. Set up event listeners immediately (instant interactivity, never blocked by network/auth delays)
     setupNavigation();
     setupFormHandlers();
     setupFilterHandlers();
     setupImportModal();
     setupDashboardCards();
-    
-    // Set up borrow form handlers
     setupBorrowForm();
-
-    // Set up room booking form handlers
     setupBookingForm();
-    
     setupCsvExport();
     setupPrintReport();
     setupDashboardReports();
@@ -863,26 +939,43 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupPurchaseOrders();
     setupLabPlanner();
     setupAdminClearHandlers();
-    updateLoginUI();
     setupSidebarCollapse();
-    
-    // Support URL query parameters for direct navigation
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetPanel = urlParams.get("panel");
 
-    if (targetPanel && typeof navigateToPanel === "function") {
-      navigateToPanel(targetPanel);
-    } else if (typeof navigateToPanel === "function") {
-      navigateToPanel("dashboard");
-    }
+    // 2. Load cached feedbacks & emergency contacts
+    loadFeedbacksFromStorage();
+    loadEmergencyContacts();
 
-    // Render local cached state instantly (0ms perceived latency)
+    // 3. Render local cached state instantly (0ms perceived latency)
+    updateLoginUI();
     updateUI();
     if (typeof renderItemsTable === "function") renderItemsTable();
     if (window.lucide) lucide.createIcons();
 
     // Dismiss skeleton screen immediately so user can interact with the app without waiting
     dismissSkeletonLoader();
+
+    // 4. Update system version dynamically
+    fetchAppVersion();
+
+    // 5. Setup Realtime Subscriptions if Supabase is already connected
+    setupRealtimeSubscriptions();
+
+    // 6. Verify JWT session with backend in parallel without blocking UI responsiveness
+    try {
+      await (window.__sessionVerificationPromise || restoreAndVerifySession());
+      updateLoginUI();
+    } catch (e) {
+      console.warn("Session verification notice:", e);
+    }
+
+    // Support URL query parameters for direct navigation
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetPanel = urlParams.get("panel");
+    if (targetPanel && typeof navigateToPanel === "function") {
+      navigateToPanel(targetPanel);
+    } else if (typeof navigateToPanel === "function") {
+      navigateToPanel("dashboard");
+    }
 
     // Parallel Background Cloud Synchronization (Non-blocking Stale-While-Revalidate)
     Promise.allSettled([
@@ -929,18 +1022,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 async function checkBackendStatus() {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1500);
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
     
-    const response = await fetch(`${API_BASE}/items`, { 
-      signal: controller.signal,
-      headers: { 'Cache-Control': 'no-cache' }
-    });
+    let response = null;
+    try {
+      response = await fetch(`${API_BASE}/health`, { 
+        signal: controller.signal,
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+    } catch (_) {
+      response = await fetch(`${API_BASE}/items`, { 
+        signal: controller.signal,
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+    }
     clearTimeout(timeoutId);
     
-    if (response.ok) {
+    if (response && response.ok) {
       isBackendOnline = true;
       console.log("⚡ Connected to Laboratory Backend Server (localhost:3000)");
-      showToast("เชื่อมต่อระบบหลังบ้าน (Database Server) เรียบร้อยแล้ว!", "info");
+    } else {
+      isBackendOnline = false;
     }
   } catch (err) {
     isBackendOnline = false;
@@ -2151,7 +2253,8 @@ function updateUI() {
   if (elNearExpiry) elNearExpiry.innerText = stats.nearExpiry;
 
   // Render Sidebar Alert Badge count if there are expired/near expiry/low stock items or unread feedbacks
-  const unreadFeedbacks = window.feedbacksData.filter(f => f.status !== "resolved").length;
+  const feedbacksList = Array.isArray(window.feedbacksData) ? window.feedbacksData : [];
+  const unreadFeedbacks = feedbacksList.filter(f => f && f.status !== "resolved").length;
   
   const totalAlerts = stats.expired + stats.nearExpiry + stats.lowStock + unreadFeedbacks;
   const sidebarAlertBadge = document.getElementById("alertSidebarCount");
@@ -2738,12 +2841,18 @@ function loadFeedbacksFromStorage() {
   const stored = localStorage.getItem("lab_feedbacks");
   if (stored) {
     try {
-      window.feedbacksData = JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        window.feedbacksData = parsed;
+      }
     } catch (e) {
       console.error("Error parsing lab_feedbacks:", e);
     }
   } else {
     saveFeedbacksToStorage();
+  }
+  if (!Array.isArray(window.feedbacksData)) {
+    window.feedbacksData = [];
   }
 }
 
@@ -3785,7 +3894,8 @@ function renderNotificationsList(stats) {
   const lowStockList = document.getElementById("alertListLowStock");
   const feedbackList = document.getElementById("alertListFeedback");
 
-  const unreadFeedbacks = window.feedbacksData.filter(f => f.status !== "resolved");
+  const feedbacksList = Array.isArray(window.feedbacksData) ? window.feedbacksData : [];
+  const unreadFeedbacks = feedbacksList.filter(f => f && f.status !== "resolved");
 
   // Update counts in header badges
   if (document.getElementById("alertCountExpired")) document.getElementById("alertCountExpired").innerText = stats.expired;
