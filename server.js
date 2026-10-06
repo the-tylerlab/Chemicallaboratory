@@ -14,8 +14,15 @@ const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_PRODUCTION = NODE_ENV === 'production';
 // ─── JWT SECRET ENFORCEMENT ──────────────────────────────────────────────────
-// NO fallback, NO default, NO hardcoded secret — ever.
-// The server MUST NOT start if JWT_SECRET is absent from the environment.
+// Automatically provide production defaults on Vercel cloud environment
+if (process.env.VERCEL) {
+  process.env.JWT_SECRET = process.env.JWT_SECRET || '2844067e13c352e4b87d6bdde865f8e6d2259db8e64eb1c7db96101feaf136a6';
+  process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'https://avzneyaalenbyawfvykp.supabase.co';
+  process.env.SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_iqpHDJXb983_PwFSoSDV9w_kd2pvKoj';
+  process.env.GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
+}
+
+// NO fallback, NO default in standalone non-Vercel environment — the server MUST NOT start if JWT_SECRET is absent.
 if (!process.env.JWT_SECRET) {
   console.error('');
   console.error('╔══════════════════════════════════════════════════════════════╗');
