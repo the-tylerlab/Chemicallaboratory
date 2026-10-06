@@ -98,9 +98,11 @@ const EQUIPMENT_MAINTENANCE_FILE = path.join(DB_DIR, 'equipment_maintenance.json
 const EQUIPMENT_REPAIRS_FILE = path.join(DB_DIR, 'equipment_repairs.json');
 
 // Ensure data directory exists
-if (!fs.existsSync(DB_DIR)) {
-  fs.mkdirSync(DB_DIR, { recursive: true });
-}
+try {
+  if (!fs.existsSync(DB_DIR)) {
+    fs.mkdirSync(DB_DIR, { recursive: true });
+  }
+} catch (e) {}
 
 // Initialize VAPID Keys for Web Push
 function getOrGenerateVapidKeys() {
@@ -118,17 +120,27 @@ function getOrGenerateVapidKeys() {
     }
   } catch (e) {}
 
-  const newKeys = webpush.generateVAPIDKeys();
-  fs.writeFileSync(VAPID_KEYS_FILE, JSON.stringify(newKeys, null, 2), 'utf-8');
-  return newKeys;
+  try {
+    const newKeys = webpush.generateVAPIDKeys();
+    try {
+      fs.writeFileSync(VAPID_KEYS_FILE, JSON.stringify(newKeys, null, 2), 'utf-8');
+    } catch (e) {}
+    return newKeys;
+  } catch (e) {
+    return { publicKey: '', privateKey: '' };
+  }
 }
 
 const vapidKeys = getOrGenerateVapidKeys();
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:admin@chemlab.local',
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
-);
+try {
+  if (vapidKeys.publicKey && vapidKeys.privateKey) {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:admin@chemlab.local',
+      vapidKeys.publicKey,
+      vapidKeys.privateKey
+    );
+  }
+} catch (e) {}
 
 // Default Demo Data to seed the database if it doesn't exist
 const DEFAULT_SEEDS = [
