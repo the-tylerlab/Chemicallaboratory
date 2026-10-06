@@ -14,31 +14,24 @@ const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_PRODUCTION = NODE_ENV === 'production';
 // ─── JWT SECRET ENFORCEMENT ──────────────────────────────────────────────────
-// Automatically provide production defaults on Vercel cloud environment
-if (process.env.VERCEL) {
-  process.env.JWT_SECRET = process.env.JWT_SECRET || '2844067e13c352e4b87d6bdde865f8e6d2259db8e64eb1c7db96101feaf136a6';
-  process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'https://avzneyaalenbyawfvykp.supabase.co';
-  process.env.SUPABASE_KEY = process.env.SUPABASE_KEY || 'sb_publishable_iqpHDJXb983_PwFSoSDV9w_kd2pvKoj';
-  process.env.GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbxMA_8zdAdniensdoPQx9XkhTVya4c-afMx2qz7adS3eHs5OlBpsEkbZGLXMac1taN8xw/exec';
-}
-
-// NO fallback, NO default in standalone non-Vercel environment — the server MUST NOT start if JWT_SECRET is absent.
-if (!process.env.JWT_SECRET) {
+// Strictly require JWT_SECRET from environment. NO fallback, NO default hardcoded secret.
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
   console.error('');
   console.error('╔══════════════════════════════════════════════════════════════╗');
   console.error('║  FATAL: JWT_SECRET environment variable is not set.          ║');
   console.error('║                                                              ║');
-  console.error('║  Generate a secure secret and add it to your .env file:      ║');
+  console.error('║  Generate a secure secret and add it to your environment:    ║');
   console.error('║    node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))" ║');
   console.error('║                                                              ║');
-  console.error('║  Then set in .env:  JWT_SECRET=<generated_value>            ║');
-  console.error('║                                                              ║');
+  console.error('║  Then set:  JWT_SECRET=<generated_value>                     ║');
   console.error('║  The server will NOT start without this value.              ║');
   console.error('╚══════════════════════════════════════════════════════════════╝');
   console.error('');
-  process.exit(1);
+  if (require.main === module) {
+    process.exit(1);
+  }
 }
-const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 
 // In-memory blacklist for revoked tokens (logout)
@@ -72,6 +65,24 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 // Enable CORS and JSON parsing
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
+
+// Security Guard: Strictly block public exposure of sensitive database schemas, migrations, and local seed files
+app.use((req, res, next) => {
+  const reqPath = (req.path || '').toLowerCase();
+  if (
+    reqPath.endsWith('.sql') ||
+    reqPath.startsWith('/dist') ||
+    reqPath.startsWith('/migrations') ||
+    reqPath.startsWith('/scripts') ||
+    reqPath.includes('users.example.json') ||
+    reqPath.includes('users.json') ||
+    reqPath.includes('vapid_keys.json') ||
+    reqPath.includes('temporary_credentials.json')
+  ) {
+    return res.status(404).send('Not Found');
+  }
+  next();
+});
 
 // Serve static frontend files with no-cache headers during development/production
 app.use(express.static(path.join(__dirname), {
@@ -620,6 +631,14 @@ function authenticateToken(req, res, next) {
       success: false,
       code: 'TOKEN_REVOKED',
       message: 'เซสชันนี้ได้ออกจากระบบแล้ว กรุณาเข้าสู่ระบบใหม่'
+    });
+  }
+
+  if (!JWT_SECRET) {
+    return res.status(500).json({
+      success: false,
+      code: 'SERVER_MISCONFIGURED',
+      message: 'ระบบรักษาความปลอดภัยไม่พร้อมใช้งาน (JWT_SECRET is not configured)'
     });
   }
 
@@ -1252,6 +1271,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     supabaseConnected: Boolean(supabase),
+    jwtSecretConfigured: Boolean(JWT_SECRET),
     version: require('./package.json').version || '2.6.0'
   });
 });
@@ -4189,6 +4209,13 @@ function normalizeThaiDigits(str) {
 
 // AUTH LOGIN ENDPOINT (Supports Teacher ID, Email, Name, or ID)
 app.post('/api/auth/login', async (req, res) => {
+  if (!JWT_SECRET) {
+    return res.status(500).json({
+      success: false,
+      code: 'SERVER_MISCONFIGURED',
+      message: 'ระบบยืนยันตัวตนไม่พร้อมใช้งาน กรุณากำหนดค่า JWT_SECRET ในสภาพแวดล้อมระบบ'
+    });
+  }
   const { username, password } = req.body;
   if (IS_PRODUCTION && !supabase) {
     return res.status(503).json({
