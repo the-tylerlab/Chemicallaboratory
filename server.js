@@ -941,50 +941,69 @@ async function fetchGoogleSheetTable(table) {
 
 let itemsCache = null;
 let lastItemsFetch = 0;
+let inFlightItemsPromise = null;
 
 async function fetchLiveItems(forceRefresh = false) {
   if (!forceRefresh && itemsCache && (Date.now() - lastItemsFetch < 15000)) {
     return itemsCache;
   }
 
-  // 1. Primary Source of Truth: Supabase
-  if (supabase) {
-    try {
-      const { data: supaItems, error } = await supabase.from('items').select('*');
-      if (!error && Array.isArray(supaItems) && supaItems.length > 0) {
-        const activeItems = supaItems.filter(item => {
-          if (item.is_deleted === true || item.isDeleted === true) return false;
-          if (NODE_ENV === 'production' && String(item.code || '').startsWith('DEMO-')) return false;
-          return true;
-        });
-
-        const normalized = activeItems.map(item => ({
-          ...item,
-          qty: Number(item.qty !== undefined ? item.qty : (item.quantity !== undefined ? item.quantity : 0)),
-          minAlert: Number(item.minAlert !== undefined ? item.minAlert : (item.min_alert !== undefined ? item.min_alert : 5)),
-          damagedQty: Number(item.damagedQty !== undefined ? item.damagedQty : (item.damaged_qty !== undefined ? item.damaged_qty : 0)),
-          createdAt: item.createdAt || item.created_at || new Date().toISOString(),
-          updatedAt: item.updatedAt || item.updated_at || new Date().toISOString(),
-          createdBy: item.createdBy || item.created_by || 'system',
-          updatedBy: item.updatedBy || item.updated_by || 'system',
-          is_deleted: false
-        }));
-
-        if (!fs.existsSync(DB_FILE)) writeDatabase(normalized);
-        itemsCache = normalized;
-        lastItemsFetch = Date.now();
-        return normalized;
-      }
-    } catch(e) {
-      console.warn("[SourceOfTruth:Supabase] Items read notice:", e.message);
-    }
+  if (!forceRefresh && inFlightItemsPromise) {
+    return inFlightItemsPromise;
   }
 
-  // 2. Standby Offline Backup (Local JSON)
-  const localItems = readDatabase().filter(i => !i.is_deleted && !(NODE_ENV === 'production' && String(i.code || '').startsWith('DEMO-')));
-  itemsCache = localItems;
-  lastItemsFetch = Date.now();
-  return localItems;
+  const fetchPromise = (async () => {
+    // 1. Primary Source of Truth: Supabase
+    if (supabase) {
+      try {
+        const { data: supaItems, error } = await supabase.from('items').select('*');
+        if (!error && Array.isArray(supaItems) && supaItems.length > 0) {
+          const activeItems = supaItems.filter(item => {
+            if (item.is_deleted === true || item.isDeleted === true) return false;
+            if (NODE_ENV === 'production' && String(item.code || '').startsWith('DEMO-')) return false;
+            return true;
+          });
+
+          const normalized = activeItems.map(item => ({
+            ...item,
+            qty: Number(item.qty !== undefined ? item.qty : (item.quantity !== undefined ? item.quantity : 0)),
+            minAlert: Number(item.minAlert !== undefined ? item.minAlert : (item.min_alert !== undefined ? item.min_alert : 5)),
+            damagedQty: Number(item.damagedQty !== undefined ? item.damagedQty : (item.damaged_qty !== undefined ? item.damaged_qty : 0)),
+            createdAt: item.createdAt || item.created_at || new Date().toISOString(),
+            updatedAt: item.updatedAt || item.updated_at || new Date().toISOString(),
+            createdBy: item.createdBy || item.created_by || 'system',
+            updatedBy: item.updatedBy || item.updated_by || 'system',
+            is_deleted: false
+          }));
+
+          if (!fs.existsSync(DB_FILE)) writeDatabase(normalized);
+          itemsCache = normalized;
+          lastItemsFetch = Date.now();
+          return normalized;
+        }
+      } catch(e) {
+        console.warn("[SourceOfTruth:Supabase] Items read notice:", e.message);
+      }
+    }
+
+    // 2. Standby Offline Backup (Local JSON)
+    const localItems = readDatabase().filter(i => !i.is_deleted && !(NODE_ENV === 'production' && String(i.code || '').startsWith('DEMO-')));
+    itemsCache = localItems;
+    lastItemsFetch = Date.now();
+    return localItems;
+  })();
+
+  if (!forceRefresh) {
+    inFlightItemsPromise = fetchPromise;
+  }
+
+  try {
+    return await fetchPromise;
+  } finally {
+    if (!forceRefresh || inFlightItemsPromise === fetchPromise) {
+      inFlightItemsPromise = null;
+    }
+  }
 }
 
 let bookingsCache = null;
@@ -1298,6 +1317,7 @@ app.get('/api/config', (req, res) => {
 
 // 1. GET /api/items — Fetch all items from cloud & local
 app.get('/api/items', async (req, res) => {
+  res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
   const items = await fetchLiveItems();
   const sanitized = items.map(({ createdBy, updatedBy, is_deleted, ...rest }) => rest);
   res.json(sanitized);
