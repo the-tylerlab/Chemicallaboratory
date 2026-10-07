@@ -257,7 +257,7 @@
           <li id="menuItemAdmin" style="display: none;">
             <a href="#" class="menu-item-link" data-target="admin">
               <i data-lucide="shield-check"></i>
-              <span>Admin Panel</span>
+              <span>แผงควบคุมระบบ (Admin Panel)</span>
             </a>
           </li>
           <li id="menuItemNotifications" style="display: none;">
@@ -373,7 +373,7 @@
 
         <!-- Compact Stat Cards Grid -->
         <div class="stat-grid">
-          <div class="stat-card blue" id="statCardTotal" onclick="navigateToPanel('all-items', 'all', 'all')">
+          <div class="stat-card blue" id="statCardTotal" role="button" tabindex="0" onclick="navigateToPanel('all-items', 'all', 'all')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
             <div class="stat-info">
               <span class="stat-title nobrk">รายการทั้งหมด</span>
               <div class="stat-value-group">
@@ -385,7 +385,7 @@
               <i data-lucide="box" style="width: 17px; height: 17px;"></i>
             </div>
           </div>
-          <div class="stat-card red" id="statCardExpired" onclick="navigateToPanel('all-items', 'all', 'expired')">
+          <div class="stat-card red" id="statCardExpired" role="button" tabindex="0" onclick="navigateToPanel('all-items', 'all', 'expired')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
             <div class="stat-info">
               <span class="stat-title nobrk">หมดอายุแล้ว</span>
               <div class="stat-value-group">
@@ -397,7 +397,7 @@
               <i data-lucide="alert-triangle" style="width: 17px; height: 17px;"></i>
             </div>
           </div>
-          <div class="stat-card orange" id="statCardLowStock" onclick="navigateToPanel('all-items', 'all', 'low-stock')">
+          <div class="stat-card orange" id="statCardLowStock" role="button" tabindex="0" onclick="navigateToPanel('all-items', 'all', 'low-stock')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
             <div class="stat-info">
               <span class="stat-title nobrk">ใกล้หมด (Stock)</span>
               <div class="stat-value-group">
@@ -409,7 +409,7 @@
               <i data-lucide="boxes" style="width: 17px; height: 17px;"></i>
             </div>
           </div>
-          <div class="stat-card yellow" id="statCardNearExpiry" onclick="navigateToPanel('all-items', 'all', 'near-expiry')">
+          <div class="stat-card yellow" id="statCardNearExpiry" role="button" tabindex="0" onclick="navigateToPanel('all-items', 'all', 'near-expiry')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
             <div class="stat-info">
               <span class="stat-title nobrk">ใกล้หมดอายุ</span>
               <div class="stat-value-group">
@@ -1446,7 +1446,7 @@
             <table>
               <thead>
                 <tr>
-                  <th id="thBatchAction" style="width: 4%; text-align: center;"><input type="checkbox" id="selectAllBatch" onclick="toggleSelectAllBatch(this)"></th>
+                  <th id="thBatchAction" style="width: 4%; text-align: center;"><input type="checkbox" id="selectAllBatch" aria-label="เลือกรายการพัสดุทั้งหมด" onclick="toggleSelectAllBatch(this)"></th>
                   <th style="width: 25%;" class="col-desc">รายละเอียดสินค้า</th>
                   <th style="width: 10%;" class="col-qty text-right">จำนวนคงเหลือ</th>
                   <th style="width: 10%;" class="col-cas">CAS No.</th>
@@ -1457,14 +1457,36 @@
                 </tr>
               </thead>
               <tbody id="itemsTableBody">
-                <!-- Dynamically populated or empty state -->
-                <tr class="empty-state-row">
-                  <td id="emptyStateColspan" colspan="8" class="empty-state-td" style="text-align: center; vertical-align: middle; padding: 56px 24px;">
-                    <div class="empty-state-inner">
-                      <div class="empty-state-icon-circle"><i data-lucide="package-search" style="width: 24px; height: 24px; color: #94a3b8;"></i></div>
-                      <div class="empty-state-title">ไม่พบรายการสินค้า</div>
-                    </div>
-                  </td>
+                <!-- Dynamically populated or loading skeleton state -->
+                <tr class="skeleton-row" style="opacity: 0.6;">
+                  <td style="text-align: center;"><div class="skeleton-block" style="width: 16px; height: 16px; margin: 0 auto; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 70%; height: 14px; background: #e2e8f0; border-radius: 4px; margin-bottom: 6px;"></div><div class="skeleton-block" style="width: 40%; height: 11px; background: #f1f5f9; border-radius: 4px;"></div></td>
+                  <td class="text-right"><div class="skeleton-block" style="width: 50%; height: 14px; background: #e2e8f0; border-radius: 4px; margin-left: auto;"></div></td>
+                  <td><div class="skeleton-block" style="width: 60%; height: 14px; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 65%; height: 14px; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 75%; height: 14px; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 60px; height: 22px; background: #e2e8f0; border-radius: 12px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-block" style="width: 24px; height: 24px; margin: 0 auto; background: #e2e8f0; border-radius: 6px;"></div></td>
+                </tr>
+                <tr class="skeleton-row" style="opacity: 0.4;">
+                  <td style="text-align: center;"><div class="skeleton-block" style="width: 16px; height: 16px; margin: 0 auto; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 65%; height: 14px; background: #e2e8f0; border-radius: 4px; margin-bottom: 6px;"></div><div class="skeleton-block" style="width: 35%; height: 11px; background: #f1f5f9; border-radius: 4px;"></div></td>
+                  <td class="text-right"><div class="skeleton-block" style="width: 45%; height: 14px; background: #e2e8f0; border-radius: 4px; margin-left: auto;"></div></td>
+                  <td><div class="skeleton-block" style="width: 55%; height: 14px; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 60%; height: 14px; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 70%; height: 14px; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 60px; height: 22px; background: #e2e8f0; border-radius: 12px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-block" style="width: 24px; height: 24px; margin: 0 auto; background: #e2e8f0; border-radius: 6px;"></div></td>
+                </tr>
+                <tr class="skeleton-row" style="opacity: 0.25;">
+                  <td style="text-align: center;"><div class="skeleton-block" style="width: 16px; height: 16px; margin: 0 auto; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 80%; height: 14px; background: #e2e8f0; border-radius: 4px; margin-bottom: 6px;"></div><div class="skeleton-block" style="width: 45%; height: 11px; background: #f1f5f9; border-radius: 4px;"></div></td>
+                  <td class="text-right"><div class="skeleton-block" style="width: 55%; height: 14px; background: #e2e8f0; border-radius: 4px; margin-left: auto;"></div></td>
+                  <td><div class="skeleton-block" style="width: 50%; height: 14px; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 70%; height: 14px; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 65%; height: 14px; background: #e2e8f0; border-radius: 4px;"></div></td>
+                  <td><div class="skeleton-block" style="width: 60px; height: 22px; background: #e2e8f0; border-radius: 12px;"></div></td>
+                  <td style="text-align: center;"><div class="skeleton-block" style="width: 24px; height: 24px; margin: 0 auto; background: #e2e8f0; border-radius: 6px;"></div></td>
                 </tr>
               </tbody>
             </table>

@@ -932,6 +932,20 @@ button.menu-item-link:active {
   .btn-sidebar-collapse i {
     transition-duration: 0.01ms !important;
   }
+
+  /* UX-08: Disable continuous animations on safety indicators and alerts */
+  .status-dot-pulse,
+  .status-dot-pulse.warning,
+  .status-dot-pulse.safe,
+  .status-dot-pulse.emergency,
+  .status-dot,
+  .cabinet-card.incompatible-alert,
+  .ticker-marquee-track,
+  .pulse-live,
+  .animate-pulse {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 .footer-bottom-compact:hover .status-dot {
@@ -1154,6 +1168,12 @@ button.menu-item-link:active {
   border-color: var(--primary-purple);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
+}
+
+.stat-card:focus-visible {
+  outline: 2px solid var(--primary-purple);
+  outline-offset: 2px;
+  border-color: var(--primary-purple);
 }
 
 .stat-info {
