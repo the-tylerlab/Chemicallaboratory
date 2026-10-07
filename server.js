@@ -1299,7 +1299,8 @@ app.get('/api/config', (req, res) => {
 // 1. GET /api/items — Fetch all items from cloud & local
 app.get('/api/items', async (req, res) => {
   const items = await fetchLiveItems();
-  res.json(items);
+  const sanitized = items.map(({ createdBy, updatedBy, is_deleted, ...rest }) => rest);
+  res.json(sanitized);
 });
 
 // 2. POST /api/items — Create a new item (L2 Staff or L3 Admin)
