@@ -4553,213 +4553,253 @@ function setupFormHandlers() {
       return;
     }
     
-    // v1.6.0 upgrades
-    const chemicalType = document.getElementById("itemChemicalType").value;
-    const sdsUrl = document.getElementById("itemSdsUrl").value.trim();
-    const damagedQty = Number(document.getElementById("itemDamagedQty").value || 0);
-    const repairQty = Number(document.getElementById("itemRepairQty").value || 0);
-    const nfpa = {
-      health: Number(document.getElementById("itemNfpaHealth").value || 0),
-      flammability: Number(document.getElementById("itemNfpaFlammability").value || 0),
-      instability: Number(document.getElementById("itemNfpaInstability").value || 0),
-      special: document.getElementById("itemNfpaSpecial").value || ""
-    };
-    
-    // Retrieve checked GHS checkboxes
-    const ghsCheckboxes = document.querySelectorAll('input[name="ghs"]:checked');
-    const ghs = Array.from(ghsCheckboxes).map(cb => cb.value);
-
-    const editIndex = document.getElementById("editItemIndex").value;
-
-    // Check duplicate code when creating new item
-    if (editIndex === "") {
-      const codeExists = items.some(item => (item.code || "").toLowerCase() === code.toLowerCase());
-      if (codeExists) {
-        showToast(`ไม่สามารถใช้รหัส ${code} ได้เนื่องจากมีในระบบแล้ว!`, "error");
-        return;
-      }
+    // UX-04: Disable submit button and show loading state during async submission
+    const submitBtn = document.getElementById("btnSubmitForm");
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : "บันทึกข้อมูล";
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner" style="display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;margin-right:6px;animation:spin 0.8s linear infinite;vertical-align:middle;"></span>กำลังบันทึก...';
     }
 
-    // DUPLICATE IN SAME ROOM PREVENTION SYSTEM
-    const currentExcludeCode = editIndex !== "" && items[editIndex] ? items[editIndex].code : null;
-    const duplicateInRoom = findDuplicateItemInRoom(name, room, casNo, currentExcludeCode);
+    try {
+      // v1.6.0 upgrades
+      const chemicalType = document.getElementById("itemChemicalType").value;
+      const sdsUrl = document.getElementById("itemSdsUrl").value.trim();
+      const damagedQty = Number(document.getElementById("itemDamagedQty").value || 0);
+      const repairQty = Number(document.getElementById("itemRepairQty").value || 0);
+      const nfpa = {
+        health: Number(document.getElementById("itemNfpaHealth").value || 0),
+        flammability: Number(document.getElementById("itemNfpaFlammability").value || 0),
+        instability: Number(document.getElementById("itemNfpaInstability").value || 0),
+        special: document.getElementById("itemNfpaSpecial").value || ""
+      };
 
-    if (duplicateInRoom) {
-      if (typeof Swal !== "undefined") {
-        const result = await Swal.fire({
-          icon: "warning",
-          title: "พบสารเคมี/พัสดุนี้ในห้องปฏิบัติการแล้ว!",
-          html: `
-            <div style="font-size: 13.5px; text-align: left; color: #334155; line-height: 1.6;">
-              <p style="margin-bottom: 8px;">มีรายการ <b>"${duplicateInRoom.name}"</b> (รหัส: <code>${duplicateInRoom.code}</code>) อยู่ใน <b>${room}</b> เรียบร้อยแล้ว</p>
-              <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 10px;">
-                <div>📍 <b>ตำแหน่งจัดเก็บ:</b> ${duplicateInRoom.cabinet || '-'} / ${duplicateInRoom.shelf || '-'}</div>
-                <div>📦 <b>จำนวนคงเหลือปัจจุบัน:</b> <span style="font-weight: 700; color: #4f21a1;">${duplicateInRoom.qty} ${duplicateInRoom.unit}</span></div>
-                <div>➕ <b>จำนวนที่ต้องการเพิ่ม:</b> <span style="font-weight: 700; color: #16a34a;">+${qty} ${unit}</span></div>
-                <div style="margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">📊 <b>ยอดรวมใหม่:</b> <span style="font-weight: 700; color: #15803d;">${duplicateInRoom.qty + qty} ${unit}</span></div>
+      // Retrieve checked GHS checkboxes
+      const ghsCheckboxes = document.querySelectorAll('input[name="ghs"]:checked');
+      const ghs = Array.from(ghsCheckboxes).map(cb => cb.value);
+
+      const editIndex = document.getElementById("editItemIndex").value;
+
+      // Check duplicate code when creating new item
+      if (editIndex === "") {
+        const codeExists = items.some(item => (item.code || "").toLowerCase() === code.toLowerCase());
+        if (codeExists) {
+          showToast(`ไม่สามารถใช้รหัส ${code} ได้เนื่องจากมีในระบบแล้ว!`, "error");
+          return;
+        }
+      }
+
+      // DUPLICATE IN SAME ROOM PREVENTION SYSTEM
+      const currentExcludeCode = editIndex !== "" && items[editIndex] ? items[editIndex].code : null;
+      const duplicateInRoom = findDuplicateItemInRoom(name, room, casNo, currentExcludeCode);
+
+      if (duplicateInRoom) {
+        if (typeof Swal !== "undefined") {
+          const result = await Swal.fire({
+            icon: "warning",
+            title: "พบสารเคมี/พัสดุนี้ในห้องปฏิบัติการแล้ว!",
+            html: `
+              <div style="font-size: 13.5px; text-align: left; color: #334155; line-height: 1.6;">
+                <p style="margin-bottom: 8px;">มีรายการ <b>"${duplicateInRoom.name}"</b> (รหัส: <code>${duplicateInRoom.code}</code>) อยู่ใน <b>${room}</b> เรียบร้อยแล้ว</p>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 10px;">
+                  <div>📍 <b>ตำแหน่งจัดเก็บ:</b> ${duplicateInRoom.cabinet || '-'} / ${duplicateInRoom.shelf || '-'}</div>
+                  <div>📦 <b>จำนวนคงเหลือปัจจุบัน:</b> <span style="font-weight: 700; color: #4f21a1;">${duplicateInRoom.qty} ${duplicateInRoom.unit}</span></div>
+                  <div>➕ <b>จำนวนที่ต้องการเพิ่ม:</b> <span style="font-weight: 700; color: #16a34a;">+${qty} ${unit}</span></div>
+                  <div style="margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">📊 <b>ยอดรวมใหม่:</b> <span style="font-weight: 700; color: #15803d;">${duplicateInRoom.qty + qty} ${unit}</span></div>
+                </div>
+                <p style="color: #64748b; font-size: 12px; margin: 0;">ระบบป้องกันการเพิ่มสารซ้ำในห้องแล็บเดียวกัน คุณต้องการรวมจำนวนสต็อกเข้ากับรายการเดิม หรือกลับไปแก้ไข?</p>
               </div>
-              <p style="color: #64748b; font-size: 12px; margin: 0;">ระบบป้องกันการเพิ่มสารซ้ำในห้องแล็บเดียวกัน คุณต้องการรวมจำนวนสต็อกเข้ากับรายการเดิม หรือกลับไปแก้ไข?</p>
-            </div>
-          `,
-          showCancelButton: true,
-          showDenyButton: true,
-          confirmButtonColor: "#4f21a1",
-          denyButtonColor: "#64748b",
-          cancelButtonColor: "#dc2626",
-          confirmButtonText: `➕ รวมจำนวนสต็อก (${duplicateInRoom.qty + qty} ${unit})`,
-          denyButtonText: "✏️ กลับไปแก้ไขข้อมูล",
-          cancelButtonText: "ยกเลิก"
+            `,
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: "#4f21a1",
+            denyButtonColor: "#64748b",
+            cancelButtonColor: "#dc2626",
+            confirmButtonText: `➕ รวมจำนวนสต็อก (${duplicateInRoom.qty + qty} ${unit})`,
+            denyButtonText: "✏️ กลับไปแก้ไขข้อมูล",
+            cancelButtonText: "ยกเลิก"
+          });
+
+          if (result.isConfirmed) {
+            // Merge quantity to existing item
+            const updatedItem = {
+              ...duplicateInRoom,
+              qty: Number(duplicateInRoom.qty || 0) + qty,
+              minAlert: minAlert ? Number(minAlert) : duplicateInRoom.minAlert,
+              expiry: expiry || duplicateInRoom.expiry,
+              cabinet: cabinet || duplicateInRoom.cabinet,
+              shelf: shelf || duplicateInRoom.shelf,
+              chemicalType: chemicalType || duplicateInRoom.chemicalType,
+              sdsUrl: sdsUrl || duplicateInRoom.sdsUrl,
+              damagedQty: Number(duplicateInRoom.damagedQty || 0) + damagedQty,
+              repairQty: Number(duplicateInRoom.repairQty || 0) + repairQty
+            };
+            const existingIdx = items.findIndex(it => it.code === duplicateInRoom.code);
+            const success = await updateItemBackend(duplicateInRoom.code, updatedItem, existingIdx >= 0 ? existingIdx : null);
+            if (success) {
+              showToast(`รวมจำนวนสต็อก "${name}" ใน ${room} เป็น ${duplicateInRoom.qty + qty} ${unit} เรียบร้อยแล้ว!`, "success");
+              logActivity(userRole === "admin" ? "Admin" : "Teacher", "เพิ่มสต็อกสารเคมี", `รวมจำนวน: ${name} (+${qty} ${unit}) ใน ${room}`);
+              form.reset();
+              document.getElementById("editItemIndex").value = "";
+              if (dupWarningEl) dupWarningEl.style.display = "none";
+              navigateToPanel("all-items");
+            }
+            return;
+          } else {
+            return; // User clicked Deny (edit) or Cancel
+          }
+        } else {
+          alert(`พบ "${name}" อยู่ใน "${room}" เรียบร้อยแล้ว (รหัส: ${duplicateInRoom.code}, คงเหลือ: ${duplicateInRoom.qty} ${duplicateInRoom.unit})\nระบบป้องกันการเพิ่มรายการซ้ำในห้องแล็บเดียวกัน`);
+          return;
+        }
+      }
+
+      // Chemical Incompatibility Check
+      if (category === "สารเคมี" && chemicalType && room && cabinet) {
+        let conflictType = null;
+        let conflictName = "";
+
+        const potentialConflict = items.find(item => {
+          // Skip current item if in edit mode
+          if (editIndex !== "" && item.code === items[editIndex].code) return false;
+
+          if (item.category === "สารเคมี" && item.room === room && item.cabinet === cabinet && item.chemicalType) {
+            const g1 = chemicalType;
+            const g2 = item.chemicalType;
+            if (areIncompatible(g1, g2)) {
+              conflictType = g2;
+              conflictName = getItemDisplayName(item);
+              return true;
+            }
+          }
+          return false;
         });
 
-        if (result.isConfirmed) {
-          // Merge quantity to existing item
-          const updatedItem = {
-            ...duplicateInRoom,
-            qty: Number(duplicateInRoom.qty || 0) + qty,
-            minAlert: minAlert ? Number(minAlert) : duplicateInRoom.minAlert,
-            expiry: expiry || duplicateInRoom.expiry,
-            cabinet: cabinet || duplicateInRoom.cabinet,
-            shelf: shelf || duplicateInRoom.shelf,
-            chemicalType: chemicalType || duplicateInRoom.chemicalType,
-            sdsUrl: sdsUrl || duplicateInRoom.sdsUrl,
-            damagedQty: Number(duplicateInRoom.damagedQty || 0) + damagedQty,
-            repairQty: Number(duplicateInRoom.repairQty || 0) + repairQty
+        if (potentialConflict) {
+          const typeLabels = {
+            "A": "กลุ่ม A - เบสอินทรีย์ (Organic Bases)",
+            "B": "กลุ่ม B - สารที่ลุกติดไฟเอง/ทำปฏิกิริยากับน้ำ (Pyrophoric/Water Reactive)",
+            "C": "กลุ่ม C - เบสอนินทรีย์ (Inorganic Bases)",
+            "D": "กลุ่ม D - กรดอินทรีย์ (Organic Acids)",
+            "E": "กลุ่ม E - สารออกซิไดเซอร์อนินทรีย์ (Inorganic Oxidizers)",
+            "F": "กลุ่ม F - กรดอนินทรีย์ (Inorganic Acids)",
+            "G": "กลุ่ม G - สารเคมีทั่วไปที่ไม่ว่องไว (General)",
+            "I": "กลุ่ม I - สารออกซิไดเซอร์ที่เป็นกรดแก่ (Strong Oxidizing Acids)",
+            "K": "กลุ่ม K - สารระเบิดได้ที่มีความคงตัว (Stable Explosives)",
+            "L": "กลุ่ม L - สารไวไฟและตัวทำละลายอินทรีย์ (Flammables/Solvents)",
+            "X": "กลุ่ม X - สารที่ไม่เข้ากันกับสารอื่น (Incompatible with ALL)"
           };
-          const existingIdx = items.findIndex(it => it.code === duplicateInRoom.code);
-          const success = await updateItemBackend(duplicateInRoom.code, updatedItem, existingIdx >= 0 ? existingIdx : null);
-          if (success) {
-            showToast(`รวมจำนวนสต็อก "${name}" ใน ${room} เป็น ${duplicateInRoom.qty + qty} ${unit} เรียบร้อยแล้ว!`, "success");
-            logActivity(userRole === "admin" ? "Admin" : "Teacher", "เพิ่มสต็อกสารเคมี", `รวมจำนวน: ${name} (+${qty} ${unit}) ใน ${room}`);
-            form.reset();
-            document.getElementById("editItemIndex").value = "";
-            if (dupWarningEl) dupWarningEl.style.display = "none";
-            navigateToPanel("all-items");
+
+          // UX-05: Replace native confirm() with SweetAlert dialog
+          if (typeof Swal !== "undefined") {
+            const result = await Swal.fire({
+              icon: "warning",
+              title: "คำเตือนจัดเก็บสารเคมีร่วมตู้ที่ไม่เข้ากัน",
+              html: `
+                <div style="font-size: 13.5px; text-align: left; color: #334155; line-height: 1.6;">
+                  <p style="margin-bottom: 8px;">พบ <b>"${conflictName}"</b> ซึ่งเป็นสารประเภท <b>"${typeLabels[conflictType]}"</b> จัดเก็บอยู่ใน <b>"${room} &gt; ${cabinet}"</b> เรียบร้อยแล้ว</p>
+                  <p style="margin-bottom: 8px; color: #dc2626; font-weight: 500;">สารประเภท "${typeLabels[chemicalType]}" และ "${typeLabels[conflictType]}" ไม่ควรจัดเก็บร่วมกันในตู้เดียวกันตามมาตรฐานความปลอดภัย</p>
+                  <p style="margin: 0; color: #64748b; font-size: 12.5px;">คุณต้องการบันทึกการจัดเก็บร่วมกันต่อไปใช่หรือไม่?</p>
+                </div>
+              `,
+              showCancelButton: true,
+              confirmButtonColor: "#4f21a1",
+              cancelButtonColor: "#64748b",
+              confirmButtonText: "ยืนยันบันทึกจัดเก็บ",
+              cancelButtonText: "ยกเลิก"
+            });
+            if (!result.isConfirmed) {
+              return;
+            }
+          } else {
+            const msg = `⚠️ คำเตือนจัดเก็บสารเคมีร่วมตู้ที่ไม่เข้ากัน:\n` +
+                        `พบ "${conflictName}" ซึ่งเป็นสารประเภท "${typeLabels[conflictType]}" จัดเก็บอยู่ใน "${room} > ${cabinet}" เรียบร้อยแล้ว\n` +
+                        `สารประเภท "${typeLabels[chemicalType]}" และ "${typeLabels[conflictType]}" ไม่ควรจัดเก็บร่วมกันในตู้เดียวกันตามมาตรฐานความปลอดภัย\n\n` +
+                        `คุณต้องการบันทึกการจัดเก็บร่วมกันต่อไปใช่หรือไม่?`;
+            if (!confirm(msg)) {
+              return;
+            }
           }
-          return;
-        } else {
-          return; // User clicked Deny (edit) or Cancel
         }
+      }
+
+      const itemData = {
+        code,
+        name,
+        casNo,
+        category,
+        qty,
+        unit,
+        minAlert: minAlert ? Number(minAlert) : null,
+        expiry: expiry || "",
+        room,
+        cabinet,
+        shelf,
+        chemicalType,
+        sdsUrl,
+        damagedQty,
+        repairQty,
+        nfpa,
+        ghs,
+        dilutions: editIndex !== "" ? (items[editIndex].dilutions || []) : [],
+        createdAt: editIndex !== "" ? items[editIndex].createdAt : new Date().toISOString()
+      };
+
+      if (editIndex !== "") {
+        // Edit mode
+        const success = await updateItemBackend(code, itemData, editIndex);
+        if (!success) return;
+        showToast(`อัปเดตข้อมูล "${name}" เรียบร้อยแล้ว!`);
+        logActivity(userRole === "admin" ? "Admin" : "Teacher", "แก้ไขข้อมูลพัสดุ", `อัปเดตข้อมูล: ${name} (รหัส: ${code})`);
+
+        // Reset Form status to Create Mode
+        document.getElementById("editItemIndex").value = "";
+        document.getElementById("formPanelTitle").innerText = "เพิ่มสาร/อุปกรณ์";
+        document.getElementById("formPanelSubtitle").innerText = "กรอกข้อมูลรายละเอียดของสารเคมีหรืออุปกรณ์เพื่อบันทึกเข้าสู่คลังแล็บ";
+        document.getElementById("btnSubmitForm").innerText = "บันทึกข้อมูล";
+        document.getElementById("itemCode").disabled = false;
+        btnCancelEdit.style.display = "none";
       } else {
-        alert(`พบ "${name}" อยู่ใน "${room}" เรียบร้อยแล้ว (รหัส: ${duplicateInRoom.code}, คงเหลือ: ${duplicateInRoom.qty} ${duplicateInRoom.unit})\nระบบป้องกันการเพิ่มรายการซ้ำในห้องแล็บเดียวกัน`);
-        return;
+        // Create mode
+        const success = await createItemBackend(itemData);
+        if (!success) return;
+        showToast(`บันทึกข้อมูล "${name}" เข้าสู่ระบบแล้ว!`);
+        logActivity(userRole === "admin" ? "Admin" : "Teacher", "เพิ่มรายการใหม่", `เพิ่ม ${name} จำนวน ${qty} ${unit}`);
       }
-    }
 
-    // Chemical Incompatibility Check
-    if (category === "สารเคมี" && chemicalType && room && cabinet) {
-      let conflictType = null;
-      let conflictName = "";
+      // Reset Form safety elements
+      document.querySelectorAll('input[name="ghs"]').forEach(cb => cb.checked = false);
+      document.getElementById("itemChemicalType").value = "";
+      document.getElementById("itemSdsUrl").value = "";
+      document.getElementById("itemDamagedQty").value = 0;
+      document.getElementById("itemRepairQty").value = 0;
+      document.getElementById("itemNfpaHealth").value = "0";
+      document.getElementById("itemNfpaFlammability").value = "0";
+      document.getElementById("itemNfpaInstability").value = "0";
+      document.getElementById("itemNfpaSpecial").value = "";
+      if (dupWarningEl) dupWarningEl.style.display = "none";
 
-      const potentialConflict = items.find(item => {
-        // Skip current item if in edit mode
-        if (editIndex !== "" && item.code === items[editIndex].code) return false;
-
-        if (item.category === "สารเคมี" && item.room === room && item.cabinet === cabinet && item.chemicalType) {
-          const g1 = chemicalType;
-          const g2 = item.chemicalType;
-          if (areIncompatible(g1, g2)) {
-            conflictType = g2;
-            conflictName = getItemDisplayName(item);
-            return true;
-          }
-        }
-        return false;
-      });
-
-      if (potentialConflict) {
-        const typeLabels = {
-          "A": "กลุ่ม A - เบสอินทรีย์ (Organic Bases)",
-          "B": "กลุ่ม B - สารที่ลุกติดไฟเอง/ทำปฏิกิริยากับน้ำ (Pyrophoric/Water Reactive)",
-          "C": "กลุ่ม C - เบสอนินทรีย์ (Inorganic Bases)",
-          "D": "กลุ่ม D - กรดอินทรีย์ (Organic Acids)",
-          "E": "กลุ่ม E - สารออกซิไดเซอร์อนินทรีย์ (Inorganic Oxidizers)",
-          "F": "กลุ่ม F - กรดอนินทรีย์ (Inorganic Acids)",
-          "G": "กลุ่ม G - สารเคมีทั่วไปที่ไม่ว่องไว (General)",
-          "I": "กลุ่ม I - สารออกซิไดเซอร์ที่เป็นกรดแก่ (Strong Oxidizing Acids)",
-          "K": "กลุ่ม K - สารระเบิดได้ที่มีความคงตัว (Stable Explosives)",
-          "L": "กลุ่ม L - สารไวไฟและตัวทำละลายอินทรีย์ (Flammables/Solvents)",
-          "X": "กลุ่ม X - สารที่ไม่เข้ากันกับสารอื่น (Incompatible with ALL)"
-        };
-        const msg = `⚠️ คำเตือนจัดเก็บสารเคมีร่วมตู้ที่ไม่เข้ากัน:\n` +
-                    `พบ "${conflictName}" ซึ่งเป็นสารประเภท "${typeLabels[conflictType]}" จัดเก็บอยู่ใน "${room} > ${cabinet}" เรียบร้อยแล้ว\n` +
-                    `สารประเภท "${typeLabels[chemicalType]}" และ "${typeLabels[conflictType]}" ไม่ควรจัดเก็บร่วมกันในตู้เดียวกันตามมาตรฐานความปลอดภัย\n\n` +
-                    `คุณต้องการบันทึกการจัดเก็บร่วมกันต่อไปใช่หรือไม่?`;
-        if (!confirm(msg)) {
-          return;
-        }
+      // Update UI directly
+      updateUI();
+      form.reset();
+      if (typeof window.clearCompatibilityRecommendation === "function") {
+        window.clearCompatibilityRecommendation();
       }
-    }
-
-    const itemData = {
-      code,
-      name,
-      casNo,
-      category,
-      qty,
-      unit,
-      minAlert: minAlert ? Number(minAlert) : null,
-      expiry: expiry || "",
-      room,
-      cabinet,
-      shelf,
-      chemicalType,
-      sdsUrl,
-      damagedQty,
-      repairQty,
-      nfpa,
-      ghs,
-      dilutions: editIndex !== "" ? (items[editIndex].dilutions || []) : [],
-      createdAt: editIndex !== "" ? items[editIndex].createdAt : new Date().toISOString()
-    };
-
-    if (editIndex !== "") {
-      // Edit mode
-      const success = await updateItemBackend(code, itemData, editIndex);
-      if (!success) return;
-      showToast(`อัปเดตข้อมูล "${name}" เรียบร้อยแล้ว!`);
-      logActivity(userRole === "admin" ? "Admin" : "Teacher", "แก้ไขข้อมูลพัสดุ", `อัปเดตข้อมูล: ${name} (รหัส: ${code})`);
       
-      // Reset Form status to Create Mode
-      document.getElementById("editItemIndex").value = "";
-      document.getElementById("formPanelTitle").innerText = "เพิ่มสาร/อุปกรณ์";
-      document.getElementById("formPanelSubtitle").innerText = "กรอกข้อมูลรายละเอียดของสารเคมีหรืออุปกรณ์เพื่อบันทึกเข้าสู่คลังแล็บ";
-      document.getElementById("btnSubmitForm").innerText = "บันทึกข้อมูล";
-      document.getElementById("itemCode").disabled = false;
-      btnCancelEdit.style.display = "none";
-    } else {
-      // Create mode
-      const success = await createItemBackend(itemData);
-      if (!success) return;
-      showToast(`บันทึกข้อมูล "${name}" เข้าสู่ระบบแล้ว!`);
-      logActivity(userRole === "admin" ? "Admin" : "Teacher", "เพิ่มรายการใหม่", `เพิ่ม ${name} จำนวน ${qty} ${unit}`);
+      // Set default value back to "ขวด" after reset
+      document.getElementById("itemUnit").value = "ขวด";
+      document.getElementById("itemMinAlert").value = "";
+      applyRoleRestrictionsToItemForm();
+
+      // Navigate to all items to view
+      navigateToPanel("all-items");
+    } finally {
+      // UX-04: Restore submit button state on success, failure, or exception
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+      }
     }
-
-    // Reset Form safety elements
-    document.querySelectorAll('input[name="ghs"]').forEach(cb => cb.checked = false);
-    document.getElementById("itemChemicalType").value = "";
-    document.getElementById("itemSdsUrl").value = "";
-    document.getElementById("itemDamagedQty").value = 0;
-    document.getElementById("itemRepairQty").value = 0;
-    document.getElementById("itemNfpaHealth").value = "0";
-    document.getElementById("itemNfpaFlammability").value = "0";
-    document.getElementById("itemNfpaInstability").value = "0";
-    document.getElementById("itemNfpaSpecial").value = "";
-    if (dupWarningEl) dupWarningEl.style.display = "none";
-
-    // Update UI directly
-    updateUI();
-    form.reset();
-    if (typeof window.clearCompatibilityRecommendation === "function") {
-      window.clearCompatibilityRecommendation();
-    }
-    
-    // Set default value back to "ขวด" after reset
-    document.getElementById("itemUnit").value = "ขวด";
-    document.getElementById("itemMinAlert").value = "";
-    applyRoleRestrictionsToItemForm();
-
-    // Navigate to all items to view
-    navigateToPanel("all-items");
   });
 
   // Form Reset handler
@@ -23739,6 +23779,67 @@ window.handleRecordMovementSubmit = async function(event, itemCode) {
   }
 };
 
+// ==========================================================================
+// UX-02: CENTRALIZED MODAL KEYBOARD DISMISSAL (ESCAPE) & FOCUS RESTORATION
+// ==========================================================================
+(function initModalEscapeHandler() {
+  let lastFocusedElementBeforeModal = null;
 
+  // Track the triggering element when opening modals
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('button, a, [role="button"], input[type="button"], input[type="submit"]');
+    if (trigger && !trigger.closest('.modal-overlay')) {
+      lastFocusedElementBeforeModal = trigger;
+    }
+  }, true);
 
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
 
+    // If SweetAlert2 is open, SweetAlert handles its own Escape key
+    if (typeof Swal !== 'undefined' && Swal.isVisible && Swal.isVisible()) {
+      return;
+    }
+
+    // Find all visible modal overlays
+    const overlays = Array.from(document.querySelectorAll('.modal-overlay'));
+    const visibleOverlays = overlays.filter(overlay => {
+      if (!overlay) return false;
+      const isDisplayNone = window.getComputedStyle(overlay).display === 'none';
+      const hasActive = overlay.classList.contains('active');
+      const inlineDisplay = overlay.style.display;
+      return (hasActive || inlineDisplay === 'flex' || inlineDisplay === 'block') && !isDisplayNone;
+    });
+
+    if (visibleOverlays.length === 0) return;
+
+    // Get the topmost overlay (last in DOM)
+    const topOverlay = visibleOverlays[visibleOverlays.length - 1];
+    if (!topOverlay) return;
+
+    // Safety rule: Do not close destructive confirmation dialogs accidentally
+    const destructiveModalIds = ['dangerZoneModalWorkspace', 'confirmDeleteModal', 'confirmModal'];
+    if (destructiveModalIds.includes(topOverlay.id)) {
+      return;
+    }
+
+    // Attempt to trigger the modal's primary close button
+    const closeBtn = topOverlay.querySelector('.modal-close-btn, [data-modal-close], .modal-close, #modalClose, .close-btn, #cameraScanModalClose, #btnCancelCameraScan');
+    if (closeBtn && typeof closeBtn.click === 'function') {
+      closeBtn.click();
+    } else {
+      // Fallback: remove active class and set display to none
+      topOverlay.classList.remove('active');
+      topOverlay.style.display = 'none';
+    }
+
+    // Restore focus to the trigger element where practical
+    if (lastFocusedElementBeforeModal && typeof lastFocusedElementBeforeModal.focus === 'function') {
+      try {
+        lastFocusedElementBeforeModal.focus();
+      } catch (err) {
+        // Ignore focus errors
+      }
+    }
+  });
+})();
