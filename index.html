@@ -96,7 +96,7 @@
   <!-- Fonts are self-hosted in /fonts/ directory — no external request needed -->
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20261008_login_fix">
+  <link rel="stylesheet" href="style.css?v=20261008_login_clean">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -4257,107 +4257,124 @@
        MODAL: TEACHER ID & RBAC LOGIN DIALOG
        ========================================== -->
   <div class="modal-overlay" id="loginModal">
-    <div class="modal-content login-split-modal" style="max-width: 740px; width: 95%;">
+    <div class="modal-content login-split-modal">
       <button class="modal-close-btn login-modal-close-corner" id="loginModalClose" aria-label="Close modal">&times;</button>
       
       <div class="login-split-grid" id="loginSplitGrid">
-        <!-- Left Column: Hero Announcement & Laboratory Visual -->
-        <div class="login-hero-panel login-hero-theme-purple" id="loginHeroSide">
-          <div class="login-hero-glow"></div>
+        <!-- Left Column: Editorial Laboratory Context (Clean & Professional) -->
+        <div class="login-hero-panel" id="loginHeroSide">
           <div class="login-hero-content">
-            <div class="login-hero-badge" id="loginHeroBadge">
-              <i data-lucide="bell" id="loginHeroBadgeIcon" style="width: 12px; height: 12px;"></i>
-              <span id="loginHeroBadgeText">📢 ประกาศด่วนประจำห้องแล็บ</span>
+            <div class="login-hero-brand">
+              <div class="login-brand-icon">
+                <i data-lucide="flask-conical" style="width: 17px; height: 17px;"></i>
+              </div>
+              <div class="login-brand-text">
+                <span class="brand-title">SciPortal</span>
+                <span class="brand-sub">Laboratory System</span>
+              </div>
             </div>
-            
-            <h2 class="login-hero-headline" id="loginHeroHeadline">
-              แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ
-            </h2>
-            
-            <p class="login-hero-subtitle" id="loginHeroSubtitle">
-              เชื่อมต่อคลังสารเคมี อุปกรณ์วิทยาศาสตร์ ตารางจองห้องแล็บ และบันทึกประวัติอย่างเป็นระบบ
-            </p>
+
+            <div class="login-hero-intro">
+              <div class="login-hero-badge" id="loginHeroBadge">
+                <span class="badge-dot"></span>
+                <span id="loginHeroBadgeText">ห้องปฏิบัติการวิทยาศาสตร์</span>
+              </div>
+              
+              <h2 class="login-hero-headline" id="loginHeroHeadline">
+                ระบบคลังสารเคมีและห้องแล็บ
+              </h2>
+              
+              <p class="login-hero-subtitle" id="loginHeroSubtitle">
+                บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU
+              </p>
+            </div>
 
             <div class="login-hero-media" id="loginHeroMedia">
-              <img id="loginHeroImage" src="" alt="Science Laboratory" class="login-hero-img" style="display: none;">
+              <img id="loginHeroImage" src="" alt="Laboratory" class="login-hero-img" style="display: none;">
               <div id="loginHeroDefaultGraphic" class="login-hero-features-list">
                 <div class="login-feature-item">
-                  <div class="login-feature-icon-wrap"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i></div>
+                  <div class="login-feature-icon-wrap"><i data-lucide="shield-check" style="width: 14px; height: 14px;"></i></div>
                   <div class="login-feature-text">
                     <span class="feature-title">มาตรฐานความปลอดภัย SHECU</span>
-                    <span class="feature-desc">ตรวจเช็กและควบคุมสารเคมีตามเกณฑ์</span>
+                    <span class="feature-desc">ตรวจเช็กและจัดเก็บสารเคมีตามข้อกำหนด</span>
                   </div>
                 </div>
                 <div class="login-feature-item">
-                  <div class="login-feature-icon-wrap"><i data-lucide="boxes" style="width: 15px; height: 15px;"></i></div>
+                  <div class="login-feature-icon-wrap"><i data-lucide="boxes" style="width: 14px; height: 14px;"></i></div>
                   <div class="login-feature-text">
-                    <span class="feature-title">สต็อกเคมีและอุปกรณ์ Real-time</span>
-                    <span class="feature-desc">ติดตามยอดคงเหลือและประวัติการเบิก-คืน</span>
+                    <span class="feature-title">ติดตามสต็อกแบบ Real-time</span>
+                    <span class="feature-desc">บันทึกยอดคงเหลือและประวัติการเบิก-จ่าย</span>
                   </div>
                 </div>
                 <div class="login-feature-item">
-                  <div class="login-feature-icon-wrap"><i data-lucide="calendar-clock" style="width: 15px; height: 15px;"></i></div>
+                  <div class="login-feature-icon-wrap"><i data-lucide="calendar" style="width: 14px; height: 14px;"></i></div>
                   <div class="login-feature-text">
                     <span class="feature-title">ตารางการใช้ห้องปฏิบัติการ</span>
-                    <span class="feature-desc">จองแล็บและจัดตารางการทดลองอย่างเป็นระบบ</span>
+                    <span class="feature-desc">จัดสรรตารางการทดลองอย่างเป็นระบบ</span>
                   </div>
                 </div>
               </div>
             </div>
+
+            <div class="login-hero-footer-status">
+              <span class="status-indicator-dot"></span>
+              <span>ระบบพร้อมใช้งาน • มาตรฐานความปลอดภัย SHECU</span>
+            </div>
           </div>
         </div>
 
-        <!-- Right Column: Login Form & Demo Roles -->
+        <!-- Right Column: Clean Authentication Form -->
         <div class="login-form-panel" id="loginFormSide">
           <div class="login-form-header">
             <h1 class="login-form-title">เข้าสู่ระบบ</h1>
-            <p class="login-form-desc">ระบุรหัสประจำตัวครู (Teacher ID) เพื่อเข้าใช้งานระบบ</p>
+            <p class="login-form-desc">ระบุรหัสประจำตัวครู (Teacher ID) หรือชื่อผู้ใช้เพื่อเข้าสู่ระบบ</p>
           </div>
 
           <form id="adminLoginForm">
             <div class="login-form-body">
               <!-- Error Message Banner -->
-              <div id="loginErrorMsg" style="display: none; background-color: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--border-radius-md); padding: 10px 12px; color: var(--accent-red); font-size: 13px; align-items: center; gap: 8px;">
-                <i data-lucide="alert-circle" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+              <div id="loginErrorMsg" style="display: none; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 9px 12px; color: #b91c1c; font-size: 12.5px; align-items: center; gap: 8px;">
+                <i data-lucide="alert-circle" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
                 <span id="loginErrorText">รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง</span>
               </div>
 
               <div class="form-group" style="margin-bottom: 0;">
-                <label for="loginUsername" class="form-label" style="font-weight: 600; font-size: 13.5px;">รหัสประจำตัวครู (Teacher ID) หรือชื่อผู้ใช้ <span style="color: var(--accent-red);">*</span></label>
+                <label for="loginUsername" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 5px; display: block;">รหัสประจำตัวครู (Teacher ID)</label>
                 <div style="position: relative;">
-                  <input type="text" id="loginUsername" name="username" class="form-control" placeholder="รหัสประจำตัวครู" required autocomplete="username" style="font-size: 13.5px; padding-left: 36px;">
-                  <i data-lucide="user" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"></i>
+                  <input type="text" id="loginUsername" name="username" class="form-control" placeholder="ระบุ Teacher ID เช่น T101, 1001 หรือ admin" required autocomplete="username" style="font-size: 13.5px; padding-left: 36px; height: 42px; border-radius: 9px; border: 1px solid #cbd5e1; background: #ffffff;">
+                  <i data-lucide="user" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></i>
                 </div>
               </div>
 
               <div class="form-group" style="margin-bottom: 0;">
-                <label for="loginPassword" class="form-label" style="font-weight: 600; font-size: 13.5px;">รหัสผ่าน <span style="color: var(--accent-red);">*</span></label>
+                <label for="loginPassword" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 5px; display: block;">รหัสผ่าน</label>
                 <div style="position: relative; display: flex; align-items: center;">
-                  <input type="password" id="loginPassword" name="password" class="form-control" placeholder="ระบุรหัสผ่าน" required autocomplete="current-password" style="font-size: 13.5px; padding-right: 40px; padding-left: 36px; width: 100%;">
-                  <i data-lucide="key" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"></i>
-                  <button type="button" id="btnTogglePassword" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 0; display: flex; align-items: center; justify-content: center;" aria-label="Toggle Password Visibility">
-                    <i data-lucide="eye" id="eyeIcon" style="width: 18px; height: 18px;"></i>
+                  <input type="password" id="loginPassword" name="password" class="form-control" placeholder="ระบุรหัสผ่านของคุณ" required autocomplete="current-password" style="font-size: 13.5px; padding-right: 40px; padding-left: 36px; height: 42px; border-radius: 9px; border: 1px solid #cbd5e1; background: #ffffff; width: 100%;">
+                  <i data-lucide="lock" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></i>
+                  <button type="button" id="btnTogglePassword" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 0; display: flex; align-items: center; justify-content: center;" aria-label="Toggle Password Visibility">
+                    <i data-lucide="eye" id="eyeIcon" style="width: 17px; height: 17px;"></i>
                   </button>
                 </div>
-                <small style="color: var(--text-muted); font-size: 11.5px; display: block; margin-top: 4px;">💡 รหัสผ่านเริ่มต้นคือ <b>รหัสประจำตัวครู (Teacher ID)</b></small>
+                <small style="color: #64748b; font-size: 11.5px; display: block; margin-top: 5px;">💡 รหัสผ่านเริ่มต้นคือ <b>รหัสประจำตัวครู (Teacher ID)</b></small>
               </div>
 
-              <!-- Remember Me Toggle Switch -->
-              <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0 10px 0;">
-                <label class="login-switch-label" for="loginRememberMe" style="display: inline-flex; align-items: center; gap: 9px; cursor: pointer; user-select: none;">
+              <!-- Remember Me & Forgot Password -->
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0 6px 0;">
+                <label class="login-switch-label" for="loginRememberMe" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
                   <div class="login-toggle-switch">
                     <input type="checkbox" id="loginRememberMe">
                     <span class="login-toggle-slider"></span>
                   </div>
-                  <span style="font-size: 13px; color: var(--text-main); font-weight: 500;">จดจำรหัสผ่านในอุปกรณ์นี้ (Remember Password)</span>
+                  <span style="font-size: 12.5px; color: #475569; font-weight: 500;">จดจำการเข้าสู่ระบบ</span>
                 </label>
+                <a href="#" id="linkForgotPassword" style="font-size: 12px; color: #4f46e5; text-decoration: none; font-weight: 500;">ลืมรหัสผ่าน?</a>
               </div>
 
               <!-- Submit Buttons -->
-              <div class="login-form-actions">
-                <button type="button" class="btn btn-secondary" id="btnCancelLogin" style="flex: 1; height: 42px; border-radius: 8px;">ยกเลิก</button>
-                <button type="submit" class="btn btn-primary" style="flex: 2; height: 42px; border-radius: 8px; background: linear-gradient(135deg, var(--primary-purple), #7c3aed); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(63, 27, 133, 0.25);">
-                  <i data-lucide="log-in" style="width: 17px; height: 17px;"></i>
+              <div class="login-form-actions" style="margin-top: 4px; display: flex; gap: 8px;">
+                <button type="button" class="btn btn-secondary" id="btnCancelLogin" style="flex: 1; height: 42px; font-size: 13.5px; font-weight: 600; border-radius: 9px; border-color: #cbd5e1; color: #475569;">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary" id="btnSubmitLogin" style="flex: 1.5; height: 42px; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 7px; background: #0f172a; border-color: #0f172a; border-radius: 9px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);">
+                  <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
                   <span>เข้าสู่ระบบ</span>
                 </button>
               </div>
@@ -5905,7 +5922,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261008_issue_ui"></script>
+  <script src="app.js?v=20261008_login_clean"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {

@@ -22049,10 +22049,10 @@ window.initAdminAnnouncementForm = initAdminAnnouncementForm;
 
 const DEFAULT_LOGIN_BANNER_CONFIG = {
   enabled: true,
-  headline: "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ",
-  badgeText: "📢 ประกาศด่วนประจำห้องแล็บ",
-  subtitle: "เชื่อมต่อคลังสารเคมี อุปกรณ์วิทยาศาสตร์ ตารางจองห้องแล็บ และบันทึกประวัติอย่างเป็นระบบ",
-  theme: "purple",
+  headline: "ระบบคลังสารเคมีและห้องแล็บ",
+  badgeText: "ห้องปฏิบัติการวิทยาศาสตร์",
+  subtitle: "บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU",
+  theme: "light",
   imgOption: "default",
   customUrl: ""
 };
@@ -22063,13 +22063,22 @@ const LAB_SAMPLE_IMAGES = {
   lab3: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80"
 };
 
-let currentSelectedLoginBannerTheme = "purple";
+let currentSelectedLoginBannerTheme = "light";
 
 function getLoginBannerConfig() {
   try {
     const saved = localStorage.getItem("lab_login_banner_config");
     if (saved) {
-      return { ...DEFAULT_LOGIN_BANNER_CONFIG, ...JSON.parse(saved) };
+      const parsed = JSON.parse(saved);
+      // Migrate legacy AI marketing copy to clean authentic wording
+      if (parsed.headline === "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ" || parsed.badgeText === "📢 ประกาศด่วนประจำห้องแล็บ") {
+        parsed.headline = DEFAULT_LOGIN_BANNER_CONFIG.headline;
+        parsed.badgeText = DEFAULT_LOGIN_BANNER_CONFIG.badgeText;
+        parsed.subtitle = DEFAULT_LOGIN_BANNER_CONFIG.subtitle;
+        if (parsed.theme === "purple") parsed.theme = "light";
+        localStorage.setItem("lab_login_banner_config", JSON.stringify(parsed));
+      }
+      return { ...DEFAULT_LOGIN_BANNER_CONFIG, ...parsed };
     }
   } catch (e) {}
   return { ...DEFAULT_LOGIN_BANNER_CONFIG };
@@ -22095,9 +22104,9 @@ function applyLoginBannerUI(customConfig = null) {
   if (modalContent) modalContent.style.maxWidth = "790px";
 
   // Apply Theme Class
-  const themes = ["orange", "blue", "green", "purple", "red", "dark"];
+  const themes = ["orange", "blue", "green", "purple", "red", "dark", "light"];
   themes.forEach(t => heroSide.classList.remove(`login-hero-theme-${t}`));
-  heroSide.classList.add(`login-hero-theme-${config.theme || "purple"}`);
+  heroSide.classList.add(`login-hero-theme-${config.theme || "light"}`);
 
   // Apply Text Content
   const badgeTextEl = document.getElementById("loginHeroBadgeText");
