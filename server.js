@@ -1324,9 +1324,9 @@ app.post('/api/sync-google-sheets', authenticateToken, requireRole('L3'), async 
 app.get('/api/version', (req, res) => {
   try {
     const pkg = require('./package.json');
-    res.json({ version: pkg.version || '2.6.0', pwa: true, name: 'Chemical Laboratory System' });
+    res.json({ version: pkg.version || '2.7.0', pwa: true, name: 'Chemical Laboratory System' });
   } catch (e) {
-    res.json({ version: '2.6.0', pwa: true });
+    res.json({ version: '2.7.0', pwa: true });
   }
 });
 
@@ -1337,7 +1337,7 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     supabaseConnected: Boolean(supabase),
     jwtSecretConfigured: Boolean(JWT_SECRET),
-    version: require('./package.json').version || '2.6.0'
+    version: require('./package.json').version || '2.7.0'
   });
 });
 

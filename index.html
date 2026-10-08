@@ -96,7 +96,7 @@
   <!-- Fonts are self-hosted in /fonts/ directory — no external request needed -->
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20261002_fit">
+  <link rel="stylesheet" href="style.css?v=20261008_dropdown_fix">
 
   <!-- Core Libraries (with non-blocking defer attributes) -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -255,16 +255,16 @@
             </a>
           </li>
           <li id="menuItemAdmin" style="display: none;">
-            <a href="#" class="menu-item-link" data-target="admin">
+            <a href="#" class="menu-item-link" data-target="admin" title="แผงควบคุมระบบ (Admin Panel)">
               <i data-lucide="shield-check"></i>
-              <span>แผงควบคุมระบบ (Admin Panel)</span>
+              <span>แผงควบคุมระบบ (Admin)</span>
             </a>
           </li>
           <li id="menuItemNotifications" style="display: none;">
             <a href="#" class="menu-item-link" data-target="notifications">
               <i data-lucide="bell"></i>
               <span>การแจ้งเตือน</span>
-              <span class="badge badge-red" id="alertSidebarCount" style="margin-left: auto; width: 20px; height: 20px; border-radius: 50%; padding: 0; display: none; align-items: center; justify-content: center; font-size: 11px;">0</span>
+              <span class="badge badge-red" id="alertSidebarCount" style="margin-left: auto; width: 22px; height: 22px; min-width: 22px; max-width: 22px; border-radius: 50%; aspect-ratio: 1 / 1; padding: 0; display: none; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; line-height: 1; flex: 0 0 22px; flex-shrink: 0;">0</span>
             </a>
           </li>
         </ul>
@@ -310,9 +310,9 @@
           <span id="sidebarLoginText">เข้าสู่ระบบ</span>
         </a>
 
-        <div class="footer-bottom-compact" title="Database Connected • v2.6.0 (RBAC)">
+        <div class="footer-bottom-compact" title="Database Connected • v2.7.0 (RBAC)">
           <span class="status-dot"></span>
-          <span class="version-text" id="footerVersionText">Database Connected &bull; v2.6.0 (RBAC)</span>
+          <span class="version-text" id="footerVersionText">Database Connected &bull; v2.7.0 (RBAC)</span>
         </div>
       </div>
 
@@ -717,17 +717,17 @@
                 <span>ส่งออกรายงานคลัง</span>
               </h2>
             </div>
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: center;">
-              <button class="btn btn-secondary" id="dashboardBtnExportInventory" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; padding: 12px;">
-                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+              <button type="button" class="booking-action-btn" id="dashboardBtnExportInventory" style="width: 100%;">
+                <i data-lucide="download" style="width: 16px; height: 16px; color: #2563eb; flex-shrink: 0;"></i>
                 <span>ส่งออกรายงานคลังพัสดุ (CSV)</span>
               </button>
-              <button class="btn btn-secondary" id="dashboardBtnExportTransactions" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; padding: 12px;">
-                <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i>
+              <button type="button" class="booking-action-btn" id="dashboardBtnExportTransactions" style="width: 100%;">
+                <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px; color: #10b981; flex-shrink: 0;"></i>
                 <span>ส่งออกประวัติการยืม-คืน (CSV)</span>
               </button>
-              <button class="btn btn-primary" id="dashboardBtnPrintReport" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; background-color: var(--primary-purple); color: white; border: none; padding: 12px; cursor: pointer;">
-                <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+              <button type="button" class="booking-action-btn" id="dashboardBtnPrintReport" style="width: 100%;">
+                <i data-lucide="printer" style="width: 16px; height: 16px; color: #6366f1; flex-shrink: 0;"></i>
                 <span>พิมพ์รายงานสรุปสถานะคลัง (PDF)</span>
               </button>
             </div>
@@ -741,10 +741,10 @@
                 <span>ส่งออกรายงานการจอง</span>
               </h2>
             </div>
-            <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; justify-content: center;">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 <label for="exportBookingRoomFilter" style="font-size: 12px; font-weight: 600; color: var(--text-main);">กรองห้องปฏิบัติการ:</label>
-                <select id="exportBookingRoomFilter" class="form-control" style="width: 100%; height: 38px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
+                <select id="exportBookingRoomFilter" class="form-control" style="width: 100%; height: 42px; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg, 12px); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
                   <option value="all">-- ทุกห้องปฏิบัติการ --</option>
                   <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
                   <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
@@ -756,19 +756,19 @@
                   <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
                 </select>
               </div>
-              <div style="display: flex; gap: 10px; margin-top: 4px;">
-                <button type="button" class="btn btn-secondary" id="btnExportBookingCSV" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; height: 38px; cursor: pointer; transition: all 0.2s;">
-                  <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+              <div style="display: flex; gap: 8px; margin-top: 4px;">
+                <button type="button" class="booking-action-btn" id="btnExportBookingCSV" style="flex: 1;">
+                  <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px; color: #10b981; flex-shrink: 0;"></i>
                   <span>ส่งออก CSV</span>
                 </button>
-                <button type="button" class="btn btn-primary" id="btnExportBookingPDF" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 500; background-color: var(--primary-purple); color: white; border: none; height: 38px; cursor: pointer; transition: all 0.2s;">
-                  <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+                <button type="button" class="booking-action-btn" id="btnExportBookingPDF" style="flex: 1;">
+                  <i data-lucide="printer" style="width: 16px; height: 16px; color: #6366f1; flex-shrink: 0;"></i>
                   <span>พิมพ์ PDF</span>
                 </button>
               </div>
-              <button type="button" class="btn admin-clear-btn" id="btnClearBookings" style="width: 100%; display: none; align-items: center; justify-content: center; gap: 8px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px; border-radius: var(--border-radius-sm); font-size: 13px; font-weight: 600; height: 38px; cursor: pointer; transition: all 0.2s; margin-top: 4px;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
-                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
-                <span>ล้างประวัติการจองทั้งหมด</span>
+              <button type="button" class="booking-action-btn admin-clear-btn" id="btnClearBookings" style="width: 100%; display: none; color: #ef4444; border-color: rgba(239, 68, 68, 0.3); margin-top: 4px;" title="ล้างประวัติการจองทั้งหมด">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #ef4444; flex-shrink: 0;"></i>
+                <span style="color: #ef4444;">ล้างประวัติการจองทั้งหมด</span>
               </button>
             </div>
           </div>
@@ -818,17 +818,17 @@
             </div>
           </div>
           <div class="unified-page-header-right" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <button type="button" class="btn btn-outline" onclick="exportActivityLogsCSV()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 14px; border-radius: var(--border-radius-md);">
-              <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+            <button type="button" class="booking-action-btn" onclick="exportActivityLogsCSV()" title="ส่งออกประวัติการใช้งานเป็นไฟล์ CSV">
+              <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
               <span>ส่งออก CSV</span>
             </button>
-            <button type="button" class="btn btn-outline" onclick="renderActivityLogs()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 14px; border-radius: var(--border-radius-md);">
-              <i data-lucide="refresh-cw" style="width: 15px; height: 15px;"></i>
+            <button type="button" class="booking-action-btn" onclick="renderActivityLogs()" title="รีเฟรชประวัติการใช้งาน">
+              <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
               <span>รีเฟรช</span>
             </button>
-            <button type="button" class="btn btn-outline" onclick="clearActivityLogsPrompt()" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 8px 14px; border-radius: var(--border-radius-md); color: #ef4444; border-color: #fca5a5;">
-              <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
-              <span>ล้างประวัติ</span>
+            <button type="button" class="booking-action-btn admin-clear-btn" onclick="clearActivityLogsPrompt()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" title="ล้างประวัติกิจกรรม">
+              <i data-lucide="trash-2" style="width: 15px; height: 15px; color: #ef4444; flex-shrink: 0;"></i>
+              <span style="color: #ef4444;">ล้างประวัติ</span>
             </button>
           </div>
         </header>
@@ -886,32 +886,32 @@
           <!-- Left Controls: Role Segmented Control & Category Dropdown -->
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             
-            <!-- Segmented Control Group for User Roles -->
-            <div style="display: inline-flex; align-items: center; background: #f1f5f9; padding: 3px; border-radius: 8px; gap: 2px;">
-              <button type="button" class="log-role-btn active" onclick="filterActivityLogsRole('all', this)" style="border: none; background: #ffffff; color: #0f172a; font-weight: 600; font-size: 13.5px; height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06); transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; font-family: inherit;">ทั้งหมด</button>
-              <button type="button" class="log-role-btn" onclick="filterActivityLogsRole('Admin', this)" style="border: none; background: transparent; color: #64748b; font-weight: 500; font-size: 13.5px; height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; font-family: inherit;">Admin</button>
-              <button type="button" class="log-role-btn" onclick="filterActivityLogsRole('Teacher', this)" style="border: none; background: transparent; color: #64748b; font-weight: 500; font-size: 13.5px; height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; font-family: inherit;">Teacher / จนท.</button>
-              <button type="button" class="log-role-btn" onclick="filterActivityLogsRole('Student', this)" style="border: none; background: transparent; color: #64748b; font-weight: 500; font-size: 13.5px; height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; justify-content: center; font-family: inherit;">Student / ผู้ใช้</button>
+            <!-- Segmented Control Group for User Roles (Styled like .view-toggle-bar) -->
+            <div class="view-toggle-bar" style="margin-bottom: 0; width: auto; padding: 3px; gap: 4px; display: inline-flex; border-radius: var(--border-radius-xl, 16px); flex-wrap: nowrap;">
+              <button type="button" class="view-toggle-btn active log-role-btn" onclick="filterActivityLogsRole('all', this)">ทั้งหมด</button>
+              <button type="button" class="view-toggle-btn log-role-btn" onclick="filterActivityLogsRole('Admin', this)">Admin</button>
+              <button type="button" class="view-toggle-btn log-role-btn" onclick="filterActivityLogsRole('Teacher', this)">Teacher</button>
+              <button type="button" class="view-toggle-btn log-role-btn" onclick="filterActivityLogsRole('Student', this)">Student</button>
             </div>
 
             <!-- Category Filter Dropdown Pill -->
             <div style="position: relative; display: inline-flex; align-items: center;">
-              <select id="logActionFilter" onchange="filterActivityLogs()" style="appearance: none; -webkit-appearance: none; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 34px 0 12px; font-size: 13.5px; font-weight: 500; color: #334155; cursor: pointer; outline: none; height: 40px; min-width: 190px; box-sizing: border-box; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s;">
+              <select id="logActionFilter" onchange="filterActivityLogs()" style="appearance: none; -webkit-appearance: none; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg, 12px); padding: 0 34px 0 14px; font-size: 13px; font-weight: 500; color: #334155; cursor: pointer; outline: none; height: 42px; min-width: 190px; box-sizing: border-box; font-family: inherit; box-shadow: var(--shadow-sm); transition: border-color 0.2s, box-shadow 0.2s;">
                 <option value="all">📁 ทุกประเภทกิจกรรม</option>
                 <option value="inventory">🧪 จัดการพัสดุ/สารเคมี</option>
                 <option value="borrow">🔄 ยืม - คืนพัสดุ</option>
                 <option value="layout">🗺️ ผังห้องปฏิบัติการ</option>
                 <option value="feedback">💬 การแจ้งปัญหา</option>
               </select>
-              <i data-lucide="chevron-down" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8; pointer-events: none;"></i>
+              <i data-lucide="chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #94a3b8; pointer-events: none;"></i>
             </div>
 
           </div>
 
           <!-- Right: Live Search Box -->
           <div style="position: relative; width: 290px;">
-            <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8; pointer-events: none;"></i>
-            <input type="text" id="logSearchInput" oninput="filterActivityLogs()" placeholder="ค้นหากิจกรรม, ผู้ใช้, รหัสสาร..." style="width: 100%; height: 40px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 14px 0 36px; font-size: 13.5px; color: #1e293b; outline: none; box-sizing: border-box; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s;">
+            <i data-lucide="search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #94a3b8; pointer-events: none;"></i>
+            <input type="text" id="logSearchInput" oninput="filterActivityLogs()" placeholder="ค้นหากิจกรรม, ผู้ใช้, รหัสสาร..." style="width: 100%; height: 42px; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg, 12px); padding: 0 14px 0 38px; font-size: 13px; color: #1e293b; outline: none; box-sizing: border-box; font-family: inherit; box-shadow: var(--shadow-sm); transition: border-color 0.2s, box-shadow 0.2s;">
           </div>
         </div>
 
@@ -1522,7 +1522,7 @@
           </div>
         </header>
 
-        <div class="borrow-grid">
+        <div class="borrow-grid booking-grid-layout">
           <!-- Left Column: Form -->
           <div class="form-container" style="margin-bottom: 0;">
             <div class="form-panel-header">
@@ -1660,7 +1660,7 @@
               </div>
 
               <div class="form-actions" style="margin-top: 24px;">
-                <button type="submit" class="btn btn-primary" id="btnSubmitBorrow">
+                <button type="submit" class="btn btn-primary" id="btnSubmitBorrow" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-radius: 10px; padding: 10px 22px; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);">
                   <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
                   <span>บันทึกรายการ</span>
                 </button>
@@ -1670,59 +1670,65 @@
           </div>
 
           <!-- Right Column: Live Logs & Requests -->
-          <div style="display: flex; flex-direction: column; gap: 20px;">
-            
+          <div style="display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 0;">
+            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h2>ประวัติการทำรายการล่าสุด</h2>
+                <p>แสดงประวัติการยืมและการส่งคืนสินค้าพัสดุวิทยาศาสตร์แบบเรียลไทม์</p>
+              </div>
 
+              <!-- Export Actions for Borrow/Return History (Unified with Lab Booking Toolbar Style) -->
+              <div id="borrowExportActions" style="display: flex; gap: 8px; align-items: center; width: 100%; margin-top: 6px; flex-wrap: wrap;">
+                <div class="borrow-filter-container" style="flex: 1.2; min-width: 170px; position: relative;">
+                  <select id="exportBorrowRoomFilter" class="booking-action-btn booking-filter-select" style="width: 100%; padding-left: 36px; padding-right: 28px; cursor: pointer; text-align: left; appearance: none; -webkit-appearance: none; font-size: 13px; font-weight: 500; color: #334155;">
+                    <option value="all">ทุกห้องปฏิบัติการ</option>
+                    <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                    <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                    <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
+                    <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                    <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
+                    <option value="None">เบิกใช้นอกห้องปฏิบัติการ</option>
+                  </select>
+                  <i data-lucide="filter" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #64748b; pointer-events: none;"></i>
+                  <i data-lucide="chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #94a3b8; pointer-events: none;"></i>
+                </div>
 
-            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0;">
-              <h2>ประวัติการทำรายการล่าสุด</h2>
-              <p style="font-size: 12.5px; color: var(--text-muted);">แสดงประวัติการยืมและการส่งคืนสินค้าพัสดุวิทยาศาสตร์แบบเรียลไทม์</p>
+                <button type="button" class="booking-action-btn" id="btnExportBorrowCSV" title="ส่งออกข้อมูลเป็น Excel / CSV">
+                  <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop">ส่งออก Excel</span>
+                  <span class="btn-text-tablet">Excel</span>
+                  <span class="btn-text-mobile">Excel</span>
+                </button>
+                <button type="button" class="booking-action-btn" id="btnExportBorrowPDF" title="พิมพ์รายงานสรุปประวัติ">
+                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop">พิมพ์รายงาน</span>
+                  <span class="btn-text-tablet">พิมพ์</span>
+                  <span class="btn-text-mobile">PDF</span>
+                </button>
+                <button type="button" class="booking-action-btn admin-clear-btn" id="btnClearTransactions" style="display: none;" title="ล้างประวัติการทำรายการยืม-คืน">
+                  <i data-lucide="trash-2" style="width: 15px; height: 15px; color: #ef4444; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop" style="color: #ef4444;">ล้างประวัติ</span>
+                  <span class="btn-text-tablet" style="color: #ef4444;">ล้าง</span>
+                  <span class="btn-text-mobile" style="color: #ef4444;">ล้าง</span>
+                </button>
+              </div>
             </div>
 
-            <!-- Export Actions for Borrow/Return History (Admin/Teacher Only) -->
-            <div id="borrowExportActions" style="display: none; align-items: center; gap: 10px; margin-top: 12px; margin-bottom: 12px; flex-wrap: wrap;">
-              <div style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: 70px; display: inline-block;">กรองห้อง:</span>
-                <select id="exportBorrowRoomFilter" class="form-control" style="width: 250px; display: inline-block; font-size: 12px !important; padding: 0 32px 0 12px !important; height: 34px; border: 1px solid var(--border-color); border-radius: var(--border-radius-sm); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
-                  <option value="all">-- ทุกห้องปฏิบัติการ --</option>
-                  <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
-                  <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
-                  <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
-                  <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
-                  <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
-                  <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
-                  <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
-                  <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
-                  <option value="None">นอกห้องปฏิบัติการ</option>
-                </select>
-              </div>
-              <div style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: auto; display: inline-block;">ส่งออก:</span>
-                <button type="button" class="btn" id="btnExportBorrowCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
-                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
-                </button>
-                <button type="button" class="btn" id="btnExportBorrowPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
-                  <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
-                </button>
-                <button type="button" class="btn admin-clear-btn" id="btnClearTransactions" style="display: none; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
-                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ล้างประวัติยืม-คืน
-                </button>
-              </div>
-            </div>
-
-            <!-- Transaction Table -->
-            <div class="table-container" style="margin-bottom: 0; flex: 1;">
-              <table>
+            <!-- Transaction Table (Responsive Zero-Scroll Layout) -->
+            <div class="table-container booking-table-container desktop-booking-table" style="margin-bottom: 0; flex: 1; overflow-x: hidden; width: 100%;">
+              <table style="width: 100%; min-width: 0; table-layout: fixed;">
                 <thead>
                   <tr>
-                    <th style="width: 30%;">วันทำรายการ</th>
-                    <th style="width: 70%;">รายการพัสดุ</th>
+                    <th style="width: 32%;">วันทำรายการ</th>
+                    <th style="width: 68%;">รายการพัสดุและผู้ยืม</th>
                   </tr>
                 </thead>
                 <tbody id="transactionsTableBody">
-                  <!-- Dynamically populated -->
                   <tr>
-                    <td colspan="6" style="text-align: center; padding: 40px;">
+                    <td colspan="2" style="text-align: center; padding: 40px;">
                       <div class="empty-state">
                         <div class="empty-state-icon"><i data-lucide="history"></i></div>
                         <div class="empty-state-text">ยังไม่มีประวัติการทำรายการยืม-คืน</div>
@@ -1890,23 +1896,19 @@
             <!-- List View Area -->
             <div id="bookingListViewArea" style="display: none; flex-direction: column; gap: 12px; flex: 1; width: 100%;">
 
-              <!-- Booking Table (Desktop) -->
-              <div class="table-container booking-table-container desktop-booking-table" style="margin-bottom: 0; flex: 1; overflow-x: auto; width: 100%;">
-                <table style="width: 100%; min-width: 680px;">
+              <!-- Booking Table (Responsive Zero-Scroll Layout) -->
+              <div class="table-container booking-table-container desktop-booking-table" style="margin-bottom: 0; flex: 1; overflow-x: hidden; width: 100%;">
+                <table style="width: 100%; min-width: 0; table-layout: fixed;">
                   <thead>
                     <tr>
-                      <th style="width: 15%;">วัน/เดือน/ปี ที่ใช้งาน</th>
-                      <th style="width: 15%;">เวลาที่เข้าใช้</th>
-                      <th style="width: 14%;">ระดับชั้น / นร.</th>
-                      <th style="width: 26%;">กิจกรรมที่ใช้</th>
-                      <th style="width: 15%;">ลงชื่อคุณครู</th>
-                      <th style="width: 15%;">ห้องปฏิบัติการ</th>
+                      <th style="width: 35%;">วันเวลาที่ใช้งาน</th>
+                      <th style="width: 65%;">ห้องปฏิบัติการและรายละเอียดกิจกรรม</th>
                     </tr>
                   </thead>
                   <tbody id="bookingsTableBody">
                     <!-- Dynamically populated -->
                     <tr>
-                      <td colspan="6" style="text-align: center; padding: 40px;">
+                      <td colspan="2" style="text-align: center; padding: 40px;">
                         <div class="empty-state">
                           <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
                           <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
@@ -1973,6 +1975,20 @@
               <h1 class="header-title">การแจ้งเตือน</h1>
               <p class="header-subtitle">ระบบตรวจสอบวันหมดอายุและสถานะสินค้าคงคลังอัตโนมัติ</p>
             </div>
+          </div>
+          <div class="unified-page-header-right">
+            <button type="button" class="booking-action-btn" id="btnExportAnnualNotifications" title="ส่งออกรายงานการแจ้งเตือนและสถานะคลังประจำปี (Excel / CSV)">
+              <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
+              <span class="btn-text-desktop">ส่งออกข้อมูลประจำปี</span>
+              <span class="btn-text-tablet">ส่งออกประจำปี</span>
+              <span class="btn-text-mobile">ส่งออก</span>
+            </button>
+            <button type="button" class="booking-action-btn admin-clear-btn" id="btnClearNotifications" title="ล้างข้อมูลการแจ้งเตือนและรายการแจ้งปัญหา" style="display: none;">
+              <i data-lucide="trash-2" style="width: 15px; height: 15px; color: #ef4444; flex-shrink: 0;"></i>
+              <span class="btn-text-desktop" style="color: #ef4444;">เคลียร์ข้อมูล</span>
+              <span class="btn-text-tablet" style="color: #ef4444;">เคลียร์</span>
+              <span class="btn-text-mobile" style="color: #ef4444;">เคลียร์</span>
+            </button>
           </div>
         </header>
 
@@ -2907,43 +2923,48 @@
 
           <!-- Smart Search & Filter Toolbar Matching 4 KPI Columns -->
           <div class="admin-toolbar-grid">
-            <!-- Col 1: Search Input (aligned with KPI 1) -->
+            <!-- Col 1: Search Input (aligned with KPI 1: ผู้ใช้งานทั้งหมด) -->
             <div class="admin-search-wrap">
               <i data-lucide="search" class="admin-search-icon"></i>
               <input type="text" id="adminUserSearchInput" class="admin-search-input" placeholder="ค้นหาชื่อ, รหัสครู, อีเมล..." oninput="filterAdminUsersTable()">
             </div>
 
-            <!-- Col 2: Role Filter (aligned with KPI 2) -->
-            <select id="adminUserRoleFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
-              <option value="">ทุกระดับสิทธิ์ (All Roles)</option>
-              <option value="L1">L1 - ครูผู้สอน (Teacher)</option>
-              <option value="L2">L2 - เจ้าหน้าที่แล็บ (Lab Staff)</option>
-              <option value="L3">L3 - ผู้ดูแลระบบ (Admin)</option>
-              <option value="L4">L4 - ผู้บริหาร (Executive)</option>
-            </select>
+            <!-- Col 2: Role & Dept Filter Group (aligned with KPI 2: ผู้ดูแล & เจ้าหน้าที่ (L2–L4)) -->
+            <div class="admin-filter-group">
+              <select id="adminUserRoleFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
+                <option value="">ทุกระดับสิทธิ์ (All Roles)</option>
+                <option value="L1">L1 - ครูผู้สอน (Teacher)</option>
+                <option value="L2">L2 - เจ้าหน้าที่แล็บ (Lab Staff)</option>
+                <option value="L3">L3 - ผู้ดูแลระบบ (Admin)</option>
+                <option value="L4">L4 - ผู้บริหาร (Executive)</option>
+              </select>
 
-            <!-- Col 3: Dept Filter (aligned with KPI 3) -->
-            <select id="adminUserDeptFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
-              <option value="">ทุกกลุ่มสาระ / หน่วยงาน</option>
-            </select>
+              <select id="adminUserDeptFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
+                <option value="">ทุกกลุ่มสาระ / หน่วยงาน</option>
+              </select>
+            </div>
 
-            <!-- Col 4: Action Buttons (aligned with KPI 4) -->
-            <div class="admin-toolbar-right">
-              <button class="btn btn-danger" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none; align-items: center; gap: 6px; background: #ef4444; color: white; white-space: nowrap; height: 38px; border-radius: 8px; font-weight: 600; font-size: 12px; border: none; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); cursor: pointer; transition: all 0.2s ease; flex: 1;">
-                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                <span id="batchDeleteUsersCountText">ลบ (0)</span>
-              </button>
-              <button class="btn btn-secondary btn-admin-action" onclick="syncAllToGoogleSheets()" title="ซิงค์ข้อมูลทั้งหมดไปยัง Google Sheets ทันที" style="border-color: #cbd5e1; color: #1e293b;">
+            <!-- Col 3: Data Actions (aligned with KPI 3: มอบหมายห้องแล็บแล้ว) -->
+            <div class="admin-toolbar-col3">
+              <button class="btn btn-secondary btn-admin-action" onclick="syncAllToGoogleSheets()" title="ซิงค์ข้อมูลทั้งหมดไปยัง Google Sheets ทันที">
                 <i data-lucide="refresh-cw" style="width: 14px; height: 14px; color: #2563eb;"></i>
-                <span class="btn-text-desktop">ซิงค์ Google Sheets</span>
+                <span class="btn-text-desktop">ซิงค์ Sheets</span>
                 <span class="btn-text-tablet">ซิงค์ Sheets</span>
                 <span class="btn-text-mobile">ซิงค์ Sheets</span>
               </button>
-              <button class="btn btn-secondary btn-admin-action" onclick="openBatchAddUsersModal()">
+              <button class="btn btn-secondary btn-admin-action" onclick="openBatchAddUsersModal()" title="นำเข้าข้อมูลผู้ใช้จากไฟล์ Excel หรือ Google Sheets">
                 <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #16a34a;"></i>
                 <span class="btn-text-desktop">นำเข้าข้อมูล</span>
                 <span class="btn-text-tablet">นำเข้า</span>
                 <span class="btn-text-mobile">นำเข้า</span>
+              </button>
+            </div>
+
+            <!-- Col 4: Action Buttons (aligned with KPI 4: ระดับสิทธิ์ความปลอดภัย) -->
+            <div class="admin-toolbar-right admin-toolbar-col4">
+              <button class="btn btn-danger" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none; align-items: center; gap: 6px; background: #ef4444; color: white; white-space: nowrap; height: 38px; border-radius: var(--border-radius-lg, 12px); font-weight: 600; font-size: 12px; border: none; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); cursor: pointer; transition: all 0.2s ease; flex: none;">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                <span id="batchDeleteUsersCountText">ลบ (0)</span>
               </button>
               <button class="btn btn-primary btn-admin-action btn-add-user" onclick="openInviteUserModal()">
                 <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
@@ -5840,7 +5861,7 @@
                   </div>
                   <div style="min-width: 0; flex: 1; overflow: hidden;">
                     <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เวอร์ชันระบบ (App Version)</div>
-                    <div id="devTabSystemVersion" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Version 2.6.0 (PWA)</div>
+                    <div id="devTabSystemVersion" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Version 2.7.0 (PWA)</div>
                   </div>
                 </div>
 
@@ -5884,7 +5905,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261002_fit"></script>
+  <script src="app.js?v=20261008_issue_ui"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {

@@ -1,0 +1,637 @@
+{
+  "@programName": "OWASP ZAP",
+  "@version": "2.15.0",
+  "generated": "2026-10-07T08:12:05.131Z",
+  "site": [
+    {
+      "@name": "https://chemicallab.vercel.app",
+      "@host": "chemicallab.vercel.app",
+      "@port": "443",
+      "@ssl": "true",
+      "alerts": [
+        {
+          "pluginid": "10038",
+          "alertRef": "10038",
+          "alert": "Content Security Policy (CSP) Header Not Set",
+          "name": "Content Security Policy (CSP) Header Not Set",
+          "riskcode": "2",
+          "confidence": "High",
+          "riskdesc": "Medium (High)",
+          "desc": "Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks.",
+          "instances": [
+            {
+              "uri": "https://chemicallab.vercel.app/",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/index.html",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/login.html",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/admin.html",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/profile.html",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/equipment.html",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/chemicals.html",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/safety.html",
+              "method": "GET",
+              "param": "Content-Security-Policy",
+              "evidence": "Header missing"
+            }
+          ],
+          "count": "8",
+          "solution": "Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.",
+          "cweid": "693",
+          "wascid": "15"
+        },
+        {
+          "pluginid": "10020",
+          "alertRef": "10020",
+          "alert": "Missing Anti-clickjacking Header",
+          "name": "Missing Anti-clickjacking Header",
+          "riskcode": "2",
+          "confidence": "Medium",
+          "riskdesc": "Medium (Medium)",
+          "desc": "The response does not include either Content-Security-Policy with frame-ancestors directive or X-Frame-Options to protect against Clickjacking attacks.",
+          "instances": [
+            {
+              "uri": "https://chemicallab.vercel.app/",
+              "method": "GET",
+              "param": "X-Frame-Options",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/index.html",
+              "method": "GET",
+              "param": "X-Frame-Options",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/login.html",
+              "method": "GET",
+              "param": "X-Frame-Options",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/admin.html",
+              "method": "GET",
+              "param": "X-Frame-Options",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/profile.html",
+              "method": "GET",
+              "param": "X-Frame-Options",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/equipment.html",
+              "method": "GET",
+              "param": "X-Frame-Options",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/chemicals.html",
+              "method": "GET",
+              "param": "X-Frame-Options",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/safety.html",
+              "method": "GET",
+              "param": "X-Frame-Options",
+              "evidence": "Header missing"
+            }
+          ],
+          "count": "8",
+          "solution": "Modern Web browsers support the Content-Security-Policy and X-Frame-Options HTTP headers. Ensure one of them is set to DENY or SAMEORIGIN.",
+          "cweid": "1021",
+          "wascid": "15"
+        },
+        {
+          "pluginid": "10021",
+          "alertRef": "10021",
+          "alert": "X-Content-Type-Options Header Missing",
+          "name": "X-Content-Type-Options Header Missing",
+          "riskcode": "1",
+          "confidence": "Medium",
+          "riskdesc": "Low (Medium)",
+          "desc": "The Anti-MIME-Sniffing header X-Content-Type-Options was not set to nosniff. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body.",
+          "instances": [
+            {
+              "uri": "https://chemicallab.vercel.app/",
+              "method": "GET",
+              "param": "X-Content-Type-Options",
+              "evidence": "Header missing or not nosniff"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/index.html",
+              "method": "GET",
+              "param": "X-Content-Type-Options",
+              "evidence": "Header missing or not nosniff"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/login.html",
+              "method": "GET",
+              "param": "X-Content-Type-Options",
+              "evidence": "Header missing or not nosniff"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/admin.html",
+              "method": "GET",
+              "param": "X-Content-Type-Options",
+              "evidence": "Header missing or not nosniff"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/profile.html",
+              "method": "GET",
+              "param": "X-Content-Type-Options",
+              "evidence": "Header missing or not nosniff"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/equipment.html",
+              "method": "GET",
+              "param": "X-Content-Type-Options",
+              "evidence": "Header missing or not nosniff"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/chemicals.html",
+              "method": "GET",
+              "param": "X-Content-Type-Options",
+              "evidence": "Header missing or not nosniff"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/safety.html",
+              "method": "GET",
+              "param": "X-Content-Type-Options",
+              "evidence": "Header missing or not nosniff"
+            }
+          ],
+          "count": "8",
+          "solution": "Ensure that the application/webserver sets the X-Content-Type-Options header to nosniff for all web pages and assets.",
+          "cweid": "693",
+          "wascid": "15"
+        },
+        {
+          "pluginid": "10063",
+          "alertRef": "10063",
+          "alert": "Permissions Policy Header Not Set",
+          "name": "Permissions Policy Header Not Set",
+          "riskcode": "0",
+          "confidence": "Low",
+          "riskdesc": "Informational (Low)",
+          "desc": "Permissions Policy header is an added layer of security that allows developers to selectively enable, disable, and modify the behavior of certain browser features and APIs.",
+          "instances": [
+            {
+              "uri": "https://chemicallab.vercel.app/",
+              "method": "GET",
+              "param": "Permissions-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/index.html",
+              "method": "GET",
+              "param": "Permissions-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/login.html",
+              "method": "GET",
+              "param": "Permissions-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/admin.html",
+              "method": "GET",
+              "param": "Permissions-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/profile.html",
+              "method": "GET",
+              "param": "Permissions-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/equipment.html",
+              "method": "GET",
+              "param": "Permissions-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/chemicals.html",
+              "method": "GET",
+              "param": "Permissions-Policy",
+              "evidence": "Header missing"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/safety.html",
+              "method": "GET",
+              "param": "Permissions-Policy",
+              "evidence": "Header missing"
+            }
+          ],
+          "count": "8",
+          "solution": "Ensure that your web server or application sends the Permissions-Policy header with appropriate feature constraints.",
+          "cweid": "693",
+          "wascid": "15"
+        },
+        {
+          "pluginid": "10037",
+          "alertRef": "10037",
+          "alert": "Server Leaks Information via \"Server\" / \"X-Powered-By\" HTTP Response Header Field(s)",
+          "name": "Server Leaks Information via HTTP Response Header Field(s)",
+          "riskcode": "1",
+          "confidence": "High",
+          "riskdesc": "Low (High)",
+          "desc": "The web/application server reveals its technology stack or cloud vendor through HTTP response headers (e.g. X-Powered-By: Express, Server: Vercel).",
+          "instances": [
+            {
+              "uri": "https://chemicallab.vercel.app/",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/index.html",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/login.html",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/admin.html",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/profile.html",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/equipment.html",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/chemicals.html",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/safety.html",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/app.js",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/manifest.json",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/robots.txt",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/health",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/version",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/config",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/auth/me",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/audit-logs",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/users",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/bookings",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/items",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/inventory/alerts",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/push-vapid-public-key",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: Express"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/data/users.example.json",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/dist/supabase_apply_password_rotation.sql",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/dist/supabase_repair.sql",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/supabase_rls_setup.sql",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/non-existent-test-probe-404",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/.env",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/.git/config",
+              "method": "GET",
+              "param": "X-Powered-By / Server",
+              "evidence": "Server: Vercel, X-Powered-By: none"
+            }
+          ],
+          "count": "28",
+          "solution": "Ensure that your web server and frameworks are configured to suppress or obfuscate banner and technology signature headers.",
+          "cweid": "200",
+          "wascid": "13"
+        },
+        {
+          "pluginid": "10058",
+          "alertRef": "10058",
+          "alert": "Cross-Origin Resource Sharing (CORS) Wildcard Enabled",
+          "name": "Cross-Origin Resource Sharing (CORS) Wildcard Enabled",
+          "riskcode": "1",
+          "confidence": "Medium",
+          "riskdesc": "Low (Medium)",
+          "desc": "Access-Control-Allow-Origin is set to \"*\", allowing any domain to read the response. While safe for public APIs and health checks, authenticated or sensitive endpoints should restrict origins.",
+          "instances": [
+            {
+              "uri": "https://chemicallab.vercel.app/",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/index.html",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/app.js",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/manifest.json",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/robots.txt",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/health",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/version",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/config",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/auth/me",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/audit-logs",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/users",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/bookings",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/items",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/inventory/alerts",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/push-vapid-public-key",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/data/users.example.json",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/dist/supabase_apply_password_rotation.sql",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/dist/supabase_repair.sql",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/supabase_rls_setup.sql",
+              "method": "GET",
+              "param": "Access-Control-Allow-Origin",
+              "evidence": "Access-Control-Allow-Origin: *"
+            }
+          ],
+          "count": "19",
+          "solution": "Ensure that authenticated/sensitive endpoints use explicit origin allowlists instead of wildcard \"*\".",
+          "cweid": "942",
+          "wascid": "14"
+        },
+        {
+          "pluginid": "10096",
+          "alertRef": "10096",
+          "alert": "Timestamp Disclosure - Unix / ISO",
+          "name": "Timestamp Disclosure",
+          "riskcode": "0",
+          "confidence": "Low",
+          "riskdesc": "Informational (Low)",
+          "desc": "A timestamp was disclosed in the application response body (e.g. server clock / health status timestamp).",
+          "instances": [
+            {
+              "uri": "https://chemicallab.vercel.app/api/health",
+              "method": "GET",
+              "param": "timestamp",
+              "evidence": "Timestamp found in response JSON"
+            },
+            {
+              "uri": "https://chemicallab.vercel.app/api/inventory/alerts",
+              "method": "GET",
+              "param": "timestamp",
+              "evidence": "Timestamp found in response JSON"
+            }
+          ],
+          "count": "2",
+          "solution": "Manually confirm whether timestamp disclosure poses any threat to server operations.",
+          "cweid": "200",
+          "wascid": "13"
+        }
+      ]
+    }
+  ],
+  "scanSummary": {
+    "target": "https://chemicallab.vercel.app",
+    "scanType": "OWASP ZAP Baseline Passive Scan",
+    "scanDurationSec": "17.61",
+    "urlsDiscovered": 28,
+    "alertCounts": {
+      "critical": 0,
+      "high": 0,
+      "medium": 2,
+      "low": 3,
+      "informational": 2
+    },
+    "sensitiveResourceChecks": {
+      "usersExample": 404,
+      "distRotation": 404,
+      "distRepair": 404,
+      "supabaseRls": 404
+    },
+    "healthEndpointStatus": {
+      "statusCode": 200,
+      "jwtSecretConfigured": true,
+      "secretExposed": false
+    }
+  }
+}
