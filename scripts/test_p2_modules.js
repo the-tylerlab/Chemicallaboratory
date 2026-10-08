@@ -167,7 +167,11 @@ async function run() {
 
     // --- 2. Laboratory Booking & Conflict Detection ---
     console.log("\n--- 2. Laboratory Booking & Conflict Detection ---");
-    const availRes = await fetch(`${BASE_URL}/api/bookings/availability?date=2026-10-15`);
+    const testBookingYear = 2030 + Math.floor(Math.random() * 50);
+    const testBookingMonth = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+    const testBookingDay = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+    const testBookingDate = `${testBookingYear}-${testBookingMonth}-${testBookingDay}`;
+    const availRes = await fetch(`${BASE_URL}/api/bookings/availability?date=${testBookingDate}`);
     assert.strictEqual(availRes.status, 200);
     const availData = await availRes.json();
     assert.strictEqual(availData.availability.length, 8); // 8 rooms
@@ -179,7 +183,7 @@ async function run() {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${teacherToken}` },
       body: JSON.stringify({
         room: 'Lab 2',
-        date: '2026-10-15',
+        date: testBookingDate,
         timeSlot: '10:30 - 12:20',
         purpose: 'การทดลองไทเทรตกรด-เบส',
         className: 'ม.5/2',
@@ -202,7 +206,7 @@ async function run() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         room: 'Lab 2',
-        date: '2026-10-15',
+        date: testBookingDate,
         timeSlot: '10:30 - 12:20'
       })
     });
@@ -216,7 +220,7 @@ async function run() {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${teacherToken}` },
       body: JSON.stringify({
         room: 'Lab 2',
-        date: '2026-10-15',
+        date: testBookingDate,
         timeSlot: '10:30 - 12:20',
         purpose: 'การทดลองซ้ำซ้อน'
       })

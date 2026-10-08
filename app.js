@@ -1033,7 +1033,7 @@ function setupRealtimeSubscriptions() {
 }
 
 // Dynamic System Version Auto-Updater
-const APP_SYSTEM_VERSION = "2.6.0";
+const APP_SYSTEM_VERSION = "2.7.0";
 
 async function fetchAppVersion() {
   let version = APP_SYSTEM_VERSION;
@@ -1084,6 +1084,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupPrintReport();
     setupDashboardReports();
     setupHistoryExports();
+    setupAnnualNotificationExport();
     setupGhsSuggestions();
     setupWasteClassificationWizard();
     setupBarcodeScanner();
@@ -1403,17 +1404,15 @@ window.filterActivityLogsRole = function(role, btnEl) {
   const btns = document.querySelectorAll('.log-role-btn');
   btns.forEach(b => {
     b.classList.remove('active');
-    b.style.background = 'transparent';
-    b.style.color = '#64748b';
-    b.style.fontWeight = '500';
-    b.style.boxShadow = 'none';
+    b.style.removeProperty('background');
+    b.style.removeProperty('background-color');
+    b.style.removeProperty('color');
+    b.style.removeProperty('border-color');
+    b.style.removeProperty('font-weight');
+    b.style.removeProperty('box-shadow');
   });
   if (btnEl) {
     btnEl.classList.add('active');
-    btnEl.style.background = '#ffffff';
-    btnEl.style.color = '#0f172a';
-    btnEl.style.fontWeight = '600';
-    btnEl.style.boxShadow = '0 1px 2px rgba(0,0,0,0.06)';
   }
   filterActivityLogs();
 };
@@ -2212,9 +2211,63 @@ function getStatusBadgeMarkup(status) {
 // Helper: Format Thai Date (dd/mm/yyyy) or "-"
 function formatThaiDate(dateStr) {
   if (!dateStr) return "-";
-  const parts = dateStr.split("-"); // yyyy-mm-dd
-  if (parts.length !== 3) return dateStr;
-  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  if (dateStr instanceof Date && !isNaN(dateStr.getTime())) {
+    const d = String(dateStr.getDate()).padStart(2, '0');
+    const m = String(dateStr.getMonth() + 1).padStart(2, '0');
+    const y = dateStr.getFullYear();
+    return `${d}/${m}/${y}`;
+  }
+  let str = String(dateStr).trim();
+  if (str.includes("T")) str = str.split("T")[0];
+  const parts = str.split(/[-/]/); // yyyy-mm-dd or dd/mm/yyyy
+  if (parts.length === 3) {
+    if (parts[0].length === 4) { // yyyy-mm-dd
+      return `${parts[2].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[0]}`;
+    } else if (parts[2].length === 4) { // dd/mm/yyyy
+      return `${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[2]}`;
+    }
+  }
+  return str;
+}
+
+// Helper: Format Pretty Human-Readable Thai Date (e.g. "08 ต.ค. 2026")
+function formatPrettyThaiDate(dateInput) {
+  if (!dateInput) return "-";
+  let d, m, y;
+  if (dateInput instanceof Date && !isNaN(dateInput.getTime())) {
+    d = dateInput.getDate();
+    m = dateInput.getMonth();
+    y = dateInput.getFullYear();
+  } else {
+    let str = String(dateInput).trim();
+    if (str.includes("T")) str = str.split("T")[0];
+    const p = str.split(/[-/]/);
+    if (p.length === 3) {
+      if (p[0].length === 4) {
+        y = parseInt(p[0], 10);
+        m = parseInt(p[1], 10) - 1;
+        d = parseInt(p[2], 10);
+      } else {
+        d = parseInt(p[0], 10);
+        m = parseInt(p[1], 10) - 1;
+        y = parseInt(p[2], 10);
+      }
+    }
+  }
+  const shortMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+  if (d && m !== undefined && y && !isNaN(d) && !isNaN(m) && !isNaN(y)) {
+    const dayStr = String(d).padStart(2, '0');
+    const monthStr = shortMonths[m] || `${m + 1}`;
+    return `${dayStr} ${monthStr} ${y}`;
+  }
+  return formatThaiDate(dateInput);
+}
+
+// Helper: Format student count cleanly without duplicate "คน"
+function formatStudentCount(val) {
+  if (!val) return "";
+  const cleaned = String(val).replace(/คน/g, '').trim();
+  return cleaned ? `${cleaned} คน` : "";
 }
 
 // Helper: Normalize Date String to YYYY-MM-DD
@@ -2471,7 +2524,7 @@ function updateUI() {
   const isL3OrL4 = isL3Admin || isL4Executive;
   const poExportActions = document.getElementById("poExportActions");
   
-  if (borrowExportActions) borrowExportActions.style.display = isL3OrL4 ? "inline-flex" : "none";
+  if (borrowExportActions) borrowExportActions.style.display = isL3OrL4 ? "flex" : "none";
   if (poExportActions) poExportActions.style.display = isL3OrL4 ? "inline-flex" : "none";
   if (quickBtnAddItem) quickBtnAddItem.style.display = (isL3Admin || isL2Staff) ? "flex" : "none";
   if (quickBtnAdmin) quickBtnAdmin.style.display = isL3Admin ? "flex" : "none";
@@ -2641,30 +2694,28 @@ function openReportIssueModal(defaultRoom = "") {
     customClass: {
       popup: 'report-issue-swal-modal'
     },
-    showCloseButton: true,
+    showCloseButton: false,
     html: `
       <div class="report-issue-container">
-        <!-- Friendly Header -->
+        <!-- Clean & Elegant Header -->
         <div class="report-issue-header">
           <div class="report-issue-icon-circle">
-            <i data-lucide="life-buoy" style="width: 22px; height: 22px; color: #7c3aed;"></i>
+            <i data-lucide="life-buoy" style="width: 22px; height: 22px; color: var(--primary-purple, #7c3aed);"></i>
           </div>
           <div class="report-issue-title-wrap">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <h3 class="report-issue-title">แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</h3>
-              <span class="report-issue-badge">Helpdesk</span>
-            </div>
-            <p class="report-issue-subtitle">ส่งเรื่องให้เจ้าหน้าที่และผู้ดูแลเข้าตรวจสอบและแก้ไขอย่างรวดเร็ว</p>
+            <h3 class="report-issue-title">แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</h3>
+            <p class="report-issue-subtitle">ส่งข้อมูลตรงถึงเจ้าหน้าที่ห้องปฏิบัติการและผู้ดูแลระบบเพื่อตรวจสอบ</p>
           </div>
+          <button type="button" class="report-issue-header-close-btn" onclick="Swal.close()" title="ปิดหน้าต่าง" aria-label="ปิดหน้าต่าง">
+            <i data-lucide="x" style="width: 17px; height: 17px;"></i>
+          </button>
         </div>
 
-        <!-- Sleek Reporter Bar -->
+        <!-- Clean Minimal User Info Bar -->
         <div class="report-issue-user-bar">
           <div class="report-issue-user-bar-left">
-            <div class="report-issue-user-bar-avatar">
-              <i data-lucide="user" style="width: 12px; height: 12px;"></i>
-            </div>
-            <span class="report-issue-user-label">ผู้แจ้งเรื่อง:</span>
+            <i data-lucide="user" style="width: 13px; height: 13px; color: var(--primary-purple, #7c3aed);"></i>
+            <span class="report-issue-user-label">ผู้แจ้ง:</span>
             <span class="report-issue-user-bar-name">${userName}</span>
             <span class="report-issue-user-bar-role">${userBadge.name}</span>
           </div>
@@ -2673,27 +2724,27 @@ function openReportIssueModal(defaultRoom = "") {
           </div>
         </div>
 
-        <!-- Quick Categories -->
+        <!-- Quick Issue Categories -->
         <div class="report-issue-category-section">
           <div class="report-issue-category-header">
             <label class="report-issue-field-label">
               <i data-lucide="sparkles" class="field-icon"></i>
-              <span>หมวดหมู่ปัญหาด่วน</span>
+              <span>เลือกหมวดหมู่ด่วน</span>
             </label>
-            <span class="report-issue-hint">คลิกเพื่อเลือกหัวข้ออัตโนมัติ</span>
+            <span class="report-issue-hint">คลิกเพื่อเติมหัวข้ออัตโนมัติ</span>
           </div>
           <div class="report-issue-categories">
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'สารเคมี / เครื่องแก้วชำรุด')">
               <span class="chip-emoji">🧪</span> <span>สารเคมี / แก้ว</span>
             </button>
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'อุปกรณ์ไฟฟ้า / เครื่องมือวิทยาศาสตร์')">
-              <span class="chip-emoji">🔬</span> <span>เครื่องมือ / ไฟฟ้า</span>
+              <span class="chip-emoji">🔬</span> <span>เครื่องมือวิทย์</span>
             </button>
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'แอร์ / น้ำประปา / อาคารสถานที่')">
-              <span class="chip-emoji">❄️</span> <span>แอร์ / อาคาร</span>
+              <span class="chip-emoji">❄️</span> <span>อาคาร / ไฟฟ้า</span>
             </button>
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'ระบบโปรแกรม / บัญชีผู้ใช้งานขัดข้อง')">
-              <span class="chip-emoji">💻</span> <span>ซอฟต์แวร์ / ระบบ</span>
+              <span class="chip-emoji">💻</span> <span>ระบบ / โปรแกรม</span>
             </button>
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'การเบิก-ยืม / คืนอุปกรณ์')">
               <span class="chip-emoji">📦</span> <span>เบิกยืม / คืน</span>
@@ -2760,10 +2811,9 @@ function openReportIssueModal(defaultRoom = "") {
         </div>
       </div>
     `,
-    showCancelButton: true,
-    reverseButtons: true,
-    confirmButtonText: '<span style="display: flex; align-items: center; gap: 6px;"><i data-lucide="send" style="width: 14px; height: 14px;"></i> <span>ส่งแจ้งปัญหา</span></span>',
-    cancelButtonText: 'ยกเลิก',
+    showCloseButton: false,
+    showCancelButton: false,
+    confirmButtonText: '<span style="display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600;"><i data-lucide="send" style="width: 15px; height: 15px;"></i> <span>ส่งแจ้งปัญหา</span></span>',
     didOpen: () => {
       if (window.lucide) lucide.createIcons();
     },
@@ -6697,7 +6747,20 @@ function renderTransactionsTable() {
   const tableBody = document.getElementById("transactionsTableBody");
   if (!tableBody) return;
 
-  if (transactions.length === 0) {
+  const roomFilterEl = document.getElementById("exportBorrowRoomFilter");
+  if (roomFilterEl && !roomFilterEl._hasFilterListener) {
+    roomFilterEl.addEventListener("change", () => renderTransactionsTable());
+    roomFilterEl._hasFilterListener = true;
+  }
+  const selectedRoom = roomFilterEl ? roomFilterEl.value : "all";
+
+  // Sort transactions by date/time (newest first)
+  let sortedTrans = [...transactions].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  if (selectedRoom && selectedRoom !== "all") {
+    sortedTrans = sortedTrans.filter(tx => tx.room === selectedRoom);
+  }
+
+  if (sortedTrans.length === 0) {
     tableBody.innerHTML = `
       <tr>
         <td colspan="2" style="text-align: center; padding: 48px;">
@@ -6708,31 +6771,69 @@ function renderTransactionsTable() {
         </td>
       </tr>
     `;
+    if (window.lucide) lucide.createIcons();
     return;
   }
 
-  // Sort transactions by date/time (newest first)
-  const sortedTrans = [...transactions].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-
   let html = "";
   sortedTrans.forEach(tx => {
-    let nameThai = tx.itemName;
-    const braceIndex = tx.itemName.indexOf("(");
+    let nameThai = tx.itemName || "-";
+    const braceIndex = nameThai.indexOf("(");
     if (braceIndex !== -1) {
-      nameThai = tx.itemName.substring(0, braceIndex).trim();
+      nameThai = nameThai.substring(0, braceIndex).trim();
+    }
+
+    const isReturned = (tx.status === "returned" || tx.type === "return" || tx.type === "RETURN");
+    const statusBadge = isReturned
+      ? `<span class="badge-status approved" style="color:#10b981; font-size:11px; font-weight:600; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span> คืนแล้ว</span>`
+      : `<span class="badge-status pending" style="color:#f59e0b; font-size:11px; font-weight:600; background:rgba(245,158,11,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#f59e0b;"></span> กำลังยืม</span>`;
+
+    const roomText = tx.room && tx.room !== "None" ? (typeof getRoomThaiName === "function" ? getRoomThaiName(tx.room) : tx.room) : "";
+
+    const rawDate = tx.date || tx.createdAt;
+    const prettyDate = formatPrettyThaiDate(rawDate);
+    let timeText = "";
+    if (typeof rawDate === "string" && rawDate.includes("T")) {
+      const dt = new Date(rawDate);
+      if (!isNaN(dt.getTime())) {
+        const hh = String(dt.getHours()).padStart(2, '0');
+        const mm = String(dt.getMinutes()).padStart(2, '0');
+        timeText = `${hh}:${mm} น.`;
+      }
     }
 
     html += `
       <tr class="table-clickable-row" onclick="showTransactionDetail('${tx.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
-        <td data-label="วันทำรายการ" style="font-size: 12px; color: var(--text-muted);">${formatThaiDate(tx.date)}</td>
-        <td data-label="รายการพัสดุ">
-          <div style="font-weight: 600; color: #0f172a; font-size: 12.5px; line-height: 1.5;">${nameThai}</div>
+        <td data-label="วันทำรายการ" style="vertical-align: top; padding: 14px 16px; width: 200px; white-space: nowrap;">
+          <div style="font-weight: 700; color: #0f172a; font-size: 13px; line-height: 1.3;">${prettyDate}</div>
+          ${timeText ? `<div style="font-size: 11.5px; color: #64748b; font-weight: 500; margin-top: 2px;">${timeText}</div>` : ''}
+          <div style="margin-top: 7px;">
+            ${statusBadge}
+          </div>
+          <div style="margin-top: 5px; font-size: 11px; color: #94a3b8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">${tx.id ? tx.id.slice(0, 16) : ''}</div>
+        </td>
+        <td data-label="รายการพัสดุและผู้ยืม" style="vertical-align: top; padding: 14px 16px;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+            <div style="font-weight: 700; color: #0f172a; font-size: 14px; line-height: 1.4; word-break: break-word;">${escapeHTML(nameThai)}</div>
+            ${roomText ? `
+              <span style="background: rgba(99,102,241,0.08); color: #4f46e5; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; display: inline-block; border: 1px solid rgba(99,102,241,0.18); word-break: break-word; white-space: nowrap;">${roomText}</span>
+            ` : ''}
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px; font-size: 12px; color: #64748b;">
+            <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #f1f5f9; padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 600; color: #475569; border: 1px solid #e2e8f0;">${tx.itemCode || '-'}</span>
+            ${(tx.qty || tx.quantity) ? `<span>• จำนวน: <strong style="color: #1e293b;">${tx.qty || tx.quantity}</strong> ${tx.unit || 'ชิ้น'}</span>` : ''}
+          </div>
+          ${tx.borrower ? `
+          <div style="margin-top: 6px; font-size: 12px; color: #475569; line-height: 1.4; word-break: break-word;">
+            ผู้ทำรายการ: <strong style="color: #0f172a; font-weight: 600;">${escapeHTML(tx.borrower)}</strong>
+          </div>` : ''}
         </td>
       </tr>
     `;
   });
 
   tableBody.innerHTML = html;
+  if (window.lucide) lucide.createIcons();
 }
 // Quick click action to Return currently borrowed item
 window.returnBorrowedItem = async function(transId) {
@@ -7916,7 +8017,7 @@ function renderBookingsTable() {
       </div>
     `;
     if (tableBody) {
-      tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px;">${emptyHtml}</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 40px;">${emptyHtml}</td></tr>`;
     }
     if (mobileList) {
       mobileList.innerHTML = emptyHtml;
@@ -7929,43 +8030,51 @@ function renderBookingsTable() {
   let mobileHtml = "";
 
   sortedBookings.forEach(b => {
-    const formattedDate = formatThaiDate(normalizeDateStr(b.date) || b.date);
+    const rawDate = normalizeDateStr(b.date) || b.date;
+    const formattedDate = formatPrettyThaiDate(rawDate);
     const roomName = getRoomThaiName(b.room);
     const roomColor = getRoomColor(b.room);
     const booker = b.bookerName || b.teacherName || "-";
-    const grade = b.gradeLevel || "-";
-    const studentCountText = b.studentCount ? `${b.studentCount} คน` : "";
+    const grade = b.className || b.gradeLevel || "-";
+    const studentCountText = formatStudentCount(b.studentCount);
     const purpose = b.purpose || b.activity || "-";
 
-    const slotList = (b.slot || "").split(", ").filter(Boolean);
-    const slotHtml = slotList.map(s => `
-      <div style="font-weight: 600; color: #4f46e5; font-size: 11px; line-height: 1.3;">${s}</div>
-    `).join("");
+    const slotList = (b.slot || b.timeSlot || "").split(", ").filter(Boolean);
+    const slotHtml = slotList.map(s => {
+      const cleanSlot = s.trim();
+      return `<div style="font-weight: 600; color: #4f46e5; font-size: 11.5px; line-height: 1.3;">${cleanSlot}${cleanSlot.includes("น") ? "" : " น."}</div>`;
+    }).join("");
 
     const isApproved = b.status === "approved";
     const isPending = b.status === "pending";
     const statusBadge = isApproved 
-      ? "<span class='badge-status approved' style='color:#10b981; font-size:11px; font-weight:600; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:12px;'>🟢 อนุมัติแล้ว</span>" 
+      ? "<span class='badge-status approved' style='color:#10b981; font-size:11px; font-weight:600; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;'><span style='width:6px; height:6px; border-radius:50%; background:#10b981;'></span> อนุมัติแล้ว</span>" 
       : (isPending 
-          ? "<span class='badge-status pending' style='color:#f59e0b; font-size:11px; font-weight:600; background:rgba(245,158,11,0.1); padding:2px 8px; border-radius:12px;'>⏳ รออนุมัติ</span>" 
-          : "<span class='badge-status rejected' style='color:#ef4444; font-size:11px; font-weight:600; background:rgba(239,68,68,0.1); padding:2px 8px; border-radius:12px;'>❌ ปฏิเสธ</span>");
+          ? "<span class='badge-status pending' style='color:#f59e0b; font-size:11px; font-weight:600; background:rgba(245,158,11,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;'><span style='width:6px; height:6px; border-radius:50%; background:#f59e0b;'></span> รออนุมัติ</span>" 
+          : "<span class='badge-status rejected' style='color:#ef4444; font-size:11px; font-weight:600; background:rgba(239,68,68,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;'><span style='width:6px; height:6px; border-radius:50%; background:#ef4444;'></span> ปฏิเสธ</span>");
 
-    // Desktop Table Row
+    // Desktop Table Row (Zero-scroll, responsive hierarchical columns)
     tableHtml += `
       <tr class="table-clickable-row" onclick="showBookingDetail('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
-        <td data-label="วัน/เดือน/ปี ที่ใช้งาน" style="font-size: 12px; font-weight: 600; color: #1e293b;">${formattedDate}</td>
-        <td data-label="เวลาที่เข้าใช้">${slotHtml}</td>
-        <td data-label="ระดับชั้น / นร." style="font-size: 12px;">
-          <div style="font-weight: 600; color: var(--text-main);">${grade}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">${studentCountText}</div>
-        </td>
-        <td data-label="กิจกรรมที่ใช้" style="font-size: 12px; color: var(--text-main); max-width: 220px; word-break: break-word;">${purpose}</td>
-        <td data-label="ลงชื่อคุณครู" style="font-size: 12px; font-weight: 600; color: var(--text-main);">${booker}</td>
-        <td data-label="ห้องปฏิบัติการ">
-          <div style="margin-bottom: 4px;">
-            <span style="font-family: var(--font-sans); background-color: ${roomColor}15; color: ${roomColor}; font-size: 11px; padding: 2px 8px; border-radius: 6px; font-weight: 600; display: inline-block;">${roomName}</span>
+        <td data-label="วันเวลาที่ใช้งาน" style="vertical-align: top; padding: 14px 16px; width: 200px; white-space: nowrap;">
+          <div style="font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3;">${formattedDate}</div>
+          <div style="margin-top: 3px; display: flex; flex-direction: column; gap: 2px;">
+            ${slotHtml}
           </div>
-          <div>${statusBadge}</div>
+          <div style="margin-top: 7px;">
+            ${statusBadge}
+          </div>
+        </td>
+        <td data-label="ห้องปฏิบัติการและรายละเอียดกิจกรรม" style="vertical-align: top; padding: 14px 16px;">
+          <div style="margin-bottom: 5px;">
+            <span style="font-family: var(--font-sans); background-color: ${roomColor}12; color: ${roomColor}; font-size: 11.5px; padding: 2px 8px; border-radius: 6px; font-weight: 600; display: inline-block; border: 1px solid ${roomColor}25; word-break: break-word;">${roomName}</span>
+          </div>
+          <div style="font-size: 13.5px; font-weight: 700; color: #0f172a; line-height: 1.4; word-break: break-word;">${escapeHTML(purpose)}</div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; font-size: 12px; color: #64748b;">
+            <span>คุณครู: <strong style="color: #334155; font-weight: 600;">${escapeHTML(booker)}</strong></span>
+            ${grade !== '-' ? `<span>• ชั้น: <strong style="color: #334155; font-weight: 600;">${escapeHTML(grade)}</strong></span>` : ''}
+            ${studentCountText ? `<span>(${studentCountText})</span>` : ''}
+          </div>
         </td>
       </tr>
     `;
@@ -7989,7 +8098,7 @@ function renderBookingsTable() {
           <div class="booking-card-meta-grid">
             <div class="booking-card-meta-item">
               <span class="booking-meta-label">เวลาเข้าใช้:</span>
-              <span class="booking-meta-val slots-val">${(b.slot || "-")}</span>
+              <span class="booking-meta-val slots-val">${(b.slot || b.timeSlot || "-")}${(b.slot || b.timeSlot || "").includes("น") || !(b.slot || b.timeSlot) ? "" : " น."}</span>
             </div>
             <div class="booking-card-meta-item">
               <span class="booking-meta-label">ระดับชั้น:</span>
@@ -9829,7 +9938,7 @@ window.showTransactionDetail = function(txId) {
       </div>
       <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">วันที่ทำรายการ:</span>
-        <span>${formatThaiDate(tx.date)}</span>
+        <span style="font-weight: 600; color: #1e293b;">${formatPrettyThaiDate(tx.date || tx.createdAt)}</span>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">ประเภท:</span>
@@ -9913,19 +10022,19 @@ window.showBookingDetail = function(bkId) {
       </div>
       <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">วัน/เดือน/ปี ที่ใช้งาน:</span>
-        <span style="font-weight: 600; color: #1e293b;">${formatThaiDate(bk.date)}</span>
+        <span style="font-weight: 600; color: #1e293b;">${formatPrettyThaiDate(bk.date)}</span>
       </div>
       <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">เวลาที่เข้าใช้:</span>
-        <span style="font-weight: 600; color: #8b5cf6;">${bk.slot}</span>
+        <span style="font-weight: 600; color: #8b5cf6;">${bk.slot || bk.timeSlot || "-"}</span>
       </div>
       <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">ระดับชั้นเรียน:</span>
-        <span style="font-weight: 600; color: var(--text-main);">${bk.gradeLevel || "-"}</span>
+        <span style="font-weight: 600; color: var(--text-main);">${bk.className || bk.gradeLevel || "-"}</span>
       </div>
       <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">จำนวนนักเรียนทั้งหมด:</span>
-        <span style="font-weight: 600; color: var(--text-main);">${bk.studentCount ? `${bk.studentCount} คน` : "-"}</span>
+        <span style="font-weight: 600; color: var(--text-main);">${formatStudentCount(bk.studentCount) || "-"}</span>
       </div>
       <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">ลงชื่อคุณครู:</span>
@@ -12839,6 +12948,112 @@ function setupHistoryExports() {
       printWindow.document.close();
     });
   }
+}
+
+function setupAnnualNotificationExport() {
+  const btn = document.getElementById("btnExportAnnualNotifications");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    const curYearCE = new Date().getFullYear();
+    const curYearBE = curYearCE + 543;
+
+    const rows = [];
+
+    // 1. Inventory notifications (Expired, Near-expiry, Low-stock)
+    if (Array.isArray(items)) {
+      items.forEach(item => {
+        const status = getItemStatus(item);
+        const roomName = item.room && item.room !== "None" ? (typeof getRoomThaiName === "function" ? getRoomThaiName(item.room) : item.room) : "-";
+        const storageStr = [roomName, item.cabinet, item.shelf].filter(Boolean).join(" > ") || "-";
+        
+        if (status === "expired") {
+          rows.push([
+            "สารเคมี/พัสดุหมดอายุ",
+            item.code || "-",
+            getItemDisplayName(item) || "-",
+            item.category || "สารเคมี",
+            storageStr,
+            `${item.qty || 0} ${item.unit || "ชิ้น"}`,
+            `หมดอายุเมื่อ: ${formatThaiDate(item.expiry)}`,
+            "หมดอายุแล้ว (จำหน่าย/กำจัด)",
+            "ระบบตรวจสอบอัตโนมัติ",
+            formatThaiDate(item.expiry)
+          ]);
+        } else if (status === "near-expiry") {
+          rows.push([
+            "ใกล้หมดอายุ (ภายใน 30 วัน)",
+            item.code || "-",
+            getItemDisplayName(item) || "-",
+            item.category || "สารเคมี",
+            storageStr,
+            `${item.qty || 0} ${item.unit || "ชิ้น"}`,
+            `วันหมดอายุ: ${formatThaiDate(item.expiry)}`,
+            "ใกล้หมดอายุ (วางแผนการใช้)",
+            "ระบบตรวจสอบอัตโนมัติ",
+            formatThaiDate(item.expiry)
+          ]);
+        } else if (status === "low-stock") {
+          rows.push([
+            "สต็อกต่ำกว่าเกณฑ์ขั้นต่ำ",
+            item.code || "-",
+            getItemDisplayName(item) || "-",
+            item.category || "พัสดุ",
+            storageStr,
+            `${item.qty || 0} ${item.unit || "ชิ้น"}`,
+            `จุดสั่งซื้อต่ำสุด: ${item.minAlert || 0} ${item.unit || "ชิ้น"}`,
+            "สต็อกต่ำ (ต้องจัดซื้อเพิ่ม)",
+            "ระบบตรวจสอบอัตโนมัติ",
+            formatThaiDate(new Date())
+          ]);
+        }
+      });
+    }
+
+    // 2. Feedback / Reported Issues
+    const feedbacksList = Array.isArray(window.feedbacksData) ? window.feedbacksData : [];
+    feedbacksList.forEach(fb => {
+      rows.push([
+        "รายการแจ้งปัญหา/ซ่อมบำรุง",
+        fb.code || fb.id || "-",
+        fb.title || fb.message || "แจ้งปัญหาการใช้งาน",
+        "งานซ่อมบำรุง / ความปลอดภัย",
+        fb.location || fb.room || "-",
+        "-",
+        "-",
+        fb.status === "resolved" ? "แก้ไขเรียบร้อยแล้ว" : (fb.status === "repair" ? "รอช่างซ่อมบำรุง" : "รอดำเนินการ"),
+        fb.reporter || fb.userName || "ผู้ใช้งานระบบ",
+        fb.date ? formatThaiDate(fb.date) : "-"
+      ]);
+    });
+
+    if (rows.length === 0) {
+      showToast("ไม่มีข้อมูลการแจ้งเตือนหรือรายการปัญหาในระบบที่จะส่งออก", "info");
+      return;
+    }
+
+    const headers = [
+      "หมวดหมู่การแจ้งเตือน",
+      "รหัสรายการ/รหัสปัญหา",
+      "ชื่อรายการ/รายละเอียด",
+      "ประเภทพัสดุ/งาน",
+      "สถานที่จัดเก็บ/ห้องปฏิบัติการ",
+      "จำนวนคงเหลือ",
+      "เกณฑ์ขั้นต่ำ/วันหมดอายุ",
+      "สถานะการดำเนินงาน",
+      "ผู้บันทึก/ผู้แจ้ง",
+      "วันที่บันทึก"
+    ];
+
+    const titleRows = [
+      [`รายงานสรุปการแจ้งเตือนและสถานะคลังพัสดุประจำปี พ.ศ. ${curYearBE} (${curYearCE})`, "", "", "", "", "", "", "", "", ""],
+      [`วันที่ออกรายงาน: ${formatThaiDate(new Date())} | รายการทั้งหมด: ${rows.length} รายการ`, "", "", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", "", "", ""]
+    ];
+
+    exportDataToCSV(`annual_notifications_report_${curYearBE}_${new Date().toISOString().split('T')[0]}.csv`, headers, [...titleRows, ...rows]);
+    showToast("ส่งออกข้อมูลรายงานประจำปีเรียบร้อยแล้ว!", "success");
+  });
 }
 
 function exportDataToCSV(filename, headers, rows) {
@@ -16188,6 +16403,17 @@ function setupAdminClearHandlers() {
     });
   }
 
+  const btnClearNotifications = document.getElementById("btnClearNotifications");
+  if (btnClearNotifications) {
+    btnClearNotifications.addEventListener("click", () => {
+      if (!isClearAuthorized()) {
+        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้น", "error");
+        return;
+      }
+      openConfirmModal("notifications");
+    });
+  }
+
   // Input typing validation
   if (confirmInput && confirmBtn) {
     confirmInput.addEventListener("input", (e) => {
@@ -16303,6 +16529,16 @@ function setupAdminClearHandlers() {
             svg.querySelectorAll(".apparatus, .connection").forEach(el => el.remove());
           }
           showToast("ล้างแผนการทดลองทั้งหมดเรียบร้อยแล้ว", "success");
+        }
+        else if (pendingClearAction === "notifications") {
+          window.feedbacksData = [];
+          localStorage.setItem("lab_feedbacks", JSON.stringify([]));
+          if (typeof renderFeedbacksList === "function") renderFeedbacksList();
+          if (typeof renderNotificationsList === "function" && typeof getInventoryStats === "function") {
+            renderNotificationsList(getInventoryStats());
+          }
+          if (typeof updateNotificationBadge === "function") updateNotificationBadge();
+          showToast("ล้างข้อมูลการแจ้งเตือนและรายการปัญหาทั้งหมดเรียบร้อยแล้ว", "success");
         }
 
         // Refresh views
@@ -21856,7 +22092,7 @@ function applyLoginBannerUI(customConfig = null) {
 
   heroSide.style.display = "flex";
   splitGrid.style.gridTemplateColumns = "";
-  if (modalContent) modalContent.style.maxWidth = "740px";
+  if (modalContent) modalContent.style.maxWidth = "790px";
 
   // Apply Theme Class
   const themes = ["orange", "blue", "green", "purple", "red", "dark"];

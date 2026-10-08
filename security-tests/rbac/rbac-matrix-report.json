@@ -1,0 +1,448 @@
+{
+  "testSuite": "READ-ONLY RBAC Security Matrix Test",
+  "target": "https://chemicallab.vercel.app",
+  "timestamp": "2026-10-07T08:33:40.138Z",
+  "environment": "Production",
+  "roleArchitecture": {
+    "discoveredRoles": [
+      "L0",
+      "L1",
+      "L2",
+      "L3",
+      "L4"
+    ],
+    "roleDefinitions": {
+      "L0": "Guest (Unauthenticated visitor)",
+      "L1": "Teacher / Basic User",
+      "L2": "Staff / Lab Operator",
+      "L3": "Admin / System Manager",
+      "L4": "Executive / School Director"
+    },
+    "jwtClaims": [
+      "jti",
+      "id",
+      "teacherId",
+      "name",
+      "role",
+      "roleLevel",
+      "department",
+      "assignedRooms",
+      "mustChangePassword",
+      "iat",
+      "exp"
+    ],
+    "middlewareEnforced": [
+      "authenticateToken",
+      "requireRole",
+      "optionalAuth"
+    ]
+  },
+  "authenticationTests": [
+    {
+      "test": "No token",
+      "expected": 401,
+      "actual": 401,
+      "result": "PASS",
+      "details": "AUTH_REQUIRED"
+    },
+    {
+      "test": "Empty Bearer token",
+      "expected": 401,
+      "actual": 401,
+      "result": "PASS",
+      "details": "AUTH_REQUIRED"
+    },
+    {
+      "test": "Malformed Bearer token",
+      "expected": 401,
+      "actual": 401,
+      "result": "PASS",
+      "details": "TOKEN_INVALID"
+    },
+    {
+      "test": "Fake/Untrusted JWT",
+      "expected": 401,
+      "actual": 401,
+      "result": "PASS",
+      "details": "TOKEN_INVALID"
+    },
+    {
+      "test": "Expired JWT",
+      "expected": 401,
+      "actual": 401,
+      "result": "PASS",
+      "details": "TOKEN_INVALID"
+    },
+    {
+      "test": "JWT signed with OLD compromised secret",
+      "expected": 401,
+      "actual": 401,
+      "result": "PASS",
+      "details": "TOKEN_INVALID"
+    },
+    {
+      "test": "Valid Production JWT (L3)",
+      "expected": 200,
+      "actual": 200,
+      "result": "PASS",
+      "details": "Authenticated as L3"
+    }
+  ],
+  "matrixResults": [
+    {
+      "endpoint": "/api/health",
+      "type": "A. PUBLIC READ",
+      "expected": {
+        "L0": 200,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 200,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/version",
+      "type": "A. PUBLIC READ",
+      "expected": {
+        "L0": 200,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 200,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/config",
+      "type": "A. PUBLIC READ",
+      "expected": {
+        "L0": 200,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 200,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/items",
+      "type": "A. PUBLIC READ",
+      "expected": {
+        "L0": 200,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 200,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/auth/me",
+      "type": "B. AUTHENTICATED READ",
+      "expected": {
+        "L0": 401,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 401,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/transactions",
+      "type": "B. AUTHENTICATED READ",
+      "expected": {
+        "L0": 401,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 401,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/inventory/movements",
+      "type": "C. ROLE-RESTRICTED READ (L1-L4)",
+      "expected": {
+        "L0": 401,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 401,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/budget",
+      "type": "C. ROLE-RESTRICTED READ (L1-L4)",
+      "expected": {
+        "L0": 401,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 401,
+        "L1": 200,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/feedbacks",
+      "type": "C. ROLE-RESTRICTED READ (L2-L4)",
+      "expected": {
+        "L0": 401,
+        "L1": 403,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 401,
+        "L1": 403,
+        "L2": 200,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/audit-logs",
+      "type": "C. ROLE-RESTRICTED READ (L3-L4)",
+      "expected": {
+        "L0": 401,
+        "L1": 403,
+        "L2": 403,
+        "L3": 200,
+        "L4": 200
+      },
+      "actual": {
+        "L0": 401,
+        "L1": 403,
+        "L2": 403,
+        "L3": 200,
+        "L4": 200
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/sync/all-cloud-data",
+      "type": "C. ROLE-RESTRICTED READ (L3)",
+      "expected": {
+        "L0": 401,
+        "L1": 403,
+        "L2": 403,
+        "L3": 200,
+        "L4": 403
+      },
+      "actual": {
+        "L0": 401,
+        "L1": 403,
+        "L2": 403,
+        "L3": 200,
+        "L4": 403
+      },
+      "pass": true
+    },
+    {
+      "endpoint": "/api/push-subscriptions",
+      "type": "C. ROLE-RESTRICTED READ (L3)",
+      "expected": {
+        "L0": 401,
+        "L1": 403,
+        "L2": 403,
+        "L3": 200,
+        "L4": 403
+      },
+      "actual": {
+        "L0": 401,
+        "L1": 403,
+        "L2": 403,
+        "L3": 200,
+        "L4": 403
+      },
+      "pass": true
+    }
+  ],
+  "privilegeEscalationTests": [
+    {
+      "test": "URL parameter ?admin=true (Guest/L0)",
+      "expected": "No escalation (401)",
+      "actual": "401",
+      "result": "PASS"
+    },
+    {
+      "test": "URL parameter ?admin=true (User/L1)",
+      "expected": "No escalation (403)",
+      "actual": "403",
+      "result": "PASS"
+    },
+    {
+      "test": "URL parameter ?role=admin (Guest/L0)",
+      "expected": "No escalation (401)",
+      "actual": "401",
+      "result": "PASS"
+    },
+    {
+      "test": "URL parameter ?role=admin (User/L1)",
+      "expected": "No escalation (403)",
+      "actual": "403",
+      "result": "PASS"
+    },
+    {
+      "test": "URL parameter ?level=4 (Guest/L0)",
+      "expected": "No escalation (401)",
+      "actual": "401",
+      "result": "PASS"
+    },
+    {
+      "test": "URL parameter ?level=4 (User/L1)",
+      "expected": "No escalation (403)",
+      "actual": "403",
+      "result": "PASS"
+    },
+    {
+      "test": "URL parameter ?isAdmin=true (Guest/L0)",
+      "expected": "No escalation (401)",
+      "actual": "401",
+      "result": "PASS"
+    },
+    {
+      "test": "URL parameter ?isAdmin=true (User/L1)",
+      "expected": "No escalation (403)",
+      "actual": "403",
+      "result": "PASS"
+    },
+    {
+      "test": "Header injection: X-Role=admin (User/L1)",
+      "expected": "No escalation (403)",
+      "actual": "403",
+      "result": "PASS"
+    },
+    {
+      "test": "Header injection: X-User-Role=L3 (User/L1)",
+      "expected": "No escalation (403)",
+      "actual": "403",
+      "result": "PASS"
+    },
+    {
+      "test": "Header injection: X-Admin=true (User/L1)",
+      "expected": "No escalation (403)",
+      "actual": "403",
+      "result": "PASS"
+    },
+    {
+      "test": "Header injection: X-Level=4 (User/L1)",
+      "expected": "No escalation (403)",
+      "actual": "403",
+      "result": "PASS"
+    },
+    {
+      "test": "Header injection: X-Permission=admin (User/L1)",
+      "expected": "No escalation (403)",
+      "actual": "403",
+      "result": "PASS"
+    }
+  ],
+  "jwtTamperTests": [
+    {
+      "test": "JWT alg:none signature bypass",
+      "expected": "REJECTED (401/403)",
+      "actual": "403 (REJECTED)",
+      "result": "PASS"
+    },
+    {
+      "test": "JWT role tampering (L1 -> L3 with forged signature)",
+      "expected": "REJECTED (401)",
+      "actual": "401 (REJECTED)",
+      "result": "PASS"
+    },
+    {
+      "test": "JWT user ID tampering with forged signature",
+      "expected": "REJECTED (401)",
+      "actual": "401 (REJECTED)",
+      "result": "PASS"
+    },
+    {
+      "test": "JWT signature stripped",
+      "expected": "REJECTED (401/403)",
+      "actual": "403 (REJECTED)",
+      "result": "PASS"
+    },
+    {
+      "test": "Expired JWT",
+      "expected": "REJECTED (401)",
+      "actual": "401 (REJECTED)",
+      "result": "PASS"
+    }
+  ],
+  "idorTests": [
+    {
+      "test": "GET /api/auth/me?id=u_admin (User/L1)",
+      "expected": "Returns authenticated user profile only (no IDOR)",
+      "actual": "User ID returned: u_1001 (Matches L1 token identity)",
+      "result": "PASS"
+    }
+  ],
+  "sensitiveCheck": {
+    "healthStatus": 200,
+    "jwtSecretConfigured": true,
+    "secretExposed": false,
+    "passwordExposed": false
+  },
+  "overallVerdict": "PASS"
+}

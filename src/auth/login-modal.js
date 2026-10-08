@@ -42,6 +42,16 @@ export function openLoginModal() {
     }
 
     if (window.lucide) window.lucide.createIcons();
+
+    setTimeout(() => {
+      if (usernameInput) {
+        if (usernameInput.value && loginPasswordInput) {
+          loginPasswordInput.focus();
+        } else {
+          usernameInput.focus();
+        }
+      }
+    }, 60);
   }
 }
 
@@ -151,6 +161,34 @@ export function setupLoginHandlers() {
     btnCancelLogin.addEventListener("click", (e) => {
       e.preventDefault();
       closeLoginModal();
+    });
+  }
+
+  // Backdrop click dismiss
+  const loginModalEl = document.getElementById("loginModal");
+  if (loginModalEl) {
+    loginModalEl.addEventListener("click", (e) => {
+      if (e.target === loginModalEl) {
+        closeLoginModal();
+      }
+    });
+  }
+
+  // Escape key dismiss
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const modal = document.getElementById("loginModal");
+      if (modal && modal.classList.contains("active")) {
+        closeLoginModal();
+      }
+    }
+  });
+
+  const linkForgotPassword = document.getElementById("linkForgotPassword");
+  if (linkForgotPassword) {
+    linkForgotPassword.addEventListener("click", (e) => {
+      e.preventDefault();
+      handleForgotPasswordClick();
     });
   }
 
@@ -281,6 +319,22 @@ export function updateLoginUI() {
   if (window.lucide) window.lucide.createIcons();
 }
 
+// Quick Fill Role for Demo Role Buttons
+export function quickFillRole(username, password) {
+  const usernameInput = document.getElementById("loginUsername");
+  const loginPasswordInput = document.getElementById("loginPassword");
+  const adminLoginForm = document.getElementById("adminLoginForm");
+  if (usernameInput) usernameInput.value = username;
+  if (loginPasswordInput) loginPasswordInput.value = password;
+  if (adminLoginForm) {
+    if (typeof adminLoginForm.requestSubmit === "function") {
+      adminLoginForm.requestSubmit();
+    } else {
+      adminLoginForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+    }
+  }
+}
+
 // Mount to window for global backwards compatibility
 if (typeof window !== 'undefined') {
   window.openLoginModal = openLoginModal;
@@ -289,4 +343,5 @@ if (typeof window !== 'undefined') {
   window.handleGoogleOrQuickLogin = handleGoogleOrQuickLogin;
   window.setupLoginHandlers = setupLoginHandlers;
   window.updateLoginUI = updateLoginUI;
+  window.quickFillRole = quickFillRole;
 }

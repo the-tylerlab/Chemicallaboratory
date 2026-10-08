@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OWASP ZAP Baseline Scan Report - chemicallab.vercel.app</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px; background: #0f172a; color: #f8fafc; }
+  h1, h2, h3 { color: #38bdf8; }
+  .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-weight: 600; font-size: 12px; }
+  .badge-medium { background: #ea580c; color: #fff; }
+  .badge-low { background: #ca8a04; color: #fff; }
+  .badge-info { background: #0284c7; color: #fff; }
+  .badge-pass { background: #16a34a; color: #fff; }
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; background: #1e293b; border-radius: 8px; overflow: hidden; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #334155; }
+  th { background: #0f172a; color: #94a3b8; font-weight: 600; }
+  .card { background: #1e293b; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #334155; }
+  code { background: #334155; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #38bdf8; }
+</style>
+</head>
+<body>
+<h1>OWASP ZAP Baseline Security Scan Report</h1>
+<div class="card">
+  <p><strong>Target:</strong> <code>https://chemicallab.vercel.app</code></p>
+  <p><strong>Scan Mode:</strong> Passive Baseline (Read-Only)</p>
+  <p><strong>Scan Duration:</strong> 17.61s | <strong>URLs Discovered:</strong> 28</p>
+  <p><strong>Generated At:</strong> Wed, 07 Oct 2026 08:12:05 GMT</p>
+</div>
+
+<h2>Scan Summary</h2>
+<table>
+  <tr><th>Severity</th><th>Count</th></tr>
+  <tr><td><span class="badge" style="background:#dc2626;">High</span></td><td>0</td></tr>
+  <tr><td><span class="badge badge-medium">Medium</span></td><td>2</td></tr>
+  <tr><td><span class="badge badge-low">Low</span></td><td>3</td></tr>
+  <tr><td><span class="badge badge-info">Informational</span></td><td>2</td></tr>
+</table>
+
+<h2>Sensitive Resource Verification</h2>
+<table>
+  <tr><th>Resource Path</th><th>Expected</th><th>Actual</th><th>Result</th></tr>
+  <tr><td><code>/data/users.example.json</code></td><td>404 Not Found</td><td>404</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td><code>/dist/supabase_apply_password_rotation.sql</code></td><td>404 Not Found</td><td>404</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td><code>/dist/supabase_repair.sql</code></td><td>404 Not Found</td><td>404</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td><code>/supabase_rls_setup.sql</code></td><td>404 Not Found</td><td>404</td><td><span class="badge badge-pass">PASS</span></td></tr>
+  <tr><td><code>/api/health</code> (Secret Redaction)</td><td>200 OK & No Secret</td><td>200 (Redacted)</td><td><span class="badge badge-pass">PASS</span></td></tr>
+</table>
+
+<h2>Alerts & Findings</h2>
+
+<div class="card">
+  <h3>Content Security Policy (CSP) Header Not Set <span class="badge badge-medium">Medium</span></h3>
+  <p><strong>Confidence:</strong> High | <strong>CWE:</strong> 693</p>
+  <p>Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks.</p>
+  <p><strong>Solution:</strong> Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.</p>
+  <details>
+    <summary>Affected URLs (8 occurrences)</summary>
+    <ul>
+      <li><code>https://chemicallab.vercel.app/</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/index.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/login.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/admin.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/profile.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/equipment.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/chemicals.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/safety.html</code> (Header missing)</li>
+    </ul>
+  </details>
+</div>
+
+<div class="card">
+  <h3>Missing Anti-clickjacking Header <span class="badge badge-medium">Medium</span></h3>
+  <p><strong>Confidence:</strong> Medium | <strong>CWE:</strong> 1021</p>
+  <p>The response does not include either Content-Security-Policy with frame-ancestors directive or X-Frame-Options to protect against Clickjacking attacks.</p>
+  <p><strong>Solution:</strong> Modern Web browsers support the Content-Security-Policy and X-Frame-Options HTTP headers. Ensure one of them is set to DENY or SAMEORIGIN.</p>
+  <details>
+    <summary>Affected URLs (8 occurrences)</summary>
+    <ul>
+      <li><code>https://chemicallab.vercel.app/</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/index.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/login.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/admin.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/profile.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/equipment.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/chemicals.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/safety.html</code> (Header missing)</li>
+    </ul>
+  </details>
+</div>
+
+<div class="card">
+  <h3>X-Content-Type-Options Header Missing <span class="badge badge-low">Low</span></h3>
+  <p><strong>Confidence:</strong> Medium | <strong>CWE:</strong> 693</p>
+  <p>The Anti-MIME-Sniffing header X-Content-Type-Options was not set to nosniff. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body.</p>
+  <p><strong>Solution:</strong> Ensure that the application/webserver sets the X-Content-Type-Options header to nosniff for all web pages and assets.</p>
+  <details>
+    <summary>Affected URLs (8 occurrences)</summary>
+    <ul>
+      <li><code>https://chemicallab.vercel.app/</code> (Header missing or not nosniff)</li><li><code>https://chemicallab.vercel.app/index.html</code> (Header missing or not nosniff)</li><li><code>https://chemicallab.vercel.app/login.html</code> (Header missing or not nosniff)</li><li><code>https://chemicallab.vercel.app/admin.html</code> (Header missing or not nosniff)</li><li><code>https://chemicallab.vercel.app/profile.html</code> (Header missing or not nosniff)</li><li><code>https://chemicallab.vercel.app/equipment.html</code> (Header missing or not nosniff)</li><li><code>https://chemicallab.vercel.app/chemicals.html</code> (Header missing or not nosniff)</li><li><code>https://chemicallab.vercel.app/safety.html</code> (Header missing or not nosniff)</li>
+    </ul>
+  </details>
+</div>
+
+<div class="card">
+  <h3>Permissions Policy Header Not Set <span class="badge badge-informational">Informational</span></h3>
+  <p><strong>Confidence:</strong> Low | <strong>CWE:</strong> 693</p>
+  <p>Permissions Policy header is an added layer of security that allows developers to selectively enable, disable, and modify the behavior of certain browser features and APIs.</p>
+  <p><strong>Solution:</strong> Ensure that your web server or application sends the Permissions-Policy header with appropriate feature constraints.</p>
+  <details>
+    <summary>Affected URLs (8 occurrences)</summary>
+    <ul>
+      <li><code>https://chemicallab.vercel.app/</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/index.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/login.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/admin.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/profile.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/equipment.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/chemicals.html</code> (Header missing)</li><li><code>https://chemicallab.vercel.app/safety.html</code> (Header missing)</li>
+    </ul>
+  </details>
+</div>
+
+<div class="card">
+  <h3>Server Leaks Information via HTTP Response Header Field(s) <span class="badge badge-low">Low</span></h3>
+  <p><strong>Confidence:</strong> High | <strong>CWE:</strong> 200</p>
+  <p>The web/application server reveals its technology stack or cloud vendor through HTTP response headers (e.g. X-Powered-By: Express, Server: Vercel).</p>
+  <p><strong>Solution:</strong> Ensure that your web server and frameworks are configured to suppress or obfuscate banner and technology signature headers.</p>
+  <details>
+    <summary>Affected URLs (28 occurrences)</summary>
+    <ul>
+      <li><code>https://chemicallab.vercel.app/</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/index.html</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/login.html</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/admin.html</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/profile.html</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/equipment.html</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/chemicals.html</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/safety.html</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/app.js</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/manifest.json</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/robots.txt</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/api/health</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/api/version</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/api/config</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/api/auth/me</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/api/audit-logs</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/api/users</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/api/bookings</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/api/items</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/api/inventory/alerts</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/api/push-vapid-public-key</code> (Server: Vercel, X-Powered-By: Express)</li><li><code>https://chemicallab.vercel.app/data/users.example.json</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/dist/supabase_apply_password_rotation.sql</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/dist/supabase_repair.sql</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/supabase_rls_setup.sql</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/non-existent-test-probe-404</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/.env</code> (Server: Vercel, X-Powered-By: none)</li><li><code>https://chemicallab.vercel.app/.git/config</code> (Server: Vercel, X-Powered-By: none)</li>
+    </ul>
+  </details>
+</div>
+
+<div class="card">
+  <h3>Cross-Origin Resource Sharing (CORS) Wildcard Enabled <span class="badge badge-low">Low</span></h3>
+  <p><strong>Confidence:</strong> Medium | <strong>CWE:</strong> 942</p>
+  <p>Access-Control-Allow-Origin is set to "*", allowing any domain to read the response. While safe for public APIs and health checks, authenticated or sensitive endpoints should restrict origins.</p>
+  <p><strong>Solution:</strong> Ensure that authenticated/sensitive endpoints use explicit origin allowlists instead of wildcard "*".</p>
+  <details>
+    <summary>Affected URLs (19 occurrences)</summary>
+    <ul>
+      <li><code>https://chemicallab.vercel.app/</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/index.html</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/app.js</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/manifest.json</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/robots.txt</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/health</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/version</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/config</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/auth/me</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/audit-logs</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/users</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/bookings</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/items</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/inventory/alerts</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/api/push-vapid-public-key</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/data/users.example.json</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/dist/supabase_apply_password_rotation.sql</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/dist/supabase_repair.sql</code> (Access-Control-Allow-Origin: *)</li><li><code>https://chemicallab.vercel.app/supabase_rls_setup.sql</code> (Access-Control-Allow-Origin: *)</li>
+    </ul>
+  </details>
+</div>
+
+<div class="card">
+  <h3>Timestamp Disclosure <span class="badge badge-informational">Informational</span></h3>
+  <p><strong>Confidence:</strong> Low | <strong>CWE:</strong> 200</p>
+  <p>A timestamp was disclosed in the application response body (e.g. server clock / health status timestamp).</p>
+  <p><strong>Solution:</strong> Manually confirm whether timestamp disclosure poses any threat to server operations.</p>
+  <details>
+    <summary>Affected URLs (2 occurrences)</summary>
+    <ul>
+      <li><code>https://chemicallab.vercel.app/api/health</code> (Timestamp found in response JSON)</li><li><code>https://chemicallab.vercel.app/api/inventory/alerts</code> (Timestamp found in response JSON)</li>
+    </ul>
+  </details>
+</div>
+
+
+</body>
+</html>
