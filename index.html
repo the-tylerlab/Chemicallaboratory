@@ -3488,13 +3488,19 @@
     
     <!-- Admin User Modals -->
     <!-- Invite/Add User Modal -->
+    <!-- Invite/Add User Modal -->
     <div class="modal-overlay" id="modalInviteUser">
-      <div class="modal-content" style="width: 520px; max-width: 95%;">
-        <div class="modal-header">
-          <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="user-plus" style="color: var(--primary-purple); width: 20px; height: 20px;"></i>
-            <span>เพิ่มข้อมูลผู้ใช้งาน / ครูใหม่</span>
-          </h2>
+      <div class="modal-content admin-user-modal-card">
+        <div class="modal-header admin-user-modal-header">
+          <div class="header-brand-wrap">
+            <div class="modal-icon-badge">
+              <i data-lucide="user-plus" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+              <h2 class="modal-title-text">เพิ่มข้อมูลผู้ใช้งาน / ครูใหม่</h2>
+              <p class="modal-subtitle-text">สร้างบัญชีผู้ใช้งานใหม่พร้อมกำหนดระดับสิทธิ์เข้าใช้งานระบบ</p>
+            </div>
+          </div>
           <button type="button" class="modal-close-btn" onclick="closeInviteUserModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -3503,90 +3509,106 @@
           </button>
         </div>
         <form id="formInviteUser">
-          <div class="modal-body" style="padding: 20px 24px; max-height: 70vh; overflow-y: auto;">
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">
-                รหัสประจำตัวครู (Teacher ID) <span style="font-size: 11.5px; font-weight: 400; color: var(--primary-purple);">(สร้างให้อัตโนมัติหรือกำหนดเอง)</span>
-              </label>
-              <input type="text" class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 500;" id="inviteUserTeacherId" placeholder="เช่น 2003, T005, SC101">
-              <small style="color: var(--text-muted); font-size: 11.5px;">ใช้เป็น Username และ Password เริ่มต้นในการเข้าสู่ระบบ</small>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">
-                ชื่อ - นามสกุล <span style="color: var(--accent-red);">*</span>
-              </label>
-              <input type="text" class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px;" id="inviteUserName" required placeholder="เช่น ครูสมหมาย ใจมั่น">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">
-                กลุ่มสาระ / แผนก / หน่วยงาน
-              </label>
-              <input type="text" class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px;" id="inviteUserDept" placeholder="เช่น กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">อีเมล</label>
-              <input type="email" class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px;" id="inviteUserEmail" placeholder="sommai@school.ac.th">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">
-                ระดับบทบาทและสิทธิ์การใช้งาน (Role Level) <span style="color: var(--accent-red);">*</span>
-              </label>
-              <select class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 600;" id="inviteUserRole" required onchange="toggleAssignedRoomsField('invite')">
-                <option value="L1">L1 — Teacher / User (ครูผู้สอน: ยืม-คืน, จองห้อง, แจ้งชำรุด)</option>
-                <option value="L2">L2 — Staff / Operator (เจ้าหน้าที่แล็บ: ดูแลคลัง, ตรวจรับคืน, ผังตู้, ซ่อมบำรุง, งบประมาณ)</option>
-                <option value="L3">L3 — Manager / System Manager (ผู้ดูแลระบบ: จัดการทุก Function)</option>
-                <option value="L4">L4 — Executive / Head of Dept (ผู้บริหาร: ดูภาพรวมทั้งหมด Read-Only)</option>
-              </select>
-            </div>
-
-            <!-- Assigned Rooms Selection (For L2 Staff) -->
-            <div id="inviteAssignedRoomsContainer" style="display: none; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
-              <div style="font-weight: 700; font-size: 13px; color: #9a3412; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i>
-                <span>กำหนดห้องปฏิบัติการที่รับผิดชอบ (สำหรับระดับ L2)</span>
+          <div class="modal-body admin-user-modal-body">
+            <div class="admin-user-form-grid">
+              <!-- Row 1: Teacher ID & Full Name -->
+              <div class="form-group">
+                <label class="form-label" for="inviteUserTeacherId">
+                  <span>รหัสประจำตัวครู (ID)</span>
+                  <span style="font-size: 11px; font-weight: 500; color: #7c3aed;">(สร้างอัตโนมัติ/กำหนดเอง)</span>
+                </label>
+                <input type="text" class="form-control" id="inviteUserTeacherId" placeholder="เช่น 2003, T005, SC101" style="font-weight: 600;">
               </div>
-              <div style="font-size: 12px; color: #7c2d12; margin-bottom: 10px;">
-                เจ้าหน้าที่ L2 จะสามารถจัดการคลัง ตรวจรับคืน และดูแลผังตู้เฉพาะห้องที่เลือกไว้เท่านั้น:
+
+              <div class="form-group">
+                <label class="form-label" for="inviteUserName">
+                  <span>ชื่อ - นามสกุล</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
+                </label>
+                <input type="text" class="form-control" id="inviteUserName" required placeholder="เช่น ครูสมหมาย ใจมั่น">
               </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="inviteRoomCheckboxes">
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="inviteRoom" value="Lab 1"> <span>Lab 1: เคมี อาคารอัสสัมชัญ</span>
+
+              <!-- Row 2: Department & Email -->
+              <div class="form-group">
+                <label class="form-label" for="inviteUserDept">
+                  <span>กลุ่มสาระ / แผนก / หน่วยงาน</span>
                 </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="inviteRoom" value="Lab 2"> <span>Lab 2: ฟิสิกส์ อาคารเซนต์ปีเตอร์</span>
+                <input type="text" class="form-control" id="inviteUserDept" placeholder="เช่น วิทยาศาสตร์และเทคโนโลยี">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inviteUserEmail">
+                  <span>อีเมล (Email)</span>
                 </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="inviteRoom" value="Lab 3"> <span>Lab 3: ชีววิทยา อาคารเซนต์ปีเตอร์</span>
+                <input type="email" class="form-control" id="inviteUserEmail" placeholder="sommai@school.ac.th">
+              </div>
+
+              <!-- Row 3: Role Level (Span 2) -->
+              <div class="form-group form-col-full">
+                <label class="form-label" for="inviteUserRole">
+                  <span>ระดับบทบาทและสิทธิ์การใช้งาน (Role Level)</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
                 </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="inviteRoom" value="Lab 4"> <span>Lab 4: วิทย์ อาคารราฟาเอล</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="inviteRoom" value="Lab 5"> <span>Lab 5: สสวท. อาคารราฟาเอล</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="inviteRoom" value="Lab 6"> <span>Lab 6: วิทย์ อาคารอัสสัมชัญ</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="inviteRoom" value="Lab 7"> <span>Lab 7: ศูนย์ STEM CENTER</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="inviteRoom" value="Lab 8"> <span>Lab 8: วิทย์ EP อาคารยอห์น แมรี่</span>
-                </label>
+                <select class="form-control" id="inviteUserRole" required onchange="toggleAssignedRoomsField('invite')" style="font-weight: 600;">
+                  <option value="L1">L1 — Teacher / User (ครูผู้สอน: ยืม-คืน, จองห้อง, แจ้งชำรุด)</option>
+                  <option value="L2">L2 — Staff / Operator (เจ้าหน้าที่แล็บ: ดูแลคลัง, ตรวจรับคืน, ผังตู้, ซ่อมบำรุง)</option>
+                  <option value="L3">L3 — Manager / System Manager (ผู้ดูแลระบบ: จัดการทุก Function)</option>
+                  <option value="L4">L4 — Executive / Head of Dept (ผู้บริหาร: ดูภาพรวมทั้งหมด Read-Only)</option>
+                </select>
+                <div style="font-size: 11.5px; color: #64748b; margin-top: 5px; display: flex; align-items: center; gap: 4px;">
+                  <i data-lucide="info" style="width: 12px; height: 12px; color: #7c3aed;"></i>
+                  <span>ระบบจะใช้ Teacher ID เป็น Username และ Password เริ่มต้นในการเข้าสู่ระบบครั้งแรก</span>
+                </div>
+              </div>
+
+              <!-- Assigned Rooms for L2 (Span 2) -->
+              <div class="form-col-full" id="inviteAssignedRoomsContainer" style="display: none; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 10px; padding: 12px 14px;">
+                <div style="font-weight: 700; font-size: 12.5px; color: #9a3412; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                  <span>กำหนดห้องปฏิบัติการที่รับผิดชอบ (สำหรับระดับ L2)</span>
+                </div>
+                <div style="font-size: 11.5px; color: #7c2d12; margin-bottom: 8px;">
+                  เจ้าหน้าที่ L2 จะสามารถจัดการคลัง ตรวจรับคืน และดูแลผังตู้เฉพาะห้องที่เลือกไว้เท่านั้น:
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;" id="inviteRoomCheckboxes">
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 1"> <span>Lab 1: เคมี อาคารอัสสัมชัญ</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 2"> <span>Lab 2: ฟิสิกส์ อาคารเซนต์ปีเตอร์</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 3"> <span>Lab 3: ชีววิทยา อาคารเซนต์ปีเตอร์</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 4"> <span>Lab 4: วิทย์ อาคารราฟาเอล</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 5"> <span>Lab 5: สสวท. อาคารราฟาเอล</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 6"> <span>Lab 6: วิทย์ อาคารอัสสัมชัญ</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 7"> <span>Lab 7: ศูนย์ STEM CENTER</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 8"> <span>Lab 8: วิทย์ EP อาคารยอห์น แมรี่</span>
+                  </label>
+                </div>
               </div>
             </div>
-
           </div>
-          <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px; background: #f8fafc; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-            <button type="button" class="btn btn-secondary" style="padding: 8px 16px; border: 1px solid var(--border-color); background: white; border-radius: 8px; cursor: pointer; font-weight: 500;" onclick="closeInviteUserModal()">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" style="padding: 8px 18px; background: var(--primary-purple); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="check" style="width: 15px; height: 15px;"></i>
-              <span>บันทึกผู้ใช้</span>
-            </button>
+
+          <div class="modal-footer admin-user-modal-footer">
+            <div></div>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #475569;" onclick="closeInviteUserModal()">ยกเลิก</button>
+              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);">
+                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                <span>บันทึกผู้ใช้</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -3878,12 +3900,17 @@
 
     <!-- Edit User Modal -->
     <div class="modal-overlay" id="modalEditUser">
-      <div class="modal-content" style="width: 520px; max-width: 95%;">
-        <div class="modal-header">
-          <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="user-cog" style="color: var(--primary-purple); width: 20px; height: 20px;"></i>
-            <span>แก้ไขข้อมูลและสิทธิ์ผู้ใช้งาน</span>
-          </h2>
+      <div class="modal-content admin-user-modal-card">
+        <div class="modal-header admin-user-modal-header">
+          <div class="header-brand-wrap">
+            <div class="modal-icon-badge">
+              <i data-lucide="user-cog" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+              <h2 class="modal-title-text">แก้ไขข้อมูลและสิทธิ์ผู้ใช้งาน</h2>
+              <p class="modal-subtitle-text">ปรับปรุงสิทธิ์การใช้งาน บทบาท และการจัดการรหัสผ่าน</p>
+            </div>
+          </div>
           <button type="button" class="modal-close-btn" onclick="closeEditUserModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -3893,128 +3920,141 @@
         </div>
         <form id="formEditUser">
           <input type="hidden" id="editUserId">
-          <div class="modal-body" style="padding: 20px 24px; max-height: 70vh; overflow-y: auto;">
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">
-                รหัสประจำตัวครู (Teacher ID) <span style="color: var(--accent-red);">*</span>
-              </label>
-              <input type="text" class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 500;" id="editUserTeacherId" required>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">
-                ชื่อ - นามสกุล <span style="color: var(--accent-red);">*</span>
-              </label>
-              <input type="text" class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px;" id="editUserName" required>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">
-                กลุ่มสาระ / แผนก / หน่วยงาน
-              </label>
-              <input type="text" class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px;" id="editUserDept">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">อีเมล</label>
-              <input type="email" class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px;" id="editUserEmail">
-            </div>
-
-            <div class="form-group" style="margin-bottom: 14px;">
-              <label class="form-label" style="display: block; margin-bottom: 6px; font-weight: 600; font-size: 13.5px;">
-                ระดับบทบาทและสิทธิ์การใช้งาน (Role Level) <span style="color: var(--accent-red);">*</span>
-              </label>
-              <select class="form-control" style="width: 100%; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 600;" id="editUserRole" required onchange="toggleAssignedRoomsField('edit')">
-                <option value="L1">L1 — Teacher / User (ครูผู้สอน: ยืม-คืน, จองห้อง, แจ้งชำรุด)</option>
-                <option value="L2">L2 — Staff / Operator (เจ้าหน้าที่แล็บ: ดูแลคลัง, ตรวจรับคืน, ผังตู้, ซ่อมบำรุง, งบประมาณ)</option>
-                <option value="L3">L3 — Manager / System Manager (ผู้ดูแลระบบ: จัดการทุก Function)</option>
-                <option value="L4">L4 — Executive / Head of Dept (ผู้บริหาร: ดูภาพรวมทั้งหมด Read-Only)</option>
-              </select>
-            </div>
-
-            <!-- Assigned Rooms Selection (For L2 Staff) -->
-            <div id="editAssignedRoomsContainer" style="display: none; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
-              <div style="font-weight: 700; font-size: 13px; color: #9a3412; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i>
-                <span>กำหนดห้องปฏิบัติการที่รับผิดชอบ (สำหรับระดับ L2)</span>
+          <div class="modal-body admin-user-modal-body">
+            <div class="admin-user-form-grid">
+              <!-- Row 1: Teacher ID & Full Name -->
+              <div class="form-group">
+                <label class="form-label" for="editUserTeacherId">
+                  <span>รหัสประจำตัวครู (ID)</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
+                </label>
+                <input type="text" class="form-control" id="editUserTeacherId" required style="font-weight: 600;">
               </div>
-              <div style="font-size: 12px; color: #7c2d12; margin-bottom: 10px;">
-                เจ้าหน้าที่ L2 จะสามารถจัดการคลัง ตรวจรับคืน และดูแลผังตู้เฉพาะห้องที่เลือกไว้เท่านั้น:
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="editRoomCheckboxes">
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="editRoom" value="Lab 1"> <span>Lab 1: เคมี อาคารอัสสัมชัญ</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="editRoom" value="Lab 2"> <span>Lab 2: ฟิสิกส์ อาคารเซนต์ปีเตอร์</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="editRoom" value="Lab 3"> <span>Lab 3: ชีววิทยา อาคารเซนต์ปีเตอร์</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="editRoom" value="Lab 4"> <span>Lab 4: วิทย์ อาคารราฟาเอล</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="editRoom" value="Lab 5"> <span>Lab 5: สสวท. อาคารราฟาเอล</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="editRoom" value="Lab 6"> <span>Lab 6: วิทย์ อาคารอัสสัมชัญ</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="editRoom" value="Lab 7"> <span>Lab 7: ศูนย์ STEM CENTER</span>
-                </label>
-                <label style="font-size: 12.5px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                  <input type="checkbox" name="editRoom" value="Lab 8"> <span>Lab 8: วิทย์ EP อาคารยอห์น แมรี่</span>
-                </label>
-              </div>
-            </div>
 
-            <!-- Password Management Section for L3 Admin -->
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; margin-bottom: 14px;">
-              <div style="font-weight: 700; font-size: 13px; color: #1e293b; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <i data-lucide="key" style="width: 15px; height: 15px; color: #7c3aed;"></i>
-                  <span>การจัดการรหัสผ่านผู้ใช้งาน (Password Management)</span>
+              <div class="form-group">
+                <label class="form-label" for="editUserName">
+                  <span>ชื่อ - นามสกุล</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
+                </label>
+                <input type="text" class="form-control" id="editUserName" required>
+              </div>
+
+              <!-- Row 2: Department & Email -->
+              <div class="form-group">
+                <label class="form-label" for="editUserDept">
+                  <span>กลุ่มสาระ / แผนก / หน่วยงาน</span>
+                </label>
+                <input type="text" class="form-control" id="editUserDept" placeholder="เช่น วิทยาศาสตร์และเทคโนโลยี">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="editUserEmail">
+                  <span>อีเมล (Email)</span>
+                </label>
+                <input type="email" class="form-control" id="editUserEmail" placeholder="name@school.ac.th">
+              </div>
+
+              <!-- Row 3: Role Level (Span 2) -->
+              <div class="form-group form-col-full">
+                <label class="form-label" for="editUserRole">
+                  <span>ระดับบทบาทและสิทธิ์การใช้งาน (Role Level)</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
+                </label>
+                <select class="form-control" id="editUserRole" required onchange="toggleAssignedRoomsField('edit')" style="font-weight: 600;">
+                  <option value="L1">L1 — Teacher / User (ครูผู้สอน: ยืม-คืน, จองห้อง, แจ้งชำรุด)</option>
+                  <option value="L2">L2 — Staff / Operator (เจ้าหน้าที่แล็บ: ดูแลคลัง, ตรวจรับคืน, ผังตู้, ซ่อมบำรุง)</option>
+                  <option value="L3">L3 — Manager / System Manager (ผู้ดูแลระบบ: จัดการทุก Function)</option>
+                  <option value="L4">L4 — Executive / Head of Dept (ผู้บริหาร: ดูภาพรวมทั้งหมด Read-Only)</option>
+                </select>
+              </div>
+
+              <!-- Assigned Rooms for L2 (Span 2) -->
+              <div class="form-col-full" id="editAssignedRoomsContainer" style="display: none; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 10px; padding: 12px 14px;">
+                <div style="font-weight: 700; font-size: 12.5px; color: #9a3412; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                  <span>กำหนดห้องปฏิบัติการที่รับผิดชอบ (สำหรับระดับ L2)</span>
                 </div>
-                <span style="font-size: 11px; background: #e0e7ff; color: #4338ca; padding: 2px 7px; border-radius: 4px; font-weight: 600;">L3 Admin Only</span>
-              </div>
-              
-              <!-- Current Password Display -->
-              <div style="margin-bottom: 10px;">
-                <label style="display: block; font-size: 12px; color: #64748b; margin-bottom: 4px; font-weight: 500;">รหัสผ่านปัจจุบันของผู้ใช้:</label>
-                <div style="display: flex; gap: 6px;">
-                  <input type="password" id="editUserCurrentPass" readonly class="form-control" style="flex: 1; padding: 7px 10px; font-family: monospace; font-size: 13px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;" value="">
-                  <button type="button" class="btn btn-sm" onclick="toggleEditUserPassVisibility()" style="padding: 7px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;" title="แสดง/ซ่อนรหัสผ่าน">
-                    <i data-lucide="eye" id="editUserPassEyeIcon" style="width: 14px; height: 14px; color: #64748b;"></i>
-                  </button>
-                  <button type="button" class="btn btn-sm" onclick="copyEditUserPassword()" style="padding: 7px 10px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;" title="คัดลอกรหัสผ่าน">
-                    <i data-lucide="copy" style="width: 14px; height: 14px; color: #64748b;"></i>
-                  </button>
+                <div style="font-size: 11.5px; color: #7c2d12; margin-bottom: 8px;">
+                  เจ้าหน้าที่ L2 จะสามารถจัดการคลัง ตรวจรับคืน และดูแลผังตู้เฉพาะห้องที่เลือกไว้เท่านั้น:
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;" id="editRoomCheckboxes">
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 1"> <span>Lab 1: เคมี อาคารอัสสัมชัญ</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 2"> <span>Lab 2: ฟิสิกส์ อาคารเซนต์ปีเตอร์</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 3"> <span>Lab 3: ชีววิทยา อาคารเซนต์ปีเตอร์</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 4"> <span>Lab 4: วิทย์ อาคารราฟาเอล</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 5"> <span>Lab 5: สสวท. อาคารราฟาเอล</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 6"> <span>Lab 6: วิทย์ อาคารอัสสัมชัญ</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 7"> <span>Lab 7: ศูนย์ STEM CENTER</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 8"> <span>Lab 8: วิทย์ EP อาคารยอห์น แมรี่</span>
+                  </label>
                 </div>
               </div>
 
-              <!-- Quick Reset to Teacher ID & Set New Password -->
-              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px dashed #cbd5e1;">
-                <button type="button" class="btn btn-sm" onclick="adminResetUserToTeacherId()" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
-                  <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
-                  <span>รีเซ็ตเป็น Teacher ID</span>
-                </button>
-                
-                <div style="display: flex; gap: 6px; flex: 1; min-width: 200px;">
-                  <input type="text" id="editUserNewCustomPass" placeholder="ตั้งรหัสผ่านใหม่..." class="form-control" style="flex: 1; padding: 6px 10px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                  <button type="button" class="btn btn-sm" onclick="adminApplyCustomPassword()" style="background: #0284c7; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;">
-                    บันทึกรหัสใหม่
+              <!-- Password Management (Span 2) -->
+              <div class="form-col-full admin-user-pass-card">
+                <div class="admin-user-pass-header">
+                  <div class="admin-user-pass-title">
+                    <i data-lucide="key" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+                    <span>การจัดการรหัสผ่านผู้ใช้งาน (Password)</span>
+                  </div>
+                  <span class="admin-user-pass-badge">L3 Admin Only</span>
+                </div>
+
+                <!-- Current Password Display -->
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                  <span style="font-size: 11.5px; color: #64748b; white-space: nowrap;">รหัสปัจจุบัน:</span>
+                  <input type="password" id="editUserCurrentPass" readonly class="form-control" style="flex: 1; height: 32px; padding: 0 10px; font-family: monospace; font-size: 13px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;" value="">
+                  <button type="button" class="btn btn-sm" onclick="toggleEditUserPassVisibility()" style="height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;" title="แสดง/ซ่อนรหัสผ่าน">
+                    <i data-lucide="eye" id="editUserPassEyeIcon" style="width: 13px; height: 13px; color: #64748b;"></i>
                   </button>
+                  <button type="button" class="btn btn-sm" onclick="copyEditUserPassword()" style="height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;" title="คัดลอกรหัสผ่าน">
+                    <i data-lucide="copy" style="width: 13px; height: 13px; color: #64748b;"></i>
+                  </button>
+                </div>
+
+                <!-- Quick Reset & Set New Password -->
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
+                  <button type="button" class="btn btn-sm" onclick="adminResetUserToTeacherId()" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; height: 32px; padding: 0 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
+                    <i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i>
+                    <span>รีเซ็ตเป็น Teacher ID</span>
+                  </button>
+                  <div style="display: flex; gap: 6px; flex: 1; min-width: 180px;">
+                    <input type="text" id="editUserNewCustomPass" placeholder="ตั้งรหัสผ่านใหม่..." class="form-control" style="flex: 1; height: 32px; padding: 0 10px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
+                    <button type="button" class="btn btn-sm" onclick="adminApplyCustomPassword()" style="background: #0284c7; color: white; border: none; height: 32px; padding: 0 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                      บันทึกรหัสใหม่
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-
           </div>
-          <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
-            <button type="button" class="btn btn-danger" style="padding: 8px 16px; background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; cursor: pointer; font-weight: 500;" onclick="deleteAdminUser()">ลบผู้ใช้นี้</button>
-            <div style="display: flex; gap: 12px;">
-              <button type="button" class="btn btn-secondary" style="padding: 8px 16px; border: 1px solid var(--border-color); background: white; border-radius: 8px; cursor: pointer; font-weight: 500;" onclick="closeEditUserModal()">ยกเลิก</button>
-              <button type="submit" class="btn btn-primary" style="padding: 8px 18px; background: var(--primary-purple); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">บันทึกการแก้ไข</button>
+
+          <div class="modal-footer admin-user-modal-footer">
+            <button type="button" class="btn btn-danger" style="height: 38px; padding: 0 14px; background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12.5px; display: inline-flex; align-items: center; gap: 5px;" onclick="deleteAdminUser()">
+              <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+              <span>ลบผู้ใช้นี้</span>
+            </button>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #475569;" onclick="closeEditUserModal()">ยกเลิก</button>
+              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);">
+                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                <span>บันทึกการแก้ไข</span>
+              </button>
             </div>
           </div>
         </form>
