@@ -4009,35 +4009,49 @@
               <div class="form-col-full admin-user-pass-card">
                 <div class="admin-user-pass-header">
                   <div class="admin-user-pass-title">
-                    <i data-lucide="key" style="width: 14px; height: 14px; color: #7c3aed;"></i>
-                    <span>การจัดการรหัสผ่านผู้ใช้งาน (Password)</span>
+                    <i data-lucide="key-round" style="width: 15px; height: 15px; color: #7c3aed;"></i>
+                    <span>การจัดการรหัสผ่านผู้ใช้งาน (Password Management)</span>
                   </div>
                   <span class="admin-user-pass-badge">L3 Admin Only</span>
                 </div>
 
-                <!-- Current Password Display -->
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                  <span style="font-size: 11.5px; color: #64748b; white-space: nowrap;">รหัสปัจจุบัน:</span>
-                  <input type="password" id="editUserCurrentPass" readonly class="form-control" style="flex: 1; height: 32px; padding: 0 10px; font-family: monospace; font-size: 13px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;" value="">
-                  <button type="button" class="btn btn-sm" onclick="toggleEditUserPassVisibility()" style="height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;" title="แสดง/ซ่อนรหัสผ่าน">
-                    <i data-lucide="eye" id="editUserPassEyeIcon" style="width: 13px; height: 13px; color: #64748b;"></i>
-                  </button>
-                  <button type="button" class="btn btn-sm" onclick="copyEditUserPassword()" style="height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; background: white; border-radius: 6px; cursor: pointer;" title="คัดลอกรหัสผ่าน">
-                    <i data-lucide="copy" style="width: 13px; height: 13px; color: #64748b;"></i>
-                  </button>
-                </div>
+                <div class="admin-user-pass-body">
+                  <!-- Current Password Display Box -->
+                  <div class="admin-pass-field-row">
+                    <label class="admin-pass-label">รหัสผ่านปัจจุบัน</label>
+                    <div class="admin-pass-input-box">
+                      <input type="password" id="editUserCurrentPass" readonly class="admin-pass-input" value="">
+                      <button type="button" class="admin-pass-btn-icon" onclick="toggleEditUserPassVisibility()" title="แสดง/ซ่อนรหัสผ่าน">
+                        <i data-lucide="eye" id="editUserPassEyeIcon" style="width: 14px; height: 14px;"></i>
+                      </button>
+                      <button type="button" class="admin-pass-btn-icon" onclick="copyEditUserPassword()" title="คัดลอกรหัสผ่าน">
+                        <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                      </button>
+                    </div>
+                  </div>
 
-                <!-- Quick Reset & Set New Password -->
-                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
-                  <button type="button" class="btn btn-sm" onclick="adminResetUserToTeacherId()" style="background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; height: 32px; padding: 0 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
-                    <i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i>
-                    <span>รีเซ็ตเป็น Teacher ID</span>
-                  </button>
-                  <div style="display: flex; gap: 6px; flex: 1; min-width: 180px;">
-                    <input type="text" id="editUserNewCustomPass" placeholder="ตั้งรหัสผ่านใหม่..." class="form-control" style="flex: 1; height: 32px; padding: 0 10px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 6px;">
-                    <button type="button" class="btn btn-sm" onclick="adminApplyCustomPassword()" style="background: #0284c7; color: white; border: none; height: 32px; padding: 0 10px; border-radius: 6px; font-size: 11.5px; font-weight: 600; cursor: pointer; white-space: nowrap;">
-                      บันทึกรหัสใหม่
-                    </button>
+                  <!-- Actions: Two Clear Cards/Columns -->
+                  <div class="admin-pass-actions-container">
+                    <!-- Option 1: Quick Reset -->
+                    <div class="admin-pass-action-box">
+                      <span class="admin-pass-sublabel">กู้คืนรหัสผ่านเริ่มต้น</span>
+                      <button type="button" class="btn btn-pass-action btn-pass-reset" onclick="adminResetUserToTeacherId()" title="รีเซ็ตรหัสผ่านกลับไปเป็นรหัสครู (Teacher ID)">
+                        <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+                        <span>รีเซ็ตเป็น Teacher ID</span>
+                      </button>
+                    </div>
+
+                    <!-- Option 2: Set Custom Password -->
+                    <div class="admin-pass-action-box" style="flex: 1.3;">
+                      <span class="admin-pass-sublabel">กำหนดรหัสผ่านใหม่</span>
+                      <div class="admin-pass-custom-wrap">
+                        <input type="text" id="editUserNewCustomPass" placeholder="พิมพ์รหัสผ่านใหม่..." class="admin-pass-custom-input">
+                        <button type="button" class="btn btn-pass-action btn-pass-save" onclick="adminApplyCustomPassword()">
+                          <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+                          <span>บันทึกรหัสใหม่</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
