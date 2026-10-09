@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const fs = require('fs');
 const path = require('path');
 const webpush = require('web-push');
@@ -130,13 +131,37 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static frontend files with no-cache headers during development/production
+// High-performance gzip/deflate compression for static assets and API responses
+app.use(compression({
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }
+}));
+
+// High-performance static serving with ETag validation & asset-optimized caching
 app.use(express.static(path.join(__dirname), {
+  etag: true,
+  lastModified: true,
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.js') || filePath.endsWith('.html') || filePath.endsWith('.json')) {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
+    if (
+      filePath.endsWith('.woff2') ||
+      filePath.endsWith('.woff') ||
+      filePath.endsWith('.ttf') ||
+      filePath.endsWith('.svg') ||
+      filePath.endsWith('.png') ||
+      filePath.endsWith('.webp') ||
+      filePath.endsWith('.ico')
+    ) {
+      res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+    } else if (
+      filePath.endsWith('.js') ||
+      filePath.endsWith('.css') ||
+      filePath.endsWith('.html') ||
+      filePath.endsWith('.json')
+    ) {
+      res.setHeader('Cache-Control', 'no-cache');
     }
   }
 }));

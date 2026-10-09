@@ -13461,18 +13461,20 @@ input[type="text"].admin-search-input:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
-/* Col 2: Role & Dept Dropdown Group */
+/* Col 2: Role & Dept Dropdown Group (Strict fixed-width single-row pills) */
 .admin-filter-group {
-  display: flex;
-  gap: 6px;
-  flex: 0 0 auto;
-  align-items: center;
-  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 6px !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 select.admin-filter-select {
-  flex: 0 0 auto;
+  flex: 0 0 auto !important;
   height: 38px !important;
   min-height: 38px !important;
   max-height: 38px !important;
@@ -13480,8 +13482,8 @@ select.admin-filter-select {
   background-color: #ffffff;
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: var(--border-radius-lg, 12px);
-  padding: 0 22px 0 10px !important;
-  background-position: right 6px center;
+  padding: 0 24px 0 10px !important;
+  background-position: right 7px center;
   background-size: 11px;
   font-size: 12px;
   color: #334155;
@@ -13491,17 +13493,22 @@ select.admin-filter-select {
   font-family: inherit;
   box-sizing: border-box;
   vertical-align: middle;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
   box-shadow: var(--shadow-sm);
 }
 
 select#adminUserRoleFilter {
-  min-width: 172px !important;
+  width: 175px !important;
+  min-width: 175px !important;
+  max-width: 175px !important;
 }
 
 select#adminUserDeptFilter {
-  min-width: 156px !important;
+  width: 165px !important;
+  min-width: 165px !important;
+  max-width: 165px !important;
 }
 
 select.admin-filter-select:focus {
@@ -13645,11 +13652,15 @@ select.admin-filter-select:focus {
 }
 
 .admin-toolbar-grid.has-selection select#adminUserRoleFilter {
-  min-width: 165px !important;
+  width: 155px !important;
+  min-width: 155px !important;
+  max-width: 155px !important;
 }
 
 .admin-toolbar-grid.has-selection select#adminUserDeptFilter {
-  min-width: 145px !important;
+  width: 140px !important;
+  min-width: 140px !important;
+  max-width: 140px !important;
 }
 
 .admin-toolbar-grid.has-selection .admin-toolbar-col3 {
@@ -14059,7 +14070,7 @@ select.admin-filter-select:focus {
     display: flex !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
-    justify-content: space-between !important;
+    justify-content: flex-start !important;
     gap: 6px !important;
     margin-bottom: 14px !important;
     width: 100% !important;
@@ -14093,24 +14104,40 @@ select.admin-filter-select:focus {
 
   .admin-filter-group {
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     gap: 5px !important;
-    flex: 0 1 auto !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
   }
 
   select.admin-filter-select {
-    flex: 0 1 auto !important;
-    width: auto !important;
-    max-width: 130px !important;
-    min-width: 90px !important;
+    flex: 0 0 auto !important;
     height: 36px !important;
     min-height: 36px !important;
     max-height: 36px !important;
     line-height: 34px !important;
     font-size: 11px !important;
-    padding: 0 16px 0 6px !important;
+    padding: 0 18px 0 6px !important;
     border-radius: 8px !important;
     background-position: right 5px center !important;
     background-size: 10px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  select#adminUserRoleFilter {
+    width: 155px !important;
+    min-width: 155px !important;
+    max-width: 155px !important;
+  }
+
+  select#adminUserDeptFilter {
+    width: 145px !important;
+    min-width: 145px !important;
+    max-width: 145px !important;
   }
 
   .admin-toolbar-col3 {

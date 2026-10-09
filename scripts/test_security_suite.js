@@ -100,16 +100,19 @@ async function runTestSuite() {
     // Initial Setup: Obtain Authenticated Tokens for Roles
     // -------------------------------------------------------------
     let adminPass = 'admin';
+    let teacherUser = '1001';
     let teacherPass = '1001';
+    let staffUser = '2001';
     let staffPass = '2001';
 
     const tempCredsPath = path.resolve(__dirname, '../data/temporary_credentials.json');
+    let credsList = [];
     if (fs.existsSync(tempCredsPath)) {
       try {
-        const creds = JSON.parse(fs.readFileSync(tempCredsPath, 'utf8'));
-        const adm = creds.find(c => c.teacherId === 'admin');
-        const tch = creds.find(c => c.teacherId === '1001');
-        const stf = creds.find(c => c.teacherId === '2001');
+        credsList = JSON.parse(fs.readFileSync(tempCredsPath, 'utf8'));
+        const adm = credsList.find(c => c.teacherId === 'admin');
+        const tch = credsList.find(c => c.teacherId === '1001');
+        const stf = credsList.find(c => c.teacherId === '2001');
         if (adm) adminPass = adm.temporaryPassword;
         if (tch) teacherPass = tch.temporaryPassword;
         if (stf) staffPass = stf.temporaryPassword;
@@ -119,10 +122,23 @@ async function runTestSuite() {
     const adminLogin = await directRequest('POST', '/api/auth/login', {}, { username: 'admin', password: adminPass });
     const adminToken = adminLogin.body?.token;
 
-    const teacherLogin = await directRequest('POST', '/api/auth/login', {}, { username: '1001', password: teacherPass });
+    let teacherLogin = await directRequest('POST', '/api/auth/login', {}, { username: teacherUser, password: teacherPass });
+    if (!teacherLogin.body?.token) {
+      for (const cand of ['1002', '10797']) {
+        const c = credsList.find(item => item.teacherId === cand);
+        const p = c ? c.temporaryPassword : cand;
+        const res = await directRequest('POST', '/api/auth/login', {}, { username: cand, password: p });
+        if (res.body?.token) {
+          teacherLogin = res;
+          teacherUser = cand;
+          teacherPass = p;
+          break;
+        }
+      }
+    }
     const teacherToken = teacherLogin.body?.token;
 
-    const staffLogin = await directRequest('POST', '/api/auth/login', {}, { username: '2001', password: staffPass });
+    const staffLogin = await directRequest('POST', '/api/auth/login', {}, { username: staffUser, password: staffPass });
     const staffToken = staffLogin.body?.token;
 
     // -------------------------------------------------------------
@@ -333,7 +349,7 @@ async function runTestSuite() {
 
     // Login with ?admin=true should not alter credentials verification
     const loginQueryElevate = await directRequest('POST', '/api/auth/login?admin=true&role=L3', {}, {
-      username: '1001',
+      username: teacherUser,
       password: teacherPass
     });
     assert(

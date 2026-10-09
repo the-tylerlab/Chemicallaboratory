@@ -95,11 +95,19 @@
 
   <!-- Fonts are self-hosted in /fonts/ directory — no external request needed -->
 
-  <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20261008_login_clean">
+  <!-- Preconnect to external CDNs for low-latency network handshake -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
-  <!-- Core Libraries (with non-blocking defer attributes) -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=20261009_perf_fix">
+
+  <!-- Core Libraries (Optimized CDN paths & non-blocking defer) -->
+  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
@@ -6191,7 +6199,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261008_login_clean"></script>
+  <script src="app.js?v=20261009_perf_fix"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {
