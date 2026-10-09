@@ -13396,7 +13396,7 @@ input[type="date"].dash-schedule-date-input-hidden,
   flex-wrap: nowrap;
   gap: 8px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-bottom: 16px;
   width: 100%;
   box-sizing: border-box;
@@ -13404,9 +13404,8 @@ input[type="date"].dash-schedule-date-input-hidden,
 }
 
 .admin-search-wrap {
-  flex: 1 1 200px;
+  flex: 1 1 220px;
   min-width: 130px;
-  max-width: 280px;
   position: relative !important;
   display: flex !important;
   align-items: center !important;
@@ -13466,17 +13465,14 @@ input[type="text"].admin-search-input:focus {
 .admin-filter-group {
   display: flex;
   gap: 6px;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   align-items: center;
   box-sizing: border-box;
-  min-width: 0;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 select.admin-filter-select {
-  flex: 0 1 auto;
-  min-width: 105px;
-  max-width: 160px;
+  flex: 0 0 auto;
   height: 38px !important;
   min-height: 38px !important;
   max-height: 38px !important;
@@ -13484,7 +13480,7 @@ select.admin-filter-select {
   background-color: #ffffff;
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: var(--border-radius-lg, 12px);
-  padding: 0 20px 0 8px !important;
+  padding: 0 22px 0 10px !important;
   background-position: right 6px center;
   background-size: 11px;
   font-size: 12px;
@@ -13498,6 +13494,14 @@ select.admin-filter-select {
   text-overflow: ellipsis;
   white-space: nowrap;
   box-shadow: var(--shadow-sm);
+}
+
+select#adminUserRoleFilter {
+  min-width: 172px !important;
+}
+
+select#adminUserDeptFilter {
+  min-width: 156px !important;
 }
 
 select.admin-filter-select:focus {
@@ -13526,7 +13530,7 @@ select.admin-filter-select:focus {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-left: auto;
+  margin-left: 0;
   flex: 0 0 auto;
   box-sizing: border-box;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -13536,7 +13540,7 @@ select.admin-filter-select:focus {
   width: auto;
   white-space: nowrap;
   flex-shrink: 0;
-  padding: 0 14px;
+  padding: 0 13px;
   justify-content: center;
 }
 
@@ -13550,7 +13554,7 @@ select.admin-filter-select:focus {
   color: #ffffff;
   white-space: nowrap;
   height: 38px;
-  padding: 0 11px;
+  padding: 0 12px;
   border-radius: var(--border-radius-lg, 12px);
   font-weight: 600;
   font-size: 12px;
@@ -13632,24 +13636,29 @@ select.admin-filter-select:focus {
 
 .admin-toolbar-grid.has-selection .admin-search-wrap {
   flex: 1 1 120px;
-  min-width: 95px;
-  max-width: 180px;
+  min-width: 90px;
 }
 
 .admin-toolbar-grid.has-selection select.admin-filter-select {
-  min-width: 85px;
-  max-width: 130px;
-  padding: 0 16px 0 6px !important;
-  font-size: 11px;
+  font-size: 11.5px;
+  padding: 0 18px 0 8px !important;
+}
+
+.admin-toolbar-grid.has-selection select#adminUserRoleFilter {
+  min-width: 165px !important;
+}
+
+.admin-toolbar-grid.has-selection select#adminUserDeptFilter {
+  min-width: 145px !important;
 }
 
 .admin-toolbar-grid.has-selection .admin-toolbar-col3 {
-  gap: 4px;
+  gap: 5px;
 }
 
 .admin-toolbar-grid.has-selection .admin-toolbar-col3 .btn-admin-action {
-  padding: 0 7px;
-  font-size: 11px;
+  padding: 0 8px;
+  font-size: 11.5px;
   gap: 3px;
 }
 
@@ -13658,9 +13667,9 @@ select.admin-filter-select:focus {
 }
 
 .admin-toolbar-grid.has-selection .btn-admin-action.btn-add-user {
-  padding: 0 9px;
-  font-size: 11px;
-  gap: 3px;
+  padding: 0 10px;
+  font-size: 11.5px;
+  gap: 4px;
 }
 
 /* Condense button labels when selection is active */
@@ -13673,8 +13682,8 @@ select.admin-filter-select:focus {
 }
 
 .admin-toolbar-grid.has-selection #btnBatchDeleteUsers {
-  padding: 0 9px;
-  font-size: 11px;
+  padding: 0 10px;
+  font-size: 11.5px;
 }
 
 /* ==========================================================================
@@ -16992,33 +17001,205 @@ select.admin-filter-select:focus {
 .admin-user-pass-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 14px;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-sizing: border-box;
 }
 
 .admin-user-pass-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .admin-user-pass-title {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
+  gap: 7px;
+  font-size: 13px;
   font-weight: 700;
   color: #1e293b;
 }
 
 .admin-user-pass-badge {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   color: #6d28d9;
   background: #ede9fe;
-  padding: 2px 7px;
-  border-radius: 4px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid #ddd6fe;
+}
+
+.admin-user-pass-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Row 1: Current Password */
+.admin-pass-field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-pass-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  min-width: 82px;
+}
+
+.admin-pass-input-box {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 36px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.admin-pass-input-box:focus-within {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.admin-pass-input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  height: 36px !important;
+  padding: 0 12px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px !important;
+  color: #1e293b !important;
+  outline: none !important;
+  letter-spacing: 0.5px;
+}
+
+.admin-pass-btn-icon {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-left: 1px solid #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-pass-btn-icon:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+/* Row 2: Action Buttons (Two Clean, Distinct Options) */
+.admin-pass-actions-container {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+  align-items: stretch;
+}
+
+.admin-pass-action-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-pass-sublabel {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.btn-pass-action {
+  height: 36px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.btn-pass-reset {
+  background: #eef2ff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+  width: 100%;
+}
+
+.btn-pass-reset:hover {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+  color: #4338ca;
+  transform: translateY(-1px);
+}
+
+.admin-pass-custom-wrap {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 36px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.admin-pass-custom-wrap:focus-within {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
+}
+
+.admin-pass-custom-input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  height: 36px !important;
+  padding: 0 10px !important;
+  font-size: 12.5px !important;
+  outline: none !important;
+  color: #1e293b !important;
+}
+
+.btn-pass-save {
+  height: 36px;
+  border: none;
+  background: #0284c7;
+  color: #ffffff;
+  padding: 0 12px;
+  border-radius: 0;
+  white-space: nowrap;
+}
+
+.btn-pass-save:hover {
+  background: #0369a1;
+}
+
+@media (max-width: 600px) {
+  .admin-pass-actions-container {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
 
 .admin-user-modal-footer {

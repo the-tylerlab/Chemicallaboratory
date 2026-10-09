@@ -4184,7 +4184,7 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
   });
 });
 
-// DELETE USER — Strictly L3 Admin (Soft Delete)
+// DELETE USER — Strictly L3 Admin
 app.delete('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res) => {
   const targetId = req.params.id;
   let users = readUsers();
@@ -4197,19 +4197,30 @@ app.delete('/api/users/:id', authenticateToken, requireRole('L3'), async (req, r
   lastUsersFetch = 0;
 
   const actor = req.user?.teacherId || req.user?.name || 'admin';
-  const now = new Date().toISOString();
   const teacherId = userToDelete?.teacherId || userToDelete?.teacher_id || targetId;
 
-  // 1. Soft Delete in Supabase (Primary Source of Truth)
+  // 1. Delete in Supabase (Primary Source of Truth)
   if (supabase) {
     try {
-      await supabase.from('users').update({
-        is_deleted: true,
-        deleted_at: now,
-        deleted_by: actor
-      }).or(`id.eq.${targetId},teacher_id.eq.${targetId},"teacherId".eq.${targetId}`);
+      const cleanTargetId = String(targetId || '').replace(/^u_/, '');
+      const cleanTeacherId = String(teacherId || '').replace(/^u_/, '');
+      const orClauses = [
+        `id.eq.${targetId}`,
+        `teacherId.eq.${targetId}`,
+        `id.eq.${cleanTargetId}`,
+        `teacherId.eq.${cleanTargetId}`
+      ];
+      if (teacherId && teacherId !== targetId) {
+        orClauses.push(
+          `id.eq.${teacherId}`,
+          `teacherId.eq.${teacherId}`,
+          `id.eq.${cleanTeacherId}`,
+          `teacherId.eq.${cleanTeacherId}`
+        );
+      }
+      await supabase.from('users').delete().or([...new Set(orClauses)].join(','));
     } catch(err) {
-      console.warn("[SourceOfTruth:Supabase] Soft delete user notice:", err.message);
+      console.warn("[SourceOfTruth:Supabase] Delete user notice:", err.message);
     }
   }
 
@@ -4223,14 +4234,14 @@ app.delete('/api/users/:id', authenticateToken, requireRole('L3'), async (req, r
     action: 'USER_DELETE',
     resource: 'users',
     resourceId: targetId,
-    details: `ลบผู้ใช้งาน (Soft Delete): ${userToDelete ? userToDelete.name : targetId} (${teacherId})`,
+    details: `ลบผู้ใช้งาน: ${userToDelete ? userToDelete.name : targetId} (${teacherId})`,
     req
   });
 
-  res.json({ success: true, message: "User soft deleted successfully" });
+  res.json({ success: true, message: "User deleted successfully" });
 });
 
-// BATCH DELETE USERS ENDPOINT — Strictly L3 Admin (Soft Delete)
+// BATCH DELETE USERS ENDPOINT — Strictly L3 Admin
 app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async (req, res) => {
   const { ids, teacherIds } = req.body;
   if (!Array.isArray(ids) || ids.length === 0) {
@@ -4248,29 +4259,22 @@ app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async 
   usersCache = null;
   lastUsersFetch = 0;
 
-  const actor = req.user?.teacherId || req.user?.name || 'admin';
-  const now = new Date().toISOString();
-
-  // 1. Soft Delete in Supabase (Primary Source of Truth)
+  // 1. Delete in Supabase (Primary Source of Truth)
   if (supabase) {
     try {
-      await supabase.from('users').update({
-        is_deleted: true,
-        deleted_at: now,
-        deleted_by: actor
-      }).in('id', ids);
-    } catch(err) {
-      console.warn("[SourceOfTruth:Supabase] Soft batch delete users notice:", err.message);
-    }
+      const cleanIds = (ids || []).map(x => String(x).replace(/^u_/, ''));
+      const cleanTids = (teacherIds || []).map(x => String(x).replace(/^u_/, ''));
+      const allTargetIds = [...new Set([...ids, ...cleanIds])].filter(Boolean);
+      const allTargetTids = [...new Set([...(teacherIds || []), ...cleanTids])].filter(Boolean);
 
-    if (Array.isArray(teacherIds) && teacherIds.length > 0) {
-      try {
-        await supabase.from('users').update({
-          is_deleted: true,
-          deleted_at: now,
-          deleted_by: actor
-        }).in('teacher_id', teacherIds);
-      } catch(err2) {}
+      if (allTargetIds.length > 0) {
+        await supabase.from('users').delete().in('id', allTargetIds);
+      }
+      if (allTargetTids.length > 0) {
+        await supabase.from('users').delete().in('teacherId', allTargetTids);
+      }
+    } catch(err) {
+      console.warn("[SourceOfTruth:Supabase] Batch delete users notice:", err.message);
     }
   }
 
@@ -4285,7 +4289,7 @@ app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async 
     action: 'USERS_BATCH_DELETE',
     resource: 'users',
     resourceId: 'batch',
-    details: `ลบผู้ใช้งานจำนวน ${ids.length} รายการ (Soft Delete)`,
+    details: `ลบผู้ใช้งานจำนวน ${ids.length} รายการ`,
     req
   });
 
