@@ -3013,8 +3013,8 @@ app.post('/api/borrow/request', authenticateToken, requireRole('L1', 'L2', 'L3',
   }
 });
 
-// POST /api/borrow/:id/return — Return item with condition check and stock restock (L2 Staff / L3 Admin / L4 Exec)
-app.post('/api/borrow/:id/return', authenticateToken, requireRole('L2', 'L3', 'L4'), async (req, res) => {
+// POST /api/borrow/:id/return — Return item with condition check and stock restock (L1 Teacher [own item] / L2 Staff / L3 Admin / L4 Exec)
+app.post('/api/borrow/:id/return', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
   try {
     const { id } = req.params;
     const { condition, damagedStatus, damageFine, damageNotes } = req.body;
@@ -3027,7 +3027,15 @@ app.post('/api/borrow/:id/return', authenticateToken, requireRole('L2', 'L3', 'L
     const items = await fetchLiveItems();
     const item = items.find(i => (i.code || '').toLowerCase() === (tx.itemCode || tx.item_code || '').toLowerCase());
     const targetRoom = item ? item.room : tx.room;
-    if (normalizeRole(req.user.role) === 'L2' && !canUserAccessRoom(req.user, targetRoom)) {
+    const userRoleLevel = normalizeRole(req.user.role);
+    if (userRoleLevel === 'L1') {
+      const isOwn = (tx.borrower && tx.borrower.toLowerCase().includes(String(req.user.name || '').toLowerCase())) ||
+                    (tx.teacherId && tx.teacherId === req.user.teacherId) ||
+                    (tx.userId && tx.userId === req.user.id);
+      if (!isOwn) {
+        return res.status(403).json({ error: "ครูผู้สอนสามารถคืนพัสดุได้เฉพาะรายการของตนเองเท่านั้น" });
+      }
+    } else if (userRoleLevel === 'L2' && !canUserAccessRoom(req.user, targetRoom)) {
       return res.status(403).json({
         error: `เจ้าหน้าที่ไม่มีสิทธิ์บันทึกการส่งคืนพัสดุในห้อง ${targetRoom || 'ไม่ระบุ'} (ห้องที่ดูแล: ${(req.user.assignedRooms || []).join(', ') || 'ไม่มี'})`
       });

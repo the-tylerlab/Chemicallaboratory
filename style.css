@@ -3506,26 +3506,132 @@ tr:hover td {
 }
 
 .modal-close-btn,
-.modal-close {
-  color: #64748b;
-  font-size: 18px;
+.modal-close,
+.close-modal {
+  color: #475569;
+  font-size: 16px;
   cursor: pointer;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  max-width: 34px;
+  max-height: 34px;
+  border-radius: 50% !important;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0;
+  box-sizing: border-box !important;
+  aspect-ratio: 1 / 1 !important;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
   flex-shrink: 0;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              box-shadow 0.15s ease,
+              border-color 0.15s ease,
+              color 0.15s ease;
+}
+
+.modal-close-btn svg,
+.modal-close svg,
+.close-modal svg {
+  display: block;
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-close-btn:hover,
-.modal-close:hover {
-  background-color: #f1f5f9;
-  color: #1f2937;
+.modal-close:hover,
+.close-modal:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.1);
+  transform: scale(1.06);
+}
+
+.modal-close-btn:hover svg,
+.modal-close:hover svg,
+.close-modal:hover svg {
+  transform: rotate(90deg);
+}
+
+.modal-close-btn:active,
+.modal-close:active,
+.close-modal:active {
+  transform: scale(0.94);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.modal-close-btn:focus-visible,
+.modal-close:focus-visible,
+.close-modal:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Translucent circular button for colored/dark modal headers */
+.modal-close-btn-light,
+.btn-close-modal {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 0 !important;
+  margin: 0;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  outline: none;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              box-shadow 0.15s ease,
+              border-color 0.15s ease !important;
+}
+
+.modal-close-btn-light svg,
+.btn-close-modal svg {
+  display: block;
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-close-btn-light:hover,
+.btn-close-modal:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  transform: scale(1.08) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.modal-close-btn-light:hover svg,
+.btn-close-modal:hover svg {
+  transform: rotate(90deg);
+}
+
+.modal-close-btn-light:active,
+.btn-close-modal:active {
+  transform: scale(0.92) !important;
 }
 
 .modal-body {
@@ -5380,24 +5486,49 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chatbot-close-btn {
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  max-width: 30px;
+  max-height: 30px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50% !important;
   color: #ffffff;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  padding: 0;
-  line-height: 1;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.15s ease,
+              box-shadow 0.15s ease;
+  padding: 0 !important;
+  margin: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  outline: none;
+}
+
+.chatbot-close-btn svg {
+  display: block;
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .chatbot-close-btn:hover {
-  background: rgba(255, 255, 255, 0.28);
-  transform: scale(1.06);
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.chatbot-close-btn:hover svg {
+  transform: rotate(90deg);
+}
+
+.chatbot-close-btn:active {
+  transform: scale(0.92);
 }
 
 /* Chat Body (Messages) */
@@ -11359,9 +11490,12 @@ body.admin-logged-in .public-only-section {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 640px;
+  box-sizing: border-box;
 }
 
 .lab-calendar-toolbar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -11465,18 +11599,33 @@ body.admin-logged-in .public-only-section {
   box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
 }
 
+/* Calendar Content Unified Fixed Container */
+.lab-calendar-content {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
 /* Month Grid */
 .dash-cal-month-table {
   width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
 .dash-cal-weekdays {
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   text-align: center;
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #e2e8f0;
   font-size: 13px;
   font-weight: 600;
@@ -11489,6 +11638,10 @@ body.admin-logged-in .public-only-section {
 .dash-cal-days-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
   gap: 6px;
   padding-top: 8px;
   width: 100%;
@@ -11496,7 +11649,8 @@ body.admin-logged-in .public-only-section {
 }
 
 .dash-cal-day-cell {
-  min-height: 92px;
+  min-height: 0;
+  height: 100%;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 6px 5px;
@@ -11669,7 +11823,9 @@ body.admin-logged-in .public-only-section {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
-  min-height: 280px;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   box-sizing: border-box;
 }
@@ -11684,6 +11840,8 @@ body.admin-logged-in .public-only-section {
   gap: 6px;
   min-width: 0;
   width: 100%;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
   box-sizing: border-box;
   transition: all 0.15s ease;
@@ -11706,6 +11864,7 @@ body.admin-logged-in .public-only-section {
 }
 
 .dash-cal-week-header {
+  flex-shrink: 0;
   text-align: center;
   border-bottom: 1px solid #f1f5f9;
   padding-bottom: 6px;
@@ -11768,11 +11927,21 @@ body.admin-logged-in .public-only-section {
   color: #94a3b8;
 }
 
+.dash-cal-week-col .dash-cal-day-events {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-right: 2px;
+}
+
 .dash-cal-week-empty-text {
   font-size: 11px;
   color: var(--text-muted);
   text-align: center;
-  margin-top: 8px;
+  margin-top: 14px;
   display: block;
 }
 
@@ -11825,6 +11994,7 @@ body.admin-logged-in .public-only-section {
 
 /* Day View */
 .dash-cal-day-title-row {
+  flex-shrink: 0;
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -11842,7 +12012,9 @@ body.admin-logged-in .public-only-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 520px;
+  flex: 1;
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -11953,9 +12125,12 @@ body.admin-logged-in .public-only-section {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 640px;
+  box-sizing: border-box;
 }
 
 .lab-schedule-header {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -12066,9 +12241,37 @@ input[type="date"].dash-schedule-date-input-hidden,
   display: flex;
   flex-direction: column;
   gap: 14px;
+  flex: 1;
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
-  max-height: 520px;
   padding-right: 4px;
+}
+
+/* Sleek custom scrollbars for calendar containers */
+.dash-cal-day-timeline::-webkit-scrollbar,
+.dash-cal-week-col .dash-cal-day-events::-webkit-scrollbar,
+.lab-schedule-body::-webkit-scrollbar {
+  width: 5px;
+}
+
+.dash-cal-day-timeline::-webkit-scrollbar-track,
+.dash-cal-week-col .dash-cal-day-events::-webkit-scrollbar-track,
+.lab-schedule-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dash-cal-day-timeline::-webkit-scrollbar-thumb,
+.dash-cal-week-col .dash-cal-day-events::-webkit-scrollbar-thumb,
+.lab-schedule-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dash-cal-day-timeline::-webkit-scrollbar-thumb:hover,
+.dash-cal-week-col .dash-cal-day-events::-webkit-scrollbar-thumb:hover,
+.lab-schedule-body::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Grouped Room Items */
@@ -12337,6 +12540,7 @@ input[type="date"].dash-schedule-date-input-hidden,
 
   /* Mobile Calendar Card & Toolbar */
   .lab-calendar-card {
+    height: auto !important;
     padding: 14px 12px !important;
   }
 
@@ -12409,7 +12613,12 @@ input[type="date"].dash-schedule-date-input-hidden,
 
   /* Mobile Schedule Card & Header */
   .lab-schedule-card {
+    height: auto !important;
     padding: 14px 12px !important;
+  }
+
+  .lab-schedule-body {
+    max-height: 480px !important;
   }
 
   .lab-schedule-header {
@@ -12448,8 +12657,19 @@ input[type="date"].dash-schedule-date-input-hidden,
     gap: 5px !important;
     flex-shrink: 0 !important;
   }
+
+  .lab-calendar-content {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .dash-cal-month-table {
+    height: auto !important;
+  }
   
   .dash-cal-days-grid {
+    grid-auto-rows: auto !important;
+    height: auto !important;
     gap: 4px !important;
     padding-top: 8px !important;
   }
@@ -14781,26 +15001,66 @@ select.admin-filter-select:focus {
 
 .login-modal-close-corner {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 16px;
+  right: 16px;
   z-index: 30;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #64748b;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  max-width: 36px;
+  max-height: 36px;
+  aspect-ratio: 1 / 1;
+  padding: 0 !important;
+  margin: 0;
+  border-radius: 50% !important;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #334155;
   cursor: pointer;
-  transition: all 0.15s ease;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box !important;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.18s ease,
+              box-shadow 0.18s ease,
+              border-color 0.18s ease,
+              color 0.18s ease;
+}
+
+.login-modal-close-corner svg {
+  display: block;
+  pointer-events: none;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .login-modal-close-corner:hover {
-  background: #e2e8f0;
+  background: #f8fafc;
   color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12), 0 2px 4px rgba(15, 23, 42, 0.05);
+  transform: scale(1.06);
+}
+
+.login-modal-close-corner:hover svg {
+  transform: rotate(90deg);
+}
+
+.login-modal-close-corner:active {
+  transform: scale(0.94);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  transition: transform 0.08s ease-out;
+}
+
+.login-modal-close-corner:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 .login-split-grid {
@@ -15477,6 +15737,15 @@ select.admin-filter-select:focus {
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .login-modal-close-corner {
+    top: 12px !important;
+    right: 12px !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
   }
 
   .login-split-grid {

@@ -3416,7 +3416,12 @@
             <i data-lucide="user-plus" style="color: var(--primary-purple); width: 20px; height: 20px;"></i>
             <span>เพิ่มข้อมูลผู้ใช้งาน / ครูใหม่</span>
           </h2>
-          <button class="modal-close-btn" onclick="closeInviteUserModal()">&times;</button>
+          <button type="button" class="modal-close-btn" onclick="closeInviteUserModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
         <form id="formInviteUser">
           <div class="modal-body" style="padding: 20px 24px; max-height: 70vh; overflow-y: auto;">
@@ -3528,7 +3533,12 @@
               <p style="margin: 1px 0 0 0; font-size: 11px; color: var(--text-muted);">เลือกวิธีนำเข้าข้อมูล: อัปโหลดไฟล์ Excel / CSV, วางข้อความจากตาราง, หรือกรอกข้อมูลโดยตรง</p>
             </div>
           </div>
-          <button class="modal-close-btn" onclick="closeBatchAddUsersModal()" title="ปิดหน้าต่าง" style="width: 28px; height: 28px; border-radius: 6px; font-size: 18px; color: #64748b; background: #f1f5f9; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s;">&times;</button>
+          <button type="button" class="modal-close-btn" onclick="closeBatchAddUsersModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
 
         <!-- Mode Switcher & Quick Downloads Bar -->
@@ -3795,7 +3805,12 @@
             <i data-lucide="user-cog" style="color: var(--primary-purple); width: 20px; height: 20px;"></i>
             <span>แก้ไขข้อมูลและสิทธิ์ผู้ใช้งาน</span>
           </h2>
-          <button class="modal-close-btn" onclick="closeEditUserModal()">&times;</button>
+          <button type="button" class="modal-close-btn" onclick="closeEditUserModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
         <form id="formEditUser">
           <input type="hidden" id="editUserId">
@@ -3941,7 +3956,12 @@
           <i data-lucide="megaphone" style="color: #ea580c; width: 18px; height: 18px;"></i>
           <span>จัดการแถบประกาศหน้าแรก (Announcement Ticker)</span>
         </h2>
-        <button class="modal-close-btn" onclick="closeAnnouncementModal()">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="closeAnnouncementModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <form id="modalAnnouncementForm" onsubmit="saveModalAnnouncement(event)">
         <div class="modal-body" style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; max-height: 75vh; overflow-y: auto;">
@@ -4171,7 +4191,12 @@
           <i data-lucide="shopping-cart" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
           ยืนยันการสร้างใบเบิกซื้อ (Auto-PO)
         </h2>
-        <button class="modal-close-btn" onclick="document.getElementById('autoPoModal').style.display='none'">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('autoPoModal').style.display='none'" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       
       <div class="modal-body" style="padding: 20px 24px;">
@@ -4210,7 +4235,12 @@
           <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
           ยืนยันการล้างรายการ
         </h2>
-        <button class="modal-close-btn" onclick="document.getElementById('clearPoModal').style.display='none'">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('clearPoModal').style.display='none'" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       
       <div class="modal-body" style="padding: 20px 24px; text-align: center;">
@@ -4236,7 +4266,12 @@
        ========================================== -->
   <div class="modal-overlay" id="accessDeniedModal">
     <div class="modal-content access-denied-content" style="max-width: 380px; border-radius: 28px; padding: 32px; text-align: center; border: none; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); position: relative; background: #ffffff;">
-      <button class="modal-close-btn" id="accessDeniedModalClose" style="position: absolute; top: 16px; right: 20px; font-size: 24px; color: #9ca3af; cursor: pointer; border: none; background: none; outline: none;">&times;</button>
+      <button type="button" class="modal-close-btn login-modal-close-corner" id="accessDeniedModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
       
       <div class="access-denied-lock-icon" style="margin: 12px auto 20px; width: 64px; height: 64px; background-color: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
         <i data-lucide="lock" style="width: 28px; height: 28px; color: #111827;"></i>
@@ -4258,7 +4293,12 @@
        ========================================== -->
   <div class="modal-overlay" id="loginModal">
     <div class="modal-content login-split-modal">
-      <button class="modal-close-btn login-modal-close-corner" id="loginModalClose" aria-label="Close modal">&times;</button>
+      <button type="button" class="modal-close-btn login-modal-close-corner" id="loginModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
       
       <div class="login-split-grid" id="loginSplitGrid">
         <!-- Left Column: Editorial Laboratory Context (Clean & Professional) -->
@@ -4476,7 +4516,12 @@
         <h2 class="modal-title" id="detailModalTitle" style="display: flex; align-items: center; gap: 8px;">
           <!-- Icon & Title dynamically added -->
         </h2>
-        <button class="modal-close-btn" id="detailModalClose">&times;</button>
+        <button type="button" class="modal-close-btn" id="detailModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div class="modal-body" id="detailModalBody" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; font-size: 14px; max-height: calc(85vh - 130px); overflow-y: auto;">
         <!-- Content dynamically added -->
@@ -4497,7 +4542,12 @@
           <span id="bookingSuccessModalIconWrapper"><i data-lucide="check-circle" style="width: 20px; height: 20px;"></i></span>
           <span id="bookingSuccessModalTitle">บันทึกการจองห้องแล็บสำเร็จ</span>
         </h2>
-        <button class="modal-close-btn" id="bookingSuccessModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="bookingSuccessModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
         
@@ -4635,7 +4685,12 @@
           <i data-lucide="scan" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
           <span>สแกนคิวอาร์โค้ด / บาร์โค้ด</span>
         </h2>
-        <button class="modal-close-btn" id="cameraScanModalClose">&times;</button>
+        <button type="button" class="modal-close-btn" id="cameraScanModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; align-items: center;">
         <div id="qr-reader" style="width: 100%; max-width: 400px; background: #000; border-radius: var(--border-radius-md); overflow: hidden; border: 1px solid var(--border-color);"></div>
@@ -4657,7 +4712,12 @@
           <i data-lucide="wrench" style="width: 18px; height: 18px; color: var(--accent-orange);"></i>
           <span>จัดการพัสดุชำรุดและส่งซ่อม</span>
         </h2>
-        <button class="modal-close-btn" id="repairModalClose">&times;</button>
+        <button type="button" class="modal-close-btn" id="repairModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       
       <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
@@ -4720,7 +4780,12 @@
     <div class="modal-content" style="max-width: 450px; background: white; border-radius: 12px; border: 1px solid var(--accent-red); overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
       <div class="modal-header" style="background: var(--accent-red); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
         <h2 class="modal-title" style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i data-lucide="trash-2" style="width:18px;height:18px;"></i> ยืนยันการลบพื้นที่ทำงาน</h2>
-        <button class="modal-close-btn" onclick="document.getElementById('dangerZoneModalWorkspace').style.display='none'" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">&times;</button>
+        <button type="button" class="modal-close-btn modal-close-btn-light" onclick="document.getElementById('dangerZoneModalWorkspace').style.display='none'" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div class="modal-body" style="padding: 24px;">
         <div style="display: flex; gap: 12px; margin-bottom: 16px; background: rgba(239, 68, 68, 0.05); padding: 12px; border-left: 4px solid var(--accent-red); border-radius: 4px;">
@@ -4820,7 +4885,12 @@
           </div>
         </div>
       </div>
-      <button class="chatbot-close-btn" id="chatbotCloseBtn" title="ปิดหน้าต่างแชท">&times;</button>
+      <button type="button" class="chatbot-close-btn" id="chatbotCloseBtn" aria-label="ปิดหน้าต่างแชท" title="ปิดหน้าต่างแชท">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
     </div>
 
     <!-- Chat Messages -->
@@ -4902,7 +4972,12 @@
           <i data-lucide="history" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
           <span style="color: #ffffff !important;">ประวัติการอัปเดตระบบ (Version History)</span>
         </h2>
-        <button class="modal-close-btn" id="versionModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="versionModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       
       <div class="modal-body" style="padding: 24px; max-height: 400px; overflow-y: auto;">
@@ -5002,7 +5077,12 @@
           <i data-lucide="shield-alert" id="storageRecModalIcon" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
           <span id="storageRecModalTitle" style="color: #ffffff !important;">คำแนะนำการจัดเก็บสารเคมี</span>
         </h2>
-        <button class="modal-close-btn" id="storageRecModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="storageRecModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div class="modal-body" id="storageRecModalBody" style="padding: 24px; font-size: 14px; line-height: 1.6; color: var(--text-main); overflow-y: auto; max-height: 350px;">
         <!-- Dynamic content -->
@@ -5018,7 +5098,12 @@
        ========================================== -->
   <div id="labelPrinterModal" class="modal-overlay">
     <div class="modal-content label-printer-modal-content" style="position: relative;">
-      <button class="modal-close" onclick="closeLabelPrinterModal()">&times;</button>
+      <button type="button" class="modal-close" onclick="closeLabelPrinterModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
       <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
         <i data-lucide="printer" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
         <span>เครื่องพิมพ์สติกเกอร์ QR Code</span>
@@ -5085,7 +5170,12 @@
             <p style="margin: 3px 0 0 0; font-size: 13px; color: #64748b;">การลบข้อมูลนี้มีผลถาวรและไม่สามารถเรียกคืนได้</p>
           </div>
         </div>
-        <button class="modal-close-btn" id="confirmDeleteModalClose" style="background: #f8fafc; border: 1px solid #e2e8f0; color: #64748b; font-size: 18px; cursor: pointer; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#0f172a';" onmouseout="this.style.background='#f8fafc'; this.style.color='#64748b';">&times;</button>
+        <button type="button" class="modal-close-btn" id="confirmDeleteModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       
       <!-- Body -->
@@ -5185,7 +5275,12 @@
           <i data-lucide="layout" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
           <span id="cabinetDetailModalTitle" style="color: #ffffff !important;">รายละเอียดตู้เก็บพัสดุ</span>
         </h2>
-        <button class="modal-close-btn" id="cabinetDetailModalClose" style="background: none; border: none; color: #ffffff; font-size: 24px; cursor: pointer; line-height: 1; padding: 0; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.85';">&times;</button>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="cabinetDetailModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       <div class="modal-body" style="padding: 24px; overflow-y: auto; max-height: 400px;">
         <div id="cabinetDetailWarningSection" style="display: none; gap: 12px; margin-bottom: 16px; background: rgba(239, 68, 68, 0.05); padding: 12px; border-left: 4px solid var(--accent-red); border-radius: 4px;">
