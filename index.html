@@ -3024,7 +3024,7 @@
                     <input type="checkbox" id="adminLoginBannerEnabled" checked onchange="updateLoginBannerToggleLabel(this.checked); triggerLoginBannerLivePreview();">
                     <span class="toggle-slider"></span>
                   </div>
-                  <span class="admin-toggle-status" id="adminLoginBannerStatusText" style="font-size: 12.5px; font-weight: 600; color: #1e293b; min-width: auto;">เปิด</span>
+                  <span class="admin-toggle-status" id="adminLoginBannerStatusText" style="font-size: 12.5px; font-weight: 600; color: #1e293b; min-width: auto;">เปิดใช้งาน</span>
                 </label>
               </div>
             </div>
@@ -3032,52 +3032,73 @@
 
           <form id="adminLoginBannerForm" onsubmit="saveAdminLoginBanner(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
             <div class="admin-form-box">
+              <!-- Quick Suggestion Templates (เทมเพลตข้อความแนะนำ) -->
+              <div class="banner-templates-section" style="margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                  <span style="font-size: 12.5px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #0284c7;"></i>
+                    <span>เทมเพลตข้อความแนะนำ (คลิกเพื่อเลือกใช้งาน):</span>
+                  </span>
+                  <span style="font-size: 11px; color: #64748b;">กดเลือกเพื่อเติมข้อความอัตโนมัติแล้วแก้ไขต่อได้</span>
+                </div>
+                <div class="banner-quick-templates" id="adminLoginBannerTemplateList" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('general')">
+                    <span>🌟</span>
+                    <span>มาตรฐานทั่วไป (SHECU)</span>
+                  </button>
+                  <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('maintenance')">
+                    <span>⚠️</span>
+                    <span>แจ้งปิดปรับปรุง / ตรวจนับสต็อก</span>
+                  </button>
+                  <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('booking')">
+                    <span>📅</span>
+                    <span>ปฏิทินจองห้องแล็บ</span>
+                  </button>
+                  <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('safety')">
+                    <span>🛡️</span>
+                    <span>ความปลอดภัย & SDS</span>
+                  </button>
+                </div>
+              </div>
+
               <!-- Headline & Subtitle -->
               <div class="admin-form-grid-2col">
                 <div>
                   <label for="adminLoginBannerHeadline" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">หัวข้อหลัก (Headline)</label>
-                  <input type="text" id="adminLoginBannerHeadline" class="form-control" value="แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ" placeholder="เช่น แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ" oninput="triggerLoginBannerLivePreview()">
+                  <input type="text" id="adminLoginBannerHeadline" class="form-control" value="ระบบคลังสารเคมีและห้องแล็บ" placeholder="เช่น ระบบคลังสารเคมีและห้องแล็บ" oninput="triggerLoginBannerLivePreview()">
                 </div>
                 <div>
                   <label for="adminLoginBannerBadgeText" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">ข้อความป้ายกำกับ (Badge Tag)</label>
-                  <input type="text" id="adminLoginBannerBadgeText" class="form-control" value="📢 ประกาศด่วนประจำห้องแล็บ" placeholder="เช่น 📢 ประกาศด่วน, 🔬 SciPortal Update" oninput="triggerLoginBannerLivePreview()">
+                  <input type="text" id="adminLoginBannerBadgeText" class="form-control" value="ห้องปฏิบัติการวิทยาศาสตร์" placeholder="เช่น ห้องปฏิบัติการวิทยาศาสตร์, ⚠️ ประกาศด่วน" oninput="triggerLoginBannerLivePreview()">
                 </div>
               </div>
 
               <!-- Subtitle / Notice Description -->
               <div class="form-group" style="margin: 0; width: 100%;">
                 <label for="adminLoginBannerSubtitle" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">ข้อความรายละเอียด / ประกาศด่วน (Subtitle / Description)</label>
-                <textarea id="adminLoginBannerSubtitle" class="form-control" rows="2" placeholder="ระบุข้อความประกาศหรือคำแนะนำการใช้งาน" oninput="triggerLoginBannerLivePreview()" style="font-size: 13.5px; line-height: 1.6; width: 100%; min-height: 64px; padding: 10px 14px; box-sizing: border-box; border-radius: 10px;">เชื่อมต่อคลังสารเคมี อุปกรณ์วิทยาศาสตร์ ตารางจองห้องแล็บ และบันทึกประวัติอย่างเป็นระบบ</textarea>
+                <textarea id="adminLoginBannerSubtitle" class="form-control" rows="2" placeholder="ระบุข้อความประกาศหรือคำแนะนำการใช้งาน" oninput="triggerLoginBannerLivePreview()" style="font-size: 13.5px; line-height: 1.6; width: 100%; min-height: 64px; padding: 10px 14px; box-sizing: border-box; border-radius: 10px;">บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU</textarea>
               </div>
 
-              <!-- Theme & Image Option -->
+              <!-- Theme (Essential only) & Image Option -->
               <div class="admin-form-grid-theme-media">
                 <div>
-                  <label class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">ธีมสีแบนเนอร์ (Color Palette)</label>
+                  <label class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">ธีมสีแบนเนอร์ (Color Palette - เฉพาะสีจำเป็น)</label>
                   <div class="ticker-theme-chips" id="adminLoginBannerThemeChips">
-                    <button type="button" class="ticker-theme-chip" data-theme="orange" onclick="selectLoginBannerTheme('orange')">
-                      <span class="ticker-theme-dot" style="background: #ea580c;"></span>
-                      <span>ส้ม</span>
-                    </button>
-                    <button type="button" class="ticker-theme-chip" data-theme="blue" onclick="selectLoginBannerTheme('blue')">
+                    <button type="button" class="ticker-theme-chip active" data-theme="blue" onclick="selectLoginBannerTheme('blue')">
                       <span class="ticker-theme-dot" style="background: #0284c7;"></span>
-                      <span>น้ำเงิน</span>
+                      <span>น้ำเงิน SciPortal</span>
                     </button>
                     <button type="button" class="ticker-theme-chip" data-theme="green" onclick="selectLoginBannerTheme('green')">
                       <span class="ticker-theme-dot" style="background: #10b981;"></span>
-                      <span>เขียว</span>
+                      <span>เขียวความปลอดภัย</span>
                     </button>
-                    <button type="button" class="ticker-theme-chip active" data-theme="purple" onclick="selectLoginBannerTheme('purple')">
-                      <span class="ticker-theme-dot" style="background: #7c3aed;"></span>
-                      <span>ม่วง</span>
-                    </button>
-                    <button type="button" class="ticker-theme-chip" data-theme="red" onclick="selectLoginBannerTheme('red')">
-                      <span class="ticker-theme-dot" style="background: #dc2626;"></span>
-                      <span>แดง</span>
+                    <button type="button" class="ticker-theme-chip" data-theme="purple" onclick="selectLoginBannerTheme('purple')">
+                      <span class="ticker-theme-dot" style="background: #6366f1;"></span>
+                      <span>ม่วงโมเดิร์น</span>
                     </button>
                     <button type="button" class="ticker-theme-chip" data-theme="dark" onclick="selectLoginBannerTheme('dark')">
-                      <span class="ticker-theme-dot" style="background: #1e293b;"></span>
-                      <span>ดาร์ก</span>
+                      <span class="ticker-theme-dot" style="background: #0f172a;"></span>
+                      <span>ดาร์กโหมด</span>
                     </button>
                   </div>
                 </div>
@@ -3085,48 +3106,106 @@
                 <div>
                   <label for="adminLoginBannerImgOption" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">รูปแบบภาพประกอบ (Visual Media)</label>
                   <select id="adminLoginBannerImgOption" class="form-control" onchange="onLoginBannerImgOptionChange(this.value)">
-                    <option value="default">🔬 กราฟิกวิทยาศาสตร์และระบบความปลอดภัย (Default)</option>
-                    <option value="lab1">🧪 ห้องปฏิบัติการเคมี (Chemistry Lab)</option>
-                    <option value="lab2">⚡ ห้องปฏิบัติการฟิสิกส์ (Physics Lab)</option>
-                    <option value="lab3">🌱 ห้องปฏิบัติการชีววิทยา (Biology Lab)</option>
-                    <option value="custom">🌐 ระบุ URL รูปภาพห้องปฏิบัติการเอง...</option>
+                    <option value="default">🛡️ กราฟิกฟีเจอร์มาตรฐาน SHECU (Default Features)</option>
+                    <option value="upload">📤 อัปโหลดไฟล์รูปภาพจากอุปกรณ์ (Upload Image File)</option>
+                    <option value="lab1">🧪 ภาพห้องแล็บเคมี (Chemistry Lab)</option>
+                    <option value="lab2">⚡ ภาพห้องแล็บฟิสิกส์ (Physics Lab)</option>
+                    <option value="lab3">🌱 ภาพห้องแล็บชีววิทยา (Biology Lab)</option>
+                    <option value="custom">🌐 ระบุ URL รูปภาพเอง (Custom URL)</option>
                   </select>
                 </div>
               </div>
 
-              <!-- Custom Image URL Row (Hidden by default) -->
+              <!-- Upload Image File Area (Shown when 'upload' selected) -->
+              <div id="adminLoginBannerUploadRow" style="display: none; width: 100%;">
+                <label class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">อัปโหลดไฟล์รูปภาพห้องปฏิบัติการ (Image File Upload)</label>
+                <div class="login-banner-upload-box" onclick="document.getElementById('adminLoginBannerFileInput').click()">
+                  <input type="file" id="adminLoginBannerFileInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display: none;" onchange="handleBannerFileInput(this)">
+                  <i data-lucide="upload-cloud" style="width: 28px; height: 28px; color: #0284c7; margin-bottom: 6px;"></i>
+                  <div style="font-size: 13px; font-weight: 600; color: #1e293b;">คลิกเพื่อเลือกไฟล์รูปภาพ หรือลากไฟล์มาวางที่นี่</div>
+                  <div style="font-size: 11.5px; color: #64748b; margin-top: 3px;">รองรับไฟล์ PNG, JPG, WebP (ระบบจะปรับขนาดภาพให้อัตโนมัติเพื่อความรวดเร็ว)</div>
+                </div>
+                <div id="adminLoginBannerUploadPreview" class="login-banner-upload-preview" style="display: none;">
+                  <img id="adminLoginBannerUploadThumb" src="" alt="Thumbnail" class="login-banner-upload-thumb">
+                  <div style="flex: 1; min-width: 0;">
+                    <div id="adminLoginBannerUploadFilename" style="font-size: 12.5px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">lab-image.jpg</div>
+                    <div id="adminLoginBannerUploadFilesize" style="font-size: 11px; color: #64748b;">ขนาดพร้อมใช้งาน</div>
+                  </div>
+                  <button type="button" class="btn btn-secondary" onclick="clearUploadedBannerImage()" style="padding: 5px 12px; font-size: 12px; color: #dc2626; border-color: #fecaca;">
+                    <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                    <span>ลบรูป</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Custom Image URL Row (Shown when 'custom' selected) -->
               <div id="adminLoginBannerCustomUrlRow" style="display: none; width: 100%;">
                 <label for="adminLoginBannerCustomUrl" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">URL รูปภาพห้องปฏิบัติการ (Custom Image URL)</label>
-                <input type="url" id="adminLoginBannerCustomUrl" class="form-control" placeholder="https://example.com/lab-photo.jpg" oninput="triggerLoginBannerLivePreview()">
+                <input type="url" id="adminLoginBannerCustomUrl" class="form-control" placeholder="https://images.unsplash.com/... หรือ URL ภาพของโรงเรียน" oninput="triggerLoginBannerLivePreview()">
               </div>
             </div>
 
             <!-- Live Preview of Left Card -->
             <div style="width: 100%; box-sizing: border-box;">
-              <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+              <div style="font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="eye" style="width: 15px; height: 15px; color: #0284c7;"></i>
                 <span>ตัวอย่างการแสดงผลการ์ดฝั่งซ้าย (Live Preview):</span>
               </div>
-              <div style="max-width: 420px; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.12);">
-                <div class="login-hero-panel login-hero-theme-purple" id="adminLoginHeroPreviewBox" style="min-height: 380px; padding: 28px 24px;">
-                  <div class="login-hero-glow"></div>
+              <div style="max-width: 440px; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(15, 23, 42, 0.08);">
+                <div class="login-hero-panel login-hero-theme-blue" id="adminLoginHeroPreviewBox" style="min-height: 440px; padding: 28px 24px;">
+                  <div class="login-hero-ambient-glow"></div>
                   <div class="login-hero-content">
-                    <div class="login-hero-badge" id="adminPreviewHeroBadge">
-                      <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
-                      <span id="adminPreviewHeroBadgeText">📢 ประกาศด่วนประจำห้องแล็บ</span>
+                    <div class="login-hero-brand">
+                      <div class="login-brand-icon">
+                        <i data-lucide="flask-conical" style="width: 17px; height: 17px;"></i>
+                      </div>
+                      <div class="login-brand-text">
+                        <span class="brand-title">SciPortal</span>
+                        <span class="brand-sub">Laboratory System</span>
+                      </div>
                     </div>
-                    <h3 class="login-hero-headline" id="adminPreviewHeroHeadline" style="font-size: 20px; margin-bottom: 8px;">แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ</h3>
-                    <p class="login-hero-subtitle" id="adminPreviewHeroSubtitle" style="font-size: 12.5px; margin-bottom: 16px;">เชื่อมต่อคลังสารเคมี อุปกรณ์วิทยาศาสตร์ ตารางจองห้องแล็บ และบันทึกประวัติอย่างเป็นระบบ</p>
+
+                    <div class="login-hero-intro">
+                      <div class="login-hero-badge" id="adminPreviewHeroBadge">
+                        <span class="badge-dot"></span>
+                        <span id="adminPreviewHeroBadgeText">ห้องปฏิบัติการวิทยาศาสตร์</span>
+                      </div>
+                      <h3 class="login-hero-headline" id="adminPreviewHeroHeadline">ระบบคลังสารเคมีและห้องแล็บ</h3>
+                      <p class="login-hero-subtitle" id="adminPreviewHeroSubtitle">บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU</p>
+                    </div>
+
                     <div class="login-hero-media" id="adminPreviewHeroMedia">
-                      <img id="adminPreviewHeroImg" src="" alt="Lab" class="login-hero-img" style="display: none; max-height: 150px;">
-                      <div id="adminPreviewHeroDefaultGraphic" class="login-hero-default-graphic">
-                        <div class="lab-art-flask" style="width: 64px; height: 64px;">
-                          <i data-lucide="flask-conical" class="floating-flask-icon" style="width: 30px; height: 30px;"></i>
+                      <div class="login-hero-img-wrap" id="adminPreviewHeroImgWrap" style="display: none;">
+                        <img id="adminPreviewHeroImg" src="" alt="Lab" class="login-hero-img">
+                      </div>
+                      <div id="adminPreviewHeroDefaultGraphic" class="login-hero-features-list">
+                        <div class="login-feature-item feature-shecu">
+                          <div class="login-feature-icon-wrap"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i></div>
+                          <div class="login-feature-text">
+                            <span class="feature-title">มาตรฐานความปลอดภัย SHECU</span>
+                            <span class="feature-desc">ตรวจเช็กและจัดเก็บสารเคมีตามข้อกำหนด</span>
+                          </div>
                         </div>
-                        <div class="lab-art-meta">
-                          <div class="lab-art-chip" style="font-size: 11px; padding: 6px 10px;"><i data-lucide="shield-check" style="width: 13px; height: 13px;"></i> มาตรฐานความปลอดภัย SHECU</div>
+                        <div class="login-feature-item feature-stock">
+                          <div class="login-feature-icon-wrap"><i data-lucide="boxes" style="width: 15px; height: 15px;"></i></div>
+                          <div class="login-feature-text">
+                            <span class="feature-title">ติดตามสต็อกแบบ Real-time</span>
+                            <span class="feature-desc">บันทึกยอดคงเหลือและประวัติการเบิก-จ่าย</span>
+                          </div>
+                        </div>
+                        <div class="login-feature-item feature-calendar">
+                          <div class="login-feature-icon-wrap"><i data-lucide="calendar" style="width: 15px; height: 15px;"></i></div>
+                          <div class="login-feature-text">
+                            <span class="feature-title">ตารางการใช้ห้องปฏิบัติการ</span>
+                            <span class="feature-desc">จัดสรรตารางการทดลองอย่างเป็นระบบ</span>
+                          </div>
                         </div>
                       </div>
+                    </div>
+
+                    <div class="login-hero-footer-status">
+                      <span class="status-indicator-dot"></span>
+                      <span>ระบบพร้อมใช้งาน • มาตรฐานความปลอดภัย SHECU</span>
                     </div>
                   </div>
                 </div>
@@ -4303,6 +4382,7 @@
       <div class="login-split-grid" id="loginSplitGrid">
         <!-- Left Column: Editorial Laboratory Context (Clean & Professional) -->
         <div class="login-hero-panel" id="loginHeroSide">
+          <div class="login-hero-ambient-glow"></div>
           <div class="login-hero-content">
             <div class="login-hero-brand">
               <div class="login-brand-icon">
@@ -4330,24 +4410,26 @@
             </div>
 
             <div class="login-hero-media" id="loginHeroMedia">
-              <img id="loginHeroImage" src="" alt="Laboratory" class="login-hero-img" style="display: none;">
+              <div class="login-hero-img-wrap" id="loginHeroImageWrap" style="display: none;">
+                <img id="loginHeroImage" src="" alt="Laboratory" class="login-hero-img">
+              </div>
               <div id="loginHeroDefaultGraphic" class="login-hero-features-list">
-                <div class="login-feature-item">
-                  <div class="login-feature-icon-wrap"><i data-lucide="shield-check" style="width: 14px; height: 14px;"></i></div>
+                <div class="login-feature-item feature-shecu">
+                  <div class="login-feature-icon-wrap"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i></div>
                   <div class="login-feature-text">
                     <span class="feature-title">มาตรฐานความปลอดภัย SHECU</span>
                     <span class="feature-desc">ตรวจเช็กและจัดเก็บสารเคมีตามข้อกำหนด</span>
                   </div>
                 </div>
-                <div class="login-feature-item">
-                  <div class="login-feature-icon-wrap"><i data-lucide="boxes" style="width: 14px; height: 14px;"></i></div>
+                <div class="login-feature-item feature-stock">
+                  <div class="login-feature-icon-wrap"><i data-lucide="boxes" style="width: 15px; height: 15px;"></i></div>
                   <div class="login-feature-text">
                     <span class="feature-title">ติดตามสต็อกแบบ Real-time</span>
                     <span class="feature-desc">บันทึกยอดคงเหลือและประวัติการเบิก-จ่าย</span>
                   </div>
                 </div>
-                <div class="login-feature-item">
-                  <div class="login-feature-icon-wrap"><i data-lucide="calendar" style="width: 14px; height: 14px;"></i></div>
+                <div class="login-feature-item feature-calendar">
+                  <div class="login-feature-icon-wrap"><i data-lucide="calendar" style="width: 15px; height: 15px;"></i></div>
                   <div class="login-feature-text">
                     <span class="feature-title">ตารางการใช้ห้องปฏิบัติการ</span>
                     <span class="feature-desc">จัดสรรตารางการทดลองอย่างเป็นระบบ</span>
@@ -4363,57 +4445,62 @@
           </div>
         </div>
 
-        <!-- Right Column: Clean Authentication Form -->
+        <!-- Right Column: Crisp & Balanced Authentication Form -->
         <div class="login-form-panel" id="loginFormSide">
           <div class="login-form-header">
-            <h1 class="login-form-title">เข้าสู่ระบบ</h1>
+            <h1 class="login-form-title">
+              <span>เข้าสู่ระบบ</span>
+            </h1>
             <p class="login-form-desc">ระบุรหัสประจำตัวครู (Teacher ID) หรือชื่อผู้ใช้เพื่อเข้าสู่ระบบ</p>
           </div>
 
           <form id="adminLoginForm">
             <div class="login-form-body">
               <!-- Error Message Banner -->
-              <div id="loginErrorMsg" style="display: none; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 9px 12px; color: #b91c1c; font-size: 12.5px; align-items: center; gap: 8px;">
+              <div id="loginErrorMsg" style="display: none; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 9px; padding: 10px 14px; color: #b91c1c; font-size: 12.5px; align-items: center; gap: 8px;">
                 <i data-lucide="alert-circle" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
                 <span id="loginErrorText">รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง</span>
               </div>
 
               <div class="form-group" style="margin-bottom: 0;">
-                <label for="loginUsername" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 5px; display: block;">รหัสประจำตัวครู (Teacher ID)</label>
-                <div style="position: relative;">
-                  <input type="text" id="loginUsername" name="username" class="form-control" placeholder="ระบุ Teacher ID" required autocomplete="username" style="font-size: 13.5px; padding-left: 36px; height: 42px; border-radius: 9px; border: 1px solid #cbd5e1; background: #ffffff;">
-                  <i data-lucide="user" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></i>
+                <label for="loginUsername" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px; display: block;">รหัสประจำตัวครู (Teacher ID)</label>
+                <div class="login-input-group">
+                  <i data-lucide="user" class="login-input-icon"></i>
+                  <input type="text" id="loginUsername" name="username" class="form-control login-field" placeholder="ระบุ Teacher ID" required autocomplete="username">
                 </div>
               </div>
 
               <div class="form-group" style="margin-bottom: 0;">
-                <label for="loginPassword" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 5px; display: block;">รหัสผ่าน</label>
-                <div style="position: relative; display: flex; align-items: center;">
-                  <input type="password" id="loginPassword" name="password" class="form-control" placeholder="ระบุรหัสผ่านของคุณ" required autocomplete="current-password" style="font-size: 13.5px; padding-right: 40px; padding-left: 36px; height: 42px; border-radius: 9px; border: 1px solid #cbd5e1; background: #ffffff; width: 100%;">
-                  <i data-lucide="lock" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #94a3b8;"></i>
-                  <button type="button" id="btnTogglePassword" style="position: absolute; right: 12px; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 0; display: flex; align-items: center; justify-content: center;" aria-label="Toggle Password Visibility">
+                <label for="loginPassword" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px; display: block;">รหัสผ่าน</label>
+                <div class="login-input-group">
+                  <i data-lucide="lock" class="login-input-icon"></i>
+                  <input type="password" id="loginPassword" name="password" class="form-control login-field" placeholder="ระบุรหัสผ่านของคุณ" required autocomplete="current-password">
+                  <button type="button" id="btnTogglePassword" class="login-password-toggle" aria-label="Toggle Password Visibility">
                     <i data-lucide="eye" id="eyeIcon" style="width: 17px; height: 17px;"></i>
                   </button>
                 </div>
-                <small style="color: #64748b; font-size: 11.5px; display: block; margin-top: 5px;">💡 รหัสผ่านเริ่มต้นคือ <b>รหัสประจำตัวครู (Teacher ID)</b></small>
+                <div class="login-password-hint">
+                  <i data-lucide="info" style="width: 13px; height: 13px; color: #0284c7; flex-shrink: 0;"></i>
+                  <span>รหัสผ่านเริ่มต้นคือ <strong>รหัสประจำตัวครู (Teacher ID)</strong></span>
+                </div>
               </div>
 
               <!-- Remember Me & Forgot Password -->
-              <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0 6px 0;">
-                <label class="login-switch-label" for="loginRememberMe" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+              <div class="login-options-row">
+                <label class="login-switch-label" for="loginRememberMe">
                   <div class="login-toggle-switch">
                     <input type="checkbox" id="loginRememberMe">
                     <span class="login-toggle-slider"></span>
                   </div>
-                  <span style="font-size: 12.5px; color: #475569; font-weight: 500;">จดจำการเข้าสู่ระบบ</span>
+                  <span>จดจำการเข้าสู่ระบบ</span>
                 </label>
-                <a href="#" id="linkForgotPassword" style="font-size: 12px; color: #4f46e5; text-decoration: none; font-weight: 500;">ลืมรหัสผ่าน?</a>
+                <a href="#" id="linkForgotPassword" class="login-forgot-link">ลืมรหัสผ่าน?</a>
               </div>
 
               <!-- Submit Buttons -->
-              <div class="login-form-actions" style="margin-top: 4px; display: flex; gap: 8px;">
-                <button type="button" class="btn btn-secondary" id="btnCancelLogin" style="flex: 1; height: 42px; font-size: 13.5px; font-weight: 600; border-radius: 9px; border-color: #cbd5e1; color: #475569;">ยกเลิก</button>
-                <button type="submit" class="btn btn-primary" id="btnSubmitLogin" style="flex: 1.5; height: 42px; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 7px; background: #0f172a; border-color: #0f172a; border-radius: 9px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);">
+              <div class="login-form-actions">
+                <button type="button" class="btn btn-secondary login-btn-cancel" id="btnCancelLogin">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary login-btn-submit" id="btnSubmitLogin">
                   <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
                   <span>เข้าสู่ระบบ</span>
                 </button>
@@ -4775,31 +4862,55 @@
   </div>
 
 
-  <!-- MODAL: DANGER ZONE CONFIRMATION -->
+  <!-- MODAL: DANGER ZONE CONFIRMATION (Hold to delete) -->
   <div class="modal-overlay" id="dangerZoneModalWorkspace" style="display: none; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;">
-    <div class="modal-content" style="max-width: 450px; background: white; border-radius: 12px; border: 1px solid var(--accent-red); overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
-      <div class="modal-header" style="background: var(--accent-red); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
-        <h2 class="modal-title" style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;"><i data-lucide="trash-2" style="width:18px;height:18px;"></i> ยืนยันการลบพื้นที่ทำงาน</h2>
-        <button type="button" class="modal-close-btn modal-close-btn-light" onclick="document.getElementById('dangerZoneModalWorkspace').style.display='none'" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+    <div class="modal-content" style="max-width: 480px; background: white; border-radius: 16px; border: 1px solid #fecaca; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);">
+      <div class="modal-header" style="background: #ffffff; color: #0f172a; padding: 22px 24px 16px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #f1f5f9;">
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: #fef2f2; border: 1px solid #fee2e2; display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="alert-triangle" style="width: 22px; height: 22px; color: #dc2626;"></i>
+          </div>
+          <div>
+            <h2 class="modal-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">ยืนยันการลบพื้นที่ทำงาน</h2>
+            <p style="margin: 2px 0 0; font-size: 12.5px; color: #64748b;">การกระทำนี้จะล้างข้อมูลทั้งหมดในระบบอย่างถาวร</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('dangerZoneModalWorkspace').style.display='none'" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
       </div>
-      <div class="modal-body" style="padding: 24px;">
-        <div style="display: flex; gap: 12px; margin-bottom: 16px; background: rgba(239, 68, 68, 0.05); padding: 12px; border-left: 4px solid var(--accent-red); border-radius: 4px;">
-          <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: var(--accent-red); flex-shrink: 0;"></i>
+      <div class="modal-body" style="padding: 20px 24px;">
+        <div style="display: flex; gap: 12px; margin-bottom: 6px; background: #fff5f5; padding: 14px 16px; border: 1px solid #fed7d7; border-left: 4px solid #ef4444; border-radius: 10px;">
+          <i data-lucide="alert-octagon" style="width: 20px; height: 20px; color: #dc2626; flex-shrink: 0; margin-top: 2px;"></i>
           <div>
-            <div style="font-weight: 600; color: var(--accent-red); font-size: 14px;">การกระทำนี้ไม่สามารถกู้คืนได้!</div>
-            <div style="font-size: 13px; color: var(--text-main); margin-top: 4px; line-height: 1.5;">ข้อมูลทั้งหมดในพื้นที่ทำงานนี้จะถูกลบอย่างถาวร กรุณาพิมพ์คำว่า <strong style="font-family: monospace; background: #fee2e2; padding: 2px 6px; border-radius: 4px; color: var(--accent-red);">DELETE</strong> ในช่องด้านล่างเพื่อยืนยัน</div>
+            <div style="font-weight: 700; color: #991b1b; font-size: 13.5px;">คำเตือนสำคัญ: ข้อมูลจะไม่สามารถกู้คืนได้!</div>
+            <div style="font-size: 12.5px; color: #7f1d1d; margin-top: 4px; line-height: 1.55;">
+              รายการสารเคมี ครุภัณฑ์ ประวัติเบิก-จ่าย และข้อมูลการจองห้องแล็บทั้งหมดจะถูกลบออกจากระบบอย่างสมบูรณ์ เพื่อความปลอดภัยโปรด <strong>กดปุ่มค้างไว้ (Hold to delete)</strong> เพื่อยืนยัน
+            </div>
           </div>
         </div>
-        <input type="text" id="dangerZoneInputText" placeholder="พิมพ์คำว่า DELETE" style="width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-color); border-radius: 6px; outline: none; font-family: monospace;" oninput="document.getElementById('dangerZoneConfirmBtnX').disabled = (this.value !== 'DELETE'); this.style.borderColor = (this.value === 'DELETE') ? 'var(--accent-red)' : 'var(--border-color)';">
       </div>
-      <div class="modal-footer" style="padding: 16px 24px; background: #f9fafb; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
-        <button class="btn btn-secondary" onclick="document.getElementById('dangerZoneModalWorkspace').style.display='none'" style="padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 6px; background: white; cursor: pointer;">ยกเลิก</button>
-        <button class="btn btn-danger" id="dangerZoneConfirmBtnX" disabled style="padding: 8px 16px; border: none; border-radius: 6px; background: var(--accent-red); color: white; cursor: not-allowed; opacity: 0.5; transition: opacity 0.2s;" onmouseover="if(!this.disabled) this.style.opacity='0.9';" onmouseout="if(!this.disabled) this.style.opacity='1';">ลบอย่างถาวร</button>
+      <div class="modal-footer" style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('dangerZoneModalWorkspace').style.display='none'" style="height: 42px; padding: 0 18px; border: 1px solid #cbd5e1; border-radius: 10px; background: white; color: #475569; font-weight: 600; font-size: 13.5px; cursor: pointer;">ยกเลิก</button>
+        <button type="button" class="btn-hold-to-confirm" id="dangerZoneHoldBtn">
+          <span class="hold-label-base">
+            <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+            <span>กดค้างเพื่อลบพื้นที่ทำงาน (Hold to delete)</span>
+          </span>
+          <span class="hold-label-overlay" aria-hidden="true">
+            <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+            <span>กำลังล้างพื้นที่ทำงาน...</span>
+          </span>
+          <span class="hold-label-confirmed">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>ยืนยันการลบแล้ว</span>
+          </span>
+        </button>
       </div>
     </div>
   </div>
@@ -5187,29 +5298,38 @@
         </div>
 
         <!-- Warning Callout Box -->
-        <div class="confirm-delete-warning" style="display: flex; gap: 12px; margin-bottom: 18px; background: #fff5f5; padding: 14px 16px; border: 1px solid #fed7d7; border-left: 4px solid #ef4444; border-radius: 10px;">
+        <div class="confirm-delete-warning" style="display: flex; gap: 12px; margin-bottom: 16px; background: #fff5f5; padding: 14px 16px; border: 1px solid #fed7d7; border-left: 4px solid #ef4444; border-radius: 10px;">
           <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: #e53e3e; flex-shrink: 0; margin-top: 2px;"></i>
           <div style="font-size: 13px; color: #742a2a; line-height: 1.55;">
-            ข้อมูลทั้งหมดในส่วนที่เลือกจะถูกลบออกจากฐานข้อมูลคลาวด์และหน่วยความจำอย่างถาวร หากมั่นใจโปรดพิมพ์ข้อความยืนยันด้านล่าง
+            ข้อมูลทั้งหมดในส่วนที่เลือกจะถูกลบออกจากฐานข้อมูลและหน่วยความจำอย่างถาวร เพื่อความปลอดภัยโปรด <strong>กดปุ่มค้างไว้ (Hold to delete)</strong> เพื่อยืนยันการลบ
           </div>
         </div>
         
-        <!-- Confirmation Input -->
-        <div class="confirm-delete-input-group" style="display: flex; flex-direction: column; gap: 8px;">
-          <label style="font-size: 12.5px; font-weight: 600; color: #334155; display: flex; justify-content: space-between; align-items: center;">
-            <span>พิมพ์ข้อความยืนยัน:</span>
-            <span style="font-size: 11.5px; color: #64748b;">(คลิกเพื่อใส่คำ: <code style="background: #fee2e2; color: #dc2626; padding: 2px 6px; border-radius: 4px; font-weight: 700; cursor: pointer; font-family: monospace;" onclick="const inp=document.getElementById('confirmDeleteInput'); inp.value='CONFIRM TO DELETE'; inp.dispatchEvent(new Event('input'));" title="คลิกเพื่อเติมข้อความอัตโนมัติ">CONFIRM TO DELETE</code>)</span>
-          </label>
-          <input type="text" id="confirmDeleteInput" placeholder="พิมพ์ CONFIRM TO DELETE" style="width: 100%; height: 42px; padding: 0 14px; font-size: 14px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; transition: all 0.2s ease; box-sizing: border-box;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.12)';" onblur="this.style.boxShadow='none';">
+        <!-- Target Info Box -->
+        <div id="confirmDeleteTargetInfo" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #334155; display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="database" style="width: 17px; height: 17px; color: #64748b; flex-shrink: 0;"></i>
+          <span id="confirmDeleteTargetText" style="font-weight: 500;">กำลังเตรียมข้อมูลสำหรับล้างระบบ...</span>
         </div>
       </div>
       
       <!-- Footer -->
       <div class="modal-footer confirm-delete-footer" style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
-        <button type="button" class="btn btn-secondary" id="confirmDeleteCancelBtn" style="height: 38px; padding: 0 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9';" onmouseout="this.style.background='#ffffff';">ยกเลิก</button>
-        <button type="button" class="btn btn-danger" id="confirmDeleteConfirmBtn" disabled style="height: 38px; padding: 0 18px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: not-allowed; background: #cbd5e1; border: 1px solid #cbd5e1; color: #94a3b8; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; box-shadow: none;">
-          <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
-          ยืนยันการลบอย่างถาวร
+        <button type="button" class="btn btn-secondary" id="confirmDeleteCancelBtn" style="height: 42px; padding: 0 18px; border-radius: 10px; font-weight: 600; font-size: 13.5px; cursor: pointer; border: 1px solid #cbd5e1; background: #ffffff; color: #475569;">ยกเลิก</button>
+        <button type="button" class="btn-hold-to-confirm" id="confirmDeleteHoldBtn">
+          <span class="hold-label-base">
+            <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+            <span>กดค้างเพื่อลบข้อมูล (Hold to delete)</span>
+          </span>
+          <span class="hold-label-overlay" aria-hidden="true">
+            <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+            <span>กำลังยืนยัน... ปล่อยเพื่อยกเลิก</span>
+          </span>
+          <span class="hold-label-confirmed">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>ยืนยันการลบแล้ว</span>
+          </span>
         </button>
       </div>
     </div>

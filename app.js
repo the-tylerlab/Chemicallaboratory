@@ -16482,7 +16482,194 @@ function loadPlan(plan) {
 }
 
 // ==========================================================================
-// ADMIN CLEAR DATA HANDLERS & CONFIRMATION MODAL
+// HOLD TO CONFIRM / HOLD TO DELETE HELPER
+// ==========================================================================
+/**
+ * Attach Hold-to-Confirm interaction to a button
+ * Ported faithfully from the HoldToConfirmButton React component:
+ * - Pointer & Keyboard (Enter/Space) hold support
+ * - 1600ms hold duration with animated clip-path progression
+ * - 8px boundary check on pointermove to cancel if dragged outside
+ * - Cancel on pointerup, pointercancel, keyup, blur
+ * - Confirmed state feedback with checkmark icon
+ */
+function attachHoldToConfirm(button, options = {}) {
+  if (!button) return null;
+
+  const duration = options.duration ?? 1600;
+  const resetAfter = options.resetAfter ?? 1800;
+  const onConfirm = typeof options.onConfirm === "function" ? options.onConfirm : () => {};
+
+  let confirmTimer = null;
+  let resetTimer = null;
+  let activePointerId = null;
+  let inputMode = "pointer";
+  let isHolding = false;
+  let status = "idle"; // "idle" | "holding" | "confirmed"
+
+  const overlayEl = button.querySelector(".hold-label-overlay");
+
+  function clearConfirmTimer() {
+    if (confirmTimer !== null) {
+      clearTimeout(confirmTimer);
+      confirmTimer = null;
+    }
+  }
+
+  function clearResetTimer() {
+    if (resetTimer !== null) {
+      clearTimeout(resetTimer);
+      resetTimer = null;
+    }
+  }
+
+  function reset() {
+    clearConfirmTimer();
+    clearResetTimer();
+    isHolding = false;
+    activePointerId = null;
+    status = "idle";
+    button.classList.remove("is-holding", "is-confirmed");
+    button.removeAttribute("aria-busy");
+    button.removeAttribute("data-input");
+    if (overlayEl) {
+      overlayEl.style.transitionDuration = "180ms";
+    }
+  }
+
+  function cancelHold() {
+    if (!isHolding) return;
+    isHolding = false;
+    activePointerId = null;
+    clearConfirmTimer();
+    status = "idle";
+    button.classList.remove("is-holding");
+    button.removeAttribute("aria-busy");
+    button.removeAttribute("data-input");
+    if (overlayEl) {
+      overlayEl.style.transitionDuration = "180ms";
+    }
+  }
+
+  function completeHold() {
+    if (!isHolding) return;
+    isHolding = false;
+    activePointerId = null;
+    clearConfirmTimer();
+    status = "confirmed";
+    button.classList.remove("is-holding");
+    button.classList.add("is-confirmed");
+    button.removeAttribute("aria-busy");
+
+    try {
+      onConfirm(inputMode);
+    } catch (err) {
+      console.error("Hold to confirm callback error:", err);
+    }
+
+    if (resetAfter > 0) {
+      resetTimer = setTimeout(() => {
+        status = "idle";
+        button.classList.remove("is-confirmed");
+        resetTimer = null;
+      }, resetAfter);
+    }
+  }
+
+  function startHold(mode) {
+    if (button.disabled || status === "confirmed" || isHolding) return;
+
+    clearResetTimer();
+    inputMode = mode;
+    button.setAttribute("data-input", mode);
+    isHolding = true;
+    status = "holding";
+    button.classList.add("is-holding");
+    button.setAttribute("aria-busy", "true");
+
+    const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (overlayEl) {
+      overlayEl.style.transitionDuration = (prefersReducedMotion || mode === "keyboard") ? "0ms" : `${duration}ms`;
+    }
+
+    confirmTimer = setTimeout(completeHold, duration);
+  }
+
+  function releasePointerCapture(pointerId) {
+    try {
+      if (typeof button.hasPointerCapture === "function" && button.hasPointerCapture(pointerId)) {
+        button.releasePointerCapture(pointerId);
+      }
+    } catch (e) {}
+  }
+
+  // Pointer events
+  button.addEventListener("pointerdown", (e) => {
+    if (!e.isPrimary || e.button !== 0 || button.disabled) return;
+    activePointerId = e.pointerId;
+    try {
+      button.setPointerCapture(e.pointerId);
+    } catch (err) {}
+    startHold("pointer");
+  });
+
+  button.addEventListener("pointermove", (e) => {
+    if (!isHolding || activePointerId !== e.pointerId) return;
+    const rect = button.getBoundingClientRect();
+    const boundaryPadding = 8;
+    const isOutside =
+      e.clientX < rect.left - boundaryPadding ||
+      e.clientX > rect.right + boundaryPadding ||
+      e.clientY < rect.top - boundaryPadding ||
+      e.clientY > rect.bottom + boundaryPadding;
+
+    if (isOutside) {
+      cancelHold();
+      releasePointerCapture(e.pointerId);
+    }
+  });
+
+  button.addEventListener("pointerup", (e) => {
+    if (activePointerId !== e.pointerId) return;
+    cancelHold();
+    releasePointerCapture(e.pointerId);
+  });
+
+  button.addEventListener("pointercancel", (e) => {
+    if (activePointerId !== e.pointerId) return;
+    cancelHold();
+    releasePointerCapture(e.pointerId);
+  });
+
+  button.addEventListener("lostpointercapture", () => {
+    cancelHold();
+  });
+
+  // Keyboard events
+  button.addEventListener("keydown", (e) => {
+    if (e.repeat || (e.key !== "Enter" && e.key !== " ")) return;
+    e.preventDefault();
+    startHold("keyboard");
+  });
+
+  button.addEventListener("keyup", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    cancelHold();
+  });
+
+  button.addEventListener("blur", () => {
+    cancelHold();
+  });
+
+  return {
+    reset,
+    cancel: cancelHold
+  };
+}
+
+// ==========================================================================
+// ADMIN CLEAR DATA HANDLERS & CONFIRMATION MODAL (Hold to delete)
 // ==========================================================================
 function setupAdminClearHandlers() {
   let pendingClearAction = null;
@@ -16490,21 +16677,26 @@ function setupAdminClearHandlers() {
   const confirmModal = document.getElementById("confirmDeleteModal");
   const modalCloseBtn = document.getElementById("confirmDeleteModalClose");
   const cancelBtn = document.getElementById("confirmDeleteCancelBtn");
-  const confirmBtn = document.getElementById("confirmDeleteConfirmBtn");
-  const confirmInput = document.getElementById("confirmDeleteInput");
+  const holdBtn = document.getElementById("confirmDeleteHoldBtn");
+  const targetTextEl = document.getElementById("confirmDeleteTargetText");
+
+  let clearHoldController = null;
+
+  const actionLabels = {
+    inventory: "ข้อมูลสารเคมีและพัสดุอุปกรณ์ทั้งหมด",
+    transactions: "ประวัติธุรกรรมและบันทึกการเบิก-จ่ายทั้งหมด",
+    bookings: "ประวัติการจองห้องปฏิบัติการทั้งหมด",
+    plans: "แบบแปลนและแผนการทดลองทั้งหมด",
+    notifications: "การแจ้งเตือนและรายงานปัญหาทั้งหมด"
+  };
 
   // Show modal for a pending action
   function openConfirmModal(action) {
     pendingClearAction = action;
-    if (confirmInput) confirmInput.value = "";
-    if (confirmBtn) {
-      confirmBtn.disabled = true;
-      confirmBtn.style.cursor = "not-allowed";
-      confirmBtn.style.backgroundColor = "#cbd5e1";
-      confirmBtn.style.borderColor = "#cbd5e1";
-      confirmBtn.style.color = "#94a3b8";
-      confirmBtn.style.boxShadow = "none";
+    if (targetTextEl) {
+      targetTextEl.textContent = `กำลังเตรียมล้าง: ${actionLabels[action] || action}`;
     }
+    if (clearHoldController) clearHoldController.reset();
     if (confirmModal) confirmModal.classList.add("active");
     if (typeof lucide !== 'undefined') lucide.createIcons();
   }
@@ -16512,8 +16704,8 @@ function setupAdminClearHandlers() {
   // Close modal
   function closeConfirmModal() {
     pendingClearAction = null;
+    if (clearHoldController) clearHoldController.reset();
     if (confirmModal) confirmModal.classList.remove("active");
-    if (confirmInput) confirmInput.value = "";
   }
 
   const isClearAuthorized = () => {
@@ -16614,27 +16806,6 @@ function setupAdminClearHandlers() {
     });
   }
 
-  // Input typing validation
-  if (confirmInput && confirmBtn) {
-    confirmInput.addEventListener("input", (e) => {
-      const match = e.target.value.trim() === "CONFIRM TO DELETE";
-      confirmBtn.disabled = !match;
-      if (match) {
-        confirmBtn.style.cursor = "pointer";
-        confirmBtn.style.backgroundColor = "#dc2626";
-        confirmBtn.style.borderColor = "#dc2626";
-        confirmBtn.style.color = "#ffffff";
-        confirmBtn.style.boxShadow = "0 4px 12px rgba(220, 38, 38, 0.3)";
-      } else {
-        confirmBtn.style.cursor = "not-allowed";
-        confirmBtn.style.backgroundColor = "#cbd5e1";
-        confirmBtn.style.borderColor = "#cbd5e1";
-        confirmBtn.style.color = "#94a3b8";
-        confirmBtn.style.boxShadow = "none";
-      }
-    });
-  }
-
   // Cancel / Close binds
   if (modalCloseBtn) modalCloseBtn.addEventListener("click", closeConfirmModal);
   if (cancelBtn) cancelBtn.addEventListener("click", closeConfirmModal);
@@ -16644,114 +16815,119 @@ function setupAdminClearHandlers() {
     });
   }
 
-  // Confirm execution logic
-  if (confirmBtn) {
-    confirmBtn.addEventListener("click", async () => {
-      if (confirmInput.value !== "CONFIRM TO DELETE") return;
-      if (!isClearAuthorized()) {
-        showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้น", "error");
-        closeConfirmModal();
-        return;
-      }
+  // Attach Hold-to-Confirm to the delete button
+  if (holdBtn) {
+    clearHoldController = attachHoldToConfirm(holdBtn, {
+      duration: 1600,
+      resetAfter: 2000,
+      onConfirm: async () => {
+        if (!isClearAuthorized()) {
+          showToast("สิทธิ์การเข้าถึงไม่ถูกต้อง เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้น", "error");
+          closeConfirmModal();
+          return;
+        }
 
-      try {
-        window.isClearingData = true;
-        if (pendingClearAction === "inventory") {
-          const itemsToDelete = [...items];
-          items = [];
-          saveItemsToLocal();
-          localStorage.setItem("has_seeded_items", "true");
-          
-          if (isSupabaseOnline && typeof supabase !== "undefined") {
-            try {
-              await supabase.from("items").delete().neq("code", "___NON_EXISTENT_CODE___");
-            } catch (e) {
-              console.error("Supabase bulk clear failed:", e);
-            }
-          }
-
-          for (const item of itemsToDelete) {
-            syncToGoogleSheetsDirect('Items', 'DELETE', { code: item.code }, 'code');
-          }
-
-          if (isBackendOnline) {
-            for (const item of itemsToDelete) {
+        try {
+          window.isClearingData = true;
+          if (pendingClearAction === "inventory") {
+            const itemsToDelete = [...items];
+            items = [];
+            saveItemsToLocal();
+            localStorage.setItem("has_seeded_items", "true");
+            
+            if (isSupabaseOnline && typeof supabase !== "undefined") {
               try {
-                await fetch(`${API_BASE}/items/${encodeURIComponent(item.code)}`, { method: "DELETE" });
-              } catch (e) {}
+                await supabase.from("items").delete().neq("code", "___NON_EXISTENT_CODE___");
+              } catch (e) {
+                console.error("Supabase bulk clear failed:", e);
+              }
             }
-          }
-          showToast("ล้างข้อมูลคลังพัสดุทั้งหมดเรียบร้อยแล้ว", "success");
-        } 
-        else if (pendingClearAction === "transactions") {
-          const txsToDelete = [...transactions];
-          transactions = [];
-          localStorage.setItem("lab_transactions", JSON.stringify(transactions));
-          
-          if (isSupabaseOnline && typeof supabase !== "undefined") {
-            try {
-              await supabase.from("transactions").delete().neq("id", "___NON_EXISTENT_TX___");
-            } catch (e) {
-              console.error("Supabase bulk clear tx failed:", e);
+
+            for (const item of itemsToDelete) {
+              syncToGoogleSheetsDirect('Items', 'DELETE', { code: item.code }, 'code');
             }
-          }
 
-          for (const tx of txsToDelete) {
-            syncToGoogleSheetsDirect('Transactions', 'DELETE', { id: tx.id }, 'id');
-          }
-
-          showToast("ล้างประวัติธุรกรรมทั้งหมดเรียบร้อยแล้ว", "success");
-        } 
-        else if (pendingClearAction === "bookings") {
-          const bookingsToDelete = [...bookings];
-          bookings = [];
-          localStorage.setItem("lab_bookings", JSON.stringify(bookings));
-          
-          if (isSupabaseOnline && typeof supabase !== "undefined") {
-            try {
-              await supabase.from("bookings").delete().neq("id", "___NON_EXISTENT_BK___");
-            } catch (e) {
-              console.error("Supabase bulk clear booking failed:", e);
+            if (isBackendOnline) {
+              for (const item of itemsToDelete) {
+                try {
+                  await fetch(`${API_BASE}/items/${encodeURIComponent(item.code)}`, { method: "DELETE" });
+                } catch (e) {}
+              }
             }
+            showToast("ล้างข้อมูลคลังพัสดุทั้งหมดเรียบร้อยแล้ว", "success");
+          } 
+          else if (pendingClearAction === "transactions") {
+            const txsToDelete = [...transactions];
+            transactions = [];
+            localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+            
+            if (isSupabaseOnline && typeof supabase !== "undefined") {
+              try {
+                await supabase.from("transactions").delete().neq("id", "___NON_EXISTENT_TX___");
+              } catch (e) {
+                console.error("Supabase bulk clear tx failed:", e);
+              }
+            }
+
+            for (const tx of txsToDelete) {
+              syncToGoogleSheetsDirect('Transactions', 'DELETE', { id: tx.id }, 'id');
+            }
+
+            showToast("ล้างประวัติธุรกรรมทั้งหมดเรียบร้อยแล้ว", "success");
+          } 
+          else if (pendingClearAction === "bookings") {
+            const bookingsToDelete = [...bookings];
+            bookings = [];
+            localStorage.setItem("lab_bookings", JSON.stringify(bookings));
+            
+            if (isSupabaseOnline && typeof supabase !== "undefined") {
+              try {
+                await supabase.from("bookings").delete().neq("id", "___NON_EXISTENT_BK___");
+              } catch (e) {
+                console.error("Supabase bulk clear booking failed:", e);
+              }
+            }
+
+            for (const bk of bookingsToDelete) {
+              syncBookingToGoogleSheetsDirect(bk, 'DELETE');
+            }
+
+            showToast("ล้างประวัติการจองห้องปฏิบัติการทั้งหมดเรียบร้อยแล้ว", "success");
+          } 
+          else if (pendingClearAction === "plans") {
+            localStorage.removeItem("saved_lab_plans");
+            plannerElements = [];
+            const svg = document.getElementById("labPlanSvg");
+            if (svg) {
+              svg.querySelectorAll(".apparatus, .connection").forEach(el => el.remove());
+            }
+            showToast("ล้างแผนการทดลองทั้งหมดเรียบร้อยแล้ว", "success");
+          }
+          else if (pendingClearAction === "notifications") {
+            window.feedbacksData = [];
+            localStorage.setItem("lab_feedbacks", JSON.stringify([]));
+            if (typeof renderFeedbacksList === "function") renderFeedbacksList();
+            if (typeof renderNotificationsList === "function" && typeof getInventoryStats === "function") {
+              renderNotificationsList(getInventoryStats());
+            }
+            if (typeof updateNotificationBadge === "function") updateNotificationBadge();
+            showToast("ล้างข้อมูลการแจ้งเตือนและรายการปัญหาทั้งหมดเรียบร้อยแล้ว", "success");
           }
 
-          for (const bk of bookingsToDelete) {
-            syncBookingToGoogleSheetsDirect(bk, 'DELETE');
-          }
-
-          showToast("ล้างประวัติการจองห้องปฏิบัติการทั้งหมดเรียบร้อยแล้ว", "success");
-        } 
-        else if (pendingClearAction === "plans") {
-          localStorage.removeItem("saved_lab_plans");
-          plannerElements = [];
-          const svg = document.getElementById("labPlanSvg");
-          if (svg) {
-            svg.querySelectorAll(".apparatus, .connection").forEach(el => el.remove());
-          }
-          showToast("ล้างแผนการทดลองทั้งหมดเรียบร้อยแล้ว", "success");
+          // Refresh views
+          updateUI();
+          if (typeof renderItemsTable === "function") renderItemsTable();
+          if (typeof renderTransactionsTable === "function") renderTransactionsTable();
+          if (typeof renderBookingsTable === "function") renderBookingsTable();
+          setTimeout(() => { window.isClearingData = false; }, 3000);
+        } catch (err) {
+          console.error(err);
+          showToast("เกิดข้อผิดพลาดในการล้างข้อมูล", "error");
+        } finally {
+          setTimeout(() => {
+            closeConfirmModal();
+          }, 600);
         }
-        else if (pendingClearAction === "notifications") {
-          window.feedbacksData = [];
-          localStorage.setItem("lab_feedbacks", JSON.stringify([]));
-          if (typeof renderFeedbacksList === "function") renderFeedbacksList();
-          if (typeof renderNotificationsList === "function" && typeof getInventoryStats === "function") {
-            renderNotificationsList(getInventoryStats());
-          }
-          if (typeof updateNotificationBadge === "function") updateNotificationBadge();
-          showToast("ล้างข้อมูลการแจ้งเตือนและรายการปัญหาทั้งหมดเรียบร้อยแล้ว", "success");
-        }
-
-        // Refresh views
-        updateUI();
-        if (typeof renderItemsTable === "function") renderItemsTable();
-        if (typeof renderTransactionsTable === "function") renderTransactionsTable();
-        if (typeof renderBookingsTable === "function") renderBookingsTable();
-        setTimeout(() => { window.isClearingData = false; }, 3000);
-      } catch (err) {
-        console.error(err);
-        showToast("เกิดข้อผิดพลาดในการล้างข้อมูล", "error");
-      } finally {
-        closeConfirmModal();
       }
     });
   }
@@ -20401,29 +20577,60 @@ function exportAdminReport() {
   logAuditAction("ดาวน์โหลดรายงาน", "ผู้ดูแลระบบส่งออกรายงานข้อมูลการใช้งาน");
 }
 
-// RESET WORKSPACE
-async function triggerAdminWorkspaceReset() {
-  showConfirmModal("ยืนยันการล้างข้อมูลอย่างถาวร", "🚨 คำเตือน: คุณกำลังจะลบข้อมูลทั้งหมดในพื้นที่ทำงานนี้ ข้อมูลจะไม่สามารถกู้คืนได้ คุณแน่ใจหรือไม่?", async () => {
-    const validation = prompt("กรุณาพิมพ์คำว่า 'DELETE' เพื่อยืนยัน:");
-    if (validation === "DELETE") {
+// RESET WORKSPACE (Hold to delete)
+let workspaceHoldController = null;
+
+function initWorkspaceResetModal() {
+  const modal = document.getElementById("dangerZoneModalWorkspace");
+  const holdBtn = document.getElementById("dangerZoneHoldBtn");
+  if (!modal || !holdBtn) return;
+
+  workspaceHoldController = attachHoldToConfirm(holdBtn, {
+    duration: 1600,
+    resetAfter: 2000,
+    onConfirm: async () => {
       try {
         const res = await fetch('/api/workspace', { method: 'DELETE' });
         if (res.ok) {
-          alert("ลบพื้นที่ทำงานเรียบร้อยแล้ว ระบบจะทำการรีสตาร์ท");
-          window.location.reload();
+          showToast("ลบพื้นที่ทำงานเรียบร้อยแล้ว ระบบกำลังรีสตาร์ท...", "success");
+          setTimeout(() => {
+            window.location.reload();
+          }, 1200);
+        } else {
+          showToast("เกิดข้อผิดพลาดในการลบพื้นที่ทำงาน", "error");
+          if (workspaceHoldController) workspaceHoldController.reset();
         }
       } catch (err) {
+        console.error("Workspace reset error:", err);
         showToast("เกิดข้อผิดพลาดในการลบข้อมูล", "error");
+        if (workspaceHoldController) workspaceHoldController.reset();
       }
-    } else {
-      showToast("ยกเลิกการดำเนินการ", "info");
     }
   });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+      if (workspaceHoldController) workspaceHoldController.reset();
+    }
+  });
+}
+
+async function triggerAdminWorkspaceReset() {
+  const modal = document.getElementById("dangerZoneModalWorkspace");
+  if (!modal) return;
+  if (!workspaceHoldController) {
+    initWorkspaceResetModal();
+  }
+  if (workspaceHoldController) workspaceHoldController.reset();
+  modal.style.display = "flex";
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 // Initialize on load
 document.addEventListener("DOMContentLoaded", () => {
   loadAdminData();
+  initWorkspaceResetModal();
 });
 
 // Added Toast Animation (Custom for Purchase Order)
@@ -22255,9 +22462,38 @@ const DEFAULT_LOGIN_BANNER_CONFIG = {
   headline: "ระบบคลังสารเคมีและห้องแล็บ",
   badgeText: "ห้องปฏิบัติการวิทยาศาสตร์",
   subtitle: "บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU",
-  theme: "light",
+  theme: "blue",
   imgOption: "default",
-  customUrl: ""
+  customUrl: "",
+  uploadedImage: "",
+  uploadedFileName: ""
+};
+
+const LOGIN_BANNER_TEMPLATES = {
+  general: {
+    headline: "ระบบคลังสารเคมีและห้องแล็บ",
+    badgeText: "ห้องปฏิบัติการวิทยาศาสตร์",
+    subtitle: "บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU",
+    theme: "blue"
+  },
+  maintenance: {
+    headline: "งดบริการเบิกจ่ายสารเคมีชั่วคราว",
+    badgeText: "⚠️ แจ้งปิดปรับปรุงสต็อก",
+    subtitle: "ระบบเปิดตรวจสอบข้อมูลได้ตามปกติ แต่ของดรับคำขอเบิกเคมีภัณฑ์ในวันศุกร์นี้ เพื่อตรวจนับพัสดุและจัดหมวดหมู่ความปลอดภัย",
+    theme: "dark"
+  },
+  booking: {
+    headline: "เปิดรับจองห้องปฏิบัติการล่วงหน้า",
+    badgeText: "📅 ปฏิทินห้องปฏิบัติการ",
+    subtitle: "อาจารย์และเจ้าหน้าที่สามารถตรวจสอบตารางห้องว่างและส่งคำขอใช้งานห้องแล็บผ่านระบบได้แล้ววันนี้",
+    theme: "purple"
+  },
+  safety: {
+    headline: "แนวปฏิบัติความปลอดภัยในห้องแล็บ",
+    badgeText: "🛡️ มาตรฐานความปลอดภัย SHECU",
+    subtitle: "โปรดสวมใส่อุปกรณ์คุ้มครองความปลอดภัย (PPE) ตรวจสอบเอกสารความปลอดภัย SDS และบันทึกการใช้งานสารเคมีทุกครั้ง",
+    theme: "green"
+  }
 };
 
 const LAB_SAMPLE_IMAGES = {
@@ -22266,20 +22502,23 @@ const LAB_SAMPLE_IMAGES = {
   lab3: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80"
 };
 
-let currentSelectedLoginBannerTheme = "light";
+let currentSelectedLoginBannerTheme = "blue";
+let currentUploadedBannerImage = "";
+let currentUploadedBannerFileName = "";
 
 function getLoginBannerConfig() {
   try {
     const saved = localStorage.getItem("lab_login_banner_config");
     if (saved) {
       const parsed = JSON.parse(saved);
-      // Migrate legacy AI marketing copy to clean authentic wording
+      // Migrate legacy AI marketing copy or obsolete themes
       if (parsed.headline === "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ" || parsed.badgeText === "📢 ประกาศด่วนประจำห้องแล็บ") {
         parsed.headline = DEFAULT_LOGIN_BANNER_CONFIG.headline;
         parsed.badgeText = DEFAULT_LOGIN_BANNER_CONFIG.badgeText;
         parsed.subtitle = DEFAULT_LOGIN_BANNER_CONFIG.subtitle;
-        if (parsed.theme === "purple") parsed.theme = "light";
-        localStorage.setItem("lab_login_banner_config", JSON.stringify(parsed));
+      }
+      if (parsed.theme === "orange" || parsed.theme === "red" || parsed.theme === "light") {
+        parsed.theme = "blue";
       }
       return { ...DEFAULT_LOGIN_BANNER_CONFIG, ...parsed };
     }
@@ -22298,33 +22537,41 @@ function applyLoginBannerUI(customConfig = null) {
   if (!config.enabled) {
     heroSide.style.display = "none";
     splitGrid.style.gridTemplateColumns = "1fr";
-    if (modalContent) modalContent.style.maxWidth = "420px";
+    if (modalContent) modalContent.style.maxWidth = "440px";
     return;
   }
 
   heroSide.style.display = "flex";
   splitGrid.style.gridTemplateColumns = "";
-  if (modalContent) modalContent.style.maxWidth = "790px";
+  if (modalContent) modalContent.style.maxWidth = "820px";
 
-  // Apply Theme Class
-  const themes = ["orange", "blue", "green", "purple", "red", "dark", "light"];
+  // Apply Essential Theme Classes (blue, green, purple, dark)
+  const themes = ["blue", "green", "purple", "dark", "light", "orange", "red"];
   themes.forEach(t => heroSide.classList.remove(`login-hero-theme-${t}`));
-  heroSide.classList.add(`login-hero-theme-${config.theme || "light"}`);
+  
+  let validTheme = config.theme || "blue";
+  if (validTheme === "light" || validTheme === "orange" || validTheme === "red") {
+    validTheme = "blue";
+  }
+  heroSide.classList.add(`login-hero-theme-${validTheme}`);
 
   // Apply Text Content
   const badgeTextEl = document.getElementById("loginHeroBadgeText");
   const headlineEl = document.getElementById("loginHeroHeadline");
   const subtitleEl = document.getElementById("loginHeroSubtitle");
   const heroImgEl = document.getElementById("loginHeroImage");
+  const heroImgWrapEl = document.getElementById("loginHeroImageWrap");
   const defaultGraphicEl = document.getElementById("loginHeroDefaultGraphic");
 
-  if (badgeTextEl) badgeTextEl.textContent = config.badgeText || "ประกาศระบบห้องปฏิบัติการ";
-  if (headlineEl) headlineEl.textContent = config.headline || "ระบบสารสนเทศห้องปฏิบัติการ";
+  if (badgeTextEl) badgeTextEl.textContent = config.badgeText || "ห้องปฏิบัติการวิทยาศาสตร์";
+  if (headlineEl) headlineEl.textContent = config.headline || "ระบบคลังสารเคมีและห้องแล็บ";
   if (subtitleEl) subtitleEl.textContent = config.subtitle || "";
 
-  // Apply Visual Image / Graphic
+  // Apply Visual Media: Uploaded Image, Preset Sample, Custom URL, or Default Features Graphic
   let imgSrc = "";
-  if (config.imgOption === "custom" && config.customUrl) {
+  if (config.imgOption === "upload" && (config.uploadedImage || currentUploadedBannerImage)) {
+    imgSrc = config.uploadedImage || currentUploadedBannerImage;
+  } else if (config.imgOption === "custom" && config.customUrl) {
     imgSrc = config.customUrl.trim();
   } else if (LAB_SAMPLE_IMAGES[config.imgOption]) {
     imgSrc = LAB_SAMPLE_IMAGES[config.imgOption];
@@ -22332,14 +22579,39 @@ function applyLoginBannerUI(customConfig = null) {
 
   if (imgSrc && heroImgEl && defaultGraphicEl) {
     heroImgEl.src = imgSrc;
-    heroImgEl.style.display = "block";
+    if (heroImgWrapEl) heroImgWrapEl.style.display = "block";
+    else heroImgEl.style.display = "block";
     defaultGraphicEl.style.display = "none";
   } else if (heroImgEl && defaultGraphicEl) {
-    heroImgEl.style.display = "none";
+    if (heroImgWrapEl) heroImgWrapEl.style.display = "none";
+    else heroImgEl.style.display = "none";
     defaultGraphicEl.style.display = "flex";
   }
 
   if (window.lucide) lucide.createIcons();
+}
+
+function applyLoginBannerTemplate(templateKey) {
+  const tmpl = LOGIN_BANNER_TEMPLATES[templateKey];
+  if (!tmpl) return;
+
+  const headlineInput = document.getElementById("adminLoginBannerHeadline");
+  const badgeInput = document.getElementById("adminLoginBannerBadgeText");
+  const subtitleInput = document.getElementById("adminLoginBannerSubtitle");
+
+  if (headlineInput) headlineInput.value = tmpl.headline;
+  if (badgeInput) badgeInput.value = tmpl.badgeText;
+  if (subtitleInput) subtitleInput.value = tmpl.subtitle;
+
+  if (tmpl.theme) {
+    selectLoginBannerTheme(tmpl.theme);
+  } else {
+    triggerLoginBannerLivePreview();
+  }
+
+  if (typeof showToast === "function") {
+    showToast(`เลือกเทมเพลต: "${tmpl.badgeText}" เรียบร้อยแล้ว`, "info");
+  }
 }
 
 function initLoginBannerAdmin() {
@@ -22352,6 +22624,7 @@ function initLoginBannerAdmin() {
   const imgOptionSelect = document.getElementById("adminLoginBannerImgOption");
   const customUrlInput = document.getElementById("adminLoginBannerCustomUrl");
   const customUrlRow = document.getElementById("adminLoginBannerCustomUrlRow");
+  const uploadRow = document.getElementById("adminLoginBannerUploadRow");
 
   if (toggle) toggle.checked = config.enabled;
   if (statusText) statusText.textContent = config.enabled ? "เปิดใช้งาน" : "ปิดการใช้งาน";
@@ -22360,9 +22633,16 @@ function initLoginBannerAdmin() {
   if (subtitleInput) subtitleInput.value = config.subtitle;
   if (imgOptionSelect) imgOptionSelect.value = config.imgOption || "default";
   if (customUrlInput) customUrlInput.value = config.customUrl || "";
-  if (customUrlRow) customUrlRow.style.display = (config.imgOption === "custom") ? "block" : "none";
 
-  selectLoginBannerTheme(config.theme || "purple");
+  currentUploadedBannerImage = config.uploadedImage || "";
+  currentUploadedBannerFileName = config.uploadedFileName || "";
+  renderUploadedImageAdminPreview();
+
+  if (customUrlRow) customUrlRow.style.display = (config.imgOption === "custom") ? "block" : "none";
+  if (uploadRow) uploadRow.style.display = (config.imgOption === "upload") ? "block" : "none";
+
+  const initialTheme = (config.theme === "orange" || config.theme === "red" || config.theme === "light") ? "blue" : (config.theme || "blue");
+  selectLoginBannerTheme(initialTheme);
   triggerLoginBannerLivePreview();
 }
 
@@ -22381,10 +22661,90 @@ function selectLoginBannerTheme(themeName) {
 
 function onLoginBannerImgOptionChange(val) {
   const customUrlRow = document.getElementById("adminLoginBannerCustomUrlRow");
+  const uploadRow = document.getElementById("adminLoginBannerUploadRow");
   if (customUrlRow) {
     customUrlRow.style.display = (val === "custom") ? "block" : "none";
   }
+  if (uploadRow) {
+    uploadRow.style.display = (val === "upload") ? "block" : "none";
+  }
   triggerLoginBannerLivePreview();
+}
+
+function handleBannerFileInput(input) {
+  if (!input || !input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (!file.type.startsWith("image/")) {
+    if (typeof showToast === "function") showToast("กรุณาเลือกไฟล์รูปภาพ (PNG, JPG, WebP)", "error");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rawDataUrl = e.target.result;
+    // Compress and resize image to fit comfortably in localStorage (<150KB)
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+      const maxDim = 800;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const optimizedDataUrl = canvas.toDataURL("image/jpeg", 0.82);
+      currentUploadedBannerImage = optimizedDataUrl;
+      currentUploadedBannerFileName = file.name;
+
+      renderUploadedImageAdminPreview();
+      triggerLoginBannerLivePreview();
+      if (typeof showToast === "function") showToast("อัปโหลดและประมวลผลรูปภาพเรียบร้อยแล้ว", "success");
+    };
+    img.src = rawDataUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderUploadedImageAdminPreview() {
+  const previewContainer = document.getElementById("adminLoginBannerUploadPreview");
+  const thumb = document.getElementById("adminLoginBannerUploadThumb");
+  const nameEl = document.getElementById("adminLoginBannerUploadFilename");
+  const sizeEl = document.getElementById("adminLoginBannerUploadFilesize");
+
+  if (!previewContainer) return;
+
+  if (currentUploadedBannerImage) {
+    previewContainer.style.display = "flex";
+    if (thumb) thumb.src = currentUploadedBannerImage;
+    if (nameEl) nameEl.textContent = currentUploadedBannerFileName || "ภาพที่อัปโหลด";
+    if (sizeEl) sizeEl.textContent = "ความละเอียดเหมาะสม พร้อมแสดงผล";
+  } else {
+    previewContainer.style.display = "none";
+  }
+  if (window.lucide) lucide.createIcons();
+}
+
+function clearUploadedBannerImage() {
+  currentUploadedBannerImage = "";
+  currentUploadedBannerFileName = "";
+  const fileInput = document.getElementById("adminLoginBannerFileInput");
+  if (fileInput) fileInput.value = "";
+  renderUploadedImageAdminPreview();
+  triggerLoginBannerLivePreview();
+  if (typeof showToast === "function") showToast("ลบรูปภาพที่อัปโหลดเรียบร้อยแล้ว", "info");
 }
 
 function updateLoginBannerToggleLabel(checked) {
@@ -22408,21 +22768,29 @@ function triggerLoginBannerLivePreview() {
   const headlineEl = document.getElementById("adminPreviewHeroHeadline");
   const subtitleEl = document.getElementById("adminPreviewHeroSubtitle");
   const imgEl = document.getElementById("adminPreviewHeroImg");
+  const imgWrapEl = document.getElementById("adminPreviewHeroImgWrap");
   const defaultGraphic = document.getElementById("adminPreviewHeroDefaultGraphic");
 
-  if (badgeEl && badgeInput) badgeEl.textContent = badgeInput.value || "📢 ประกาศด่วน";
+  if (badgeEl && badgeInput) badgeEl.textContent = badgeInput.value || "ห้องปฏิบัติการวิทยาศาสตร์";
   if (headlineEl && headlineInput) headlineEl.textContent = headlineInput.value || "หัวข้อประกาศ";
   if (subtitleEl && subtitleInput) subtitleEl.textContent = subtitleInput.value || "";
 
-  // Apply Theme to Preview
-  const themes = ["orange", "purple", "blue", "green", "dark"];
+  // Apply Theme to Preview (blue, green, purple, dark)
+  const themes = ["blue", "green", "purple", "dark", "light", "orange", "red"];
   themes.forEach(t => previewBox.classList.remove(`login-hero-theme-${t}`));
-  previewBox.classList.add(`login-hero-theme-${currentSelectedLoginBannerTheme || "purple"}`);
+  
+  let validTheme = currentSelectedLoginBannerTheme || "blue";
+  if (validTheme === "light" || validTheme === "orange" || validTheme === "red") {
+    validTheme = "blue";
+  }
+  previewBox.classList.add(`login-hero-theme-${validTheme}`);
 
   // Image preview
   const imgOption = imgOptionSelect ? imgOptionSelect.value : "default";
   let imgSrc = "";
-  if (imgOption === "custom" && customUrlInput && customUrlInput.value.trim()) {
+  if (imgOption === "upload" && currentUploadedBannerImage) {
+    imgSrc = currentUploadedBannerImage;
+  } else if (imgOption === "custom" && customUrlInput && customUrlInput.value.trim()) {
     imgSrc = customUrlInput.value.trim();
   } else if (LAB_SAMPLE_IMAGES[imgOption]) {
     imgSrc = LAB_SAMPLE_IMAGES[imgOption];
@@ -22430,10 +22798,12 @@ function triggerLoginBannerLivePreview() {
 
   if (imgSrc && imgEl && defaultGraphic) {
     imgEl.src = imgSrc;
-    imgEl.style.display = "block";
+    if (imgWrapEl) imgWrapEl.style.display = "block";
+    else imgEl.style.display = "block";
     defaultGraphic.style.display = "none";
   } else if (imgEl && defaultGraphic) {
-    imgEl.style.display = "none";
+    if (imgWrapEl) imgWrapEl.style.display = "none";
+    else imgEl.style.display = "none";
     defaultGraphic.style.display = "flex";
   }
 
@@ -22451,27 +22821,36 @@ function saveAdminLoginBanner(e) {
 
   const newConfig = {
     enabled: toggle ? toggle.checked : true,
-    headline: headlineInput ? headlineInput.value.trim() : "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ",
-    badgeText: badgeInput ? badgeInput.value.trim() : "📢 ประกาศด่วนประจำห้องแล็บ",
+    headline: headlineInput ? headlineInput.value.trim() : DEFAULT_LOGIN_BANNER_CONFIG.headline,
+    badgeText: badgeInput ? badgeInput.value.trim() : DEFAULT_LOGIN_BANNER_CONFIG.badgeText,
     subtitle: subtitleInput ? subtitleInput.value.trim() : "",
-    theme: currentSelectedLoginBannerTheme || "purple",
+    theme: currentSelectedLoginBannerTheme || "blue",
     imgOption: imgOptionSelect ? imgOptionSelect.value : "default",
-    customUrl: customUrlInput ? customUrlInput.value.trim() : ""
+    customUrl: customUrlInput ? customUrlInput.value.trim() : "",
+    uploadedImage: currentUploadedBannerImage || "",
+    uploadedFileName: currentUploadedBannerFileName || ""
   };
 
   try {
     localStorage.setItem("lab_login_banner_config", JSON.stringify(newConfig));
-  } catch (err) {}
+  } catch (err) {
+    console.warn("Storage quota warning:", err);
+  }
 
   applyLoginBannerUI(newConfig);
-  showToast("บันทึกการตั้งค่าแบนเนอร์หน้าเข้าสู่ระบบเรียบร้อยแล้ว!", "success");
+  if (typeof showToast === "function") {
+    showToast("บันทึกการตั้งค่าแบนเนอร์หน้าเข้าสู่ระบบเรียบร้อยแล้ว!", "success");
+  }
 }
 
 window.getLoginBannerConfig = getLoginBannerConfig;
 window.applyLoginBannerUI = applyLoginBannerUI;
+window.applyLoginBannerTemplate = applyLoginBannerTemplate;
 window.initLoginBannerAdmin = initLoginBannerAdmin;
 window.selectLoginBannerTheme = selectLoginBannerTheme;
 window.onLoginBannerImgOptionChange = onLoginBannerImgOptionChange;
+window.handleBannerFileInput = handleBannerFileInput;
+window.clearUploadedBannerImage = clearUploadedBannerImage;
 window.updateLoginBannerToggleLabel = updateLoginBannerToggleLabel;
 window.triggerLoginBannerLivePreview = triggerLoginBannerLivePreview;
 window.saveAdminLoginBanner = saveAdminLoginBanner;
