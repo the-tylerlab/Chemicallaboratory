@@ -1209,6 +1209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       loadPurchaseOrders(),
       loadActivityLogs(),
       loadAnnouncementSettings(),
+      typeof loadLoginBannerSettings === "function" ? loadLoginBannerSettings() : Promise.resolve(),
       typeof loadAdminData === "function" ? loadAdminData() : Promise.resolve()
     ]).then(() => {
       updateUI();
@@ -22389,22 +22390,31 @@ async function saveAnnouncementSettingsData(newSettings) {
   syncAnnouncementFormFields(newSettings);
   renderAnnouncementTicker(newSettings);
 
-  // 1. Sync to Supabase
+  // 1. Sync to Supabase Cloud (Only key & value columns exist in public.system)
   if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
     try {
-      supabase.from("system").upsert({
+      const { error: supaErr } = await supabase.from("system").upsert({
         key: "lab_announcement_settings",
-        value: newSettings,
-        updated_at: new Date().toISOString()
-      }).catch(err => console.log("Supabase announcement sync ignored:", err));
-    } catch (err) {}
+        value: newSettings
+      });
+      if (supaErr) {
+        console.warn("Supabase announcement sync error:", supaErr);
+      } else {
+        console.log("✅ Announcement settings synced to Supabase Cloud");
+      }
+    } catch (err) {
+      console.warn("Supabase announcement sync exception:", err);
+    }
   }
 
-  // 2. Sync to Express Backend Server (/api/announcements)
+  // 2. Sync to Express Backend Server (/api/announcements) with Auth Header
   try {
-    fetch(`${API_BASE}/announcements`, {
+    const token = typeof localStorage !== 'undefined' ? (localStorage.getItem("lab_auth_token") || localStorage.getItem("token") || '') : '';
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    await fetch(`${API_BASE}/announcements`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(newSettings)
     }).catch(err => console.log("Backend announcement sync note:", err));
   } catch (err) {}
@@ -22412,8 +22422,15 @@ async function saveAnnouncementSettingsData(newSettings) {
   showToast("บันทึกการตั้งค่าแถบประกาศเรียบร้อยแล้ว", "success");
 }
 
-function saveAdminAnnouncement(e) {
+async function saveAdminAnnouncement(e) {
   if (e) e.preventDefault();
+  const submitBtn = document.querySelector("#adminAnnouncementForm button[type='submit']");
+  const origBtnContent = submitBtn ? submitBtn.innerHTML : "";
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="loading-spinner-inline" style="width: 13px; height: 13px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.7s linear infinite;"></span> <span>กำลังบันทึก...</span>`;
+  }
+
   const toggle = document.getElementById("adminAnnouncementEnabled");
   const textarea = document.getElementById("adminAnnouncementText");
   const badgeInput = document.getElementById("adminAnnouncementBadgeText");
@@ -22431,7 +22448,18 @@ function saveAdminAnnouncement(e) {
     pauseOnHover: pauseHoverToggle ? pauseHoverToggle.checked : true
   };
 
-  saveAnnouncementSettingsData(newSettings);
+  try {
+    await saveAnnouncementSettingsData(newSettings);
+  } catch (err) {
+    console.error("Save admin announcement error:", err);
+    showToast("เกิดข้อผิดพลาดในการบันทึกประกาศ", "error");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origBtnContent;
+      if (window.lucide) lucide.createIcons();
+    }
+  }
 }
 
 function applyAnnouncementPreset(presetKey) {
@@ -22498,8 +22526,15 @@ function applyModalAnnouncementPreset(presetKey) {
   triggerAnnouncementLivePreview("modal");
 }
 
-function saveModalAnnouncement(e) {
+async function saveModalAnnouncement(e) {
   if (e) e.preventDefault();
+  const submitBtn = document.querySelector("#modalAnnouncementForm button[type='submit']");
+  const origBtnContent = submitBtn ? submitBtn.innerHTML : "";
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="loading-spinner-inline" style="width: 13px; height: 13px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.7s linear infinite;"></span> <span>กำลังบันทึก...</span>`;
+  }
+
   const toggle = document.getElementById("modalAnnouncementEnabled");
   const textarea = document.getElementById("modalAnnouncementText");
   const badgeInput = document.getElementById("modalAnnouncementBadgeText");
@@ -22517,8 +22552,19 @@ function saveModalAnnouncement(e) {
     pauseOnHover: pauseHoverToggle ? pauseHoverToggle.checked : true
   };
 
-  saveAnnouncementSettingsData(newSettings);
-  closeAnnouncementModal();
+  try {
+    await saveAnnouncementSettingsData(newSettings);
+  } catch (err) {
+    console.error("Save modal announcement error:", err);
+    showToast("เกิดข้อผิดพลาดในการบันทึกประกาศ", "error");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = origBtnContent;
+      if (window.lucide) lucide.createIcons();
+    }
+    closeAnnouncementModal();
+  }
 }
 
 // Cross-tab storage synchronization
@@ -22909,8 +22955,15 @@ function triggerLoginBannerLivePreview() {
   if (window.lucide) lucide.createIcons();
 }
 
-function saveAdminLoginBanner(e) {
+async function saveAdminLoginBanner(e) {
   if (e) e.preventDefault();
+  const submitBtn = document.querySelector("#adminLoginBannerForm button[type='submit']");
+  const origBtnContent = submitBtn ? submitBtn.innerHTML : "";
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="loading-spinner-inline" style="width: 13px; height: 13px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.7s linear infinite;"></span> <span>กำลังบันทึก...</span>`;
+  }
+
   const toggle = document.getElementById("adminLoginBannerEnabled");
   const headlineInput = document.getElementById("adminLoginBannerHeadline");
   const badgeInput = document.getElementById("adminLoginBannerBadgeText");
@@ -22936,11 +22989,44 @@ function saveAdminLoginBanner(e) {
     console.warn("Storage quota warning:", err);
   }
 
+  // Sync Login Banner to Supabase Cloud
+  if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
+    try {
+      await supabase.from("system").upsert({
+        key: "lab_login_banner_config",
+        value: newConfig
+      });
+      console.log("✅ Login banner config synced to Supabase Cloud");
+    } catch (err) {
+      console.warn("Supabase login banner sync error:", err);
+    }
+  }
+
   applyLoginBannerUI(newConfig);
   if (typeof showToast === "function") {
     showToast("บันทึกการตั้งค่าแบนเนอร์หน้าเข้าสู่ระบบเรียบร้อยแล้ว!", "success");
   }
+
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = origBtnContent;
+    if (window.lucide) lucide.createIcons();
+  }
 }
+
+async function loadLoginBannerSettings() {
+  if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
+    try {
+      const { data } = await supabase.from("system").select("value").eq("key", "lab_login_banner_config").maybeSingle();
+      if (data && data.value) {
+        localStorage.setItem("lab_login_banner_config", JSON.stringify(data.value));
+        applyLoginBannerUI(data.value);
+      }
+    } catch (e) {}
+  }
+}
+
+window.loadLoginBannerSettings = loadLoginBannerSettings;
 
 window.getLoginBannerConfig = getLoginBannerConfig;
 window.applyLoginBannerUI = applyLoginBannerUI;

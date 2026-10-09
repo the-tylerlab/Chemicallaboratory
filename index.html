@@ -104,7 +104,7 @@
   <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20261009_perf_fix">
+  <link rel="stylesheet" href="style.css?v=20261009_settings_fix">
 
   <!-- Core Libraries (Optimized CDN paths & non-blocking defer) -->
   <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
@@ -4240,7 +4240,7 @@
         </div>
         <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
           <button type="button" class="btn btn-secondary" style="padding: 7px 14px; border: 1px solid var(--border-color); background: white; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 13px;" onclick="closeAnnouncementModal()">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary" style="padding: 7px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+          <button type="submit" class="btn btn-primary" onclick="saveModalAnnouncement(event)" style="padding: 7px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
             <i data-lucide="save" style="width: 14px; height: 14px;"></i>
             <span>บันทึกประกาศ</span>
           </button>
@@ -6199,7 +6199,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261009_perf_fix"></script>
+  <script src="app.js?v=20261009_settings_fix"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {
