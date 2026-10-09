@@ -4186,56 +4186,67 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
 
 // DELETE USER — Strictly L3 Admin (Soft Delete)
 app.delete('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res) => {
+  const targetId = req.params.id;
   let users = readUsers();
-  const userToDelete = users.find(u => u.id === req.params.id);
-  users = users.filter(u => u.id !== req.params.id);
+  const userToDelete = users.find(u => u.id === targetId || u.teacherId === targetId || u.teacher_id === targetId);
+  users = users.filter(u => u.id !== targetId && u.teacherId !== targetId && u.teacher_id !== targetId);
   writeUsers(users);
-  usersCache = users;
+
+  // Invalidate in-memory cache so subsequent fetches reload fresh state
+  usersCache = null;
+  lastUsersFetch = 0;
 
   const actor = req.user?.teacherId || req.user?.name || 'admin';
   const now = new Date().toISOString();
+  const teacherId = userToDelete?.teacherId || userToDelete?.teacher_id || targetId;
 
-  if (userToDelete) {
-    // 1. Soft Delete in Supabase (Primary Source of Truth)
-    if (supabase) {
-      try {
-        await supabase.from('users').update({
-          is_deleted: true,
-          deleted_at: now,
-          deleted_by: actor
-        }).eq('id', req.params.id);
-      } catch(err) {
-        console.warn("[SourceOfTruth:Supabase] Soft delete user notice:", err.message);
-      }
+  // 1. Soft Delete in Supabase (Primary Source of Truth)
+  if (supabase) {
+    try {
+      await supabase.from('users').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).or(`id.eq.${targetId},teacher_id.eq.${targetId},"teacherId".eq.${targetId}`);
+    } catch(err) {
+      console.warn("[SourceOfTruth:Supabase] Soft delete user notice:", err.message);
     }
-
-    // 2. Export / Backup to Google Sheets
-    syncToGoogleSheets('Users', 'DELETE', { teacherId: userToDelete.teacherId }, 'teacherId');
-
-    // Audit Log
-    recordAuditLog({
-      action: 'USER_DELETE',
-      resource: 'users',
-      resourceId: req.params.id,
-      details: `ลบผู้ใช้งาน (Soft Delete): ${userToDelete.name} (${userToDelete.teacherId})`,
-      req
-    });
   }
+
+  // 2. Export / Backup to Google Sheets
+  if (teacherId) {
+    syncToGoogleSheets('Users', 'DELETE', { teacherId: teacherId }, 'teacherId');
+  }
+
+  // Audit Log
+  recordAuditLog({
+    action: 'USER_DELETE',
+    resource: 'users',
+    resourceId: targetId,
+    details: `ลบผู้ใช้งาน (Soft Delete): ${userToDelete ? userToDelete.name : targetId} (${teacherId})`,
+    req
+  });
+
   res.json({ success: true, message: "User soft deleted successfully" });
 });
 
 // BATCH DELETE USERS ENDPOINT — Strictly L3 Admin (Soft Delete)
 app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async (req, res) => {
-  const { ids } = req.body;
+  const { ids, teacherIds } = req.body;
   if (!Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ error: "No user IDs provided" });
   }
 
+  const allIds = Array.isArray(teacherIds) ? [...new Set([...ids, ...teacherIds])] : ids;
+
   let users = readUsers();
-  const deletedUsers = users.filter(u => ids.includes(u.id));
-  users = users.filter(u => !ids.includes(u.id));
+  const deletedUsers = users.filter(u => allIds.includes(u.id) || (u.teacherId && allIds.includes(u.teacherId)));
+  users = users.filter(u => !allIds.includes(u.id) && (!u.teacherId || !allIds.includes(u.teacherId)));
   writeUsers(users);
-  usersCache = users;
+
+  // Invalidate in-memory cache
+  usersCache = null;
+  lastUsersFetch = 0;
 
   const actor = req.user?.teacherId || req.user?.name || 'admin';
   const now = new Date().toISOString();
@@ -4251,13 +4262,22 @@ app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async 
     } catch(err) {
       console.warn("[SourceOfTruth:Supabase] Soft batch delete users notice:", err.message);
     }
+
+    if (Array.isArray(teacherIds) && teacherIds.length > 0) {
+      try {
+        await supabase.from('users').update({
+          is_deleted: true,
+          deleted_at: now,
+          deleted_by: actor
+        }).in('teacher_id', teacherIds);
+      } catch(err2) {}
+    }
   }
 
   // 2. Export / Backup to Google Sheets
-  deletedUsers.forEach(u => {
-    if (u.teacherId) {
-      syncToGoogleSheets('Users', 'DELETE', { teacherId: u.teacherId }, 'teacherId');
-    }
+  const sheetsTargets = [...new Set([...deletedUsers.map(u => u.teacherId), ...(teacherIds || [])])].filter(Boolean);
+  sheetsTargets.forEach(tId => {
+    syncToGoogleSheets('Users', 'DELETE', { teacherId: tId }, 'teacherId');
   });
 
   // Audit Log
@@ -4265,11 +4285,11 @@ app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async 
     action: 'USERS_BATCH_DELETE',
     resource: 'users',
     resourceId: 'batch',
-    details: `ลบผู้ใช้งานจำนวน ${deletedUsers.length} รายการ (Soft Delete)`,
+    details: `ลบผู้ใช้งานจำนวน ${ids.length} รายการ (Soft Delete)`,
     req
   });
 
-  res.json({ success: true, deletedCount: deletedUsers.length });
+  res.json({ success: true, deletedCount: ids.length });
 });
 
 // Helper: Normalize Thai numbers (e.g. ๑๒๓ -> 123)

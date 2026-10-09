@@ -2962,9 +2962,9 @@
 
             <!-- Col 4: Action Buttons (aligned with KPI 4: ระดับสิทธิ์ความปลอดภัย) -->
             <div class="admin-toolbar-right admin-toolbar-col4">
-              <button class="btn btn-danger" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none; align-items: center; gap: 6px; background: #ef4444; color: white; white-space: nowrap; height: 38px; border-radius: var(--border-radius-lg, 12px); font-weight: 600; font-size: 12px; border: none; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25); cursor: pointer; transition: all 0.2s ease; flex: none;">
+              <button class="btn btn-danger btn-batch-delete-user" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none;" title="ลบผู้ใช้งานที่เลือก">
                 <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                <span id="batchDeleteUsersCountText">ลบ (0)</span>
+                <span id="batchDeleteUsersCountText">ลบที่เลือก (0)</span>
               </button>
               <button class="btn btn-primary btn-admin-action btn-add-user" onclick="openInviteUserModal()">
                 <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>

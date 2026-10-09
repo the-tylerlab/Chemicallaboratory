@@ -18297,7 +18297,8 @@ async function loadAdminData() {
     try {
       const resUsers = await fetch('/api/users');
       if (resUsers.ok) {
-        adminUsers = await resUsers.json();
+        const fetched = await resUsers.json();
+        adminUsers = (Array.isArray(fetched) ? fetched : []).filter(u => u && u.is_deleted !== true && u.isDeleted !== true);
         localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
         loadedFromApi = true;
       }
@@ -18311,10 +18312,30 @@ async function loadAdminData() {
         const { data: supaUsers, error } = await supabase.from('users').select('*');
         if (!error && Array.isArray(supaUsers) && supaUsers.length > 0) {
           if (!Array.isArray(adminUsers)) adminUsers = [];
-          supaUsers.forEach(su => {
-            const tId = String(su.teacherId || su.id || '').trim();
+          
+          // 1. Identify all IDs marked as deleted in Supabase
+          const deletedKeys = new Set(
+            supaUsers
+              .filter(su => su.is_deleted === true || su.isDeleted === true)
+              .flatMap(su => [su.id, su.teacherId, su.teacher_id].filter(Boolean).map(x => String(x).toLowerCase()))
+          );
+
+          // 2. Purge soft-deleted users from current adminUsers
+          adminUsers = adminUsers.filter(u => {
+            const uid = String(u.id || '').toLowerCase();
+            const tid = String(u.teacherId || '').toLowerCase();
+            return !deletedKeys.has(uid) && !deletedKeys.has(tid) && u.is_deleted !== true && u.isDeleted !== true;
+          });
+
+          // 3. Merge ONLY active users from Supabase
+          const activeSupaUsers = supaUsers.filter(su => su.is_deleted !== true && su.isDeleted !== true);
+          activeSupaUsers.forEach(su => {
+            const tId = String(su.teacherId || su.teacher_id || su.id || '').trim();
             if (!tId) return;
-            const idx = adminUsers.findIndex(u => String(u.teacherId || '').toLowerCase() === tId.toLowerCase());
+            const idx = adminUsers.findIndex(u => 
+              (u.id && su.id && String(u.id).toLowerCase() === String(su.id).toLowerCase()) ||
+              (u.teacherId && tId && String(u.teacherId).toLowerCase() === tId.toLowerCase())
+            );
             if (idx !== -1) {
               adminUsers[idx] = { ...adminUsers[idx], ...su };
             } else {
@@ -18332,7 +18353,11 @@ async function loadAdminData() {
     if (!loadedFromApi) {
       const localUsers = localStorage.getItem("lab_admin_users");
       if (localUsers) {
-        adminUsers = JSON.parse(localUsers);
+        try {
+          adminUsers = JSON.parse(localUsers).filter(u => u && u.is_deleted !== true && u.isDeleted !== true);
+        } catch(e) {
+          adminUsers = [...DEFAULT_RBAC_USERS];
+        }
       } else {
         adminUsers = [...DEFAULT_RBAC_USERS];
         localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
@@ -18340,6 +18365,7 @@ async function loadAdminData() {
     }
 
     if (Array.isArray(adminUsers)) {
+      adminUsers = adminUsers.filter(u => u && u.is_deleted !== true && u.isDeleted !== true);
       adminUsers.forEach(u => {
         u.color = getRoleColor(u.role);
         u.initials = getUserInitials(u.name);
@@ -18402,7 +18428,7 @@ function renderAdminUsers(filteredList = null) {
   if (!tbody) return;
   
   // Calculate & Update KPI Cards
-  const allUsers = Array.isArray(adminUsers) ? adminUsers : [];
+  const allUsers = (Array.isArray(adminUsers) ? adminUsers : []).filter(u => u && u.is_deleted !== true && u.isDeleted !== true);
   const totalUsers = allUsers.length;
   const staffAdmins = allUsers.filter(u => ['L2', 'L3', 'L4', 'staff', 'admin', 'executive'].includes(u.role)).length;
   const assignedLabsCount = allUsers.filter(u => u.assignedRooms && u.assignedRooms.length > 0).length;
@@ -18430,6 +18456,9 @@ function renderAdminUsers(filteredList = null) {
   const mobileList = document.getElementById("adminUsersMobileList");
   if (mobileList) mobileList.innerHTML = "";
 
+  const toolbar = document.querySelector(".admin-toolbar-grid");
+  if (toolbar) toolbar.classList.remove("has-selection");
+
   const selectAll = document.getElementById("selectAllUsersCheckbox");
   if (selectAll) {
     selectAll.checked = false;
@@ -18438,7 +18467,7 @@ function renderAdminUsers(filteredList = null) {
   const btnBatchDelete = document.getElementById("btnBatchDeleteUsers");
   if (btnBatchDelete) btnBatchDelete.style.display = "none";
   
-  const displayUsers = filteredList !== null ? filteredList : allUsers;
+  const displayUsers = (filteredList !== null ? filteredList : allUsers).filter(u => u && u.is_deleted !== true && u.isDeleted !== true);
 
   if (!displayUsers || displayUsers.length === 0) {
     tbody.innerHTML = `<tr><td colspan="7" style="padding: 28px; text-align: center; color: #64748b; font-size: 13px;">ไม่พบข้อมูลผู้ใช้งานที่ตรงกับเงื่อนไข</td></tr>`;
@@ -18625,13 +18654,16 @@ window.onUserSelectionChange = function() {
     selectAll.indeterminate = (checkedCount > 0 && checkedCount < total);
   }
 
+  const toolbar = document.querySelector(".admin-toolbar-grid");
   const btnBatchDelete = document.getElementById("btnBatchDeleteUsers");
   const countText = document.getElementById("batchDeleteUsersCountText");
   if (btnBatchDelete) {
     if (checkedCount > 0) {
+      if (toolbar) toolbar.classList.add("has-selection");
       btnBatchDelete.style.display = "inline-flex";
       if (countText) countText.innerText = `ลบที่เลือก (${checkedCount})`;
     } else {
+      if (toolbar) toolbar.classList.remove("has-selection");
       btnBatchDelete.style.display = "none";
     }
   }
@@ -18681,17 +18713,31 @@ window.batchDeleteSelectedUsers = async function() {
 
   if (!confirm(confirmMsg)) return;
 
-  const targetIds = filteredUsers.map(u => u.id);
+  const targetIds = filteredUsers.map(u => u.id).filter(Boolean);
+  const targetTeacherIds = filteredUsers.map(u => u.teacherId).filter(Boolean);
+  const allIdentifiers = [...new Set([...targetIds, ...targetTeacherIds])];
   const userNames = filteredUsers.map(u => u.name).join(", ");
 
-  showToast(`กำลังลบผู้ใช้งาน ${targetIds.length} คน...`, "info");
+  showToast(`กำลังลบผู้ใช้งาน ${filteredUsers.length} คน...`, "info");
 
-  // 1. Supabase batch delete
+  // 1. Direct Supabase batch soft delete
   if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
     try {
-      await supabase.from('users').delete().in('id', targetIds);
+      await supabase.from('users').update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString()
+      }).in('id', targetIds);
     } catch (supaErr) {
-      console.warn("Direct Supabase batch user delete notice:", supaErr);
+      console.warn("Direct Supabase batch user soft delete notice:", supaErr);
+    }
+
+    if (targetTeacherIds.length > 0) {
+      try {
+        await supabase.from('users').update({
+          is_deleted: true,
+          deleted_at: new Date().toISOString()
+        }).in('teacher_id', targetTeacherIds);
+      } catch (e2) {}
     }
   }
 
@@ -18700,26 +18746,41 @@ window.batchDeleteSelectedUsers = async function() {
     await fetch('/api/users/batch-delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: targetIds })
+      body: JSON.stringify({ ids: targetIds, teacherIds: targetTeacherIds })
     });
   } catch (err) {
     console.warn("API /api/users/batch-delete notice:", err);
   }
 
-  // 3. Fallback / Local sync
+  // 3. Direct Google Sheets Sync
+  if (typeof syncToGoogleSheetsDirect === 'function') {
+    targetTeacherIds.forEach(tId => {
+      syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: tId }, 'teacherId');
+    });
+  }
+
+  // 4. Update local state immediately
   if (Array.isArray(adminUsers)) {
-    adminUsers = adminUsers.filter(u => !targetIds.includes(u.id));
+    adminUsers = adminUsers.filter(u => 
+      !allIdentifiers.includes(u.id) && 
+      !allIdentifiers.includes(u.teacherId) &&
+      !allIdentifiers.includes(u.teacher_id)
+    );
     try {
       localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
     } catch(e) {}
   }
 
-  // 4. Audit Log
+  // 5. Instantly reflect UI changes
+  renderAdminUsers();
+  updateAdminStats();
+
+  // 6. Audit Log
   if (typeof logAuditAction === "function") {
-    await logAuditAction("ลบผู้ใช้งานหลายคน (Batch Delete)", `ลบผู้ใช้งานจำนวน ${targetIds.length} คน (${userNames})`);
+    await logAuditAction("ลบผู้ใช้งานหลายคน (Batch Delete)", `ลบผู้ใช้งานจำนวน ${filteredUsers.length} คน (${userNames})`);
   }
 
-  showToast(`ลบผู้ใช้งานที่เลือก ${targetIds.length} คนเรียบร้อยแล้ว`, "success");
+  showToast(`ลบผู้ใช้งานที่เลือก ${filteredUsers.length} คนเรียบร้อยแล้ว`, "success");
   await loadAdminData();
 };
 
@@ -20515,43 +20576,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function deleteAdminUser() {
   const id = document.getElementById("editUserId").value;
+  if (!id) return;
   if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?")) return;
 
-  const targetUser = Array.isArray(adminUsers) ? adminUsers.find(u => u.id === id) : null;
-  const teacherId = targetUser?.teacherId || id;
+  const targetUser = Array.isArray(adminUsers) ? adminUsers.find(u => u.id === id || u.teacherId === id || u.teacher_id === id) : null;
+  const teacherId = targetUser?.teacherId || targetUser?.teacher_id || id;
+  const actualId = targetUser?.id || id;
 
   // 1. Google Sheets Direct Sync
-  syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: teacherId }, 'teacherId');
+  if (typeof syncToGoogleSheetsDirect === 'function') {
+    syncToGoogleSheetsDirect('Users', 'DELETE', { teacherId: teacherId }, 'teacherId');
+  }
   
-  let isDeleted = false;
+  // 2. Direct Supabase Soft Delete
   if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
     try {
-      await supabase.from('users').delete().eq('id', id);
-      isDeleted = true;
+      await supabase.from('users').update({
+        is_deleted: true,
+        deleted_at: new Date().toISOString()
+      }).or(`id.eq.${actualId},teacher_id.eq.${teacherId},"teacherId".eq.${teacherId}`);
     } catch (supaErr) {
-      console.warn("Direct Supabase user delete failed:", supaErr);
+      console.warn("Direct Supabase user soft delete notice:", supaErr);
     }
   }
 
+  // 3. Server API Delete
   try {
-    const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
-    if (res.ok) isDeleted = true;
-  } catch (err) {}
-
-  if (!isDeleted) {
-    adminUsers = adminUsers.filter(u => u.id !== id);
-    localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
-    isDeleted = true;
+    await fetch(`/api/users/${encodeURIComponent(actualId)}`, { method: 'DELETE' });
+  } catch (err) {
+    console.warn("Server user delete notice:", err);
   }
 
-  if (isDeleted) {
-    showToast("ลบผู้ใช้สำเร็จ", "success");
-    closeEditUserModal();
-    if (typeof logAuditAction === "function") {
-      await logAuditAction("ลบผู้ใช้งาน", `ระบบได้ลบผู้ใช้งาน ID: ${id}`);
-    }
-    await loadAdminData();
+  // 4. Update local state immediately
+  if (Array.isArray(adminUsers)) {
+    adminUsers = adminUsers.filter(u => 
+      u.id !== actualId && 
+      u.id !== id && 
+      u.teacherId !== teacherId && 
+      u.teacher_id !== teacherId
+    );
+    try {
+      localStorage.setItem("lab_admin_users", JSON.stringify(adminUsers));
+    } catch(e) {}
   }
+
+  // 5. Render immediately and close modal
+  renderAdminUsers();
+  updateAdminStats();
+  closeEditUserModal();
+
+  showToast("ลบผู้ใช้สำเร็จ", "success");
+  if (typeof logAuditAction === "function") {
+    await logAuditAction("ลบผู้ใช้งาน", `ระบบได้ลบผู้ใช้งาน ID: ${actualId} (${teacherId})`);
+  }
+  await loadAdminData();
 }
 
 // REPORT EXPORT
