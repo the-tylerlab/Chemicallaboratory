@@ -15196,47 +15196,73 @@ select.admin-filter-select:focus {
   background: #7c3aed;
 }
 
+/* Amber / Warm Alert Theme (Notice & Stock Maintenance - High Contrast & Easy to Read) */
+.login-hero-theme-amber,
 .login-hero-theme-dark {
-  background: linear-gradient(165deg, #0f172a 0%, #1e293b 60%, #0f172a 100%);
-  border-right: 1px solid #334155;
-  color: #f8fafc;
+  background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 45%, #fff7ed 100%);
+  border-right: 1px solid #fde68a;
+  color: #0f172a;
 }
+.login-hero-theme-amber .login-hero-ambient-glow,
 .login-hero-theme-dark .login-hero-ambient-glow {
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0) 70%);
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.22) 0%, rgba(245, 158, 11, 0) 70%);
 }
-.login-hero-theme-dark .login-hero-headline,
-.login-hero-theme-dark .brand-title {
-  color: #ffffff;
-}
-.login-hero-theme-dark .login-hero-subtitle,
-.login-hero-theme-dark .brand-sub,
-.login-hero-theme-dark .login-hero-footer-status {
-  color: #94a3b8;
-}
-.login-hero-theme-dark .login-hero-badge {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #e2e8f0;
-}
+.login-hero-theme-amber .badge-dot,
 .login-hero-theme-dark .badge-dot {
-  background: #38bdf8;
+  background: #d97706;
+  box-shadow: 0 0 6px rgba(217, 119, 6, 0.4);
 }
+.login-hero-theme-amber .login-hero-headline,
+.login-hero-theme-dark .login-hero-headline,
+.login-hero-theme-amber .brand-title,
+.login-hero-theme-dark .brand-title {
+  color: #78350f;
+}
+.login-hero-theme-amber .login-hero-subtitle,
+.login-hero-theme-dark .login-hero-subtitle {
+  color: #92400e;
+  font-weight: 500;
+}
+.login-hero-theme-amber .brand-sub,
+.login-hero-theme-dark .brand-sub {
+  color: #b45309;
+}
+.login-hero-theme-amber .login-hero-badge,
+.login-hero-theme-dark .login-hero-badge {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+  font-weight: 600;
+}
+.login-hero-theme-amber .login-feature-item,
 .login-hero-theme-dark .login-feature-item {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: #fde68a;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.06);
 }
+.login-hero-theme-amber .login-feature-text .feature-title,
 .login-hero-theme-dark .login-feature-text .feature-title {
-  color: #f1f5f9;
+  color: #78350f;
 }
+.login-hero-theme-amber .login-feature-text .feature-desc,
 .login-hero-theme-dark .login-feature-text .feature-desc {
-  color: #94a3b8;
+  color: #92400e;
 }
+.login-hero-theme-amber .login-feature-icon-wrap,
 .login-hero-theme-dark .login-feature-icon-wrap {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fde68a;
 }
+.login-hero-theme-amber .login-hero-footer-status,
 .login-hero-theme-dark .login-hero-footer-status {
-  border-top-color: rgba(255, 255, 255, 0.12);
+  border-top-color: #fde68a;
+  color: #92400e;
+}
+.login-hero-theme-amber .status-indicator-dot,
+.login-hero-theme-dark .status-indicator-dot {
+  background: #d97706;
+  box-shadow: 0 0 6px rgba(217, 119, 6, 0.4);
 }
 
 .login-hero-content {

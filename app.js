@@ -22480,7 +22480,7 @@ const LOGIN_BANNER_TEMPLATES = {
     headline: "งดบริการเบิกจ่ายสารเคมีชั่วคราว",
     badgeText: "⚠️ แจ้งปิดปรับปรุงสต็อก",
     subtitle: "ระบบเปิดตรวจสอบข้อมูลได้ตามปกติ แต่ของดรับคำขอเบิกเคมีภัณฑ์ในวันศุกร์นี้ เพื่อตรวจนับพัสดุและจัดหมวดหมู่ความปลอดภัย",
-    theme: "dark"
+    theme: "amber"
   },
   booking: {
     headline: "เปิดรับจองห้องปฏิบัติการล่วงหน้า",
@@ -22517,7 +22517,9 @@ function getLoginBannerConfig() {
         parsed.badgeText = DEFAULT_LOGIN_BANNER_CONFIG.badgeText;
         parsed.subtitle = DEFAULT_LOGIN_BANNER_CONFIG.subtitle;
       }
-      if (parsed.theme === "orange" || parsed.theme === "red" || parsed.theme === "light") {
+      if (parsed.theme === "dark") {
+        parsed.theme = "amber";
+      } else if (parsed.theme === "orange" || parsed.theme === "red" || parsed.theme === "light") {
         parsed.theme = "blue";
       }
       return { ...DEFAULT_LOGIN_BANNER_CONFIG, ...parsed };
@@ -22545,12 +22547,14 @@ function applyLoginBannerUI(customConfig = null) {
   splitGrid.style.gridTemplateColumns = "";
   if (modalContent) modalContent.style.maxWidth = "820px";
 
-  // Apply Essential Theme Classes (blue, green, purple, dark)
-  const themes = ["blue", "green", "purple", "dark", "light", "orange", "red"];
+  // Apply Essential Theme Classes (blue, green, purple, amber)
+  const themes = ["blue", "green", "purple", "amber", "dark", "light", "orange", "red"];
   themes.forEach(t => heroSide.classList.remove(`login-hero-theme-${t}`));
   
   let validTheme = config.theme || "blue";
-  if (validTheme === "light" || validTheme === "orange" || validTheme === "red") {
+  if (validTheme === "dark") {
+    validTheme = "amber";
+  } else if (validTheme === "light" || validTheme === "orange" || validTheme === "red") {
     validTheme = "blue";
   }
   heroSide.classList.add(`login-hero-theme-${validTheme}`);
@@ -22641,7 +22645,7 @@ function initLoginBannerAdmin() {
   if (customUrlRow) customUrlRow.style.display = (config.imgOption === "custom") ? "block" : "none";
   if (uploadRow) uploadRow.style.display = (config.imgOption === "upload") ? "block" : "none";
 
-  const initialTheme = (config.theme === "orange" || config.theme === "red" || config.theme === "light") ? "blue" : (config.theme || "blue");
+  const initialTheme = (config.theme === "dark") ? "amber" : ((config.theme === "orange" || config.theme === "red" || config.theme === "light") ? "blue" : (config.theme || "blue"));
   selectLoginBannerTheme(initialTheme);
   triggerLoginBannerLivePreview();
 }
@@ -22775,12 +22779,14 @@ function triggerLoginBannerLivePreview() {
   if (headlineEl && headlineInput) headlineEl.textContent = headlineInput.value || "หัวข้อประกาศ";
   if (subtitleEl && subtitleInput) subtitleEl.textContent = subtitleInput.value || "";
 
-  // Apply Theme to Preview (blue, green, purple, dark)
-  const themes = ["blue", "green", "purple", "dark", "light", "orange", "red"];
+  // Apply Theme to Preview (blue, green, purple, amber)
+  const themes = ["blue", "green", "purple", "amber", "dark", "light", "orange", "red"];
   themes.forEach(t => previewBox.classList.remove(`login-hero-theme-${t}`));
   
   let validTheme = currentSelectedLoginBannerTheme || "blue";
-  if (validTheme === "light" || validTheme === "orange" || validTheme === "red") {
+  if (validTheme === "dark") {
+    validTheme = "amber";
+  } else if (validTheme === "light" || validTheme === "orange" || validTheme === "red") {
     validTheme = "blue";
   }
   previewBox.classList.add(`login-hero-theme-${validTheme}`);
