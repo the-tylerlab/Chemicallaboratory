@@ -459,6 +459,71 @@ function canApproveBookingForRoom(room) {
 function canApproveBorrowForRoom(room) {
   return canApproveBookingForRoom(room);
 }
+
+// Ownership check helper for transactions
+function isUserOwnTransaction(tx, user) {
+  if (!tx || !user) return false;
+  // Match borrower name
+  if (tx.borrower && user.name) {
+    const tBorrower = String(tx.borrower).trim().toLowerCase();
+    const uName = String(user.name).trim().toLowerCase();
+    if (tBorrower === uName || tBorrower.includes(uName) || uName.includes(tBorrower)) return true;
+  }
+  // Match teacherId
+  const uTeacherId = String(user.teacherId || user.teacher_id || user.id || '').trim().toLowerCase();
+  if (uTeacherId) {
+    if (tx.teacherId && String(tx.teacherId).trim().toLowerCase() === uTeacherId) return true;
+    if (tx.teacher_id && String(tx.teacher_id).trim().toLowerCase() === uTeacherId) return true;
+    if (tx.userId && String(tx.userId).trim().toLowerCase() === uTeacherId) return true;
+    if (tx.user_id && String(tx.user_id).trim().toLowerCase() === uTeacherId) return true;
+  }
+  // Match user id
+  const uId = String(user.id || '').trim().toLowerCase();
+  if (uId) {
+    if (tx.userId && String(tx.userId).trim().toLowerCase() === uId) return true;
+    if (tx.user_id && String(tx.user_id).trim().toLowerCase() === uId) return true;
+  }
+  // Match email
+  if (user.email) {
+    const uEmail = String(user.email).trim().toLowerCase();
+    if (tx.email && String(tx.email).trim().toLowerCase() === uEmail) return true;
+    if (tx.userEmail && String(tx.userEmail).trim().toLowerCase() === uEmail) return true;
+  }
+  // Match supervising teacher
+  if (tx.supervisingTeacher && user.name) {
+    const sTeacher = String(tx.supervisingTeacher).trim().toLowerCase();
+    const uName = String(user.name).trim().toLowerCase();
+    if (sTeacher === uName || sTeacher.includes(uName) || uName.includes(sTeacher)) return true;
+  }
+  return false;
+}
+window.isUserOwnTransaction = isUserOwnTransaction;
+
+// Ownership check helper for bookings
+function isUserOwnBooking(bk, user) {
+  if (!bk || !user) return false;
+  if (bk.bookerName && user.name) {
+    const bName = String(bk.bookerName).trim().toLowerCase();
+    const uName = String(user.name).trim().toLowerCase();
+    if (bName === uName || bName.includes(uName) || uName.includes(bName)) return true;
+  }
+  if (bk.teacherName && user.name) {
+    const tName = String(bk.teacherName).trim().toLowerCase();
+    const uName = String(user.name).trim().toLowerCase();
+    if (tName === uName || tName.includes(uName) || uName.includes(tName)) return true;
+  }
+  const uTeacherId = String(user.teacherId || user.teacher_id || user.id || '').trim().toLowerCase();
+  if (uTeacherId) {
+    if (bk.teacherId && String(bk.teacherId).trim().toLowerCase() === uTeacherId) return true;
+    if (bk.teacher_id && String(bk.teacher_id).trim().toLowerCase() === uTeacherId) return true;
+    if (bk.userId && String(bk.userId).trim().toLowerCase() === uTeacherId) return true;
+  }
+  const uId = String(user.id || '').trim().toLowerCase();
+  if (uId && bk.userId && String(bk.userId).trim().toLowerCase() === uId) return true;
+  return false;
+}
+window.isUserOwnBooking = isUserOwnBooking;
+
 window.feedbacksData = [
   {
     id: "ISSUE-001",
@@ -6496,6 +6561,12 @@ function setupBorrowForm() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+    if (roleLevel === "L0" || !isUserLoggedIn()) {
+      showToast("ผู้ใช้ทั่วไป (L0): ไม่สามารถทำรายการธุรกรรมได้ กรุณาเข้าสู่ระบบ", "warning");
+      return;
+    }
+
     const borrowType = document.querySelector('input[name="borrowType"]:checked').value;
     const borrowerName = document.getElementById("borrowerName").value.trim();
 
@@ -6505,6 +6576,16 @@ function setupBorrowForm() {
     }
 
     if (borrowType === "return") {
+      const isL1 = (roleLevel === "L1" || (typeof userRole !== "undefined" && userRole === "teacher"));
+      if (isL1 && currentUser) {
+        const uName = String(currentUser.name || "").trim().toLowerCase();
+        const bName = borrowerName.toLowerCase();
+        if (bName !== uName && !bName.includes(uName) && !uName.includes(bName)) {
+          showToast("ครูผู้สอน (L1): สามารถคืนพัสดุได้เฉพาะรายการของตนเองเท่านั้น", "error");
+          return;
+        }
+      }
+
       // Find all transactions currently borrowed by this user
       const borrowedTx = transactions.filter(t => 
         t.borrower && 
@@ -6525,6 +6606,12 @@ function setupBorrowForm() {
           const itemIndex = items.findIndex(i => i.code === tx.itemCode);
           if (itemIndex === -1) continue;
           const item = items[itemIndex];
+          const itemRoom = item ? item.room : tx.room;
+
+          // If L2 Staff, check room permission
+          if ((roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff")) && !canApproveReturnForRoom(itemRoom)) {
+            continue; // Skip items outside assigned rooms
+          }
 
           // Check if this item has a damage count specified
           const chkDamage = document.querySelector(`.damage-checkbox[data-tx-id="${tx.id}"]`);
@@ -6754,19 +6841,30 @@ function renderTransactionsTable() {
   }
   const selectedRoom = roomFilterEl ? roomFilterEl.value : "all";
 
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+  const isL1Teacher = (roleLevel === "L1" || (typeof userRole !== "undefined" && userRole === "teacher"));
+
   // Sort transactions by date/time (newest first)
   let sortedTrans = [...transactions].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+  // Role L1 (Teacher): Can only see their own transactions
+  if (isL1Teacher && currentUser) {
+    sortedTrans = sortedTrans.filter(tx => isUserOwnTransaction(tx, currentUser));
+  }
+
   if (selectedRoom && selectedRoom !== "all") {
     sortedTrans = sortedTrans.filter(tx => tx.room === selectedRoom);
   }
 
   if (sortedTrans.length === 0) {
+    const emptyMsg = isL1Teacher ? "ยังไม่มีประวัติการทำรายการยืม-คืนของคุณ" : "ยังไม่มีประวัติการทำรายการยืม-คืน";
     tableBody.innerHTML = `
       <tr>
         <td colspan="2" style="text-align: center; padding: 48px;">
           <div class="empty-state">
             <div class="empty-state-icon"><i data-lucide="history"></i></div>
-            <div class="empty-state-text">ยังไม่มีประวัติการทำรายการยืม-คืน</div>
+            <div class="empty-state-text">${emptyMsg}</div>
           </div>
         </td>
       </tr>
@@ -6810,7 +6908,7 @@ function renderTransactionsTable() {
           <div style="margin-top: 7px;">
             ${statusBadge}
           </div>
-          <div style="margin-top: 5px; font-size: 11px; color: #94a3b8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">${tx.id ? tx.id.slice(0, 16) : ''}</div>
+          ${(isL3L4 && tx.id) ? `<div style="margin-top: 5px; font-size: 11px; color: #94a3b8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;" title="รหัสทำรายการ (Transaction ID)">${tx.id.slice(0, 16)}</div>` : ''}
         </td>
         <td data-label="รายการพัสดุและผู้ยืม" style="vertical-align: top; padding: 14px 16px;">
           <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
@@ -6839,8 +6937,9 @@ function renderTransactionsTable() {
 window.returnBorrowedItem = async function(transId) {
   if (requireOnline('คืนพัสดุ')) return;
 
-  if (isExecutiveMode()) {
-    showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถทำรายการคืนพัสดุได้", "warning");
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  if (roleLevel === "L0" || !isUserLoggedIn()) {
+    showToast("ผู้ใช้ทั่วไป (L0): ไม่สามารถทำรายการคืนพัสดุได้ กรุณาเข้าสู่ระบบ", "warning");
     return;
   }
 
@@ -6853,9 +6952,27 @@ window.returnBorrowedItem = async function(transId) {
   const item = itemIndex !== -1 ? items[itemIndex] : null;
   const itemRoom = item ? item.room : tx.room;
 
-  // Check L2 Room Permission
-  if (!canApproveReturnForRoom(itemRoom)) {
-    showToast(`คุณไม่มีสิทธิ์ตรวจรับคืนพัสดุของห้อง "${itemRoom || 'อื่นๆ'}" (เฉพาะห้องที่ได้รับมอบหมายเท่านั้น)`, "error");
+  // Check Role Permissions:
+  // - L1 Teacher: Allowed to return their own borrowed items
+  // - L2 Staff: Allowed to return items in their assigned rooms
+  // - L3 Admin & L4 Executive: Full permission
+  const isL1 = (roleLevel === "L1" || (typeof userRole !== "undefined" && userRole === "teacher"));
+  const isL2 = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
+  const isL3 = (roleLevel === "L3" || (typeof userRole !== "undefined" && userRole === "admin"));
+  const isL4 = (roleLevel === "L4" || (typeof userRole !== "undefined" && userRole === "executive"));
+
+  if (isL1) {
+    if (!isUserOwnTransaction(tx, currentUser)) {
+      showToast("ครูผู้สอน (L1): สามารถคืนพัสดุได้เฉพาะรายการของตนเองเท่านั้น", "error");
+      return;
+    }
+  } else if (isL2) {
+    if (!canApproveReturnForRoom(itemRoom)) {
+      showToast(`คุณไม่มีสิทธิ์ตรวจรับคืนพัสดุของห้อง "${itemRoom || 'อื่นๆ'}" (เฉพาะห้องที่ได้รับมอบหมายเท่านั้น)`, "error");
+      return;
+    }
+  } else if (!isL3 && !isL4) {
+    showToast("คุณไม่มีสิทธิ์ทำรายการคืนพัสดุ", "error");
     return;
   }
 
@@ -8127,8 +8244,38 @@ function renderBookingsTable() {
 window.cancelBookingRecord = async function(bookingId) {
   if (requireOnline('ยกเลิกการจอง')) return;
 
+  if (isExecutiveMode()) {
+    showToast("โหมดผู้บริหาร (L4): สามารถดูได้อย่างเดียว ไม่สามารถยกเลิกการจองได้", "warning");
+    return;
+  }
+
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  if (roleLevel === "L0" || !isUserLoggedIn()) {
+    showToast("ผู้ใช้ทั่วไป (L0): ไม่สามารถทำรายการได้ กรุณาเข้าสู่ระบบ", "warning");
+    return;
+  }
+
   const booking = bookings.find(b => b.id === bookingId);
   if (!booking) return;
+
+  const isL1 = (roleLevel === "L1" || (typeof userRole !== "undefined" && userRole === "teacher"));
+  const isL2 = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
+  const isL3 = (roleLevel === "L3" || (typeof userRole !== "undefined" && userRole === "admin"));
+
+  if (isL1) {
+    if (!isUserOwnBooking(booking, currentUser)) {
+      showToast("ครูผู้สอน (L1): สามารถยกเลิกได้เฉพาะการจองของตนเองเท่านั้น", "error");
+      return;
+    }
+  } else if (isL2) {
+    if (!canApproveBookingForRoom(booking.room)) {
+      showToast(`คุณไม่มีสิทธิ์จัดการการจองของห้อง "${getRoomThaiName(booking.room)}"`, "error");
+      return;
+    }
+  } else if (!isL3) {
+    showToast("คุณไม่มีสิทธิ์ยกเลิกการจอง", "error");
+    return;
+  }
 
   if (confirm(`คุณต้องการยกเลิกการจองห้อง "${getRoomThaiName(booking.room)}" ช่วงเวลา ${booking.slot} ในวันที่ ${formatThaiDate(booking.date)} ใช่หรือไม่?`)) {
     const success = await updateBookingStatus(bookingId, "cancelled");
@@ -9911,6 +10058,9 @@ window.showTransactionDetail = function(txId) {
   const statusText = tx.status === "borrowed" ? "กำลังยืม" : "คืนแล้ว";
   const statusBadge = tx.status === "borrowed" ? "badge-borrowed" : "badge-returned";
 
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL3L4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+
   // Build Body HTML
   body.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -9919,9 +10069,15 @@ window.showTransactionDetail = function(txId) {
         <span style="font-weight: 600; color: #0f172a;">${tx.itemName}</span>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">รหัสรายการ:</span>
+        <span style="font-weight: 600; color: var(--text-muted);">รหัสพัสดุ:</span>
         <span style="font-family: monospace; font-size: 13px;">${tx.itemCode}</span>
       </div>
+      ${(isL3L4 && tx.id) ? `
+      <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+        <span style="font-weight: 600; color: var(--text-muted);">รหัสทำรายการ (Tx ID):</span>
+        <span style="font-family: monospace; font-size: 13px; color: #64748b;">${tx.id}</span>
+      </div>
+      ` : ''}
       <div style="display: grid; grid-template-columns: 1fr 2fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
         <span style="font-weight: 600; color: var(--text-muted);">จำนวน:</span>
         <span style="font-weight: 600;">${tx.qty} หน่วย</span>
@@ -9956,12 +10112,31 @@ window.showTransactionDetail = function(txId) {
   // Build Footer Actions
   let actionBtn = "";
   if (tx.status === "borrowed") {
-    actionBtn = `
-      <button class="btn btn-primary" style="background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); setTimeout(() => returnBorrowedItem('${tx.id}'), 200);">
-        <i data-lucide="check" style="width: 16px; height: 16px;"></i>
-        <span>คืนพัสดุ</span>
-      </button>
-    `;
+    let canReturn = false;
+    const isL1 = (roleLevel === "L1" || (typeof userRole !== "undefined" && userRole === "teacher"));
+    const isL2 = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
+    const isL3 = (roleLevel === "L3" || (typeof userRole !== "undefined" && userRole === "admin"));
+    const isL4 = (roleLevel === "L4" || (typeof userRole !== "undefined" && userRole === "executive"));
+
+    if (isL3 || isL4) {
+      canReturn = true;
+    } else if (isL2) {
+      const itemIndex = items.findIndex(i => i.code === tx.itemCode);
+      const item = itemIndex !== -1 ? items[itemIndex] : null;
+      const itemRoom = item ? item.room : tx.room;
+      canReturn = canApproveReturnForRoom(itemRoom);
+    } else if (isL1) {
+      canReturn = isUserOwnTransaction(tx, currentUser);
+    }
+
+    if (canReturn) {
+      actionBtn = `
+        <button class="btn btn-primary" style="background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); setTimeout(() => returnBorrowedItem('${tx.id}'), 200);">
+          <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+          <span>คืนพัสดุ</span>
+        </button>
+      `;
+    }
   }
   footer.innerHTML = `
     <button class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
@@ -10058,12 +10233,28 @@ window.showBookingDetail = function(bkId) {
   // Build Footer Actions
   let actionBtn = "";
   if (isApproved) {
-    actionBtn = `
-      <button class="btn btn-primary" style="background-color: var(--accent-red); border-color: var(--accent-red); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); setTimeout(() => cancelBookingRecord('${bk.id}'), 200);">
-        <i data-lucide="x-circle" style="width: 16px; height: 16px;"></i>
-        <span>ยกเลิกการจอง</span>
-      </button>
-    `;
+    let canCancelBooking = false;
+    const r = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+    const isL1 = (r === "L1" || (typeof userRole !== "undefined" && userRole === "teacher"));
+    const isL2 = (r === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
+    const isL3 = (r === "L3" || (typeof userRole !== "undefined" && userRole === "admin"));
+
+    if (isL3) {
+      canCancelBooking = true;
+    } else if (isL2) {
+      canCancelBooking = canApproveBookingForRoom(bk.room);
+    } else if (isL1) {
+      canCancelBooking = isUserOwnBooking(bk, currentUser);
+    }
+
+    if (canCancelBooking) {
+      actionBtn = `
+        <button class="btn btn-primary" style="background-color: var(--accent-red); border-color: var(--accent-red); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); setTimeout(() => cancelBookingRecord('${bk.id}'), 200);">
+          <i data-lucide="x-circle" style="width: 16px; height: 16px;"></i>
+          <span>ยกเลิกการจอง</span>
+        </button>
+      `;
+    }
   }
   footer.innerHTML = `
     <button class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
@@ -10517,6 +10708,15 @@ window.rejectBorrowRequest = async function(txId) {
   const txIndex = transactions.findIndex(t => t.id === txId);
   if (txIndex === -1) return;
   const tx = transactions[txIndex];
+
+  const itemIndex = items.findIndex(i => i.code === tx.itemCode);
+  const item = itemIndex !== -1 ? items[itemIndex] : null;
+  const itemRoom = item ? item.room : tx.room;
+
+  if (!canManageItemInRoom(itemRoom)) {
+    showToast(`คุณไม่มีสิทธิ์ปฏิเสธคำขอยืมของห้อง "${itemRoom || 'อื่นๆ'}" (ได้รับมอบหมายเฉพาะ: ${(currentUser?.assignedRooms || []).join(", ")})`, "error");
+    return;
+  }
 
   if (confirm("คุณต้องการปฏิเสธคำขอยืมนี้ใช่หรือไม่?")) {
     transactions[txIndex].status = "rejected";

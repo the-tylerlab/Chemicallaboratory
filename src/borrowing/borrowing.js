@@ -6,7 +6,7 @@
 
 import { fetchWithAuth, API_BASE, syncToGoogleSheetsDirect } from '../core/api.js';
 import { state } from '../core/state.js';
-import { formatDate, escapeHtml } from '../core/utils.js';
+import { formatDate, escapeHtml, isUserOwnTransaction } from '../core/utils.js';
 import { getCurrentRoleLevel } from '../rbac/rbac.js';
 
 // Fetch transactions from backend
@@ -116,10 +116,31 @@ export async function borrowItem({ itemCode, quantity, dueDate, responsiblePerso
 
 // Open Return Modal with condition inspection
 export function openReturnModal(txId) {
+  const role = getCurrentRoleLevel();
+  if (role === 'L0') {
+    alert("ผู้ใช้ทั่วไป (L0): ไม่สามารถทำรายการคืนพัสดุได้ กรุณาเข้าสู่ระบบ");
+    return;
+  }
+
   const tx = state.transactions.find(t => t.id === txId);
   if (!tx) {
     alert("ไม่พบข้อมูลรายการยืม");
     return;
+  }
+
+  const currentUser = state.currentUser || (typeof window !== "undefined" && window.currentUser);
+  if (role === 'L1') {
+    if (!isUserOwnTransaction(tx, currentUser)) {
+      alert("ครูผู้สอน (L1): สามารถคืนพัสดุได้เฉพาะรายการของตนเองเท่านั้น");
+      return;
+    }
+  } else if (role === 'L2') {
+    const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
+    const roomMatches = assigned.length > 0 && tx.room && assigned.some(ar => String(tx.room).toLowerCase().includes(String(ar).toLowerCase()));
+    if (!roomMatches && assigned.length > 0) {
+      alert(`คุณไม่มีสิทธิ์ตรวจรับคืนพัสดุของห้อง "${tx.room || 'อื่นๆ'}" (เฉพาะห้องที่ได้รับมอบหมายเท่านั้น)`);
+      return;
+    }
   }
 
   let modal = document.getElementById("returnItemModal");
@@ -136,7 +157,7 @@ export function openReturnModal(txId) {
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
         <div class="modal-header" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 18px 24px;">
           <h3 style="margin: 0; font-size: 16px; font-weight: 700;">📦 ตรวจรับคืนพัสดุ / สารเคมี (Return Inspection)</h3>
-          <button type="button" class="btn-close-modal" onclick="window.closeReturnModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer;">✕</button>
+          <button type="button" class="btn-close-modal" onclick="window.closeReturnModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <form id="formReturnItem" onsubmit="window.submitItemReturn(event)" style="padding: 20px;">
           <input type="hidden" name="txId" value="${escapeHtml(tx.id)}">
@@ -232,26 +253,48 @@ export function renderTransactions() {
   const container = document.getElementById("transactionsTableBody");
   if (!container) return;
 
-  const txs = state.transactions || [];
+  let txs = state.transactions || [];
+  const role = getCurrentRoleLevel();
+  const currentUser = state.currentUser || (typeof window !== "undefined" && window.currentUser);
+
+  // L1 (Teacher): Can only see their own transactions
+  if (role === 'L1' && currentUser) {
+    txs = txs.filter(t => isUserOwnTransaction(t, currentUser));
+  }
+
   if (txs.length === 0) {
     container.innerHTML = `
       <tr>
         <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8;">
-          ยังไม่มีประวัติการยืม-คืนพัสดุหรือเบิกสารเคมี
+          ${role === 'L1' ? 'ยังไม่มีประวัติการทำรายการยืม-คืนของคุณ' : 'ยังไม่มีประวัติการยืม-คืนพัสดุหรือเบิกสารเคมี'}
         </td>
       </tr>
     `;
     return;
   }
 
-  const role = getCurrentRoleLevel();
-  const canManageReturns = (role === 'L2' || role === 'L3' || role === 'L4');
+  const isL3L4 = (role === 'L3' || role === 'L4');
   const now = new Date();
 
   container.innerHTML = txs.map(t => {
     const isReturned = (t.status === 'returned');
     const due = t.dueDate || t.expectedReturnDate;
     const isOverdue = !isReturned && due && (new Date(due) < now);
+
+    // Permission check for return action:
+    // L0: Cannot return (overview only)
+    // L1: Can return own borrowed items
+    // L2: Can return if item room matches assigned rooms
+    // L3 & L4: Can return all
+    let canManageReturns = false;
+    if (role === 'L3' || role === 'L4') {
+      canManageReturns = true;
+    } else if (role === 'L2') {
+      const assigned = (currentUser && Array.isArray(currentUser.assignedRooms)) ? currentUser.assignedRooms : [];
+      canManageReturns = assigned.length > 0 && (!t.room || assigned.some(ar => String(t.room).toLowerCase().includes(String(ar).toLowerCase())));
+    } else if (role === 'L1') {
+      canManageReturns = isUserOwnTransaction(t, currentUser);
+    }
 
     let statusBadge = `<span class="status-badge status-warning">🟡 กำลังยืม</span>`;
     if (isReturned) {
@@ -263,7 +306,7 @@ export function renderTransactions() {
 
     return `
       <tr>
-        <td style="font-family: monospace; font-size: 12px; color: #6366f1; font-weight: 700;">${escapeHtml(t.id)}</td>
+        <td style="font-family: monospace; font-size: 12px; color: #6366f1; font-weight: 700;">${isL3L4 ? escapeHtml(t.id) : '-'}</td>
         <td style="font-weight: 600; color: #1e293b;">
           ${escapeHtml(t.itemName)}
           <span style="display: block; font-size: 11px; color: #64748b; font-family: monospace;">${escapeHtml(t.itemCode)}</span>
@@ -281,7 +324,7 @@ export function renderTransactions() {
         <td>
           ${!isReturned && canManageReturns ? `
             <button class="btn btn-sm" onclick="window.openReturnModal('${escapeHtml(t.id)}')" style="padding: 5px 12px; background: #059669; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
-              รับคืน
+              คืนพัสดุ
             </button>
           ` : (isReturned ? `<span style="font-size: 11px; color: #64748b;">${formatDate(t.returnDate)}</span>` : '-')}
         </td>

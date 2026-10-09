@@ -127,7 +127,7 @@ export function openReceivingModal(poId) {
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
         <div class="modal-header" style="background: linear-gradient(135deg, #4338ca 0%, #312e81 100%); color: white; padding: 18px 24px;">
           <h3 style="margin: 0; font-size: 16px; font-weight: 700;">📥 ตรวจรับพัสดุเข้าคลัง (Goods Receiving & Stock In)</h3>
-          <button type="button" class="btn-close-modal" onclick="window.closeReceivingModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer;">✕</button>
+          <button type="button" class="btn-close-modal" onclick="window.closeReceivingModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <form id="formReceiveGoods" onsubmit="window.submitReceiveGoods(event)" style="padding: 20px;">
           <input type="hidden" name="poId" value="${escapeHtml(po.id)}">

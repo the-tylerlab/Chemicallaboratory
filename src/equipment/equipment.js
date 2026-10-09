@@ -132,7 +132,7 @@ export async function openEquipmentModal(code) {
             <h3 style="margin: 4px 0 0 0; font-size: 18px; font-weight: 700; color: #fff;">${escapeHtml(asset.name)}</h3>
             <span style="font-family: monospace; font-size: 12px; color: #a5b4fc;">Code: ${escapeHtml(asset.code)} | Asset ID: ${escapeHtml(asset.assetId)}</span>
           </div>
-          <button type="button" class="btn-close-modal" onclick="window.closeEquipmentModal()" style="background: rgba(255,255,255,0.15); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;">✕</button>
+          <button type="button" class="btn-close-modal" onclick="window.closeEquipmentModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
 
         <div class="modal-body" style="padding: 24px; max-height: 75vh; overflow-y: auto;">
@@ -238,7 +238,7 @@ export function openRepairModal(itemCode, itemName) {
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
         <div class="modal-header" style="background: #b91c1c; color: white; padding: 18px 24px;">
           <h3 style="margin: 0; font-size: 16px; font-weight: 700;">⚠️ แจ้งเครื่องมือชำรุด / ส่งซ่อม (Report Repair)</h3>
-          <button type="button" class="btn-close-modal" onclick="window.closeRepairModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer;">✕</button>
+          <button type="button" class="btn-close-modal" onclick="window.closeRepairModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <form id="formEquipmentRepair" onsubmit="window.submitEquipmentRepair(event)" style="padding: 20px;">
           <input type="hidden" name="itemCode" value="${escapeHtml(itemCode)}">
@@ -323,7 +323,7 @@ export function openMaintenanceModal(itemCode, assetId) {
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
         <div class="modal-header" style="background: #2563eb; color: white; padding: 18px 24px;">
           <h3 style="margin: 0; font-size: 16px; font-weight: 700;">🔧 บันทึกการบำรุงรักษา / สอบเทียบ (Maintenance & Calibration)</h3>
-          <button type="button" class="btn-close-modal" onclick="window.closeMaintenanceModal()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; cursor: pointer;">✕</button>
+          <button type="button" class="btn-close-modal" onclick="window.closeMaintenanceModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <form id="formEquipmentMaint" onsubmit="window.submitEquipmentMaintenance(event)" style="padding: 20px;">
           <input type="hidden" name="itemCode" value="${escapeHtml(itemCode)}">

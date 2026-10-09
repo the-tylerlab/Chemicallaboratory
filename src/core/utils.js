@@ -204,6 +204,68 @@ export function getRoleColor(role) {
   return map[role] || '#64748b';
 }
 
+// Ownership check helper for transactions
+export function isUserOwnTransaction(tx, user) {
+  if (!tx || !user) return false;
+  // Match borrower name
+  if (tx.borrower && user.name) {
+    const tBorrower = String(tx.borrower).trim().toLowerCase();
+    const uName = String(user.name).trim().toLowerCase();
+    if (tBorrower === uName || tBorrower.includes(uName) || uName.includes(tBorrower)) return true;
+  }
+  // Match teacherId
+  const uTeacherId = String(user.teacherId || user.teacher_id || user.id || '').trim().toLowerCase();
+  if (uTeacherId) {
+    if (tx.teacherId && String(tx.teacherId).trim().toLowerCase() === uTeacherId) return true;
+    if (tx.teacher_id && String(tx.teacher_id).trim().toLowerCase() === uTeacherId) return true;
+    if (tx.userId && String(tx.userId).trim().toLowerCase() === uTeacherId) return true;
+    if (tx.user_id && String(tx.user_id).trim().toLowerCase() === uTeacherId) return true;
+  }
+  // Match user id
+  const uId = String(user.id || '').trim().toLowerCase();
+  if (uId) {
+    if (tx.userId && String(tx.userId).trim().toLowerCase() === uId) return true;
+    if (tx.user_id && String(tx.user_id).trim().toLowerCase() === uId) return true;
+  }
+  // Match email
+  if (user.email) {
+    const uEmail = String(user.email).trim().toLowerCase();
+    if (tx.email && String(tx.email).trim().toLowerCase() === uEmail) return true;
+    if (tx.userEmail && String(tx.userEmail).trim().toLowerCase() === uEmail) return true;
+  }
+  // Match supervising teacher
+  if (tx.supervisingTeacher && user.name) {
+    const sTeacher = String(tx.supervisingTeacher).trim().toLowerCase();
+    const uName = String(user.name).trim().toLowerCase();
+    if (sTeacher === uName || sTeacher.includes(uName) || uName.includes(sTeacher)) return true;
+  }
+  return false;
+}
+
+// Ownership check helper for bookings
+export function isUserOwnBooking(bk, user) {
+  if (!bk || !user) return false;
+  if (bk.bookerName && user.name) {
+    const bName = String(bk.bookerName).trim().toLowerCase();
+    const uName = String(user.name).trim().toLowerCase();
+    if (bName === uName || bName.includes(uName) || uName.includes(bName)) return true;
+  }
+  if (bk.teacherName && user.name) {
+    const tName = String(bk.teacherName).trim().toLowerCase();
+    const uName = String(user.name).trim().toLowerCase();
+    if (tName === uName || tName.includes(uName) || uName.includes(tName)) return true;
+  }
+  const uTeacherId = String(user.teacherId || user.teacher_id || user.id || '').trim().toLowerCase();
+  if (uTeacherId) {
+    if (bk.teacherId && String(bk.teacherId).trim().toLowerCase() === uTeacherId) return true;
+    if (bk.teacher_id && String(bk.teacher_id).trim().toLowerCase() === uTeacherId) return true;
+    if (bk.userId && String(bk.userId).trim().toLowerCase() === uTeacherId) return true;
+  }
+  const uId = String(user.id || '').trim().toLowerCase();
+  if (uId && bk.userId && String(bk.userId).trim().toLowerCase() === uId) return true;
+  return false;
+}
+
 // Mount to window for global backwards compatibility
 if (typeof window !== 'undefined') {
   window.formatCurrency = formatCurrency;
@@ -213,4 +275,7 @@ if (typeof window !== 'undefined') {
   window.calculateUserInitials = calculateUserInitials;
   window.normalizeRoomIdentifier = normalizeRoomIdentifier;
   window.isRoomMatching = isRoomMatching;
+  window.isUserOwnTransaction = isUserOwnTransaction;
+  window.isUserOwnBooking = isUserOwnBooking;
 }
+
