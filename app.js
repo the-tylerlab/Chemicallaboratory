@@ -17887,6 +17887,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // Remove active class from all items
       adminMenuItems.forEach(menuItem => menuItem.classList.remove("active"));
       item.classList.add("active");
+      if (typeof item.scrollIntoView === "function") {
+        item.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      }
 
       // Hide all tabs
       adminTabs.forEach(tab => tab.style.display = "none");
