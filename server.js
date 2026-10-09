@@ -907,6 +907,12 @@ function writeAnnouncements(settings) {
       updatedAt: new Date().toISOString()
     };
     fs.writeFileSync(ANNOUNCEMENTS_FILE, JSON.stringify(dataToSave, null, 2), 'utf-8');
+    if (supabase) {
+      supabase.from('system').upsert({
+        key: 'lab_announcement_settings',
+        value: settings
+      }).catch(err => console.log('Supabase announcement write note:', err.message));
+    }
     return true;
   } catch (err) {
     return false;

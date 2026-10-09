@@ -17244,3 +17244,15 @@ select.admin-filter-select:focus {
     gap: 10px;
   }
 }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-spinner-inline {
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
