@@ -1,115 +1,121 @@
-/* Cabinet card inset, grouping, and surface polish.
-   Loaded after style.css to ensure precise proportions and clean layout. */
+/* ==========================================================================
+   SHECU STORAGE CABINET CARD (Apple Widget / Reminders Redesign)
+   ========================================================================== */
 
 .cabinet-card {
-  --cabinet-inset: 14px;
-  --cabinet-inset-tight: 8px;
-  --cabinet-radius: 14px;
-  --cabinet-inner-radius: 8px;
-  padding: 0;
-  gap: 0;
-  min-width: 0;
-  overflow: hidden;
+  --cabinet-radius: 22px;
+  --cabinet-sheet-radius: 18px;
+  
+  position: relative;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   border-radius: var(--cabinet-radius);
-  border: 1.5px solid #cbd5e1;
-  background-color: #ffffff;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.03);
-  position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.15s ease;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 55%, #fde68a 100%);
+  color: #451a03;
+  box-shadow: 0 16px 32px -8px rgba(245, 158, 11, 0.22), 0 4px 12px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  min-width: 0;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .cabinet-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3.5px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
-  z-index: 2;
-}
-
-.cabinet-card.emergency-type::before {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
-}
-
-.cabinet-card.has-incompatible::before {
-  background: linear-gradient(90deg, #ef4444, #f43f5e);
+  display: none;
 }
 
 .cabinet-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.09), 0 0 0 1px rgba(99, 102, 241, 0.18);
-  border-color: #94a3b8;
+  transform: translateY(-3px);
+  box-shadow: 0 22px 40px -10px rgba(245, 158, 11, 0.28), 0 8px 18px rgba(15, 23, 42, 0.06);
 }
 
-/* Header - Compact & Balanced Proportions */
+/* Glassware Cabinet Variation */
+.cabinet-card.glassware-type {
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 55%, #bae6fd 100%);
+  border-color: rgba(56, 189, 248, 0.4);
+  color: #0c4a6e;
+  box-shadow: 0 16px 32px -8px rgba(2, 132, 199, 0.22), 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+.cabinet-card.glassware-type:hover {
+  box-shadow: 0 22px 40px -10px rgba(2, 132, 199, 0.28), 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* Emergency Cabinet Variation */
+.cabinet-card.emergency-type {
+  background: linear-gradient(135deg, #ea580c 0%, #f97316 55%, #fed7aa 100%);
+  border-color: rgba(249, 115, 22, 0.4);
+  color: #431407;
+  box-shadow: 0 16px 32px -8px rgba(234, 88, 12, 0.22), 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+.cabinet-card.emergency-type:hover {
+  box-shadow: 0 22px 40px -10px rgba(234, 88, 12, 0.28), 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* Incompatible Warning Cabinet Variation */
+.cabinet-card.has-incompatible {
+  background: linear-gradient(135deg, #e11d48 0%, #f43f5e 55%, #fecdd3 100%);
+  border-color: rgba(244, 63, 94, 0.4);
+  color: #4c0519;
+  box-shadow: 0 16px 32px -8px rgba(225, 29, 72, 0.25), 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+.cabinet-card.has-incompatible:hover {
+  box-shadow: 0 22px 40px -10px rgba(225, 29, 72, 0.32), 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+/* Hidden Cabinet State */
+.cabinet-card.is-hidden-cabinet {
+  opacity: 0.78;
+  filter: grayscale(0.2);
+}
+
+/* Header Area - Top Half of Widget */
 .cabinet-card .cabinet-header {
-  padding: 11px 14px 9px;
+  padding: 16px 18px 24px 18px;
+  background: transparent !important;
+  border-bottom: none !important;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.cabinet-card.emergency-type .cabinet-header {
-  background: linear-gradient(180deg, #fffdf5 0%, #fffbeb 100%);
+  gap: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .cabinet-header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
 }
 
 .cabinet-title-lockup {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
   min-width: 0;
 }
 
 .cabinet-avatar-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  color: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: transform 0.2s ease;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-.cabinet-avatar-icon.chemical {
-  background: #f3e8ff;
-  border: 1px solid #ddd6fe;
-  color: #7c3aed;
-}
-
-.cabinet-avatar-icon.glassware {
-  background: #e0f2fe;
-  border: 1px solid #bae6fd;
-  color: #0284c7;
-}
-
-.cabinet-avatar-icon.emergency {
-  background: #fef3c7;
-  border: 1px solid #fde68a;
-  color: #d97706;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .cabinet-avatar-icon svg,
 .cabinet-avatar-icon i {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
 }
 
 .cabinet-text-info {
@@ -120,60 +126,154 @@
 }
 
 .cabinet-title-text {
-  margin: 0;
-  font-size: 14.5px;
+  font-size: 16.5px;
   font-weight: 700;
   line-height: 1.25;
-  color: #0f172a;
+  color: inherit;
+  letter-spacing: -0.01em;
+  margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .cabinet-subtitle-text {
-  margin: 0;
   font-size: 11.5px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.2;
-  color: #64748b;
+  color: inherit;
+  opacity: 0.85;
+  margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cabinet-header-top .shecu-status-chip {
-  flex-shrink: 0;
+/* Translucent Frosted Glass Status Pill Button */
+.shecu-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
-  padding: 3px 9px;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  color: inherit;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
+.shecu-status-chip.safe {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+.shecu-status-chip.warning {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+.shecu-status-chip.emergency {
+  background: rgba(255, 255, 255, 0.65);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+
+/* Warning Banner Inside Header */
 .cabinet-warning-banner {
   margin-top: 4px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #fff1f2 0%, #fff5f5 100%);
-  border: 1px solid #fecdd3;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  color: #881337;
+  transition: all 0.18s ease;
 }
 
 .cabinet-warning-banner:hover {
-  background: #ffe4e6;
-  border-color: #fda4af;
+  background: rgba(255, 255, 255, 0.75);
+  transform: translateY(-1px);
 }
 
-/* Shelves Section - Physical Shelf Plate Effect */
-.cabinet-shelves {
-  padding: 8px 10px;
+/* Overlapping Apple Card Inner Sheet */
+.cabinet-body-sheet {
+  background-color: #fdfbf7;
+  border-radius: var(--cabinet-sheet-radius) var(--cabinet-sheet-radius) calc(var(--cabinet-radius) - 2px) calc(var(--cabinet-radius) - 2px);
+  margin-top: -12px;
+  padding: 14px 13px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
   flex: 1;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.025);
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.cabinet-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+  padding: 0 2px;
+}
+
+.cabinet-sheet-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #291e07;
+  margin: 0;
+  letter-spacing: -0.015em;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'IBM Plex Sans Thai', sans-serif;
+}
+
+.cabinet-sheet-fab {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid #eae2d5;
+  box-shadow: 0 3px 10px rgba(69, 26, 3, 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #451a03;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  flex-shrink: 0;
+}
+
+.cabinet-sheet-fab:hover {
+  transform: scale(1.08);
+  border-color: #f59e0b;
+  color: #d97706;
+  box-shadow: 0 5px 14px rgba(245, 158, 11, 0.2);
+}
+
+.cabinet-sheet-fab svg,
+.cabinet-sheet-fab i {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+}
+
+/* Shelves Section - Clean White Shelf Trays */
+.cabinet-shelves {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  background: transparent;
+  box-shadow: none;
 }
 
 .cabinet-shelf-item {
@@ -181,59 +281,58 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 9px 12px;
   min-width: 0;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-bottom: 2px solid #cbd5e1;
-  border-radius: 7px;
+  border: 1px solid #f1e9dd;
+  border-bottom: 1.5px solid #e7ded0;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(69, 26, 3, 0.02);
 }
 
 .cabinet-shelf-item:hover {
   background-color: #ffffff;
-  border-color: #a5b4fc;
-  border-bottom-color: #6366f1;
+  border-color: #f59e0b;
+  border-bottom-color: #d97706;
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(99, 102, 241, 0.08);
+  box-shadow: 0 5px 14px rgba(245, 158, 11, 0.12);
 }
 
 .shelf-label-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   min-width: 0;
 }
 
 .shelf-num-dot {
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
-  background-color: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #475569;
-  font-size: 10.5px;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  background-color: #f6f0e6;
+  border: 1.5px solid #e8dec8;
+  color: #451a03;
+  font-size: 11px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.18s ease;
   flex-shrink: 0;
 }
 
 .cabinet-shelf-item:hover .shelf-num-dot {
-  background-color: #ede9fe;
-  border-color: #c4b5fd;
-  color: #6d28d9;
+  background-color: #fef3c7;
+  border-color: #fde68a;
+  color: #b45309;
 }
 
 .shelf-title {
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: #334155;
+  color: #2d2314;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -242,38 +341,50 @@
 .shelf-action-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   flex-shrink: 0;
 }
 
 .shelf-count-tag {
   font-size: 10.5px;
-  padding: 2px 7.5px;
+  padding: 2.5px 8.5px;
   border-radius: 999px;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
 }
 
+.shelf-count-tag.empty {
+  background-color: #f5efe6;
+  border: 1px solid #e7ddce;
+  color: #8c7e6c;
+}
+
+.shelf-count-tag.has-items {
+  background-color: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #6d28d9;
+}
+
 .shelf-chevron-icon {
-  width: 13px;
-  height: 13px;
-  color: #94a3b8;
-  transition: transform 0.15s ease, color 0.15s ease;
+  width: 14px;
+  height: 14px;
+  color: #a39585;
+  transition: transform 0.18s ease, color 0.18s ease;
 }
 
 .cabinet-shelf-item:hover .shelf-chevron-icon {
   transform: translateX(2px);
-  color: #6366f1;
+  color: #d97706;
 }
 
-/* Card Footer - Clean Capacity Gauge & Meta */
+/* Card Footer - Inside Body Sheet */
 .cabinet-footer {
-  padding: 9px 12px 10px;
+  padding: 10px 2px 2px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  border-top: 1px solid #e2e8f0;
-  background-color: #fafbfc;
+  gap: 7px;
+  border-top: 1px dashed #ebdcc9;
+  background-color: transparent;
 }
 
 .cabinet-footer-meta {
@@ -296,13 +407,30 @@
   gap: 3.5px;
   font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 6.5px;
-  border-radius: 5px;
+  padding: 2.5px 7px;
+  border-radius: 6px;
+}
+
+.footer-chip.chem {
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.footer-chip.equip {
+  background-color: #f5efe6;
+  color: #5c5040;
+  border: 1px solid #e7ddce;
 }
 
 .footer-total-label {
   font-size: 11.5px;
-  color: #64748b;
+  color: #786c5c;
+  font-weight: 600;
+}
+
+.footer-total-label strong {
+  color: #291e07;
 }
 
 .cabinet-capacity-group {
@@ -318,19 +446,29 @@
   justify-content: space-between;
   align-items: center;
   font-size: 10.5px;
-  color: #64748b;
+  color: #786c5c;
+  font-weight: 500;
 }
 
 .capacity-bar-track {
   width: 100%;
-  background-color: #e2e8f0;
+  background-color: #eae2d5;
   border-radius: 999px;
-  height: 4px;
+  height: 5px;
   overflow: hidden;
 }
 
 .capacity-bar-fill {
   height: 100%;
   border-radius: 999px;
+  background: linear-gradient(90deg, #f59e0b, #d97706);
   transition: width 0.3s ease;
+}
+
+.capacity-bar-fill.warning {
+  background: linear-gradient(90deg, #f97316, #ea580c);
+}
+
+.capacity-bar-fill.danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
 }

@@ -17660,6 +17660,7 @@ function renderCabinetMap() {
 
       if (hasIncompat) card.classList.add('has-incompatible');
       if (isEmergency) card.classList.add('emergency-type');
+      if (isGlassware) card.classList.add('glassware-type');
 
       card.innerHTML += `
         ${editToolbarHtml}
@@ -17679,35 +17680,44 @@ function renderCabinetMap() {
           ${warningBannerHtml}
         </div>
 
-        <div class="cabinet-shelves">
-          ${shelvesHtml}
-        </div>
-
-        <div class="cabinet-footer">
-          <div class="cabinet-footer-meta">
-            <div class="footer-chips-group">
-              <span class="footer-chip chem"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> ${chemCount} สารเคมี</span>
-              <span class="footer-chip equip"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> ${equipCount} อุปกรณ์</span>
+        <div class="cabinet-body-sheet">
+          <div class="cabinet-sheet-header">
+            <h4 class="cabinet-sheet-title">รายการชั้นวาง</h4>
+            <div class="cabinet-sheet-fab" title="ดูรายละเอียดตู้" onclick="openCabinetDetails('${activeRoom}', '${cabName.replace(/'/g, "\\'")}')">
+              <i data-lucide="plus"></i>
             </div>
-            <span class="footer-total-label">รวม: <strong>${totalItems}</strong></span>
           </div>
 
-          <div class="cabinet-capacity-group">
-            <div class="capacity-text-row">
-              <span>ความจุ: <strong>${totalItems}</strong> / ${maxCap} (${fillPct}%)</span>
-              ${isAdminLoggedIn ? `
-                <div class="capacity-admin-actions">
-                  <button type="button" class="btn-cabinet-mini-action edit" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})">
-                    <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> แก้ไข
-                  </button>
-                  <button type="button" class="btn-cabinet-mini-action toggle ${isHidden ? 'unhide' : ''}" onclick="toggleCabinetVisibility('${activeRoom}', '${el.id}', ${!isHidden}, event)" title="${isHidden ? 'แสดงตู้นี้ให้ทุกคนเห็น' : 'ซ่อนตู้นี้จากผู้ใช้ทั่วไป'}">
-                    <i data-lucide="${isHidden ? 'eye' : 'eye-off'}" style="width: 12px; height: 12px;"></i> ${isHidden ? 'แสดงตู้' : 'ซ่อนตู้'}
-                  </button>
-                </div>
-              ` : ''}
+          <div class="cabinet-shelves">
+            ${shelvesHtml}
+          </div>
+
+          <div class="cabinet-footer">
+            <div class="cabinet-footer-meta">
+              <div class="footer-chips-group">
+                <span class="footer-chip chem"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> ${chemCount} สารเคมี</span>
+                <span class="footer-chip equip"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> ${equipCount} อุปกรณ์</span>
+              </div>
+              <span class="footer-total-label">รวม: <strong>${totalItems}</strong></span>
             </div>
-            <div class="capacity-bar-track">
-              <div class="capacity-bar-fill ${fillClass}" style="width: ${fillPct}%;"></div>
+
+            <div class="cabinet-capacity-group">
+              <div class="capacity-text-row">
+                <span>ความจุ: <strong>${totalItems}</strong> / ${maxCap} (${fillPct}%)</span>
+                ${isAdminLoggedIn ? `
+                  <div class="capacity-admin-actions">
+                    <button type="button" class="btn-cabinet-mini-action edit" onclick="editCabinetCapacity('${activeRoom}', '${el.id}', ${maxCap})">
+                      <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> แก้ไข
+                    </button>
+                    <button type="button" class="btn-cabinet-mini-action toggle ${isHidden ? 'unhide' : ''}" onclick="toggleCabinetVisibility('${activeRoom}', '${el.id}', ${!isHidden}, event)" title="${isHidden ? 'แสดงตู้นี้ให้ทุกคนเห็น' : 'ซ่อนตู้นี้จากผู้ใช้ทั่วไป'}">
+                      <i data-lucide="${isHidden ? 'eye' : 'eye-off'}" style="width: 12px; height: 12px;"></i> ${isHidden ? 'แสดงตู้' : 'ซ่อนตู้'}
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+              <div class="capacity-bar-track">
+                <div class="capacity-bar-fill ${fillClass}" style="width: ${fillPct}%;"></div>
+              </div>
             </div>
           </div>
         </div>
