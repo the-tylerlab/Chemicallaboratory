@@ -457,7 +457,7 @@ export function viewItemDetails(code) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
           <!-- Left Column: Master & Stock -->
           <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">📦 สต็อกและการจัดซื้อ</h4>
+            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;"><i data-lucide="package" class="inline-icon"></i> สต็อกและการจัดซื้อ</h4>
             <div style="font-size: 13px; line-height: 1.8;">
               <div><strong>คงเหลือปัจจุบัน:</strong> <span style="font-size: 16px; font-weight: 700; color: #0284c7;">${q} ${escapeHtml(item.unit || 'ชิ้น')}</span></div>
               <div><strong>เกณฑ์เตือนขั้นต่ำ (Min Stock):</strong> ${minStock} ${escapeHtml(item.unit || 'ชิ้น')}</div>
@@ -472,7 +472,7 @@ export function viewItemDetails(code) {
 
           <!-- Right Column: Location & Safety -->
           <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;">📍 ตำแหน่งและความปลอดภัย</h4>
+            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;"><i data-lucide="map-pin" class="inline-icon"></i> ตำแหน่งและความปลอดภัย</h4>
             <div style="font-size: 13px; line-height: 1.8;">
               <div><strong>ห้องปฏิบัติการ:</strong> ${escapeHtml(item.room || '-')}</div>
               <div><strong>ตู้จัดเก็บ:</strong> ${escapeHtml(item.cabinet || '-')}</div>
@@ -533,7 +533,7 @@ export async function openStockMovementsModal(code) {
     <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <div>
-          <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">📦 ประวัติการเคลื่อนไหวสต็อก (Stock Movement History)</h3>
+          <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;"><i data-lucide="history" class="inline-icon"></i> ประวัติการเคลื่อนไหวสต็อก (Stock Movement History)</h3>
           <div style="font-size: 13px; color: #64748b; margin-top: 2px;">${escapeHtml(item.name)} (${escapeHtml(item.code)})</div>
         </div>
         <button onclick="document.getElementById('stockMovementsModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
@@ -689,7 +689,7 @@ export function openStockAdjustmentModal(code) {
   modal.innerHTML = `
     <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 540px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">⚖️ ขอปรับปรุงยอดคงคลัง (Stock Adjustment)</h3>
+        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;"><i data-lucide="scale" class="inline-icon"></i> ขอปรับปรุงยอดคงคลัง (Stock Adjustment)</h3>
         <button onclick="document.getElementById('stockAdjustmentModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
       </div>
 
@@ -780,7 +780,7 @@ export async function openQRCodeModal(code) {
   modal.innerHTML = `
     <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 440px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">🏷️ ป้ายรหัสประจำสารเคมี / ครุภัณฑ์</h3>
+        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;"><i data-lucide="tag" class="inline-icon"></i> ป้ายรหัสประจำสารเคมี / ครุภัณฑ์</h3>
         <button onclick="document.getElementById('qrAssetModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
       </div>
 
@@ -859,7 +859,7 @@ export function openCompatibilityCheckerModal() {
   modal.innerHTML = `
     <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 580px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">🛡️ ตรวจสอบความเข้ากันได้ของสารเคมี (Safety Matrix)</h3>
+        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;"><i data-lucide="shield-check" class="inline-icon"></i> ตรวจสอบความเข้ากันได้ของสารเคมี (Safety Matrix)</h3>
         <button onclick="document.getElementById('compatibilityModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
       </div>
 
@@ -927,7 +927,7 @@ export async function runLiveCompatibilityCheck() {
 
     container.innerHTML = `
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-        <span style="font-size: 18px;">${isSafe ? '✅' : (isExtreme ? '🚨' : '⚠️')}</span>
+        <span style="font-size: 18px;">${isSafe ? '<i data-lucide="check-circle-2" style="width: 20px; height: 20px; color: #166534;"></i>' : (isExtreme ? '<i data-lucide="alert-octagon" style="width: 20px; height: 20px; color: #991b1b;"></i>' : '<i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: #92400e;"></i>')}</span>
         <strong style="font-size: 14px; color: ${isSafe ? '#166534' : (isExtreme ? '#991b1b' : '#92400e')};">
           ${isSafe ? 'เข้ากันได้ (Compatible)' : 'เข้ากันไม่ได้ - เสี่ยงอันตราย (Incompatible)'}
         </strong>

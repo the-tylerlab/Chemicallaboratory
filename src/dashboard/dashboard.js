@@ -182,7 +182,7 @@ export async function updateDashboardMetrics() {
 
   if (urgentContainer) {
     if (urgentItems.length === 0) {
-      urgentContainer.innerHTML = `<div style="text-align: center; padding: 16px; color: #10b981; font-size: 13px;">✅ สต็อกพัสดุและสารเคมีทุกรายการอยู่ในระดับปลอดภัย</div>`;
+      urgentContainer.innerHTML = `<div style="text-align: center; padding: 16px; color: #10b981; font-size: 13px;"><i data-lucide="check-circle-2" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px;"></i>สต็อกพัสดุและสารเคมีทุกรายการอยู่ในระดับปลอดภัย</div>`;
     } else {
       urgentContainer.innerHTML = urgentItems.slice(0, 5).map(it => {
         const isExp = it.expiry && new Date(it.expiry) < today;
@@ -290,7 +290,7 @@ export async function updateDashboardMetrics() {
     roleContainer.innerHTML = `
       <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e2e8f0;">
         <h2 style="font-size: 18px; font-weight: 800; color: #1e1b4b; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-          <span>👨‍🏫 แดชบอร์ดเฉพาะครูผู้สอน (Teacher View)</span>
+          <span><i data-lucide="graduation-cap" class="inline-icon"></i> แดชบอร์ดเฉพาะครูผู้สอน (Teacher View)</span>
         </h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px;">
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
@@ -312,7 +312,7 @@ export async function updateDashboardMetrics() {
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
           <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0;">
-            <h3 style="margin: 0 0 14px 0; font-size: 15px; font-weight: 700; color: #1e1b4b;">📅 ห้องปฏิบัติการของฉัน (${myBookings.length})</h3>
+            <h3 style="margin: 0 0 14px 0; font-size: 15px; font-weight: 700; color: #1e1b4b;"><i data-lucide="calendar" class="inline-icon"></i> ห้องปฏิบัติการของฉัน (${myBookings.length})</h3>
             ${myBookings.length === 0 ? `
               <div style="text-align: center; padding: 24px; color: #94a3b8; font-size: 13px;">ยังไม่มีรายการจองห้องปฏิบัติการ</div>
             ` : myBookings.slice(0, 5).map(b => `
@@ -329,7 +329,7 @@ export async function updateDashboardMetrics() {
           </div>
 
           <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0;">
-            <h3 style="margin: 0 0 14px 0; font-size: 15px; font-weight: 700; color: #1e1b4b;">📦 พัสดุและสารเคมีที่ฉันยืม (${myLoans.length})</h3>
+            <h3 style="margin: 0 0 14px 0; font-size: 15px; font-weight: 700; color: #1e1b4b;"><i data-lucide="package" class="inline-icon"></i> พัสดุและสารเคมีที่ฉันยืม (${myLoans.length})</h3>
             ${myLoans.length === 0 ? `
               <div style="text-align: center; padding: 24px; color: #94a3b8; font-size: 13px;">ไม่มีพัสดุค้างส่งคืน</div>
             ` : myLoans.slice(0, 5).map(t => `
@@ -357,7 +357,7 @@ export async function updateDashboardMetrics() {
     roleContainer.innerHTML = `
       <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e2e8f0;">
         <h2 style="font-size: 18px; font-weight: 800; color: #065f46; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-          <span>🧑‍🔬 แดชบอร์ดเจ้าหน้าที่แล็บ (Staff Operations)</span>
+          <span><i data-lucide="flask-conical" class="inline-icon"></i> แดชบอร์ดเจ้าหน้าที่แล็บ (Staff Operations)</span>
         </h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px;">
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #fca5a5; background: #fff5f5;">
@@ -378,12 +378,12 @@ export async function updateDashboardMetrics() {
         </div>
 
         <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0;">
-          <h3 style="margin: 0 0 14px 0; font-size: 15px; font-weight: 700; color: #0f172a;">📋 งานจัดเตรียมแล็บวันนี้ (Today's Preparation)</h3>
+          <h3 style="margin: 0 0 14px 0; font-size: 15px; font-weight: 700; color: #0f172a;"><i data-lucide="clipboard-list" class="inline-icon"></i> งานจัดเตรียมแล็บวันนี้ (Today's Preparation)</h3>
           ${todayPreps.length === 0 ? `
             <div style="text-align: center; padding: 24px; color: #94a3b8; font-size: 13px;">ไม่มีคลาสแล็บวันนี้</div>
           ` : todayPreps.map(p => `
             <div style="border-bottom: 1px solid #f1f5f9; padding: 10px 0;">
-              <div style="font-weight: 700; color: #1e1b4b;">🔬 ${escapeHtml(p.room)} (${p.timeSlot || p.slot})</div>
+              <div style="font-weight: 700; color: #1e1b4b;"><i data-lucide="microscope" class="inline-icon"></i> ${escapeHtml(p.room)} (${p.timeSlot || p.slot})</div>
               <div style="font-size: 12px; color: #475569; margin-top: 2px;">
                 การทดลอง: <strong>${escapeHtml(p.experimentName || p.purpose)}</strong> | ครู: ${escapeHtml(p.teacherName)}
               </div>
@@ -402,7 +402,7 @@ export async function updateDashboardMetrics() {
     roleContainer.innerHTML = `
       <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e2e8f0;">
         <h2 style="font-size: 18px; font-weight: 800; color: #92400e; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-          <span>🛡️ แดชบอร์ดผู้ดูแลระบบ (Admin Console)</span>
+          <span><i data-lucide="shield" class="inline-icon"></i> แดชบอร์ดผู้ดูแลระบบ (Admin Console)</span>
         </h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px;">
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">
@@ -431,7 +431,7 @@ export async function updateDashboardMetrics() {
   roleContainer.innerHTML = `
     <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e2e8f0;">
       <h2 style="font-size: 18px; font-weight: 800; color: #581c87; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-        <span>👔 แดชบอร์ดผู้บริหาร (Executive Insights)</span>
+        <span><i data-lucide="briefcase" class="inline-icon"></i> แดชบอร์ดผู้บริหาร (Executive Insights)</span>
       </h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px;">
         <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">

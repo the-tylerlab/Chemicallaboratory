@@ -50,7 +50,7 @@ export {
 
 // Application Initialization
 export async function initApp() {
-  console.log("🚀 SciPortal Laboratory Management System initializing (Modular Architecture)...");
+  console.log("[SciPortal] Laboratory Management System initializing (Modular Architecture)...");
 
   // 1. Setup UI & Event Handlers
   loginModal.setupLoginHandlers();
@@ -95,7 +95,7 @@ export async function initApp() {
     setTimeout(() => { if (sk && sk.parentNode) sk.remove(); }, 350);
   }
 
-  console.log("✅ SciPortal initialized successfully in Modular Mode.");
+  console.log("[SciPortal] SciPortal initialized successfully in Modular Mode.");
 }
 
 // Auto-boot on DOM ready

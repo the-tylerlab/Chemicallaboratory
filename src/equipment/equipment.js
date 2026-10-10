@@ -117,10 +117,10 @@ export async function openEquipmentModal(code) {
     document.body.appendChild(modal);
   }
 
-  const conditionBadge = asset.condition === 'good' ? '<span class="status-badge status-good">🟢 พร้อมใช้งาน (Good)</span>' :
-                         asset.condition === 'under_repair' ? '<span class="status-badge status-warning">🟠 อยู่ระหว่างส่งซ่อม (Under Repair)</span>' :
-                         asset.condition === 'damaged' ? '<span class="status-badge status-danger">🔴 ชำรุด (Damaged)</span>' :
-                         '<span class="status-badge status-secondary">⚪ ปลดระวาง (Decommissioned)</span>';
+  const conditionBadge = asset.condition === 'good' ? '<span class="status-badge status-good"><i data-lucide="check-circle-2" class="badge-icon"></i> พร้อมใช้งาน (Good)</span>' :
+                         asset.condition === 'under_repair' ? '<span class="status-badge status-warning"><i data-lucide="wrench" class="badge-icon"></i> อยู่ระหว่างส่งซ่อม (Under Repair)</span>' :
+                         asset.condition === 'damaged' ? '<span class="status-badge status-danger"><i data-lucide="alert-triangle" class="badge-icon"></i> ชำรุด (Damaged)</span>' :
+                         '<span class="status-badge status-secondary"><i data-lucide="archive" class="badge-icon"></i> ปลดระวาง (Decommissioned)</span>';
 
   modal.innerHTML = `
     <div class="modal-overlay" onclick="window.closeEquipmentModal()"></div>
@@ -152,14 +152,14 @@ export async function openEquipmentModal(code) {
             </div>
             <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px;">
               <span style="font-size: 11px; color: #64748b;">วันหมดอายุประกัน (Warranty)</span>
-              <div style="font-weight: 600; color: #059669; margin-top: 4px;">📅 ${formatDate(asset.warrantyExpiry)}</div>
+              <div style="font-weight: 600; color: #059669; margin-top: 4px;"><i data-lucide="calendar" class="inline-icon"></i> ${formatDate(asset.warrantyExpiry)}</div>
             </div>
           </div>
 
           <!-- Calibration & Maintenance Tracking -->
           <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
             <h4 style="margin: 0 0 10px 0; font-size: 13px; color: #1e3a8a; display: flex; align-items: center; gap: 6px;">
-              <span>🛠️ การสอบเทียบและการบำรุงรักษา (Calibration & Service)</span>
+              <span><i data-lucide="wrench" class="inline-icon"></i> การสอบเทียบและการบำรุงรักษา (Calibration & Service)</span>
             </h4>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px; color: #1e40af;">
               <div>รอบบำรุงรักษาถัดไป: <strong>${formatDate(asset.nextMaintenanceDate)}</strong></div>
@@ -189,7 +189,7 @@ export async function openEquipmentModal(code) {
                     <td style="padding: 8px;">${formatDate(h.borrowDate)}</td>
                     <td style="padding: 8px; font-weight: 500;">${escapeHtml(h.borrower || '-')}</td>
                     <td style="padding: 8px;">${h.returnDate ? formatDate(h.returnDate) : '<span style="color: #f59e0b;">ยังไม่ส่งคืน</span>'}</td>
-                    <td style="padding: 8px;">${h.status === 'returned' ? '🟢 ส่งคืนแล้ว' : '🟡 ใช้งานอยู่'}</td>
+                    <td style="padding: 8px;">${h.status === 'returned' ? '<span style="color: #10b981;"><i data-lucide="check-circle-2" class="inline-icon"></i> ส่งคืนแล้ว</span>' : '<span style="color: #f59e0b;"><i data-lucide="clock" class="inline-icon"></i> ใช้งานอยู่</span>'}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -199,14 +199,14 @@ export async function openEquipmentModal(code) {
 
         <div class="modal-footer" style="padding: 14px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
           <button type="button" class="btn" onclick="window.openEquipmentQRModal('${asset.code}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
-            🖨️ พิมพ์ฉลาก QR Code
+            <i data-lucide="printer" class="inline-icon"></i> พิมพ์ฉลาก QR Code
           </button>
           <div style="display: flex; gap: 8px;">
             <button type="button" class="btn" onclick="window.openRepairModal('${asset.code}', '${escapeHtml(asset.name)}')" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
-              ⚠️ แจ้งเครื่องมือชำรุด/ส่งซ่อม
+              <i data-lucide="alert-triangle" class="inline-icon"></i> แจ้งเครื่องมือชำรุด/ส่งซ่อม
             </button>
             <button type="button" class="btn" onclick="window.openMaintenanceModal('${asset.code}', '${escapeHtml(asset.assetId)}')" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
-              🔧 บันทึกการบำรุงรักษา
+              <i data-lucide="wrench" class="inline-icon"></i> บันทึกการบำรุงรักษา
             </button>
           </div>
         </div>
@@ -237,7 +237,7 @@ export function openRepairModal(itemCode, itemName) {
     <div class="modal-dialog" style="max-width: 520px;">
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
         <div class="modal-header" style="background: #b91c1c; color: white; padding: 18px 24px;">
-          <h3 style="margin: 0; font-size: 16px; font-weight: 700;">⚠️ แจ้งเครื่องมือชำรุด / ส่งซ่อม (Report Repair)</h3>
+          <h3 style="margin: 0; font-size: 16px; font-weight: 700;"><i data-lucide="alert-triangle" class="inline-icon"></i> แจ้งเครื่องมือชำรุด / ส่งซ่อม (Report Repair)</h3>
           <button type="button" class="btn-close-modal" onclick="window.closeRepairModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <form id="formEquipmentRepair" onsubmit="window.submitEquipmentRepair(event)" style="padding: 20px;">
@@ -249,10 +249,10 @@ export function openRepairModal(itemCode, itemName) {
           <div style="margin-bottom: 12px;">
             <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">ระดับความเร่งด่วน</label>
             <select name="priority" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;">
-              <option value="medium">🟡 ปานกลาง (Medium)</option>
-              <option value="high">🔴 เร่งด่วน มีคลาสเรียนสัปดาห์นี้ (High)</option>
-              <option value="urgent">🚨 ฉุกเฉิน อุปกรณ์หลักเสียหาย (Urgent)</option>
-              <option value="low">🟢 ไม่เร่งด่วน (Low)</option>
+              <option value="medium">ปานกลาง (Medium)</option>
+              <option value="high">เร่งด่วน มีคลาสเรียนสัปดาห์นี้ (High)</option>
+              <option value="urgent">ฉุกเฉิน อุปกรณ์หลักเสียหาย (Urgent)</option>
+              <option value="low">ไม่เร่งด่วน (Low)</option>
             </select>
           </div>
           <div style="margin-bottom: 16px;">
@@ -322,7 +322,7 @@ export function openMaintenanceModal(itemCode, assetId) {
     <div class="modal-dialog" style="max-width: 520px;">
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
         <div class="modal-header" style="background: #2563eb; color: white; padding: 18px 24px;">
-          <h3 style="margin: 0; font-size: 16px; font-weight: 700;">🔧 บันทึกการบำรุงรักษา / สอบเทียบ (Maintenance & Calibration)</h3>
+          <h3 style="margin: 0; font-size: 16px; font-weight: 700;"><i data-lucide="wrench" class="inline-icon"></i> บันทึกการบำรุงรักษา / สอบเทียบ (Maintenance & Calibration)</h3>
           <button type="button" class="btn-close-modal" onclick="window.closeMaintenanceModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <form id="formEquipmentMaint" onsubmit="window.submitEquipmentMaintenance(event)" style="padding: 20px;">
@@ -443,7 +443,7 @@ export async function openEquipmentQRModal(code) {
           <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 4px;">${escapeHtml(data.summary.name)}</div>
           <div style="font-size: 11px; color: #64748b; margin-top: 4px;">ตำแหน่ง: ${escapeHtml(data.summary.location)}</div>
           <div style="display: flex; gap: 8px; justify-content: center; margin-top: 20px;">
-            <button type="button" onclick="window.print()" style="padding: 8px 16px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">🖨️ สั่งพิมพ์ฉลาก</button>
+            <button type="button" onclick="window.print()" style="padding: 8px 16px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"><i data-lucide="printer" class="inline-icon"></i> สั่งพิมพ์ฉลาก</button>
             <button type="button" onclick="window.closeEquipmentQRModal()" style="padding: 8px 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; cursor: pointer;">ปิด</button>
           </div>
         </div>
@@ -505,7 +505,7 @@ export function batchPrintQR() {
       <title>พิมพ์ฉลาก QR Code พัสดุและอุปกรณ์</title>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
       <style>
-        body { font-family: 'Sarabun', sans-serif; margin: 20px; color: #1e293b; }
+        body { font-family: 'IBM Plex Sans Thai', sans-serif; margin: 20px; color: #1e293b; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .label-card { border: 1px dashed #cbd5e1; padding: 12px; border-radius: 8px; text-align: center; page-break-inside: avoid; }
         .code { font-family: monospace; font-size: 13px; font-weight: bold; margin-top: 6px; color: #4338ca; }

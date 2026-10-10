@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ</title>
   
   <!-- Primary Meta Tags -->
@@ -93,7 +93,10 @@
   <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- Fonts are self-hosted in /fonts/ directory — no external request needed -->
+  <!-- Fonts: IBM Plex Sans Thai (Self-hosted in /fonts/ with Google Fonts fallback) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap">
 
   <!-- Preconnect to external CDNs for low-latency network handshake -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -105,6 +108,7 @@
 
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="style.css?v=20261009_settings_fix">
+  <link rel="stylesheet" href="cabinet-card.css?v=20261010_inset">
 
   <!-- Core Libraries (Optimized CDN paths & non-blocking defer) -->
   <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
@@ -202,7 +206,7 @@
       <nav class="sidebar-nav" style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; margin-bottom: 6px;">
         <ul class="sidebar-menu">
           <li>
-            <a href="#" class="menu-item-link active" data-target="dashboard">
+            <a href="#/dashboard" class="menu-item-link active" data-target="dashboard">
               <i data-lucide="home"></i>
               <span>หน้าแรก</span>
             </a>
@@ -211,20 +215,20 @@
           <div class="sidebar-section-title">คลังสารเคมีและพัสดุ</div>
           
           <li>
-            <a href="#" class="menu-item-link" data-target="all-items">
+            <a href="#/all-items" class="menu-item-link" data-target="all-items">
               <i data-lucide="box"></i>
               <span>รายการทั้งหมด</span>
             </a>
           </li>
           <li>
-            <a href="#" class="menu-item-link" data-target="cabinet-layout" id="menuItemShecuMap">
+            <a href="#/cabinet-layout" class="menu-item-link" data-target="cabinet-layout" id="menuItemShecuMap">
               <i data-lucide="layout-grid"></i>
               <span>ผังตู้ SHECU</span>
             </a>
           </li>
 
           <li id="menuItemAddItem" style="display: none;">
-            <a href="#" class="menu-item-link" data-target="add-item">
+            <a href="#/add-item" class="menu-item-link" data-target="add-item">
               <i data-lucide="plus-circle"></i>
               <span>เพิ่มรายการ</span>
             </a>
@@ -239,37 +243,37 @@
           <div class="sidebar-section-title">งานปฏิบัติการ</div>
           
           <li>
-            <a href="#" class="menu-item-link" data-target="lab-booking">
+            <a href="#/lab-booking" class="menu-item-link" data-target="lab-booking">
               <i data-lucide="calendar"></i>
               <span>จองห้องปฏิบัติการ</span>
             </a>
           </li>
           <li>
-            <a href="#" class="menu-item-link" data-target="borrow-return">
+            <a href="#/borrow-return" class="menu-item-link" data-target="borrow-return">
               <i data-lucide="arrow-left-right"></i>
               <span>ยืม-คืนพัสดุ</span>
             </a>
           </li>
           <li id="menuItemReports" style="display: none;">
-            <a href="#" class="menu-item-link" data-target="reports">
+            <a href="#/reports" class="menu-item-link" data-target="reports">
               <i data-lucide="pie-chart"></i>
               <span>รายงานและสถิติ</span>
             </a>
           </li>
           <li id="menuItemActivityLogs" style="display: none;">
-            <a href="#" class="menu-item-link" data-target="activity-logs">
+            <a href="#/activity-logs" class="menu-item-link" data-target="activity-logs">
               <i data-lucide="activity"></i>
               <span>ประวัติการใช้งาน</span>
             </a>
           </li>
           <li id="menuItemAdmin" style="display: none;">
-            <a href="#" class="menu-item-link" data-target="admin" title="แผงควบคุมระบบ (Admin Panel)">
+            <a href="#/admin" class="menu-item-link" data-target="admin" title="แผงควบคุมระบบ (Admin Panel)">
               <i data-lucide="shield-check"></i>
               <span>แผงควบคุมระบบ (Admin)</span>
             </a>
           </li>
           <li id="menuItemNotifications" style="display: none;">
-            <a href="#" class="menu-item-link" data-target="notifications">
+            <a href="#/notifications" class="menu-item-link" data-target="notifications">
               <i data-lucide="bell"></i>
               <span>การแจ้งเตือน</span>
               <span class="badge badge-red" id="alertSidebarCount" style="margin-left: auto; width: 22px; height: 22px; min-width: 22px; max-width: 22px; border-radius: 50%; aspect-ratio: 1 / 1; padding: 0; display: none; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; line-height: 1; flex: 0 0 22px; flex-shrink: 0;">0</span>
@@ -905,11 +909,11 @@
             <!-- Category Filter Dropdown Pill -->
             <div style="position: relative; display: inline-flex; align-items: center;">
               <select id="logActionFilter" onchange="filterActivityLogs()" style="appearance: none; -webkit-appearance: none; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg, 12px); padding: 0 34px 0 14px; font-size: 13px; font-weight: 500; color: #334155; cursor: pointer; outline: none; height: 42px; min-width: 190px; box-sizing: border-box; font-family: inherit; box-shadow: var(--shadow-sm); transition: border-color 0.2s, box-shadow 0.2s;">
-                <option value="all">📁 ทุกประเภทกิจกรรม</option>
-                <option value="inventory">🧪 จัดการพัสดุ/สารเคมี</option>
-                <option value="borrow">🔄 ยืม - คืนพัสดุ</option>
-                <option value="layout">🗺️ ผังห้องปฏิบัติการ</option>
-                <option value="feedback">💬 การแจ้งปัญหา</option>
+                <option value="all">ทุกประเภทกิจกรรม</option>
+                <option value="inventory">จัดการพัสดุ/สารเคมี</option>
+                <option value="borrow">ยืม - คืนพัสดุ</option>
+                <option value="layout">ผังห้องปฏิบัติการ</option>
+                <option value="feedback">การแจ้งปัญหา</option>
               </select>
               <i data-lucide="chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #94a3b8; pointer-events: none;"></i>
             </div>
@@ -943,7 +947,7 @@
           <!-- Table Footer / Row counter -->
           <div id="logTableFooter" style="padding: 12px 18px; background: #fafafa; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted);">
             <span id="logCountLabel">แสดง 0 รายการ</span>
-            <span>💡 ข้อมูลอัปเดตแบบเรียลไทม์ตามการทำงานในระบบ</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px;"><i data-lucide="lightbulb" style="width: 13px; height: 13px; color: #f59e0b;"></i> ข้อมูลอัปเดตแบบเรียลไทม์ตามการทำงานในระบบ</span>
           </div>
         </div>
       </section>
@@ -2496,8 +2500,8 @@
         </header>
 
         <!-- Layout Edit Toolbox -->
-        <div id="layoutEditToolbox" class="layout-toolbox" style="display: none; padding: 16px 20px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); margin-top: 16px; box-shadow: var(--shadow-sm);">
-          <div class="layout-edit-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div id="layoutEditToolbox" class="layout-toolbox" style="display: none; padding: 14px 18px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); margin-top: 12px; box-shadow: var(--shadow-sm);">
+          <div class="layout-edit-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
             <div style="display: flex; align-items: center; gap: 12px;">
               <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary-color); flex-shrink: 0;">
                 <i data-lucide="move" style="width: 18px; height: 18px;"></i>
@@ -2507,7 +2511,7 @@
                   โหมดแก้ไขและจัดเรียงแผนผัง
                 </div>
                 <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--text-muted);">
-                  💡 ลากการ์ดเพื่อสลับตำแหน่ง (Drag & Drop) หรือกดลูกศร ◀ ▶ ที่การ์ดเพื่อย้ายลำดับ และกด ✕ เพื่อลบรายการ
+                  <i data-lucide="lightbulb" style="width: 14px; height: 14px; color: #f59e0b; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> ลากการ์ดเพื่อสลับตำแหน่ง (Drag & Drop) หรือกดลูกศรซ้าย-ขวาที่การ์ดเพื่อย้ายลำดับ และกดปุ่มลบเพื่อลบรายการ
                 </p>
               </div>
             </div>
@@ -2529,7 +2533,7 @@
         </div>
 
         <!-- Laboratory Room Tabs -->
-        <div class="shecu-room-tabs-container" style="margin-top: 16px;">
+        <div class="shecu-room-tabs-container">
           <input type="hidden" id="cabinetMapRoomFilter" value="Lab 1">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
             <div style="font-size: 13px; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px;">
@@ -2546,9 +2550,9 @@
         </div>
 
         <!-- Filter & Search Bar -->
-        <div class="directory-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; background: white; padding: 12px 16px; border-radius: var(--border-radius-md); border: 1px solid var(--border-color);">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span id="shecuOverallStatusBadge" class="shecu-status-chip safe" style="font-size: 12.5px; padding: 6px 12px; cursor: default;">
+        <div class="directory-toolbar">
+          <div class="directory-toolbar-filters">
+            <span id="shecuOverallStatusBadge" class="shecu-status-chip safe" style="font-size: 12px; padding: 5px 12px; cursor: default;">
               <span class="status-dot-pulse safe"></span> มาตรฐาน SHECU: ปลอดภัยทุกตู้
             </span>
             <div class="category-pills" style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -2560,15 +2564,15 @@
               </span>
             </div>
           </div>
-          <div class="search-box" style="position: relative; width: 300px;">
+          <div class="search-box">
             <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"></i>
             <input type="text" id="cabinetSearchInput" oninput="searchCabinetMap(this.value)" class="input" placeholder="ค้นหาสารเคมีเพื่อดูตำแหน่งตู้..." style="width: 100%; padding-left: 32px; font-size: 13px;">
           </div>
         </div>
 
-        <div class="cabinet-layout-wrapper" id="cabinetMapGrid" style="margin-top: 24px;">
+        <div class="cabinet-layout-wrapper" id="cabinetMapGrid">
           <!-- Unified Grid: Storage Units & Workstations -->
-          <div class="shecu-unified-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; align-items: stretch;">
+          <div class="shecu-unified-grid">
             
             <!-- Cabinet A -->
             <div class="cabinet-card" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: white; overflow: hidden; display: flex; flex-direction: column;">
@@ -2579,7 +2583,7 @@
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">สารเคมีของเหลว</div>
                   </div>
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px;"></i> จัดเก็บปลอดภัย</span>
                     <div style="position: relative;" class="dropdown-wrapper">
                       <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-A', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
                         <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
@@ -2619,8 +2623,8 @@
               </div>
               <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
                 <div style="display: flex; gap: 12px;">
-                  <span>🧪 35 สารเคมี</span>
-                  <span>⚙️ 0 อุปกรณ์</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 35 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 0 อุปกรณ์</span>
                 </div>
                 <span style="font-weight: 500; color: #64748b;">ความจุ: 35/50</span>
               </div>
@@ -2668,8 +2672,8 @@
               </div>
               <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
                 <div style="display: flex; gap: 12px;">
-                  <span>🧪 12 สารเคมี</span>
-                  <span>⚙️ 0 อุปกรณ์</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 12 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 0 อุปกรณ์</span>
                 </div>
                 <span style="font-weight: 500; color: #64748b;">ความจุ: 12/30</span>
               </div>
@@ -2684,7 +2688,7 @@
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">เครื่องแก้ว</div>
                   </div>
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px;"></i> จัดเก็บปลอดภัย</span>
                     <div style="position: relative;" class="dropdown-wrapper">
                       <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-C', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
                         <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
@@ -2710,8 +2714,8 @@
               </div>
               <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
                 <div style="display: flex; gap: 12px;">
-                  <span>🧪 0 สารเคมี</span>
-                  <span>⚙️ 52 อุปกรณ์</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 0 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 52 อุปกรณ์</span>
                 </div>
                 <span style="font-weight: 500; color: #64748b;">ความจุ: 52/100</span>
               </div>
@@ -2726,7 +2730,7 @@
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">จุดปฏิบัติงาน</div>
                   </div>
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 พร้อมใช้งาน</span>
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px;"></i> พร้อมใช้งาน</span>
                     <div style="position: relative;" class="dropdown-wrapper">
                       <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-S1', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
                         <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
@@ -2752,8 +2756,8 @@
               </div>
               <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
                 <div style="display: flex; gap: 12px;">
-                  <span>🧪 0 สารเคมี</span>
-                  <span>⚙️ 1 อุปกรณ์</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 0 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 1 อุปกรณ์</span>
                 </div>
                 <span style="font-weight: 500; color: #64748b;">ความจุ: 1/2</span>
               </div>
@@ -2768,7 +2772,7 @@
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">พื้นที่ทั่วไป</div>
                   </div>
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 พร้อมใช้งาน</span>
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px;"></i> พร้อมใช้งาน</span>
                     <div style="position: relative;" class="dropdown-wrapper">
                       <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-S2', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
                         <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
@@ -2794,8 +2798,8 @@
               </div>
               <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
                 <div style="display: flex; gap: 12px;">
-                  <span>🧪 2 สารเคมี</span>
-                  <span>⚙️ 1 อุปกรณ์</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 2 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 1 อุปกรณ์</span>
                 </div>
                 <span style="font-weight: 500; color: #64748b;">ความจุ: 3/5</span>
               </div>
@@ -3051,19 +3055,19 @@
                 </div>
                 <div class="banner-quick-templates" id="adminLoginBannerTemplateList" style="display: flex; flex-wrap: wrap; gap: 8px;">
                   <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('general')">
-                    <span>🌟</span>
+                    <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #f59e0b;"></i>
                     <span>มาตรฐานทั่วไป (SHECU)</span>
                   </button>
                   <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('maintenance')">
-                    <span>⚠️</span>
+                    <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #f59e0b;"></i>
                     <span>แจ้งปิดปรับปรุง / ตรวจนับสต็อก</span>
                   </button>
                   <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('booking')">
-                    <span>📅</span>
+                    <i data-lucide="calendar" style="width: 14px; height: 14px; color: #3b82f6;"></i>
                     <span>ปฏิทินจองห้องแล็บ</span>
                   </button>
                   <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('safety')">
-                    <span>🛡️</span>
+                    <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #10b981;"></i>
                     <span>ความปลอดภัย & SDS</span>
                   </button>
                 </div>
@@ -3077,7 +3081,7 @@
                 </div>
                 <div>
                   <label for="adminLoginBannerBadgeText" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">ข้อความป้ายกำกับ (Badge Tag)</label>
-                  <input type="text" id="adminLoginBannerBadgeText" class="form-control" value="ห้องปฏิบัติการวิทยาศาสตร์" placeholder="เช่น ห้องปฏิบัติการวิทยาศาสตร์, ⚠️ ประกาศด่วน" oninput="triggerLoginBannerLivePreview()">
+                  <input type="text" id="adminLoginBannerBadgeText" class="form-control" value="ห้องปฏิบัติการวิทยาศาสตร์" placeholder="เช่น ห้องปฏิบัติการวิทยาศาสตร์, ประกาศด่วน" oninput="triggerLoginBannerLivePreview()">
                 </div>
               </div>
 
@@ -3114,12 +3118,12 @@
                 <div>
                   <label for="adminLoginBannerImgOption" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">รูปแบบภาพประกอบ (Visual Media)</label>
                   <select id="adminLoginBannerImgOption" class="form-control" onchange="onLoginBannerImgOptionChange(this.value)">
-                    <option value="default">🛡️ กราฟิกฟีเจอร์มาตรฐาน SHECU (Default Features)</option>
-                    <option value="upload">📤 อัปโหลดไฟล์รูปภาพจากอุปกรณ์ (Upload Image File)</option>
-                    <option value="lab1">🧪 ภาพห้องแล็บเคมี (Chemistry Lab)</option>
-                    <option value="lab2">⚡ ภาพห้องแล็บฟิสิกส์ (Physics Lab)</option>
-                    <option value="lab3">🌱 ภาพห้องแล็บชีววิทยา (Biology Lab)</option>
-                    <option value="custom">🌐 ระบุ URL รูปภาพเอง (Custom URL)</option>
+                    <option value="default">กราฟิกฟีเจอร์มาตรฐาน SHECU (Default Features)</option>
+                    <option value="upload">อัปโหลดไฟล์รูปภาพจากอุปกรณ์ (Upload Image File)</option>
+                    <option value="lab1">ภาพห้องแล็บเคมี (Chemistry Lab)</option>
+                    <option value="lab2">ภาพห้องแล็บฟิสิกส์ (Physics Lab)</option>
+                    <option value="lab3">ภาพห้องแล็บชีววิทยา (Biology Lab)</option>
+                    <option value="custom">ระบุ URL รูปภาพเอง (Custom URL)</option>
                   </select>
                 </div>
               </div>
@@ -3276,9 +3280,9 @@
                   <span>เทมเพลตข้อความแนะนำ:</span>
                 </div>
                 <div class="admin-template-presets-buttons">
-                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('standard')">📋 ชุดมาตรฐาน (PPE + Fume Hood + ฉุกเฉิน)</button>
-                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('maintenance')">📦 แจ้งตรวจนับสต็อกประจำสัปดาห์</button>
-                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('urgent')">⚠️ แจ้งเตือนปิดปรับปรุงระบบ</button>
+                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('standard')"><i data-lucide="clipboard-list" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> ชุดมาตรฐาน (PPE + Fume Hood + ฉุกเฉิน)</button>
+                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('maintenance')"><i data-lucide="package" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> แจ้งตรวจนับสต็อกประจำสัปดาห์</button>
+                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('urgent')"><i data-lucide="alert-triangle" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> แจ้งเตือนปิดปรับปรุงระบบ</button>
                 </div>
               </div>
             </div>
@@ -3294,7 +3298,7 @@
               <div class="admin-form-grid-2col">
                 <div>
                   <label for="adminAnnouncementBadgeText" class="form-label" style="font-size: 12.5px; font-weight: 600; margin-bottom: 6px; display: block;">ข้อความหัวข้อป้าย (Badge Text)</label>
-                  <input type="text" id="adminAnnouncementBadgeText" class="form-control" value="📢 ประกาศ & ความปลอดภัย" placeholder="เช่น 📢 ประกาศ, ⚡ ข่าวด่วน" style="font-size: 13px; height: 36px; padding: 6px 12px; width: 100%; box-sizing: border-box; border-radius: 8px;" oninput="triggerAnnouncementLivePreview('admin')">
+                  <input type="text" id="adminAnnouncementBadgeText" class="form-control" value="ประกาศ & ความปลอดภัย" placeholder="เช่น ประกาศ, ข่าวด่วน" style="font-size: 13px; height: 36px; padding: 6px 12px; width: 100%; box-sizing: border-box; border-radius: 8px;" oninput="triggerAnnouncementLivePreview('admin')">
                 </div>
                 <div>
                   <label class="form-label" style="font-size: 12.5px; font-weight: 600; margin-bottom: 6px; display: block;">ธีมสีของป้าย (Badge Theme)</label>
@@ -3377,7 +3381,7 @@
               <div class="ticker-preview-bar ticker-theme-orange ticker-pause-hover" id="adminAnnouncementPreviewBar">
                 <div class="ticker-badge" id="adminAnnouncementPreviewBadge">
                   <i data-lucide="megaphone" style="width: 13px; height: 13px;"></i>
-                  <span id="adminAnnouncementPreviewBadgeText">📢 ประกาศ & ความปลอดภัย</span>
+                  <span id="adminAnnouncementPreviewBadgeText">ประกาศ & ความปลอดภัย</span>
                 </div>
                 <div class="ticker-marquee-wrapper">
                   <div class="ticker-marquee-track" id="adminAnnouncementPreviewTrack" style="--ticker-duration: 55s; --ticker-gap: 36px;">
@@ -3786,7 +3790,7 @@
 
             <!-- Right: Smart Auto-Fill & Clean Helpers -->
             <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
-              <span style="font-size: 11px; font-weight: 600; color: #475569; margin-right: 2px;">⚡ เครื่องมือด่วน:</span>
+              <span style="font-size: 11px; font-weight: 600; color: #475569; margin-right: 2px;"><i data-lucide="zap" style="width: 12px; height: 12px; color: #f59e0b; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> เครื่องมือด่วน:</span>
               <button type="button" class="batch-quick-btn" onclick="autoFillBatchEmails()" title="เติมอีเมลอัตโนมัติ (เช่น 1001@lab.school.ac.th) สำหรับแถวที่ยังไม่มีอีเมล">
                 <i data-lucide="mail" style="width: 12px; height: 12px; color: #6366f1;"></i> เติมอีเมลอัตโนมัติ
               </button>
@@ -3815,13 +3819,13 @@
                     ทั้งหมด (<span id="batchUserCount">0</span>)
                   </button>
                   <button type="button" class="batch-filter-chip" id="chipFilterValid" onclick="setBatchFilter('valid')" style="background: #dcfce7; color: #15803d; border-color: #bbf7d0;">
-                    🟢 พร้อมบันทึก: <span id="batchStatValidNum">0</span>
+                    <i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> พร้อมบันทึก: <span id="batchStatValidNum">0</span>
                   </button>
                   <button type="button" class="batch-filter-chip" id="chipFilterUpdate" onclick="setBatchFilter('update')" style="background: #fef3c7; color: #b45309; border-color: #fde68a; display: none;">
-                    🟡 อัปเดตคนเดิม: <span id="batchStatUpdateNum">0</span>
+                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> อัปเดตคนเดิม: <span id="batchStatUpdateNum">0</span>
                   </button>
                   <button type="button" class="batch-filter-chip" id="chipFilterInvalid" onclick="setBatchFilter('invalid')" style="background: #fee2e2; color: #b91c1c; border-color: #fecaca; display: none;">
-                    🔴 ข้อมูลไม่ครบ: <span id="batchStatInvalidNum">0</span>
+                    <i data-lucide="alert-circle" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> ข้อมูลไม่ครบ: <span id="batchStatInvalidNum">0</span>
                   </button>
                 </div>
               </div>
@@ -3881,7 +3885,7 @@
           <!-- Security & Default Password Notice -->
           <div style="background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%); border: 1px solid #bbf7d0; border-radius: 8px; padding: 7px 12px; font-size: 11px; color: #166534; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
             <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 14px;">🔒</span>
+              <i data-lucide="shield-check" style="width: 15px; height: 15px; color: #166534; display: inline-block; vertical-align: middle;"></i>
               <span><strong>ความปลอดภัย & รหัสผ่านเริ่มต้น:</strong> ผู้ใช้ใหม่จะใช้รหัสผ่านเป็น <strong>Teacher ID</strong> ในการเข้าสู่ระบบครั้งแรก (ผู้ใช้เปลี่ยนรหัสผ่านเองได้ตลอดเวลา)</span>
             </div>
             <div style="font-size: 11px; color: #15803d; font-weight: 600;" id="batchSummaryNotice">พร้อมบันทึก: 0 คน</div>
@@ -4148,7 +4152,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <div>
                 <label for="modalAnnouncementBadgeText" class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px; display: block;">ข้อความหัวข้อป้าย</label>
-                <input type="text" id="modalAnnouncementBadgeText" class="form-control" value="📢 ประกาศ & ความปลอดภัย" style="font-size: 12px; padding: 6px 8px;" oninput="triggerAnnouncementLivePreview('modal')">
+                <input type="text" id="modalAnnouncementBadgeText" class="form-control" value="ประกาศ & ความปลอดภัย" style="font-size: 12px; padding: 6px 8px;" oninput="triggerAnnouncementLivePreview('modal')">
               </div>
               <div>
                 <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px; display: block;">ธีมสีป้าย</label>
@@ -4228,7 +4232,7 @@
             <div class="ticker-preview-bar ticker-theme-orange ticker-pause-hover" id="modalAnnouncementPreviewBar">
               <div class="ticker-badge" id="modalAnnouncementPreviewBadge">
                 <i data-lucide="megaphone" style="width: 12px; height: 12px;"></i>
-                <span id="modalAnnouncementPreviewBadgeText">📢 ประกาศ & ความปลอดภัย</span>
+                <span id="modalAnnouncementPreviewBadgeText">ประกาศ & ความปลอดภัย</span>
               </div>
               <div class="ticker-marquee-wrapper">
                 <div class="ticker-marquee-track" id="modalAnnouncementPreviewTrack" style="--ticker-duration: 55s; --ticker-gap: 36px;">
@@ -5072,7 +5076,7 @@
       <div class="chat-message bot welcome-card">
         <div class="welcome-card-title">
           <span>สวัสดีครับ! ยินดีต้อนรับครับ</span>
-          <span class="welcome-wave">👋</span>
+          <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #f59e0b; display: inline-block; vertical-align: middle;"></i>
         </div>
         <p class="welcome-card-text">
           ผมคือ <strong class="bot-name-text">Stoki-bitol (สต็อกบิทอล)</strong> ผู้ช่วยประจำห้องปฏิบัติการ พร้อมช่วยคุณค้นหาพัสดุ ตรวจสอบสต็อกสารเคมี และช่วยคำนวณสูตรเคมีได้อย่างรวดเร็วครับ
@@ -5086,39 +5090,39 @@
       </div>
       <div class="chat-suggestions" id="chatSuggestions">
         <button type="button" class="chat-suggestion-chip" data-query="ค้นหาสารเคมี">
-          <span class="chip-icon">🔍</span>
+          <span class="chip-icon"><i data-lucide="search"></i></span>
           <span class="chip-label">ค้นหาพัสดุ/สารเคมี</span>
         </button>
         <button type="button" class="chat-suggestion-chip" data-query="เช็คของใกล้หมดคลัง">
-          <span class="chip-icon">⚠️</span>
+          <span class="chip-icon"><i data-lucide="alert-triangle" style="color: #f59e0b;"></i></span>
           <span class="chip-label">ตรวจเช็คสต็อกต่ำ</span>
         </button>
         <button type="button" class="chat-suggestion-chip" data-query="เช็คสารเคมีหมดอายุ">
-          <span class="chip-icon">⏰</span>
+          <span class="chip-icon"><i data-lucide="clock" style="color: #ef4444;"></i></span>
           <span class="chip-label">เช็คสารหมดอายุ</span>
         </button>
         <button type="button" class="chat-suggestion-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O">
-          <span class="chip-icon">🧪</span>
+          <span class="chip-icon"><i data-lucide="flask-conical" style="color: #8b5cf6;"></i></span>
           <span class="chip-label">ดุลสมการเคมี</span>
         </button>
         <button type="button" class="chat-suggestion-chip" data-query="คำนวณมวลโมเลกุล">
-          <span class="chip-icon">⚖️</span>
+          <span class="chip-icon"><i data-lucide="scale" style="color: #3b82f6;"></i></span>
           <span class="chip-label">คำนวณมวลโมเลกุล</span>
         </button>
         <button type="button" class="chat-suggestion-chip" data-query="เตรียมสารละลาย">
-          <span class="chip-icon">💧</span>
+          <span class="chip-icon"><i data-lucide="droplet" style="color: #06b6d4;"></i></span>
           <span class="chip-label">วิธีเตรียมสารละลาย</span>
         </button>
         <button type="button" class="chat-suggestion-chip" data-query="ปฐมพยาบาลสารเคมีหก">
-          <span class="chip-icon">🚨</span>
+          <span class="chip-icon"><i data-lucide="siren" style="color: #dc2626;"></i></span>
           <span class="chip-label">ปฐมพยาบาลสารหก</span>
         </button>
         <button type="button" class="chat-suggestion-chip" data-query="จำแนกของเสีย">
-          <span class="chip-icon">🗑️</span>
+          <span class="chip-icon"><i data-lucide="trash-2" style="color: #64748b;"></i></span>
           <span class="chip-label">จำแนกประเภทของเสีย</span>
         </button>
         <button type="button" class="chat-suggestion-chip full-width" data-query="วิธีใช้งานระบบ">
-          <span class="chip-icon">📖</span>
+          <span class="chip-icon"><i data-lucide="book-open" style="color: #10b981;"></i></span>
           <span class="chip-label">แนะนำวิธีการใช้งานระบบคลัง</span>
         </button>
       </div>
@@ -5468,7 +5472,7 @@
         <div id="cabinetDetailWarningSection" style="display: none; gap: 12px; margin-bottom: 16px; background: rgba(239, 68, 68, 0.05); padding: 12px; border-left: 4px solid var(--accent-red); border-radius: 4px;">
           <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: var(--accent-red); flex-shrink: 0; margin-top: 2px;"></i>
           <div style="text-align: left;">
-            <div style="font-weight: 600; color: var(--accent-red); font-size: 13.5px;">⚠️ คำเตือนความปลอดภัย (SHECU Incompatibility)</div>
+            <div style="font-weight: 600; color: var(--accent-red); font-size: 13.5px; display: flex; align-items: center; gap: 6px;"><i data-lucide="alert-triangle" style="width: 15px; height: 15px;"></i> คำเตือนความปลอดภัย (SHECU Incompatibility)</div>
             <div style="font-size: 12.5px; color: var(--text-main); margin-top: 4px; line-height: 1.5;" id="cabinetDetailWarningText">มีสารเคมีที่ไม่ควรเก็บร่วมตู้เดียวกันเนื่องจากมีความเสี่ยงเกิดปฏิกิริยารุนแรง</div>
           </div>
         </div>
@@ -5693,7 +5697,7 @@
 
   <!-- MODAL: HELP & SAFETY (SHECU Information Center) -->
   <div id="helpSafetyModal" class="modal-overlay">
-    <div class="modal-content modal-lg" style="width: 94%; max-width: 860px; height: 480px; max-height: 86vh; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 16px; border: 1px solid #d9dee8; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); font-family: 'Noto Sans Thai', 'IBM Plex Sans Thai', 'Inter', -apple-system, sans-serif;">
+    <div class="modal-content modal-lg" style="width: 94%; max-width: 860px; height: 480px; max-height: 86vh; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 16px; border: 1px solid #d9dee8; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); font-family: var(--font-sans);">
       <!-- Modal Header -->
       <div class="modal-header" style="padding: 14px 20px; border-bottom: 1px solid #d9dee8; display: flex; justify-content: space-between; align-items: center; background: #ffffff; flex-shrink: 0;">
         <div class="modal-header-left">
@@ -6199,7 +6203,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261009_settings_fix"></script>
+  <script src="app.js?v=20261010_router_paths"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {
@@ -6209,6 +6213,43 @@
         setTimeout(function() { if (sk && sk.parentNode) sk.remove(); }, 350);
       }
     }, 1200);
+
+    // Dynamic Lucide Icons Auto-Renderer for newly inserted DOM nodes
+    (function() {
+      var lucideDebounce = null;
+      function triggerLucide() {
+        if (!window.lucide || typeof window.lucide.createIcons !== 'function') return;
+        clearTimeout(lucideDebounce);
+        lucideDebounce = setTimeout(function() {
+          try { window.lucide.createIcons(); } catch(e) {}
+        }, 30);
+      }
+      if (typeof MutationObserver !== 'undefined') {
+        var observer = new MutationObserver(function(mutations) {
+          for (var i = 0; i < mutations.length; i++) {
+            var m = mutations[i];
+            if (m.addedNodes && m.addedNodes.length > 0) {
+              for (var j = 0; j < m.addedNodes.length; j++) {
+                var node = m.addedNodes[j];
+                if (node.nodeType === 1) {
+                  if (node.hasAttribute('data-lucide') || (node.querySelector && node.querySelector('[data-lucide]'))) {
+                    triggerLucide();
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+      // Initial trigger on load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', triggerLucide);
+      } else {
+        triggerLucide();
+      }
+    })();
   </script>
 </body>
 </html>
