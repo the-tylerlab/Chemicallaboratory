@@ -740,6 +740,7 @@ button {
   align-items: center;
   cursor: pointer;
   min-width: 40px;
+  max-width: calc(100% - 36px);
   border-radius: 8px;
   transition: opacity 150ms ease;
   flex-shrink: 0;
@@ -780,14 +781,16 @@ button {
   color: var(--text-dark, #0f172a);
 }
 
-/* Pin / Collapse Button: Absolutely positioned so it NEVER displaces the logo icon */
+/* Pin / Collapse Button: Absolutely positioned with top z-index so it is always clickable */
 .btn-sidebar-collapse {
   position: absolute !important;
   right: 4px !important;
   top: 6px !important;
+  z-index: 20 !important;
+  pointer-events: auto !important;
   background: transparent;
   border: 1px solid transparent;
-  cursor: pointer;
+  cursor: pointer !important;
   color: #94a3b8;
   display: flex;
   align-items: center;
