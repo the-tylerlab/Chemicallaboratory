@@ -10608,10 +10608,10 @@ function renderPendingRequests() {
           </div>
           ${prepItemsHtml}
           <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 2px;">
-            <button type="button" class="btn btn-primary" style="padding: 3px 8px; font-size: 11px; height: 24px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="approveBookingRequest('${bk.id}')">
+            <button type="button" class="btn btn-approve" style="padding: 3px 10px; font-size: 11px; height: 26px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="approveBookingRequest('${bk.id}')">
               <i data-lucide="check" style="width: 12px; height: 12px;"></i> อนุมัติ
             </button>
-            <button type="button" class="btn btn-danger" style="padding: 3px 8px; font-size: 11px; height: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="rejectBookingRequest('${bk.id}')">
+            <button type="button" class="btn btn-reject" style="padding: 3px 10px; font-size: 11px; height: 26px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="rejectBookingRequest('${bk.id}')">
               <i data-lucide="x" style="width: 12px; height: 12px;"></i> ปฏิเสธ
             </button>
           </div>
@@ -10647,10 +10647,10 @@ function renderPendingRequests() {
           </div>
           ${tx.notes ? `<div style="font-size: 10px; color: var(--text-muted); font-style: italic; background-color: #ffffff; padding: 4px 6px; border-radius: 4px; border: 1px solid #f1f5f9;">${escapeHTML(tx.notes)}</div>` : ""}
           <div style="display: flex; gap: 6px; justify-content: flex-end; margin-top: 2px;">
-            <button type="button" class="btn btn-primary" style="padding: 3px 8px; font-size: 11px; height: 24px; background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="approveBorrowRequest('${tx.id}')">
+            <button type="button" class="btn btn-approve" style="padding: 3px 10px; font-size: 11px; height: 26px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="approveBorrowRequest('${tx.id}')">
               <i data-lucide="check" style="width: 12px; height: 12px;"></i> อนุมัติ
             </button>
-            <button type="button" class="btn btn-danger" style="padding: 3px 8px; font-size: 11px; height: 24px; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" onclick="rejectBorrowRequest('${tx.id}')">
+            <button type="button" class="btn btn-reject" style="padding: 3px 10px; font-size: 11px; height: 26px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" onclick="rejectBorrowRequest('${tx.id}')">
               <i data-lucide="x" style="width: 12px; height: 12px;"></i> ปฏิเสธ
             </button>
           </div>
