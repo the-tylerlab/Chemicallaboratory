@@ -17785,11 +17785,11 @@ window.openCabinetDetails = function(room, cabinetName) {
   // Dynamic Modal Header Styling based on Safety / Cabinet Type
   if (modalHeader) {
     if (incompatiblePairs.length > 0) {
-      modalHeader.style.cssText = "background: linear-gradient(135deg, #991b1b 0%, #dc2626 60%, #ef4444 100%) !important; color: #ffffff !important; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;";
+      modalHeader.style.cssText = "background: linear-gradient(135deg, rgba(153, 27, 27, 0.88) 0%, rgba(220, 38, 38, 0.92) 55%, rgba(239, 68, 68, 0.95) 100%) !important; color: #ffffff !important; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;";
     } else if (cabinetName === 'ตู้ฉุกเฉิน') {
-      modalHeader.style.cssText = "background: linear-gradient(135deg, #ea580c 0%, #f97316 60%, #fed7aa 100%) !important; color: #431407 !important; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;";
+      modalHeader.style.cssText = "background: linear-gradient(135deg, rgba(234, 88, 12, 0.85) 0%, rgba(249, 115, 22, 0.9) 55%, rgba(254, 215, 170, 0.95) 100%) !important; color: #431407 !important; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;";
     } else {
-      modalHeader.style.cssText = "background: linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%) !important; color: #ffffff !important; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;";
+      modalHeader.style.cssText = "background: linear-gradient(135deg, rgba(6, 95, 70, 0.88) 0%, rgba(4, 120, 87, 0.92) 55%, rgba(16, 185, 129, 0.95) 100%) !important; color: #ffffff !important; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;";
     }
   }
 
