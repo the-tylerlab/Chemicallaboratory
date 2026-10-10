@@ -1,8 +1,8 @@
 /* ==========================================================================
-   SHECU STORAGE CABINET CARD (Apple Widget / Reminders Redesign)
+   SHECU STORAGE CABINET CARD (Apple Widget / Frosted Acrylic Glassmorphism)
    ========================================================================== */
 
-/* Standard Cabinets (Chemical, Glassware, Normal) - Smoked Glass Gradient Header */
+/* Standard Cabinets (Chemical, Glassware, Normal) - Frosted Smoked Glass Acrylic */
 .cabinet-card {
   --cabinet-radius: 22px;
   --cabinet-sheet-radius: 18px;
@@ -12,10 +12,12 @@
   flex-direction: column;
   box-sizing: border-box;
   border-radius: var(--cabinet-radius);
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background: linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.78) 0%, rgba(15, 23, 42, 0.88) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   color: #ffffff;
-  box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(15, 23, 42, 0.06);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 16px 36px -8px rgba(15, 23, 42, 0.3);
   overflow: hidden;
   min-width: 0;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -27,45 +29,46 @@
 
 .cabinet-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 22px 40px -10px rgba(15, 23, 42, 0.35), 0 8px 18px rgba(15, 23, 42, 0.08);
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.35), 0 22px 42px -10px rgba(15, 23, 42, 0.38), 0 8px 18px rgba(15, 23, 42, 0.1);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
-/* Glassware Cabinet Variation (Uses same Smoked Glass Gradient Header) */
+/* Glassware Cabinet Variation (Uses same Frosted Smoked Acrylic) */
 .cabinet-card.glassware-type {
-  background: linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%);
-  border-color: rgba(148, 163, 184, 0.3);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.78) 0%, rgba(15, 23, 42, 0.88) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
   color: #ffffff;
 }
 
-/* Exception 1: Emergency Cabinet (ตู้ฉุกเฉิน) - Orange / Amber Gradient Header */
+/* Exception 1: Emergency Cabinet (ตู้ฉุกเฉิน) - Translucent Orange Amber Acrylic */
 .cabinet-card.emergency-type {
-  background: linear-gradient(135deg, #ea580c 0%, #f97316 55%, #fed7aa 100%);
-  border-color: rgba(249, 115, 22, 0.4);
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.82) 0%, rgba(249, 115, 22, 0.88) 55%, rgba(254, 215, 170, 0.92) 100%);
+  border-color: rgba(255, 255, 255, 0.35);
   color: #431407;
-  box-shadow: 0 16px 32px -8px rgba(234, 88, 12, 0.22), 0 4px 12px rgba(15, 23, 42, 0.04);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 16px 32px -8px rgba(234, 88, 12, 0.25);
 }
 .cabinet-card.emergency-type:hover {
-  box-shadow: 0 22px 40px -10px rgba(234, 88, 12, 0.28), 0 8px 18px rgba(15, 23, 42, 0.06);
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.5), 0 22px 40px -10px rgba(234, 88, 12, 0.32);
 }
 
-/* Exception 2: Unsafe / Incompatible Cabinet (ตู้จัดเก็บไม่ปลอดภัย) - RED Gradient Header */
+/* Exception 2: Unsafe / Incompatible Cabinet (ตู้จัดเก็บไม่ปลอดภัย) - Translucent RED Acrylic */
 .cabinet-card.has-incompatible {
-  background: linear-gradient(135deg, #991b1b 0%, #dc2626 55%, #ef4444 100%) !important;
-  border-color: rgba(239, 68, 68, 0.4) !important;
+  background: linear-gradient(135deg, rgba(153, 27, 27, 0.85) 0%, rgba(220, 38, 38, 0.88) 55%, rgba(239, 68, 68, 0.92) 100%) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
   color: #ffffff !important;
-  box-shadow: 0 16px 32px -8px rgba(220, 38, 38, 0.28), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 16px 32px -8px rgba(220, 38, 38, 0.3) !important;
 }
 .cabinet-card.has-incompatible:hover {
-  box-shadow: 0 22px 40px -10px rgba(220, 38, 38, 0.35), 0 8px 18px rgba(15, 23, 42, 0.06) !important;
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.5), 0 22px 40px -10px rgba(220, 38, 38, 0.38) !important;
 }
 
 /* Hidden Cabinet State */
 .cabinet-card.is-hidden-cabinet {
-  opacity: 0.78;
+  opacity: 0.75;
   filter: grayscale(0.2);
 }
 
-/* Header Area - Top Half of Widget */
+/* Header Area - Top Half of Acrylic Widget */
 .cabinet-card .cabinet-header {
   padding: 16px 18px 24px 18px;
   background: transparent !important;
@@ -97,16 +100,16 @@
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 3px 10px rgba(0, 0, 0, 0.08);
 }
 
 .cabinet-card.emergency-type .cabinet-avatar-icon {
@@ -145,7 +148,7 @@
   font-weight: 600;
   line-height: 1.2;
   color: inherit;
-  opacity: 0.85;
+  opacity: 0.88;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -163,27 +166,27 @@
   border-radius: 999px;
   white-space: nowrap;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   color: #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .shecu-status-chip.safe {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.25);
+  border-color: rgba(16, 185, 129, 0.45);
   color: #6ee7b7;
 }
 .shecu-status-chip.warning {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.28);
+  border-color: rgba(255, 255, 255, 0.45);
   color: #ffffff;
 }
 .shecu-status-chip.emergency {
-  background: rgba(255, 255, 255, 0.45);
-  border-color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.48);
+  border-color: rgba(255, 255, 255, 0.68);
   color: #7c2d12;
 }
 
@@ -192,10 +195,10 @@
   margin-top: 4px;
   padding: 7px 10px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -205,14 +208,18 @@
 }
 
 .cabinet-warning-banner:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.35);
   transform: translateY(-1px);
 }
 
-/* Overlapping Apple Card Inner Sheet */
+/* Overlapping Apple Card Translucent Frosted Cream Sheet */
 .cabinet-body-sheet {
-  background-color: #fdfbf7;
+  background: rgba(253, 251, 247, 0.92);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
   border-radius: var(--cabinet-sheet-radius) var(--cabinet-sheet-radius) calc(var(--cabinet-radius) - 2px) calc(var(--cabinet-radius) - 2px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.9);
   margin-top: -12px;
   padding: 14px 13px 12px;
   display: flex;
@@ -221,7 +228,7 @@
   flex: 1;
   position: relative;
   z-index: 2;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 -4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .cabinet-sheet-header {
@@ -245,7 +252,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
   border: 1.5px solid #eae2d5;
   box-shadow: 0 3px 10px rgba(69, 26, 3, 0.07);
   display: flex;
@@ -271,7 +279,7 @@
   stroke-width: 2.5;
 }
 
-/* Shelves Section - Clean White Shelf Trays */
+/* Shelves Section - Frosted White Shelf Trays */
 .cabinet-shelves {
   padding: 0;
   display: flex;
@@ -289,21 +297,23 @@
   gap: 8px;
   padding: 9px 12px;
   min-width: 0;
-  background: #ffffff;
-  border: 1px solid #f1e9dd;
-  border-bottom: 1.5px solid #e7ded0;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-bottom: 1.5px solid rgba(231, 222, 208, 0.9);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(69, 26, 3, 0.02);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 1), 0 2px 6px rgba(69, 26, 3, 0.03);
 }
 
 .cabinet-shelf-item:hover {
-  background-color: #ffffff;
+  background: rgba(255, 255, 255, 0.98);
   border-color: #f59e0b;
   border-bottom-color: #d97706;
   transform: translateY(-1px);
-  box-shadow: 0 5px 14px rgba(245, 158, 11, 0.12);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 1), 0 6px 16px rgba(245, 158, 11, 0.14);
 }
 
 .shelf-label-group {
@@ -360,7 +370,7 @@
 }
 
 .shelf-count-tag.empty {
-  background-color: #f5efe6;
+  background-color: rgba(245, 239, 230, 0.9);
   border: 1px solid #e7ddce;
   color: #8c7e6c;
 }
@@ -480,15 +490,17 @@
 }
 
 /* ==========================================================================
-   CABINET DETAIL MODAL (Matching Apple Reminders Card UI)
+   CABINET DETAIL MODAL (Translucent Acrylic Glassmorphism)
    ========================================================================== */
 
 #cabinetDetailModal .modal-content {
   border-radius: 22px !important;
-  border: none !important;
-  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.3) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.35) !important;
   overflow: hidden !important;
-  background: #ffffff !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
 }
 
 #cabinetDetailModal .modal-header {
@@ -497,12 +509,16 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: none !important;
-  background: linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.92) 100%) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   color: #ffffff;
 }
 
 #cabinetDetailModal .modal-body {
-  background-color: #fdfbf7 !important;
+  background-color: rgba(253, 251, 247, 0.92) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 20px 18px !important;
   max-height: 480px;
 }
@@ -523,9 +539,11 @@
 }
 
 .cabinet-detail-card {
-  background: #ffffff;
-  border: 1px solid #f1e9dd;
-  border-bottom: 1.5px solid #e7ded0;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-bottom: 1.5px solid rgba(231, 222, 208, 0.9);
   border-radius: 14px;
   padding: 12px 14px;
   margin-bottom: 8px;
@@ -533,14 +551,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 1px 3px rgba(69, 26, 3, 0.02);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 1), 0 2px 6px rgba(69, 26, 3, 0.03);
   transition: all 0.18s ease;
 }
 
 .cabinet-detail-card:hover {
+  background: rgba(255, 255, 255, 0.98);
   border-color: #f59e0b;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+  box-shadow: 0 5px 14px rgba(245, 158, 11, 0.14);
 }
 
 .item-card-left {
