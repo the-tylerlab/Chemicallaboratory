@@ -33,7 +33,7 @@
   border-color: rgba(255, 255, 255, 0.35);
 }
 
-/* Glassware Cabinet Variation (Uses same Frosted Smoked Acrylic) */
+/* Glassware Cabinet Variation */
 .cabinet-card.glassware-type {
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.78) 0%, rgba(15, 23, 42, 0.88) 100%);
   border-color: rgba(255, 255, 255, 0.2);
@@ -132,62 +132,112 @@
 }
 
 .cabinet-title-text {
-  font-size: 16.5px;
+  font-size: 17px;
   font-weight: 700;
   line-height: 1.25;
-  color: inherit;
+  color: #ffffff !important;
   letter-spacing: -0.01em;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .cabinet-subtitle-text {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
-  color: inherit;
-  opacity: 0.88;
+  color: #e2e8f0 !important;
+  opacity: 0.95;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Translucent Frosted Glass Status Pill Button */
+.cabinet-card.emergency-type .cabinet-title-text {
+  color: #431407 !important;
+  text-shadow: none;
+}
+.cabinet-card.emergency-type .cabinet-subtitle-text {
+  color: #78350f !important;
+}
+
+.cabinet-card.has-incompatible .cabinet-title-text {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+.cabinet-card.has-incompatible .cabinet-subtitle-text {
+  color: #fecdd3 !important;
+}
+
+/* High-Contrast Frosted Status Pill Button */
 .shecu-status-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 700;
-  padding: 4px 11px;
+  padding: 5px 12px;
   border-radius: 999px;
   white-space: nowrap;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  color: #ffffff;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
 }
 
+/* Safe Cabinet: High-contrast pastel mint green pill with dark green text */
 .shecu-status-chip.safe {
-  background: rgba(16, 185, 129, 0.25);
-  border-color: rgba(16, 185, 129, 0.45);
-  color: #6ee7b7;
+  background: rgba(209, 250, 229, 0.95) !important;
+  border: 1px solid #6ee7b7 !important;
+  color: #047857 !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15) !important;
 }
+
+/* Unsafe Cabinet: High-contrast pastel red pill with dark red text */
 .shecu-status-chip.warning {
-  background: rgba(255, 255, 255, 0.28);
-  border-color: rgba(255, 255, 255, 0.45);
-  color: #ffffff;
+  background: rgba(254, 226, 226, 0.95) !important;
+  border: 1px solid #fca5a5 !important;
+  color: #b91c1c !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15) !important;
 }
+
+/* Emergency Cabinet: High-contrast pastel yellow pill with dark amber text */
 .shecu-status-chip.emergency {
-  background: rgba(255, 255, 255, 0.48);
-  border-color: rgba(255, 255, 255, 0.68);
-  color: #7c2d12;
+  background: rgba(254, 243, 199, 0.95) !important;
+  border: 1px solid #fde68a !important;
+  color: #92400e !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15) !important;
+}
+
+.shecu-status-chip.hidden {
+  background: rgba(241, 245, 249, 0.95) !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+.status-dot-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-pulse.safe {
+  background-color: #10b981;
+  box-shadow: 0 0 0 2.5px rgba(16, 185, 129, 0.35);
+}
+
+.status-dot-pulse.warning {
+  background-color: #ef4444;
+  box-shadow: 0 0 0 2.5px rgba(239, 68, 68, 0.35);
+  animation: pulseDot 1.8s infinite ease-in-out;
+}
+
+.status-dot-pulse.emergency {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 2.5px rgba(245, 158, 11, 0.35);
 }
 
 /* Warning Banner Inside Header */
