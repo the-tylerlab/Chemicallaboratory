@@ -2,6 +2,7 @@
    SHECU STORAGE CABINET CARD (Apple Widget / Reminders Redesign)
    ========================================================================== */
 
+/* Standard Cabinets (Chemical, Glassware, Normal) - Smoked Glass Gradient Header */
 .cabinet-card {
   --cabinet-radius: 22px;
   --cabinet-sheet-radius: 18px;
@@ -11,10 +12,10 @@
   flex-direction: column;
   box-sizing: border-box;
   border-radius: var(--cabinet-radius);
-  border: 1px solid rgba(251, 191, 36, 0.4);
-  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 55%, #fde68a 100%);
-  color: #451a03;
-  box-shadow: 0 16px 32px -8px rgba(245, 158, 11, 0.22), 0 4px 12px rgba(15, 23, 42, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%);
+  color: #ffffff;
+  box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(15, 23, 42, 0.06);
   overflow: hidden;
   min-width: 0;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -26,21 +27,17 @@
 
 .cabinet-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 22px 40px -10px rgba(245, 158, 11, 0.28), 0 8px 18px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 22px 40px -10px rgba(15, 23, 42, 0.35), 0 8px 18px rgba(15, 23, 42, 0.08);
 }
 
-/* Glassware Cabinet Variation */
+/* Glassware Cabinet Variation (Uses same Smoked Glass Gradient Header) */
 .cabinet-card.glassware-type {
-  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 55%, #bae6fd 100%);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #0c4a6e;
-  box-shadow: 0 16px 32px -8px rgba(2, 132, 199, 0.22), 0 4px 12px rgba(15, 23, 42, 0.04);
-}
-.cabinet-card.glassware-type:hover {
-  box-shadow: 0 22px 40px -10px rgba(2, 132, 199, 0.28), 0 8px 18px rgba(15, 23, 42, 0.06);
+  background: linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #ffffff;
 }
 
-/* Emergency Cabinet Variation */
+/* Exception 1: Emergency Cabinet (ตู้ฉุกเฉิน) - Orange / Amber Gradient Header */
 .cabinet-card.emergency-type {
   background: linear-gradient(135deg, #ea580c 0%, #f97316 55%, #fed7aa 100%);
   border-color: rgba(249, 115, 22, 0.4);
@@ -51,15 +48,15 @@
   box-shadow: 0 22px 40px -10px rgba(234, 88, 12, 0.28), 0 8px 18px rgba(15, 23, 42, 0.06);
 }
 
-/* Incompatible Warning Cabinet Variation */
+/* Exception 2: Unsafe / Incompatible Cabinet (ตู้จัดเก็บไม่ปลอดภัย) - RED Gradient Header */
 .cabinet-card.has-incompatible {
-  background: linear-gradient(135deg, #e11d48 0%, #f43f5e 55%, #fecdd3 100%);
-  border-color: rgba(244, 63, 94, 0.4);
-  color: #4c0519;
-  box-shadow: 0 16px 32px -8px rgba(225, 29, 72, 0.25), 0 4px 12px rgba(15, 23, 42, 0.04);
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 55%, #ef4444 100%) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: #ffffff !important;
+  box-shadow: 0 16px 32px -8px rgba(220, 38, 38, 0.28), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
 }
 .cabinet-card.has-incompatible:hover {
-  box-shadow: 0 22px 40px -10px rgba(225, 29, 72, 0.32), 0 8px 18px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 22px 40px -10px rgba(220, 38, 38, 0.35), 0 8px 18px rgba(15, 23, 42, 0.06) !important;
 }
 
 /* Hidden Cabinet State */
@@ -100,16 +97,22 @@
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.cabinet-card.emergency-type .cabinet-avatar-icon {
+  background: rgba(255, 255, 255, 0.45);
+  color: #431407;
+  border-color: rgba(255, 255, 255, 0.65);
 }
 
 .cabinet-avatar-icon svg,
@@ -160,25 +163,28 @@
   border-radius: 999px;
   white-space: nowrap;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 .shecu-status-chip.safe {
-  background: rgba(255, 255, 255, 0.55);
-  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
 }
 .shecu-status-chip.warning {
-  background: rgba(255, 255, 255, 0.65);
-  border-color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #ffffff;
 }
 .shecu-status-chip.emergency {
-  background: rgba(255, 255, 255, 0.65);
-  border-color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(255, 255, 255, 0.65);
+  color: #7c2d12;
 }
 
 /* Warning Banner Inside Header */
@@ -186,20 +192,20 @@
   margin-top: 4px;
   padding: 7px 10px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  color: #881337;
+  color: #ffffff;
   transition: all 0.18s ease;
 }
 
 .cabinet-warning-banner:hover {
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.3);
   transform: translateY(-1px);
 }
 
@@ -471,4 +477,129 @@
 
 .capacity-bar-fill.danger {
   background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+/* ==========================================================================
+   CABINET DETAIL MODAL (Matching Apple Reminders Card UI)
+   ========================================================================== */
+
+#cabinetDetailModal .modal-content {
+  border-radius: 22px !important;
+  border: none !important;
+  box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.3) !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+}
+
+#cabinetDetailModal .modal-header {
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: none !important;
+  background: linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%);
+  color: #ffffff;
+}
+
+#cabinetDetailModal .modal-body {
+  background-color: #fdfbf7 !important;
+  padding: 20px 18px !important;
+  max-height: 480px;
+}
+
+.modal-shelf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px 8px;
+  border-bottom: 1px dashed #ebdcc9;
+  margin-bottom: 10px;
+}
+
+.modal-shelf-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #291e07;
+}
+
+.cabinet-detail-card {
+  background: #ffffff;
+  border: 1px solid #f1e9dd;
+  border-bottom: 1.5px solid #e7ded0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(69, 26, 3, 0.02);
+  transition: all 0.18s ease;
+}
+
+.cabinet-detail-card:hover {
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.1);
+}
+
+.item-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.item-avatar-tile {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.item-avatar-tile.chem {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0284c7;
+}
+
+.item-avatar-tile.equip {
+  background: #f5efe6;
+  border: 1px solid #e7ddce;
+  color: #5c5040;
+}
+
+.item-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.item-card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2d2314;
+  line-height: 1.3;
+}
+
+.item-card-meta {
+  font-size: 11.5px;
+  color: #786c5c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.item-card-meta strong {
+  color: #291e07;
+}
+
+.meta-sep {
+  color: #d5c8b5;
 }

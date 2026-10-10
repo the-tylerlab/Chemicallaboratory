@@ -17736,6 +17736,7 @@ function renderCabinetMap() {
 
 window.openCabinetDetails = function(room, cabinetName) {
   const modal = document.getElementById("cabinetDetailModal");
+  const modalHeader = modal ? modal.querySelector(".modal-header") : null;
   const title = document.getElementById("cabinetDetailModalTitle");
   const warningSection = document.getElementById("cabinetDetailWarningSection");
   const warningText = document.getElementById("cabinetDetailWarningText");
@@ -17744,7 +17745,12 @@ window.openCabinetDetails = function(room, cabinetName) {
   if (!modal || !content) return;
 
   if (title) {
-    title.innerText = `${cabinetName} - ${getRoomThaiName(room)}`;
+    title.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 16px; font-weight: 700; line-height: 1.25;">${cabinetName}</span>
+        <span style="font-size: 12px; opacity: 0.85; font-weight: 500;">${getRoomThaiName(room)}</span>
+      </div>
+    `;
   }
 
   const cabItems = (items || []).filter(item => {
@@ -17776,6 +17782,17 @@ window.openCabinetDetails = function(room, cabinetName) {
     }
   }
 
+  // Dynamic Modal Header Styling based on Safety / Cabinet Type
+  if (modalHeader) {
+    if (incompatiblePairs.length > 0) {
+      modalHeader.style.cssText = "background: linear-gradient(135deg, #991b1b 0%, #dc2626 60%, #ef4444 100%) !important; color: #ffffff !important; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;";
+    } else if (cabinetName === 'ตู้ฉุกเฉิน') {
+      modalHeader.style.cssText = "background: linear-gradient(135deg, #ea580c 0%, #f97316 60%, #fed7aa 100%) !important; color: #431407 !important; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;";
+    } else {
+      modalHeader.style.cssText = "background: linear-gradient(135deg, #334155 0%, #1e293b 60%, #0f172a 100%) !important; color: #ffffff !important; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center;";
+    }
+  }
+
   if (incompatiblePairs.length > 0) {
     warningSection.style.display = "flex";
     warningText.innerHTML = `พบการจัดเก็บสารเคมีที่ไม่เข้ากันร่วมกันในตู้นี้ ซึ่งขัดต่อมาตรฐาน SHECU จุฬาฯ:<br>${incompatiblePairs.join("<br>")}`;
@@ -17796,29 +17813,42 @@ window.openCabinetDetails = function(room, cabinetName) {
   const sortedShelves = Object.keys(shelves).sort();
   sortedShelves.forEach(shelfName => {
     const shelfItems = shelves[shelfName];
+    const count = shelfItems.length;
+    const numMatch = shelfName.match(/\d+/);
+    const shelfNum = numMatch ? numMatch[0] : '•';
+
     let itemsHtml = "";
     shelfItems.forEach(item => {
       const status = getItemStatus(item);
       let statusBadge = "";
       if (status === "expired") {
-        statusBadge = `<span class="badge-expired" style="font-size: 10px; padding: 2px 6px;">หมดอายุ</span>`;
+        statusBadge = `<span class="shelf-count-tag" style="background-color: #fef2f2; color: #dc2626; border: 1px solid #fecdd3; font-weight: 700;">หมดอายุ</span>`;
       } else if (status === "near-expiry") {
-        statusBadge = `<span class="badge-expired" style="font-size: 10px; padding: 2px 6px; background-color: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.2);">ใกล้หมดอายุ</span>`;
+        statusBadge = `<span class="shelf-count-tag" style="background-color: #fffbeb; color: #d97706; border: 1px solid #fde68a; font-weight: 700;">ใกล้หมดอายุ</span>`;
       } else if (status === "low-stock") {
-        statusBadge = `<span class="badge-borrowed" style="font-size: 10px; padding: 2px 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);">สต็อกต่ำ</span>`;
+        statusBadge = `<span class="shelf-count-tag" style="background-color: #fef2f2; color: #ef4444; border: 1px solid #fca5a5; font-weight: 700;">สต็อกต่ำ</span>`;
       } else {
-        statusBadge = `<span class="badge-available" style="font-size: 10px; padding: 2px 6px;">ปกติ</span>`;
+        statusBadge = `<span class="shelf-count-tag" style="background-color: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-weight: 700;">ปกติ</span>`;
       }
 
-      const chemTypeLabel = item.category === "สารเคมี" && item.chemicalType ? ` <span style="font-size: 10px; font-weight: 700; background-color: #f1f5f9; padding: 2px 4px; border-radius: 4px; color: var(--text-muted);">กลุ่ม ${item.chemicalType}</span>` : "";
+      const chemTypeLabel = item.category === "สารเคมี" && item.chemicalType ? ` <span style="font-size: 10.5px; font-weight: 700; background-color: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #475569;">กลุ่ม ${item.chemicalType}</span>` : "";
 
       itemsHtml += `
-        <div class="cabinet-detail-item">
-          <div>
-            <div class="cabinet-detail-name">${item.name}${chemTypeLabel}</div>
-            <div class="cabinet-detail-meta">รหัส: ${item.code} | จำนวนคงเหลือ: ${item.qty} ${item.unit || "ชิ้น"}</div>
+        <div class="cabinet-detail-card">
+          <div class="item-card-left">
+            <div class="item-avatar-tile ${item.category === 'สารเคมี' ? 'chem' : 'equip'}">
+              <i data-lucide="${item.category === 'สารเคมี' ? 'flask-conical' : 'wrench'}" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div class="item-card-info">
+              <div class="item-card-name">${item.name}${chemTypeLabel}</div>
+              <div class="item-card-meta">
+                <span>รหัส: <strong>${item.code}</strong></span>
+                <span class="meta-sep">•</span>
+                <span>จำนวนคงเหลือ: <strong>${item.qty} ${item.unit || "ชิ้น"}</strong></span>
+              </div>
+            </div>
           </div>
-          <div>
+          <div class="item-card-right">
             ${statusBadge}
           </div>
         </div>
@@ -17826,10 +17856,13 @@ window.openCabinetDetails = function(room, cabinetName) {
     });
 
     contentHtml += `
-      <div style="margin-bottom: 20px; text-align: left;">
-        <div style="font-weight: 700; font-size: 13.5px; color: var(--primary-purple); border-bottom: 1.5px solid var(--border-color); padding-bottom: 4px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-          <i data-lucide="layers" style="width: 14px; height: 14px;"></i>
-          <span>ชั้นวาง: ${shelfName}</span>
+      <div style="margin-bottom: 18px; text-align: left;">
+        <div class="modal-shelf-header">
+          <div class="shelf-label-group">
+            <span class="shelf-num-dot">${shelfNum}</span>
+            <span class="modal-shelf-title">ชั้นวาง: ${shelfName}</span>
+          </div>
+          <span class="shelf-count-tag ${count > 0 ? 'has-items' : 'empty'}">${count} รายการ</span>
         </div>
         <div>
           ${itemsHtml}
@@ -17837,6 +17870,16 @@ window.openCabinetDetails = function(room, cabinetName) {
       </div>
     `;
   });
+
+  if (sortedShelves.length === 0) {
+    contentHtml = `
+      <div style="text-align: center; padding: 36px 16px; color: #786c5c;">
+        <i data-lucide="inbox" style="width: 40px; height: 40px; stroke-width: 1.5; color: #d5c8b5; margin-bottom: 8px;"></i>
+        <div style="font-size: 14px; font-weight: 600; color: #2d2314;">ไม่มีรายการสิ่งของในตู้นี้</div>
+        <div style="font-size: 12px; color: #8c7e6c; margin-top: 2px;">ยังไม่มีสารเคมีหรืออุปกรณ์ถูกจัดเก็บไว้ในตู้นี้</div>
+      </div>
+    `;
+  }
 
   content.innerHTML = contentHtml;
   modal.style.display = "flex";
