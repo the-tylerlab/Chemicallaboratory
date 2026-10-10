@@ -1,44 +1,67 @@
 {
   "Lab 1": [
     {
-      "id": "cab_1787214123445_364",
+      "id": "cab_1787320838645_327",
       "type": "cabinet",
+      "subType": "chemical_cabinet",
       "name": "ตู้ A",
-      "rotation": 0,
-      "scale": 1,
-      "left": 0,
-      "top": 0,
-      "isPercent": true
+      "maxCapacity": 50,
+      "shelvesCount": 4,
+      "isHidden": false
     },
     {
-      "id": "cab_1787214123445_950",
+      "id": "cab_1787320838645_394",
       "type": "cabinet",
+      "subType": "chemical_cabinet",
       "name": "ตู้ B",
-      "rotation": 0,
-      "scale": 1,
-      "left": 0,
-      "top": 0,
-      "isPercent": true
+      "maxCapacity": 50,
+      "shelvesCount": 4,
+      "isHidden": false
     },
     {
-      "id": "cab_1787214123445_763",
+      "id": "cab_1787320838645_997",
       "type": "cabinet",
+      "subType": "glassware_cabinet",
       "name": "ตู้เก็บเครื่องแก้ว",
-      "rotation": 0,
-      "scale": 1,
-      "left": 0,
-      "top": 0,
-      "isPercent": true
+      "maxCapacity": 50,
+      "shelvesCount": 4,
+      "isHidden": false
     },
     {
-      "id": "cab_1787214123445_949",
+      "id": "cab_emergency_Lab_1",
       "type": "cabinet",
-      "name": "โต๊ะชั่งน้ำหนัก",
-      "rotation": 0,
-      "scale": 0.7000000000000001,
-      "left": 40.367,
-      "top": 7.5,
-      "isPercent": true
+      "subType": "emergency_cabinet",
+      "name": "ตู้ฉุกเฉิน",
+      "maxCapacity": 100,
+      "shelvesCount": 4,
+      "isHidden": false
+    },
+    {
+      "id": "cab_1791643786659_111",
+      "type": "cabinet",
+      "subType": "chemical_cabinet",
+      "name": "ตู้ที่ 2 (Solid)",
+      "maxCapacity": 50,
+      "shelvesCount": 4,
+      "isHidden": false
+    },
+    {
+      "id": "cab_1791643786659_494",
+      "type": "cabinet",
+      "subType": "chemical_cabinet",
+      "name": "ตู้ที่ 1 (Solution)",
+      "maxCapacity": 50,
+      "shelvesCount": 4,
+      "isHidden": false
+    },
+    {
+      "id": "cab_1791643786659_261",
+      "type": "cabinet",
+      "subType": "chemical_cabinet",
+      "name": "ตู้ 1",
+      "maxCapacity": 50,
+      "shelvesCount": 4,
+      "isHidden": false
     }
   ]
 }
