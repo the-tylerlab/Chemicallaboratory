@@ -712,7 +712,7 @@ async function initSupabaseFromConfig() {
       };
     }
   } catch (err) {
-    console.log('🚀 Backend /api/config unavailable, connecting directly to Supabase Cloud...');
+    console.log('[Backend] Backend /api/config unavailable, connecting directly to Supabase Cloud...');
   }
 
   // Fallback to Supabase Cloud if server config endpoint is not available (e.g., Vercel static deployment)
@@ -723,13 +723,13 @@ async function initSupabaseFromConfig() {
 
   try {
     if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-      console.log('🚀 Supabase CDN script missing. Operating in LocalStorage Cache / Local API mode.');
+      console.log('[Supabase] Supabase CDN script missing. Operating in LocalStorage Cache / Local API mode.');
       return;
     }
     supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
     window.__supabaseClient = supabase;
     isSupabaseOnline = true;
-    console.log('🚀 Supabase initialized as Production Source of Truth. LocalStorage acts as Cache.');
+    console.log('[Supabase] Supabase initialized as Production Source of Truth. LocalStorage acts as Cache.');
 
     // Crucial: Set up realtime subscriptions and immediately load cloud items to overwrite stale local cache
     setupRealtimeSubscriptions();
@@ -739,7 +739,7 @@ async function initSupabaseFromConfig() {
     if (typeof renderItemsTable === 'function') renderItemsTable();
     if (typeof renderCabinetMap === 'function') renderCabinetMap();
   } catch (err) {
-    console.warn('🚀 Supabase initialization failed — running in offline cache mode:', err.message);
+    console.warn('[Supabase] Supabase initialization failed — running in offline cache mode:', err.message);
     isSupabaseOnline = false;
   }
 }
@@ -811,7 +811,7 @@ async function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
     }).catch(err => {
       console.warn(`[GoogleSheetsDirectSync] ${table} notice:`, err.message);
     });
-    console.log(`📊 [GoogleSheetsDirectSync] Dispatched ${action} on table ${table}`);
+    console.log(`[GoogleSheetsDirectSync] Dispatched ${action} on table ${table}`);
   } catch (e) {
     console.warn(`[GoogleSheetsDirectSync] Error on ${table}:`, e);
   }
@@ -927,10 +927,10 @@ async function syncAllToGoogleSheets(silent = false) {
           icon: 'success',
           title: 'สำรองข้อมูลไปยัง Google Sheets สำเร็จ!',
           html: `<div style="font-size:13.5px; color:#334155; line-height:1.7; text-align:left;">
-            <p>✅ ส่งออกรายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> (ชีท <b>5.Users</b>)</p>
-            <p>✅ ส่งออกรายการจองห้องปฏิบัติการ <b>${(typeof bookings !== 'undefined' ? bookings.length : 0)} รายการ</b> (ชีท <b>3.Bookings</b>)</p>
-            <p>✅ ส่งออกรายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> (ชีท <b>1.Items</b>)</p>
-            <p>✅ ส่งออกประวัติธุรกรรมและการสั่งซื้อเพื่อเป็นสมุดทะเบียนและรายงานวิชาการเรียบร้อยแล้ว</p>
+            <p><i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #16a34a; vertical-align: middle; margin-right: 6px;"></i>ส่งออกรายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> (ชีท <b>5.Users</b>)</p>
+            <p><i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #16a34a; vertical-align: middle; margin-right: 6px;"></i>ส่งออกรายการจองห้องปฏิบัติการ <b>${(typeof bookings !== 'undefined' ? bookings.length : 0)} รายการ</b> (ชีท <b>3.Bookings</b>)</p>
+            <p><i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #16a34a; vertical-align: middle; margin-right: 6px;"></i>ส่งออกรายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> (ชีท <b>1.Items</b>)</p>
+            <p><i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #16a34a; vertical-align: middle; margin-right: 6px;"></i>ส่งออกประวัติธุรกรรมและการสั่งซื้อเพื่อเป็นสมุดทะเบียนและรายงานวิชาการเรียบร้อยแล้ว</p>
           </div>`,
           showConfirmButton: true,
           confirmButtonColor: '#2563eb'
@@ -1190,13 +1190,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.warn("Session verification notice:", e);
     }
 
-    // Support URL query parameters for direct navigation
+    // Support URL query parameters & Hash routing for direct navigation
+    const initialHash = window.location.hash.replace(/^#\/?/, '').trim().split('?')[0];
     const urlParams = new URLSearchParams(window.location.search);
-    const targetPanel = urlParams.get("panel");
-    if (targetPanel && typeof navigateToPanel === "function") {
-      navigateToPanel(targetPanel);
-    } else if (typeof navigateToPanel === "function") {
-      navigateToPanel("dashboard");
+    const targetPanel = initialHash || urlParams.get("panel") || "dashboard";
+    if (typeof navigateToPanel === "function") {
+      navigateToPanel(targetPanel, "all", "all", !!initialHash);
     }
 
     // Parallel Background Cloud Synchronization (Non-blocking Stale-While-Revalidate)
@@ -1263,13 +1262,13 @@ async function checkBackendStatus() {
     
     if (response && response.ok) {
       isBackendOnline = true;
-      console.log("⚡ Connected to Laboratory Backend Server (localhost:3000)");
+      console.log("[Backend] Connected to Laboratory Backend Server (localhost:3000)");
     } else {
       isBackendOnline = false;
     }
   } catch (err) {
     isBackendOnline = false;
-    console.log("⚡ Backend offline. Operating in LocalStorage Fallback Mode.");
+    console.log("[Backend] Backend offline. Operating in LocalStorage Fallback Mode.");
   }
 }
 
@@ -1300,14 +1299,14 @@ async function loadAllItems() {
         if (loadedItems.length > 0) {
           items = loadedItems;
           saveItemsToLocal();
-          console.log("🔥 Loaded " + items.length + " items from Supabase Cloud.");
+          console.log("[Supabase] Loaded " + items.length + " items from Supabase Cloud.");
           localStorage.setItem("has_seeded_items", "true");
           triggerItemRender();
           return;
         }
       }
     } catch (err) {
-      console.warn("🔥 Supabase fetch warning:", err);
+      console.warn("[Supabase] Supabase fetch warning:", err);
     }
   }
 
@@ -1318,7 +1317,7 @@ async function loadAllItems() {
       if (Array.isArray(sheetItems) && sheetItems.length > 0) {
         items = sheetItems;
         saveItemsToLocal();
-        console.log("📊 Loaded " + items.length + " items from Google Sheets.");
+        console.log("[GoogleSheets] Loaded " + items.length + " items from Google Sheets.");
         localStorage.setItem("has_seeded_items", "true");
         triggerItemRender();
 
@@ -1334,7 +1333,7 @@ async function loadAllItems() {
         return;
       }
     } catch (gsErr) {
-      console.warn("📊 Google Sheets fetch warning:", gsErr);
+      console.warn("[GoogleSheets] Google Sheets fetch warning:", gsErr);
     }
   }
 
@@ -1376,7 +1375,7 @@ async function loadAllItems() {
         if (Array.isArray(staticItems) && staticItems.length > 0) {
           items = staticItems;
           saveItemsToLocal();
-          console.log("📦 Loaded " + items.length + " items from local static database.json.");
+          console.log("[Database] Loaded " + items.length + " items from local static database.json.");
           localStorage.setItem("has_seeded_items", "true");
           triggerItemRender();
           return;
@@ -1995,6 +1994,34 @@ function setupNavigation() {
       }
     });
   }
+
+  // Handle Browser Back / Forward and URL Hash Changes (Routing Sync)
+  const handleRouteSync = () => {
+    const hash = window.location.hash.replace(/^#\/?/, '').trim().split('?')[0];
+    if (!hash) {
+      navigateToPanel("dashboard", "all", "all", false);
+      return;
+    }
+    let target = hash;
+    if (target === "shecu") target = "cabinet-layout";
+    if (target === "procurement") target = "purchase-orders";
+    if (target.startsWith("panel-")) target = target.replace("panel-", "");
+
+    const panelEl = document.getElementById(`panel-${target}`) || document.getElementById(target);
+    if (panelEl) {
+      navigateToPanel(target, "all", "all", false);
+    }
+  };
+
+  window.addEventListener("popstate", (e) => {
+    if (e.state && e.state.panel) {
+      navigateToPanel(e.state.panel, "all", "all", false);
+    } else {
+      handleRouteSync();
+    }
+  });
+
+  window.addEventListener("hashchange", handleRouteSync);
 }
 
 function setupSidebarCollapse() {
@@ -2100,17 +2127,28 @@ function setupSidebarCollapse() {
   }
 }
 
-// Function to programmatically switch panels
-function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
+// Function to programmatically switch panels with full URL Hash Routing & History
+function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updateHistory = true) {
+  let cleanPanelId = (panelId || "dashboard").toString().trim();
+  if (cleanPanelId.startsWith("panel-")) cleanPanelId = cleanPanelId.replace("panel-", "");
+  if (cleanPanelId.startsWith("#/")) cleanPanelId = cleanPanelId.replace("#/", "");
+  if (cleanPanelId.startsWith("#")) cleanPanelId = cleanPanelId.replace("#", "");
+  if (cleanPanelId === "shecu") cleanPanelId = "cabinet-layout";
+  if (cleanPanelId === "procurement") cleanPanelId = "purchase-orders";
+  if (!cleanPanelId) cleanPanelId = "dashboard";
+
   // Authorization check for admin page & backoffice panels
   const loggedIn = isUserLoggedIn();
   const isL3 = canAccessAdminSection();
   
-  if (panelId === "panel-admin" || panelId === "admin") {
+  if (cleanPanelId === "admin") {
     if (!isL3) {
       showToast("เฉพาะผู้ดูแลระบบ (L3 Admin) เท่านั้นที่สามารถเข้าใช้งานหน้านี้ได้", "error");
       if (!loggedIn && typeof window.openLoginModal === "function") {
         window.openLoginModal();
+      }
+      if (window.location.hash.includes("admin")) {
+        history.replaceState({ panel: "dashboard" }, "", "#/dashboard");
       }
       return;
     }
@@ -2120,11 +2158,14 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   const isL2 = (roleLevel === "L2" || (typeof userRole !== "undefined" && userRole === "staff"));
   const isL3OrL4 = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive")));
 
-  if (panelId === "reports") {
+  if (cleanPanelId === "reports") {
     if (!isL3OrL4 && !isL2) {
       showToast("กรุณาเข้าสู่ระบบด้วยบัญชีเจ้าหน้าที่ หรือผู้ดูแลระบบ", "warning");
       if (!loggedIn && typeof window.openLoginModal === "function") {
         window.openLoginModal();
+      }
+      if (window.location.hash.includes("reports")) {
+        history.replaceState({ panel: "dashboard" }, "", "#/dashboard");
       }
       return;
     }
@@ -2133,20 +2174,26 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
     }
   }
 
-  if (panelId === "notifications") {
+  if (cleanPanelId === "notifications") {
     if (!isL3OrL4) {
       showToast("เฉพาะผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4) เท่านั้นที่มีสิทธิ์ดูการแจ้งเตือน", "error");
       if (!loggedIn && typeof window.openLoginModal === "function") {
         window.openLoginModal();
       }
+      if (window.location.hash.includes("notifications")) {
+        history.replaceState({ panel: "dashboard" }, "", "#/dashboard");
+      }
       return;
     }
   }
 
-  if ((panelId === "add-item" || panelId === "purchase-orders") && !loggedIn) {
+  if ((cleanPanelId === "add-item" || cleanPanelId === "purchase-orders") && !loggedIn) {
     showToast("กรุณาเข้าสู่ระบบด้วยรหัสครูเพื่อเข้าใช้งานหน้านี้", "warning");
     if (typeof window.openLoginModal === "function") {
       window.openLoginModal();
+    }
+    if (window.location.hash.includes(cleanPanelId)) {
+      history.replaceState({ panel: "dashboard" }, "", "#/dashboard");
     }
     return;
   }
@@ -2157,7 +2204,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   // Update sidebar active link
   sidebarLinks.forEach(link => {
     const target = link.getAttribute("data-target");
-    if (target === panelId) {
+    if (target === cleanPanelId) {
       link.classList.add("active");
     } else {
       link.classList.remove("active");
@@ -2166,7 +2213,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
 
   // Show panel
   panels.forEach(panel => {
-    if (panel.id === `panel-${panelId}`) {
+    if (panel.id === `panel-${cleanPanelId}`) {
       panel.classList.add("active");
     } else {
       panel.classList.remove("active");
@@ -2183,36 +2230,70 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all") {
   }
 
   // Set filters if navigating to All Items
-  if (panelId === "all-items") {
-    document.getElementById("filterCategory").value = catFilter;
-    document.getElementById("filterStatus").value = statusFilter;
+  if (cleanPanelId === "all-items") {
+    const filterCat = document.getElementById("filterCategory");
+    const filterStat = document.getElementById("filterStatus");
+    if (filterCat) filterCat.value = catFilter;
+    if (filterStat) filterStat.value = statusFilter;
     if (typeof renderItemsTable === "function") renderItemsTable();
   }
   
-  if (panelId === "activity-logs") {
+  if (cleanPanelId === "activity-logs") {
     if (typeof renderActivityLogs === "function") renderActivityLogs();
   }
 
-  if (panelId === "cabinet-layout" || panelId === "shecu") {
+  if (cleanPanelId === "cabinet-layout") {
     if (typeof renderCabinetMap === "function") renderCabinetMap();
   }
 
-  if (panelId === "lab-booking") {
+  if (cleanPanelId === "lab-booking") {
     if (typeof renderBookingCalendar === "function") renderBookingCalendar();
   }
 
-  if (panelId === "admin" || panelId === "panel-admin") {
+  if (cleanPanelId === "purchase-orders") {
+    if (typeof renderPurchaseOrders === "function") renderPurchaseOrders();
+  }
+
+  if (cleanPanelId === "admin") {
     if (typeof renderAdminPanel === "function") renderAdminPanel();
     if (typeof renderAdminUsers === "function") renderAdminUsers();
     if (typeof renderAdminLabRoomsList === "function") renderAdminLabRoomsList();
   }
 
-  if (panelId === "assets") {
-    navigateToPanel("all-items", "ครุภัณฑ์", "all");
+  if (cleanPanelId === "assets") {
+    navigateToPanel("all-items", "ครุภัณฑ์", "all", updateHistory);
     if (typeof selectCategoryTab === "function") {
       selectCategoryTab("ครุภัณฑ์");
     }
     return;
+  }
+
+  // Route Config for Browser Hash and Titles
+  const ROUTE_CONFIG = {
+    "dashboard": { hash: "#/dashboard", title: "หน้าแรก" },
+    "all-items": { hash: "#/all-items", title: "รายการสารเคมีและพัสดุ" },
+    "cabinet-layout": { hash: "#/cabinet-layout", title: "ผังตู้สารเคมี SHECU" },
+    "add-item": { hash: "#/add-item", title: "เพิ่มรายการใหม่" },
+    "lab-booking": { hash: "#/lab-booking", title: "จองห้องปฏิบัติการ" },
+    "borrow-return": { hash: "#/borrow-return", title: "ยืม-คืนพัสดุ" },
+    "purchase-orders": { hash: "#/purchase-orders", title: "จัดซื้อจัดจ้างและงบประมาณ" },
+    "reports": { hash: "#/reports", title: "รายงานและสถิติ" },
+    "activity-logs": { hash: "#/activity-logs", title: "ประวัติการใช้งาน" },
+    "admin": { hash: "#/admin", title: "แผงควบคุมระบบ (Admin)" },
+    "notifications": { hash: "#/notifications", title: "การแจ้งเตือน" }
+  };
+
+  const route = ROUTE_CONFIG[cleanPanelId];
+  if (route) {
+    if (updateHistory) {
+      const targetHash = route.hash;
+      if (window.location.hash !== targetHash) {
+        history.pushState({ panel: cleanPanelId }, "", targetHash);
+      }
+    }
+    if (route.title) {
+      document.title = `${route.title} | ห้องปฏิบัติการเคมีและเครื่องมือวิทยาศาสตร์`;
+    }
   }
 
   currentPage = 1;
@@ -2263,14 +2344,14 @@ function getItemStatus(item) {
 function getStatusBadgeMarkup(status) {
   switch (status) {
     case "expired":
-      return `<span class="badge badge-red">🔴 หมดอายุ</span>`;
+      return `<span class="badge badge-red"><i data-lucide="alert-octagon" style="width: 12px; height: 12px; margin-right: 4px;"></i>หมดอายุ</span>`;
     case "near-expiry":
-      return `<span class="badge badge-yellow">🟡 ใกล้หมดอายุ</span>`;
+      return `<span class="badge badge-yellow"><i data-lucide="clock" style="width: 12px; height: 12px; margin-right: 4px;"></i>ใกล้หมดอายุ</span>`;
     case "low-stock":
-      return `<span class="badge badge-orange">🟠 ใกล้หมดคลัง</span>`;
+      return `<span class="badge badge-orange"><i data-lucide="alert-triangle" style="width: 12px; height: 12px; margin-right: 4px;"></i>ใกล้หมดคลัง</span>`;
     case "normal":
     default:
-      return `<span class="badge badge-green">🟢 ปกติ</span>`;
+      return `<span class="badge badge-green"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; margin-right: 4px;"></i>ปกติ</span>`;
   }
 }
 
@@ -2801,19 +2882,19 @@ function openReportIssueModal(defaultRoom = "") {
           </div>
           <div class="report-issue-categories">
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'สารเคมี / เครื่องแก้วชำรุด')">
-              <span class="chip-emoji">🧪</span> <span>สารเคมี / แก้ว</span>
+              <i data-lucide="flask-conical" style="width: 14px; height: 14px; flex-shrink: 0;"></i> <span>สารเคมี / แก้ว</span>
             </button>
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'อุปกรณ์ไฟฟ้า / เครื่องมือวิทยาศาสตร์')">
-              <span class="chip-emoji">🔬</span> <span>เครื่องมือวิทย์</span>
+              <i data-lucide="microscope" style="width: 14px; height: 14px; flex-shrink: 0;"></i> <span>เครื่องมือวิทย์</span>
             </button>
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'แอร์ / น้ำประปา / อาคารสถานที่')">
-              <span class="chip-emoji">❄️</span> <span>อาคาร / ไฟฟ้า</span>
+              <i data-lucide="building" style="width: 14px; height: 14px; flex-shrink: 0;"></i> <span>อาคาร / ไฟฟ้า</span>
             </button>
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'ระบบโปรแกรม / บัญชีผู้ใช้งานขัดข้อง')">
-              <span class="chip-emoji">💻</span> <span>ระบบ / โปรแกรม</span>
+              <i data-lucide="laptop" style="width: 14px; height: 14px; flex-shrink: 0;"></i> <span>ระบบ / โปรแกรม</span>
             </button>
             <button type="button" class="issue-category-chip" onclick="selectIssueCategory(this, 'การเบิก-ยืม / คืนอุปกรณ์')">
-              <span class="chip-emoji">📦</span> <span>เบิกยืม / คืน</span>
+              <i data-lucide="package" style="width: 14px; height: 14px; flex-shrink: 0;"></i> <span>เบิกยืม / คืน</span>
             </button>
           </div>
         </div>
@@ -2899,7 +2980,7 @@ function openReportIssueModal(defaultRoom = "") {
       const { room, urgency, title, detail } = result.value;
       const nextCode = getNextIssueCode();
       const nextNumber = (window.feedbacksData ? window.feedbacksData.length : 0) + 1;
-      const urgencyTag = urgency === 'urgent' ? ' [🚨 ด่วนมาก]' : (urgency === 'medium' ? ' [⚠️ ปานกลาง]' : '');
+      const urgencyTag = urgency === 'urgent' ? ' [ด่วนมาก]' : (urgency === 'medium' ? ' [ปานกลาง]' : '');
       const fullMessage = detail ? `${title}${urgencyTag} (${detail})` : `${title}${urgencyTag}`;
 
       const newFeedback = {
@@ -3356,7 +3437,7 @@ async function changeFeedbackStatus(id) {
           <label class="status-option-card ${currentStatus === 'repair' ? 'selected' : ''}" onclick="selectStatusOption(this, 'repair')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 2px solid ${currentStatus === 'repair' ? '#f59e0b' : '#e2e8f0'}; background-color: ${currentStatus === 'repair' ? '#fffbeb' : '#ffffff'}; border-radius: 16px; cursor: pointer; transition: all 0.2s ease;">
             <div style="display: flex; align-items: center; gap: 12px;">
               <div style="width: 40px; height: 40px; border-radius: 12px; background-color: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
-                🔧
+                <i data-lucide="wrench" style="width: 20px; height: 20px;"></i>
               </div>
               <div>
                 <div style="font-size: 14.5px; font-weight: 700; color: #1e293b;">รอช่างซ่อม</div>
@@ -3370,7 +3451,7 @@ async function changeFeedbackStatus(id) {
           <label class="status-option-card ${currentStatus === 'pending' ? 'selected' : ''}" onclick="selectStatusOption(this, 'pending')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 2px solid ${currentStatus === 'pending' ? '#8b5cf6' : '#e2e8f0'}; background-color: ${currentStatus === 'pending' ? '#faf5ff' : '#ffffff'}; border-radius: 16px; cursor: pointer; transition: all 0.2s ease;">
             <div style="display: flex; align-items: center; gap: 12px;">
               <div style="width: 40px; height: 40px; border-radius: 12px; background-color: #ede9fe; color: #6d28d9; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
-                ⏳
+                <i data-lucide="clock" style="width: 20px; height: 20px;"></i>
               </div>
               <div>
                 <div style="font-size: 14.5px; font-weight: 700; color: #1e293b;">รอดำเนินการ</div>
@@ -3384,7 +3465,7 @@ async function changeFeedbackStatus(id) {
           <label class="status-option-card ${currentStatus === 'resolved' ? 'selected' : ''}" onclick="selectStatusOption(this, 'resolved')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 2px solid ${currentStatus === 'resolved' ? '#10b981' : '#e2e8f0'}; background-color: ${currentStatus === 'resolved' ? '#f0fdf4' : '#ffffff'}; border-radius: 16px; cursor: pointer; transition: all 0.2s ease;">
             <div style="display: flex; align-items: center; gap: 12px;">
               <div style="width: 40px; height: 40px; border-radius: 12px; background-color: #d1fae5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
-                ✅
+                <i data-lucide="check-circle-2" style="width: 20px; height: 20px;"></i>
               </div>
               <div>
                 <div style="font-size: 14.5px; font-weight: 700; color: #065f46;">แก้ไขแล้ว</div>
@@ -3642,7 +3723,7 @@ function renderDashboardUrgentAlerts() {
     const bg = isExpired ? "rgba(239, 68, 68, 0.04)" : "rgba(249, 115, 22, 0.04)";
     const border = isExpired ? "rgba(239, 68, 68, 0.15)" : "rgba(249, 115, 22, 0.15)";
     const textColor = isExpired ? "#ef4444" : "#f97316";
-    const alertLabel = isExpired ? "🚨 หมดอายุแล้ว" : "⚠️ ใกล้หมดสต็อก";
+    const alertLabel = isExpired ? `<i data-lucide="alert-octagon" style="width: 14px; height: 14px; margin-right: 4px; display: inline-block; vertical-align: middle;"></i>หมดอายุแล้ว` : `<i data-lucide="alert-triangle" style="width: 14px; height: 14px; margin-right: 4px; display: inline-block; vertical-align: middle;"></i>ใกล้หมดสต็อก`;
     const descText = isExpired 
       ? `หมดอายุเมื่อ: ${formatThaiDate(item.expiry)}`
       : `คงเหลือต่ำกว่าจุดสั่งซื้อขั้นต่ำ (คงเหลือ: ${item.qty} ${item.unit} / สั่งซื้อขั้นต่ำ: ${item.minAlert} ${item.unit})`;
@@ -4264,7 +4345,7 @@ function renderNotificationsList(stats) {
   } else {
     expiredList.innerHTML = `
       <div class="empty-state" style="padding: 24px;">
-        <div class="empty-state-text">🎉 ไม่มีรายการสารเคมีหรืออุปกรณ์หมดอายุ</div>
+        <div class="empty-state-text"><i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10b981; margin-right: 6px; display: inline-block; vertical-align: middle;"></i>ไม่มีรายการสารเคมีหรืออุปกรณ์หมดอายุ</div>
       </div>
     `;
   }
@@ -4275,7 +4356,7 @@ function renderNotificationsList(stats) {
   } else {
     nearExpiryList.innerHTML = `
       <div class="empty-state" style="padding: 24px;">
-        <div class="empty-state-text">🎉 ไม่มีรายการพัสดุใกล้หมดอายุใน 30 วัน</div>
+        <div class="empty-state-text"><i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10b981; margin-right: 6px; display: inline-block; vertical-align: middle;"></i>ไม่มีรายการพัสดุใกล้หมดอายุใน 30 วัน</div>
       </div>
     `;
   }
@@ -4286,7 +4367,7 @@ function renderNotificationsList(stats) {
   } else {
     lowStockList.innerHTML = `
       <div class="empty-state" style="padding: 24px;">
-        <div class="empty-state-text">🎉 จำนวนสินค้าพัสดุทุกรายการอยู่ในเกณฑ์ปลอดภัย</div>
+        <div class="empty-state-text"><i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10b981; margin-right: 6px; display: inline-block; vertical-align: middle;"></i>จำนวนสินค้าพัสดุทุกรายการอยู่ในเกณฑ์ปลอดภัย</div>
       </div>
     `;
   }
@@ -4309,7 +4390,7 @@ async function createItemBackend(itemData) {
       items.push(itemData);
       return true;
     } catch (err) {
-      console.error("🔥 Supabase write failed:", err);
+      console.error("[Supabase] Supabase write failed:", err);
       showToast("เกิดข้อผิดพลาดในการเขียนข้อมูลไปยัง Supabase", "error");
       return false;
     }
@@ -4352,7 +4433,7 @@ async function updateItemBackend(code, itemData, index) {
       items[index] = itemData;
       return true;
     } catch (err) {
-      console.error("🔥 Supabase update failed:", err);
+      console.error("[Supabase] Supabase update failed:", err);
       showToast("เกิดข้อผิดพลาดในการอัปเดตข้อมูลไปยัง Supabase", "error");
       return false;
     }
@@ -4608,7 +4689,7 @@ function setupFormHandlers() {
       const dup = findDuplicateItemInRoom(name, room, casNo, currentExcludeCode);
       if (dup) {
         dupWarningEl.style.display = "block";
-        dupWarningEl.innerHTML = `⚠️ <b>พบรายการนี้ใน ${dup.room} แล้ว:</b> "${dup.name}" (รหัส: <code>${dup.code}</code>, คงเหลือ: <b>${dup.qty} ${dup.unit}</b>) จัดเก็บที่: ${dup.cabinet || '-'}/${dup.shelf || '-'}<br><span style="color:#c2410c; font-size:11px;">* หากบันทึก ระบบจะมีตัวเลือกรวมยอดสต็อกเข้ากับรายการเดิมให้อัตโนมัติ</span>`;
+        dupWarningEl.innerHTML = `<i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #ea580c; vertical-align: middle; margin-right: 4px;"></i><b>พบรายการนี้ใน ${dup.room} แล้ว:</b> "${dup.name}" (รหัส: <code>${dup.code}</code>, คงเหลือ: <b>${dup.qty} ${dup.unit}</b>) จัดเก็บที่: ${dup.cabinet || '-'}/${dup.shelf || '-'}<br><span style="color:#c2410c; font-size:11px;">* หากบันทึก ระบบจะมีตัวเลือกรวมยอดสต็อกเข้ากับรายการเดิมให้อัตโนมัติ</span>`;
         return;
       }
     }
@@ -4718,10 +4799,10 @@ function setupFormHandlers() {
               <div style="font-size: 13.5px; text-align: left; color: #334155; line-height: 1.6;">
                 <p style="margin-bottom: 8px;">มีรายการ <b>"${duplicateInRoom.name}"</b> (รหัส: <code>${duplicateInRoom.code}</code>) อยู่ใน <b>${room}</b> เรียบร้อยแล้ว</p>
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 10px;">
-                  <div>📍 <b>ตำแหน่งจัดเก็บ:</b> ${duplicateInRoom.cabinet || '-'} / ${duplicateInRoom.shelf || '-'}</div>
-                  <div>📦 <b>จำนวนคงเหลือปัจจุบัน:</b> <span style="font-weight: 700; color: #4f21a1;">${duplicateInRoom.qty} ${duplicateInRoom.unit}</span></div>
-                  <div>➕ <b>จำนวนที่ต้องการเพิ่ม:</b> <span style="font-weight: 700; color: #16a34a;">+${qty} ${unit}</span></div>
-                  <div style="margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px;">📊 <b>ยอดรวมใหม่:</b> <span style="font-weight: 700; color: #15803d;">${duplicateInRoom.qty + qty} ${unit}</span></div>
+                  <div><i data-lucide="map-pin" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #6366f1;"></i><b>ตำแหน่งจัดเก็บ:</b> ${duplicateInRoom.cabinet || '-'} / ${duplicateInRoom.shelf || '-'}</div>
+                  <div><i data-lucide="package" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #4f21a1;"></i><b>จำนวนคงเหลือปัจจุบัน:</b> <span style="font-weight: 700; color: #4f21a1;">${duplicateInRoom.qty} ${duplicateInRoom.unit}</span></div>
+                  <div><i data-lucide="plus-circle" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #16a34a;"></i><b>จำนวนที่ต้องการเพิ่ม:</b> <span style="font-weight: 700; color: #16a34a;">+${qty} ${unit}</span></div>
+                  <div style="margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px;"><i data-lucide="bar-chart-2" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #15803d;"></i><b>ยอดรวมใหม่:</b> <span style="font-weight: 700; color: #15803d;">${duplicateInRoom.qty + qty} ${unit}</span></div>
                 </div>
                 <p style="color: #64748b; font-size: 12px; margin: 0;">ระบบป้องกันการเพิ่มสารซ้ำในห้องแล็บเดียวกัน คุณต้องการรวมจำนวนสต็อกเข้ากับรายการเดิม หรือกลับไปแก้ไข?</p>
               </div>
@@ -4731,8 +4812,8 @@ function setupFormHandlers() {
             confirmButtonColor: "#4f21a1",
             denyButtonColor: "#64748b",
             cancelButtonColor: "#dc2626",
-            confirmButtonText: `➕ รวมจำนวนสต็อก (${duplicateInRoom.qty + qty} ${unit})`,
-            denyButtonText: "✏️ กลับไปแก้ไขข้อมูล",
+            confirmButtonText: `รวมจำนวนสต็อก (${duplicateInRoom.qty + qty} ${unit})`,
+            denyButtonText: "กลับไปแก้ไขข้อมูล",
             cancelButtonText: "ยกเลิก"
           });
 
@@ -4828,7 +4909,7 @@ function setupFormHandlers() {
               return;
             }
           } else {
-            const msg = `⚠️ คำเตือนจัดเก็บสารเคมีร่วมตู้ที่ไม่เข้ากัน:\n` +
+            const msg = `คำเตือนจัดเก็บสารเคมีร่วมตู้ที่ไม่เข้ากัน (SHECU Incompatibility):\n` +
                         `พบ "${conflictName}" ซึ่งเป็นสารประเภท "${typeLabels[conflictType]}" จัดเก็บอยู่ใน "${room} > ${cabinet}" เรียบร้อยแล้ว\n` +
                         `สารประเภท "${typeLabels[chemicalType]}" และ "${typeLabels[conflictType]}" ไม่ควรจัดเก็บร่วมกันในตู้เดียวกันตามมาตรฐานความปลอดภัย\n\n` +
                         `คุณต้องการบันทึกการจัดเก็บร่วมกันต่อไปใช่หรือไม่?`;
@@ -5135,7 +5216,7 @@ window.deleteItem = async function(index) {
         items.splice(index, 1);
         showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
       } catch (err) {
-        console.error("🔥 Supabase delete failed:", err);
+        console.error("[Supabase] Supabase delete failed:", err);
         showToast("เกิดข้อผิดพลาดในการลบข้อมูลบน Supabase", "error");
         return;
       }
@@ -5776,7 +5857,7 @@ async function processImportRowsMatrix(rows) {
   try {
     importList.forEach(item => syncToGoogleSheetsDirect('Items', 'UPSERT', item, 'code'));
   } catch (gsErr) {
-    console.warn("⚠️ Google Sheets import sync warning:", gsErr);
+    console.warn("[GoogleSheets] Google Sheets import sync warning:", gsErr);
   }
 
   // 5. Background Sync: Supabase Cloud (with fallback safety)
@@ -5787,11 +5868,11 @@ async function processImportRowsMatrix(rows) {
         const chunk = importList.slice(i, i + batchLimit).map(sanitizeItemForSupabase);
         const { error } = await supabase.from("items").upsert(chunk, { onConflict: 'code' });
         if (error) {
-          console.warn("⚠️ Supabase upsert error:", error);
+          console.warn("[Supabase] Supabase upsert error:", error);
         }
       }
     } catch (err) {
-      console.warn("🔥 Supabase batch import warning:", err);
+      console.warn("[Supabase] Supabase batch import warning:", err);
     }
   }
 
@@ -5820,8 +5901,8 @@ async function processImportRowsMatrix(rows) {
       title: 'นำเข้าข้อมูลสำเร็จ!',
       html: `<div style="font-size:14px; color:#334155; text-align:left; line-height:1.6;">
         <p>บันทึกพัสดุและสารเคมีลงระบบเรียบร้อยแล้ว <b>${importList.length} รายการ</b></p>
-        ${errorCount > 0 ? `<p style="color:#e11d48; margin-top:6px;">⚠️ ข้ามแถวที่ไม่สมบูรณ์: ${errorCount} แถว</p>` : ''}
-        <p style="color:#059669; font-size:12.5px; margin-top:8px;">✅ อัปเดตตารางและบันทึกลงระบบทันที</p>
+        ${errorCount > 0 ? `<p style="color:#e11d48; margin-top:6px;"><i data-lucide="alert-triangle" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>ข้ามแถวที่ไม่สมบูรณ์: ${errorCount} แถว</p>` : ''}
+        <p style="color:#059669; font-size:12.5px; margin-top:8px;"><i data-lucide="check-circle-2" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>อัปเดตตารางและบันทึกลงระบบทันที</p>
       </div>`,
       confirmButtonColor: '#7c3aed',
       confirmButtonText: 'ตกลง'
@@ -5924,11 +6005,11 @@ async function loadAllTransactions() {
       });
       transactions = loadedTrans;
       localStorage.setItem("lab_transactions", JSON.stringify(transactions));
-      console.log("🔥 Loaded " + transactions.length + " transactions from Supabase Cloud.");
+      console.log("[Supabase] Loaded " + transactions.length + " transactions from Supabase Cloud.");
       triggerTransRender();
       return;
     } catch (err) {
-      console.warn("🔥 Supabase transactions fetch notice:", err);
+      console.warn("[Supabase] Supabase transactions fetch notice:", err);
     }
   }
 
@@ -5991,7 +6072,7 @@ async function saveTransaction(transData) {
       transactions.push(transData);
       return true;
     } catch (err) {
-      console.error("🔥 Supabase save transaction failed:", err);
+      console.error("[Supabase] Supabase save transaction failed:", err);
       showToast("เกิดข้อผิดพลาดในการบันทึกประวัติไปยังคลาวด์", "error");
       return false;
     }
@@ -6236,7 +6317,7 @@ function setupCustomSearchableSelect() {
     if (!hasMatch && options.length > 0) {
       const noResultsDiv = document.createElement("div");
       noResultsDiv.className = "custom-select-no-results";
-      noResultsDiv.innerText = "❌ ไม่พบรายการพัสดุหรืออุปกรณ์";
+      noResultsDiv.innerText = "ไม่พบรายการพัสดุหรืออุปกรณ์";
       optionsList.appendChild(noResultsDiv);
     }
   });
@@ -6656,7 +6737,7 @@ function setupBorrowForm() {
                 const idx = transactions.findIndex(t => t.id === tx.id);
                 if (idx !== -1) transactions[idx] = updatedTrans;
               } catch (err) {
-                console.error("🔥 Failed to update transaction on Supabase:", err);
+                console.error("[Supabase] Failed to update transaction on Supabase:", err);
                 continue;
               }
             } else {
@@ -7003,7 +7084,7 @@ window.returnBorrowedItem = async function(transId) {
           await supabase.from("transactions").upsert(updatedTrans);
           transactions[txIndex] = updatedTrans;
         } catch (err) {
-          console.error("🔥 Failed to update transaction on Supabase:", err);
+          console.error("[Supabase] Failed to update transaction on Supabase:", err);
           showToast("เกิดข้อผิดพลาดในการบันทึกสถานะลงคลาวด์", "error");
           return;
         }
@@ -7305,10 +7386,10 @@ async function loadAllBookings() {
       if (!error && Array.isArray(data) && data.length > 0) {
         // Filter out any mock booking IDs
         remoteBookings = data.filter(b => b && b.id && !b.id.startsWith("book_mock") && !b.id.startsWith("test_booking") && !b.id.startsWith("book_20260711") && !b.id.startsWith("book_20260713"));
-        console.log("🔥 Loaded " + remoteBookings.length + " bookings from Supabase Cloud.");
+        console.log("[Supabase] Loaded " + remoteBookings.length + " bookings from Supabase Cloud.");
       }
     } catch (err) {
-      console.warn("🔥 Supabase bookings load notice:", err);
+      console.warn("[Supabase] Supabase bookings load notice:", err);
     }
   }
 
@@ -7360,7 +7441,7 @@ async function loadAllBookings() {
             createdAt: b.createdAt || new Date().toISOString()
           };
         });
-      console.log(`📊 Loaded ${sheetBookings.length} clean bookings from Google Sheets.`);
+      console.log(`[GoogleSheets] Loaded ${sheetBookings.length} clean bookings from Google Sheets.`);
     }
   } catch (e) {
     console.warn("Failed to load bookings from Google Sheets:", e);
@@ -7508,7 +7589,7 @@ async function syncBookingToGoogleSheetsDirect(bookingData, action = 'UPSERT') {
     }).catch(err => {
       console.warn("Google Sheets direct sync notice:", err);
     });
-    console.log("📊 Direct Google Sheets booking sync dispatched for:", bookingData.id);
+    console.log("[GoogleSheets] Direct Google Sheets booking sync dispatched for:", bookingData.id);
   } catch (e) {
     console.warn("Google Sheets direct sync error:", e);
   }
@@ -7579,13 +7660,13 @@ async function flushOfflineBookingQueue() {
   localStorage.setItem("lab_offline_booking_queue", JSON.stringify(remaining));
 
   if (successCount > 0) {
-    showToast(`🌐 เชื่อมต่ออินเทอร์เน็ตแล้ว: ซิงค์ข้อมูลการจองที่ค้างอยู่ ${successCount} รายการ ขึ้นระบบ Cloud และ Google Sheets เรียบร้อย`, "success");
+    showToast(`เชื่อมต่ออินเทอร์เน็ตแล้ว: ซิงค์ข้อมูลการจองที่ค้างอยู่ ${successCount} รายการ ขึ้นระบบ Cloud และ Google Sheets เรียบร้อย`, "success");
     if (typeof updateUI === "function") updateUI();
   }
 }
 
 window.addEventListener('online', () => {
-  console.log("🌐 Network connection restored. Triggering offline sync queue...");
+  console.log("[Network] Network connection restored. Triggering offline sync queue...");
   flushOfflineBookingQueue();
 });
 
@@ -7607,12 +7688,12 @@ async function saveBooking(bookingData) {
       const { error } = await supabase.from("bookings").upsert(supaPayload);
       if (!error) {
         isSavedRemotely = true;
-        console.log("🔥 Successfully synced booking to Supabase Cloud:", supaPayload.id);
+        console.log("[Supabase] Successfully synced booking to Supabase Cloud:", supaPayload.id);
       } else {
-        console.warn("🔥 Supabase save booking error notice:", error.message);
+        console.warn("[Supabase] Supabase save booking error notice:", error.message);
       }
     } catch (err) {
-      console.warn("🔥 Supabase save booking exception:", err);
+      console.warn("[Supabase] Supabase save booking exception:", err);
     }
   }
 
@@ -7660,10 +7741,10 @@ async function updateBookingStatus(bookingId, status) {
       const supaPayload = formatBookingForSupabase(updatedBooking);
       const { error } = await supabase.from("bookings").upsert(supaPayload);
       if (error) {
-        console.warn("🔥 Supabase update booking status notice:", error.message);
+        console.warn("[Supabase] Supabase update booking status notice:", error.message);
       }
     } catch (err) {
-      console.warn("🔥 Supabase update booking status exception:", err);
+      console.warn("[Supabase] Supabase update booking status exception:", err);
     }
   }
 
@@ -7706,18 +7787,18 @@ function renderBookingSlots() {
     const isSelected = selectedSlots.includes(slot);
 
     let statusClass = "vacant";
-    let statusLabel = "🟢 ว่าง";
+    let statusLabel = `<i data-lucide="check-circle-2" style="width: 12px; height: 12px;"></i> ว่าง`;
     if (isBooked) {
       if (slotBooking.status === "pending") {
         statusClass = "pending-booked";
-        statusLabel = "⏳ รออนุมัติ";
+        statusLabel = `<i data-lucide="clock" style="width: 12px; height: 12px;"></i> รออนุมัติ`;
       } else {
         statusClass = "booked";
         statusLabel = `<i data-lucide="lock" style="width: 12px; height: 12px;"></i> ถูกจองแล้ว`;
       }
     } else if (isSelected) {
       statusClass = "selected";
-      statusLabel = "🟣 เลือกอยู่";
+      statusLabel = `<i data-lucide="mouse-pointer-click" style="width: 12px; height: 12px;"></i> เลือกอยู่`;
     }
 
     html += `
@@ -7969,9 +8050,9 @@ function setupBookingForm() {
       
       if (bsStatus) {
         if (bookingData.status === "pending") {
-          bsStatus.innerHTML = `<span style="color: #f59e0b; font-weight: 600;">⏳ รออนุมัติ (Pending)</span>`;
+          bsStatus.innerHTML = `<span style="color: #f59e0b; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="clock" style="width: 14px; height: 14px;"></i> รออนุมัติ (Pending)</span>`;
         } else {
-          bsStatus.innerHTML = `<span style="color: #10b981; font-weight: 600;">🟢 อนุมัติแล้ว (Approved)</span>`;
+          bsStatus.innerHTML = `<span style="color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i> อนุมัติแล้ว (Approved)</span>`;
         }
       }
 
@@ -9614,7 +9695,7 @@ window.openUserProfileModal = function() {
     const perms = getPermissionsForRole(roleLevel);
     permList.innerHTML = perms.map(p => `
       <div style="display: flex; align-items: center; gap: 9px; font-size: 12px; color: #334155; padding: 6px 10px; border-radius: 8px; background: #f8fafc; border: 1px solid #f1f5f9;">
-        <span style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; background: #dcfce7; color: #15803d; font-size: 10px; font-weight: 700; flex-shrink: 0;">✓</span>
+        <span style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; background: #dcfce7; color: #15803d; font-size: 10px; font-weight: 700; flex-shrink: 0;"><i data-lucide="check" style="width: 11px; height: 11px;"></i></span>
         <span style="line-height: 1.35;">${escapeHtml(p)}</span>
       </div>
     `).join('');
@@ -9690,7 +9771,7 @@ window.handleForgotPasswordClick = function() {
       title: "ลืมรหัสผ่าน?",
       html: `
         <div style="font-size: 13.5px; line-height: 1.6; color: #475569; text-align: left;">
-          <p style="margin: 0 0 8px 0;">💡 หากท่านลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ (Admin) เพื่อขอรีเซ็ตรหัสผ่านใหม่</p>
+          <p style="margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;"><i data-lucide="info" style="width: 14px; height: 14px; color: #3b82f6; flex-shrink: 0;"></i>หากท่านลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ (Admin) เพื่อขอรีเซ็ตรหัสผ่านใหม่</p>
           <p style="margin: 0;">การยืนยันตัวตนทั้งหมดจะได้รับการประมวลผลผ่านระบบความปลอดภัยของเซิร์ฟเวอร์เท่านั้น</p>
         </div>
       `,
@@ -10329,7 +10410,7 @@ function renderDashboardOverdueAlerts() {
       <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; background-color: rgba(239, 68, 68, 0.04); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: var(--border-radius-md);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <span style="font-size: 13px; font-weight: 600; color: #0f172a;">${tx.itemName}</span>
-          <span class="badge badge-red" style="font-size: 10px; padding: 1px 6px;">⚠️ เกินกำหนด ${getOverdueDays(tx.expectedReturnDate)} วัน</span>
+          <span class="badge badge-red" style="font-size: 10px; padding: 1px 6px; display: inline-flex; align-items: center; gap: 3px;"><i data-lucide="alert-triangle" style="width: 11px; height: 11px;"></i> เกินกำหนด ${getOverdueDays(tx.expectedReturnDate)} วัน</span>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); flex-wrap: wrap; gap: 4px;">
           <span>ผู้ยืม: <strong>${tx.borrower}</strong> (จำนวน: ${tx.qty})</span>
@@ -10873,7 +10954,7 @@ window.showItemDetail = function(event, itemCode) {
         <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; border-top: 1px dashed rgba(239, 68, 68, 0.1); padding-top: 12px;">
           ${item.sdsUrl ? `
             <a href="${item.sdsUrl}" target="_blank" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(239, 68, 68, 0.2); color: var(--accent-red); display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; width: fit-content; background: rgba(239, 68, 68, 0.04);">
-              📄 SDS Safety Sheet
+              <i data-lucide="file-text" style="width: 13px; height: 13px;"></i> SDS Safety Sheet
             </a>
           ` : `
             <div style="font-size: 12px; color: var(--text-muted);">ไม่มีข้อมูลเอกสาร SDS ความปลอดภัย</div>
@@ -11364,7 +11445,7 @@ window.triggerPhysicalLabelPrint = function(itemCode) {
           }
           .nfpa-val {
             position: absolute;
-            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+            font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
             font-weight: 800;
             text-align: center;
             line-height: 1;
@@ -11762,7 +11843,7 @@ function printComprehensiveInventoryReport() {
         <title>รายงานสรุปสถานะคลังพัสดุและเคมีภัณฑ์ - ${new Date().toLocaleDateString('th-TH')}</title>
         <style>
           body {
-            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+            font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
             color: #1e293b;
             padding: 40px;
             background-color: #ffffff;
@@ -12335,7 +12416,7 @@ function setupGhsSuggestions() {
       if (incompatibleAllPatterns.some(p => nameLower.includes(p))) {
         group = "X";
         groupLabel = "กลุ่ม X - สารที่ไม่เข้ากันกับสารอื่น";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม X):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม X):</div>` +
                   `สารกลุ่มนี้มีความไวต่อปฏิกิริยาเป็นพิเศษ และสามารถทำปฏิกิริยารุนแรงกับสารเคมีอื่นๆ แทบทุกชนิด<br>` +
                   `• <b>วิธีจัดเก็บ:</b> <b>ต้องจัดเก็บแยกเดี่ยวแยกขาดจากสารเคมีอื่นๆ ทั้งหมด (รวมถึงสารในกลุ่ม X ตัวอื่นๆ ด้วย)</b> โดยแนะนำให้เก็บในภาชนะป้องกันสองชั้น (Double Containment) หรือตู้เฉพาะตัวเดี่ยวๆ`;
         bgColor = "rgba(75, 85, 99, 0.08)";
@@ -12344,7 +12425,7 @@ function setupGhsSuggestions() {
       } else if (explosivePatterns.some(p => nameLower.includes(p))) {
         group = "K";
         groupLabel = "กลุ่ม K - สารระเบิดได้ที่มีความคงตัว";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม K):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม K):</div>` +
                   `สารระเบิดได้ที่มีความคงตัวในการจัดเก็บปกติ แต่ยังคงไวต่อความร้อน แรงกระแทก ประกายไฟ หรือการเสียดสี<br>` +
                   `• <b>วิธีจัดเก็บ:</b> <b>ต้องจัดเก็บในตู้เก็บสารระเบิดเฉพาะที่มั่นคงแข็งแรง มีการควบคุมอุณหภูมิและความปลอดภัยสูง</b> แยกห่างจากกลุ่มสารเคมีอื่นๆ ทั้งหมดเด็ดขาด`;
         bgColor = "rgba(245, 158, 11, 0.08)";
@@ -12353,7 +12434,7 @@ function setupGhsSuggestions() {
       } else if (waterReactivePatterns.some(p => nameLower.includes(p))) {
         group = "B";
         groupLabel = "กลุ่ม B - สารที่ทำปฏิกิริยากับน้ำ/ลุกติดไฟเอง";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม B):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม B):</div>` +
                   `สารกลุ่มนี้ไวต่ออากาศและความชื้นอย่างมาก สามารถลุกไหม้ได้เองในอากาศ หรือทำปฏิกิริยากับน้ำแล้วให้แก๊สไวไฟสูง<br>` +
                   `• <b>วิธีจัดเก็บ:</b> <b>ต้องจัดเก็บแยกเดี่ยวในตู้นิรภัยเฉพาะสารทำปฏิกิริยากับน้ำ/ลุกติดไฟเอง</b> ห้ามจัดเก็บร่วมกับสารกลุ่มอื่นๆ หรือจัดเก็บใกล้แหล่งน้ำหรือความชื้นเด็ดขาด`;
         bgColor = "rgba(239, 68, 68, 0.08)";
@@ -12362,7 +12443,7 @@ function setupGhsSuggestions() {
       } else if (strongOxidizingAcidPatterns.some(p => nameLower.includes(p))) {
         group = "I";
         groupLabel = "กลุ่ม I - สารออกซิไดเซอร์ที่เป็นกรดแก่";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม I):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม I):</div>` +
                   `กรดแก่ที่มีฤทธิ์ออกซิไดซ์สูงมาก ก่อให้เกิดปฏิกิริยารุนแรงและลุกไหม้ได้เมื่อสัมผัสกับสารอินทรีย์หรือตัวทำละลาย<br>` +
                   `• <b>วิธีจัดเก็บ:</b> <b>ต้องจัดเก็บแยกจากกลุ่มอื่นๆ ทั้งหมดอย่างเด็ดขาด</b> (โดยเฉพาะห้ามเก็บรวมกับกรดอินทรีย์กลุ่ม D หรือตัวทำละลายกลุ่ม L) แนะนำให้ใช้ถาดรองสารเคมีเฉพาะกลุ่มเพื่อแยกทางกายภาพ`;
         bgColor = "rgba(220, 38, 38, 0.08)";
@@ -12371,7 +12452,7 @@ function setupGhsSuggestions() {
       } else if (inorganicAcidPatterns.some(p => nameLower.includes(p))) {
         group = "F";
         groupLabel = "กลุ่ม F - กรดอนินทรีย์";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม F):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม F):</div>` +
                   `กรดอนินทรีย์กัดกร่อนสูง ทำปฏิกิริยารุนแรงคายความร้อนมากกับเบส และทำปฏิกิริยากับสารออกซิไดซ์<br>` +
                   `• <b>วิธีจัดเก็บ:</b> จัดเก็บในตู้เก็บสารกัดกร่อนเฉพาะสำหรับกรด (Acid Cabinet) แยกห่างจากเบส (กลุ่ม A, C) สารไวไฟ (กลุ่ม L) และสารออกซิไดเซอร์ (กลุ่ม E, I)`;
         bgColor = "rgba(249, 115, 22, 0.08)";
@@ -12380,7 +12461,7 @@ function setupGhsSuggestions() {
       } else if (organicAcidPatterns.some(p => nameLower.includes(p))) {
         group = "D";
         groupLabel = "กลุ่ม D - กรดอินทรีย์";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม D):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม D):</div>` +
                   `กรดอินทรีย์เป็นสารติดไฟได้และสามารถทำปฏิกิริยารุนแรงกับกรดออกซิไดซ์ที่เป็นกรดแก่<br>` +
                   `• <b>วิธีจัดเก็บ:</b> จัดเก็บในตู้เก็บกรดโดยแยกทางกายภาพจากกรดอนินทรีย์แก่ (กลุ่ม I) หรือจัดเก็บในตู้นิรภัยสำหรับสารไวไฟร่วมกับกลุ่ม L แยกห่างจากเบส (กลุ่ม A, C) และสารออกซิไดเซอร์ (กลุ่ม E)`;
         bgColor = "rgba(168, 85, 247, 0.08)";
@@ -12389,7 +12470,7 @@ function setupGhsSuggestions() {
       } else if (organicBasePatterns.some(p => nameLower.includes(p))) {
         group = "A";
         groupLabel = "กลุ่ม A - เบสอินทรีย์";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม A):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม A):</div>` +
                   `สารกลุ่มนี้ทำปฏิกิริยารุนแรงกับกรด และสามารถเข้าทำปฏิกิริยากับตัวทำละลายฮาโลเจนจนเกิดการระเบิดได้<br>` +
                   `• <b>วิธีจัดเก็บ:</b> จัดเก็บร่วมกับตัวทำละลายอินทรีย์และเบสอินทรีย์อื่นๆ ได้ (เช่น กลุ่ม L) แต่ห้ามจัดเก็บร่วมกับกรด (กลุ่ม D, F, I) และสารออกซิไดเซอร์ (กลุ่ม E) เด็ดขาด`;
         bgColor = "rgba(236, 72, 153, 0.08)";
@@ -12398,7 +12479,7 @@ function setupGhsSuggestions() {
       } else if (inorganicBasePatterns.some(p => nameLower.includes(p))) {
         group = "C";
         groupLabel = "กลุ่ม C - เบสอนินทรีย์";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม C):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม C):</div>` +
                   `สารเคมีกลุ่มเบสอนินทรีย์ ทำปฏิกิริยาคายความร้อนสูงและรุนแรงหากทำปฏิกิริยากับกรด<br>` +
                   `• <b>วิธีจัดเก็บ:</b> จัดเก็บในตู้อโลหะทนสารเคมีเฉพาะสำหรับเบส/ด่าง แยกเก็บห่างจากกรด (กลุ่ม D, F, I) และสารออกซิไดเซอร์เด็ดขาด`;
         bgColor = "rgba(59, 130, 246, 0.08)";
@@ -12407,7 +12488,7 @@ function setupGhsSuggestions() {
       } else if (oxidizerPatterns.some(p => nameLower.includes(p))) {
         group = "E";
         groupLabel = "กลุ่ม E - สารออกซิไดเซอร์อนินทรีย์";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม E):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม E):</div>` +
                   `สารออกซิไดเซอร์ช่วยเร่งการเผาไหม้อย่างรุนแรง และอาจระเบิดได้หากสัมผัสกับสารอินทรีย์ สารไวไฟ หรือกรด<br>` +
                   `• <b>วิธีจัดเก็บ:</b> จัดเก็บแยกห่างจากสารไวไฟ ตัวทำละลายอินทรีย์ (กลุ่ม L) กรดอินทรีย์ (กลุ่ม D) และสารลดเด็ดขาด เก็บในตู้ทนไฟเฉพาะสารออกซิไดซ์`;
         bgColor = "rgba(234, 179, 8, 0.08)";
@@ -12416,7 +12497,7 @@ function setupGhsSuggestions() {
       } else if (flammablePatterns.some(p => nameLower.includes(p))) {
         group = "L";
         groupLabel = "กลุ่ม L - สารไวไฟและตัวทำละลายอินทรีย์";
-        recText = `<b>⚠️ คำแนะนำการจัดเก็บ (กลุ่ม L):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="alert-triangle" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม L):</div>` +
                   `สารไวไฟและตัวทำละลายอินทรีย์เสี่ยงต่อการติดไฟรวดเร็วและสะสมไอระเหยที่เป็นอันตราย<br>` +
                   `• <b>วิธีจัดเก็บ:</b> จัดเก็บในตู้นิรภัยสำหรับเก็บสารไวไฟ (Flammable Safety Cabinet) แยกห่างจากแหล่งความร้อน ประกายไฟ สารออกซิไดเซอร์ (กลุ่ม E, I) และกรดกัดกร่อน (กลุ่ม F)`;
         bgColor = "rgba(249, 115, 22, 0.08)";
@@ -12425,7 +12506,7 @@ function setupGhsSuggestions() {
       } else {
         group = "G";
         groupLabel = "กลุ่ม G - สารเคมีทั่วไปที่ไม่ว่องไว";
-        recText = `<b>ℹ️ คำแนะนำการจัดเก็บ (กลุ่ม G):</b><br>` +
+        recText = `<div style="display:flex;align-items:center;gap:6px;font-weight:700;margin-bottom:4px;"><i data-lucide="info" style="width:15px;height:15px;color:${borderColor};"></i>คำแนะนำการจัดเก็บ (กลุ่ม G):</div>` +
                   `สารเคมีทั่วไปที่มีความปลอดภัยค่อนข้างสูง ไม่ไวต่อปฏิกิริยา ไม่ลุกติดไฟเอง<br>` +
                   `• <b>วิธีจัดเก็บ:</b> สามารถจัดเก็บในชั้นวางสารเคมีทั่วไปได้ แต่ให้ปิดฝาให้สนิท หลีกเลี่ยงความร้อนและแสงแดดจัด`;
         bgColor = "rgba(16, 185, 129, 0.08)";
@@ -12440,7 +12521,7 @@ function setupGhsSuggestions() {
         borderColor: borderColor
       };
       
-      recBadge.innerHTML = `💡 คำแนะนำจัดเก็บ (${groupLabel}) คลิกเพื่อดู`;
+      recBadge.innerHTML = `<i data-lucide="lightbulb" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px;"></i>คำแนะนำจัดเก็บ (${groupLabel}) คลิกเพื่อดู`;
       recBadge.style.backgroundColor = bgColor;
       recBadge.style.color = textColor;
       recBadge.style.borderColor = borderColor;
@@ -12617,7 +12698,7 @@ function setupWasteClassificationWizard() {
               <b>ตัวอย่างสาร:</b> ${c.examples}
             </p>
             <p style="font-size: 13.5px; color: var(--text-main); line-height: 1.5; margin-bottom: 0; background: #ffffff; padding: 10px; border-radius: 6px; border: 1px dashed var(--border-color);">
-              <b>⚠️ คำแนะนำส่งกำจัด:</b> ${c.guide}
+              <b>คำแนะนำส่งกำจัด:</b> ${c.guide}
             </p>
           </div>
           <button type="button" class="btn btn-secondary" id="btnRestartWasteWizard" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; padding: 8px 12px; border-radius: var(--border-radius-sm); border: 1px solid var(--border-color); background: #ffffff; color: var(--text-main); font-weight: 600; cursor: pointer;">
@@ -12773,8 +12854,8 @@ function setupHistoryExports() {
         <head>
           <title>รายงานประวัติการยืม-คืนพัสดุและสารเคมี${filterText}</title>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
-            body { font-family: 'Noto Sans Thai', 'Inter', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+            @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
+            body { font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
             h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
             p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
             table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
@@ -12905,8 +12986,8 @@ function setupHistoryExports() {
       <head>
         <title>รายงานประวัติการใช้ห้องปฏิบัติการ${filterText}</title>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
-          body { font-family: 'Noto Sans Thai', 'Inter', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+          @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
+          body { font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
           h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
           p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
           table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; }
@@ -13082,8 +13163,8 @@ function setupHistoryExports() {
         <head>
           <title>รายงานรายการสั่งซื้อสะสม</title>
           <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap');
-            body { font-family: 'Noto Sans Thai', 'Inter', sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
+            @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
+            body { font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif; padding: 24px; color: #1e293b; line-height: 1.5; }
             h1 { text-align: center; font-size: 20px; margin-bottom: 8px; color: #0f172a; }
             p.meta { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
             table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 11px; page-break-inside: auto; }
@@ -13970,13 +14051,13 @@ const WASTE_CLASSES = {
 
 function getWasteClassResponse(classKey) {
   const c = WASTE_CLASSES[classKey];
-  if (!c) return `❌ ไม่พบข้อมูลการจำแนกประเภทของเสียรหัส ${classKey} ครับ`;
+  if (!c) return `<i data-lucide="x-circle" style="width: 15px; height: 15px; color: #ef4444; vertical-align: middle; margin-right: 4px;"></i>ไม่พบข้อมูลการจำแนกประเภทของเสียรหัส ${classKey} ครับ`;
   
-  return `✅ <b>ผลการจำแนกประเภทของเสียสำเร็จ!</b>\n\n` +
-         `🏷️ <b>ประเภท:</b> <span style="color: var(--accent-red); font-weight: 600;">${c.name}</span>\n` +
-         `📝 <b>คำจำกัดความ:</b> ${c.desc}\n` +
-         `🧪 <b>ตัวอย่างสาร:</b> ${c.examples}\n` +
-         `⚠️ <b>คำแนะนำส่งกำจัด:</b> ${c.guide}\n\n` +
+  return `<i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10b981; vertical-align: middle; margin-right: 4px;"></i><b>ผลการจำแนกประเภทของเสียสำเร็จ!</b>\n\n` +
+         `<i data-lucide="tag" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ประเภท:</b> <span style="color: var(--accent-red); font-weight: 600;">${c.name}</span>\n` +
+         `<i data-lucide="file-text" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>คำจำกัดความ:</b> ${c.desc}\n` +
+         `<i data-lucide="flask-conical" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ตัวอย่างสาร:</b> ${c.examples}\n` +
+         `<i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #f59e0b; vertical-align: middle; margin-right: 4px;"></i><b>คำแนะนำส่งกำจัด:</b> ${c.guide}\n\n` +
          `ต้องการเริ่มจำแนกของเสียรายการอื่นใหม่หรือไม่ครับ?\n` +
          `<div class="chat-choices-container">` +
          `  <button class="chat-choice-btn" data-choice="waste_start">เริ่มจำแนกของเสียใหม่</button>` +
@@ -13988,7 +14069,7 @@ function generateBotResponse(query) {
 
   // WasteTrack Classification Router
   if (q.includes("ทิ้งสารเคมี") || q.includes("จำแนกสารเคมี") || q.includes("วิธีกำจัดสารเคมี") || q.includes("wastetrack") || q.includes("ทิ้งยา") || q.includes("คลาสของเสีย") || q.includes("จำแนกของเสีย") || q === "waste_start") {
-    return `🧪 <b>ระบบช่วยเหลือจำแนกประเภทของเสียสารเคมี (CU WasteTrack)</b>\n\n` +
+    return `<i data-lucide="flask-conical" style="width: 16px; height: 16px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ระบบช่วยเหลือจำแนกประเภทของเสียสารเคมี (CU WasteTrack)</b>\n\n` +
            `อ้างอิงตามระบบการจำแนกของเสียห้องปฏิบัติการ 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย\n\n` +
            `<b>คำถามที่ 1:</b> เป็นสารเคมีเสื่อมสภาพหรือหมดอายุ (Deteriorated/Expired) ที่ยังสามารถระบุชื่อและระบุความเป็นอันตรายของสารเคมีนั้นได้ชัดเจนหรือไม่?\n\n` +
            `<div class="chat-choices-container">` +
@@ -14243,12 +14324,12 @@ function generateBotResponse(query) {
     const eqMatch = cleanQuery.match(/[A-Za-z0-9()·*.\s\-+=>→➔]+/);
     if (eqMatch) {
       const candidate = eqMatch[0].trim();
-      if (candidate.includes("->") || candidate.includes("=") || candidate.includes("➔") || candidate.includes("→")) {
+      if (candidate.includes("->") || candidate.includes("=") || candidate.includes("->") || candidate.includes("→")) {
         return balanceEquation(candidate);
       }
     }
 
-    return `🧪 <b>ระบบดุลสมการเคมีอัตโนมัติ (Chemical Equation Balancer)</b>\n\n` +
+    return `<i data-lucide="flask-conical" style="width: 16px; height: 16px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ระบบดุลสมการเคมีอัตโนมัติ (Chemical Equation Balancer)</b>\n\n` +
            `กรุณาระบุสมการเคมีที่ต้องการดุล โดยใช้เครื่องหมาย <code>-&gt;</code> หรือ <code>=</code> ในการแยกสารตั้งต้นและผลิตภัณฑ์ เช่น:\n` +
            `- <i>"ดุลสมการ H2 + O2 -&gt; H2O"</i>\n` +
            `- <i>"ช่วยดุลสมการ Fe + Cl2 = FeCl3 หน่อย"</i>`;
@@ -14262,7 +14343,7 @@ function generateBotResponse(query) {
       const res = getFormulaWeightBreakdown(rawFormula);
       if (res && !res.error) {
         const { totalMass, breakdown } = res;
-        let html = `⚖️ <b>ผลการคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n`;
+        let html = `<i data-lucide="scale" style="width: 16px; height: 16px; color: #2563eb; vertical-align: middle; margin-right: 4px;"></i><b>ผลการคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n`;
         html += `สูตรเคมี: <b>${formatChemicalFormula(rawFormula)}</b>\n\n`;
         html += `<table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12.5px; background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 6px; overflow: hidden;">`;
         html += `<thead>`;
@@ -14293,11 +14374,11 @@ function generateBotResponse(query) {
         
         return html;
       } else if (res && res.error) {
-        return `❌ <b>ข้อผิดพลาด:</b> ${res.error}`;
+        return `<i data-lucide="x-circle" style="width: 15px; height: 15px; color: #ef4444; vertical-align: middle; margin-right: 4px;"></i><b>ข้อผิดพลาด:</b> ${res.error}`;
       }
     }
 
-    return `⚖️ <b>ระบบคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n\n` +
+    return `<i data-lucide="scale" style="width: 16px; height: 16px; color: #2563eb; vertical-align: middle; margin-right: 4px;"></i><b>ระบบคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n\n` +
            `กรุณาระบุสูตรเคมีที่คุณต้องการคำนวณมวลโมเลกุล (สามารถพิมพ์ตัวพิมพ์เล็กหรือตัวพิมพ์ใหญ่ได้) เช่น:\n` +
            `- <i>"มวลโมเลกุล H2O"</i> หรือ <i>"มวลโมเลกุล h2o"</i>\n` +
            `- <i>"คำนวณมวลโมเลกุลของ Ca(OH)2"</i> หรือ <i>"คำนวณมวลโฒเลกุลของ ca(oh)2"</i>\n` +
@@ -14327,13 +14408,13 @@ function generateBotResponse(query) {
              data.steps.map(step => `<li>${step}</li>`).join('') +
              `</ol>`;
     } else {
-      return `🛡️ <b>ระบบแนะนำความปลอดภัยและการปฐมพยาบาลเบื้องต้น (Lab Safety):</b>\n\n` +
+      return `<i data-lucide="shield-alert" class="inline-icon"></i> <b>ระบบแนะนำความปลอดภัยและการปฐมพยาบาลเบื้องต้น (Lab Safety):</b>\n\n` +
              `กรุณาคลิกหรือระบุอุบัติเหตุที่เกิดขึ้นเพื่อรับวิธีรับมือทันที:\n\n` +
-             `1. 🚨 <b>สารเคมีหกเลอะ:</b> พิมพ์ <i>"ปฐมพยาบาลสารเคมีหก"</i> หรือ <i>"กรดหก"</i>\n` +
-             `2. ⚠️ <b>สารเคมีสัมผัสผิวหนัง:</b> พิมพ์ <i>"สารเคมีโดนผิวหนัง"</i>\n` +
-             `3. 👀 <b>สารเคมีเข้าตา:</b> พิมพ์ <i>"สารเคมีเข้าตา"</i>\n` +
-             `4. 🫁 <b>สูดดมแก๊สพิษ/ไอระเหย:</b> พิมพ์ <i>"สูดดมไอระเหย"</i>\n` +
-             `5. 👄 <b>กลืนกินสารเคมี:</b> พิมพ์ <i>"กลืนกินสารเคมี"</i>`;
+             `1. <i data-lucide="alert-octagon" class="inline-icon"></i> <b>สารเคมีหกเลอะ:</b> พิมพ์ <i>"ปฐมพยาบาลสารเคมีหก"</i> หรือ <i>"กรดหก"</i>\n` +
+             `2. <i data-lucide="alert-triangle" class="inline-icon"></i> <b>สารเคมีสัมผัสผิวหนัง:</b> พิมพ์ <i>"สารเคมีโดนผิวหนัง"</i>\n` +
+             `3. <i data-lucide="eye" class="inline-icon"></i> <b>สารเคมีเข้าตา:</b> พิมพ์ <i>"สารเคมีเข้าตา"</i>\n` +
+             `4. <i data-lucide="wind" class="inline-icon"></i> <b>สูดดมแก๊สพิษ/ไอระเหย:</b> พิมพ์ <i>"สูดดมไอระเหย"</i>\n` +
+             `5. <i data-lucide="cross" class="inline-icon"></i> <b>กลืนกินสารเคมี:</b> พิมพ์ <i>"กลืนกินสารเคมี"</i>`;
     }
   }
 
@@ -14442,10 +14523,10 @@ function generateBotResponse(query) {
         
         if (!isLiquid) {
           const grams = targetConc * mw * volL;
-          return `🧪 <b>วิธีการเตรียมสารละลาย ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
+          return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเตรียมสารละลาย ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
                  `- <b>สูตรคำนวณ:</b> <code>g = M × MW × V (ลิตร)</code>\n` +
                  `- <b>ค่าคำนวณได้:</b> ชั่งสาร <b>${grams.toFixed(4)} กรัม</b> (มวลโมเลกุล MW = <b>${mw.toFixed(3)} g/mol</b>, ปริมาตร = <b>${volL.toFixed(3)} ลิตร</b>)\n\n` +
-                 `📝 <b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
+                 `<i data-lucide="list-ordered" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
                  `1. ชั่งของแข็ง ${key} ปริมาณ <b>${grams.toFixed(4)} กรัม</b> ด้วยเครื่องชั่งสารอย่างละเอียด\n` +
                  `2. เทสารลงในบีกเกอร์ ค่อยๆ เติมน้ำกลั่นประมาณ 60% ของปริมาตรรวม (ประมาณ <b>${(volML * 0.6).toFixed(0)} mL</b>) และคนจนละลายหมด\n` +
                  `3. เทสารละลายลงในขวดวัดปริมาตร (Volumetric Flask) ขนาด <b>${volML.toFixed(0)} mL</b>\n` +
@@ -14460,7 +14541,7 @@ function generateBotResponse(query) {
           
           const c1 = STOCK_CONCS[chem.formula] || 12.0;
           if (targetConc >= c1) {
-            return `⚠️ <b>ข้อควรระวัง:</b> ความเข้มข้นที่ต้องการ (${targetConc} M) สูงกว่าความเข้มข้นของสารละลายเข้มข้นสต็อกที่มี (${c1} M) ไม่สามารถเตรียมด้วยการเจือจางได้ครับ`;
+            return `<i data-lucide="alert-triangle" style="width: 15px; height: 15px; color: #ea580c; vertical-align: middle; margin-right: 4px;"></i><b>ข้อควรระวัง:</b> ความเข้มข้นที่ต้องการ (${targetConc} M) สูงกว่าความเข้มข้นของสารละลายเข้มข้นสต็อกที่มี (${c1} M) ไม่สามารถเตรียมด้วยการเจือจางได้ครับ`;
           }
           
           const v1 = (targetConc * volML) / c1;
@@ -14468,13 +14549,13 @@ function generateBotResponse(query) {
           
           let safetyNote = "";
           if (chem.formula === "H2SO4") {
-            safetyNote = `\n🚨 <b>ข้อควรระวังความปลอดภัยสูง:</b> ปฏิกิริยาระหว่างกรดซัลฟิวริกเข้มข้นกับน้ำคายความร้อนสูงมาก! <b>ห้ามเทน้ำลงในกรดเข้มข้นเด็ดขาด</b> ให้ตวงน้ำใส่ขวดก่อนแล้วค่อยๆ เทกรดเข้มข้นลงในน้ำช้าๆ`;
+            safetyNote = `\n<i data-lucide="siren" style="width: 15px; height: 15px; color: #dc2626; vertical-align: middle; margin-right: 4px;"></i><b>ข้อควรระวังความปลอดภัยสูง:</b> ปฏิกิริยาระหว่างกรดซัลฟิวริกเข้มข้นกับน้ำคายความร้อนสูงมาก! <b>ห้ามเทน้ำลงในกรดเข้มข้นเด็ดขาด</b> ให้ตวงน้ำใส่ขวดก่อนแล้วค่อยๆ เทกรดเข้มข้นลงในน้ำช้าๆ`;
           }
           
-          return `💧 <b>วิธีการเจือจางเตรียมสารละลายกรด ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากกรดเข้มข้นสต็อก (${c1} M):</b>\n\n` +
+          return `<i data-lucide="droplet" style="width: 15px; height: 15px; color: #0284c7; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเจือจางเตรียมสารละลายกรด ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากกรดเข้มข้นสต็อก (${c1} M):</b>\n\n` +
                  `- <b>สูตรคำนวณ:</b> <code>C₁V₁ = C₂V₂</code>\n` +
                  `- <b>ค่าคำนวณได้:</b> ใช้กรดสต็อกปริมาตร <b>${v1.toFixed(2)} mL</b> เจือจางด้วยตัวทำละลาย (น้ำกลั่น) <b>${solvent.toFixed(2)} mL</b>\n\n` +
-                 `📝 <b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
+                 `<i data-lucide="list-ordered" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
                  `1. ตวงน้ำกลั่นปริมาณ <b>${solvent.toFixed(2)} mL</b> ใส่ในขวดวัดปริมาตรขนาด <b>${volML.toFixed(0)} mL</b>${safetyNote}\n` +
                  `2. ใช้ปิเปตต์ตวงกรดเข้มข้นสต็อก (${c1} M) ปริมาตร <b>${v1.toFixed(2)} mL</b> ค่อยๆ ปล่อยลงไปในขวดวัดปริมาตรอย่างระมัดระวัง\n` +
                  `3. หมุนขวดวัดปริมาตรเบาๆ เพื่อให้ผสมเข้ากัน\n` +
@@ -14508,10 +14589,10 @@ function generateBotResponse(query) {
         
         if (!isLiquid) {
           const grams = targetConc * mw * volL;
-          return `🧪 <b>วิธีการเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
+          return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
                  `- <b>สูตรคำนวณ:</b> <code>g = M × MW × V (ลิตร)</code>\n` +
                  `- <b>ค่าคำนวณได้:</b> ชั่งสาร <b>${grams.toFixed(4)} กรัม</b> (มวลโมเลกุล MW = <b>${mw.toFixed(3)} g/mol</b>, ปริมาตร = <b>${volL.toFixed(3)} ลิตร</b>)\n\n` +
-                 `📝 <b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
+                 `<i data-lucide="list-ordered" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
                  `1. ชั่งสารของแข็ง ${formatChemicalFormula(rawFormula)} ปริมาณ <b>${grams.toFixed(4)} กรัม</b> ด้วยเครื่องชั่งสารอย่างละเอียด\n` +
                  `2. เทสารลงในบีกเกอร์ เติมน้ำกลั่นประมาณ 60% ของปริมาตรรวม คนให้ละลายจนหมด\n` +
                  `3. เทสารละลายที่ได้ลงในขวดวัดปริมาตร (Volumetric Flask) ขนาด <b>${volML.toFixed(0)} mL</b>\n` +
@@ -14527,20 +14608,20 @@ function generateBotResponse(query) {
           };
           const c1 = STOCK_CONCS[rawFormula] || 12.0;
           if (targetConc >= c1) {
-            return `⚠️ <b>ข้อควรระวัง:</b> ความเข้มข้นที่ต้องการ (${targetConc} M) สูงกว่าความเข้มข้นของสารละลายสต็อกที่มี (${c1} M) ไม่สามารถเตรียมด้วยการเจือจางได้ครับ`;
+            return `<i data-lucide="alert-triangle" style="width: 15px; height: 15px; color: #ea580c; vertical-align: middle; margin-right: 4px;"></i><b>ข้อควรระวัง:</b> ความเข้มข้นที่ต้องการ (${targetConc} M) สูงกว่าความเข้มข้นของสารละลายสต็อกที่มี (${c1} M) ไม่สามารถเตรียมด้วยการเจือจางได้ครับ`;
           }
           const v1 = (targetConc * volML) / c1;
           const solvent = volML - v1;
           
           let safetyNote = "";
           if (rawFormula === "H2SO4") {
-            safetyNote = `\n🚨 <b>ข้อควรระวังความปลอดภัยสูง:</b> ปฏิกิริยาระหว่างกรดซัลฟิวริกเข้มข้นกับน้ำคายความร้อนสูงมาก! <b>ห้ามเทน้ำลงในกรดเข้มข้นเด็ดขาด</b> ให้ตวงน้ำใส่ขวดก่อนแล้วค่อยๆ เทกรดเข้มข้นลงในน้ำช้าๆ`;
+            safetyNote = `\n<i data-lucide="siren" style="width: 15px; height: 15px; color: #dc2626; vertical-align: middle; margin-right: 4px;"></i><b>ข้อควรระวังความปลอดภัยสูง:</b> ปฏิกิริยาระหว่างกรดซัลฟิวริกเข้มข้นกับน้ำคายความร้อนสูงมาก! <b>ห้ามเทน้ำลงในกรดเข้มข้นเด็ดขาด</b> ให้ตวงน้ำใส่ขวดก่อนแล้วค่อยๆ เทกรดเข้มข้นลงในน้ำช้าๆ`;
           }
           
-          return `💧 <b>วิธีการเจือจางเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากสต็อก (${c1} M):</b>\n\n` +
+          return `<i data-lucide="droplet" style="width: 15px; height: 15px; color: #0284c7; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเจือจางเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากสต็อก (${c1} M):</b>\n\n` +
                  `- <b>สูตรคำนวณ:</b> <code>C₁V₁ = C₂V₂</code>\n` +
                  `- <b>ค่าคำนวณได้:</b> ใช้สารละลายสต็อกปริมาตร <b>${v1.toFixed(2)} mL</b> เจือจางด้วยน้ำกลั่น <b>${solvent.toFixed(2)} mL</b>\n\n` +
-                 `📝 <b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
+                 `<i data-lucide="list-ordered" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
                  `1. ตวงน้ำกลั่นปริมาณ <b>${solvent.toFixed(2)} mL</b> ใส่ในขวดวัดปริมาตรขนาด <b>${volML.toFixed(0)} mL</b>${safetyNote}\n` +
                  `2. ใช้ปิเปตต์ตวงสารละลายเข้มข้นสต็อก (${c1} M) ปริมาตร <b>${v1.toFixed(2)} mL</b> ค่อยๆ ปล่อยลงไปในขวดวัดปริมาตร\n` +
                  `3. หมุนขวดวัดปริมาตรเบาๆ เพื่อให้ผสมเข้ากัน\n` +
@@ -14563,7 +14644,7 @@ function generateBotResponse(query) {
     );
 
     if (reaction) {
-      return `🧪 <b>ปฏิกิริยาเคมีระหว่าง ${keyA} (${chemA.formula}) กับ ${reaction.partner} (${CHEM_DB[reaction.partner].formula}):</b>\n\n` +
+      return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ปฏิกิริยาเคมีระหว่าง ${keyA} (${chemA.formula}) กับ ${reaction.partner} (${CHEM_DB[reaction.partner].formula}):</b>\n\n` +
              `- <b>ผลผลิตที่ได้:</b> ${reaction.product}\n` +
              `- <b>สมการเคมี:</b> <code>${reaction.equation}</code>`;
     } else {
@@ -14575,11 +14656,11 @@ function generateBotResponse(query) {
       );
 
       if (revReaction) {
-        return `🧪 <b>ปฏิกิริยาเคมีระหว่าง ${keyB} (${chemB.formula}) กับ ${revReaction.partner} (${CHEM_DB[revReaction.partner].formula}):</b>\n\n` +
+        return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ปฏิกิริยาเคมีระหว่าง ${keyB} (${chemB.formula}) กับ ${revReaction.partner} (${CHEM_DB[revReaction.partner].formula}):</b>\n\n` +
                `- <b>ผลผลิตที่ได้:</b> ${revReaction.product}\n` +
                `- <b>สมการเคมี:</b> <code>${revReaction.equation}</code>`;
       } else {
-        return `🧪 ไม่พบข้อมูลปฏิกิริยาเคมีโดยตรงระหว่าง <b>${keyA}</b> และ <b>${keyB}</b> ในคลังความรู้แล็บ ณ ขณะนี้ครับ สารคู่นี้อาจไม่ทำปฏิกิริยากันภายใต้สภาวะปกติ หรือเป็นปฏิกิริยาที่ต้องใช้สภาวะเฉพาะในการเร่งปฏิกิริยาครับ`;
+        return `<i data-lucide="flask-conical" class="inline-icon"></i> ไม่พบข้อมูลปฏิกิริยาเคมีโดยตรงระหว่าง <b>${keyA}</b> และ <b>${keyB}</b> ในคลังความรู้แล็บ ณ ขณะนี้ครับ สารคู่นี้อาจไม่ทำปฏิกิริยากันภายใต้สภาวะปกติ หรือเป็นปฏิกิริยาที่ต้องใช้สภาวะเฉพาะในการเร่งปฏิกิริยาครับ`;
       }
     }
   }
@@ -14600,14 +14681,14 @@ function generateBotResponse(query) {
     );
 
     if (isDirectMatch || isPronounce) {
-      return `🗣️\n` +
+      return `<i data-lucide="bot" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i>\n` +
              `- สารเคมี ${chem.formula} คือ ${key}\n` +
              `- คำอ่านภาษาไทย "${chem.read}"\n` +
              `- ชื่ออื่นๆ/ชื่อสามัญ ${chem.commonName || "-"}`;
     }
 
     if (isReaction) {
-      let res = `🧪 <b>ข้อมูลปฏิกิริยาเคมีของ ${key} (${chem.formula}):</b>\n\n`;
+      let res = `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ข้อมูลปฏิกิริยาเคมีของ ${key} (${chem.formula}):</b>\n\n`;
       res += `สารนี้สามารถทำปฏิกิริยากับสารเคมีพื้นฐานอื่นๆ ในคลังได้ดังนี้ครับ:\n\n`;
       chem.reactions.forEach((r, idx) => {
         res += `${idx + 1}. <b>ทำปฏิกิริยากับ ${r.partner}:</b>\n`;
@@ -14623,24 +14704,24 @@ function generateBotResponse(query) {
     // Find if any item in inventory is mentioned in the query
     const matchedItem = items.find(item => q.includes(item.name.toLowerCase()));
     if (matchedItem) {
-      return `🗣️🧪 ผมพบสารเคมี/อุปกรณ์ชื่อ <b>"${matchedItem.name}"</b> ในระบบคลัง (รหัส: ${matchedItem.code}) แต่ปัจจุบันข้อมูลคำอ่านและสมการปฏิกิริยาของสารนี้ยังไม่ได้ถูกบันทึกไว้ในฐานความรู้ของผมครับ\n\n💡 แนะนำให้ลองพิมพ์ถามสารเคมีพื้นฐานอื่นๆ เช่น: <i>กรดไฮโดรคลอริก, โซเดียมไฮดรอกไซด์, เอทานอล, กรดแอซีติก, โซเดียมไบคาร์บอเนต, แคลเซียมคาร์บอเนต หรือ กรดซัลฟิวริก</i> ครับ`;
+      return `<i data-lucide="bot" class="inline-icon"></i> <i data-lucide="flask-conical" class="inline-icon"></i> ผมพบสารเคมี/อุปกรณ์ชื่อ <b>"${matchedItem.name}"</b> ในระบบคลัง (รหัส: ${matchedItem.code}) แต่ปัจจุบันข้อมูลคำอ่านและสมการปฏิกิริยาของสารนี้ยังไม่ได้ถูกบันทึกไว้ในฐานความรู้ของผมครับ\n\n<i data-lucide="lightbulb" class="inline-icon"></i> แนะนำให้ลองพิมพ์ถามสารเคมีพื้นฐานอื่นๆ เช่น: <i>กรดไฮโดรคลอริก, โซเดียมไฮดรอกไซด์, เอทานอล, กรดแอซีติก, โซเดียมไบคาร์บอเนต, แคลเซียมคาร์บอเนต หรือ กรดซัลฟิวริก</i> ครับ`;
     }
   }
 
   // 1. GREETINGS
   if (q === "สวัสดี" || q === "สวัสดีครับ" || q === "สวัสดีค่ะ" || q === "หวัดดี" || q === "hello" || q === "hi") {
     return `สวัสดีครับ! ยินดีที่ได้พูดคุยกับคุณในวันนี้ ผมคือ <b>Stoki-bitol (สต็อกบิทอล)</b> ผู้ช่วยจัดการสต็อกสารเคมีและอุปกรณ์ห้องแล็บส่วนตัวของคุณ ผมมีฟีเจอร์อัจฉริยะช่วยอำนวยความสะดวกในแล็บดังนี้ครับ:
-- 🧪 <b>ดุลสมการเคมีอัตโนมัติ:</b> พิมพ์ <i>"ดุลสมการ C3H8 + O2 -> CO2 + H2O"</i>
-- ⚖️ <b>คำนวณมวลโมเลกุล:</b> พิมพ์ <i>"มวลโมเลกุล Ca(OH)2"</i> หรือสูตรเคมีอื่นๆ
-- 💧 <b>เครื่องช่วยคำนวณเตรียมสารละลาย:</b> พิมพ์ <i>"เตรียมสาร"</i> หรือ <i>"เจือจางจาก 10 M เป็น 2 M ปริมาตร 250 mL"</i>
-- 🚨 <b>แนะนำความปลอดภัย/ปฐมพยาบาล:</b> พิมพ์ <i>"ปฐมพยาบาลสารเคมีหก"</i> หรือ <i>"กรดเข้าตา"</i>
-- 🔍 <b>ค้นหาพัสดุ/ข้อมูลสารเคมีพื้นฐาน:</b> เช่นพิมพ์ <i>"ค้นหา เอทานอล"</i> หรือเช็คสต็อกต่ำและหมดอายุ
+- <i data-lucide="flask-conical" style="width: 13px; height: 13px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ดุลสมการเคมีอัตโนมัติ:</b> พิมพ์ <i>"ดุลสมการ C3H8 + O2 -> CO2 + H2O"</i>
+- <i data-lucide="scale" style="width: 13px; height: 13px; color: #2563eb; vertical-align: middle; margin-right: 4px;"></i><b>คำนวณมวลโมเลกุล:</b> พิมพ์ <i>"มวลโมเลกุล Ca(OH)2"</i> หรือสูตรเคมีอื่นๆ
+- <i data-lucide="droplet" style="width: 13px; height: 13px; color: #0284c7; vertical-align: middle; margin-right: 4px;"></i><b>เครื่องช่วยคำนวณเตรียมสารละลาย:</b> พิมพ์ <i>"เตรียมสาร"</i> หรือ <i>"เจือจางจาก 10 M เป็น 2 M ปริมาตร 250 mL"</i>
+- <i data-lucide="siren" style="width: 13px; height: 13px; color: #dc2626; vertical-align: middle; margin-right: 4px;"></i><b>แนะนำความปลอดภัย/ปฐมพยาบาล:</b> พิมพ์ <i>"ปฐมพยาบาลสารเคมีหก"</i> หรือ <i>"กรดเข้าตา"</i>
+- <i data-lucide="search" style="width: 13px; height: 13px; color: #64748b; vertical-align: middle; margin-right: 4px;"></i><b>ค้นหาพัสดุ/ข้อมูลสารเคมีพื้นฐาน:</b> เช่นพิมพ์ <i>"ค้นหา เอทานอล"</i> หรือเช็คสต็อกต่ำและหมดอายุ
 บอกผมได้เลยครับว่าอยากให้ช่วยตรงจุดไหนครับ`;
   }
 
   // 2. HELP SYSTEM / SYSTEM USAGE
   if (q.includes("ยืม") || q.includes("คืน") || q.includes("การยืม") || q.includes("วิธีใช้งานระบบ") || q.includes("แนะนำการใช้งาน")) {
-    return `📖 <b>วิธีการยืม-คืนพัสดุ:</b>
+    return `<i data-lucide="book-open" style="width: 15px; height: 15px; color: #2563eb; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการยืม-คืนพัสดุ:</b>
 1. กดเลือกเมนู <b>"ยืม-คืนพัสดุ"</b> ที่แถบเมนูด้านซ้าย
 2. <b>การยืม:</b> กรอกชื่อผู้ยืม ค้นหาชื่อพัสดุและระบุจำนวนที่ต้องการ แล้วกดปุ่ม <b>"ยืนยันการยืมพัสดุ"</b>
 3. <b>การคืน:</b> กรอกชื่อผู้คืน ระบบจะแสดงรายการล่าสุดที่ยืมไป สามารถเลือกจำนวนพัสดุเพื่อระบุของชำรุด (ถ้ามี) แล้วกด <b>"ยืนยันการส่งคืน"</b>
@@ -14648,7 +14729,7 @@ function generateBotResponse(query) {
   }
 
   if (q.includes("จอง") || q.includes("จองห้อง") || q.includes("จองแล็บ") || q.includes("ห้องปฏิบัติการ")) {
-    return `🏫 <b>วิธีการจองห้องปฏิบัติการ (Lab Booking):</b>
+    return `<i data-lucide="calendar" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการจองห้องปฏิบัติการ (Lab Booking):</b>
 1. ไปที่เมนู <b>"จองห้องปฏิบัติการ"</b>
 2. เลือกห้องปฏิบัติการ วันที่ และคาบเรียนที่ต้องการจอง
 3. กรอกรายละเอียดวิชา/ผู้จอง แล้วกด <b>"ยืนยันการจอง"</b>
@@ -14656,9 +14737,9 @@ function generateBotResponse(query) {
   }
 
   if (q.includes("ชำรุด") || q.includes("ส่งซ่อม") || q.includes("ประแจ") || q.includes("ซ่อม")) {
-    return `🔧 <b>ระบบจัดการพัสดุชำรุดและส่งซ่อม:</b>
+    return `<i data-lucide="wrench" style="width: 15px; height: 15px; color: #d97706; vertical-align: middle; margin-right: 4px;"></i><b>ระบบจัดการพัสดุชำรุดและส่งซ่อม:</b>
 1. หากส่งคืนพัสดุแล้วแจ้งว่าชำรุด จะมาแสดงในแถบ <b>"พัสดุชำรุดและส่งซ่อม"</b> หน้าแรก
-2. เจ้าหน้าที่ (Admin) หรือครู (Teacher) สามารถคลิกปุ่ม <b>ประแจ 🔧</b> เพื่อ:
+2. เจ้าหน้าที่ (Admin) หรือครู (Teacher) สามารถคลิกปุ่ม <b>ประแจ (ซ่อมบำรุง)</b> เพื่อ:
    - สั่งส่งไปที่ห้องซ่อมบำรุง
    - แจ้งซ่อมสำเร็จเพื่อนำพัสดุกลับเข้าสู่คลังสินค้าดีตามเดิม
    - แจ้งซ่อมไม่ได้และตัดทิ้ง (จำหน่ายออก) ถาวรจากสต็อก`;
@@ -14683,19 +14764,19 @@ function generateBotResponse(query) {
 
     let res = "";
     if (expiredList.length > 0) {
-      res += `🚨 <b>พัสดุ/สารเคมีที่หมดอายุแล้ว:</b>\n`;
+      res += `<i data-lucide="alert-octagon" style="width: 15px; height: 15px; color: #dc2626; vertical-align: middle; margin-right: 4px;"></i><b>พัสดุ/สารเคมีที่หมดอายุแล้ว:</b>\n`;
       expiredList.forEach(item => {
         res += `- ${item.name} (${item.code}) หมดเมื่อ: <i>${item.expiry}</i>\n`;
       });
     }
     if (nearExpiryList.length > 0) {
-      res += `${res ? '\n' : ''}⚠️ <b>สารเคมีที่ใกล้หมดอายุใน 30 วัน:</b>\n`;
+      res += `${res ? '\n' : ''}<i data-lucide="clock" style="width: 15px; height: 15px; color: #f59e0b; vertical-align: middle; margin-right: 4px;"></i><b>สารเคมีที่ใกล้หมดอายุใน 30 วัน:</b>\n`;
       nearExpiryList.forEach(item => {
         res += `- ${item.name} (${item.code}) หมดวันที่: <i>${item.expiry}</i>\n`;
       });
     }
     if (!res) {
-      res = `✅ ยอดเยี่ยมมาก! ตรวจสอบแล้วไม่มีสารเคมีตัวใดที่หมดอายุหรือใกล้หมดอายุในคลังตอนนี้ครับ`;
+      res = `<i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #10b981; vertical-align: middle; margin-right: 4px;"></i>ยอดเยี่ยมมาก! ตรวจสอบแล้วไม่มีสารเคมีตัวใดที่หมดอายุหรือใกล้หมดอายุในคลังตอนนี้ครับ`;
     }
     return res;
   }
@@ -14708,13 +14789,13 @@ function generateBotResponse(query) {
     });
 
     if (lowStockList.length > 0) {
-      let res = `⚠️ <b>รายการพัสดุที่สต็อกต่ำกว่าเกณฑ์แจ้งเตือน:</b>\n`;
+      let res = `<i data-lucide="alert-triangle" style="width: 15px; height: 15px; color: #ea580c; vertical-align: middle; margin-right: 4px;"></i><b>รายการพัสดุที่สต็อกต่ำกว่าเกณฑ์แจ้งเตือน:</b>\n`;
       lowStockList.forEach(item => {
         res += `- ${item.name} เหลือ <i>${item.qty} ${item.unit}</i> (เกณฑ์เตือน: ${item.minAlert})\n`;
       });
       return res;
     } else {
-      return `✅ ไม่มีพัสดุรายการใดต่ำกว่าเกณฑ์เตือนภัยครับ ทุกชิ้นมีพัสดุในจำนวนที่ปลอดภัยในคลัง`;
+      return `<i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #10b981; vertical-align: middle; margin-right: 4px;"></i>ไม่มีพัสดุรายการใดต่ำกว่าเกณฑ์เตือนภัยครับ ทุกชิ้นมีพัสดุในจำนวนที่ปลอดภัยในคลัง`;
     }
   }
 
@@ -14746,18 +14827,18 @@ function generateBotResponse(query) {
     );
 
     if (matches.length > 0) {
-      let res = `🔍 <b>ผลการค้นหาพัสดุ (${matches.length} รายการ):</b>\n`;
+      let res = `<i data-lucide="search" style="width: 15px; height: 15px; vertical-align: middle; margin-right: 4px;"></i><b>ผลการค้นหาพัสดุ (${matches.length} รายการ):</b>\n`;
       matches.forEach(item => {
-        res += `\n📦 <b>${item.name}</b>\n`;
+        res += `\n<i data-lucide="package" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>${item.name}</b>\n`;
         res += `- รหัสพัสดุ: <i>${item.code}</i>\n`;
         res += `- จำนวนคงเหลือ: <b>${item.qty} ${item.unit}</b>\n`;
         res += `- หมวดหมู่: ${item.category}\n`;
         res += `- ที่จัดเก็บ: ห้อง <i>${getRoomThaiName(item.room)}</i>, ${item.cabinet || "-"} / ${item.shelf || "-"}\n`;
         if (item.damagedQty > 0) {
-          res += `- ⚠️ ชำรุด: ${item.damagedQty} ${item.unit}\n`;
+          res += `- <i data-lucide="alert-triangle" style="width: 13px; height: 13px; color: #ea580c; vertical-align: middle; margin-right: 4px;"></i>ชำรุด: ${item.damagedQty} ${item.unit}\n`;
         }
         if (item.repairQty > 0) {
-          res += `- 🔧 ส่งซ่อม: ${item.repairQty} ${item.unit}\n`;
+          res += `- <i data-lucide="wrench" style="width: 13px; height: 13px; color: #d97706; vertical-align: middle; margin-right: 4px;"></i>ส่งซ่อม: ${item.repairQty} ${item.unit}\n`;
         }
       });
       return res;
@@ -14765,7 +14846,7 @@ function generateBotResponse(query) {
   }
 
   // 6. DEFAULT FALLBACK
-  return `🤔 ขออภัยด้วยครับ ผมยังไม่เข้าใจคำถามนี้ทั้งหมด หรือไม่พบข้อมูลพัสดุที่ระบุ
+  return `<i data-lucide="help-circle" style="width: 15px; height: 15px; color: #64748b; vertical-align: middle; margin-right: 4px;"></i>ขออภัยด้วยครับ ผมยังไม่เข้าใจคำถามนี้ทั้งหมด หรือไม่พบข้อมูลพัสดุที่ระบุ
   
 หากคุณต้องการข้อมูลใด สามารถลองพิมพ์หัวข้อดังนี้ได้ครับ:
 - พิมพ์ชื่อพัสดุเพื่อค้นหา เช่น <i>"เอทานอล"</i> หรือ <i>"บีกเกอร์"</i>
@@ -15031,7 +15112,7 @@ function parseDilutionParams(q) {
 
 function generateDilutionResponse(c1, c2, v2Val, v2Unit, chemName = "", formula = "") {
   if (c1 <= c2) {
-    return "⚠️ ความเข้มข้นเริ่มต้น (C₁) ต้องมากกว่าความเข้มข้นที่ต้องการ (C₂) สำหรับการเจือจางสารละลายครับ";
+    return "ความเข้มข้นเริ่มต้น (C₁) ต้องมากกว่าความเข้มข้นที่ต้องการ (C₂) สำหรับการเจือจางสารละลายครับ";
   }
   let v2 = v2Val;
   if (v2Unit === 'l' || v2Unit === 'ลิตร') {
@@ -15046,10 +15127,10 @@ function generateDilutionResponse(c1, c2, v2Val, v2Unit, chemName = "", formula 
   } else if (formula) {
     label = formatChemicalFormula(formula);
   }
-  return `💧 <b>ผลการคำนวณเตรียมสารละลายด้วยการเจือจาง (Dilution):</b>\n\n` +
+  return `<i data-lucide="droplets" class="inline-icon"></i> <b>ผลการคำนวณเตรียมสารละลายด้วยการเจือจาง (Dilution):</b>\n\n` +
          `- <b>สูตรที่ใช้:</b> <code>C₁V₁ = C₂V₂</code>\n` +
          `- <b>ค่าที่ระบุ:</b> ความเข้มข้นสารละลายเริ่มต้น (C₁) = <b>${c1} M</b>, ความเข้มข้นที่ต้องการ (C₂) = <b>${c2} M</b>, ปริมาตรสุทธิ (V₂) = <b>${v2Val} ${v2Unit === 'l' || v2Unit === 'ลิตร' ? 'L' : 'mL'}</b>\n\n` +
-         `🧪 <b>วิธีการเตรียม:</b>\n` +
+         `<i data-lucide="flask-conical" class="inline-icon"></i> <b>วิธีการเตรียม:</b>\n` +
          `1. ตวงสารละลาย ${label} เข้มข้นเริ่มต้น (${c1} M) ปริมาตร <b>${v1.toFixed(2)} mL</b>\n` +
          `2. นำไปเทใส่ขวดวัดปริมาตร (Volumetric Flask) ขนาด <b>${v2.toFixed(0)} mL</b>\n` +
          `3. เติมตัวทำละลาย (เช่น น้ำกลั่น) ปริมาตร <b>${solvent.toFixed(2)} mL</b> (หรือเติมจนถึงขีดบอกปริมาตรของขวดวัดปริมาตร)\n` +
@@ -15090,14 +15171,14 @@ function balanceEquation(equationText) {
 
   const sides = cleanText.split(/->|-->|=>|=/);
   if (sides.length !== 2) {
-    return "❌ รูปแบบสมการไม่ถูกต้อง กรุณาใช้เครื่องหมาย <code>-&gt;</code> หรือ <code>=</code> ในการแยกสารตั้งต้นและผลิตภัณฑ์ (เช่น <code>C3H8 + O2 -&gt; CO2 + H2O</code>)";
+    return "<i data-lucide=\"x-circle\" style=\"width: 14px; height: 14px; color: #ef4444; vertical-align: middle; margin-right: 4px;\"></i>รูปแบบสมการไม่ถูกต้อง กรุณาใช้เครื่องหมาย <code>-&gt;</code> หรือ <code>=</code> ในการแยกสารตั้งต้นและผลิตภัณฑ์ (เช่น <code>C3H8 + O2 -&gt; CO2 + H2O</code>)";
   }
 
   const reactantStrs = sides[0].split('+').filter(Boolean);
   const productStrs = sides[1].split('+').filter(Boolean);
 
   if (reactantStrs.length === 0 || productStrs.length === 0) {
-    return "❌ สมการต้องมีสารตั้งต้นและสารผลิตภัณฑ์อย่างน้อย 1 ชนิด";
+    return "<i data-lucide=\"x-circle\" style=\"width: 14px; height: 14px; color: #ef4444; vertical-align: middle; margin-right: 4px;\"></i>สมการต้องมีสารตั้งต้นและสารผลิตภัณฑ์อย่างน้อย 1 ชนิด";
   }
 
   const reactants = reactantStrs.map(str => ({ original: str, parsed: parseFormula(str) }));
@@ -15113,12 +15194,12 @@ function balanceEquation(equationText) {
   const elements = Array.from(elementsSet);
 
   if (elements.length === 0) {
-    return "❌ ไม่พบธาตุเคมีในสมการที่ระบุ";
+    return "<i data-lucide=\"x-circle\" style=\"width: 14px; height: 14px; color: #ef4444; vertical-align: middle; margin-right: 4px;\"></i>ไม่พบธาตุเคมีในสมการที่ระบุ";
   }
 
   for (let elem of elements) {
     if (!ATOMIC_WEIGHTS[elem]) {
-      return `❌ ไม่พบธาตุ <b>"${elem}"</b> ในระบบน้ำหนักอะตอม`;
+      return `<i data-lucide="x-circle" style="width: 14px; height: 14px; color: #ef4444; vertical-align: middle; margin-right: 4px;"></i>ไม่พบธาตุ <b>"${elem}"</b> ในระบบน้ำหนักอะตอม`;
     }
   }
 
@@ -15168,7 +15249,7 @@ function balanceEquation(equationText) {
   }
 
   if (freeCols.length === 0) {
-    return "❌ ไม่สามารถดุลสมการนี้ได้ (สมการอาจไม่ถูกต้องหรือไม่สมดุลทางเคมี)";
+    return "<i data-lucide=\"x-circle\" style=\"width: 14px; height: 14px; color: #ef4444; vertical-align: middle; margin-right: 4px;\"></i>ไม่สามารถดุลสมการนี้ได้ (สมการอาจไม่ถูกต้องหรือไม่สมดุลทางเคมี)";
   }
 
   const rawSolution = Array(numColsM).fill(0);
@@ -15188,7 +15269,7 @@ function balanceEquation(equationText) {
   }
 
   if (rawSolution.some(val => val < 1e-9)) {
-    return "❌ ไม่สามารถดุลสมการนี้ได้ (สัมประสิทธิ์ที่คำนวณได้ติดลบหรือเป็นศูนย์ สมการนี้ไม่สมดุลทางเคมีหรือสารไม่มีการทำปฏิกิริยากัน)";
+    return "<i data-lucide=\"x-circle\" style=\"width: 14px; height: 14px; color: #ef4444; vertical-align: middle; margin-right: 4px;\"></i>ไม่สามารถดุลสมการนี้ได้ (สัมประสิทธิ์ที่คำนวณได้ติดลบหรือเป็นศูนย์ สมการนี้ไม่สมดุลทางเคมีหรือสารไม่มีการทำปฏิกิริยากัน)";
   }
 
   let scale = -1;
@@ -15208,7 +15289,7 @@ function balanceEquation(equationText) {
   }
 
   if (scale === -1) {
-    return "❌ ไม่สามารถแปลงสัมประสิทธิ์เป็นจำนวนเต็มต่ำได้ (สัมประสิทธิ์มีค่าเป็นทศนิยมที่ไม่สิ้นสุดหรือมีขนาดใหญ่เกินเกณฑ์เตือนภัย)";
+    return "<i data-lucide=\"x-circle\" style=\"width: 14px; height: 14px; color: #ef4444; vertical-align: middle; margin-right: 4px;\"></i>ไม่สามารถแปลงสัมประสิทธิ์เป็นจำนวนเต็มต่ำได้ (สัมประสิทธิ์มีค่าเป็นทศนิยมที่ไม่สิ้นสุดหรือมีขนาดใหญ่เกินเกณฑ์เตือนภัย)";
   }
 
   const coefficients = rawSolution.map(val => Math.round(val * scale));
@@ -15237,13 +15318,13 @@ function balanceEquation(equationText) {
     productParts.push(coef === 1 ? formatted : `${coef}${formatted}`);
   }
 
-  const finalEquation = `${reactantParts.join(' + ')} ➔ ${productParts.join(' + ')}`;
+  const finalEquation = `${reactantParts.join(' + ')} -> ${productParts.join(' + ')}`;
 
-  return `🧪 <b>ผลการดุลสมการเคมีสำเร็จ!</b>\n\n` +
+  return `<i data-lucide="flask-conical" class="inline-icon"></i> <b>ผลการดุลสมการเคมีสำเร็จ!</b>\n\n` +
          `<div style="font-size: 15px; font-weight: 600; padding: 12px; background-color: var(--bg-hover); border-radius: var(--border-radius-md); border-left: 4px solid var(--primary-color); margin: 8px 0; font-family: 'Sora', monospace; letter-spacing: 0.5px;">` +
          `${finalEquation}` +
          `</div>\n` +
-         `📋 <b>อัตราส่วนสัมประสิทธิ์จำเพาะ:</b>\n` +
+         `<i data-lucide="clipboard-list" class="inline-icon"></i> <b>อัตราส่วนสัมประสิทธิ์จำเพาะ:</b>\n` +
          `<ul>` +
          reactants.map((r, i) => `<li><b>${formatSubscripts(r.original)}:</b> ${coefficients[i]}</li>`).join('') +
          products.map((p, i) => `<li><b>${formatSubscripts(p.original)}:</b> ${coefficients[reactants.length + i]} (ผลิตภัณฑ์)</li>`).join('') +
@@ -15276,7 +15357,7 @@ function calculateSolutionPrep(query) {
     }
 
     if (isNaN(m) || isNaN(vVal) || isNaN(mw)) {
-      return "⚠️ รูปแบบค่าที่ระบุไม่ถูกต้อง กรุณาระบุ ความเข้มข้น (M), ปริมาตร (mL หรือ L) และ มวลโมเลกุล (g/mol) ให้ครบถ้วน";
+      return "รูปแบบค่าที่ระบุไม่ถูกต้อง กรุณาระบุ ความเข้มข้น (M), ปริมาตร (mL หรือ L) และ มวลโมเลกุล (g/mol) ให้ครบถ้วน";
     }
 
     let vL = vVal;
@@ -15287,10 +15368,10 @@ function calculateSolutionPrep(query) {
     const g = m * mw * vL;
     const vML = vUnit === 'ml' || vUnit === 'มล' ? vVal : vVal * 1000;
 
-    return `⚖️ <b>ผลการคำนวณเตรียมสารละลายจากของแข็ง/สารบริสุทธิ์:</b>\n\n` +
+    return `<i data-lucide="scale" class="inline-icon"></i> <b>ผลการคำนวณเตรียมสารละลายจากของแข็ง/สารบริสุทธิ์:</b>\n\n` +
            `- <b>สูตรที่ใช้:</b> <code>g = M × MW × V (ลิตร)</code>\n` +
            `- <b>ค่าที่ระบุ:</b> ความเข้มข้นที่ต้องการ (M) = <b>${m} M</b>, ปริมาตร (V) = <b>${vVal} ${vUnit === 'l' || vUnit === 'ลิตร' ? 'L' : 'mL'}</b>, มวลโมเลกุล (MW) = <b>${mw} g/mol</b>\n\n` +
-           `🧪 <b>วิธีการเตรียม:</b>\n` +
+           `<i data-lucide="flask-conical" class="inline-icon"></i> <b>วิธีการเตรียม:</b>\n` +
            `1. ชั่งสารตั้งต้นของแข็งปริมาณ <b>${g.toFixed(4)} กรัม</b> ด้วยเครื่องชั่งสารอย่างละเอียด\n` +
            `2. เทสารลงในบีกเกอร์และเติมน้ำกลั่นเล็กน้อย คนจนละลายหมด\n` +
            `3. เทสารที่ละลายแล้วลงในขวดวัดปริมาตรขนาด <b>${vML.toFixed(0)} mL</b>\n` +
@@ -15298,21 +15379,21 @@ function calculateSolutionPrep(query) {
            `5. เติมน้ำกลั่นลงขวดวัดปริมาตรจนถึงขีดบอกปริมาตร ปิดฝาแล้วกลับขวดไปมาให้เข้ากัน`;
   }
 
-  return `💧 <b>วิธีการคำนวณเตรียมสารละลายด้วย Stoki-bitol:</b>\n\n` +
+  return `<i data-lucide="droplets" class="inline-icon"></i> <b>วิธีการคำนวณเตรียมสารละลายด้วย Stoki-bitol:</b>\n\n` +
          `คุณสามารถพิมพ์ถามคำนวณการเตรียมสารได้ 2 วิธีดังนี้ครับ:\n\n` +
-         `1️⃣ <b>การเตรียมสารละลายจากของแข็ง (Solid)</b>\n` +
+         `1. <b>การเตรียมสารละลายจากของแข็ง (Solid)</b>\n` +
          `- <b>สูตร:</b> <code>g = M × MW × V</code>\n` +
          `- <b>วิธีถาม:</b> พิมพ์ความเข้มข้น ปริมาตร และมวลโมเลกุล เช่น:\n` +
-         `  👉 <i>"เตรียมสาร 0.5 M ปริมาตร 500 mL มวลโมเลกุล 40"</i>\n\n` +
-         `2️⃣ <b>การเจือจางสารละลาย (Dilution)</b>\n` +
+         `  <i data-lucide="chevron-right" class="inline-icon"></i> <i>"เตรียมสาร 0.5 M ปริมาตร 500 mL มวลโมเลกุล 40"</i>\n\n` +
+         `2. <b>การเจือจางสารละลาย (Dilution)</b>\n` +
          `- <b>สูตร:</b> <code>C₁V₁ = C₂V₂</code>\n` +
          `- <b>วิธีถาม:</b> พิมพ์ความเข้มข้นเริ่มต้น ความเข้มข้นที่ต้องการ และปริมาตร เช่น:\n` +
-         `  👉 <i>"เจือจางจาก 10 M เป็น 2 M ปริมาตร 250 mL"</i>`;
+         `  <i data-lucide="chevron-right" class="inline-icon"></i> <i>"เจือจางจาก 10 M เป็น 2 M ปริมาตร 250 mL"</i>`;
 }
 
 const SAFETY_DB = {
   spill: {
-    title: "🚨 <b>วิธีปฏิบัติและปฐมพยาบาลกรณีสารเคมีหกเลอะ (Chemical Spill)</b>",
+    title: "<i data-lucide='siren' style='width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; color: #dc2626;'></i><b>วิธีปฏิบัติและปฐมพยาบาลกรณีสารเคมีหกเลอะ (Chemical Spill)</b>",
     steps: [
       "<b>อพยพคน:</b> พาผู้คนที่ไม่เกี่ยวข้องออกจากพื้นที่หกทันที หากเป็นสารระเหยง่ายหรือมีกลิ่นฉุน",
       "<b>สวมเครื่องป้องกัน:</b> สวมถุงมือยาง แว่นตานิรภัย และหน้ากากกรองสารเคมีก่อนเริ่มการทำความสะอาด",
@@ -15322,7 +15403,7 @@ const SAFETY_DB = {
     ]
   },
   skin: {
-    title: "⚠️ <b>ปฐมพยาบาลกรณีสารเคมีสัมผัสผิวหนัง (Skin Contact)</b>",
+    title: "<i data-lucide='alert-triangle' style='width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; color: #ea580c;'></i><b>ปฐมพยาบาลกรณีสารเคมีสัมผัสผิวหนัง (Skin Contact)</b>",
     steps: [
       "<b>ถอดเสื้อผ้าออก:</b> รีบถอดเสื้อผ้า เครื่องประดับ หรือรองเท้าส่วนที่สัมผัสกับสารเคมีออกโดยเร็วที่สุด",
       "<b>ล้างน้ำสะอาด:</b> ชำระล้างผิวหนังส่วนนั้นด้วยน้ำสะอาดไหลผ่านปริมาณมากๆ อย่างน้อย 15 นาที",
@@ -15331,7 +15412,7 @@ const SAFETY_DB = {
     ]
   },
   eye: {
-    title: "👀 <b>ปฐมพยาบาลกรณีสารเคมีเข้าตา (Eye Contact)</b>",
+    title: "<i data-lucide='eye' style='width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; color: #0284c7;'></i><b>ปฐมพยาบาลกรณีสารเคมีเข้าตา (Eye Contact)</b>",
     steps: [
       "<b>ใช้ที่ล้างตาฉุกเฉิน:</b> รีบพยุงผู้ป่วยไปยังอ่างล้างตาฉุกเฉิน (Emergency Eyewash) ทันที",
       "<b>เปิดตาและล้างน้ำ:</b> ลืมตาในน้ำสะอาดไหลผ่านเบาๆ โดยใช้นิ้วถ่างเปลือกตาให้กว้างและกลอกตาไปมาเพื่อให้ล้างสารเคมีออกได้ทั่วถึง",
@@ -15341,7 +15422,7 @@ const SAFETY_DB = {
     ]
   },
   inhale: {
-    title: "🫁 <b>ปฐมพยาบาลกรณีสูดดมไอระเหย/แก๊สพิษ (Inhalation)</b>",
+    title: "<i data-lucide='wind' style='width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; color: #0d9488;'></i><b>ปฐมพยาบาลกรณีสูดดมไอระเหย/แก๊สพิษ (Inhalation)</b>",
     steps: [
       "<b>ย้ายไปที่อากาศถ่ายเท:</b> รีบเคลื่อนย้ายผู้ป่วยออกจากจุดเกิดเหตุไปยังที่ที่มีอากาศบริสุทธิ์และถ่ายเทสะดวกทันที",
       "<b>คลายเสื้อผ้า:</b> จัดให้ผู้ป่วยนอนราบ คลายเสื้อผ้าและเข็มขัดให้หลวมเพื่อให้หน้าอกขยายและหายใจสะดวก",
@@ -15350,7 +15431,7 @@ const SAFETY_DB = {
     ]
   },
   ingest: {
-    title: "👄 <b>ปฐมพยาบาลกรณีกลืนกินสารเคมี (Ingestion)</b>",
+    title: "<i data-lucide='shield-alert' style='width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; color: #e11d48;'></i><b>ปฐมพยาบาลกรณีกลืนกินสารเคมี (Ingestion)</b>",
     steps: [
       "<b>ตรวจสอบสติ:</b> หากผู้ป่วยหมดสติ ห้ามนำสิ่งใดใส่ปากหรือพยายามทำให้อาเจียนเด็ดขาด ให้จัดท่านอนตะแคงป้องกันการอุดกั้นทางเดินหายใจ",
       "<b>ห้ามทำให้อาเจียนเด็ดขาดหากเป็นสารกัดกร่อน:</b> หากกลืนกิน <b>กรดแก่ ด่างแก่ หรือน้ำมันเชื้อเพลิง</b> ห้ามทำให้อาเจียน เพราะจะทำให้สารเคมีกัดกร่อนหลอดอาหารซ้ำอีกรอบหรือสำลักเข้าสู่ปอด ให้บ้วนปากด้วยน้ำสะอาดมากๆ",
@@ -17066,7 +17147,7 @@ function renderBookingCalendar() {
                onmouseout="this.style.transform='scale(1)';">
             <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: ${roomColor}; flex-shrink: 0;"></span>
             <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(roomNameShort)}: ${escapeHTML(booker || b.purpose || 'ใช้งาน')}</span>
-            ${isPending ? '<span style="color:#d97706; font-size:8px; margin-left:auto;">⏳</span>' : ''}
+            ${isPending ? '<span style="color:#d97706; margin-left:auto; display:inline-flex; align-items:center;"><i data-lucide="clock" style="width:10px; height:10px;"></i></span>' : ''}
           </div>
         `;
       });
@@ -17259,7 +17340,7 @@ function renderCabinetRoomTabs() {
     return `
       <button type="button" class="shecu-room-tab-btn ${isActive ? 'active' : ''}" 
               onclick="switchCabinetRoom('${room.id.replace(/'/g, "\\'")}')"
-              style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 24px; border: 1.5px solid ${activeBorder}; background: ${activeBg}; color: ${activeColor}; font-weight: ${isActive ? '600' : '500'}; font-size: 13px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; box-shadow: ${isActive ? '0 2px 8px rgba(79, 70, 229, 0.25)' : 'none'}; flex-shrink: 0;">
+              style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; border: 1.5px solid ${activeBorder}; background: ${activeBg}; color: ${activeColor}; font-weight: ${isActive ? '600' : '500'}; font-size: 12.5px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; box-shadow: ${isActive ? '0 2px 8px rgba(79, 70, 229, 0.2)' : 'none'}; flex-shrink: 0;">
         <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${isActive ? '#a5b4fc' : (room.hex || '#6366f1')};"></span>
         <span>${room.id} (${room.name})</span>
         <span style="font-size: 11px; padding: 2px 7px; border-radius: 10px; background: ${countBg}; color: ${countColor}; font-weight: 600;">${itemCount} รายการ</span>
@@ -17447,7 +17528,6 @@ function renderCabinetMap() {
   const unifiedGrid = document.createElement('div');
   unifiedGrid.className = 'shecu-unified-grid';
   if (isLayoutEditMode) unifiedGrid.classList.add("layout-edit-mode");
-  unifiedGrid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; align-items: stretch; margin-top: 24px;';
   
   roomLayout.forEach(el => {
     const isHidden = !!el.isHidden;
@@ -17491,7 +17571,7 @@ function renderCabinetMap() {
       let avatarType = 'chemical';
 
       if (isEmergency) {
-        subTitleText = 'ตู้ฉุกเฉิน (พักของรอจัดเก็บ)';
+        subTitleText = 'รอระบุตำแหน่งจัดเก็บ';
         avatarIcon = 'clock';
         avatarType = 'emergency';
       } else if (isGlassware) {
@@ -19102,7 +19182,7 @@ window.deleteLabRoom = function(roomId) {
   const count = (items || []).filter(it => it.room === roomId).length;
   let confirmMsg = `คุณแน่ใจหรือไม่ว่าต้องการลบห้อง "${roomId}" ออกจากระบบ?`;
   if (count > 0) {
-    confirmMsg += `\n\n⚠️ มีพัสดุ/สารเคมีบันทึกอยู่ในห้องนี้ ${count} รายการ`;
+    confirmMsg += `\n\nคำเตือน: มีพัสดุ/สารเคมีบันทึกอยู่ในห้องนี้ ${count} รายการ`;
   }
 
   if (!confirm(confirmMsg)) return;
@@ -20422,7 +20502,7 @@ window.quickResetUserPassword = async function(userId) {
   const tId = user.teacherId || user.id;
 
   const { value: formValues } = await Swal.fire({
-    title: `🔑 จัดการรหัสผ่าน: ${user.name}`,
+    title: `<div style="display: flex; align-items: center; justify-content: center; gap: 8px;"><i data-lucide="key-round" style="width: 20px; height: 20px; color: #7c3aed;"></i><span>จัดการรหัสผ่าน: ${escapeHtml(user.name)}</span></div>`,
     html: `
       <div style="text-align: left; font-size: 13.5px; line-height: 1.6;">
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">
@@ -20822,9 +20902,9 @@ window.prevWizardStep = function(targetStep) {
 document.addEventListener('DOMContentLoaded', () => {
   const originalNavigateToPanel = window.navigateToPanel;
   if(originalNavigateToPanel) {
-    window.navigateToPanel = function(panelId, catFilter = "all", statusFilter = "all") {
-      originalNavigateToPanel(panelId, catFilter, statusFilter);
-      if (panelId === 'add-item') {
+    window.navigateToPanel = function(panelId, catFilter = "all", statusFilter = "all", updateHistory = true) {
+      originalNavigateToPanel(panelId, catFilter, statusFilter, updateHistory);
+      if (panelId === 'add-item' || panelId === 'panel-add-item') {
         window.nextWizardStep(1); // reset to step 1
         if (typeof applyRoleRestrictionsToItemForm === "function") {
           applyRoleRestrictionsToItemForm();
@@ -21130,7 +21210,7 @@ async function subscribeToPushNotifications() {
       })
     });
 
-    showToast("🔔 เปิดรับการแจ้งเตือนและอนุมัติด่วนสำเร็จ!", "success");
+    showToast("เปิดรับการแจ้งเตือนและอนุมัติด่วนสำเร็จ!", "success");
     checkPushSubscriptionState();
     loadPushSubscriptionsStatus();
     return true;
@@ -21210,7 +21290,7 @@ window.loadPushSubscriptionsStatus = async function() {
             return `
               <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                  <span style="font-size: 18px;">${s.deviceName && s.deviceName.includes('iOS') ? '📱' : s.deviceName && s.deviceName.includes('Android') ? '🤖' : '💻'}</span>
+                  <span style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; background: #f1f5f9; color: #475569;">${s.deviceName && s.deviceName.includes('iOS') ? '<i data-lucide="smartphone" style="width: 18px; height: 18px;"></i>' : s.deviceName && s.deviceName.includes('Android') ? '<i data-lucide="smartphone" style="width: 18px; height: 18px;"></i>' : '<i data-lucide="monitor" style="width: 18px; height: 18px;"></i>'}</span>
                   <div>
                     <div style="font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
                       <span>${s.deviceName || 'อุปกรณ์ที่ ' + (idx + 1)}</span>
@@ -21240,7 +21320,7 @@ function updatePushUI(state) {
   if (!badge || !btn || !btnText) return;
 
   if (!state.supported) {
-    badge.innerHTML = `⚠️ เบราว์เซอร์ไม่รองรับ`;
+    badge.innerHTML = `<i data-lucide="alert-triangle" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>เบราว์เซอร์ไม่รองรับ`;
     badge.style.background = "#fee2e2";
     badge.style.color = "#dc2626";
     btn.disabled = true;
@@ -21251,19 +21331,19 @@ function updatePushUI(state) {
   btn.disabled = false;
 
   if (state.subscribed) {
-    badge.innerHTML = `🟢 เปิดใช้งานแล้ว`;
+    badge.innerHTML = `<i data-lucide="check-circle-2" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>เปิดใช้งานแล้ว`;
     badge.style.background = "#dcfce7";
     badge.style.color = "#16a34a";
     btn.className = "btn btn-danger";
     btnText.innerText = "ปิดการแจ้งเตือน";
-    if (desc) desc.innerText = "อุปกรณ์นี้กำลังรับการแจ้งเตือนคำขอและเปิดใช้งานปุ่มกดอนุมัติ [✅ อนุมัติทันที]";
+    if (desc) desc.innerText = "อุปกรณ์นี้กำลังรับการแจ้งเตือนคำขอและเปิดใช้งานปุ่มกดอนุมัติ [อนุมัติทันที]";
   } else {
-    badge.innerHTML = `⚪ ปิดอยู่`;
+    badge.innerHTML = `<i data-lucide="circle-slash" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>ปิดอยู่`;
     badge.style.background = "#f1f5f9";
     badge.style.color = "#64748b";
     btn.className = "btn btn-primary";
     btnText.innerText = "เปิดการแจ้งเตือน";
-    if (desc) desc.innerText = "เปิดใช้งานเพื่อรับข้อความแจ้งเตือนเมื่อนักเรียนยื่นคำขอใหม่ พร้อมปุ่ม [✅ อนุมัติทันที]";
+    if (desc) desc.innerText = "เปิดใช้งานเพื่อรับข้อความแจ้งเตือนเมื่อนักเรียนยื่นคำขอใหม่ พร้อมปุ่ม [อนุมัติทันที]";
   }
 }
 
@@ -21571,7 +21651,7 @@ window.addNewCabinetCard = function() {
           <div contenteditable="true" style="font-size: 12px; color: var(--text-muted); margin-top: 4px; outline: none;">ประเภท...</div>
         </div>
         <div style="margin-left: auto; flex-shrink: 0;">
-          <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;">🟢 จัดเก็บปลอดภัย</span>
+          <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle-2" style="width: 12px; height: 12px;"></i> จัดเก็บปลอดภัย</span>
         </div>
       </div>
     </div>
@@ -21591,8 +21671,8 @@ window.addNewCabinetCard = function() {
     <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; font-size: 12px; color: var(--text-muted); background: #f8fafc; gap: 8px;">
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; gap: 12px;">
-          <span>🧪 0 สารเคมี</span>
-          <span>⚙️ 0 อุปกรณ์</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 0 สารเคมี</span>
+          <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 0 อุปกรณ์</span>
         </div>
         <span style="font-weight: 500; color: #64748b;">รวม: 0</span>
       </div>
@@ -21646,7 +21726,7 @@ window.addNewStationCard = function() {
       </div>
     </div>
     <div style="margin-left: auto; flex-shrink: 0;">
-      <span class="shecu-badge badge-safe" style="font-size: 10px; padding: 3px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; white-space: nowrap;">🟢 พร้อมใช้งาน</span>
+      <span class="shecu-badge badge-safe" style="font-size: 10px; padding: 3px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle-2" style="width: 11px; height: 11px;"></i> พร้อมใช้งาน</span>
     </div>
   `;
   
@@ -21689,7 +21769,7 @@ window.addNewBalanceTableCard = function() {
       </div>
     </div>
     <div style="margin-left: auto; flex-shrink: 0;">
-      <span class="shecu-badge badge-safe" style="font-size: 10px; padding: 3px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; white-space: nowrap;">🟢 พร้อมใช้งาน</span>
+      <span class="shecu-badge badge-safe" style="font-size: 10px; padding: 3px 6px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="check-circle-2" style="width: 11px; height: 11px;"></i> พร้อมใช้งาน</span>
     </div>
   `;
 
@@ -22020,17 +22100,17 @@ document.addEventListener('click', function(event) {
 // ==========================================================================
 
 const DEFAULT_ANNOUNCEMENTS = [
-  "🛡️ การใช้อุปกรณ์คุ้มครองความปลอดภัย (PPE) ต้องสวมเสื้อกาวน์ แว่นตานิรภัย และรองเท้าหุ้มส้นตลอดเวลาที่ปฏิบัติการ",
-  "💨 การทดลองที่มีไอระเหยหรือกรดเข้มข้น กรุณาทำในตู้ดูดควัน (Fume Hood) และเปิดระบบระบายอากาศก่อนเริ่มงาน",
-  "📞 เหตุฉุกเฉินและอุบัติเหตุ ติดต่อแอดมิน หรือแจ้งผ่านเมนู 'แจ้งปัญหา'",
-  "📖 ศูนย์ข้อมูลและความปลอดภัย ศึกษากฎระเบียบ SHECU และเอกสาร SDS ได้ที่เมนูศูนย์ข้อมูล"
+  "การใช้อุปกรณ์คุ้มครองความปลอดภัย (PPE) ต้องสวมเสื้อกาวน์ แว่นตานิรภัย และรองเท้าหุ้มส้นตลอดเวลาที่ปฏิบัติการ",
+  "การทดลองที่มีไอระเหยหรือกรดเข้มข้น กรุณาทำในตู้ดูดควัน (Fume Hood) และเปิดระบบระบายอากาศก่อนเริ่มงาน",
+  "เหตุฉุกเฉินและอุบัติเหตุ ติดต่อแอดมิน หรือแจ้งผ่านเมนู 'แจ้งปัญหา'",
+  "ศูนย์ข้อมูลและความปลอดภัย ศึกษากฎระเบียบ SHECU และเอกสาร SDS ได้ที่เมนูศูนย์ข้อมูล"
 ];
 
 function getAnnouncementData() {
   const defaultSettings = {
     enabled: true,
     text: DEFAULT_ANNOUNCEMENTS.join(" | "),
-    badgeText: "📢 ประกาศ & ความปลอดภัย",
+    badgeText: "ประกาศ & ความปลอดภัย",
     speed: 55,
     gap: 36,
     theme: "orange",
@@ -22101,7 +22181,7 @@ function triggerAnnouncementLivePreview(context) {
     previewBar.classList.remove("ticker-pause-hover");
   }
 
-  const badgeStr = badgeTextInput && badgeTextInput.value.trim() ? badgeTextInput.value.trim() : "📢 ประกาศ & ความปลอดภัย";
+  const badgeStr = badgeTextInput && badgeTextInput.value.trim() ? badgeTextInput.value.trim() : "ประกาศ & ความปลอดภัย";
   if (previewBadgeText) previewBadgeText.textContent = badgeStr;
 
   const speed = speedSlider ? parseInt(speedSlider.value, 10) : 55;
@@ -22114,7 +22194,7 @@ function triggerAnnouncementLivePreview(context) {
 
   if (!isEnabled) {
     previewBar.style.opacity = "0.6";
-    previewTrack.innerHTML = `<span class="ticker-text-item" style="color: var(--text-muted); font-style: italic;">🔒 ปิดการแสดงผลอยู่ (ตัวอย่างเมื่อซ่อน)</span>`;
+    previewTrack.innerHTML = `<span class="ticker-text-item" style="color: var(--text-muted); font-style: italic;"><i data-lucide="lock" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px;"></i> ปิดการแสดงผลอยู่ (ตัวอย่างเมื่อซ่อน)</span>`;
     return;
   }
 
@@ -22140,7 +22220,7 @@ function syncAnnouncementFormFields(data) {
   const currentTheme = data.theme || "orange";
   const speed = data.speed || 55;
   const gap = data.gap || 36;
-  const badgeText = data.badgeText || "📢 ประกาศ & ความปลอดภัย";
+  const badgeText = data.badgeText || "ประกาศ & ความปลอดภัย";
   const pauseOnHover = data.pauseOnHover !== false;
   const isEnabled = data.enabled !== false;
   const text = data.text || "";
@@ -22219,7 +22299,7 @@ function renderAnnouncementTicker(customData) {
 
   // Update Badge Label
   if (badgeText) {
-    const rawBadge = data.badgeText || "📢 ประกาศ & ความปลอดภัย";
+    const rawBadge = data.badgeText || "ประกาศ & ความปลอดภัย";
     badgeText.textContent = rawBadge;
     const badgeIcon = tickerBar.querySelector("#tickerBadgeMain [data-lucide], #tickerBadgeMain svg");
     if (badgeIcon) {
@@ -22242,7 +22322,7 @@ function renderAnnouncementTicker(customData) {
       tickerBar.style.borderStyle = "dashed";
       track.innerHTML = `
         <span class="ticker-text-item" style="color: var(--text-muted); font-style: italic;">
-          🔒 แถบประกาศถูกปิดการแสดงผลอยู่ (ผู้ใช้งานทั่วไปจะไม่เห็นแถบนี้)
+          <i data-lucide="lock" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px;"></i> แถบประกาศถูกปิดการแสดงผลอยู่ (ผู้ใช้งานทั่วไปจะไม่เห็นแถบนี้)
         </span>
       `;
       if (btnTickerAdminEdit) {
@@ -22400,7 +22480,7 @@ async function saveAnnouncementSettingsData(newSettings) {
       if (supaErr) {
         console.warn("Supabase announcement sync error:", supaErr);
       } else {
-        console.log("✅ Announcement settings synced to Supabase Cloud");
+        console.log("[Success] Announcement settings synced to Supabase Cloud");
       }
     } catch (err) {
       console.warn("Supabase announcement sync exception:", err);
@@ -22441,7 +22521,7 @@ async function saveAdminAnnouncement(e) {
   const newSettings = {
     enabled: toggle ? toggle.checked : true,
     text: textarea ? textarea.value.trim() : "",
-    badgeText: badgeInput && badgeInput.value.trim() ? badgeInput.value.trim() : "📢 ประกาศ & ความปลอดภัย",
+    badgeText: badgeInput && badgeInput.value.trim() ? badgeInput.value.trim() : "ประกาศ & ความปลอดภัย",
     speed: speedSlider ? parseInt(speedSlider.value, 10) : 55,
     gap: gapSlider ? parseInt(gapSlider.value, 10) : 36,
     theme: currentSelectedAnnouncementTheme.admin || "orange",
@@ -22469,15 +22549,15 @@ function applyAnnouncementPreset(presetKey) {
 
   if (presetKey === "standard") {
     textarea.value = DEFAULT_ANNOUNCEMENTS.join(" | \n");
-    if (badgeText) badgeText.value = "📢 ประกาศ & ความปลอดภัย";
+    if (badgeText) badgeText.value = "ประกาศ & ความปลอดภัย";
     selectAnnouncementTheme("orange", "admin");
   } else if (presetKey === "maintenance") {
-    textarea.value = "⚠️ แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น. | 📦 กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว";
-    if (badgeText) badgeText.value = "⚠️ แจ้งตรวจนับสต็อก";
+    textarea.value = "แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น. | กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว";
+    if (badgeText) badgeText.value = "แจ้งตรวจนับสต็อก";
     selectAnnouncementTheme("blue", "admin");
   } else if (presetKey === "urgent") {
-    textarea.value = "🚨 ประกาศด่วน: ปิดระบบเพื่อปรับปรุงฐานข้อมูลและอัปเกรดความปลอดภัย ในคืนนี้ เวลา 22:00 - 23:00 น. | 🛡️ กรุณาบันทึกข้อมูลการเบิกจ่ายให้เรียบร้อยก่อนเวลาดังกล่าว";
-    if (badgeText) badgeText.value = "🚨 ประกาศด่วน";
+    textarea.value = "ประกาศด่วน: ปิดระบบเพื่อปรับปรุงฐานข้อมูลและอัปเกรดความปลอดภัย ในคืนนี้ เวลา 22:00 - 23:00 น. | กรุณาบันทึกข้อมูลการเบิกจ่ายให้เรียบร้อยก่อนเวลาดังกล่าว";
+    if (badgeText) badgeText.value = "ประกาศด่วน";
     selectAnnouncementTheme("red", "admin");
   }
   triggerAnnouncementLivePreview("admin");
@@ -22512,15 +22592,15 @@ function applyModalAnnouncementPreset(presetKey) {
 
   if (presetKey === "standard") {
     textarea.value = DEFAULT_ANNOUNCEMENTS.join(" | \n");
-    if (badgeText) badgeText.value = "📢 ประกาศ & ความปลอดภัย";
+    if (badgeText) badgeText.value = "ประกาศ & ความปลอดภัย";
     selectAnnouncementTheme("orange", "modal");
   } else if (presetKey === "maintenance") {
-    textarea.value = "⚠️ แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น. | 📦 กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว";
-    if (badgeText) badgeText.value = "⚠️ แจ้งตรวจนับสต็อก";
+    textarea.value = "แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น. | กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว";
+    if (badgeText) badgeText.value = "แจ้งตรวจนับสต็อก";
     selectAnnouncementTheme("blue", "modal");
   } else if (presetKey === "urgent") {
-    textarea.value = "🚨 ประกาศด่วน: ปิดระบบเพื่อปรับปรุงฐานข้อมูลและอัปเกรดความปลอดภัย ในคืนนี้ เวลา 22:00 - 23:00 น. | 🛡️ กรุณาบันทึกข้อมูลการเบิกจ่ายให้เรียบร้อยก่อนเวลาดังกล่าว";
-    if (badgeText) badgeText.value = "🚨 ประกาศด่วน";
+    textarea.value = "ประกาศด่วน: ปิดระบบเพื่อปรับปรุงฐานข้อมูลและอัปเกรดความปลอดภัย ในคืนนี้ เวลา 22:00 - 23:00 น. | กรุณาบันทึกข้อมูลการเบิกจ่ายให้เรียบร้อยก่อนเวลาดังกล่าว";
+    if (badgeText) badgeText.value = "ประกาศด่วน";
     selectAnnouncementTheme("red", "modal");
   }
   triggerAnnouncementLivePreview("modal");
@@ -22545,7 +22625,7 @@ async function saveModalAnnouncement(e) {
   const newSettings = {
     enabled: toggle ? toggle.checked : true,
     text: textarea ? textarea.value.trim() : "",
-    badgeText: badgeInput && badgeInput.value.trim() ? badgeInput.value.trim() : "📢 ประกาศ & ความปลอดภัย",
+    badgeText: badgeInput && badgeInput.value.trim() ? badgeInput.value.trim() : "ประกาศ & ความปลอดภัย",
     speed: speedSlider ? parseInt(speedSlider.value, 10) : 55,
     gap: gapSlider ? parseInt(gapSlider.value, 10) : 36,
     theme: currentSelectedAnnouncementTheme.modal || "orange",
@@ -22617,19 +22697,19 @@ const LOGIN_BANNER_TEMPLATES = {
   },
   maintenance: {
     headline: "งดบริการเบิกจ่ายสารเคมีชั่วคราว",
-    badgeText: "⚠️ แจ้งปิดปรับปรุงสต็อก",
+    badgeText: "แจ้งปิดปรับปรุงสต็อก",
     subtitle: "ระบบเปิดตรวจสอบข้อมูลได้ตามปกติ แต่ของดรับคำขอเบิกเคมีภัณฑ์ในวันศุกร์นี้ เพื่อตรวจนับพัสดุและจัดหมวดหมู่ความปลอดภัย",
     theme: "amber"
   },
   booking: {
     headline: "เปิดรับจองห้องปฏิบัติการล่วงหน้า",
-    badgeText: "📅 ปฏิทินห้องปฏิบัติการ",
+    badgeText: "ปฏิทินห้องปฏิบัติการ",
     subtitle: "อาจารย์และเจ้าหน้าที่สามารถตรวจสอบตารางห้องว่างและส่งคำขอใช้งานห้องแล็บผ่านระบบได้แล้ววันนี้",
     theme: "purple"
   },
   safety: {
     headline: "แนวปฏิบัติความปลอดภัยในห้องแล็บ",
-    badgeText: "🛡️ มาตรฐานความปลอดภัย SHECU",
+    badgeText: "มาตรฐานความปลอดภัย SHECU",
     subtitle: "โปรดสวมใส่อุปกรณ์คุ้มครองความปลอดภัย (PPE) ตรวจสอบเอกสารความปลอดภัย SDS และบันทึกการใช้งานสารเคมีทุกครั้ง",
     theme: "green"
   }
@@ -22651,7 +22731,7 @@ function getLoginBannerConfig() {
     if (saved) {
       const parsed = JSON.parse(saved);
       // Migrate legacy AI marketing copy or obsolete themes
-      if (parsed.headline === "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ" || parsed.badgeText === "📢 ประกาศด่วนประจำห้องแล็บ") {
+      if (parsed.headline === "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ" || parsed.badgeText === "ประกาศด่วนประจำห้องแล็บ") {
         parsed.headline = DEFAULT_LOGIN_BANNER_CONFIG.headline;
         parsed.badgeText = DEFAULT_LOGIN_BANNER_CONFIG.badgeText;
         parsed.subtitle = DEFAULT_LOGIN_BANNER_CONFIG.subtitle;
@@ -22996,7 +23076,7 @@ async function saveAdminLoginBanner(e) {
         key: "lab_login_banner_config",
         value: newConfig
       });
-      console.log("✅ Login banner config synced to Supabase Cloud");
+      console.log("[Success] Login banner config synced to Supabase Cloud");
     } catch (err) {
       console.warn("Supabase login banner sync error:", err);
     }
@@ -23540,7 +23620,7 @@ function renderDashboardDayView(year, month, container) {
                 <div class="dash-cal-day-item-header">
                   <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name}</span>
                   <span class="dash-schedule-status-badge ${isPending ? 'pending' : 'approved'}">
-                    ${isPending ? '⏳ รออนุมัติ' : '🟢 อนุมัติแล้ว'}
+                    ${isPending ? '<i data-lucide="clock" style="width: 10px; height: 10px; margin-right: 3px;"></i> รออนุมัติ' : '<i data-lucide="check-circle-2" style="width: 10px; height: 10px; margin-right: 3px;"></i> อนุมัติแล้ว'}
                   </span>
                 </div>
                 <div class="dash-cal-day-item-title">${b.purpose || 'ไม่มีระบุหัวข้อ'}</div>
@@ -23630,8 +23710,8 @@ function renderDashboardDailySchedule(specificDateStr) {
           const booker = b.bookerName || "อาจารย์ผู้สอน";
           const isPending = b.status === "pending";
           const statusBadge = isPending 
-            ? `<span class="dash-schedule-status-badge pending">⏳ รออนุมัติ</span>`
-            : `<span class="dash-schedule-status-badge approved">🟢 อนุมัติแล้ว</span>`;
+            ? `<span class="dash-schedule-status-badge pending"><i data-lucide="clock" style="width: 10px; height: 10px; margin-right: 3px;"></i> รออนุมัติ</span>`
+            : `<span class="dash-schedule-status-badge approved"><i data-lucide="check-circle-2" style="width: 10px; height: 10px; margin-right: 3px;"></i> อนุมัติแล้ว</span>`;
           
           const classInfo = (b.classLevel || b.studentCount) 
             ? `<span class="dash-schedule-meta-item"><i data-lucide="graduation-cap"></i> ${b.classLevel || 'นักเรียน'} ${b.studentCount ? '(' + b.studentCount + ' คน)' : ''}</span>`
@@ -24004,7 +24084,7 @@ async function quickApproveAssetAudit(code) {
     saveItemsToLocal();
   }
 
-  showToast(`✅ บันทึกตรวจนับ ${item.name} (ปีงบ ${currentYear}) สำเร็จ!`, "success");
+  showToast(`บันทึกตรวจนับ ${item.name} (ปีงบ ${currentYear}) สำเร็จ!`, "success");
   if (typeof renderItemsTable === "function") renderItemsTable();
   if (typeof renderAssetsTable === "function") renderAssetsTable();
 }
@@ -24187,7 +24267,7 @@ function printAssetsAuditPDF() {
         <td style="border: 1px solid #333; padding: 6px; text-align: center;">${item.qty} ${item.unit || 'เครื่อง'}</td>
         <td style="border: 1px solid #333; padding: 6px; text-align: center;">${item.actualQty !== undefined ? item.actualQty : item.qty}</td>
         <td style="border: 1px solid #333; padding: 6px; text-align: center;">${statusText}</td>
-        <td style="border: 1px solid #333; padding: 6px; text-align: center;">${isAudited ? '✅ ตรวจนับแล้ว' : '⏳ รอตรวจนับ'}</td>
+        <td style="border: 1px solid #333; padding: 6px; text-align: center;">${isAudited ? '<i data-lucide="check-circle-2" style="width: 13px; height: 13px; color: #16a34a; display: inline-block; vertical-align: middle;"></i> ตรวจนับแล้ว' : '<i data-lucide="clock" style="width: 13px; height: 13px; color: #d97706; display: inline-block; vertical-align: middle;"></i> รอตรวจนับ'}</td>
         <td style="border: 1px solid #333; padding: 6px; font-size: 11px;">${item.auditNotes || '-'}</td>
       </tr>
     `;
@@ -24345,7 +24425,7 @@ window.openQRCodeModal = function(code) {
   modal.innerHTML = `
     <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 440px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">🏷️ ป้ายรหัสประจำสารเคมี / ครุภัณฑ์</h3>
+        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;"><i data-lucide="tag" style="width: 16px; height: 16px; color: #7c3aed;"></i> ป้ายรหัสประจำสารเคมี / ครุภัณฑ์</h3>
         <button onclick="document.getElementById('qrAssetModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
       </div>
 
@@ -24435,7 +24515,7 @@ window.openStockAdjustmentModal = function(code) {
   modal.innerHTML = `
     <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 540px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">⚖️ ขอปรับปรุงยอดคงคลัง (Stock Adjustment)</h3>
+        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;"><i data-lucide="scale" style="width: 17px; height: 17px; color: #7c3aed;"></i> ขอปรับปรุงยอดคงคลัง (Stock Adjustment)</h3>
         <button onclick="document.getElementById('stockAdjustmentModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
       </div>
 
@@ -24555,7 +24635,7 @@ window.openMasterDetailModal = function(code) {
           <!-- Left Column: Master & Stock -->
           <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
             <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-              <span>📦</span> <span>สต็อกและการจัดซื้อ</span>
+              <i data-lucide="package" style="width: 14px; height: 14px; color: #7c3aed;"></i> <span>สต็อกและการจัดซื้อ</span>
             </h4>
             <div style="font-size: 13px; line-height: 1.8;">
               <div><strong>คงเหลือปัจจุบัน:</strong> <span style="font-size: 16px; font-weight: 700; color: #0284c7;">${q} ${escapeHtml(item.unit || 'ขวด')}</span></div>
@@ -24571,7 +24651,7 @@ window.openMasterDetailModal = function(code) {
                 <div><strong>เกณฑ์เตือนขั้นต่ำ:</strong> ${minStock} ${escapeHtml(item.unit || 'ขวด')}</div>
                 <div><strong>วันหมดอายุ:</strong> ${item.expiry ? formatThaiDate(item.expiry) : '-'}</div>
                 <div style="color: #94a3b8; font-size: 12px; margin-top: 8px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
-                  🔒 ข้อมูลจัดซื้อขั้นสูง (Lot, Safety Stock, Supplier) สำหรับผู้ดูแลระบบเท่านั้น
+                  <i data-lucide="lock" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i> ข้อมูลจัดซื้อขั้นสูง (Lot, Safety Stock, Supplier) สำหรับผู้ดูแลระบบเท่านั้น
                 </div>
               `}
             </div>
@@ -24580,7 +24660,7 @@ window.openMasterDetailModal = function(code) {
           <!-- Right Column: Location & Safety -->
           <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
             <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-              <span>📍</span> <span>ตำแหน่งและความปลอดภัย</span>
+              <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #7c3aed;"></i> <span>ตำแหน่งและความปลอดภัย</span>
             </h4>
             <div style="font-size: 13px; line-height: 1.8;">
               <div><strong>ห้องปฏิบัติการ:</strong> ${escapeHtml(item.room || '-')}</div>
@@ -24655,7 +24735,7 @@ window.openStockMovementsModal = async function(code) {
     <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <div>
-          <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">📦 ประวัติการเคลื่อนไหวสต็อก (Stock Movement History)</h3>
+          <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;"><i data-lucide="history" style="width: 17px; height: 17px; color: #7c3aed;"></i> ประวัติการเคลื่อนไหวสต็อก (Stock Movement History)</h3>
           <div style="font-size: 13px; color: #64748b; margin-top: 2px;">${escapeHtml(item.name)} (${escapeHtml(item.code)})</div>
         </div>
         <button onclick="document.getElementById('stockMovementsModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>

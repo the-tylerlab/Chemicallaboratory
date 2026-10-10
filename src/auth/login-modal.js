@@ -69,7 +69,7 @@ export function handleForgotPasswordClick() {
       title: "ลืมรหัสผ่าน?",
       html: `
         <div style="font-size: 13.5px; line-height: 1.6; color: #475569; text-align: left;">
-          <p style="margin: 0 0 8px 0;">💡 <strong>รหัสผ่านเริ่มต้นของระบบ:</strong> ใช้รหัสประจำตัวครู (Teacher ID) เช่น <code>T101</code> หรือ <code>1001</code></p>
+          <p style="margin: 0 0 8px 0;"><i data-lucide="lightbulb" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px; color: #f59e0b;"></i><strong>รหัสผ่านเริ่มต้นของระบบ:</strong> ใช้รหัสประจำตัวครู (Teacher ID) เช่น <code>T101</code> หรือ <code>1001</code></p>
           <p style="margin: 0;">หากท่านเปลี่ยนรหัสผ่านแล้วลืม โปรดติดต่อผู้ดูแลระบบ (Admin) หรือแจ้งปัญหาผ่านศูนย์ข้อมูลเพื่อขอรีเซ็ตรหัสผ่านครับ</p>
         </div>
       `,

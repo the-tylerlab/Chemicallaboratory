@@ -156,7 +156,7 @@ export function openReturnModal(txId) {
     <div class="modal-dialog" style="max-width: 520px;">
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
         <div class="modal-header" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 18px 24px;">
-          <h3 style="margin: 0; font-size: 16px; font-weight: 700;">📦 ตรวจรับคืนพัสดุ / สารเคมี (Return Inspection)</h3>
+          <h3 style="margin: 0; font-size: 16px; font-weight: 700;"><i data-lucide="package-check" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 6px;"></i>ตรวจรับคืนพัสดุ / สารเคมี (Return Inspection)</h3>
           <button type="button" class="btn-close-modal" onclick="window.closeReturnModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <form id="formReturnItem" onsubmit="window.submitItemReturn(event)" style="padding: 20px;">
@@ -171,11 +171,11 @@ export function openReturnModal(txId) {
           <div style="margin-bottom: 14px;">
             <label style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 4px;">สภาพของพัสดุขณะรับคืน <span style="color: red;">*</span></label>
             <select name="condition" id="returnConditionSelect" onchange="window.handleReturnConditionChange(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px;">
-              <option value="สมบูรณ์">🟢 สมบูรณ์ เรียบร้อย (Good Condition)</option>
-              <option value="ชำรุดเล็กน้อย">🟡 ชำรุดเล็กน้อย ยังใช้งานได้ (Minor Damage)</option>
-              <option value="ชำรุดหนัก">🔴 ชำรุดหนัก ต้องส่งซ่อม (Severe Damage)</option>
-              <option value="สูญหาย">🚨 สูญหาย ไม่สามารถส่งคืนได้ (Missing Item)</option>
-              <option value="ใช้หมดไป">🧪 สารเคมีใช้หมดไปตามกิจกรรม (Consumed)</option>
+              <option value="สมบูรณ์">สมบูรณ์ เรียบร้อย (Good Condition)</option>
+              <option value="ชำรุดเล็กน้อย">ชำรุดเล็กน้อย ยังใช้งานได้ (Minor Damage)</option>
+              <option value="ชำรุดหนัก">ชำรุดหนัก ต้องส่งซ่อม (Severe Damage)</option>
+              <option value="สูญหาย">สูญหาย ไม่สามารถส่งคืนได้ (Missing Item)</option>
+              <option value="ใช้หมดไป">สารเคมีใช้หมดไปตามกิจกรรม (Consumed)</option>
             </select>
           </div>
 
@@ -296,12 +296,12 @@ export function renderTransactions() {
       canManageReturns = isUserOwnTransaction(t, currentUser);
     }
 
-    let statusBadge = `<span class="status-badge status-warning">🟡 กำลังยืม</span>`;
+    let statusBadge = `<span class="status-badge status-warning"><i data-lucide="clock" class="badge-icon"></i> กำลังยืม</span>`;
     if (isReturned) {
-      statusBadge = `<span class="status-badge status-good">🟢 คืนแล้ว</span>`;
+      statusBadge = `<span class="status-badge status-good"><i data-lucide="check-circle-2" class="badge-icon"></i> คืนแล้ว</span>`;
     } else if (isOverdue) {
       const days = Math.max(1, Math.floor((now.getTime() - new Date(due).getTime()) / 86400000));
-      statusBadge = `<span class="status-badge status-danger">🔴 เกินกำหนด (${days} วัน)</span>`;
+      statusBadge = `<span class="status-badge status-danger"><i data-lucide="alert-circle" class="badge-icon"></i> เกินกำหนด (${days} วัน)</span>`;
     }
 
     return `

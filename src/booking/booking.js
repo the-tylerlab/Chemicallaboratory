@@ -251,7 +251,7 @@ export async function renderRoomAvailability() {
   container.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: #fff; padding: 12px 16px; border-radius: 10px; border: 1px solid #e2e8f0;">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <label style="font-size: 13px; font-weight: 700; color: #1e293b;">📅 เลือกวันที่ตรวจสอบ:</label>
+        <label style="font-size: 13px; font-weight: 700; color: #1e293b;"><i data-lucide="calendar" class="inline-icon"></i> เลือกวันที่ตรวจสอบ:</label>
         <input type="date" id="calendarDateFilter" value="${activeCalendarDate}" onchange="window.setBookingCalendarDate(this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600;">
       </div>
       <div style="display: flex; gap: 12px; font-size: 12px;">
@@ -264,7 +264,7 @@ export async function renderRoomAvailability() {
       ${availability.map(r => `
         <div style="border: 1px solid ${r.isFullyBooked ? '#fca5a5' : '#e2e8f0'}; border-radius: 12px; background: #fff; padding: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9;">
-            <span style="font-weight: 800; font-size: 14px; color: #1e1b4b;">🔬 ${escapeHtml(r.room)}</span>
+            <span style="font-weight: 800; font-size: 14px; color: #1e1b4b;"><i data-lucide="flask-conical" class="inline-icon"></i> ${escapeHtml(r.room)}</span>
             <span style="font-size: 11px; padding: 2px 8px; border-radius: 999px; background: ${r.isFullyBooked ? '#fee2e2' : '#ecfdf5'}; color: ${r.isFullyBooked ? '#b91c1c' : '#047857'}; font-weight: 700;">
               ${r.isFullyBooked ? 'เต็มทุกช่วงเวลา' : `ว่าง ${r.slots.filter(s => s.isAvailable).length} คาบ`}
             </span>
@@ -328,10 +328,10 @@ export function renderBookings() {
   const canApprove = (role === 'L2' || role === 'L3' || role === 'L4');
 
   container.innerHTML = bookings.map(b => {
-    let statusBadge = `<span class="status-badge status-warning">🟡 รออนุมัติ (Pending)</span>`;
-    if (b.status === 'approved') statusBadge = `<span class="status-badge status-good">🟢 อนุมัติแล้ว (Approved)</span>`;
-    if (b.status === 'rejected') statusBadge = `<span class="status-badge status-danger">🔴 ปฏิเสธ (Rejected)</span>`;
-    if (b.status === 'cancelled') statusBadge = `<span class="status-badge status-secondary">⚪ ยกเลิกแล้ว (Cancelled)</span>`;
+    let statusBadge = `<span class="status-badge status-warning"><i data-lucide="clock" class="badge-icon"></i> รออนุมัติ (Pending)</span>`;
+    if (b.status === 'approved') statusBadge = `<span class="status-badge status-good"><i data-lucide="check-circle-2" class="badge-icon"></i> อนุมัติแล้ว (Approved)</span>`;
+    if (b.status === 'rejected') statusBadge = `<span class="status-badge status-danger"><i data-lucide="x-circle" class="badge-icon"></i> ปฏิเสธ (Rejected)</span>`;
+    if (b.status === 'cancelled') statusBadge = `<span class="status-badge status-secondary"><i data-lucide="slash" class="badge-icon"></i> ยกเลิกแล้ว (Cancelled)</span>`;
 
     const prepChecklist = b.preparationChecklist || [];
     const cleanupChecklist = b.cleanupChecklist || [];
@@ -340,15 +340,15 @@ export function renderBookings() {
       <div class="booking-card" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 14px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
           <div>
-            <span style="font-weight: 800; color: #1e1b4b; font-size: 16px;">🔬 ${escapeHtml(b.room)}</span>
+            <span style="font-weight: 800; color: #1e1b4b; font-size: 16px;"><i data-lucide="flask-conical" class="inline-icon"></i> ${escapeHtml(b.room)}</span>
             <span style="margin-left: 10px;">${statusBadge}</span>
             <div style="font-size: 13px; font-weight: 600; color: #4338ca; margin-top: 4px;">
-              🧪 การทดลอง: ${escapeHtml(b.experimentName || b.purpose || '-')} | ระดับชั้น: ${escapeHtml(b.className || '-')} (${b.studentCount || 0} คน)
+              <i data-lucide="test-tube" class="inline-icon"></i> การทดลอง: ${escapeHtml(b.experimentName || b.purpose || '-')} | ระดับชั้น: ${escapeHtml(b.className || '-')} (${b.studentCount || 0} คน)
             </div>
           </div>
           <div style="text-align: right; font-size: 12px; color: #64748b;">
-            <div style="font-weight: 700; color: #1e293b;">📅 ${formatDate(b.date)}</div>
-            <div style="font-family: monospace; color: #4f46e5; margin-top: 2px;">⏰ ${escapeHtml(b.timeSlot || b.slot)}</div>
+            <div style="font-weight: 700; color: #1e293b;"><i data-lucide="calendar" class="inline-icon"></i> ${formatDate(b.date)}</div>
+            <div style="font-family: monospace; color: #4f46e5; margin-top: 2px;"><i data-lucide="clock" class="inline-icon"></i> ${escapeHtml(b.timeSlot || b.slot)}</div>
           </div>
         </div>
 
@@ -361,7 +361,7 @@ export function renderBookings() {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; font-size: 12px;">
           <!-- Prep Checklist -->
           <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 12px;">
-            <strong style="color: #166534; display: block; margin-bottom: 6px;">📋 เตรียมการทดลอง (Lab Preparation)</strong>
+            <strong style="color: #166534; display: block; margin-bottom: 6px;"><i data-lucide="clipboard-list" class="inline-icon"></i> เตรียมการทดลอง (Lab Preparation)</strong>
             ${prepChecklist.map((item, idx) => `
               <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; cursor: pointer; color: #15803d;">
                 <input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleChecklistItem('${b.id}', 'preparation', ${idx}, this.checked)">
@@ -372,7 +372,7 @@ export function renderBookings() {
 
           <!-- Cleanup Checklist -->
           <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px;">
-            <strong style="color: #1e40af; display: block; margin-bottom: 6px;">🧹 ตรวจความเรียบร้อยหลังแล็บ (Cleanup)</strong>
+            <strong style="color: #1e40af; display: block; margin-bottom: 6px;"><i data-lucide="sparkles" class="inline-icon"></i> ตรวจความเรียบร้อยหลังแล็บ (Cleanup)</strong>
             ${cleanupChecklist.map((item, idx) => `
               <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; cursor: pointer; color: #1d4ed8;">
                 <input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleChecklistItem('${b.id}', 'cleanup', ${idx}, this.checked)">
@@ -386,10 +386,10 @@ export function renderBookings() {
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px;">
           ${canApprove && b.status === 'pending' ? `
             <button type="button" class="btn btn-sm btn-primary" onclick="window.updateBookingStatus('${escapeHtml(b.id)}', 'approved')" style="padding: 6px 14px; background: #10b981; border: none; color: white; border-radius: 6px; font-weight: 600; cursor: pointer;">
-              ✓ อนุมัติการจอง
+              <i data-lucide="check" class="inline-icon"></i> อนุมัติการจอง
             </button>
             <button type="button" class="btn btn-sm" onclick="window.promptRejectBooking('${escapeHtml(b.id)}')" style="padding: 6px 14px; background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; border-radius: 6px; font-weight: 600; cursor: pointer;">
-              ✕ ไม่อนุมัติ
+              <i data-lucide="x" class="inline-icon"></i> ไม่อนุมัติ
             </button>
           ` : ''}
           ${b.status !== 'cancelled' ? `

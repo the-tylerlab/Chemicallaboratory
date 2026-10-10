@@ -126,7 +126,7 @@ export function openReceivingModal(poId) {
     <div class="modal-dialog" style="max-width: 600px;">
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
         <div class="modal-header" style="background: linear-gradient(135deg, #4338ca 0%, #312e81 100%); color: white; padding: 18px 24px;">
-          <h3 style="margin: 0; font-size: 16px; font-weight: 700;">📥 ตรวจรับพัสดุเข้าคลัง (Goods Receiving & Stock In)</h3>
+          <h3 style="margin: 0; font-size: 16px; font-weight: 700;"><i data-lucide="package-plus" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 6px;"></i>ตรวจรับพัสดุเข้าคลัง (Goods Receiving & Stock In)</h3>
           <button type="button" class="btn-close-modal" onclick="window.closeReceivingModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <form id="formReceiveGoods" onsubmit="window.submitReceiveGoods(event)" style="padding: 20px;">
@@ -255,11 +255,11 @@ export function renderPurchaseOrders() {
   const canReceive = (role === 'L2' || role === 'L3' || role === 'L4');
 
   container.innerHTML = orders.map(po => {
-    let statusBadge = `<span class="status-badge status-warning">🟡 รอการอนุมัติ</span>`;
-    if (po.status === 'approved') statusBadge = `<span class="status-badge status-good">🟢 อนุมัติแล้ว</span>`;
-    if (po.status === 'ordered') statusBadge = `<span class="status-badge status-info">🔵 สั่งซื้อแล้ว</span>`;
-    if (po.status === 'received') statusBadge = `<span class="status-badge status-good">📦 ตรวจรับเข้าคลังแล้ว</span>`;
-    if (po.status === 'rejected') statusBadge = `<span class="status-badge status-danger">🔴 ไม่อนุมัติ</span>`;
+    let statusBadge = `<span class="status-badge status-warning"><i data-lucide="clock" class="badge-icon"></i> รอการอนุมัติ</span>`;
+    if (po.status === 'approved') statusBadge = `<span class="status-badge status-good"><i data-lucide="check-circle-2" class="badge-icon"></i> อนุมัติแล้ว</span>`;
+    if (po.status === 'ordered') statusBadge = `<span class="status-badge status-info"><i data-lucide="shopping-cart" class="badge-icon"></i> สั่งซื้อแล้ว</span>`;
+    if (po.status === 'received') statusBadge = `<span class="status-badge status-good"><i data-lucide="package-check" class="badge-icon"></i> ตรวจรับเข้าคลังแล้ว</span>`;
+    if (po.status === 'rejected') statusBadge = `<span class="status-badge status-danger"><i data-lucide="x-circle" class="badge-icon"></i> ไม่อนุมัติ</span>`;
 
     return `
       <div class="po-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
@@ -280,16 +280,16 @@ export function renderPurchaseOrders() {
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
           ${canApprove && po.status === 'pending' ? `
             <button class="btn btn-sm btn-primary" onclick="window.updatePOStatus('${escapeHtml(po.id)}', 'approved')" style="padding: 6px 14px; background: #10b981; border: none; color: white; border-radius: 6px; font-weight: 600; cursor: pointer;">
-              ✓ อนุมัติคำขอจัดซื้อ
+              <i data-lucide="check" class="inline-icon"></i> อนุมัติคำขอจัดซื้อ
             </button>
             <button class="btn btn-sm" onclick="window.updatePOStatus('${escapeHtml(po.id)}', 'rejected')" style="padding: 6px 14px; background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; border-radius: 6px; font-weight: 600; cursor: pointer;">
-              ✕ ไม่อนุมัติ
+              <i data-lucide="x" class="inline-icon"></i> ไม่อนุมัติ
             </button>
           ` : ''}
 
           ${canReceive && (po.status === 'approved' || po.status === 'ordered') ? `
             <button class="btn btn-sm" onclick="window.openReceivingModal('${escapeHtml(po.id)}')" style="padding: 6px 14px; background: #4338ca; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
-              📥 ตรวจรับพัสดุเข้าคลัง
+              <i data-lucide="package-plus" class="inline-icon"></i> ตรวจรับพัสดุเข้าคลัง
             </button>
           ` : ''}
         </div>
