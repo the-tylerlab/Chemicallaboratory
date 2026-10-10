@@ -1234,8 +1234,7 @@ button.menu-item-link:active {
   display: none !important;
 }
 
-.app-container.sidebar-collapsed .sidebar:not(:hover) .btn-sidebar-collapse,
-.app-container.sidebar-collapsed .sidebar.collapse-animating .btn-sidebar-collapse {
+.app-container.sidebar-collapsed .sidebar:not(:hover) .btn-sidebar-collapse {
   opacity: 0 !important;
   pointer-events: none !important;
   transform: scale(0.85) !important;
