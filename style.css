@@ -347,33 +347,47 @@
   --letter-spacing-normal: 0em;
   --letter-spacing-wide: 0.025em;
 
-  /* Colors (Shadcn Zinc Palette) */
-  --bg-main: #fafafa;
+  /* Brand Primary Palette (Image 1: Pure White #FFFFFF, Periwinkle Blue #8DA9FB, Vibrant Electric Lime #CCFF00) */
+  --brand-white: #ffffff;
+  --brand-blue: #8da9fb;
+  --brand-blue-hover: #7496f7;
+  --brand-blue-light: rgba(141, 169, 251, 0.12);
+  --brand-lime: #ccff00;
+  --brand-lime-hover: #b8e600;
+  --brand-lime-light: rgba(204, 255, 0, 0.18);
+  --brand-dark: #0f172a;
+  
+  --bg-main: #f1f4f8;              /* Soft Neo-Minimalist Neutral Page Canvas */
   --bg-card: #ffffff;
   
-  --primary-purple: #3f1b85; /* Restore original deep purple button colors */
+  /* Primary Theme Tokens Mapped to Image 1 Soft Blue & Lime Accent Palette */
+  --primary-purple: #8da9fb;       /* Soft Periwinkle Blue */
   --primary-color: var(--primary-purple);
-  --primary-purple-hover: #31146b;
-  --primary-purple-light: rgba(63, 27, 133, 0.05);
-  --primary-purple-active: rgba(63, 27, 133, 0.1);
+  --primary-purple-hover: #7496f7;
+  --primary-purple-light: rgba(141, 169, 251, 0.12);
+  --primary-purple-active: rgba(141, 169, 251, 0.22);
   
-  --text-main: #09090b; /* Zinc 950 */
-  --text-muted: #71717a; /* Zinc 500 */
+  --text-main: #0f172a;            /* Slate 900 */
+  --text-muted: #64748b;           /* Slate 500 */
   --text-light: #ffffff;
   
-  --border-color: #e4e4e7; /* Zinc 200 */
+  --border-color: #e2e8f0;         /* Slate 200 */
   
-  /* Theme Accents */
-  --accent-blue: #2563eb;
-  --accent-blue-light: #eff6ff;
+  /* Cabinet Safety & Urgency Accents (Preserved strictly as requested) */
+  --accent-blue: #8da9fb;
+  --accent-blue-light: #f0f4ff;
   --accent-red: #dc2626;
   --accent-red-light: #fef2f2;
   --accent-orange: #ea580c;
   --accent-orange-light: #fff7ed;
   --accent-yellow: #ca8a04;
   --accent-yellow-light: #fef3c7;
-  --accent-green: #16a34a;
-  --accent-green-light: #f0fdf4;
+  --accent-green: #10b981;
+  --accent-green-light: #ecfdf5;
+
+  /* Soft Neo-Minimalism Design Tokens */
+  --soft-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+  --soft-shadow-hover: 0 20px 40px -8px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
 
   /* Sizes (Restored original rounded corners) */
   --sidebar-width: 268px;
@@ -1884,54 +1898,74 @@ button.menu-item-link:active {
 }
 
 .quick-btn-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-main);
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a !important;
 }
 
-/* Quick Button Colors */
-.quick-btn.purple {
-  background-color: #f5f3ff;
-}
-.quick-btn.purple:hover {
-  background-color: #ede9fe;
-  border-color: rgba(63, 27, 133, 0.25);
-}
-.quick-btn.purple .quick-btn-icon {
-  background-color: var(--primary-purple);
-}
-
+/* Quick Button Colors - Soft Neo-Minimalist Bento Distinct Palettes */
+/* 1. Lab Booking (Ocean Blue Theme) */
 .quick-btn.blue {
-  background-color: var(--accent-blue-light);
+  background-color: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
 }
 .quick-btn.blue:hover {
-  background-color: #dbeafe;
-  border-color: rgba(59, 130, 246, 0.25);
+  background-color: #dbeafe !important;
+  border-color: #93c5fd !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
 }
 .quick-btn.blue .quick-btn-icon {
-  background-color: var(--accent-blue);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, 0.3);
 }
 
+/* 2. Borrow & Return (Electric Violet / Lavender Theme) */
+.quick-btn.purple {
+  background-color: #f5f3ff !important;
+  border: 1px solid #ddd6fe !important;
+}
+.quick-btn.purple:hover {
+  background-color: #ede9fe !important;
+  border-color: #c4b5fd !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.12);
+}
+.quick-btn.purple .quick-btn-icon {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 8px rgba(124, 58, 237, 0.3);
+}
+
+/* 3. Add Item (Emerald Mint Theme) */
 .quick-btn.green {
-  background-color: var(--accent-green-light);
+  background-color: #ecfdf5 !important;
+  border: 1px solid #a7f3d0 !important;
 }
 .quick-btn.green:hover {
-  background-color: #d1fae5;
-  border-color: rgba(16, 185, 129, 0.25);
+  background-color: #d1fae5 !important;
+  border-color: #6ee7b7 !important;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.12);
 }
 .quick-btn.green .quick-btn-icon {
-  background-color: var(--accent-green);
+  background: linear-gradient(135deg, #059669, #047857) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 8px rgba(5, 150, 105, 0.3);
 }
 
+/* 4. Admin Panel (Coral Amber Theme) */
 .quick-btn.orange {
-  background-color: #fff7ed;
+  background-color: #fff7ed !important;
+  border: 1px solid #fed7aa !important;
 }
 .quick-btn.orange:hover {
-  background-color: #ffedd5;
-  border-color: rgba(249, 115, 22, 0.25);
+  background-color: #ffedd5 !important;
+  border-color: #fdba74 !important;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.12);
 }
 .quick-btn.orange .quick-btn-icon {
-  background-color: #ea580c;
+  background: linear-gradient(135deg, #ea580c, #c2410c) !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 8px rgba(234, 88, 12, 0.3);
 }
 
 /* ==========================================================================
@@ -2556,36 +2590,122 @@ input:focus, select:focus, textarea:focus {
 }
 
 .btn-primary {
-  background-color: var(--primary-purple);
-  color: var(--text-light);
-  border: 1px solid var(--primary-purple);
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border: 1px solid #0f172a !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.16) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .btn-secondary {
-  background-color: var(--bg-card);
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.btn-danger {
-  background-color: var(--accent-red);
-  color: #ffffff;
-  border: 1px solid var(--accent-red);
+/* 🟢 Green Confirmation, Save, Submit & Approval Buttons (ALL PAGES) */
+.btn-success,
+.btn-approve,
+.btn-confirm,
+.btn-accept,
+.btn-action-approve,
+.btn-submit,
+#btnConfirmImport,
+#btnSubmitBorrow,
+#btnSubmitBooking,
+#btnCommitPoDraft,
+#btnConfirmAutoPo,
+#btnSubmitForm,
+#btnSubmitPurchaseOrder,
+#btnSubmitBatchUsers,
+#btnConfirmRepairAction,
+#btnSaveAnnualBudget,
+.admin-btn-save,
+.btn-confirm-action {
+  background-color: #059669 !important;
+  color: #ffffff !important;
+  border: 1px solid #059669 !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.22) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* 🔴 Red Rejection, Decline, Cancel & Delete Buttons (ALL PAGES) */
+.btn-danger,
+.btn-reject,
+.btn-decline,
+.btn-action-reject,
+#btnDeleteConfirm,
+.btn-delete,
+.btn-remove,
+.btn-cancel-danger {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  border: 1px solid #dc2626 !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.22) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 @media (hover: hover) {
   .btn-primary:hover {
-    background-color: var(--primary-purple-hover);
-    border-color: var(--primary-purple-hover);
+    background-color: #1e293b !important;
+    border-color: #1e293b !important;
+    transform: translateY(-1.5px) !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.22) !important;
   }
 
   .btn-secondary:hover {
-    background-color: #f4f4f5; /* Zinc 100 */
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    transform: translateY(-1px) !important;
   }
 
-  .btn-danger:hover {
-    background-color: #b91c1c;
-    border-color: #b91c1c;
+  .btn-success:hover,
+  .btn-approve:hover,
+  .btn-confirm:hover,
+  .btn-accept:hover,
+  .btn-action-approve:hover,
+  .btn-submit:hover,
+  #btnConfirmImport:hover,
+  #btnSubmitBorrow:hover,
+  #btnSubmitBooking:hover,
+  #btnCommitPoDraft:hover,
+  #btnConfirmAutoPo:hover,
+  #btnSubmitForm:hover,
+  #btnSubmitPurchaseOrder:hover,
+  #btnSubmitBatchUsers:hover,
+  #btnConfirmRepairAction:hover,
+  #btnSaveAnnualBudget:hover,
+  .admin-btn-save:hover,
+  .btn-confirm-action:hover {
+    background-color: #047857 !important;
+    border-color: #047857 !important;
+    transform: translateY(-1.5px) !important;
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.32) !important;
+  }
+
+  .btn-danger:hover,
+  .btn-reject:hover,
+  .btn-decline:hover,
+  .btn-action-reject:hover,
+  #btnDeleteConfirm:hover,
+  .btn-delete:hover,
+  .btn-remove:hover,
+  .btn-cancel-danger:hover {
+    background-color: #b91c1c !important;
+    border-color: #b91c1c !important;
+    transform: translateY(-1.5px) !important;
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.32) !important;
   }
 }
 
@@ -4108,19 +4228,22 @@ tr:hover td {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  background-color: #ede7ff;
-  color: #4f21a1;
-  border: 1px solid #ddd6fe;
-  border-radius: 8px;
+  padding: 8px 18px;
+  background-color: #f5f3ff;
+  color: #0f172a;
+  border: 1px solid #c4b5fd;
+  border-radius: 999px;
   cursor: pointer;
   font-size: 13px;
-  font-weight: 600;
-  transition: all 0.15s ease;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
 }
 
 .file-upload-label:hover {
-  background-color: #e0d7fe;
+  background-color: #ede9fe;
+  border-color: #a78bfa;
+  transform: translateY(-1px);
 }
 
 .file-upload-filename {
@@ -5710,45 +5833,165 @@ input[type="date"]::-webkit-date-and-time-value {
    CHATBOT: LAB AI ASSISTANT WIDGET
    ========================================================================== */
 
-/* Floating Action Button (FAB) - Floating Mascot (No Purple Circle Background) */
+/* Floating Action Pill Widget: Chat with Stoki (Image 1 Expanded & Image 2 Collapsed) */
 .chatbot-fab {
   position: fixed;
-  bottom: 22px;
-  right: 22px;
-  width: 62px;
-  height: 62px;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
+  bottom: 24px;
+  right: 24px;
+  height: 58px;
+  width: 58px; /* Perfectly Symmetrical Collapsed Circle */
+  padding: 0;
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-radius: 999px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 1), 0 10px 28px -4px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(0, 0, 0, 0.04) !important;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0px;
   z-index: 999;
-  padding: 0;
-  overflow: visible;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  transition: width 0.38s cubic-bezier(0.34, 1.25, 0.64, 1), padding 0.38s cubic-bezier(0.34, 1.25, 0.64, 1), gap 0.38s cubic-bezier(0.34, 1.25, 0.64, 1), transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  user-select: none;
+  box-sizing: border-box;
 }
 
-.chatbot-fab img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  display: block;
-  filter: drop-shadow(0 8px 16px rgba(109, 40, 217, 0.35)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.15));
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
-}
-
-.chatbot-fab:hover {
-  transform: scale(1.15) translateY(-4px);
-}
-
-.chatbot-fab:hover img {
-  filter: drop-shadow(0 14px 24px rgba(109, 40, 217, 0.5)) drop-shadow(0 6px 10px rgba(0, 0, 0, 0.2));
+/* Expand on Hover or when .expanded class is present (Image 1) */
+.chatbot-fab:hover,
+.chatbot-fab.expanded {
+  width: 236px; /* Clean Expanded width without dismiss X button */
+  padding: 0 18px 0 6px;
+  justify-content: flex-start;
+  gap: 12px;
+  transform: translateY(-4px);
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 1), 0 20px 42px -6px rgba(15, 23, 42, 0.18), 0 6px 16px rgba(240, 100, 59, 0.18) !important;
+  border-color: rgba(240, 100, 59, 0.35) !important;
 }
 
 .chatbot-fab:active {
-  transform: scale(0.95);
+  transform: scale(0.97) translateY(0);
+}
+
+.chatbot-fab-avatar-wrapper {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+.chatbot-fab-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f0643b 0%, #ea580c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(240, 100, 59, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+/* Animated Stoki Bot Visor & Eyes (Image 4/5/6 Style) */
+.stoki-bot-face {
+  width: 32px;
+  height: 22px;
+  background: #0f172a;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stoki-bot-eye {
+  width: 7px;
+  height: 10px;
+  background: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
+  animation: stokiEyeBlink 4s infinite ease-in-out;
+  position: relative;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+/* Looking around & blinking animations */
+@keyframes stokiEyeBlink {
+  0%, 42%, 58%, 100% {
+    transform: scaleY(1) translateX(0);
+  }
+  48%, 52% {
+    transform: scaleY(0.12) translateX(0);
+  }
+  15%, 28% {
+    transform: scaleY(1) translateX(-2.5px);
+  }
+  72%, 85% {
+    transform: scaleY(1) translateX(2.5px);
+  }
+}
+
+/* On hover: eyes light up in electric lime / happy state! */
+.chatbot-fab:hover .stoki-bot-eye {
+  background: #ccff00;
+  box-shadow: 0 0 8px #ccff00;
+  animation: stokiEyeHappy 0.6s infinite alternate ease-in-out;
+}
+
+@keyframes stokiEyeHappy {
+  0% {
+    transform: scale(1.1) translateY(-0.5px);
+  }
+  100% {
+    transform: scale(1.2) translateY(0.5px);
+  }
+}
+
+.chatbot-fab-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: left;
+  min-width: 0;
+  opacity: 0;
+  max-width: 0;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.25s ease 0.05s, max-width 0.38s cubic-bezier(0.34, 1.25, 0.64, 1);
+}
+
+.chatbot-fab:hover .chatbot-fab-content,
+.chatbot-fab.expanded .chatbot-fab-content {
+  opacity: 1;
+  max-width: 160px;
+  pointer-events: auto;
+}
+
+.chatbot-fab-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #f0643b;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.chatbot-fab-subtitle {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 /* Pulse indicator dot positioned at top-right of mascot */
@@ -5803,24 +6046,24 @@ input[type="date"]::-webkit-date-and-time-value {
   pointer-events: all;
 }
 
-/* Chat Header (Clean & Friendly Gradient with Modern Elements) */
+/* Chat Header (Coral-Orange Stoki & Soft Neo-Minimalist Style) */
 .chatbot-header {
   padding: 15px 18px;
-  background: linear-gradient(135deg, #4f21a1 0%, #6d28d9 55%, #7c3aed 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #f0643b 0%, #ea580c 55%, #c2410c 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   display: flex;
   justify-content: space-between;
   align-items: center;
   position: relative;
-  box-shadow: 0 2px 8px rgba(79, 33, 161, 0.15);
+  box-shadow: 0 4px 16px rgba(240, 100, 59, 0.22);
 }
 
 .chatbot-avatar {
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
@@ -5852,8 +6095,8 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chatbot-title {
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 14.5px;
+  font-weight: 800;
   color: #ffffff;
   line-height: 1.25;
   letter-spacing: -0.2px;
@@ -5864,12 +6107,12 @@ input[type="date"]::-webkit-date-and-time-value {
   align-items: center;
   gap: 5px;
   margin-top: 3px;
-  background: rgba(255, 255, 255, 0.14);
-  padding: 2px 8px;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2.5px 9px;
+  border-radius: 999px;
   font-size: 10.5px;
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 500;
+  color: #ffffff;
+  font-weight: 600;
 }
 
 .chatbot-status .status-live-dot {
@@ -5889,8 +6132,8 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chatbot-close-btn {
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   width: 30px;
   height: 30px;
   min-width: 30px;
@@ -5921,7 +6164,7 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chatbot-close-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.38);
   transform: scale(1.08);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
@@ -6019,8 +6262,8 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .bot-name-text {
-  color: #6d28d9;
-  font-weight: 700;
+  color: #f0643b;
+  font-weight: 800;
 }
 
 .chat-message.bot p {
@@ -6028,11 +6271,11 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chat-message.user {
-  background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #f0643b 0%, #ea580c 100%);
   color: #ffffff;
   border-radius: 18px 18px 4px 18px;
   align-self: flex-end;
-  box-shadow: 0 3px 10px -2px rgba(109, 40, 217, 0.3);
+  box-shadow: 0 3px 10px -2px rgba(240, 100, 59, 0.35);
 }
 
 /* Suggestion Action Cards Grid (UI Best Practice: 2-column structured layout) */
@@ -6101,11 +6344,11 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chat-suggestion-chip:hover {
-  background-color: #f5f3ff;
-  border-color: #c4b5fd;
-  color: #6d28d9;
+  background-color: #fff7ed;
+  border-color: #ffedd5;
+  color: #ea580c;
   transform: translateY(-1.5px);
-  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.12);
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.15);
 }
 
 .chat-suggestion-chip:active {
@@ -6133,9 +6376,9 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chatbot-input-wrap:focus-within {
-  border-color: #7c3aed;
+  border-color: #f0643b;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 0 3px rgba(240, 100, 59, 0.15);
 }
 
 .chatbot-input-wrap input {
@@ -6155,7 +6398,7 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .chatbot-input-wrap button {
-  background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%) !important;
+  background: linear-gradient(135deg, #f0643b 0%, #ea580c 100%) !important;
   color: #ffffff !important;
   border: none !important;
   width: 32px !important;
@@ -6166,13 +6409,13 @@ input[type="date"]::-webkit-date-and-time-value {
   justify-content: center !important;
   cursor: pointer !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  box-shadow: 0 2px 6px rgba(109, 40, 217, 0.3) !important;
+  box-shadow: 0 2px 6px rgba(240, 100, 59, 0.35) !important;
   flex-shrink: 0 !important;
 }
 
 .chatbot-input-wrap button:hover {
   transform: scale(1.08) !important;
-  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.45) !important;
+  box-shadow: 0 4px 12px rgba(240, 100, 59, 0.45) !important;
 }
 
 .chatbot-input-wrap button:active {
@@ -7319,10 +7562,16 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .view-toggle-btn.active {
-  background-color: var(--primary-light, #ede7ff);
-  color: var(--primary-purple, #4f21a1);
-  border-color: rgba(79, 33, 161, 0.15);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  border-color: #0f172a !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18) !important;
+  font-weight: 700 !important;
+}
+
+.view-toggle-btn.active svg,
+.view-toggle-btn.active i {
+  color: #ccff00 !important;
 }
 
 .log-role-btn {
@@ -10396,8 +10645,8 @@ body.hide-col-cas .col-cas { display: none !important; }
 }
 
 .capacity-bar-fill.normal {
-  background: linear-gradient(90deg, #c084fc 0%, #7c3aed 100%);
-  box-shadow: 0 1px 3px rgba(124, 58, 237, 0.25);
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
 }
 
 .capacity-bar-fill.warning {

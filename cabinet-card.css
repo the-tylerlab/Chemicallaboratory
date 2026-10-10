@@ -96,15 +96,16 @@
   min-width: 0;
 }
 
+/* Avatar Icon Container - Harmonized Frosted Glass Tile matching header background */
 .cabinet-avatar-icon {
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.22) !important;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -112,10 +113,17 @@
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4), 0 3px 10px rgba(0, 0, 0, 0.08);
 }
 
+.cabinet-avatar-icon.chemical,
+.cabinet-avatar-icon.glassware {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+}
+
 .cabinet-card.emergency-type .cabinet-avatar-icon {
-  background: rgba(255, 255, 255, 0.45);
-  color: #431407;
-  border-color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.45) !important;
+  color: #431407 !important;
+  border-color: rgba(255, 255, 255, 0.65) !important;
 }
 
 .cabinet-avatar-icon svg,
@@ -157,11 +165,13 @@
 }
 
 .cabinet-card.emergency-type .cabinet-title-text {
-  color: #431407 !important;
+  color: #0f172a !important;
+  font-weight: 800;
   text-shadow: none;
 }
 .cabinet-card.emergency-type .cabinet-subtitle-text {
-  color: #78350f !important;
+  color: #1e293b !important;
+  font-weight: 700;
 }
 
 .cabinet-card.has-incompatible .cabinet-title-text {
@@ -264,7 +274,7 @@
 
 /* Overlapping Apple Card Translucent Frosted Cream Sheet */
 .cabinet-body-sheet {
-  background: rgba(253, 251, 247, 0.92);
+  background: rgba(253, 251, 247, 0.94);
   backdrop-filter: blur(16px) saturate(150%);
   -webkit-backdrop-filter: blur(16px) saturate(150%);
   border-radius: var(--cabinet-sheet-radius) var(--cabinet-sheet-radius) calc(var(--cabinet-radius) - 2px) calc(var(--cabinet-radius) - 2px);
@@ -292,7 +302,7 @@
 .cabinet-sheet-title {
   font-size: 16px;
   font-weight: 800;
-  color: #291e07;
+  color: #0f172a !important;
   margin: 0;
   letter-spacing: -0.015em;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'IBM Plex Sans Thai', sans-serif;
@@ -304,12 +314,12 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
-  border: 1.5px solid #eae2d5;
-  box-shadow: 0 3px 10px rgba(69, 26, 3, 0.07);
+  border: 1.5px solid #cbd5e1;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #451a03;
+  color: #0f172a;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
   flex-shrink: 0;
@@ -317,9 +327,9 @@
 
 .cabinet-sheet-fab:hover {
   transform: scale(1.08);
-  border-color: #f59e0b;
-  color: #d97706;
-  box-shadow: 0 5px 14px rgba(245, 158, 11, 0.2);
+  border-color: #10b981;
+  color: #047857;
+  box-shadow: 0 5px 14px rgba(16, 185, 129, 0.2);
 }
 
 .cabinet-sheet-fab svg,
@@ -329,7 +339,7 @@
   stroke-width: 2.5;
 }
 
-/* Shelves Section - Frosted White Shelf Trays */
+/* Shelves Section - Frosted White Shelf Trays with Green Palette */
 .cabinet-shelves {
   padding: 0;
   display: flex;
@@ -347,23 +357,23 @@
   gap: 8px;
   padding: 9px 12px;
   min-width: 0;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-bottom: 1.5px solid rgba(231, 222, 208, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-bottom: 1.5px solid #cbd5e1;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 1), 0 2px 6px rgba(69, 26, 3, 0.03);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 1), 0 2px 6px rgba(15, 23, 42, 0.04);
 }
 
 .cabinet-shelf-item:hover {
   background: rgba(255, 255, 255, 0.98);
-  border-color: #f59e0b;
-  border-bottom-color: #d97706;
+  border-color: #10b981;
+  border-bottom-color: #059669;
   transform: translateY(-1px);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 1), 0 6px 16px rgba(245, 158, 11, 0.14);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 1), 0 6px 16px rgba(16, 185, 129, 0.14);
 }
 
 .shelf-label-group {
@@ -377,11 +387,11 @@
   width: 23px;
   height: 23px;
   border-radius: 50%;
-  background-color: #f6f0e6;
-  border: 1.5px solid #e8dec8;
-  color: #451a03;
+  background-color: #f1f5f9;
+  border: 1.5px solid #cbd5e1;
+  color: #0f172a !important;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -390,15 +400,15 @@
 }
 
 .cabinet-shelf-item:hover .shelf-num-dot {
-  background-color: #fef3c7;
-  border-color: #fde68a;
-  color: #b45309;
+  background-color: #d1fae5;
+  border-color: #6ee7b7;
+  color: #047857 !important;
 }
 
 .shelf-title {
   font-size: 13.5px;
-  font-weight: 600;
-  color: #2d2314;
+  font-weight: 700;
+  color: #0f172a !important;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -415,20 +425,21 @@
   font-size: 10.5px;
   padding: 2.5px 8.5px;
   border-radius: 999px;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
 }
 
 .shelf-count-tag.empty {
-  background-color: rgba(245, 239, 230, 0.9);
-  border: 1px solid #e7ddce;
-  color: #8c7e6c;
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
 }
 
 .shelf-count-tag.has-items {
-  background-color: #f5f3ff;
-  border: 1px solid #ddd6fe;
-  color: #6d28d9;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
+  font-weight: 700;
 }
 
 .shelf-chevron-icon {
@@ -440,7 +451,7 @@
 
 .cabinet-shelf-item:hover .shelf-chevron-icon {
   transform: translateX(2px);
-  color: #d97706;
+  color: #059669;
 }
 
 /* Card Footer - Inside Body Sheet */
@@ -478,9 +489,9 @@
 }
 
 .footer-chip.chem {
-  background-color: #f0f9ff;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
 }
 
 .footer-chip.equip {
@@ -491,12 +502,13 @@
 
 .footer-total-label {
   font-size: 11.5px;
-  color: #786c5c;
-  font-weight: 600;
+  color: #0f172a !important;
+  font-weight: 700;
 }
 
 .footer-total-label strong {
-  color: #291e07;
+  color: #000000 !important;
+  font-weight: 800;
 }
 
 .cabinet-capacity-group {
@@ -511,9 +523,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 10.5px;
-  color: #786c5c;
-  font-weight: 500;
+  font-size: 11px;
+  color: #0f172a !important;
+  font-weight: 700;
 }
 
 .capacity-bar-track {
@@ -527,12 +539,12 @@
 .capacity-bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #f59e0b, #d97706);
+  background: linear-gradient(90deg, #10b981, #059669);
   transition: width 0.3s ease;
 }
 
 .capacity-bar-fill.warning {
-  background: linear-gradient(90deg, #f97316, #ea580c);
+  background: linear-gradient(90deg, #f59e0b, #d97706);
 }
 
 .capacity-bar-fill.danger {
@@ -540,7 +552,109 @@
 }
 
 /* ==========================================================================
-   CABINET DETAIL MODAL (Translucent Acrylic Glassmorphism)
+   THEMED INTERNAL SHEET COMPONENTS (Aligning Internal Colors with Header Theme)
+   ========================================================================== */
+
+/* 1. Emergency Cabinet (Orange/Amber Accent Theme) */
+.cabinet-card.emergency-type .shelf-count-tag.has-items {
+  background-color: #fff7ed !important;
+  border: 1px solid #fed7aa !important;
+  color: #c2410c !important;
+  font-weight: 700;
+}
+
+.cabinet-card.emergency-type .footer-chip.chem {
+  background-color: #fff7ed !important;
+  color: #c2410c !important;
+  border: 1px solid #fed7aa !important;
+}
+
+.cabinet-card.emergency-type .cabinet-shelf-item:hover {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: #f97316 !important;
+  border-bottom-color: #ea580c !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 1), 0 6px 16px rgba(249, 115, 22, 0.16) !important;
+}
+
+.cabinet-card.emergency-type .cabinet-shelf-item:hover .shelf-num-dot {
+  background-color: #ffedd5 !important;
+  border-color: #fed7aa !important;
+  color: #c2410c !important;
+}
+
+.cabinet-card.emergency-type .cabinet-shelf-item:hover .shelf-chevron-icon {
+  color: #ea580c !important;
+}
+
+.cabinet-card.emergency-type .cabinet-sheet-fab:hover {
+  border-color: #f97316 !important;
+  color: #ea580c !important;
+  box-shadow: 0 5px 14px rgba(249, 115, 22, 0.22) !important;
+}
+
+.cabinet-card.emergency-type .capacity-bar-fill {
+  background: linear-gradient(90deg, #f97316, #ea580c) !important;
+}
+
+.cabinet-card.emergency-type .btn-cabinet-mini-action.edit {
+  color: #ea580c !important;
+}
+
+/* 2. Unsafe / Incompatible Cabinet (Red Accent Theme) */
+.cabinet-card.has-incompatible .shelf-count-tag.has-items,
+.cabinet-card.danger-type .shelf-count-tag.has-items {
+  background-color: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+  color: #b91c1c !important;
+  font-weight: 700;
+}
+
+.cabinet-card.has-incompatible .footer-chip.chem,
+.cabinet-card.danger-type .footer-chip.chem {
+  background-color: #fef2f2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca !important;
+}
+
+.cabinet-card.has-incompatible .cabinet-shelf-item:hover,
+.cabinet-card.danger-type .cabinet-shelf-item:hover {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: #f43f5e !important;
+  border-bottom-color: #e11d48 !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 1), 0 6px 16px rgba(244, 63, 94, 0.16) !important;
+}
+
+.cabinet-card.has-incompatible .cabinet-shelf-item:hover .shelf-num-dot,
+.cabinet-card.danger-type .cabinet-shelf-item:hover .shelf-num-dot {
+  background-color: #ffe4e6 !important;
+  border-color: #fecdd3 !important;
+  color: #9f1239 !important;
+}
+
+.cabinet-card.has-incompatible .cabinet-shelf-item:hover .shelf-chevron-icon,
+.cabinet-card.danger-type .cabinet-shelf-item:hover .shelf-chevron-icon {
+  color: #e11d48 !important;
+}
+
+.cabinet-card.has-incompatible .cabinet-sheet-fab:hover,
+.cabinet-card.danger-type .cabinet-sheet-fab:hover {
+  border-color: #f43f5e !important;
+  color: #be123c !important;
+  box-shadow: 0 5px 14px rgba(225, 29, 72, 0.22) !important;
+}
+
+.cabinet-card.has-incompatible .capacity-bar-fill,
+.cabinet-card.danger-type .capacity-bar-fill {
+  background: linear-gradient(90deg, #ef4444, #dc2626) !important;
+}
+
+.cabinet-card.has-incompatible .btn-cabinet-mini-action.edit,
+.cabinet-card.danger-type .btn-cabinet-mini-action.edit {
+  color: #be123c !important;
+}
+
+/* ==========================================================================
+   CABINET DETAIL MODAL (Apple iOS Modern Modal & Single Top-Right X Close)
    ========================================================================== */
 
 #cabinetDetailModal .modal-content {
@@ -548,7 +662,7 @@
   border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
   box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.35) !important;
   overflow: hidden !important;
-  background: rgba(255, 255, 255, 0.92) !important;
+  background: rgba(255, 255, 255, 0.94) !important;
   backdrop-filter: blur(24px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
 }
@@ -565,8 +679,34 @@
   color: #ffffff;
 }
 
+/* Hide redundant bottom footer close button in favor of top-right frosted glass (✕) button */
+#cabinetDetailModal .modal-footer {
+  display: none !important;
+}
+
+#cabinetDetailModalClose {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+#cabinetDetailModalClose:hover {
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.38) !important;
+}
+
 #cabinetDetailModal .modal-body {
-  background-color: rgba(253, 251, 247, 0.92) !important;
+  background-color: rgba(253, 251, 247, 0.94) !important;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   padding: 20px 18px !important;
@@ -589,10 +729,10 @@
 }
 
 .cabinet-detail-card {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   border-bottom: 1.5px solid rgba(231, 222, 208, 0.9);
   border-radius: 14px;
   padding: 12px 14px;
@@ -607,9 +747,9 @@
 
 .cabinet-detail-card:hover {
   background: rgba(255, 255, 255, 0.98);
-  border-color: #f59e0b;
+  border-color: #10b981;
   transform: translateY(-1px);
-  box-shadow: 0 5px 14px rgba(245, 158, 11, 0.14);
+  box-shadow: 0 5px 14px rgba(16, 185, 129, 0.14);
 }
 
 .item-card-left {
@@ -631,9 +771,9 @@
 }
 
 .item-avatar-tile.chem {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  color: #0284c7;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #047857;
 }
 
 .item-avatar-tile.equip {
