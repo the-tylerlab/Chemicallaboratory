@@ -2063,15 +2063,16 @@ function setupSidebarCollapse() {
   if (btnToggleSidebar && appContainer) {
     btnToggleSidebar.addEventListener("click", (e) => {
       e.stopPropagation();
+      e.preventDefault();
+      const sidebar = document.getElementById("sidebar") || document.querySelector(".sidebar");
+      
       if (window.innerWidth <= 1024) {
-        const sidebar = document.getElementById("sidebar");
         const mobileOverlay = document.getElementById("mobile-overlay");
-        if (sidebar) sidebar.classList.remove("active");
-        if (mobileOverlay) mobileOverlay.classList.remove("active");
-        document.body.classList.remove("mobile-sidebar-open");
+        if (sidebar) sidebar.classList.toggle("active");
+        if (mobileOverlay) mobileOverlay.classList.toggle("active");
+        document.body.classList.toggle("mobile-sidebar-open");
       } else {
         const currentlyCollapsed = appContainer.classList.contains("sidebar-collapsed");
-        const sidebar = document.getElementById("sidebar") || document.querySelector(".sidebar");
         if (currentlyCollapsed) {
           // Expand & Pin it open
           if (sidebar) sidebar.classList.remove("collapse-animating");
@@ -2081,15 +2082,15 @@ function setupSidebarCollapse() {
           btnToggleSidebar.setAttribute("aria-label", "ย่อแถบเมนู (Collapse sidebar)");
           localStorage.setItem("sciportal_sidebar_pinned", "true");
           if (typeof showToast === "function") {
-            showToast("ขยายแถบเมนูด้านข้างแล้ว (Expanded)", "info");
+            showToast("ขยายและปักหมุดแถบเมนูแล้ว (Pinned)", "info");
           }
         } else {
-          // Collapse sidebar & temporarily suppress hover so user sees it collapse immediately
+          // Collapse sidebar & unpin
           if (sidebar) {
             sidebar.classList.add("collapse-animating");
-            sidebar.addEventListener("mouseleave", () => {
+            setTimeout(() => {
               sidebar.classList.remove("collapse-animating");
-            }, { once: true });
+            }, 350);
           }
           appContainer.classList.add("sidebar-collapsed");
           btnToggleSidebar.classList.remove("pinned");
@@ -2097,7 +2098,7 @@ function setupSidebarCollapse() {
           btnToggleSidebar.setAttribute("aria-label", "ขยายแถบเมนู (Expand sidebar)");
           localStorage.setItem("sciportal_sidebar_pinned", "false");
           if (typeof showToast === "function") {
-            showToast("ย่อแถบเมนูด้านข้างแล้ว (Collapsed)", "info");
+            showToast("ปลดปักหมุดและย่อแถบเมนูแล้ว (Collapsed)", "info");
           }
         }
         btnToggleSidebar.blur();
