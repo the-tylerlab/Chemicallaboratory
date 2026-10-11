@@ -1,0 +1,2606 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ</title>
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ">
+  <meta name="description" content="SciPortal แพลตฟอร์มจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ ครอบคลุมการจัดการคลังสารเคมีตามมาตรฐานความปลอดภัย SHECU การจองห้องแล็บ และระบบยืม-คืนอุปกรณ์">
+  <meta name="keywords" content="SciPortal, ระบบจัดการห้องปฏิบัติการ, คลังสารเคมี, SHECU, จองห้องแล็บ, วิทยาศาสตร์, Laboratory Management System">
+  <meta name="author" content="SciPortal Science Laboratory">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://chemicallab.vercel.app/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://chemicallab.vercel.app/">
+  <meta property="og:title" content="SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ">
+  <meta property="og:description" content="แพลตฟอร์มจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ ผังตู้จัดเก็บสารเคมี SHECU และระบบจองห้องปฏิบัติการแบบเรียลไทม์">
+  <meta property="og:image" content="https://chemicallab.vercel.app/icon-512x512.png">
+  <meta property="og:site_name" content="SciPortal">
+  <meta property="og:locale" content="th_TH">
+
+  <!-- Twitter Card -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://chemicallab.vercel.app/">
+  <meta property="twitter:title" content="SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ">
+  <meta property="twitter:description" content="แพลตฟอร์มจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ ผังตู้จัดเก็บสารเคมี SHECU และระบบจองห้องปฏิบัติการแบบเรียลไทม์">
+  <meta property="twitter:image" content="https://chemicallab.vercel.app/icon-512x512.png">
+
+  <!-- Geotagging & Local SEO (GEO Optimization) -->
+  <meta name="geo.region" content="TH">
+  <meta name="geo.placename" content="Bangkok, Thailand">
+  <meta name="geo.position" content="13.7563;100.5018">
+  <meta name="ICBM" content="13.7563, 100.5018">
+
+  <!-- JSON-LD Structured Data Schema (GEO / AI & Search Engine Rich Results) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "SciPortal",
+    "url": "https://chemicallab.vercel.app/",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "All",
+    "description": "ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ มาตรฐาน SHECU จุฬาฯ และระบบจองห้องแล็บ",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "THB"
+    },
+    "featureList": [
+      "ระบบจัดการคลังสารเคมีและเครื่องแก้ว",
+      "ผังตู้จัดเก็บสารเคมีมาตรฐานความปลอดภัย SHECU",
+      "ระบบจองห้องปฏิบัติการเรียลไทม์",
+      "ระบบยืม-คืนพัสดุและเคมีภัณฑ์",
+      "ระบบสแกน QR Code และบาร์โค้ด"
+    ]
+  }
+  </script>
+
+  <!-- Hard reset helper -->
+  <script>
+    if (window.location.search.includes('hardreset=1')) {
+      localStorage.clear();
+      sessionStorage.clear();
+      if (window.caches) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
+      alert('ล้างแคชและข้อมูลเก่าทั้งหมดเรียบร้อยแล้ว! กำลังรีโหลดระบบ...');
+      window.location.href = window.location.pathname;
+    }
+  </script>
+
+  <!-- Disable automatic telephone link detection on iOS Safari -->
+  <meta name="format-detection" content="telephone=no">
+  
+  <!-- Favicon & PWA Icons -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512x512.png">
+  <meta name="apple-mobile-web-app-title" content="SciPortal">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#4F21A1">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fonts: IBM Plex Sans Thai (Self-hosted in /fonts/ with Google Fonts fallback) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap">
+
+  <!-- Preconnect to external CDNs for low-latency network handshake -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+
+  <!-- Global Design Tokens & Tailwind CSS -->
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=20261011_tw">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=20261009_settings_fix">
+  <link rel="stylesheet" href="cabinet-card.css?v=20261010_inset">
+
+  <!-- Core Libraries (Local high-performance icon library) -->
+  <script src="assets/js/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+</head>
+<body>
+
+  <!-- ==========================================
+       APP SKELETON LOADER
+       ========================================== -->
+  <script>
+    if (window.location.search && window.location.search.indexOf('capture=true') !== -1) {
+      document.write('<style>#app-skeleton-loader { display: none !important; }</style>');
+    }
+  </script>
+  <div id="app-skeleton-loader">
+    <div class="skeleton-sidebar">
+      <div class="skeleton-logo animate-pulse"></div>
+      <div class="skeleton-welcome animate-pulse"></div>
+      <div class="skeleton-menu">
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+      </div>
+      <div class="skeleton-footer animate-pulse"></div>
+    </div>
+    
+    <div class="skeleton-main">
+      <div class="skeleton-header">
+        <div class="skeleton-title animate-pulse"></div>
+        <div class="skeleton-subtitle animate-pulse"></div>
+      </div>
+      
+      <div class="skeleton-grid">
+        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card animate-pulse"></div>
+      </div>
+      
+      <div class="skeleton-content-grid">
+        <div class="skeleton-card animate-pulse" style="height: 380px;"></div>
+        <div class="skeleton-card animate-pulse" style="height: 380px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mobile-overlay" class="mobile-overlay"></div>
+
+  <div class="app-container">
+    
+    <!-- MOBILE HEADER -->
+    <header class="mobile-header">
+      <div class="mobile-header-left" style="display: flex; align-items: center; gap: 12px;">
+        <button class="menu-toggle-btn" id="menuToggle" aria-label="Toggle Menu">
+          <i data-lucide="menu"></i>
+        </button>
+        <div class="mobile-title" style="display: flex; align-items: center; gap: 8px;">
+          <img src="favicon.svg" alt="Logo" style="width: 24px; height: 24px;">
+          <span style="font-weight: 700;">SciPortal</span>
+        </div>
+      </div>
+      <button class="btn btn-icon" onclick="alert('ฟีเจอร์สแกน QR Code/Barcode กำลังอยู่ในช่วงพัฒนา')" aria-label="Scan QR Code" style="padding: 8px; color: var(--text-main); background: none; border: none; cursor: pointer;">
+        <i data-lucide="scan-line"></i>
+      </button>
+    </header>
+
+
+    <aside class="sidebar" id="sidebar">
+      <!-- Sidebar Header (Logo) -->
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo-icon-container">
+            <img src="favicon.svg" alt="Logo">
+          </div>
+          <div class="logo-text">
+            <span class="logo-title">SciPortal</span>
+          </div>
+        </div>
+        <button class="btn-sidebar-collapse" id="btnToggleSidebar" onclick="toggleSidebarPin(event)" aria-label="ย่อแถบเมนู (Collapse sidebar)" title="ย่อแถบเมนู (Collapse sidebar)">
+          <i data-lucide="pin" id="sidebarPinIcon"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav" style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; margin-bottom: 6px;">
+        <ul class="sidebar-menu">
+          <li>
+            <a href="#/dashboard" class="menu-item-link active" data-target="dashboard">
+              <i data-lucide="home"></i>
+              <span>หน้าแรก</span>
+            </a>
+          </li>
+          
+          <div class="sidebar-section-title">คลังสารเคมีและพัสดุ</div>
+          
+          <li>
+            <a href="#/all-items" class="menu-item-link" data-target="all-items">
+              <i data-lucide="box"></i>
+              <span>รายการทั้งหมด</span>
+            </a>
+          </li>
+          <li>
+            <a href="#/cabinet-layout" class="menu-item-link" data-target="cabinet-layout" id="menuItemShecuMap">
+              <i data-lucide="layout-grid"></i>
+              <span>ผังตู้ SHECU</span>
+            </a>
+          </li>
+
+          <li id="menuItemAddItem" style="display: none;">
+            <a href="#/add-item" class="menu-item-link" data-target="add-item">
+              <i data-lucide="plus-circle"></i>
+              <span>เพิ่มรายการ</span>
+            </a>
+          </li>
+          <li id="menuItemImport" style="display: none;">
+            <a href="#" class="menu-item-link" id="btnSidebarImport">
+              <i data-lucide="file-up"></i>
+              <span>นำเข้าข้อมูล</span>
+            </a>
+          </li>
+          
+          <div class="sidebar-section-title">งานปฏิบัติการ</div>
+          
+          <li>
+            <a href="#/lab-booking" class="menu-item-link" data-target="lab-booking">
+              <i data-lucide="calendar"></i>
+              <span>จองห้องปฏิบัติการ</span>
+            </a>
+          </li>
+          <li>
+            <a href="#/borrow-return" class="menu-item-link" data-target="borrow-return">
+              <i data-lucide="arrow-left-right"></i>
+              <span>ยืม-คืนพัสดุ</span>
+            </a>
+          </li>
+          <li id="menuItemReports" style="display: none;">
+            <a href="#/reports" class="menu-item-link" data-target="reports">
+              <i data-lucide="pie-chart"></i>
+              <span>รายงานและสถิติ</span>
+            </a>
+          </li>
+          <li id="menuItemActivityLogs" style="display: none;">
+            <a href="#/activity-logs" class="menu-item-link" data-target="activity-logs">
+              <i data-lucide="activity"></i>
+              <span>ประวัติการใช้งาน</span>
+            </a>
+          </li>
+          <li id="menuItemAdmin" style="display: none;">
+            <a href="#/admin" class="menu-item-link" data-target="admin" title="แผงควบคุมระบบ (Admin Panel)">
+              <i data-lucide="shield-check"></i>
+              <span>แผงควบคุมระบบ (Admin)</span>
+            </a>
+          </li>
+          <li id="menuItemNotifications" style="display: none;">
+            <a href="#/notifications" class="menu-item-link" data-target="notifications">
+              <i data-lucide="bell"></i>
+              <span>การแจ้งเตือน</span>
+              <span class="badge badge-red" id="alertSidebarCount" style="margin-left: auto; width: 22px; height: 22px; min-width: 22px; max-width: 22px; border-radius: 50%; aspect-ratio: 1 / 1; padding: 0; display: none; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; line-height: 1; flex: 0 0 22px; flex-shrink: 0;">0</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Sidebar Bottom Menu (Help & Report Issue) -->
+      <div class="sidebar-bottom-menu">
+        <ul class="sidebar-menu-bottom">
+          <li id="menuItemReportIssue">
+            <button type="button" id="btnSidebarReportIssue" onclick="openReportIssueModal()" class="menu-item-link">
+              <i data-lucide="message-square"></i> <span>แจ้งปัญหาการใช้งาน</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" id="btnHelpSafetyModal" class="menu-item-link">
+              <i data-lucide="book-open"></i> <span>ศูนย์ข้อมูล และความปลอดภัย</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Sidebar Footer (User Profile, Role Status & Login/Logout) -->
+      <div class="sidebar-footer" id="sidebarUserProfileArea">
+        <!-- Logged In User Card -->
+        <div class="user-session-card" id="userSessionCard" style="display: none;" title="คลิกเพื่อดูโปรไฟล์ของคุณ">
+          <div class="user-session-profile">
+            <div id="sidebarUserAvatar" class="sidebar-user-avatar">AD</div>
+            <div class="user-session-info">
+              <div id="sidebarUserName" class="sidebar-user-name">ผู้ดูแลระบบ</div>
+              <div class="sidebar-user-role-line">
+                <span id="sidebarUserRoleBadge" class="badge-role badge-role-l3">L3 ผู้ดูแลระบบ</span>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-sidebar-logout-icon" id="btnSidebarLogoutQuick" title="ออกจากระบบ" aria-label="ออกจากระบบ" onclick="event.stopPropagation();">
+            <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
+          </button>
+        </div>
+
+        <!-- Logged Out Login Button -->
+        <a href="#" class="menu-item-link" id="btnSidebarLogin" style="display: flex; margin-bottom: 2px;">
+          <i id="sidebarLoginIcon" data-lucide="log-in"></i>
+          <span id="sidebarLoginText">เข้าสู่ระบบ</span>
+        </a>
+
+        <div class="footer-bottom-compact" title="Database Connected • v2.7.0 (RBAC)">
+          <span class="status-dot"></span>
+          <span class="version-text" id="footerVersionText">Database Connected &bull; v2.7.0 (RBAC)</span>
+        </div>
+      </div>
+
+
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <!-- Main Content -->
+    <main class="main-content pb-24">
+
+      <!-- Executive Mode Read-Only Banner (L4) -->
+      <div id="executiveReadOnlyBanner" class="executive-banner" style="display: none; margin-bottom: 20px; padding: 14px 20px; background: linear-gradient(135deg, rgba(190, 24, 93, 0.08), rgba(157, 23, 77, 0.12)); border: 1px solid rgba(190, 24, 93, 0.25); border-radius: 12px; align-items: center; justify-content: space-between; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: #be185d; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(190, 24, 93, 0.3);">
+            <i data-lucide="shield-alert" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div>
+            <div style="font-weight: 700; font-size: 14px; color: #9d174d; display: flex; align-items: center; gap: 8px;">
+              <span>โหมดผู้บริหาร (Executive Overview — Read Only)</span>
+              <span class="badge-role badge-role-l4">L4 ผู้บริหาร</span>
+            </div>
+            <div style="font-size: 12.5px; color: #831843; margin-top: 2px;">
+              ท่านกำลังดูภาพรวมระบบและรายงานทั้งหมดในโหมดอ่านอย่างเดียว (ฟังก์ชันบันทึก แก้ไข อนุมัติ หรือลบข้อมูลจะถูกล็อกเพื่อความปลอดภัย)
+            </div>
+          </div>
+        </div>
+        <span style="font-size: 11.5px; background: rgba(190, 24, 93, 0.15); color: #9d174d; padding: 4px 10px; border-radius: 20px; font-weight: 600; white-space: nowrap;">
+          <i data-lucide="eye" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle;"></i> สิทธิ์เข้าชมภาพรวม
+        </span>
+      </div>
+
+<!-- ==========================================
+           PANEL: DASHBOARD
+           ========================================== -->
+      <!-- @include pages/dashboard.html -->
+
+      <!-- ==========================================
+           PANEL: REPORTS & STATISTICS
+           ========================================== -->
+      <!-- @include pages/reports.html -->
+
+      <!-- ==========================================
+           PANEL: ACTIVITY LOGS
+           ========================================== -->
+      <!-- @include pages/activity-logs.html -->
+
+      <!-- ==========================================
+           PANEL: ADD/EDIT CHEMICAL/EQUIPMENT
+           ========================================== -->
+      <!-- @include pages/add-item.html -->
+
+      <!-- ==========================================
+           PANEL: ALL ITEMS LIST
+           ========================================== -->
+      <!-- @include pages/all-items.html -->
+
+      <!-- ==========================================
+           PANEL: BORROW / RETURN
+           ========================================== -->
+      <!-- @include pages/borrow-return.html -->
+
+      <!-- ==========================================
+           PANEL: LAB BOOKING
+           ========================================== -->
+      <!-- @include pages/lab-booking.html -->
+
+      <!-- ==========================================
+           PANEL: NOTIFICATIONS / ALERTS
+           ========================================== -->
+      <!-- @include pages/notifications.html -->
+
+      <!-- ==========================================
+           PANEL: PURCHASE ORDERS
+           ========================================== -->
+      <!-- @include pages/purchase-orders.html -->
+
+      <!-- ==========================================
+           PANEL: CABINET & STORAGE GRID (DIRECTORY)
+           ========================================== -->
+      <!-- @include pages/cabinet-layout.html -->
+
+      <!-- ==========================================
+           PANEL: ADMIN SETTINGS
+           ========================================== -->
+      <!-- @include pages/admin.html -->
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       MODAL: ANNOUNCEMENT EDIT DIALOG (FOR ADMIN)
+       ========================================== -->
+  <div class="modal-overlay" id="modalAnnouncementEdit" style="display: none; z-index: 9999;" onclick="if(event.target === this) closeAnnouncementModal()">
+    <div class="modal-content" style="width: 680px; max-width: 95%;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="megaphone" style="color: #ea580c; width: 18px; height: 18px;"></i>
+          <span>จัดการแถบประกาศหน้าแรก (Announcement Ticker)</span>
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="closeAnnouncementModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <form id="modalAnnouncementForm" onsubmit="saveModalAnnouncement(event)">
+        <div class="modal-body" style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; max-height: 75vh; overflow-y: auto;">
+          <!-- Status Toggle -->
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color);">
+            <div>
+              <div style="font-weight: 600; font-size: 13px; color: var(--text-main);">แสดงแถบประกาศหน้าแรก</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">เปิดหรือปิดการแสดงแถบประกาศสำหรับผู้ใช้ทุกคน</div>
+            </div>
+            <label class="toggle-switch-wrapper" for="modalAnnouncementEnabled">
+              <div class="toggle-switch">
+                <input type="checkbox" id="modalAnnouncementEnabled" checked onchange="updateAnnouncementToggleLabel(this.checked, 'modalAnnouncementStatusText'); triggerAnnouncementLivePreview('modal');">
+                <span class="toggle-slider"></span>
+              </div>
+              <span id="modalAnnouncementStatusText" style="font-size: 12.5px; font-weight: 600; color: #1e293b; min-width: 55px;">เปิดใช้งาน</span>
+            </label>
+          </div>
+
+          <!-- Announcement Text -->
+          <div class="form-group" style="margin: 0;">
+            <label for="modalAnnouncementText" class="form-label" style="font-weight: 600; font-size: 12.5px; margin-bottom: 4px; display: block;">
+              ข้อความประกาศ (คั่นแต่ละข้อความด้วยเครื่องหมาย <code>|</code> หรือขึ้นบรรทัดใหม่):
+            </label>
+            <textarea id="modalAnnouncementText" class="form-control" rows="3" style="width: 100%; font-size: 12.5px; line-height: 1.5; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); outline: none;" placeholder="สวมใส่อุปกรณ์ PPE ทุกครั้งที่เข้าแล็บ | การทดลองที่มีไอระเหยต้องทำในตู้ดูดควัน Fume Hood" oninput="triggerAnnouncementLivePreview('modal')"></textarea>
+          </div>
+
+          <!-- Template buttons -->
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-muted);">เทมเพลต:</span>
+            <button type="button" class="btn btn-secondary" onclick="applyModalAnnouncementPreset('standard')" style="padding: 3px 8px; font-size: 11px; border-radius: 6px;">ชุดมาตรฐาน</button>
+            <button type="button" class="btn btn-secondary" onclick="applyModalAnnouncementPreset('maintenance')" style="padding: 3px 8px; font-size: 11px; border-radius: 6px;">ตรวจสต็อก</button>
+            <button type="button" class="btn btn-secondary" onclick="applyModalAnnouncementPreset('urgent')" style="padding: 3px 8px; font-size: 11px; border-radius: 6px;">ปรับปรุงระบบ</button>
+          </div>
+
+          <!-- Customizer options in Modal -->
+          <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="font-size: 12.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="sliders" style="width: 14px; height: 14px; color: #0284c7;"></i>
+              <span>ปรับแต่งความเร็ว ระยะห่าง และธีมสี</span>
+            </div>
+
+            <!-- Badge Text & Theme -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label for="modalAnnouncementBadgeText" class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px; display: block;">ข้อความหัวข้อป้าย</label>
+                <input type="text" id="modalAnnouncementBadgeText" class="form-control" value="ประกาศ & ความปลอดภัย" style="font-size: 12px; padding: 6px 8px;" oninput="triggerAnnouncementLivePreview('modal')">
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px; display: block;">ธีมสีป้าย</label>
+                <div class="ticker-theme-chips" id="modalTickerThemeChips">
+                  <button type="button" class="ticker-theme-chip active" data-theme="orange" onclick="selectAnnouncementTheme('orange', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
+                    <span class="ticker-theme-dot" style="background: #ea580c; width: 8px; height: 8px;"></span>
+                    <span>ส้ม</span>
+                  </button>
+                  <button type="button" class="ticker-theme-chip" data-theme="blue" onclick="selectAnnouncementTheme('blue', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
+                    <span class="ticker-theme-dot" style="background: #0284c7; width: 8px; height: 8px;"></span>
+                    <span>น้ำเงิน</span>
+                  </button>
+                  <button type="button" class="ticker-theme-chip" data-theme="green" onclick="selectAnnouncementTheme('green', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
+                    <span class="ticker-theme-dot" style="background: #10b981; width: 8px; height: 8px;"></span>
+                    <span>เขียว</span>
+                  </button>
+                  <button type="button" class="ticker-theme-chip" data-theme="purple" onclick="selectAnnouncementTheme('purple', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
+                    <span class="ticker-theme-dot" style="background: #7c3aed; width: 8px; height: 8px;"></span>
+                    <span>ม่วง</span>
+                  </button>
+                  <button type="button" class="ticker-theme-chip" data-theme="red" onclick="selectAnnouncementTheme('red', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
+                    <span class="ticker-theme-dot" style="background: #dc2626; width: 8px; height: 8px;"></span>
+                    <span>แดง</span>
+                  </button>
+                  <button type="button" class="ticker-theme-chip" data-theme="dark" onclick="selectAnnouncementTheme('dark', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
+                    <span class="ticker-theme-dot" style="background: #1e293b; width: 8px; height: 8px;"></span>
+                    <span>ดาร์ก</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Speed & Gap Sliders -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <label for="modalAnnouncementSpeed" class="form-label" style="font-size: 11.5px; font-weight: 600; margin: 0;">ความเร็วเลื่อน</label>
+                  <span class="ticker-slider-val" id="modalAnnouncementSpeedVal" style="font-size: 11.5px; padding: 2px 6px;">55 วินาที</span>
+                </div>
+                <div class="ticker-slider-control">
+                  <span style="font-size: 10px; color: var(--text-muted);">เร็ว</span>
+                  <input type="range" id="modalAnnouncementSpeed" min="15" max="100" step="5" value="55" oninput="onAnnouncementSliderChange('speed', this.value, 'modal')">
+                  <span style="font-size: 10px; color: var(--text-muted);">ช้า</span>
+                </div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <label for="modalAnnouncementGap" class="form-label" style="font-size: 11.5px; font-weight: 600; margin: 0;">ระยะเว้นวรรค</label>
+                  <span class="ticker-slider-val" id="modalAnnouncementGapVal" style="font-size: 11.5px; padding: 2px 6px;">36 px</span>
+                </div>
+                <div class="ticker-slider-control">
+                  <span style="font-size: 10px; color: var(--text-muted);">แคบ</span>
+                  <input type="range" id="modalAnnouncementGap" min="20" max="100" step="4" value="36" oninput="onAnnouncementSliderChange('gap', this.value, 'modal')">
+                  <span style="font-size: 10px; color: var(--text-muted);">กว้าง</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pause on Hover Toggle -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid #f1f5f9;">
+              <span style="font-size: 12px; font-weight: 600; color: var(--text-main);">หยุดเลื่อนเมื่อนำเมาส์ชี้ (Pause on Hover)</span>
+              <label class="toggle-switch-wrapper" for="modalAnnouncementPauseHover">
+                <div class="toggle-switch">
+                  <input type="checkbox" id="modalAnnouncementPauseHover" checked onchange="triggerAnnouncementLivePreview('modal')">
+                  <span class="toggle-slider"></span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Modal Live Preview -->
+          <div class="ticker-preview-container" style="padding: 10px 12px;">
+            <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+              <i data-lucide="eye" style="width: 12px; height: 12px;"></i>
+              <span>ตัวอย่างสด (Live Preview):</span>
+            </div>
+            <div class="ticker-preview-bar ticker-theme-orange ticker-pause-hover" id="modalAnnouncementPreviewBar">
+              <div class="ticker-badge" id="modalAnnouncementPreviewBadge">
+                <i data-lucide="megaphone" style="width: 12px; height: 12px;"></i>
+                <span id="modalAnnouncementPreviewBadgeText">ประกาศ & ความปลอดภัย</span>
+              </div>
+              <div class="ticker-marquee-wrapper">
+                <div class="ticker-marquee-track" id="modalAnnouncementPreviewTrack" style="--ticker-duration: 55s; --ticker-gap: 36px;">
+                  <!-- Live Preview Items -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+          <button type="button" class="btn btn-secondary" style="padding: 7px 14px; border: 1px solid var(--border-color); background: white; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 13px;" onclick="closeAnnouncementModal()">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary" onclick="saveModalAnnouncement(event)" style="padding: 7px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="save" style="width: 14px; height: 14px;"></i>
+            <span>บันทึกประกาศ</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: EXCEL / CSV IMPORT DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal-content" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-header-icon-badge">
+            <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h3 class="modal-title">นำเข้าไฟล์พัสดุและสารเคมี (Excel / CSV)</h3>
+            <div class="modal-subtitle">ดาวน์โหลดไฟล์เทมเพลตและอัปโหลดเข้าสู่ฐานข้อมูลคลัง</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="modalClose" aria-label="ปิดหน้าต่าง">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Step 1: Download Template -->
+        <div class="modal-step">
+          <div class="modal-step-title" style="display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #0f172a; color: #ffffff; font-size: 11px; font-weight: 800;">1</span>
+            <span>ดาวน์โหลดไฟล์ต้นแบบเทมเพลต</span>
+          </div>
+          <div class="template-download-box" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+            <span class="template-download-text">
+              ดาวน์โหลดไฟล์เทมเพลตเพื่อกรอกข้อมูล <strong>ชีตแรกเป็นคู่มือการใช้งาน</strong> และ <strong>ชีตถัดไปเป็นตารางกรอกข้อมูล</strong>
+            </span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; width: 100%;">
+              <a href="#" class="template-download-btn" id="btnDownloadExcelTemplate" style="background: #059669; color: #ffffff; border: 1px solid #047857; font-weight: 700; padding: 8px 16px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; transition: all 0.2s;">
+                <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px;"></i>
+                Excel (.xlsx) แนะนำ (2 ชีต)
+              </a>
+              <a href="#" class="template-download-btn" id="btnDownloadTemplate" style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; font-weight: 700; padding: 8px 16px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; transition: all 0.2s;">
+                <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+                CSV (.csv)
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Select File -->
+        <div class="modal-step" style="margin-top: 16px;">
+          <div class="modal-step-title" style="display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #0f172a; color: #ffffff; font-size: 11px; font-weight: 800;">2</span>
+            <span>เลือกไฟล์ที่กรอกข้อมูลแล้ว</span>
+          </div>
+          <div class="file-upload-container">
+            <input type="file" id="csvFileInput" class="file-upload-input" accept=".xlsx, .xls, .csv">
+            <label for="csvFileInput" class="file-upload-label" style="cursor: pointer;">
+              <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+              เลือกไฟล์ Excel / CSV
+            </label>
+            <span class="file-upload-filename" id="csvFileName">ยังไม่ได้เลือกไฟล์</span>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: 11.5px; color: #64748b; line-height: 1.6;">
+            <div>• รองรับไฟล์นามสกุล <strong>.xlsx, .xls, .csv</strong> (ระบบจะอ่านข้อมูลจากชีตกรอกข้อมูลอัตโนมัติ)</div>
+            <div>• คอลัมน์จำเป็น: <strong>รหัส*, ชื่อ*, หมวดหมู่*, จำนวน*, หน่วย*</strong></div>
+            <div>• ข้อมูลจะถูกนำเข้าและซิงค์ไปยัง Supabase Cloud และ Google Sheets แบบเรียลไทม์</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelImport" style="padding: 8px 20px;">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnConfirmImport" style="padding: 8px 22px;" disabled>ยืนยันการนำเข้า</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: AUTO-PO CONFIRMATION DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="autoPoModal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="shopping-cart" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+          ยืนยันการสร้างใบเบิกซื้อ (Auto-PO)
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('autoPoModal').style.display='none'" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="modal-body" style="padding: 20px 24px;">
+        <p style="margin-bottom: 16px; color: var(--text-main); font-size: 14px;">
+          ระบบจะทำการสร้างใบสั่งซื้อชั่วคราวสำหรับพัสดุและสารเคมีที่ <span style="font-weight: 600; color: var(--accent-red);">ใกล้หมด</span> หรือ <span style="font-weight: 600; color: var(--accent-red);">ต่ำกว่าจุดสั่งซื้อ</span> อัตโนมัติ กรุณาตรวจสอบและยืนยันการดำเนินการ
+        </p>
+        
+        <div style="background-color: var(--bg-body); border-radius: 8px; padding: 16px; border: 1px solid var(--border-color); margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 13px; color: var(--text-muted);">จำนวนรายการพัสดุ:</span>
+            <span id="autoPoItemCount" style="font-weight: 700; font-size: 14px; color: var(--text-main);">0 รายการ</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 13px; color: var(--text-muted);">ประมาณการมูลค่ารวม:</span>
+            <span id="autoPoEstValue" style="font-weight: 700; font-size: 16px; color: var(--primary-purple);">0.00 บาท</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer" style="display: flex; gap: 12px; padding: 16px 24px; background-color: #f8fafc; border-top: 1px solid var(--border-color); border-radius: 0 0 16px 16px;">
+        <button class="btn btn-secondary" style="flex: 1; justify-content: center;" onclick="document.getElementById('autoPoModal').style.display='none'">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnConfirmAutoPo" style="flex: 1; justify-content: center; background-color: var(--primary-purple);">
+          <i data-lucide="check" style="width: 16px; height: 16px;"></i> ยืนยันการสร้างใบสั่งซื้อ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: CLEAR PO CONFIRMATION DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="clearPoModal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px; color: var(--accent-red);">
+          <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
+          ยืนยันการล้างรายการ
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('clearPoModal').style.display='none'" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="modal-body" style="padding: 20px 24px; text-align: center;">
+        <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 8px;">
+          คุณแน่ใจหรือไม่ว่าต้องการล้างรายการสั่งซื้อทั้งหมด?
+        </p>
+        <p style="color: var(--accent-red); font-size: 13px; font-weight: 500;">
+          *การกระทำนี้ไม่สามารถเรียกคืนข้อมูลกลับมาได้
+        </p>
+      </div>
+      
+      <div class="modal-footer" style="display: flex; gap: 12px; padding: 16px 24px; background-color: #fff; border-top: none; justify-content: center;">
+        <button class="btn btn-secondary" style="flex: 1; justify-content: center;" onclick="document.getElementById('clearPoModal').style.display='none'">ยกเลิก</button>
+        <button class="btn" id="btnConfirmClearPo" style="flex: 1; justify-content: center; background-color: var(--accent-red); color: white; border: none; padding: 10px 16px; border-radius: var(--border-radius-md); font-weight: 600; cursor: pointer;">
+          ล้างรายการทั้งหมด
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: ACCESS DENIED DIALOG (LOCK SCREEN)
+       ========================================== -->
+  <div class="modal-overlay" id="accessDeniedModal">
+    <div class="modal-content access-denied-content" style="max-width: 380px; border-radius: 28px; padding: 32px; text-align: center; border: none; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); position: relative; background: #ffffff;">
+      <button type="button" class="modal-close-btn login-modal-close-corner" id="accessDeniedModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      
+      <div class="access-denied-lock-icon" style="margin: 12px auto 20px; width: 64px; height: 64px; background-color: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+        <i data-lucide="lock" style="width: 28px; height: 28px; color: #111827;"></i>
+      </div>
+      
+      <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 8px; font-family: inherit;">ไม่สามารถเข้าถึงโปรเจกต์นี้ได้</h2>
+      <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-bottom: 24px; padding: 0 10px;">
+        คุณไม่มีสิทธิ์เข้าถึงโปรเจกต์นี้ กรุณาขอสิทธิ์จากผู้ดูแล
+      </p>
+      
+      <button class="btn-access-request" id="btnAccessDeniedRequest">
+        ขอสิทธิ์เข้าถึง
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: TEACHER ID & RBAC LOGIN DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-content login-split-modal">
+      <button type="button" class="modal-close-btn login-modal-close-corner" id="loginModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      
+      <div class="login-split-grid" id="loginSplitGrid">
+        <!-- Left Column: Editorial Laboratory Context (Clean & Professional) -->
+        <div class="login-hero-panel" id="loginHeroSide">
+          <div class="login-hero-ambient-glow"></div>
+          <div class="login-hero-content">
+            <div class="login-hero-brand">
+              <div class="login-brand-icon">
+                <i data-lucide="flask-conical" style="width: 17px; height: 17px;"></i>
+              </div>
+              <div class="login-brand-text">
+                <span class="brand-title">SciPortal</span>
+                <span class="brand-sub">Laboratory System</span>
+              </div>
+            </div>
+
+            <div class="login-hero-intro">
+              <div class="login-hero-badge" id="loginHeroBadge">
+                <span class="badge-dot"></span>
+                <span id="loginHeroBadgeText">ห้องปฏิบัติการวิทยาศาสตร์</span>
+              </div>
+              
+              <h2 class="login-hero-headline" id="loginHeroHeadline">
+                ระบบคลังสารเคมีและห้องแล็บ
+              </h2>
+              
+              <p class="login-hero-subtitle" id="loginHeroSubtitle">
+                บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU
+              </p>
+            </div>
+
+            <div class="login-hero-media" id="loginHeroMedia">
+              <div class="login-hero-img-wrap" id="loginHeroImageWrap" style="display: none;">
+                <img id="loginHeroImage" src="" alt="Laboratory" class="login-hero-img">
+              </div>
+              <div id="loginHeroDefaultGraphic" class="login-hero-features-list">
+                <div class="login-feature-item feature-shecu">
+                  <div class="login-feature-icon-wrap"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i></div>
+                  <div class="login-feature-text">
+                    <span class="feature-title">มาตรฐานความปลอดภัย SHECU</span>
+                    <span class="feature-desc">ตรวจเช็กและจัดเก็บสารเคมีตามข้อกำหนด</span>
+                  </div>
+                </div>
+                <div class="login-feature-item feature-stock">
+                  <div class="login-feature-icon-wrap"><i data-lucide="boxes" style="width: 15px; height: 15px;"></i></div>
+                  <div class="login-feature-text">
+                    <span class="feature-title">ติดตามสต็อกแบบ Real-time</span>
+                    <span class="feature-desc">บันทึกยอดคงเหลือและประวัติการเบิก-จ่าย</span>
+                  </div>
+                </div>
+                <div class="login-feature-item feature-calendar">
+                  <div class="login-feature-icon-wrap"><i data-lucide="calendar" style="width: 15px; height: 15px;"></i></div>
+                  <div class="login-feature-text">
+                    <span class="feature-title">ตารางการใช้ห้องปฏิบัติการ</span>
+                    <span class="feature-desc">จัดสรรตารางการทดลองอย่างเป็นระบบ</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="login-hero-footer-status">
+              <span class="status-indicator-dot"></span>
+              <span>ระบบพร้อมใช้งาน • มาตรฐานความปลอดภัย SHECU</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Crisp & Balanced Authentication Form -->
+        <div class="login-form-panel" id="loginFormSide">
+          <div class="login-form-header">
+            <h1 class="login-form-title">
+              <span>เข้าสู่ระบบ</span>
+            </h1>
+            <p class="login-form-desc">ระบุรหัสประจำตัวครู (Teacher ID) หรือชื่อผู้ใช้เพื่อเข้าสู่ระบบ</p>
+          </div>
+
+          <form id="adminLoginForm">
+            <div class="login-form-body">
+              <!-- Error Message Banner -->
+              <div id="loginErrorMsg" style="display: none; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 9px; padding: 10px 14px; color: #b91c1c; font-size: 12.5px; align-items: center; gap: 8px;">
+                <i data-lucide="alert-circle" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+                <span id="loginErrorText">รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง</span>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="loginUsername" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px; display: block;">รหัสประจำตัวครู (Teacher ID)</label>
+                <div class="login-input-group">
+                  <i data-lucide="user" class="login-input-icon"></i>
+                  <input type="text" id="loginUsername" name="username" class="form-control login-field" placeholder="ระบุ Teacher ID" required autocomplete="username">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 0;">
+                <label for="loginPassword" class="form-label" style="font-weight: 600; font-size: 13px; color: #334155; margin-bottom: 6px; display: block;">รหัสผ่าน</label>
+                <div class="login-input-group">
+                  <i data-lucide="lock" class="login-input-icon"></i>
+                  <input type="password" id="loginPassword" name="password" class="form-control login-field" placeholder="ระบุรหัสผ่านของคุณ" required autocomplete="current-password">
+                  <button type="button" id="btnTogglePassword" class="login-password-toggle" aria-label="Toggle Password Visibility">
+                    <i data-lucide="eye" id="eyeIcon" style="width: 17px; height: 17px;"></i>
+                  </button>
+                </div>
+                <div class="login-password-hint">
+                  <i data-lucide="info" style="width: 13px; height: 13px; color: #0284c7; flex-shrink: 0;"></i>
+                  <span>รหัสผ่านเริ่มต้นคือ <strong>รหัสประจำตัวครู (Teacher ID)</strong></span>
+                </div>
+              </div>
+
+              <!-- Remember Me & Forgot Password -->
+              <div class="login-options-row">
+                <label class="login-switch-label" for="loginRememberMe">
+                  <div class="login-toggle-switch">
+                    <input type="checkbox" id="loginRememberMe">
+                    <span class="login-toggle-slider"></span>
+                  </div>
+                  <span>จดจำการเข้าสู่ระบบ</span>
+                </label>
+                <a href="#" id="linkForgotPassword" class="login-forgot-link">ลืมรหัสผ่าน?</a>
+              </div>
+
+              <!-- Submit Buttons -->
+              <div class="login-form-actions">
+                <button type="button" class="btn btn-secondary login-btn-cancel" id="btnCancelLogin">ยกเลิก</button>
+                <button type="submit" class="btn btn-primary login-btn-submit" id="btnSubmitLogin">
+                  <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
+                  <span>เข้าสู่ระบบ</span>
+                </button>
+              </div>
+
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: USER PROFILE & PERMISSIONS (CLEAN & FRIENDLY UX)
+       ========================================== -->
+  <div class="modal-overlay" id="userProfileModal" style="display: none; align-items: center; justify-content: center; z-index: 10000; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(6px);">
+    <div class="modal-content" style="max-width: 600px; width: 94%; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(226, 232, 240, 0.85); overflow: hidden; background: #ffffff; padding: 0; position: relative;">
+      
+      <!-- Top Decorative Banner -->
+      <div style="height: 64px; background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%); position: relative;">
+        <!-- Close Button (X) -->
+        <button type="button" class="modal-close-btn" id="userProfileModalClose" aria-label="Close" onclick="if(window.closeUserProfileModal){window.closeUserProfileModal();}" title="ปิดหน้าต่าง" style="position: absolute; top: 14px; right: 14px; background: #ffffff; border: 1px solid #cbd5e1; color: #475569; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1); z-index: 2;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- User Profile Header Card (Avatar + Info) -->
+      <div style="padding: 0 24px; margin-top: -32px; display: flex; align-items: flex-end; gap: 14px; position: relative;">
+        <div id="modalProfileAvatar" style="width: 60px; height: 60px; border-radius: 50%; background: #7c3aed; color: #ffffff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); border: 3.5px solid #ffffff; flex-shrink: 0;">
+          วด
+        </div>
+        <div style="flex: 1; min-width: 0; padding-bottom: 2px;">
+          <h3 id="modalProfileName" style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ม.วงศกร ด้วงเกลี้ยง
+          </h3>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap;">
+            <span id="modalProfileRoleBadge" class="badge-role badge-role-l3" style="background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 12px;">L3 ผู้ดูแลระบบ</span>
+            <span id="modalProfileDept" style="font-size: 11.5px; color: #64748b; font-weight: 500;">กลุ่มสาระการเรียนรู้วิทยาศาสตร์</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Body: Information Grid & Role Permissions -->
+      <div class="modal-body" style="padding: 18px 26px 26px 26px; max-height: 65vh; overflow-y: auto;">
+        <!-- Account Details Box -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 13px 15px; margin-bottom: 16px;">
+          <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 9px; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="user-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+            <span>ข้อมูลบัญชีผู้ใช้งาน</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; font-size: 12.5px;">
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">รหัสผู้ใช้</span>
+              <span id="modalProfileId" style="font-weight: 600; color: #1e293b;">-</span>
+            </div>
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">อีเมลติดต่อ</span>
+              <span id="modalProfileEmail" style="font-weight: 600; color: #1e293b; word-break: break-all;">-</span>
+            </div>
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">ห้องปฏิบัติการที่รับผิดชอบ</span>
+              <span id="modalProfileRooms" style="font-weight: 600; color: #1e293b;">ทุกห้องปฏิบัติการ</span>
+            </div>
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">สถานะการใช้งาน</span>
+              <span id="modalProfileStatus" style="font-weight: 600; color: #059669; display: inline-flex; align-items: center; gap: 5px;">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                เข้าสู่ระบบอยู่ (Active)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role Permissions & Privileges -->
+        <div>
+          <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 9px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <span>สิทธิ์การใช้งานที่ได้รับ</span>
+            </div>
+            <span style="font-size: 10.5px; color: #64748b; font-weight: 500;">ตามระดับสิทธิ์</span>
+          </div>
+          <div id="modalProfilePermissionsList" style="display: flex; flex-direction: column; gap: 5px;">
+            <!-- Generated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: DETAIL VIEW DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-content" style="max-width: 660px; width: 94vw;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="detailModalTitle" style="display: flex; align-items: center; gap: 8px;">
+          <!-- Icon & Title dynamically added -->
+        </h2>
+        <button type="button" class="modal-close-btn" id="detailModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="detailModalBody" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; font-size: 14px; max-height: calc(85vh - 130px); overflow-y: auto;">
+        <!-- Content dynamically added -->
+      </div>
+      <div class="modal-footer" id="detailModalFooter" style="padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-top: 1px solid var(--border-color); background: #f8fafc;">
+        <!-- Buttons dynamically added -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: BOOKING SUCCESS DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="bookingSuccessModal">
+    <div class="modal-content" style="max-width: 500px; border-radius: var(--border-radius-md); overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; background: #ffffff;">
+      <div class="modal-header" id="bookingSuccessModalHeader" style="background: var(--accent-green); color: #ffffff; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <span id="bookingSuccessModalIconWrapper"><i data-lucide="check-circle" style="width: 20px; height: 20px;"></i></span>
+          <span id="bookingSuccessModalTitle">บันทึกการจองห้องแล็บสำเร็จ</span>
+        </h2>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="bookingSuccessModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Screen Capture Note Warning Box -->
+        <div style="background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--accent-red); padding: 14px 16px; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
+          <i data-lucide="camera" style="width: 22px; height: 22px; color: var(--accent-red); flex-shrink: 0; margin-top: 2px;"></i>
+          <div>
+            <h4 style="margin: 0 0 4px 0; color: var(--accent-red); font-size: 14px; font-weight: 600;">โปรดบันทึกภาพหน้าจอ!</h4>
+            <p style="margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.5;" id="bookingSuccessModalWarnText">กรุณา<b>แคปภาพหน้าจอนี้ไว้</b> เพื่อใช้เป็นหลักฐานยืนยันการจองกับเจ้าหน้าที่เมื่อเข้าใช้งานห้องปฏิบัติการ</p>
+          </div>
+        </div>
+
+        <!-- Receipt / Info Sheet (Standard Static View) -->
+        <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: #fafafa;">
+          <div style="background: rgba(0,0,0,0.02); padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13.5px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;">
+            <span>รายละเอียดการจอง</span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+              <span id="bsReceiptId" style="font-family: monospace; font-size: 12px; color: var(--text-main); font-weight: 600;">#ID</span>
+              <span style="font-size: 10px; color: var(--text-muted); font-weight: normal; line-height: 1;">หมายเลขการจอง</span>
+            </div>
+          </div>
+          
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px;">
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">ห้องปฏิบัติการ:</span>
+              <span id="bsRoom" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">วันที่ใช้งาน:</span>
+              <span id="bsDate" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">คาบเวลา:</span>
+              <span id="bsSlots" style="color: var(--primary-purple); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">ระดับชั้นเรียน:</span>
+              <span id="bsGradeLevel" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">จำนวนนักเรียน:</span>
+              <span id="bsStudentCount" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">คุณครูผู้สอน:</span>
+              <span id="bsBooker" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">กิจกรรมที่ใช้:</span>
+              <span id="bsPurpose" style="color: var(--text-main);">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">สถานะ:</span>
+              <span id="bsStatus" style="font-weight: 600;">-</span>
+            </div>
+            
+            <div id="bsPrepBlock" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 4px; flex-direction: column; gap: 6px;">
+              <span style="color: var(--text-muted); font-weight: 500; font-size: 13px;">รายการอุปกรณ์เตรียมแล็บ:</span>
+              <ul id="bsPrepList" style="margin: 0; padding-left: 20px; color: var(--text-main); font-size: 12.5px; line-height: 1.5;">
+                <!-- items -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- FUTURE USE: Animated Receipt Printer Structure (Commented out)
+        <div class="receipt-printer-slot"></div>
+        <div class="receipt-paper-wrapper">
+          <div class="receipt-paper">
+            <div style="background: rgba(0,0,0,0.02); padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13.5px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;">
+              <span>รายละเอียดการจอง</span>
+              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                <span id="bsReceiptId" style="font-family: monospace; font-size: 12px; color: var(--text-main); font-weight: 600;">#ID</span>
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: normal; line-height: 1;">หมายเลขการจอง</span>
+              </div>
+            </div>
+            
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px;">
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">ห้องปฏิบัติการ:</span>
+                <span id="bsRoom" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">วันที่ใช้งาน:</span>
+                <span id="bsDate" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">คาบเวลา:</span>
+                <span id="bsSlots" style="color: var(--primary-purple); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">ผู้จอง:</span>
+                <span id="bsBooker" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">วัตถุประสงค์:</span>
+                <span id="bsPurpose" style="color: var(--text-main);">-</span>
+              </div>
+              
+              <div id="bsPrepBlock" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 4px; flex-direction: column; gap: 6px;">
+                <span style="color: var(--text-muted); font-weight: 500; font-size: 13px;">รายการอุปกรณ์เตรียมแล็บ:</span>
+                <ul id="bsPrepList" style="margin: 0; padding-left: 20px; color: var(--text-main); font-size: 12.5px; line-height: 1.5;">
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        -->
+
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; display: flex; justify-content: center; border-top: 1px solid var(--border-color); background: #fafafa;">
+        <button id="bookingSuccessModalBtn" class="btn" style="background: var(--accent-green); color: #ffffff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#15803d';" onmouseout="this.style.background='var(--accent-green)';">รับทราบและปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: CAMERA BARCODE / QR SCANNER
+       ========================================== -->
+  <div class="modal-overlay" id="cameraScanModal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="scan" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
+          <span>สแกนคิวอาร์โค้ด / บาร์โค้ด</span>
+        </h2>
+        <button type="button" class="modal-close-btn" id="cameraScanModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; align-items: center;">
+        <div id="qr-reader" style="width: 100%; max-width: 400px; background: #000; border-radius: var(--border-radius-md); overflow: hidden; border: 1px solid var(--border-color);"></div>
+        <div id="qr-reader-results" style="font-size: 13px; color: var(--text-muted); text-align: center;">วางคิวอาร์โค้ดหรือบาร์โค้ดให้อยู่ในกรอบของกล้องเพื่อทำการสแกน</div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; display: flex; justify-content: flex-end;">
+        <button class="btn btn-secondary" id="btnCancelCameraScan">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: MANAGE REPAIRS / DAMAGED ITEMS
+       ========================================== -->
+  <div class="modal-overlay" id="repairModal">
+    <div class="modal-content" style="max-width: 480px; box-sizing: border-box;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="wrench" style="width: 18px; height: 18px; color: var(--accent-orange);"></i>
+          <span>จัดการพัสดุชำรุดและส่งซ่อม</span>
+        </h2>
+        <button type="button" class="modal-close-btn" id="repairModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px; font-size: 13px;">
+          <div style="font-weight: 600; color: var(--text-main);" id="repairItemName">ชื่อพัสดุ</div>
+          <div style="color: var(--text-muted); margin-top: 4px;" id="repairItemCode">รหัส: -</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px;">
+          <div style="background-color: rgba(239, 68, 68, 0.03); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: var(--border-radius-md); padding: 10px; text-align: center;">
+            <div style="font-size: 12.5px; color: var(--text-muted); font-weight: 500;">ชำรุดทั้งหมด</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--accent-red); margin-top: 4px;" id="repairDamagedQtyText">0</div>
+          </div>
+          <div style="background-color: rgba(245, 158, 11, 0.03); border: 1px solid rgba(245, 158, 11, 0.1); border-radius: var(--border-radius-md); padding: 10px; text-align: center;">
+            <div style="font-size: 12.5px; color: var(--text-muted); font-weight: 500;">อยู่ระหว่างส่งซ่อม</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--accent-orange); margin-top: 4px;" id="repairUnderRepairQtyText">0</div>
+          </div>
+        </div>
+
+        <!-- Action Form Selection -->
+        <div class="form-group">
+          <label for="repairActionType" class="form-label">เลือกการดำเนินการ <span style="color: var(--accent-red);">*</span></label>
+          <select id="repairActionType" class="form-control" style="width: 100%;">
+            <option value="send_to_repair">ส่งซ่อมพัสดุ (ชำรุด -> ส่งซ่อม)</option>
+            <option value="repair_success">ซ่อมเสร็จสิ้น (ลดชำรุด/ส่งซ่อม -> เพิ่มคลังสินค้าที่ดี)</option>
+            <option value="repair_fail_discard">จ่ายออก/ทิ้ง (ซ่อมไม่ได้ -> หักยอดชำรุดถาวร)</option>
+          </select>
+        </div>
+
+        <!-- Source Selection (Visible only when relevant and both exist) -->
+        <div class="form-group" id="repairSourceGroup" style="display: none;">
+          <label for="repairSourceType" class="form-label">ดำเนินการจากส่วนใด <span style="color: var(--accent-red);">*</span></label>
+          <select id="repairSourceType" class="form-control" style="width: 100%;">
+            <option value="damaged">ยอดชำรุด (Damaged)</option>
+            <option value="repair">ยอดส่งซ่อม (Under Repair)</option>
+          </select>
+        </div>
+
+        <!-- Quantity Input -->
+        <div class="form-group">
+          <label for="repairActionQty" class="form-label">จำนวนที่ต้องการจัดการ <span style="color: var(--accent-red);">*</span></label>
+          <input type="number" id="repairActionQty" class="form-control" value="1" min="1" style="width: 100%;">
+          <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;" id="repairMaxQtyHint">จำนวนสูงสุดที่ทำรายการได้: -</div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions" style="margin-top: 8px;">
+          <button type="button" class="btn btn-primary" id="btnConfirmRepairAction" style="width: 100%; justify-content: center;">
+            <i data-lucide="check" style="width: 18px; height: 18px;"></i>
+            <span>ยืนยันการดำเนินการ</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: DANGER ZONE CONFIRMATION (Hold to delete) -->
+  <div class="modal-overlay" id="dangerZoneModalWorkspace" style="display: none; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999;">
+    <div class="modal-content" style="max-width: 480px; background: white; border-radius: 16px; border: 1px solid #fecaca; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);">
+      <div class="modal-header" style="background: #ffffff; color: #0f172a; padding: 22px 24px 16px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #f1f5f9;">
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: #fef2f2; border: 1px solid #fee2e2; display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="alert-triangle" style="width: 22px; height: 22px; color: #dc2626;"></i>
+          </div>
+          <div>
+            <h2 class="modal-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a;">ยืนยันการลบพื้นที่ทำงาน</h2>
+            <p style="margin: 2px 0 0; font-size: 12.5px; color: #64748b;">การกระทำนี้จะล้างข้อมูลทั้งหมดในระบบอย่างถาวร</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('dangerZoneModalWorkspace').style.display='none'" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 20px 24px;">
+        <div style="display: flex; gap: 12px; margin-bottom: 6px; background: #fff5f5; padding: 14px 16px; border: 1px solid #fed7d7; border-left: 4px solid #ef4444; border-radius: 10px;">
+          <i data-lucide="alert-octagon" style="width: 20px; height: 20px; color: #dc2626; flex-shrink: 0; margin-top: 2px;"></i>
+          <div>
+            <div style="font-weight: 700; color: #991b1b; font-size: 13.5px;">คำเตือนสำคัญ: ข้อมูลจะไม่สามารถกู้คืนได้!</div>
+            <div style="font-size: 12.5px; color: #7f1d1d; margin-top: 4px; line-height: 1.55;">
+              รายการสารเคมี ครุภัณฑ์ ประวัติเบิก-จ่าย และข้อมูลการจองห้องแล็บทั้งหมดจะถูกลบออกจากระบบอย่างสมบูรณ์ เพื่อความปลอดภัยโปรด <strong>กดปุ่มค้างไว้ (Hold to delete)</strong> เพื่อยืนยัน
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('dangerZoneModalWorkspace').style.display='none'" style="height: 42px; padding: 0 18px; border: 1px solid #cbd5e1; border-radius: 10px; background: white; color: #475569; font-weight: 600; font-size: 13.5px; cursor: pointer;">ยกเลิก</button>
+        <button type="button" class="btn-hold-to-confirm" id="dangerZoneHoldBtn">
+          <span class="hold-label-base">
+            <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+            <span>กดค้างเพื่อลบพื้นที่ทำงาน (Hold to delete)</span>
+          </span>
+          <span class="hold-label-overlay" aria-hidden="true">
+            <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+            <span>กำลังล้างพื้นที่ทำงาน...</span>
+          </span>
+          <span class="hold-label-confirmed">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>ยืนยันการลบแล้ว</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Admin Panel Transitions & Micro-animations */
+    .admin-tab { animation: fadeSlideUp 0.4s ease forwards; }
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Admin Menu Tab styles */
+    .admin-menu-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 8px;
+      color: var(--text-main);
+      font-weight: 500;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .admin-menu-item i { width: 18px; height: 18px; color: var(--text-muted); transition: color 0.2s; }
+    
+    .admin-menu-item:hover { background: #f8fafc; color: var(--primary-purple); }
+    .admin-menu-item:hover i { color: var(--primary-purple); }
+    
+    .admin-menu-item.active { 
+      background: rgba(109, 40, 217, 0.08); 
+      color: var(--primary-purple); 
+      font-weight: 600;
+    }
+    .admin-menu-item.active i { color: var(--primary-purple); }
+    
+    .admin-menu-item.danger { color: var(--text-main); }
+    .admin-menu-item.danger:hover { background: rgba(239, 68, 68, 0.08); color: var(--accent-red); }
+    .admin-menu-item.danger:hover i { color: var(--accent-red); }
+    .admin-menu-item.danger.active { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); }
+    .admin-menu-item.danger.active i { color: var(--accent-red); }
+    
+    /* Table hover */
+    .admin-tab tbody tr { transition: background 0.2s; }
+    .admin-tab tbody tr:hover { background: #f8fafc; }
+    
+    #dangerZoneConfirmBtnX:not([disabled]) {
+      opacity: 1 !important;
+      cursor: pointer !important;
+    }
+    .table-clickable-row.status-expired { background-color: rgba(239, 68, 68, 0.05); }
+    .table-clickable-row.status-expired:hover { background-color: rgba(239, 68, 68, 0.1) !important; }
+    .table-clickable-row.status-near-expiry { background-color: rgba(245, 158, 11, 0.05); }
+    .table-clickable-row.status-near-expiry:hover { background-color: rgba(245, 158, 11, 0.1) !important; }
+    .table-clickable-row.status-low-stock { background-color: rgba(249, 115, 22, 0.05); }
+    .table-clickable-row.status-low-stock:hover { background-color: rgba(249, 115, 22, 0.1) !important; }
+  </style>
+
+  <!-- ==========================================
+       CHATBOT: LAB AI ASSISTANT WIDGET
+       ========================================== -->
+  <!-- Floating Action Pill Widget: Chat with Stoki (Animated Bot Face Widget) -->
+  <div class="chatbot-fab" id="chatbotFab" title="Chat with Stoki" role="button" tabindex="0">
+    <div class="chatbot-fab-avatar-wrapper">
+      <div class="chatbot-fab-avatar">
+        <div class="stoki-bot-face">
+          <div class="stoki-bot-eye left-eye"></div>
+          <div class="stoki-bot-eye right-eye"></div>
+        </div>
+      </div>
+    </div>
+    <div class="chatbot-fab-content">
+      <span class="chatbot-fab-title">Chat with Stoki</span>
+      <span class="chatbot-fab-subtitle">ผู้ช่วยประจำห้องปฏิบัติการ</span>
+    </div>
+  </div>
+
+  <!-- Chat Panel Backdrop Overlay -->
+  <div class="chatbot-overlay" id="chatbotOverlay"></div>
+
+  <!-- Chat Panel -->
+  <div class="chatbot-panel" id="chatbotPanel">
+    <div class="chatbot-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="chatbot-avatar">
+          <img src="stock-bitol-bot.png" id="chatbotHeaderIcon" alt="Stoki">
+        </div>
+        <div>
+          <div class="chatbot-title">Chat with Stoki</div>
+          <div class="chatbot-status">
+            <span class="status-live-dot"></span>
+            <span>พร้อมให้บริการ</span>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="chatbot-close-btn" id="chatbotCloseBtn" aria-label="ปิดหน้าต่างแชท" title="ปิดหน้าต่างแชท">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="chatbot-body" id="chatbotBody">
+      <!-- Welcome Message Card (Clean & Friendly Conversational UI) -->
+      <div class="chat-message bot welcome-card">
+        <div class="welcome-card-title">
+          <span>สวัสดีครับ! ยินดีต้อนรับครับ</span>
+          <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #f59e0b; display: inline-block; vertical-align: middle;"></i>
+        </div>
+        <p class="welcome-card-text">
+          ผมคือ <strong class="bot-name-text">Stoki-bitol (สต็อกบิทอล)</strong> ผู้ช่วยประจำห้องปฏิบัติการ พร้อมช่วยคุณค้นหาพัสดุ ตรวจสอบสต็อกสารเคมี และช่วยคำนวณสูตรเคมีได้อย่างรวดเร็วครับ
+        </p>
+      </div>
+      
+      <!-- Suggestion Action Cards Grid -->
+      <div class="chat-suggestions-title">
+        <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #7c3aed;"></i>
+        <span>คำสั่งและคำถามด่วนที่พบบ่อย:</span>
+      </div>
+      <div class="chat-suggestions" id="chatSuggestions">
+        <button type="button" class="chat-suggestion-chip" data-query="ค้นหาสารเคมี">
+          <span class="chip-icon"><i data-lucide="search"></i></span>
+          <span class="chip-label">ค้นหาพัสดุ/สารเคมี</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="เช็คของใกล้หมดคลัง">
+          <span class="chip-icon"><i data-lucide="alert-triangle" style="color: #f59e0b;"></i></span>
+          <span class="chip-label">ตรวจเช็คสต็อกต่ำ</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="เช็คสารเคมีหมดอายุ">
+          <span class="chip-icon"><i data-lucide="clock" style="color: #ef4444;"></i></span>
+          <span class="chip-label">เช็คสารหมดอายุ</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O">
+          <span class="chip-icon"><i data-lucide="flask-conical" style="color: #8b5cf6;"></i></span>
+          <span class="chip-label">ดุลสมการเคมี</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="คำนวณมวลโมเลกุล">
+          <span class="chip-icon"><i data-lucide="scale" style="color: #3b82f6;"></i></span>
+          <span class="chip-label">คำนวณมวลโมเลกุล</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="เตรียมสารละลาย">
+          <span class="chip-icon"><i data-lucide="droplet" style="color: #06b6d4;"></i></span>
+          <span class="chip-label">วิธีเตรียมสารละลาย</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="ปฐมพยาบาลสารเคมีหก">
+          <span class="chip-icon"><i data-lucide="siren" style="color: #dc2626;"></i></span>
+          <span class="chip-label">ปฐมพยาบาลสารหก</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip" data-query="จำแนกของเสีย">
+          <span class="chip-icon"><i data-lucide="trash-2" style="color: #64748b;"></i></span>
+          <span class="chip-label">จำแนกประเภทของเสีย</span>
+        </button>
+        <button type="button" class="chat-suggestion-chip full-width" data-query="วิธีใช้งานระบบ">
+          <span class="chip-icon"><i data-lucide="book-open" style="color: #10b981;"></i></span>
+          <span class="chip-label">แนะนำวิธีการใช้งานระบบคลัง</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Chat Input Footer -->
+    <div class="chatbot-footer">
+      <div class="chatbot-input-wrap">
+        <input type="text" id="chatbotInput" placeholder="พิมพ์คำถามหรือคำสั่งที่นี่..." autocomplete="off">
+        <button type="button" id="chatbotSendBtn" title="ส่งข้อความ">
+          <i data-lucide="send" style="width: 14px; height: 14px;"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: VERSION HISTORY DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="versionModal">
+    <div class="modal-content" style="max-width: 550px; border-radius: var(--border-radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; overflow: hidden; background: #ffffff;">
+      <div class="modal-header" style="background: var(--primary-purple); color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="history" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
+          <span style="color: #ffffff !important;">ประวัติการอัปเดตระบบ (Version History)</span>
+        </h2>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="versionModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="modal-body" style="padding: 24px; max-height: 400px; overflow-y: auto;">
+        <!-- v1.9.8 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px;">v1.9.8</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">25 สิงหาคม 2569 (ล่าสุด)</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>แก้ไขการแสดงผลบนอุปกรณ์เคลื่อนที่ (Mobile Responsiveness UI Fix):</b> แก้ไขปัญหาการแสดงผลกล่องค้นหา, ปุ่มต่างๆ, และหน้าจองห้องปฏิบัติการเมื่อแสดงบนหน้าจอมือถือและแท็บเล็ต</li>
+            <li><b>ปรับปรุงประสิทธิภาพไวยากรณ์ (CSS Code Quality):</b> แก้ไขปัญหารูปแบบไวยากรณ์ Transition ที่ไม่ถูกต้องและปิดท้ายแท็กที่สูญหายทั้งหมด</li>
+          </ul>
+        </div>
+
+        <!-- v1.9.7 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.9.7</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">24 สิงหาคม 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ปิดระบบ PWA และ Offline Cache:</b> ยกเลิกการใช้งาน Service Worker และ Manifest เพื่อลดปัญหาแคชสะสม และบังคับให้เบราว์เซอร์ดึงข้อมูลใหม่เสมอ (Cache-Control)</li>
+            <li><b>แก้ไขการแสดงผลแถบเมนู (Sidebar Active UI):</b> แก้ไขปัญหาการชนกันของคลาส CSS ที่ทำให้แถบเมนูด้านซ้ายแสดงสีเข้ม/อ่อนไม่สม่ำเสมอกัน</li>
+          </ul>
+        </div>
+
+        <!-- v1.9.1 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.9.1</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">1 กรกฎาคม 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบพิมพ์สติกเกอร์บาร์โค้ด QR Code แบบแอนิเมชันพร้อมเสียง (Animated QR Code Label Printer):</b> เพิ่มป๊อปอัพและเสียงจำลองเครื่องพิมพ์สติกเกอร์ฉลากติดขวดสารเคมีและอุปกรณ์เมื่อกดสั่งพิมพ์</li>
+          </ul>
+        </div>
+
+        <!-- v1.9.0 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.9.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">26 มิถุนายน 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบล้างข้อมูล Admin (Admin Data Clearing):</b> เพิ่มระบบล้างฐานข้อมูลแยกตามแต่ละโมดูลพร้อมช่องกรอกรหัสยืนยันความปลอดภัยเพื่อป้องกันข้อมูลสูญหาย</li>
+            <li><b>สรุปข้อมูลยอดราคารวมตารางสั่งซื้อสะสม (Committed PO Summary):</b> เพิ่มแถบรายละเอียดราคารวม, ส่วนลดสะสม, และราคาสุทธิหลังหักส่วนลดอย่างสมบูรณ์แบบ</li>
+            <li><b>คู่มือเตรียมสารเคมีในระบบ Catalyst:</b> แชทบอทวิเคราะห์คำนวณสูตรเตรียมสารละลายและความเข้มข้นอัตโนมัติ</li>
+          </ul>
+        </div>
+
+        <!-- v1.8.0 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.8.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">25 มิถุนายน 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ป๊อปอัพใบยืนยันการจองหลังจองห้องแล็บสำเร็จ (Booking Confirmation Modal):</b> เพิ่มระบบหน้าต่างยืนยันความสำเร็จ (Booking Confirmation Modal) ทันทีหลังส่งคำขอจอง พร้อมข้อมูลสรุปและคำแนะนำเตือนใจความสำคัญให้ผู้ใช้<b>บันทึกภาพหน้าจอ (Capture)</b> ไว้เป็นหลักฐานเพื่อแสดงต่อเจ้าหน้าที่ห้องปฏิบัติการอย่างชัดเจน</li>
+          </ul>
+        </div>
+
+        <!-- v1.7.0 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px;">v1.7.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">23 มิถุนายน 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบจำแนกของเสียและคู่มือการจัดเก็บเคมีร่วมกัน (CU WasteTrack & Storage Guide):</b> เพิ่มแถบช่วยจำแนกของเสียห้องปฏิบัติการ 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย และระบบแนะนำจัดเก็บสารเคมีร่วมตามความเข้ากันได้ 11 กลุ่มความเข้ากันได้ (SHECU)</li>
+            <li><b>ผู้ช่วย AI แชทบอท Catalyst และเครื่องคำนวณสูตรเคมี:</b> ติดตั้งแชทบอทให้คำปรึกษาเคมี/ปฐมพยาบาลเบื้องต้น พร้อมเครื่องดุลสมการและคำนวณมวลโมเลกุลอัตโนมัติ</li>
+          </ul>
+        </div>
+
+        <!-- v1.6.0 -->
+        <div class="version-block" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.6.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">10 พฤษภาคม 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบจองห้องปฏิบัติการ (Lab Booking Suite):</b> เปิดใช้งานระบบตารางจองคาบเวลาเข้าใช้ห้องแล็บ คัดกรองและแบ่งสิทธิ์ครูและเจ้าหน้าที่</li>
+            <li><b>การจัดการคลังสารเคมีแจ้งเตือนหมดอายุ:</b> ติดตั้งระบบแจ้งเตือนสต็อกขั้นต่ำ (Min Stock) และแจ้งรายการสารเคมีใกล้และหมดอายุอัตโนมัติ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: STORAGE RECOMMENDATION
+       ========================================== -->
+  <div class="modal-overlay" id="storageRecModal">
+    <div class="modal-content" style="max-width: 500px; border-radius: var(--border-radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; overflow: hidden; background: #ffffff;">
+      <div class="modal-header" id="storageRecModalHeader" style="background: var(--accent-red); color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="shield-alert" id="storageRecModalIcon" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
+          <span id="storageRecModalTitle" style="color: #ffffff !important;">คำแนะนำการจัดเก็บสารเคมี</span>
+        </h2>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="storageRecModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="storageRecModalBody" style="padding: 24px; font-size: 14px; line-height: 1.6; color: var(--text-main); overflow-y: auto; max-height: 350px;">
+        <!-- Dynamic content -->
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="storageRecModalCloseBtn" style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; cursor: pointer;">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: QR CODE LABEL PRINTER ANIMATION
+       ========================================== -->
+  <div id="labelPrinterModal" class="modal-overlay">
+    <div class="modal-content label-printer-modal-content" style="position: relative;">
+      <button type="button" class="modal-close" onclick="closeLabelPrinterModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+        <i data-lucide="printer" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+        <span>เครื่องพิมพ์สติกเกอร์ QR Code</span>
+      </h3>
+      
+      <div class="label-printer-grid">
+        <!-- Left column: Control & print state -->
+        <div class="label-printer-controls">
+          <div style="background: rgba(139, 92, 246, 0.05); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid rgba(139, 92, 246, 0.1);">
+            <div style="font-weight: 600; font-size: 14.5px; color: var(--primary-purple); margin-bottom: 4px;" id="lpItemName">-</div>
+            <div style="font-family: monospace; font-size: 13px; color: var(--text-muted); font-weight: 600;" id="lpItemCode">CODE: -</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;" id="lpItemLocation">จัดเก็บ: -</div>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button type="button" class="btn btn-primary" id="lpPrintRealBtn" style="background-color: var(--primary-purple); border-color: var(--primary-purple); display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 42px;">
+              <i data-lucide="printer" style="width: 18px; height: 18px;"></i>
+              <span>พิมพ์สติกเกอร์ (Print Label)</span>
+            </button>
+            <button type="button" class="btn btn-secondary" style="width: 100%; height: 42px;" onclick="closeLabelPrinterModal()">ปิดหน้าต่าง</button>
+          </div>
+        </div>
+        
+        <!-- Right column: 3D Printer and Sticker animation -->
+        <div class="label-printer-animation-container">
+          <!-- 3D Printer Body -->
+          <div class="label-printer-device">
+            <div class="label-printer-slot"></div>
+          </div>
+          
+          <!-- Sticker Roll out paper container -->
+          <div class="label-sticker-paper-wrapper">
+            <div class="label-sticker-paper">
+              <!-- Tear line & notches -->
+              <div class="label-sticker-tear-line"></div>
+              <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
+                <div id="lpQrCode" style="width: 70px; height: 70px; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; background: white; flex-shrink: 0;"></div>
+                <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; text-align: left;">
+                  <span id="lpStickerName" style="font-size: 11px; font-weight: bold; line-height: 1.2; max-height: 2.4em; overflow: hidden; color: #000; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;">-</span>
+                  <span id="lpStickerCode" style="font-family: monospace; font-size: 9.5px; font-weight: bold; color: #333;">CODE: -</span>
+                  <span id="lpStickerLoc" style="font-size: 8.5px; color: #555;">จัดเก็บ: -</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: CONFIRM DELETE DATA (Clean Modern Redesign)
+       ========================================== -->
+  <div class="modal-overlay" id="confirmDeleteModal">
+    <div class="modal-content confirm-delete-modal-card" style="max-width: 480px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8); border: none; overflow: hidden; background: #ffffff;">
+      <!-- Header -->
+      <div class="modal-header confirm-delete-header" style="background: #ffffff; color: #0f172a; padding: 24px 24px 16px 24px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #f1f5f9;">
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+          <div class="confirm-delete-icon-box" style="width: 44px; height: 44px; border-radius: 12px; background: #fef2f2; border: 1px solid #fee2e2; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <i data-lucide="trash-2" style="width: 22px; height: 22px; color: #ef4444;"></i>
+          </div>
+          <div>
+            <h2 class="modal-title" style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; line-height: 1.3;">ยืนยันการล้างข้อมูลอย่างถาวร</h2>
+            <p style="margin: 3px 0 0 0; font-size: 13px; color: #64748b;">การลบข้อมูลนี้มีผลถาวรและไม่สามารถเรียกคืนได้</p>
+          </div>
+        </div>
+        <button type="button" class="modal-close-btn" id="confirmDeleteModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Body -->
+      <div class="modal-body confirm-delete-body" style="padding: 20px 24px;">
+        <!-- Permission Role Badge -->
+        <div class="confirm-delete-badge" style="display: inline-flex; align-items: center; gap: 6px; background: #f5f3ff; border: 1px solid #ddd6fe; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #6d28d9; margin-bottom: 14px;">
+          <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+          <span>สิทธิ์การใช้งาน: เฉพาะระดับ <strong>L3 (ผู้ดูแลระบบ)</strong> และ <strong>L4 (ผู้บริหาร)</strong></span>
+        </div>
+
+        <!-- Warning Callout Box -->
+        <div class="confirm-delete-warning" style="display: flex; gap: 12px; margin-bottom: 16px; background: #fff5f5; padding: 14px 16px; border: 1px solid #fed7d7; border-left: 4px solid #ef4444; border-radius: 10px;">
+          <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: #e53e3e; flex-shrink: 0; margin-top: 2px;"></i>
+          <div style="font-size: 13px; color: #742a2a; line-height: 1.55;">
+            ข้อมูลทั้งหมดในส่วนที่เลือกจะถูกลบออกจากฐานข้อมูลและหน่วยความจำอย่างถาวร เพื่อความปลอดภัยโปรด <strong>กดปุ่มค้างไว้ (Hold to delete)</strong> เพื่อยืนยันการลบ
+          </div>
+        </div>
+        
+        <!-- Target Info Box -->
+        <div id="confirmDeleteTargetInfo" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #334155; display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="database" style="width: 17px; height: 17px; color: #64748b; flex-shrink: 0;"></i>
+          <span id="confirmDeleteTargetText" style="font-weight: 500;">กำลังเตรียมข้อมูลสำหรับล้างระบบ...</span>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="modal-footer confirm-delete-footer" style="padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px; align-items: center;">
+        <button type="button" class="btn btn-secondary" id="confirmDeleteCancelBtn" style="height: 42px; padding: 0 18px; border-radius: 10px; font-weight: 600; font-size: 13.5px; cursor: pointer; border: 1px solid #cbd5e1; background: #ffffff; color: #475569;">ยกเลิก</button>
+        <button type="button" class="btn-hold-to-confirm" id="confirmDeleteHoldBtn">
+          <span class="hold-label-base">
+            <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+            <span>กดค้างเพื่อลบข้อมูล (Hold to delete)</span>
+          </span>
+          <span class="hold-label-overlay" aria-hidden="true">
+            <i data-lucide="trash-2" style="width: 15px; height: 15px;"></i>
+            <span>กำลังยืนยัน... ปล่อยเพื่อยกเลิก</span>
+          </span>
+          <span class="hold-label-confirmed">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>ยืนยันการลบแล้ว</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       SIDE DRAWER: BATCH UPDATE LOCATION
+       ========================================== -->
+  <div class="side-drawer-overlay" id="batchUpdateLocationModal">
+    <div class="side-drawer">
+      <div class="drawer-header">
+        <h2 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.25rem;">
+          <i data-lucide="map-pin" style="color: var(--primary-purple);"></i>
+          เปลี่ยนสถานที่จัดเก็บ (แบบกลุ่ม)
+        </h2>
+        <button class="close-modal" onclick="closeBatchUpdateLocationModal()">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="drawer-body" style="padding: 24px; flex-grow: 1; overflow-y: auto;">
+        <p style="margin-top: 0; color: var(--text-muted);">
+          ระบุสถานที่จัดเก็บใหม่สำหรับพัสดุที่เลือกจำนวน <strong id="batchUpdateCount" style="color: var(--primary-purple);">0</strong> รายการ
+        </p>
+        <div class="form-group">
+          <label>ห้องเก็บสารเคมี/อุปกรณ์ <span class="required">*</span></label>
+          <select id="batchItemRoom" class="form-control" required>
+            <option value="" disabled selected>เลือกห้อง...</option>
+            <option value="ห้อง 131">ห้อง 131</option>
+            <option value="ห้อง 132">ห้อง 132</option>
+            <option value="ห้อง 133">ห้อง 133</option>
+            <option value="ห้อง 134">ห้อง 134</option>
+            <option value="ห้องพักครู">ห้องพักครู</option>
+            <option value="อื่นๆ">อื่นๆ</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>ตู้หมายเลข</label>
+            <input type="text" id="batchItemCabinet" class="form-control" placeholder="เช่น 01 หรือ A">
+          </div>
+          <div class="form-group">
+            <label>ชั้นที่</label>
+            <input type="text" id="batchItemShelf" class="form-control" placeholder="เช่น 2">
+          </div>
+        </div>
+      </div>
+      <div class="drawer-footer" style="display: flex; justify-content: flex-end; gap: 12px; padding: 24px; border-top: 1px solid var(--border-color); background: #f8fafc;">
+        <button type="button" class="btn btn-secondary" onclick="closeBatchUpdateLocationModal()">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" onclick="submitBatchUpdateLocation()">
+          บันทึกสถานที่ใหม่
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: CABINET DETAILS OVERLAY
+       ========================================== -->
+  <div class="modal-overlay" id="cabinetDetailModal">
+    <div class="modal-content" style="max-width: 500px; border-radius: var(--border-radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; overflow: hidden; background: #ffffff;">
+      <div class="modal-header" style="background: var(--primary-purple); color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="layout" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
+          <span id="cabinetDetailModalTitle" style="color: #ffffff !important;">รายละเอียดตู้เก็บพัสดุ</span>
+        </h2>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="cabinetDetailModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 24px; overflow-y: auto; max-height: 400px;">
+        <div id="cabinetDetailWarningSection" style="display: none; gap: 12px; margin-bottom: 16px; background: rgba(239, 68, 68, 0.05); padding: 12px; border-left: 4px solid var(--accent-red); border-radius: 4px;">
+          <i data-lucide="alert-triangle" style="width: 20px; height: 20px; color: var(--accent-red); flex-shrink: 0; margin-top: 2px;"></i>
+          <div style="text-align: left;">
+            <div style="font-weight: 600; color: var(--accent-red); font-size: 13.5px; display: flex; align-items: center; gap: 6px;"><i data-lucide="alert-triangle" style="width: 15px; height: 15px;"></i> คำเตือนความปลอดภัย (SHECU Incompatibility)</div>
+            <div style="font-size: 12.5px; color: var(--text-main); margin-top: 4px; line-height: 1.5;" id="cabinetDetailWarningText">มีสารเคมีที่ไม่ควรเก็บร่วมตู้เดียวกันเนื่องจากมีความเสี่ยงเกิดปฏิกิริยารุนแรง</div>
+          </div>
+        </div>
+        
+        <div id="cabinetDetailContent">
+          <!-- Dynamically populated shelves and list of chemicals -->
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="cabinetDetailModalCloseBtn" style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; cursor: pointer;">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: ADD / EDIT LAB ROOM (Clean & Friendly)
+       ========================================== -->
+  <div class="modal-overlay" id="labRoomModal" style="display: none; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(4px); z-index: 9999; padding: 16px;">
+    <div class="modal-content" style="background: white; border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.2); overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border-color);">
+      <div style="padding: 20px 24px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #fafbfc;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div id="labModalHeaderIcon" style="width: 40px; height: 40px; border-radius: 12px; background: #f3e8ff; color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <i data-lucide="flask-conical" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div>
+            <h3 id="labRoomModalTitle" style="font-size: 16.5px; font-weight: 700; margin: 0; color: #0f172a; line-height: 1.3;">แก้ไขห้องปฏิบัติการ</h3>
+            <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">ปรับแต่งชื่อ อาคารสถานที่ และเลือกเฉดสีประจำห้อง</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeLabRoomModal()" class="btn-icon" style="background: transparent; border: none; cursor: pointer; color: #64748b; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center;" aria-label="ปิด">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <form id="labRoomForm" onsubmit="handleSaveLabRoom(event)" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; margin: 0;">
+        <input type="hidden" id="labRoomOldId" value="">
+
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">รหัสห้อง (Room Identifier) <span style="color: #ef4444;">*</span></label>
+          <input type="text" id="labRoomIdInput" required class="input" placeholder="เช่น Lab 1, Lab 9, STEM" style="width: 100%; border-radius: 10px; padding: 10px 14px; font-size: 13.5px;" oninput="updateLabRoomLivePreview()">
+          <span style="font-size: 11px; color: #64748b; margin-top: 4px; display: block;">รหัสย่อสำหรับใช้เป็นตัวอ้างอิงในระบบพัสดุและผังตู้</span>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">ชื่อห้องปฏิบัติการ <span style="color: #ef4444;">*</span></label>
+          <input type="text" id="labRoomNameInput" required class="input" placeholder="เช่น ห้องปฏิบัติการเคมี, ห้องปฏิบัติการหุ่นยนต์" style="width: 100%; border-radius: 10px; padding: 10px 14px; font-size: 13.5px;" oninput="updateLabRoomLivePreview()">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px;">อาคาร / สถานที่ตั้ง</label>
+          <input type="text" id="labRoomBuildingInput" class="input" placeholder="เช่น อาคารอัสสัมชัญ ชั้น 3" style="width: 100%; border-radius: 10px; padding: 10px 14px; font-size: 13.5px;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px;">สีประจำห้องปฏิบัติการ (Theme Color)</label>
+          
+          <!-- Palette Presets -->
+          <div id="labColorPresetsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+            <!-- Rendered by JS -->
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="color" id="labRoomColorPicker" style="width: 44px; height: 38px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; padding: 2px;" onchange="onLabRoomColorPickerChange(this.value)">
+            <input type="text" id="labRoomHexInput" class="input" maxlength="7" placeholder="#2563eb" style="width: 110px; font-family: monospace; font-size: 13px; text-transform: uppercase; font-weight: 600;" oninput="onLabRoomHexInputChange(this.value)">
+            <span style="font-size: 12px; color: #64748b;">กดเลือกสีสำเร็จรูป หรือระบุรหัสสี Hex</span>
+          </div>
+        </div>
+
+        <!-- Live Preview Box -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px;">
+          <span style="font-size: 11px; font-weight: 600; color: #64748b; display: block; margin-bottom: 8px;">ตัวอย่างการแสดงผลบนแท็บห้อง (Live Preview):</span>
+          <div id="labRoomLivePreview" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 24px; border: 1.5px solid var(--border-color); background: white; color: var(--text-dark); font-weight: 600; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+            <span id="previewColorDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2563eb;"></span>
+            <span id="previewRoomText">Lab 1 (ห้องปฏิบัติการเคมี)</span>
+            <span style="font-size: 11px; padding: 2px 7px; border-radius: 10px; background: #f1f5f9; color: var(--text-muted); font-weight: 600;">19 รายการ</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 6px; padding-top: 12px; border-top: 1px solid #f1f5f9;">
+          <button type="button" onclick="closeLabRoomModal()" class="btn btn-secondary" style="border-radius: 10px; padding: 8px 16px; font-size: 13px;">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary" style="border-radius: 10px; padding: 8px 20px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+            <span>บันทึกห้องปฏิบัติการ</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       TOAST NOTIFICATION SYSTEM
+       ========================================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Modal: Asset Audit Record / Inspection -->
+  <div id="assetAuditModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="assetAuditModalTitle">บันทึกผลการตรวจนับครุภัณฑ์</h3>
+        <button class="modal-close" onclick="closeAssetAuditModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <input type="hidden" id="auditAssetCode">
+        
+        <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e2e8f0;">
+          <div style="font-size: 13px; color: var(--text-muted);">รหัสครุภัณฑ์: <strong id="auditAssetCodeDisplay" style="color: var(--primary-purple);"></strong></div>
+          <div style="font-size: 15px; font-weight: 600; color: var(--text-main); margin-top: 4px;" id="auditAssetNameDisplay"></div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;" id="auditAssetLocationDisplay"></div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">สภาพความพร้อมใช้งาน <span class="required">*</span></label>
+          <select id="auditAssetCondition" class="form-control" style="width: 100%; height: 38px;">
+            <option value="normal">ใช้งานได้ตามปกติ (100%)</option>
+            <option value="minor_issue">มีตำหนิเล็กน้อย แต่ยังใช้งานได้</option>
+            <option value="repair">ชำรุด - อยู่ระหว่างส่งซ่อม</option>
+            <option value="damaged">ชำรุดใช้งานไม่ได้ (รอจำหน่ายออก)</option>
+          </select>
+        </div>
+
+        <div class="form-row-multi" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+          <div class="form-group">
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">จำนวนในบัญชี</label>
+            <input type="number" id="auditAssetBookQty" readonly style="width: 100%; height: 38px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px;">
+          </div>
+          <div class="form-group">
+            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">จำนวนที่นับได้จริง <span class="required">*</span></label>
+            <input type="number" id="auditAssetActualQty" min="0" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px;">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">รอบปีงบประมาณที่ตรวจนับ</label>
+          <input type="text" id="auditAssetFiscalYear" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px;" value="2569">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 18px;">
+          <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">หมายเหตุ / บันทึกเพิ่มเติม</label>
+          <textarea id="auditAssetNotes" rows="2" class="form-control" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1;" placeholder="เช่น แบตเตอรี่เสื่อมสภาพ, อุปกรณ์ครบชุด"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button type="button" class="btn btn-secondary" onclick="closeAssetAuditModal()" style="padding: 9px 18px;">ยกเลิก</button>
+          <button type="button" class="btn btn-primary" onclick="saveAssetAuditRecord()" style="padding: 9px 18px; background-color: var(--primary-purple); color: white; border: none; font-weight: 600; cursor: pointer;">บันทึกผลการตรวจนับ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal" style="max-width: 400px; text-align: center; padding: 32px 24px;">
+      <button class="modal-close" onclick="closeConfirmModal()"><i data-lucide="x"></i></button>
+      <div style="width: 56px; height: 56px; border-radius: 50%; background-color: rgba(239, 68, 68, 0.1); color: var(--accent-red); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <i data-lucide="alert-triangle" style="width: 28px; height: 28px;"></i>
+      </div>
+      <h3 id="confirmModalTitle" style="margin-top: 0; margin-bottom: 8px; font-size: 20px; font-weight: 600;">ยืนยันการดำเนินการ</h3>
+      <p id="confirmModalText" style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.5;">คุณแน่ใจหรือไม่ว่าต้องการดำเนินการนี้?</p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button class="btn btn-secondary" onclick="closeConfirmModal()" style="flex: 1;">ยกเลิก</button>
+        <button id="btnConfirmAction" class="btn btn-primary" style="flex: 1; background-color: var(--accent-red); border-color: var(--accent-red);">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+  <!-- Add/Edit Cabinet Modal -->
+  <div id="addCabinetModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="addCabinetModalTitle">เพิ่มตู้จัดเก็บ</h3>
+        <button class="modal-close" onclick="closeAddCabinetModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ประเภท (Type)</label>
+          <select id="addCabinetType" class="input" style="width: 100%;" onchange="onCabinetTypeChange()">
+            <option value="chemical_cabinet">ตู้สารเคมี (Chemical Cabinet)</option>
+            <option value="glassware_cabinet">ตู้เครื่องแก้ว (Glassware Cabinet)</option>
+            <option value="emergency_cabinet">ตู้ฉุกเฉิน / ตู้พักของรอจัดเก็บ (Emergency / Temporary Cabinet)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ชื่อ / รหัส (Name / ID)</label>
+          <input type="text" id="addCabinetName" class="input" style="width: 100%;" placeholder="เช่น ตู้ A, ตู้สารเคมี 1">
+        </div>
+        <div class="form-group" id="addCabinetShelvesGroup" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">จำนวนชั้นวาง (Number of Shelves)</label>
+          <input type="number" id="addCabinetShelves" class="input" style="width: 100%;" placeholder="ระบุจำนวนชั้น (เช่น 4)" min="1" max="12" value="4">
+        </div>
+        <div class="form-group" id="addCabinetCapacityGroup" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ความจุสุทธิ (Total Capacity)</label>
+          <input type="number" id="addCabinetCapacity" class="input" style="width: 100%;" placeholder="ความจุสูงสุด (รายการ)" min="1" value="50">
+        </div>
+        <div class="form-group" id="addCabinetVisibilityGroup" style="margin-bottom: 16px; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <label for="addCabinetIsHidden" style="font-weight: 600; font-size: 13px; color: #1e293b; display: block; cursor: pointer;">สถานะการแสดงผล (Visibility)</label>
+            <span style="font-size: 11.5px; color: #64748b;">ซ่อนตู้นี้จากผู้ใช้งานทั่วไป (เฉพาะแอดมินที่มองเห็น)</span>
+          </div>
+          <input type="checkbox" id="addCabinetIsHidden" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-purple);">
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+        <button class="btn btn-outline" onclick="closeAddCabinetModal()">ยกเลิก</button>
+        <button class="btn btn-primary" style="background: var(--primary-color);" onclick="saveCabinetData()">บันทึกข้อมูล</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Cabinet Confirmation Modal -->
+  <div id="deleteCabinetModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <div style="margin-bottom: 16px; color: var(--accent-red);">
+        <i data-lucide="alert-triangle" style="width: 48px; height: 48px; margin: 0 auto;"></i>
+      </div>
+      <h3 style="margin-bottom: 12px; font-size: 18px;">ยืนยันการลบตู้จัดเก็บ</h3>
+      <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 14px;">คุณต้องการลบ "<span id="deleteCabinetNameDisplay" style="font-weight: 600; color: var(--text-dark);"></span>" ออกจากระบบใช่หรือไม่? ข้อมูลทั้งหมดที่เกี่ยวข้องจะถูกลบอย่างถาวร</p>
+      <div style="display: flex; justify-content: center; gap: 12px;">
+        <button class="btn btn-outline" onclick="closeDeleteCabinetModal()">ยกเลิก</button>
+        <button class="btn btn-danger" onclick="confirmDeleteCabinet()">ลบตู้จัดเก็บ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HELP & SAFETY (SHECU Information Center) -->
+  <div id="helpSafetyModal" class="modal-overlay">
+    <div class="modal-content modal-lg" style="width: 94%; max-width: 860px; height: 480px; max-height: 86vh; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 16px; border: 1px solid #d9dee8; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); font-family: var(--font-sans);">
+      <!-- Modal Header -->
+      <div class="modal-header" style="padding: 14px 20px; border-bottom: 1px solid #d9dee8; display: flex; justify-content: space-between; align-items: center; background: #ffffff; flex-shrink: 0;">
+        <div class="modal-header-left">
+          <div class="modal-header-icon-badge">
+            <i data-lucide="book-open" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h3 class="modal-title">ศูนย์ข้อมูล และความปลอดภัย</h3>
+            <div class="modal-subtitle">SHECU Information Center • มาตรฐานความปลอดภัยห้องปฏิบัติการ</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeHelpSafetyModal()" aria-label="ปิดหน้าต่าง">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+      
+      <div class="help-modal-body" style="display: flex; flex: 1; min-height: 0; height: calc(100% - 69px); width: 100%; overflow: hidden; box-sizing: border-box;">
+        <!-- Sidebar Tabs -->
+        <div class="help-modal-sidebar" style="width: 200px; flex-shrink: 0; background: #f8fafc; border-right: 1px solid #d9dee8; padding: 10px 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box;">
+          <ul class="help-tabs" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px;">
+            <li class="help-tab active" data-target="help-tab-1">ความปลอดภัย SHECU</li>
+            <li class="help-tab" data-target="help-tab-2">เอกสาร SDS</li>
+            <li class="help-tab" data-target="help-tab-3">จัดการของเสีย</li>
+            <li class="help-tab" data-target="help-tab-4">คู่มือระบบ</li>
+            <li class="help-tab" data-target="help-tab-5">แจ้งปัญหา</li>
+            <li class="help-tab" data-target="help-tab-6">ผู้พัฒนาระบบ</li>
+          </ul>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="help-modal-content" style="flex: 1; min-width: 0; width: 100%; padding: 12px 16px; overflow-y: auto; overflow-x: hidden; background: #ffffff; box-sizing: border-box;">
+          
+          <!-- Tab 1: ความปลอดภัย SHECU -->
+          <div id="help-tab-1" class="help-content active">
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+              <!-- Accordion 1: Incompatible Chemicals -->
+              <details class="help-accordion-item" open>
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-alert" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การจัดเก็บสารเคมีไม่เข้ากัน (Incompatible Chemicals)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-warning">
+                      <i data-lucide="shield-alert" style="width: 11px; height: 11px;"></i> มาตรฐาน SHECU-G
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  <p style="margin: 0 0 6px 0;">สารเคมีต้องถูกจัดเก็บแยกตามกลุ่มความเข้ากันไม่ได้เพื่อป้องกันปฏิกิริยารุนแรง:</p>
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #4b5563;">
+                    <div>• <strong>ห้ามเก็บกรดร่วมกับเบส:</strong> แยกตู้เก็บกรดและตู้เก็บด่างอย่างเด็ดขาด</div>
+                    <div>• <strong>สารไวไฟร่วมกับตัวออกซิไดซ์:</strong> ต้องแยกจัดเก็บในตู้เก็บสารนิรภัย (Flammable Safety Cabinet)</div>
+                    <div>• <strong>สารอันตรายสูง / ไอน้ำมัน:</strong> แยกเก็บในตู้ดูดควัน (Fume Hood) และติดป้ายเตือนอันตราย</div>
+                  </div>
+                </div>
+              </details>
+
+              <!-- Accordion 2: Cabinet Storage Capacity -->
+              <details class="help-accordion-item">
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="archive" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การควบคุมความจุตู้จัดเก็บ (Cabinet Storage Capacity)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-info">
+                      <i data-lucide="check-circle" style="width: 11px; height: 11px;"></i> สูงสุด 80%
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  ตรวจสอบความจุของตู้เก็บสารเคมีและชั้นวาง <strong>ไม่ควรเก็บเกิน 80%</strong> ของพื้นที่จัดเก็บ เพื่อให้มีการระบายอากาศที่ดี สะดวกต่อการหยิบใช้ และป้องกันอุบัติเหตุขวดสารเคมีเบียดตกหล่น
+                </div>
+              </details>
+
+              <!-- Accordion 3: Emergency Eyewash & First Aid -->
+              <details class="help-accordion-item">
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="heart-pulse" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การปฐมพยาบาล & อ่างล้างตาฉุกเฉิน (Emergency Eyewash)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-danger">
+                      <i data-lucide="alert-circle" style="width: 11px; height: 11px;"></i> ล้างน้ำ 15 นาที
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  หากสารเคมีกระเด็นเข้าตาหรือสัมผัสร่างกาย ให้ล้างด้วยน้ำสะอาดจากอ่างล้างตาฉุกเฉินหรือฝักบัวฉุกเฉินอย่างต่อเนื่องเป็นเวลาอย่างน้อย <strong>15 นาที</strong> ห้ามขยี้ตา และรีบแจ้งห้องพยาบาลทันที
+                </div>
+              </details>
+            </div>
+          </div>
+          
+          <!-- Tab 2: เอกสาร SDS -->
+          <div id="help-tab-2" class="help-content" style="display: none;">
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+              <!-- Accordion 1: CAS No. -->
+              <details class="help-accordion-item">
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="search" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การค้นหาและตรวจสอบเลข CAS No.</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-primary">
+                      <i data-lucide="globe" style="width: 11px; height: 11px;"></i> รหัสสากล
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  เลข <strong>CAS No. (Chemical Abstracts Service)</strong> เป็นรหัสเฉพาะสากลสำหรับสารเคมีแต่ละชนิด สามารถตรวจสอบได้จากฉลากข้างขวด หรือค้นหาผ่านตารางคลังสารเคมีในระบบเพื่อความแม่นยำในการเตรียมการทดลอง
+                </div>
+              </details>
+
+              <!-- Accordion 2: Full 16 SDS Sections (OPEN) -->
+              <details class="help-accordion-item" open>
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dbeafe; color: #1e40af; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="file-text" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">โครงสร้างเอกสารข้อมูลความปลอดภัย SDS ครบทั้ง 16 หัวข้อ</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-info">
+                      <i data-lucide="layers" style="width: 11px; height: 11px;"></i> ครบ 16 หัวข้อหลัก
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  <div style="font-size: 12px; color: #475569; margin-bottom: 6px;">
+                    เอกสาร SDS ตามระบบ GHS สรุปข้อมูลความปลอดภัย 16 ส่วนมาตรฐาน เพื่อใช้ประเมินความเสี่ยงก่อนปฏิบัติการ:
+                  </div>
+                  
+                  <!-- Full 16 Sections Grid -->
+                  <div class="sds-16-grid">
+                    <div class="sds-16-item"><span class="sds-16-num">1</span> <span>ข้อมูลสารเคมี/บริษัท</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">2</span> <span>ระบุความเป็นอันตราย</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">3</span> <span>ส่วนประกอบ/ข้อมูลผสม</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">4</span> <span>มาตรการปฐมพยาบาล</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">5</span> <span>มาตรการผจญเพลิง</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">6</span> <span>การจัดการเมื่อหกรั่วไหล</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">7</span> <span>การใช้และการจัดเก็บ</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">8</span> <span>การควบคุม/อุปกรณ์ PPE</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">9</span> <span>สมบัติกายภาพและเคมี</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">10</span> <span>ความคงตัว/ปฏิกิริยา</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">11</span> <span>ข้อมูลด้านพิษวิทยา</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">12</span> <span>ข้อมูลผลกระทบนิเวศ</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">13</span> <span>มาตรการกำจัดของเสีย</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">14</span> <span>ข้อมูลการขนส่ง</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">15</span> <span>กฎหมายและข้อบังคับ</span></div>
+                    <div class="sds-16-item"><span class="sds-16-num">16</span> <span>ข้อมูลอื่นๆ ที่เกี่ยวข้อง</span></div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+          
+          <!-- Tab 3: จัดการของเสีย -->
+          <div id="help-tab-3" class="help-content" style="display: none;">
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+              <!-- 3 Waste Separation Cards (Icon + Label + Color) -->
+              <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
+                <!-- Flammable Red Bin -->
+                <div style="background: #fff5f5; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 10px; min-width: 0; box-sizing: border-box;">
+                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #dc2626; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <i data-lucide="flame" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังแดง: สารไวไฟ</span>
+                  </div>
+                  <div style="font-size: 11px; color: #7f1d1d; line-height: 1.4; word-break: break-word;">
+                    ตัวทำละลายอินทรีย์ (Organic Solvents เช่น เอทานอล, อะซิโตน, เมทานอล)
+                  </div>
+                </div>
+
+                <!-- Acid-Base Blue Bin -->
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 10px; min-width: 0; box-sizing: border-box;">
+                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #2563eb; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <i data-lucide="beaker" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังน้ำเงิน: กรด-เบส</span>
+                  </div>
+                  <div style="font-size: 11px; color: #1e3a8a; line-height: 1.4; word-break: break-word;">
+                    สารละลายน้ำ / สารละลายกรดและเบสเจือจาง (Aqueous Acid-Base)
+                  </div>
+                </div>
+
+                <!-- Contaminated Solids Yellow Bin -->
+                <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 8px 10px; min-width: 0; box-sizing: border-box;">
+                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #ca8a04; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <i data-lucide="trash-2" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังเหลือง: ของแข็ง</span>
+                  </div>
+                  <div style="font-size: 11px; color: #713f12; line-height: 1.4; word-break: break-word;">
+                    ของแข็งปนเปื้อนเคมี กระดาษกรอง ถุงมือไนไตรล์ หรือขวดแก้วเปล่า
+                  </div>
+                </div>
+              </div>
+
+              <!-- Waste Protocol Accordion -->
+              <details class="help-accordion-item" open>
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ffedd5; color: #ea580c; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="alert-triangle" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">ข้อปฏิบัติและมาตรการความปลอดภัยในการทิ้งของเสีย</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-warning">
+                      <i data-lucide="shield" style="width: 11px; height: 11px;"></i> ข้อกำหนด SHECU
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                    <div>• <strong>ห้ามเทสารเคมีลงอ่างล้างท่อ:</strong> สารละลายเคมีทุกชนิดต้องทิ้งลงในถังรองรับของเสียที่กำหนดไว้เท่านั้น</div>
+                    <div>• <strong>ปิดฝาถังให้สนิท:</strong> ปิดฝาถังขยะเคมีให้แน่นหนาทุกครั้งหลังการทิ้ง เพื่อป้องกันการระเหยของไอระเหยสารเคมี</div>
+                    <div>• <strong>บันทึกสมุดของเสีย (Waste Log):</strong> บันทึกชื่อสาร ปริมาณ และวันที่ทิ้งลงในสมุดประจำห้องแล็บทุกครั้ง</div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+          
+          <!-- Tab 4: คู่มือระบบ -->
+          <div id="help-tab-4" class="help-content" style="display: none;">
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+              <!-- Workflow 1: Lab Booking -->
+              <details class="help-accordion-item" open>
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="calendar-check" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">1. การจองห้องปฏิบัติการ (Lab Booking Workflow)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-primary">
+                      <i data-lucide="user" style="width: 11px; height: 11px;"></i> ครู / ผู้ใช้
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                    <div>• <strong>ขั้นที่ 1 (เลือกวันเวลา):</strong> เข้าเมนู <em>"จองห้องปฏิบัติการ"</em> ตรวจสอบปฏิทิน แล้วเลือกห้องและคาบเรียนที่ว่าง</div>
+                    <div>• <strong>ขั้นที่ 2 (ระบุสารเคมี/พัสดุ):</strong> กรอกชื่อผู้จอง วัตถุประสงค์ และระบุรายการพัสดุที่ต้องการให้จัดเตรียมล่วงหน้า</div>
+                    <div>• <strong>ขั้นที่ 3 (รออนุมัติ):</strong> เจ้าหน้าที่ประจำห้อง (L2) หรือแอดมิน (L3) จะตรวจสอบและอนุมัติการเข้าใช้งาน</div>
+                  </div>
+                </div>
+              </details>
+
+              <!-- Workflow 2: Borrowing & Return -->
+              <details class="help-accordion-item">
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="clipboard-list" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">2. การเบิก-ยืมพัสดุและสารเคมี (Borrowing & Return Workflow)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-info">
+                      <i data-lucide="refresh-cw" style="width: 11px; height: 11px;"></i> ตัดสต็อก Real-time
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                    <div>• <strong>ขั้นที่ 1 (ค้นหาคลัง):</strong> ค้นหาชื่อสารเคมีหรือเครื่องแก้ว กำหนดจำนวนและวันที่ต้องการส่งคืน</div>
+                    <div>• <strong>ขั้นที่ 2 (ยื่นคำขอยืม):</strong> ระบบส่งคำขอและตัดยอดคงเหลือในคลังสารเคมีทันทีแบบอัตโนมัติ</div>
+                    <div>• <strong>ขั้นที่ 3 (ตรวจรับคืน):</strong> ตรวจสอบสภาพอุปกรณ์ก่อนกดรับคืน หรือบันทึกยอดชำรุดหากมีความเสียหาย</div>
+                  </div>
+                </div>
+              </details>
+
+              <!-- Workflow 3: Inventory & QR Code -->
+              <details class="help-accordion-item">
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="qr-code" style="width: 15px; height: 15px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">3. การตรวจนับสต็อกและสแกน QR Code (Inventory & QR)</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-success">
+                      <i data-lucide="smartphone" style="width: 11px; height: 11px;"></i> สแกนมือถือ
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                    <div>• <strong>ขั้นที่ 1 (สแกนผ่านกล้อง):</strong> สแกน QR Code ข้างขวดหรือหน้าตู้เพื่อดูยอดคงเหลือและตำแหน่งจัดเก็บ</div>
+                    <div>• <strong>ขั้นที่ 2 (พิมพ์สติกเกอร์ฉลาก):</strong> เจ้าหน้าที่ L2+ สามารถกดพิมพ์ฉลากบาร์โค้ด QR Code ติดขวดสารใหม่ได้ทันที</div>
+                    <div>• <strong>ขั้นที่ 3 (อัปเดตยอดคงเหลือ):</strong> บันทึกการรับเข้า หรือแก้ไขจุดเตือนขั้นต่ำ (Min Alert) เพื่อป้องกันของหมดคลัง</div>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </div>
+          
+          <!-- Tab 5: แจ้งปัญหา -->
+          <div id="help-tab-5" class="help-content" style="display: none;">
+            <div style="display: flex; flex-direction: column; gap: 9px; width: 100%; box-sizing: border-box;">
+              <!-- Emergency Contacts Top Bar -->
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                <div style="font-size: 13.5px; font-weight: 700; color: #1f2937; display: flex; align-items: center; gap: 6px; min-width: 0;">
+                  <i data-lucide="phone-call" style="width: 15px; height: 15px; color: #dc2626; flex-shrink: 0;"></i>
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">เบอร์ติดต่อฉุกเฉินประจำห้องแล็บ</span>
+                </div>
+                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px; background: #ede7ff; color: #4f21a1; border: 1px solid #ddd6fe; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; flex-shrink: 0;" onclick="toggleEmergencyContactEdit(true)">
+                  <i data-lucide="edit-3" style="width: 11px; height: 11px;"></i> แก้ไขข้อมูล
+                </button>
+              </div>
+
+              <!-- View Mode (Clean 3-Column Grid) -->
+              <div id="emergencyContactsView" style="width: 100%; box-sizing: border-box;">
+                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
+                  <!-- Card Admin -->
+                  <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <div style="min-width: 0; flex: 1; overflow: hidden;">
+                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ผู้ดูแลระบบ (Admin)</div>
+                      <div id="dispContactAdmin" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร)</div>
+                    </div>
+                  </div>
+
+                  <!-- Card Nurse -->
+                  <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="heart-pulse" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <div style="min-width: 0; flex: 1; overflow: hidden;">
+                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล</div>
+                      <div id="dispContactNurse" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: อาคาร 1</div>
+                    </div>
+                  </div>
+
+                  <!-- Card Fire -->
+                  <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="flame" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <div style="min-width: 0; flex: 1; overflow: hidden;">
+                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้ / ฉุกเฉิน</div>
+                      <div id="dispContactFire" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Edit Mode (Inline Admin Edit) -->
+              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 10px 12px; width: 100%; box-sizing: border-box;">
+                <div style="font-size: 12px; font-weight: 600; color: #4f21a1; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
+                  <i data-lucide="shield" style="width: 13px; height: 13px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+                  <div>
+                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แอดมิน / ผู้ดูแล</label>
+                    <input type="text" id="inputContactAdmin" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น แอดมิน (ม.วงศกร): 08x-xxx-xxxx" />
+                  </div>
+                  <div>
+                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์ห้องพยาบาล</label>
+                    <input type="text" id="inputContactNurse" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น ห้องพยาบาล: อาคาร 1 (เบอร์ 104)" />
+                  </div>
+                  <div>
+                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย</label>
+                    <input type="text" id="inputContactFire" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น แจ้งเหตุเพลิงไหม้: 199" />
+                  </div>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 3px 8px; background: #4f21a1;" onclick="saveEmergencyContacts()">
+                    <i data-lucide="check" style="width: 12px; height: 12px;"></i> บันทึก
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 3px 8px;" onclick="toggleEmergencyContactEdit(false)">
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+
+              <!-- Feedback Form Card -->
+              <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 9px; padding: 10px 12px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px;">
+                  <div style="display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13px; color: #1f2937; min-width: 0;">
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="message-square-plus" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ส่ง Feedback หรือแจ้งปัญหาการใช้งาน</span>
+                  </div>
+                  <span class="shecu-badge shecu-badge-primary">
+                    <i data-lucide="help-circle" style="width: 11px; height: 11px;"></i> ช่วยเหลือ & แนะนำ
+                  </span>
+                </div>
+                <p style="margin: 0 0 5px 0; font-size: 11.5px; line-height: 1.45; color: #64748b;">
+                  หากพบข้อผิดพลาด ต้องการสอบถาม หรือมีข้อเสนอแนะในการพัฒนาระบบ สามารถพิมพ์ข้อความส่งถึงผู้ดูแลระบบได้ทันที
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 5px; width: 100%; box-sizing: border-box;">
+                  <textarea id="feedbackInput" class="form-control" rows="2" style="font-size: 12px; border-radius: 6px; padding: 6px 8px; resize: vertical; min-height: 42px; background: #ffffff; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1;" placeholder="อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ..."></textarea>
+                  <div style="display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; font-size: 12px; border-radius: 6px; background: #4f21a1; color: #ffffff; border: none; cursor: pointer; font-weight: 600;" onclick="submitUserFeedback()">
+                      <i data-lucide="send" style="width: 12px; height: 12px;"></i>
+                      <span>ส่งข้อความ</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 6: ผู้พัฒนาระบบ -->
+          <div id="help-tab-6" class="help-content" style="display: none;">
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+              <!-- Profile Card -->
+              <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 9px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                  <div style="width: 36px; height: 36px; border-radius: 50%; background: #4f21a1; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;">
+                    WD
+                  </div>
+                  <div style="min-width: 0;">
+                    <div style="font-size: 13px; font-weight: 700; color: #1f2937; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      ม.วงศกร ด้วงเกลี้ยง
+                    </div>
+                    <div style="font-size: 11px; color: #64748b; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                      ผู้พัฒนาและดูแลระบบบริหารจัดการห้องปฏิบัติการวิทยาศาสตร์
+                    </div>
+                  </div>
+                </div>
+                <span class="shecu-badge shecu-badge-primary">
+                  <i data-lucide="code" style="width: 11px; height: 11px;"></i> Lead Developer
+                </span>
+              </div>
+
+              <!-- System Specs Grid (2 Column) -->
+              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
+                <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                  <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="cpu" style="width: 13px; height: 13px;"></i>
+                  </div>
+                  <div style="min-width: 0; flex: 1; overflow: hidden;">
+                    <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เวอร์ชันระบบ (App Version)</div>
+                    <div id="devTabSystemVersion" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Version 2.7.0 (PWA)</div>
+                  </div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
+                  <div style="width: 24px; height: 24px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="database" style="width: 13px; height: 13px;"></i>
+                  </div>
+                  <div style="min-width: 0; flex: 1; overflow: hidden;">
+                    <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ฐานข้อมูล & สำรองคลาวด์</div>
+                    <div style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Supabase & Sheets (Real-time)</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Standard Dropdown / Accordion -->
+              <details class="help-accordion-item" open>
+                <summary class="help-accordion-header">
+                  <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="target" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">วัตถุประสงค์และมาตรฐานระบบ</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                    <span class="shecu-badge shecu-badge-info">
+                      <i data-lucide="award" style="width: 11px; height: 11px;"></i> SHECU Standard
+                    </span>
+                    <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
+                  </div>
+                </summary>
+                <div class="help-accordion-body">
+                  ระบบนี้พัฒนาขึ้นเพื่อยกระดับการจัดการคลังสารเคมี อุปกรณ์วิทยาศาสตร์ และการจองห้องปฏิบัติการตามมาตรฐานความปลอดภัย SHECU มุ่งเน้นการอำนวยความสะดวกในการเรียนการสอนและงานวิจัยอย่างมีประสิทธิภาพสูงสุด
+                </div>
+              </details>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script src="app.js?v=20261010_router_paths"></script>
+  <script>
+    // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
+    setTimeout(function() {
+      var sk = document.getElementById("app-skeleton-loader");
+      if (sk) {
+        sk.classList.add("fade-out");
+        setTimeout(function() { if (sk && sk.parentNode) sk.remove(); }, 350);
+      }
+    }, 1200);
+
+    // Dynamic Lucide Icons Auto-Renderer for newly inserted DOM nodes
+    (function() {
+      var lucideDebounce = null;
+      function triggerLucide() {
+        if (!window.lucide || typeof window.lucide.createIcons !== 'function') {
+          var attempts = 0;
+          var poll = setInterval(function() {
+            attempts++;
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+              clearInterval(poll);
+              try { window.lucide.createIcons(); } catch(e) {}
+            } else if (attempts > 30) {
+              clearInterval(poll);
+            }
+          }, 100);
+          return;
+        }
+        clearTimeout(lucideDebounce);
+        lucideDebounce = setTimeout(function() {
+          try { window.lucide.createIcons(); } catch(e) {}
+        }, 20);
+      }
+      if (typeof MutationObserver !== 'undefined') {
+        var observer = new MutationObserver(function(mutations) {
+          for (var i = 0; i < mutations.length; i++) {
+            var m = mutations[i];
+            if (m.addedNodes && m.addedNodes.length > 0) {
+              for (var j = 0; j < m.addedNodes.length; j++) {
+                var node = m.addedNodes[j];
+                if (node.nodeType === 1) {
+                  if (node.hasAttribute('data-lucide') || (node.querySelector && node.querySelector('[data-lucide]'))) {
+                    triggerLucide();
+                    return;
+                  }
+                }
+              }
+            }
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+      // Initial trigger on load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', triggerLucide);
+      } else {
+        triggerLucide();
+      }
+      triggerLucide();
+    })();
+  </script>
+  <!-- Agentation: Visual Feedback Toolbar for AI Coding Agents -->
+  <script src="agentation.bundle.js"></script>
+</body>
+</html>

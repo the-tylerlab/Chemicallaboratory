@@ -106,12 +106,15 @@
   <link rel="dns-prefetch" href="https://unpkg.com">
   <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
+  <!-- Global Design Tokens & Tailwind CSS -->
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=20261011_tw">
+
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="style.css?v=20261009_settings_fix">
   <link rel="stylesheet" href="cabinet-card.css?v=20261010_inset">
 
-  <!-- Core Libraries (Optimized CDN paths & non-blocking defer) -->
-  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+  <!-- Core Libraries (Local high-performance icon library) -->
+  <script src="assets/js/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
@@ -356,10 +359,10 @@
         </span>
       </div>
 
-      <!-- ==========================================
+<!-- ==========================================
            PANEL: DASHBOARD
            ========================================== -->
-      <section class="panel active" id="panel-dashboard">
+            <section class="panel active" id="panel-dashboard">
         <div class="content-header">
           <h1>แดชบอร์ด</h1>
           <p>ภาพรวมสถานะคลังพัสดุและสารเคมี</p>
@@ -383,8 +386,8 @@
           </button>
         </div>
 
-        <!-- Compact Stat Cards Grid -->
-        <div class="stat-grid">
+        <!-- Compact Stat Cards Grid (Admin Only) -->
+        <div class="stat-grid" id="dashboardStatGrid" style="display: none;">
           <div class="stat-card blue" id="statCardTotal" role="button" tabindex="0" onclick="navigateToPanel('all-items', 'all', 'all')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
             <div class="stat-info">
               <span class="stat-title nobrk">รายการทั้งหมด</span>
@@ -437,54 +440,6 @@
 
         <!-- Dashboard Split Layout -->
         <div class="dashboard-grid">
-          <!-- 1. Quick Menu Panel -->
-          <div class="card-container" id="quickMenuCard">
-            <div class="card-header">
-              <h2 class="card-title">เมนูด่วน</h2>
-            </div>
-            <div class="quick-menu-list">
-              <button class="quick-btn blue" id="quickBtnLabBooking">
-                <div class="quick-btn-icon">
-                  <i data-lucide="calendar"></i>
-                </div>
-                <div class="quick-btn-info">
-                  <span class="quick-btn-title">
-                    จอง<span class="keep-word">ห้องปฏิบัติการ</span>
-                  </span>
-                </div>
-              </button>
-              <button class="quick-btn purple" id="quickBtnBorrowReturn">
-                <div class="quick-btn-icon">
-                  <i data-lucide="repeat"></i>
-                </div>
-                <div class="quick-btn-info">
-                  <span class="quick-btn-title">
-                    <span class="keep-word">ยืม-คืนพัสดุ</span> และ<span class="keep-word">เคมีภัณฑ์</span>
-                  </span>
-                </div>
-              </button>
-              <button class="quick-btn green" id="quickBtnAddItem" style="display: none;">
-                <div class="quick-btn-icon">
-                  <i data-lucide="plus-circle"></i>
-                </div>
-                <div class="quick-btn-info">
-                  <span class="quick-btn-title">
-                    เพิ่มสาร/อุปกรณ์
-                  </span>
-                </div>
-              </button>
-              <button class="quick-btn orange" id="quickBtnAdmin" onclick="navigateToPanel('admin')" style="display: none;">
-                <div class="quick-btn-icon">
-                  <i data-lucide="shield-check"></i>
-                </div>
-                <div class="quick-btn-info">
-                  <span class="quick-btn-title">
-                    Admin Panel
-                  </span>
-                </div>
-              </button>
-            </div>
-          </div>
 
           <!-- Pending Requests Card for Admin/Teachers -->
           <div class="card-container" id="pendingRequestsCard" style="display: none;">
@@ -493,7 +448,7 @@
                 <span>คำขออนุมัติรอดำเนินการ</span>
               </h2>
               <div style="display: flex; align-items: center; gap: 12px;">
-                <span class="badge badge-orange" id="pendingRequestsCount" style="padding: 2px 8px; font-size: 12.5px;">0</span>
+                <span class="badge badge-orange" id="pendingRequestsCount" style="padding: 2px 8px; font-size: 0.75rem;">0</span>
               </div>
             </div>
             <div id="pendingRequestsContainer" style="flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; max-height: 400px; overflow-y: auto; padding-right: 4px; padding-bottom: 4px;">
@@ -509,15 +464,15 @@
                 <span>แจ้งเตือนและสถานะเครื่องมือ</span>
               </h2>
               <div class="alert-tabs" style="display: flex; gap: 6px; width: 100%;">
-                <button type="button" class="alert-tab-btn active" data-tab="urgent" style="flex: 1; padding: 6px 4px; font-size: 11.5px; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                <button type="button" class="alert-tab-btn active" data-tab="urgent" style="flex: 1; padding: 6px 4px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
                   <span>เตือนด่วน</span>
-                  <span class="badge badge-red" id="dashboardUrgentCount" style="padding: 1px 5px; font-size: 10px; display: none;">0</span>
+                  <span class="badge badge-red" id="dashboardUrgentCount" style="padding: 1px 5px; font-size: 0.6875rem; display: none;">0</span>
                 </button>
-                <button type="button" class="alert-tab-btn" data-tab="overdue" style="flex: 1; padding: 6px 4px; font-size: 11.5px; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                <button type="button" class="alert-tab-btn" data-tab="overdue" style="flex: 1; padding: 6px 4px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
                   <span>ค้างส่งคืน</span>
-                  <span class="badge badge-red" id="dashboardOverdueCount" style="padding: 1px 5px; font-size: 10px; display: none;">0</span>
+                  <span class="badge badge-red" id="dashboardOverdueCount" style="padding: 1px 5px; font-size: 0.6875rem; display: none;">0</span>
                 </button>
-                <button type="button" class="alert-tab-btn" data-tab="damaged" style="flex: 1; padding: 6px 4px; font-size: 11.5px; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                <button type="button" class="alert-tab-btn" data-tab="damaged" style="flex: 1; padding: 6px 4px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
                   <span>ชำรุด/ส่งซ่อม</span>
                 </button>
               </div>
@@ -542,26 +497,15 @@
             </div>
           </div>
 
-          <!-- 3. Category Breakdown Panel -->
-          <div class="card-container" id="categoryBreakdownCard">
-            <div class="card-header">
-              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                <span>สัดส่วนหมวดหมู่พัสดุ</span>
-                <span class="badge badge-purple" id="categoryBreakdownCount" style="padding: 2px 8px; font-size: 12.5px;">0 รายการ</span>
-              </h2>
-            </div>
-            <div id="categoryBreakdownContainer">
-              <!-- Dynamically populated -->
-            </div>
-          </div>
         </div>
 
         <!-- ============================================================
              LAB USAGE CALENDAR & SCHEDULE OVERVIEW (L0-L2 & All Users)
              ============================================================ -->
         <div class="dashboard-lab-calendar-section" id="dashboardLabCalendarSection">
-          <!-- 1. Top Summary Stat Row (Aligned with Calendar & Schedule Grid) -->
-          <div class="lab-calendar-stats-row">
+          <h2 class="sr-only">ปฏิทินและตารางการใช้งานห้องปฏิบัติการ</h2>
+          <!-- 1. Top Summary Stat Row (Aligned with Calendar & Schedule Grid) (Admin Only) -->
+          <div class="lab-calendar-stats-row" id="labCalendarStatsRow" style="display: none;">
             <div class="lab-stats-left-group">
               <div class="lab-summary-card stat-pending">
                 <div class="lab-summary-icon red">
@@ -636,29 +580,72 @@
               </div>
             </div>
 
-            <!-- Right Side: Daily Usage Schedule -->
-            <div class="lab-schedule-card">
-              <div class="lab-schedule-header">
-                <div class="lab-schedule-title-row">
-                  <div class="lab-schedule-title-left">
-                    <h3 class="lab-schedule-title">
-                      <i data-lucide="calendar-days" style="color: var(--primary-purple); width: 17px; height: 17px;"></i>
-                      <span>รายการใช้งาน</span>
-                    </h3>
-                    <p class="lab-schedule-subtitle" id="dashScheduleDateSub">ประจำวันที่ 24 กันยายน 2569</p>
-                  </div>
-                  <label class="dash-schedule-date-btn" title="คลิกเพื่อเลือกวันที่">
-                    <i data-lucide="calendar" style="width: 13px; height: 13px; color: var(--primary-purple);"></i>
-                    <span id="dashScheduleDateBtnText">24 ก.ย. 69</span>
-                    <i data-lucide="chevron-down" style="width: 12px; height: 12px; color: #94a3b8;"></i>
-                    <input type="date" id="dashScheduleDatePicker" class="dash-schedule-date-input-hidden" title="เลือกวันที่">
-                  </label>
+            <!-- Right Side Column: Quick Menu + Daily Usage Schedule -->
+            <div class="lab-schedule-column">
+              <!-- Quick Menu Panel (Placed Above Daily Usage Schedule) -->
+              <div class="card-container" id="quickMenuCard">
+                <div class="card-header">
+                  <h2 class="card-title">
+                    <i data-lucide="zap" style="width: 16px; height: 16px; color: #7c3aed;"></i>
+                    <span>เมนูด่วน</span>
+                  </h2>
+                </div>
+                <div class="quick-menu-list">
+                  <button type="button" class="quick-btn blue" id="quickBtnLabBooking" title="จองห้องปฏิบัติการ">
+                    <div class="quick-btn-icon">
+                      <i data-lucide="calendar"></i>
+                    </div>
+                    <div class="quick-btn-info">
+                      <span class="quick-btn-title">
+                        จอง<span class="keep-word">ห้องปฏิบัติการ</span>
+                      </span>
+                    </div>
+                  </button>
+                  <button type="button" class="quick-btn purple" id="quickBtnBorrowReturn" title="ยืม-คืนพัสดุและเคมีภัณฑ์">
+                    <div class="quick-btn-icon">
+                      <i data-lucide="repeat"></i>
+                    </div>
+                    <div class="quick-btn-info">
+                      <span class="quick-btn-title">
+                        <span class="keep-word">ยืม-คืนพัสดุ</span> และ<span class="keep-word">เคมีภัณฑ์</span>
+                      </span>
+                    </div>
+                  </button>
+                  <button type="button" class="quick-btn green" id="quickBtnAddItem" style="display: none;" title="เพิ่มสาร/อุปกรณ์">
+                    <div class="quick-btn-icon">
+                      <i data-lucide="plus-circle"></i>
+                    </div>
+                    <div class="quick-btn-info">
+                      <span class="quick-btn-title">
+                        เพิ่มสาร/อุปกรณ์
+                      </span>
+                    </div>
+                  </button>
+                  <button type="button" class="quick-btn orange" id="quickBtnAdmin" onclick="navigateToPanel('admin')" style="display: none;" title="Admin Panel">
+                    <div class="quick-btn-icon">
+                      <i data-lucide="shield-check"></i>
+                    </div>
+                    <div class="quick-btn-info">
+                      <span class="quick-btn-title">
+                        Admin Panel
+                      </span>
+                    </div>
+                  </button>
                 </div>
               </div>
 
-              <!-- List of Room Bookings for Selected Date -->
-              <div class="lab-schedule-body" id="dashScheduleBody">
-                <!-- Populated dynamically -->
+              <!-- Right Side: Category Breakdown Panel (สัดส่วนหมวดหมู่พัสดุ) -->
+              <div class="card-container" id="categoryBreakdownCard">
+                <div class="card-header">
+                  <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="pie-chart" style="width: 16px; height: 16px; color: var(--primary-purple);"></i>
+                    <span>สัดส่วนหมวดหมู่พัสดุ</span>
+                    <span class="badge badge-purple" id="categoryBreakdownCount" style="padding: 2px 8px; font-size: 0.75rem;">0 รายการ</span>
+                  </h2>
+                </div>
+                <div id="categoryBreakdownContainer">
+                  <!-- Dynamically populated -->
+                </div>
               </div>
             </div>
           </div>
@@ -682,10 +669,10 @@
         <!-- Today's Lab Status Widget (Full Width 4-Column Grid, Public Only) -->
         <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 20px; width: 100%; box-sizing: border-box;">
           <div class="card-header" style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px;">
-            <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 0; white-space: nowrap;">
+            <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0; white-space: nowrap;">
               <i data-lucide="door-open" style="color: var(--primary-color); width: 16px; height: 16px;"></i>
               <span>สถานะห้องปฏิบัติการวันนี้</span>
-              <span class="badge badge-green" id="todayLabAvailableBadge" style="font-size: 11px; padding: 2px 8px; font-weight: 600;">กำลังโหลด...</span>
+              <span class="badge badge-green" id="todayLabAvailableBadge" style="font-size: 0.75rem; padding: 2px 8px; font-weight: 600;">กำลังโหลด…</span>
             </h2>
           </div>
           <div class="today-labs-grid" id="todayLabsGrid">
@@ -697,7 +684,7 @@
       <!-- ==========================================
            PANEL: REPORTS & STATISTICS
            ========================================== -->
-      <section class="panel" id="panel-reports">
+            <section class="panel" id="panel-reports">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
             <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
@@ -815,10 +802,7 @@
       <!-- ==========================================
            PANEL: ACTIVITY LOGS
            ========================================== -->
-      <!-- ==========================================
-           PANEL: ACTIVITY LOGS
-           ========================================== -->
-      <section class="panel" id="panel-activity-logs">
+            <section class="panel" id="panel-activity-logs">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
             <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
@@ -955,7 +939,7 @@
       <!-- ==========================================
            PANEL: ADD/EDIT CHEMICAL/EQUIPMENT
            ========================================== -->
-      <section class="panel" id="panel-add-item">
+            <section class="panel" id="panel-add-item">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
             <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
@@ -967,8 +951,8 @@
             </div>
           </div>
           <div class="unified-page-header-right">
-            <button type="button" class="btn btn-primary" onclick="navigateToPanel('purchase-orders')" style="background-color: var(--primary-purple); display: inline-flex; align-items: center; gap: 8px; font-weight: 600; padding: 10px 16px; height: 42px; border-radius: var(--border-radius-md); cursor: pointer; border: none; color: white;">
-              <i data-lucide="shopping-cart" style="width: 16px; height: 16px;"></i>
+            <button type="button" class="btn btn-primary bg-primary inline-flex items-center gap-2 font-semibold px-4 h-[42px] rounded-xl cursor-pointer border-0 text-white shadow-sm hover:opacity-90 transition-all" onclick="navigateToPanel('purchase-orders')">
+              <i data-lucide="shopping-cart" class="w-4 h-4"></i>
               <span>รายการสั่งซื้อ</span>
             </button>
           </div>
@@ -1001,10 +985,10 @@
               <div class="form-grid">
                 <!-- Item Code -->
                 <div class="form-group">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <label for="itemCode" style="margin: 0;">รหัสสาร/อุปกรณ์ <span class="required">*</span></label>
-                    <button type="button" id="btnAutoGenerateCode" onclick="autoGenerateCurrentCode()" style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.25); color: var(--primary-purple); border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">
-                      <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i>
+                  <div class="flex justify-between items-center mb-1.5">
+                    <label for="itemCode" class="m-0">รหัสสาร/อุปกรณ์ <span class="required">*</span></label>
+                    <button type="button" id="btnAutoGenerateCode" onclick="autoGenerateCurrentCode()" class="bg-purple-500/10 border border-purple-500/25 text-primary rounded-full px-2.5 py-0.5 text-[11px] font-semibold cursor-pointer inline-flex items-center gap-1 hover:bg-purple-500/20 transition-all">
+                      <i data-lucide="sparkles" class="w-3 h-3"></i>
                       <span>รันรหัสอัตโนมัติ</span>
                     </button>
                   </div>
@@ -1015,18 +999,17 @@
               <div class="form-group">
                 <label for="itemName">ชื่อสาร/อุปกรณ์ <span class="required">*</span></label>
                 <input type="text" id="itemName" placeholder="เช่น กรดไฮโดรคลอริก" required>
-                <div id="duplicateRoomWarning" style="display: none; margin-top: 6px; font-size: 11.5px; color: #9a3412; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 6px 10px; line-height: 1.4;"></div>
-                <div id="compatibilityRecBadge" style="display: none; margin-top: 6px; font-size: 12px; font-weight: 600; cursor: pointer; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 16px; border: 1px solid; transition: all 0.2s; width: fit-content;"></div>
+                <div id="duplicateRoomWarning" style="display: none;" class="mt-1.5 text-[11.5px] text-orange-800 bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-1.5 leading-snug"></div>
+                <div id="compatibilityRecBadge" style="display: none;" class="mt-1.5 text-xs font-semibold cursor-pointer items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all w-fit"></div>
               </div>
 
               <!-- CAS No -->
               <div class="form-group">
-                <label for="itemCasNo" style="display: flex; align-items: center; gap: 4px;">CAS No. <i data-lucide="info" style="width: 14px; height: 14px; color: var(--text-muted);" title="หมายเลขประจำตัวสารเคมี (Chemical Abstracts Service) สำหรับสารเคมีเท่านั้น"></i></label>
+                <label for="itemCasNo" class="flex items-center gap-1">CAS No. <i data-lucide="info" class="w-3.5 h-3.5 text-text-muted" title="หมายเลขประจำตัวสารเคมี (Chemical Abstracts Service) สำหรับสารเคมีเท่านั้น"></i></label>
                 <input type="text" id="itemCasNo" placeholder="เช่น 7647-01-0">
               </div>
 
-              
-<!-- Category -->
+              <!-- Category -->
               <div class="form-group">
                 <label for="itemCategory">หมวดหมู่ <span class="required">*</span></label>
                 <select id="itemCategory" required>
@@ -1039,15 +1022,14 @@
                 </select>
               </div>
 
-              
-<!-- Quantity & Unit -->
+              <!-- Quantity & Unit -->
               <div class="form-group">
                 <div class="form-row-multi">
-                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div class="flex flex-col gap-1">
                     <label for="itemQty">จำนวน <span class="required">*</span></label>
                     <input type="number" id="itemQty" value="0" min="0" oninput="if(this.value < 0) this.value = 0;" required>
                   </div>
-                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div class="flex flex-col gap-1">
                     <label for="itemUnit">หน่วย <span class="required">*</span></label>
                     <select id="itemUnit" required>
                       <option value="ขวด" selected>ขวด</option>
@@ -1061,10 +1043,9 @@
                 </div>
               </div>
 
-              
               </div>
-              <div class="form-actions" style="justify-content: flex-end; margin-top: 24px;">
-                <button type="button" class="btn btn-primary" onclick="nextWizardStep(2)">ถัดไป <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i></button>
+              <div class="form-actions flex justify-end mt-6">
+                <button type="button" class="btn btn-primary inline-flex items-center gap-2" onclick="nextWizardStep(2)">ถัดไป <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
               </div>
             </div>
 
@@ -1102,11 +1083,11 @@
                   </div>
                   
                   <div class="form-group full-width">
-                    <label style="margin-bottom: 8px; display: flex; align-items: center; gap: 4px; font-weight: 600;">ค่าระดับความเสี่ยง NFPA 704 (สำหรับสารเคมี) <i data-lucide="info" style="width: 14px; height: 14px; color: var(--text-muted);" title="ระบบสัญลักษณ์แสดงอันตรายของสารเคมี (สีน้ำเงิน: สุขภาพ, สีแดง: ไวไฟ, สีเหลือง: ความไวปฏิกิริยา, สีขาว: ข้อควรระวังพิเศษ)"></i></label>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                    <label class="mb-2 flex items-center gap-1 font-semibold text-sm">ค่าระดับความเสี่ยง NFPA 704 (สำหรับสารเคมี) <i data-lucide="info" class="w-3.5 h-3.5 text-text-muted" title="ระบบสัญลักษณ์แสดงอันตรายของสารเคมี (สีน้ำเงิน: สุขภาพ, สีแดง: ไวไฟ, สีเหลือง: ความไวปฏิกิริยา, สีขาว: ข้อควรระวังพิเศษ)"></i></label>
+                    <div class="grid grid-cols-4 gap-2.5">
                       <div>
-                        <label for="itemNfpaHealth" style="font-size: 11px; color: #3b82f6; font-weight: 600; display: block; margin-bottom: 4px;">Health (สุขภาพ)</label>
-                        <select id="itemNfpaHealth" style="width: 100%; border-color: #3b82f6; padding: 6px; border-radius: 6px;">
+                        <label for="itemNfpaHealth" class="text-[11px] text-blue-500 font-semibold block mb-1">Health (สุขภาพ)</label>
+                        <select id="itemNfpaHealth" class="w-full border-blue-500 p-1.5 rounded-md text-xs font-medium">
                           <option value="0" selected>0</option>
                           <option value="1">1</option>
                           <option value="2">2</option>
@@ -1115,8 +1096,8 @@
                         </select>
                       </div>
                       <div>
-                        <label for="itemNfpaFlammability" style="font-size: 11px; color: #ef4444; font-weight: 600; display: block; margin-bottom: 4px;">Flammable (ไวไฟ)</label>
-                        <select id="itemNfpaFlammability" style="width: 100%; border-color: #ef4444; padding: 6px; border-radius: 6px;">
+                        <label for="itemNfpaFlammability" class="text-[11px] text-red-500 font-semibold block mb-1">Flammable (ไวไฟ)</label>
+                        <select id="itemNfpaFlammability" class="w-full border-red-500 p-1.5 rounded-md text-xs font-medium">
                           <option value="0" selected>0</option>
                           <option value="1">1</option>
                           <option value="2">2</option>
@@ -1125,8 +1106,8 @@
                         </select>
                       </div>
                       <div>
-                        <label for="itemNfpaInstability" style="font-size: 11px; color: #f59e0b; font-weight: 600; display: block; margin-bottom: 4px;">Instability (เสถียร)</label>
-                        <select id="itemNfpaInstability" style="width: 100%; border-color: #f59e0b; padding: 6px; border-radius: 6px;">
+                        <label for="itemNfpaInstability" class="text-[11px] text-amber-500 font-semibold block mb-1">Instability (เสถียร)</label>
+                        <select id="itemNfpaInstability" class="w-full border-amber-500 p-1.5 rounded-md text-xs font-medium">
                           <option value="0" selected>0</option>
                           <option value="1">1</option>
                           <option value="2">2</option>
@@ -1135,8 +1116,8 @@
                         </select>
                       </div>
                       <div>
-                        <label for="itemNfpaSpecial" style="font-size: 11px; color: #64748b; font-weight: 600; display: block; margin-bottom: 4px;">Special (เฉพาะ)</label>
-                        <select id="itemNfpaSpecial" style="width: 100%; border-color: #cbd5e1; padding: 6px; border-radius: 6px;">
+                        <label for="itemNfpaSpecial" class="text-[11px] text-slate-500 font-semibold block mb-1">Special (เฉพาะ)</label>
+                        <select id="itemNfpaSpecial" class="w-full border-slate-300 p-1.5 rounded-md text-xs font-medium">
                           <option value="" selected>ไม่มี</option>
                           <option value="OX">OX (ออกซิไดซ์)</option>
                           <option value="W">W (ทำปฏิกิริยากับน้ำ)</option>
@@ -1147,7 +1128,7 @@
                   </div>
                   
                   <div class="form-group full-width">
-                    <label style="margin-bottom: 8px; display: block;">สัญลักษณ์แสดงความเป็นอันตราย GHS</label>
+                    <label class="mb-2 block font-semibold text-sm">สัญลักษณ์แสดงความเป็นอันตราย GHS</label>
                     <div class="ghs-grid">
                       <label class="ghs-btn-label">
                         <input type="checkbox" name="ghs" value="explosive">
@@ -1190,23 +1171,23 @@
               
               </div>
               </div>
-              <div class="form-actions" style="justify-content: space-between; margin-top: 24px;">
-                <button type="button" class="btn btn-secondary" onclick="prevWizardStep(1)"><i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> ย้อนกลับ</button>
-                <button type="button" class="btn btn-primary" onclick="nextWizardStep(3)">ถัดไป <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i></button>
+              <div class="form-actions flex justify-between mt-6">
+                <button type="button" class="btn btn-secondary inline-flex items-center gap-2" onclick="prevWizardStep(1)"><i data-lucide="arrow-left" class="w-4 h-4"></i> ย้อนกลับ</button>
+                <button type="button" class="btn btn-primary inline-flex items-center gap-2" onclick="nextWizardStep(3)">ถัดไป <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
               </div>
             </div>
 
             <!-- Step 3: Stock/Storage -->
             <div class="wizard-step-content" id="wizard-step-3" style="display: none;">
               <div class="form-grid">
-<!-- Damaged & Under Repair Quantity -->
+              <!-- Damaged & Under Repair Quantity -->
               <div class="form-group">
                 <div class="form-row-2-always">
-                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div class="flex flex-col gap-1">
                     <label for="itemDamagedQty">จำนวนที่ชำรุด</label>
                     <input type="number" id="itemDamagedQty" value="0" min="0">
                   </div>
-                  <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div class="flex flex-col gap-1">
                     <label for="itemRepairQty">จำนวนส่งซ่อม</label>
                     <input type="number" id="itemRepairQty" value="0" min="0">
                   </div>
@@ -1236,7 +1217,7 @@
               <div class="form-group full-width">
                 <div class="location-subbox">
                   <span class="location-subbox-title">
-                    <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
+                    <i data-lucide="map-pin" class="w-4 h-4"></i>
                     สถานที่จัดเก็บ (ระบุให้ครบถ้วน)
                   </span>
                   
@@ -1259,11 +1240,10 @@
                 </div>
               </div>
 
-              
               </div>
-              <div class="form-actions" style="justify-content: space-between; margin-top: 24px;">
-                <button type="button" class="btn btn-secondary" onclick="prevWizardStep(2)"><i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> ย้อนกลับ</button>
-                <div style="display: flex; gap: 8px;">
+              <div class="form-actions flex justify-between mt-6">
+                <button type="button" class="btn btn-secondary inline-flex items-center gap-2" onclick="prevWizardStep(2)"><i data-lucide="arrow-left" class="w-4 h-4"></i> ย้อนกลับ</button>
+                <div class="flex items-center gap-2">
                   <button type="button" class="btn btn-danger" id="btnCancelEdit" style="display: none;">ยกเลิกการแก้ไข</button>
                   <button type="button" class="btn btn-secondary" id="btnResetForm">ล้างฟอร์ม</button>
                   <button type="submit" class="btn btn-primary" id="btnSubmitForm">บันทึกข้อมูล</button>
@@ -1274,15 +1254,15 @@
         </div>
 
         <!-- CU WasteTrack Section -->
-        <div class="form-container" id="wasteClassificationCard" style="margin-top: 24px; display: none;">
-          <h2 class="card-title" style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-            <i data-lucide="trash-2" style="color: var(--accent-red); width: 20px; height: 20px;"></i>
+        <div class="form-container mt-6" id="wasteClassificationCard" style="display: none;">
+          <h2 class="card-title mb-2 flex items-center gap-2 text-base font-bold">
+            <i data-lucide="trash-2" class="w-5 h-5 text-red-600"></i>
             <span>ระบบช่วยเหลือจำแนกประเภทของเสียสารเคมี (CU WasteTrack)</span>
           </h2>
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+          <p class="text-[13px] text-text-muted mb-4 leading-normal">
             ประเมินและจำแนกประเภทของเสียทางห้องปฏิบัติการอ้างอิงตามระบบการจำแนกของเสีย 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย
           </p>
-          <div id="wasteClassificationWizard" style="background: var(--bg-main); border: 1px solid var(--border-color); padding: 20px; border-radius: var(--border-radius-md); transition: all 0.3s ease;">
+          <div id="wasteClassificationWizard" class="bg-bg-main border border-border p-5 rounded-xl transition-all duration-300">
             <!-- Interactive steps will be generated here -->
           </div>
         </div>
@@ -1291,12 +1271,9 @@
       <!-- ==========================================
            PANEL: ALL ITEMS LIST
            ========================================== -->
-      <section class="panel" id="panel-all-items">
+            <section class="panel" id="panel-all-items">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
-            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
-              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
-            </button>
             <div class="header-title-wrapper">
               <h1 class="header-title">รายการทั้งหมด</h1>
               <p class="header-subtitle">แสดงสารเคมีและอุปกรณ์วิทยาศาสตร์ในระบบพร้อมฟิลเตอร์ค้นหาและการจัดการ</p>
@@ -1442,17 +1419,6 @@
           </div>
 
 
-          <!-- Non-L3 Role Permission Notice Banner -->
-          <div id="nonL3NoticeBanner" style="display: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 16px; margin-bottom: 14px; font-size: 13px; color: #1e40af; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="info" style="width: 17px; height: 17px; color: #2563eb; flex-shrink: 0;"></i>
-              <span id="nonL3NoticeText">คุณกำลังใช้งานในระดับสิทธิ์ L2: หากต้องการแก้ไข เพิ่ม หรือลบข้อมูลสารเคมี/ครุภัณฑ์ กรุณาติดต่อผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4)</span>
-            </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="showContactAdminModal()" style="font-size: 12px; padding: 4px 12px; background: #ffffff; border-color: #93c5fd; color: #1d4ed8; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
-              <i data-lucide="phone" style="width: 13px; height: 13px;"></i> ติดต่อ L3 / L4
-            </button>
-          </div>
-
           <!-- Main Items Table -->
           <div class="table-container">
             <table>
@@ -1512,6 +1478,17 @@
               <button class="btn btn-secondary" id="btnNextPage" style="padding: 6px 12px; font-size: 12px;" disabled>ถัดไป</button>
             </div>
           </div>
+
+          <!-- Non-L3 Role Permission Notice Banner (Placed Under Table) -->
+          <div id="nonL3NoticeBanner" style="display: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 16px; margin-top: 14px; font-size: 13px; color: #1e40af; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="info" style="width: 17px; height: 17px; color: #2563eb; flex-shrink: 0;"></i>
+              <span id="nonL3NoticeText">คุณกำลังใช้งานในระดับสิทธิ์ L2: หากต้องการแก้ไข เพิ่ม หรือลบข้อมูลสารเคมี/ครุภัณฑ์ กรุณาติดต่อผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4)</span>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="showContactAdminModal()" style="font-size: 12px; padding: 4px 12px; background: #ffffff; border-color: #93c5fd; color: #1d4ed8; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+              <i data-lucide="phone" style="width: 13px; height: 13px;"></i> ติดต่อ L3 / L4
+            </button>
+          </div>
         </div>
 
         <!-- Cabinet Map View Area -->
@@ -1521,7 +1498,7 @@
       <!-- ==========================================
            PANEL: BORROW / RETURN
            ========================================== -->
-      <section class="panel" id="panel-borrow-return">
+            <section class="panel" id="panel-borrow-return">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
             <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
@@ -1757,7 +1734,7 @@
       <!-- ==========================================
            PANEL: LAB BOOKING
            ========================================== -->
-      <section class="panel" id="panel-lab-booking">
+            <section class="panel" id="panel-lab-booking">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
             <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
@@ -1977,7 +1954,7 @@
       <!-- ==========================================
            PANEL: NOTIFICATIONS / ALERTS
            ========================================== -->
-      <section class="panel" id="panel-notifications">
+            <section class="panel" id="panel-notifications">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
             <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
@@ -2216,7 +2193,7 @@
       <!-- ==========================================
            PANEL: PURCHASE ORDERS
            ========================================== -->
-      <section class="panel" id="panel-purchase-orders">
+            <section class="panel" id="panel-purchase-orders">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
             <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
@@ -2480,7 +2457,7 @@
       <!-- ==========================================
            PANEL: CABINET & STORAGE GRID (DIRECTORY)
            ========================================== -->
-      <section class="panel" id="panel-cabinet-layout">
+            <section class="panel" id="panel-cabinet-layout">
         <header class="unified-page-header">
           <div class="unified-page-header-left">
             <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
@@ -2818,10 +2795,10 @@
         </div>
       </section>
 
-  <!-- ==========================================
-       PANEL: ADMIN SETTINGS
-       ========================================== -->
-  <section class="panel" id="panel-admin" style="padding-bottom: 40px;">
+      <!-- ==========================================
+           PANEL: ADMIN SETTINGS
+           ========================================== -->
+        <section class="panel" id="panel-admin" style="padding-bottom: 40px;">
     <header class="unified-page-header">
       <div class="unified-page-header-left">
         <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
@@ -6228,11 +6205,23 @@
     (function() {
       var lucideDebounce = null;
       function triggerLucide() {
-        if (!window.lucide || typeof window.lucide.createIcons !== 'function') return;
+        if (!window.lucide || typeof window.lucide.createIcons !== 'function') {
+          var attempts = 0;
+          var poll = setInterval(function() {
+            attempts++;
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+              clearInterval(poll);
+              try { window.lucide.createIcons(); } catch(e) {}
+            } else if (attempts > 30) {
+              clearInterval(poll);
+            }
+          }, 100);
+          return;
+        }
         clearTimeout(lucideDebounce);
         lucideDebounce = setTimeout(function() {
           try { window.lucide.createIcons(); } catch(e) {}
-        }, 30);
+        }, 20);
       }
       if (typeof MutationObserver !== 'undefined') {
         var observer = new MutationObserver(function(mutations) {
@@ -6259,7 +6248,10 @@
       } else {
         triggerLucide();
       }
+      triggerLucide();
     })();
   </script>
+  <!-- Agentation: Visual Feedback Toolbar for AI Coding Agents -->
+  <script src="agentation.bundle.js"></script>
 </body>
 </html>

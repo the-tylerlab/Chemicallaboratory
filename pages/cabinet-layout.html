@@ -1,0 +1,337 @@
+      <section class="panel" id="panel-cabinet-layout">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
+              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">ผังตู้จัดเก็บ SHECU</h1>
+              <p class="header-subtitle">สารบัญจัดเก็บสารเคมี อุปกรณ์ และเครื่องแก้วในห้องทดลอง (Interactive Directory)</p>
+            </div>
+          </div>
+          <div class="unified-page-header-right">
+            <button id="btnEditLayout" class="btn btn-outline" style="display: none;" onclick="toggleLayoutEditMode()">
+              <i data-lucide="layout-dashboard" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+              แก้ไขแผนผัง
+            </button>
+          </div>
+        </header>
+
+        <!-- Layout Edit Toolbox -->
+        <div id="layoutEditToolbox" class="layout-toolbox" style="display: none; padding: 14px 18px; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); margin-top: 12px; box-shadow: var(--shadow-sm);">
+          <div class="layout-edit-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary-color); flex-shrink: 0;">
+                <i data-lucide="move" style="width: 18px; height: 18px;"></i>
+              </div>
+              <div>
+                <div style="font-weight: 600; color: var(--text-dark); font-size: 15px;">
+                  โหมดแก้ไขและจัดเรียงแผนผัง
+                </div>
+                <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--text-muted);">
+                  <i data-lucide="lightbulb" style="width: 14px; height: 14px; color: #f59e0b; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> ลากการ์ดเพื่อสลับตำแหน่ง (Drag & Drop) หรือกดลูกศรซ้าย-ขวาที่การ์ดเพื่อย้ายลำดับ และกดปุ่มลบเพื่อลบรายการ
+                </p>
+              </div>
+            </div>
+            <div class="save-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openAddCabinetModal()" style="display: flex; align-items: center; gap: 6px; font-weight: 500; border: 1px solid var(--border-color); background: #f8fafc; color: var(--text-dark); padding: 8px 14px; border-radius: var(--border-radius-md);">
+                <i data-lucide="plus-circle" style="width: 15px; height: 15px; color: var(--primary-color);"></i>
+                <span>เพิ่มตู้จัดเก็บใหม่</span>
+              </button>
+              <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 4px;"></div>
+              <button type="button" class="btn btn-outline btn-sm" onclick="toggleLayoutEditMode()" style="padding: 8px 14px; color: var(--text-muted); border-color: var(--border-color); border-radius: var(--border-radius-md);">
+                ยกเลิก
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" style="background: var(--primary-color); color: white; display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--border-radius-md); font-weight: 600; box-shadow: var(--shadow-sm);" onclick="saveLayout()">
+                <i data-lucide="save" style="width: 15px; height: 15px;"></i>
+                <span>บันทึกแผนผัง</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Laboratory Room Tabs -->
+        <div class="shecu-room-tabs-container">
+          <input type="hidden" id="cabinetMapRoomFilter" value="Lab 1">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <div style="font-size: 13px; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="door-open" style="width: 15px; height: 15px; color: var(--primary-color);"></i>
+              <span>เลือกห้องปฏิบัติการ:</span>
+            </div>
+            <div id="shecuActiveRoomSummary" style="font-size: 12px; color: var(--text-muted);">
+              กำลังดู: <strong id="shecuActiveRoomName" style="color: var(--primary-color);">Lab 1 (ห้องปฏิบัติการเคมี)</strong>
+            </div>
+          </div>
+          <div id="shecuRoomTabsContainer" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin;">
+            <!-- Dynamically generated room tab buttons -->
+          </div>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="directory-toolbar">
+          <div class="directory-toolbar-filters">
+            <span id="shecuOverallStatusBadge" class="shecu-status-chip safe" style="font-size: 12px; padding: 5px 12px; cursor: default;">
+              <span class="status-dot-pulse safe"></span> มาตรฐาน SHECU: ปลอดภัยทุกตู้
+            </span>
+            <div class="category-pills" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <span class="badge map-filter-pill active" style="background: var(--primary-color); color: white; cursor: pointer;" onclick="filterCabinetMap('all', this)">ทั้งหมด</span>
+              <span class="badge badge-outline map-filter-pill" style="cursor: pointer;" onclick="filterCabinetMap('chemical', this)">ตู้สารเคมี</span>
+              <span class="badge badge-outline map-filter-pill" style="cursor: pointer;" onclick="filterCabinetMap('glassware', this)">ตู้เครื่องแก้ว</span>
+              <span id="btnFilterHiddenCabinets" class="badge badge-outline map-filter-pill" style="display: none; cursor: pointer; border-color: #cbd5e1; color: #475569;" onclick="filterCabinetMap('hidden', this)">
+                <i data-lucide="eye-off" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 3px;"></i>ตู้ที่ซ่อนอยู่ (<span id="hiddenCabinetCount">0</span>)
+              </span>
+            </div>
+          </div>
+          <div class="search-box">
+            <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"></i>
+            <input type="text" id="cabinetSearchInput" oninput="searchCabinetMap(this.value)" class="input" placeholder="ค้นหาสารเคมีเพื่อดูตำแหน่งตู้..." style="width: 100%; padding-left: 32px; font-size: 13px;">
+          </div>
+        </div>
+
+        <div class="cabinet-layout-wrapper" id="cabinetMapGrid">
+          <!-- Unified Grid: Storage Units & Workstations -->
+          <div class="shecu-unified-grid">
+            
+            <!-- Cabinet A -->
+            <div class="cabinet-card" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: white; overflow: hidden; display: flex; flex-direction: column;">
+              <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+                <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
+                  <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">ตู้ A</h3>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">สารเคมีของเหลว</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px;"></i> จัดเก็บปลอดภัย</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-A', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-A" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('ตู้ A'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('ตู้ A'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div class="cabinet-shelf-item" data-shelf="A-1" onclick="openShelfModal('A-1')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 13px; font-weight: 500; color: #334155;">ชั้น 1</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px;">12 รายการ</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                    </div>
+                  </div>
+                  <div class="cabinet-shelf-item" data-shelf="A-2" onclick="openShelfModal('A-2')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 13px; font-weight: 500; color: #334155;">ชั้น 2</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px;">8 รายการ</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                    </div>
+                  </div>
+                  <div class="cabinet-shelf-item" data-shelf="A-3" onclick="openShelfModal('A-3')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 13px; font-weight: 500; color: #334155;">ชั้น 3</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px;">15 รายการ</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
+                <div style="display: flex; gap: 12px;">
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 35 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 0 อุปกรณ์</span>
+                </div>
+                <span style="font-weight: 500; color: #64748b;">ความจุ: 35/50</span>
+              </div>
+            </div>
+
+            <!-- Cabinet B -->
+            <div class="cabinet-card" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: white; overflow: hidden; display: flex; flex-direction: column;">
+              <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+                <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
+                  <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">ตู้ B</h3>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">สารเคมีอันตราย</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-status-chip warning"><span class="status-dot-pulse warning"></span> พบสารไม่เข้ากัน</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-B', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-B" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('ตู้ B'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('ตู้ B'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div class="cabinet-shelf-item" data-shelf="B-1" onclick="openShelfModal('B-1')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 13px; font-weight: 500; color: #334155;">ชั้น 1</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px;">5 รายการ</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                    </div>
+                  </div>
+                  <div class="cabinet-shelf-item" data-shelf="B-2" onclick="openShelfModal('B-2')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; border-left: 3px solid #f43f5e; cursor: pointer; transition: background 0.2s; align-items: center; background: #fff1f2;" onmouseover="this.style.background='#ffe4e6'" onmouseout="this.style.background='#fff1f2'">
+                    <span style="font-size: 13px; font-weight: 500; color: #e11d48;">ชั้น 2 (ตรวจสอบ)</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: #e11d48; font-size: 11px; padding: 2px 8px; border-radius: 12px; border-color: #fca5a5;">ด่วน</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #e11d48;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
+                <div style="display: flex; gap: 12px;">
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 12 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 0 อุปกรณ์</span>
+                </div>
+                <span style="font-weight: 500; color: #64748b;">ความจุ: 12/30</span>
+              </div>
+            </div>
+
+            <!-- Glassware Cabinet -->
+            <div class="cabinet-card" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: white; overflow: hidden; display: flex; flex-direction: column;">
+              <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+                <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
+                  <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">ตู้เก็บเครื่องแก้ว</h3>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">เครื่องแก้ว</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px;"></i> จัดเก็บปลอดภัย</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-C', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-C" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('ตู้ C'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('ตู้ C'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div class="cabinet-shelf-item" data-shelf="G-1" onclick="openShelfModal('G-1')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 13px; font-weight: 500; color: #334155;">ชั้น C</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px;">52 รายการ</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
+                <div style="display: flex; gap: 12px;">
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 0 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 52 อุปกรณ์</span>
+                </div>
+                <span style="font-weight: 500; color: #64748b;">ความจุ: 52/100</span>
+              </div>
+            </div>
+
+            <!-- Balance Table -->
+            <div class="cabinet-card" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: white; overflow: hidden; display: flex; flex-direction: column;">
+              <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+                <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
+                  <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">โต๊ะชั่งน้ำหนัก</h3>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">จุดปฏิบัติงาน</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px;"></i> พร้อมใช้งาน</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-S1', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-S1" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('ตู้ดูดควัน (Fume Hood)'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('ตู้ดูดควัน (Fume Hood)'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div class="cabinet-shelf-item" data-shelf="T-1" onclick="openShelfModal('T-1')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 13px; font-weight: 500; color: #334155;">มุมซ้าย (ตาชั่ง A)</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px;">1 รายการ</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
+                <div style="display: flex; gap: 12px;">
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 0 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 1 อุปกรณ์</span>
+                </div>
+                <span style="font-weight: 500; color: #64748b;">ความจุ: 1/2</span>
+              </div>
+            </div>
+            
+            <!-- Lab Bench 1 -->
+            <div class="cabinet-card" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-sm); background: white; overflow: hidden; display: flex; flex-direction: column;">
+              <div class="cabinet-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #f8fafc;">
+                <div class="cabinet-title-row" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start;">
+                  <div>
+                    <h3 style="display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; margin: 0; color: #1e293b;">โต๊ะปฏิบัติการ 1</h3>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">พื้นที่ทั่วไป</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shecu-badge badge-safe" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #ecfdf5; color: #059669; font-weight: 600;"><i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 3px;"></i> พร้อมใช้งาน</span>
+                    <div style="position: relative;" class="dropdown-wrapper">
+                      <button class="btn btn-icon btn-sm" onclick="toggleCabinetDropdown('dropdown-S2', event)" style="padding: 4px; border: none; background: transparent; cursor: pointer; border-radius: 4px;">
+                        <i data-lucide="more-vertical" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                      </button>
+                      <div id="dropdown-S2" class="dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); z-index: 10; min-width: 160px; padding: 4px 0; margin-top: 4px;">
+                        <a href="#" onclick="openAddCabinetModal('โต๊ะปฏิบัติการ 1'); return false;" style="display: block; padding: 8px 16px; color: var(--text-dark); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">แก้ไขข้อมูล/เพิ่มชั้นวาง</a>
+                        <a href="#" onclick="openDeleteCabinetModal('โต๊ะปฏิบัติการ 1'); return false;" style="display: block; padding: 8px 16px; color: var(--accent-red); text-decoration: none; font-size: 13px; transition: background 0.2s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">ลบตู้จัดเก็บ</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-shelves" style="padding: 12px 20px; flex: 1;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <div class="cabinet-shelf-item" data-shelf="W-1" onclick="openShelfModal('W-1')" style="display: flex; justify-content: space-between; padding: 10px 12px; border-radius: 6px; cursor: pointer; transition: background 0.2s; align-items: center;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                    <span style="font-size: 13px; font-weight: 500; color: #334155;">บนโต๊ะ</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="item-count" style="background: white; border: 1px solid var(--border-color); color: var(--text-muted); font-size: 11px; padding: 2px 8px; border-radius: 12px;">3 รายการ</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="cabinet-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); background: #f8fafc;">
+                <div style="display: flex; gap: 12px;">
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="flask-conical" style="width: 12px; height: 12px;"></i> 2 สารเคมี</span>
+                  <span style="display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="wrench" style="width: 12px; height: 12px;"></i> 1 อุปกรณ์</span>
+                </div>
+                <span style="font-weight: 500; color: #64748b;">ความจุ: 3/5</span>
+              </div>
+            </div>
+
+            <!-- Placeholder Add Card -->
+            <div class="cabinet-card add-new-card" onclick="openAddCabinetModal()" style="border: 2px dashed var(--border-color); border-radius: var(--border-radius-lg); background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 240px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--primary-color)'; this.style.backgroundColor='#f8fafc';" onmouseout="this.style.borderColor='var(--border-color)'; this.style.backgroundColor='transparent';">
+              <div style="background: white; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm); margin-bottom: 16px;">
+                <i data-lucide="plus" style="width: 24px; height: 24px; color: var(--primary-color);"></i>
+              </div>
+              <span style="font-weight: 600; color: var(--text-dark);">เพิ่มตู้หรือจุดปฏิบัติการใหม่</span>
+              <span style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">คลิกเพื่อสร้างรายการ</span>
+            </div>
+
+          </div>
+        </div>
+      </section>

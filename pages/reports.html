@@ -1,0 +1,114 @@
+      <section class="panel" id="panel-reports">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
+              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">รายงานและสถิติ</h1>
+              <p class="header-subtitle">ส่งออกข้อมูลรายงานคลังพัสดุและวิเคราะห์ประวัติการใช้งานห้องปฏิบัติการ</p>
+            </div>
+          </div>
+        </header>
+
+        <div class="dashboard-grid">
+          <!-- 3. Lab Booking Stats Card -->
+          <div class="card-container" id="chartBookingCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
+            <div class="card-header">
+              <h2 class="card-title">สถิติการจองใช้งานห้องปฏิบัติการ</h2>
+            </div>
+            <div id="chartBookingContainer" style="width: 100%; min-height: 200px; box-sizing: border-box;">
+              <!-- Dynamic HTML Chart -->
+            </div>
+          </div>
+
+          <!-- 1. Report Export Panel -->
+          <div class="card-container" id="reportExportCard">
+            <div class="card-header">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="printer" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+                <span>ส่งออกรายงานคลัง</span>
+              </h2>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+              <button type="button" class="booking-action-btn" id="dashboardBtnExportInventory" style="width: 100%;">
+                <i data-lucide="download" style="width: 16px; height: 16px; color: #2563eb; flex-shrink: 0;"></i>
+                <span>ส่งออกรายงานคลังพัสดุ (CSV)</span>
+              </button>
+              <button type="button" class="booking-action-btn" id="dashboardBtnExportTransactions" style="width: 100%;">
+                <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px; color: #10b981; flex-shrink: 0;"></i>
+                <span>ส่งออกประวัติการยืม-คืน (CSV)</span>
+              </button>
+              <button type="button" class="booking-action-btn" id="dashboardBtnPrintReport" style="width: 100%;">
+                <i data-lucide="printer" style="width: 16px; height: 16px; color: #6366f1; flex-shrink: 0;"></i>
+                <span>พิมพ์รายงานสรุปสถานะคลัง (PDF)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Lab Booking Report Card -->
+          <div class="card-container" id="labBookingReportCard">
+            <div class="card-header">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="calendar" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+                <span>ส่งออกรายงานการจอง</span>
+              </h2>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label for="exportBookingRoomFilter" style="font-size: 12px; font-weight: 600; color: var(--text-main);">กรองห้องปฏิบัติการ:</label>
+                <select id="exportBookingRoomFilter" class="form-control" style="width: 100%; height: 42px; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg, 12px); outline: none; background-color: #fff; cursor: pointer; font-family: var(--font-sans); text-overflow: ellipsis; vertical-align: middle;">
+                  <option value="all">-- ทุกห้องปฏิบัติการ --</option>
+                  <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                  <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                  <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
+                  <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                  <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                  <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                  <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                  <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
+                </select>
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 4px;">
+                <button type="button" class="booking-action-btn" id="btnExportBookingCSV" style="flex: 1;">
+                  <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px; color: #10b981; flex-shrink: 0;"></i>
+                  <span>ส่งออก CSV</span>
+                </button>
+                <button type="button" class="booking-action-btn" id="btnExportBookingPDF" style="flex: 1;">
+                  <i data-lucide="printer" style="width: 16px; height: 16px; color: #6366f1; flex-shrink: 0;"></i>
+                  <span>พิมพ์ PDF</span>
+                </button>
+              </div>
+              <button type="button" class="booking-action-btn admin-clear-btn" id="btnClearBookings" style="width: 100%; display: none; color: #ef4444; border-color: rgba(239, 68, 68, 0.3); margin-top: 4px;" title="ล้างประวัติการจองทั้งหมด">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #ef4444; flex-shrink: 0;"></i>
+                <span style="color: #ef4444;">ล้างประวัติการจองทั้งหมด</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 4. Stock Forecast & Auto-PO Card -->
+          <div class="card-container" id="stockForecastCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 10px;">
+                <div class="forecast-header-icon-box">
+                  <i data-lucide="sparkles" style="width: 17px; height: 17px; color: #d97706;"></i>
+                </div>
+                <span class="title-desktop">คาดการณ์พัสดุใกล้หมด (Smart Stock & Auto-PO)</span>
+                <span class="title-mobile">คาดการณ์พัสดุใกล้หมด (Auto-PO)</span>
+              </h2>
+              <span class="forecast-count-pill warning" id="forecastWarningCount">0 รายการใกล้หมด</span>
+            </div>
+            <div class="forecast-card-content" style="padding: 16px 0 0 0;">
+              <p class="forecast-card-desc">
+                วิเคราะห์อัตราการใช้งานย้อนหลัง 60 วัน เพื่อแจ้งเตือนสารเคมีและอุปกรณ์ที่ใกล้หมดล่วงหน้า พร้อมเพิ่มลงในใบสั่งซื้อ (Auto-PO) ได้ในคลิกเดียว
+              </p>
+              <div class="forecast-list" id="stockForecastList">
+                <div class="empty-state" style="padding: 30px;">
+                  <div class="empty-state-icon"><i data-lucide="check-circle" style="color: var(--accent-green);"></i></div>
+                  <div class="empty-state-text" style="color: var(--text-muted);">พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งาน ไม่พบรายการใกล้หมด</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>

@@ -1,0 +1,232 @@
+      <section class="panel" id="panel-borrow-return">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
+              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">ยืม-คืนพัสดุและเคมี</h1>
+              <p class="header-subtitle">ระบบบันทึกรายการยืม-คืนสารเคมีและอุปกรณ์วิทยาศาสตร์ พร้อมตัดสต็อกอัตโนมัติ</p>
+            </div>
+          </div>
+        </header>
+
+        <div class="borrow-grid booking-grid-layout">
+          <!-- Left Column: Form -->
+          <div class="form-container" style="margin-bottom: 0;">
+            <div class="form-panel-header">
+              <h2 id="borrowFormTitle">บันทึกรายการยืม-คืน</h2>
+              <p id="borrowFormSubtitle">ทำรายการยืมสารเคมี/อุปกรณ์เพื่อเบิกใช้ หรือบันทึกส่งคืนเข้าสต็อก</p>
+            </div>
+            
+            <!-- Guest View Only Banner (L0) -->
+            <div id="borrowGuestLockBanner" style="display: none; padding: 24px 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.08)); border: 1.5px dashed rgba(99, 102, 241, 0.3); border-radius: 12px; text-align: center; margin-bottom: 20px;">
+              <div style="width: 48px; height: 48px; border-radius: 50%; background: #ffffff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto; color: var(--primary-purple);">
+                <i data-lucide="lock" style="width: 24px; height: 24px;"></i>
+              </div>
+              <h3 style="font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 6px;">โหมดบุคคลทั่วไป (Guest / Public)</h3>
+              <p style="font-size: 13px; color: #64748b; line-height: 1.6; max-width: 380px; margin: 0 auto 16px auto;">
+                บุคคลทั่วไปสามารถสืบค้นและดูข้อมูลสารเคมี/พัสดุและ SDS ได้อย่างเดียว หากต้องการทำรายการยืม-คืนพัสดุ กรุณาเข้าสู่ระบบด้วย Teacher ID
+              </p>
+              <button type="button" class="btn btn-primary" onclick="openLoginModal()" style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; background: linear-gradient(135deg, var(--primary-purple), #7c3aed); border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);">
+                <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
+                <span>เข้าสู่ระบบด้วย Teacher ID</span>
+              </button>
+            </div>
+
+            <form id="borrowForm">
+              <div class="form-group">
+                <label class="form-label" style="font-weight: 600; font-size: 14px;">ประเภทรายการ <span style="color: var(--accent-red);">*</span></label>
+                <div class="transaction-cards-container">
+                  <label class="transaction-card">
+                    <input type="radio" name="borrowType" id="typeBorrow" value="borrow" checked class="transaction-card-input">
+                    <div class="transaction-card-content">
+                      <div class="transaction-card-details">
+                        <span class="transaction-card-title">ยืมสาร/อุปกรณ์</span>
+                        <span class="transaction-card-desc">เบิกใช้สำหรับเข้าเรียน/ทำปฏิบัติการ</span>
+                      </div>
+                    </div>
+                  </label>
+                  
+                  <label class="transaction-card">
+                    <input type="radio" name="borrowType" id="typeReturn" value="return" class="transaction-card-input">
+                    <div class="transaction-card-content">
+                      <div class="transaction-card-details">
+                        <span class="transaction-card-title">คืนสาร/อุปกรณ์</span>
+                        <span class="transaction-card-desc">บันทึกส่งคืนพัสดุและอุปกรณ์เคมี</span>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="form-group" id="singleItemSelectGroup">
+                <label for="borrowItemCode" class="form-label">เลือกรายการสารเคมี / อุปกรณ์ <span style="color: var(--accent-red);">*</span></label>
+                <div class="custom-select-wrapper" id="borrowItemSelectWrapper">
+                  <div class="custom-select-trigger" id="borrowItemSelectTrigger">
+                    <span class="custom-select-trigger-text">-- ค้นหาและเลือกรายการที่ต้องการเพิ่ม --</span>
+                    <i data-lucide="chevron-down" class="custom-select-chevron" style="width: 16px; height: 16px; transition: transform var(--transition-normal);"></i>
+                  </div>
+                  <div class="custom-select-dropdown" id="borrowItemSelectDropdown">
+                    <div class="custom-select-search-box">
+                      <i data-lucide="search" class="custom-select-search-icon" style="width: 14px; height: 14px;"></i>
+                      <input type="text" id="borrowItemSearchInput" class="custom-select-search-input" placeholder="พิมพ์ค้นหาชื่อ หรือรหัส..." autocomplete="off">
+                      <button type="button" class="custom-select-clear-btn" id="borrowItemClearSearch" style="display: none;">&times;</button>
+                    </div>
+                    <div class="custom-select-options" id="borrowItemOptionsList">
+                      <!-- Options will be populated here dynamically -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Selected Items List for Multiple Borrowing -->
+              <div class="form-group" id="selectedItemsGroup">
+                <label class="form-label">รายการที่เลือกเพื่อทำรายการ <span style="color: var(--accent-red);">*</span></label>
+                <div id="selectedItemsContainer" style="border: 1px dashed var(--border-color); border-radius: var(--border-radius-md); padding: 12px; min-height: 80px; display: flex; flex-direction: column; gap: 8px; background-color: rgba(0,0,0,0.01);">
+                  <div class="empty-selected-items" style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0;">
+                    (กรุณาเลือกรายการสารเคมี / อุปกรณ์จากกล่องด้านบนเพื่อทำรายการ)
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="borrowerName" class="form-label">ชื่อผู้ทำรายการ <span style="color: var(--accent-red);">*</span></label>
+                <input type="text" id="borrowerName" class="form-control" placeholder="ระบุชื่อผู้ยืม-คืน" required list="borrowerList">
+                <datalist id="borrowerList"></datalist>
+              </div>
+
+              <!-- Checklist for items to be returned -->
+              <div class="form-group" id="returnItemsChecklistGroup" style="display: none; margin-top: 12px; margin-bottom: 16px;">
+                <label class="form-label" style="font-weight: 600;">ตรวจสอบรายการค้างยืมและระบุของชำรุด (ถ้ามี)</label>
+                <div id="returnItemsChecklistContainer" style="border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px; display: flex; flex-direction: column; gap: 10px; background-color: #f9fafb; max-height: 220px; overflow-y: auto; overflow-x: hidden; width: 100%; max-width: 100%; box-sizing: border-box;">
+                  <!-- List of items dynamically generated -->
+                </div>
+              </div>
+
+              <!-- Linked Booking Details (Date, Room, Period) -->
+              <div class="form-row-3" id="borrowBookingDetailsRow">
+                <div class="form-group">
+                  <label for="borrowRoom" class="form-label">ห้องปฏิบัติการ <span style="color: var(--accent-red);">*</span></label>
+                  <select id="borrowRoom" class="form-control" required>
+                    <option value="" disabled selected>-- เลือกห้องแล็บ --</option>
+                    <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                    <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                    <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
+                    <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                    <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
+                    <option value="None">เบิกใช้นอกห้องปฏิบัติการ</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="borrowDate" class="form-label">วันที่ใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                  <input type="date" id="borrowDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                  <label for="borrowSlot" class="form-label">คาบเรียนที่ใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                  <select id="borrowSlot" class="form-control" required>
+                    <option value="" disabled selected>-- เลือกคาบเรียน --</option>
+                    <option value="คาบ 1">คาบ 1 (08:10 - 09:00)</option>
+                    <option value="คาบ 2">คาบ 2 (09:00 - 09:50)</option>
+                    <option value="คาบ 3">คาบ 3 (09:50 - 10:40)</option>
+                    <option value="คาบ 4">คาบ 4 (10:50 - 11:40)</option>
+                    <option value="คาบ 5">คาบ 5 (11:40 - 12:30)</option>
+                    <option value="พักกลางวัน">พักกลางวัน (12:30 - 13:20)</option>
+                    <option value="คาบ 6">คาบ 6 (13:20 - 14:10)</option>
+                    <option value="คาบ 7">คาบ 7 (14:10 - 15:00)</option>
+                    <option value="คาบ 8">คาบ 8 (15:10 - 16:00)</option>
+                    <option value="None">ไม่อยู่ในคาบเรียน</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="borrowNotes" class="form-label">หมายเหตุ / วัตถุประสงค์การใช้งาน</label>
+                <textarea id="borrowNotes" class="form-control" rows="3" placeholder="ระบุเหตุผลในการเบิกใช้ หรือรายละเอียดเพิ่มเติม..."></textarea>
+              </div>
+
+              <div class="form-actions" style="margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" id="btnSubmitBorrow" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-radius: 10px; padding: 10px 22px; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);">
+                  <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+                  <span>บันทึกรายการ</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnResetBorrow">รีเซ็ต</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right Column: Live Logs & Requests -->
+          <div style="display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 0;">
+            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h2>ประวัติการทำรายการล่าสุด</h2>
+                <p>แสดงประวัติการยืมและการส่งคืนสินค้าพัสดุวิทยาศาสตร์แบบเรียลไทม์</p>
+              </div>
+
+              <!-- Export Actions for Borrow/Return History (Unified with Lab Booking Toolbar Style) -->
+              <div id="borrowExportActions" style="display: flex; gap: 8px; align-items: center; width: 100%; margin-top: 6px; flex-wrap: wrap;">
+                <div class="borrow-filter-container" style="flex: 1.2; min-width: 170px; position: relative;">
+                  <select id="exportBorrowRoomFilter" class="booking-action-btn booking-filter-select" style="width: 100%; padding-left: 36px; padding-right: 28px; cursor: pointer; text-align: left; appearance: none; -webkit-appearance: none; font-size: 13px; font-weight: 500; color: #334155;">
+                    <option value="all">ทุกห้องปฏิบัติการ</option>
+                    <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                    <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                    <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
+                    <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                    <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
+                    <option value="None">เบิกใช้นอกห้องปฏิบัติการ</option>
+                  </select>
+                  <i data-lucide="filter" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #64748b; pointer-events: none;"></i>
+                  <i data-lucide="chevron-down" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #94a3b8; pointer-events: none;"></i>
+                </div>
+
+                <button type="button" class="booking-action-btn" id="btnExportBorrowCSV" title="ส่งออกข้อมูลเป็น Excel / CSV">
+                  <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop">ส่งออก Excel</span>
+                  <span class="btn-text-tablet">Excel</span>
+                  <span class="btn-text-mobile">Excel</span>
+                </button>
+                <button type="button" class="booking-action-btn" id="btnExportBorrowPDF" title="พิมพ์รายงานสรุปประวัติ">
+                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop">พิมพ์รายงาน</span>
+                  <span class="btn-text-tablet">พิมพ์</span>
+                  <span class="btn-text-mobile">PDF</span>
+                </button>
+                <button type="button" class="booking-action-btn admin-clear-btn" id="btnClearTransactions" style="display: none;" title="ล้างประวัติการทำรายการยืม-คืน">
+                  <i data-lucide="trash-2" style="width: 15px; height: 15px; color: #ef4444; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop" style="color: #ef4444;">ล้างประวัติ</span>
+                  <span class="btn-text-tablet" style="color: #ef4444;">ล้าง</span>
+                  <span class="btn-text-mobile" style="color: #ef4444;">ล้าง</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Transaction Table (Responsive Zero-Scroll Layout) -->
+            <div class="table-container booking-table-container desktop-booking-table" style="margin-bottom: 0; flex: 1; overflow-x: hidden; width: 100%;">
+              <table style="width: 100%; min-width: 0; table-layout: fixed;">
+                <thead>
+                  <tr>
+                    <th style="width: 32%;">วันทำรายการ</th>
+                    <th style="width: 68%;">รายการพัสดุและผู้ยืม</th>
+                  </tr>
+                </thead>
+                <tbody id="transactionsTableBody">
+                  <tr>
+                    <td colspan="2" style="text-align: center; padding: 40px;">
+                      <div class="empty-state">
+                        <div class="empty-state-icon"><i data-lucide="history"></i></div>
+                        <div class="empty-state-text">ยังไม่มีประวัติการทำรายการยืม-คืน</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>

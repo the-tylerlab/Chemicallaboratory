@@ -1190,12 +1190,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.warn("Session verification notice:", e);
     }
 
-    // Support URL query parameters & Hash routing for direct navigation
-    const initialHash = window.location.hash.replace(/^#\/?/, '').trim().split('?')[0];
+    // Support clean URL Path routing, query parameters & legacy Hash routing for direct navigation
+    const pathSegment = (window.location.pathname || "").replace(/^\//, '').split('/')[0].trim();
+    const initialHash = (window.location.hash || "").replace(/^#\/?/, '').trim().split('?')[0];
     const urlParams = new URLSearchParams(window.location.search);
-    const targetPanel = initialHash || urlParams.get("panel") || "dashboard";
+    const validPanels = ["dashboard", "all-items", "cabinet-layout", "add-item", "lab-booking", "borrow-return", "purchase-orders", "reports", "activity-logs", "admin", "notifications"];
+    const targetPanel = (validPanels.includes(pathSegment) ? pathSegment : null) || initialHash || urlParams.get("panel") || "dashboard";
     if (typeof navigateToPanel === "function") {
-      navigateToPanel(targetPanel, "all", "all", !!initialHash);
+      navigateToPanel(targetPanel, "all", "all", true);
     }
 
     // Parallel Background Cloud Synchronization (Non-blocking Stale-While-Revalidate)
@@ -1995,14 +1997,12 @@ function setupNavigation() {
     });
   }
 
-  // Handle Browser Back / Forward and URL Hash Changes (Routing Sync)
+  // Handle Browser Back / Forward and URL Path / Hash Changes (Routing Sync)
   const handleRouteSync = () => {
-    const hash = window.location.hash.replace(/^#\/?/, '').trim().split('?')[0];
-    if (!hash) {
-      navigateToPanel("dashboard", "all", "all", false);
-      return;
-    }
-    let target = hash;
+    const pathSegment = (window.location.pathname || "").replace(/^\//, '').split('/')[0].trim();
+    const hash = (window.location.hash || "").replace(/^#\/?/, '').trim().split('?')[0];
+    const validPanels = ["dashboard", "all-items", "cabinet-layout", "add-item", "lab-booking", "borrow-return", "purchase-orders", "reports", "activity-logs", "admin", "notifications"];
+    let target = (validPanels.includes(pathSegment) ? pathSegment : "") || hash || "dashboard";
     if (target === "shecu") target = "cabinet-layout";
     if (target === "procurement") target = "purchase-orders";
     if (target.startsWith("panel-")) target = target.replace("panel-", "");
@@ -2135,12 +2135,13 @@ function setupSidebarCollapse() {
   }
 }
 
-// Function to programmatically switch panels with full URL Hash Routing & History
+// Function to programmatically switch panels with clean HTML5 Path Routing & History
 function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updateHistory = true) {
   let cleanPanelId = (panelId || "dashboard").toString().trim();
   if (cleanPanelId.startsWith("panel-")) cleanPanelId = cleanPanelId.replace("panel-", "");
   if (cleanPanelId.startsWith("#/")) cleanPanelId = cleanPanelId.replace("#/", "");
   if (cleanPanelId.startsWith("#")) cleanPanelId = cleanPanelId.replace("#", "");
+  if (cleanPanelId.startsWith("/")) cleanPanelId = cleanPanelId.replace("/", "");
   if (cleanPanelId === "shecu") cleanPanelId = "cabinet-layout";
   if (cleanPanelId === "procurement") cleanPanelId = "purchase-orders";
   if (!cleanPanelId) cleanPanelId = "dashboard";
@@ -2155,9 +2156,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updat
       if (!loggedIn && typeof window.openLoginModal === "function") {
         window.openLoginModal();
       }
-      if (window.location.hash.includes("admin")) {
-        history.replaceState({ panel: "dashboard" }, "", "#/dashboard");
-      }
+      history.replaceState({ panel: "dashboard" }, "", "/dashboard");
       return;
     }
   }
@@ -2172,9 +2171,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updat
       if (!loggedIn && typeof window.openLoginModal === "function") {
         window.openLoginModal();
       }
-      if (window.location.hash.includes("reports")) {
-        history.replaceState({ panel: "dashboard" }, "", "#/dashboard");
-      }
+      history.replaceState({ panel: "dashboard" }, "", "/dashboard");
       return;
     }
     if (typeof applyRoleToReportsPanel === "function") {
@@ -2188,9 +2185,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updat
       if (!loggedIn && typeof window.openLoginModal === "function") {
         window.openLoginModal();
       }
-      if (window.location.hash.includes("notifications")) {
-        history.replaceState({ panel: "dashboard" }, "", "#/dashboard");
-      }
+      history.replaceState({ panel: "dashboard" }, "", "/dashboard");
       return;
     }
   }
@@ -2200,9 +2195,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updat
     if (typeof window.openLoginModal === "function") {
       window.openLoginModal();
     }
-    if (window.location.hash.includes(cleanPanelId)) {
-      history.replaceState({ panel: "dashboard" }, "", "#/dashboard");
-    }
+    history.replaceState({ panel: "dashboard" }, "", "/dashboard");
     return;
   }
 
@@ -2278,25 +2271,25 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updat
 
   // Route Config for Browser Hash and Titles
   const ROUTE_CONFIG = {
-    "dashboard": { hash: "#/dashboard", title: "หน้าแรก" },
-    "all-items": { hash: "#/all-items", title: "รายการสารเคมีและพัสดุ" },
-    "cabinet-layout": { hash: "#/cabinet-layout", title: "ผังตู้สารเคมี SHECU" },
-    "add-item": { hash: "#/add-item", title: "เพิ่มรายการใหม่" },
-    "lab-booking": { hash: "#/lab-booking", title: "จองห้องปฏิบัติการ" },
-    "borrow-return": { hash: "#/borrow-return", title: "ยืม-คืนพัสดุ" },
-    "purchase-orders": { hash: "#/purchase-orders", title: "จัดซื้อจัดจ้างและงบประมาณ" },
-    "reports": { hash: "#/reports", title: "รายงานและสถิติ" },
-    "activity-logs": { hash: "#/activity-logs", title: "ประวัติการใช้งาน" },
-    "admin": { hash: "#/admin", title: "แผงควบคุมระบบ (Admin)" },
-    "notifications": { hash: "#/notifications", title: "การแจ้งเตือน" }
+    "dashboard": { path: "/dashboard", title: "หน้าแรก" },
+    "all-items": { path: "/all-items", title: "รายการสารเคมีและพัสดุ" },
+    "cabinet-layout": { path: "/cabinet-layout", title: "ผังตู้สารเคมี SHECU" },
+    "add-item": { path: "/add-item", title: "เพิ่มรายการใหม่" },
+    "lab-booking": { path: "/lab-booking", title: "จองห้องปฏิบัติการ" },
+    "borrow-return": { path: "/borrow-return", title: "ยืม-คืนพัสดุ" },
+    "purchase-orders": { path: "/purchase-orders", title: "จัดซื้อจัดจ้างและงบประมาณ" },
+    "reports": { path: "/reports", title: "รายงานและสถิติ" },
+    "activity-logs": { path: "/activity-logs", title: "ประวัติการใช้งาน" },
+    "admin": { path: "/admin", title: "แผงควบคุมระบบ (Admin)" },
+    "notifications": { path: "/notifications", title: "การแจ้งเตือน" }
   };
 
   const route = ROUTE_CONFIG[cleanPanelId];
   if (route) {
     if (updateHistory) {
-      const targetHash = route.hash;
-      if (window.location.hash !== targetHash) {
-        history.pushState({ panel: cleanPanelId }, "", targetHash);
+      const targetPath = route.path;
+      if (window.location.pathname !== targetPath || window.location.hash) {
+        history.pushState({ panel: cleanPanelId }, "", targetPath);
       }
     }
     if (route.title) {
@@ -2579,7 +2572,18 @@ function applyDashboardRoleLayout() {
     executiveBanner.style.display = isL4Executive ? "flex" : "none";
   }
 
-  // 8. Lucide Icons
+  // 8. Admin-only Stat Grid & Lab Calendar Stats Row
+  const dashboardStatGrid = document.getElementById("dashboardStatGrid") || document.querySelector("#panel-dashboard > .stat-grid");
+  if (dashboardStatGrid) {
+    dashboardStatGrid.style.display = isL3Admin ? "" : "none";
+  }
+
+  const labCalendarStatsRow = document.getElementById("labCalendarStatsRow") || document.querySelector("#dashboardLabCalendarSection .lab-calendar-stats-row");
+  if (labCalendarStatsRow) {
+    labCalendarStatsRow.style.display = isL3Admin ? "" : "none";
+  }
+
+  // 9. Lucide Icons
   if (typeof lucide !== "undefined" && lucide.createIcons) {
     lucide.createIcons();
   }

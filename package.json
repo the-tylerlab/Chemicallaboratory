@@ -14,7 +14,13 @@
     "test:p1-database": "node scripts/test_p1_database.js",
     "test:p2-inventory": "node scripts/test_p2_inventory.js",
     "test:p2-modules": "node scripts/test_p2_modules.js",
-    "test:all": "npm run test:security && npm run test:date && npm run test:auth && npm run test:p1-database && npm run test:p2-inventory && npm run test:p2-modules"
+    "test:all": "npm run test:security && npm run test:date && npm run test:auth && npm run test:p1-database && npm run test:p2-inventory && npm run test:p2-modules",
+    "build:pages": "node scripts/build_pages.js",
+    "watch:pages": "node scripts/build_pages.js --watch",
+    "build:css": "tailwindcss -i global.css -o assets/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i global.css -o assets/css/tailwind.css --watch",
+    "build": "npm run build:pages && npm run build:css && npm run build:agentation",
+    "build:agentation": "esbuild src/agentation-entry.js --bundle --minify --outfile=agentation.bundle.js --format=iife --define:process.env.NODE_ENV='\"production\"'"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.3",
@@ -28,5 +34,14 @@
     "web-push": "^3.6.7"
   },
   "author": "Antigravity AI",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "agentation": "^3.1.2",
+    "autoprefixer": "^10.6.1",
+    "esbuild": "^0.28.2",
+    "postcss": "^8.5.29",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tailwindcss": "^3.4.19"
+  }
 }
