@@ -166,6 +166,25 @@ app.use(express.static(path.join(__dirname), {
   }
 }));
 
+// SPA Route Fallback (clean URLs: /dashboard, /all-items, etc.)
+const SPA_ROUTES = [
+  '/dashboard',
+  '/all-items',
+  '/cabinet-layout',
+  '/add-item',
+  '/lab-booking',
+  '/borrow-return',
+  '/purchase-orders',
+  '/reports',
+  '/activity-logs',
+  '/admin',
+  '/notifications'
+];
+
+app.get(SPA_ROUTES, (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 const DB_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DB_DIR, 'database.json');
 const BUDGET_FILE = path.join(DB_DIR, 'budget.json');
@@ -5044,6 +5063,17 @@ app.delete('/api/workspace', authenticateToken, requireRole('L3'), (req, res) =>
 
 // Start Express Web Server
 if (require.main === module) {
+  // Automatically compile modular pages/ into index.html
+  try {
+    const { buildPages, watchPages } = require('./scripts/build_pages');
+    buildPages(false);
+    if (!IS_PRODUCTION) {
+      watchPages();
+    }
+  } catch (err) {
+    console.warn('[server] Page compiler notice:', err.message);
+  }
+
   app.listen(PORT, () => {
     console.log(`=======================================================`);
     console.log(`🧪 Laboratory Management System Backend running!`);

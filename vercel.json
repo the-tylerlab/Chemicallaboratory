@@ -35,6 +35,10 @@
       "status": 404
     },
     {
+      "src": "/(dashboard|all-items|cabinet-layout|add-item|lab-booking|borrow-return|purchase-orders|reports|activity-logs|admin|notifications)",
+      "dest": "/index.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1",
       "headers": {

@@ -12803,6 +12803,37 @@ body.admin-logged-in .public-only-section {
   flex-shrink: 0;
 }
 
+/* Right Column: Quick Menu + Category Breakdown Column */
+.lab-schedule-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  width: 100%;
+}
+
+.lab-schedule-column #quickMenuCard {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.lab-schedule-column #categoryBreakdownCard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
+.lab-schedule-column #categoryBreakdownContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  justify-content: flex-start;
+  padding-top: 4px;
+}
+
 /* Right: Daily Usage Schedule Card */
 .lab-schedule-card {
   background: #ffffff;

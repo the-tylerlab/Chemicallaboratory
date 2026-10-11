@@ -1,0 +1,318 @@
+      <section class="panel active" id="panel-dashboard">
+        <div class="content-header">
+          <h1>แดชบอร์ด</h1>
+          <p>ภาพรวมสถานะคลังพัสดุและสารเคมี</p>
+        </div>
+
+        <!-- Top Announcement Ticker Bar -->
+        <div class="announcement-ticker-bar ticker-theme-orange ticker-pause-hover" id="announcementTickerBar" style="margin-bottom: 22px;">
+          <div class="ticker-badge" id="tickerBadgeMain">
+            <i data-lucide="megaphone" style="width: 14px; height: 14px;"></i>
+            <span id="tickerBadgeText">ประกาศ & ความปลอดภัย</span>
+          </div>
+          <div class="ticker-marquee-wrapper">
+            <div class="ticker-marquee-track" id="tickerMarqueeTrack">
+              <!-- Dynamically populated from admin announcement settings -->
+            </div>
+          </div>
+          <button type="button" class="btn-ticker-admin-edit" id="btnTickerAdminEdit" onclick="openAnnouncementModal()" title="แก้ไข/เพิ่มข้อความประกาศ (เฉพาะแอดมิน)" style="display: none;">
+            <i data-lucide="edit-3" style="width: 12.5px; height: 12.5px;"></i>
+            <span class="btn-text-desktop">แก้ไขประกาศ</span>
+            <span class="btn-text-mobile">แก้ไข</span>
+          </button>
+        </div>
+
+        <!-- Compact Stat Cards Grid (Admin Only) -->
+        <div class="stat-grid" id="dashboardStatGrid" style="display: none;">
+          <div class="stat-card blue" id="statCardTotal" role="button" tabindex="0" onclick="navigateToPanel('all-items', 'all', 'all')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">รายการทั้งหมด</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="dashboardValTotal">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="box" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+          <div class="stat-card red" id="statCardExpired" role="button" tabindex="0" onclick="navigateToPanel('all-items', 'all', 'expired')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">หมดอายุแล้ว</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="dashboardValExpired">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="alert-triangle" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+          <div class="stat-card orange" id="statCardLowStock" role="button" tabindex="0" onclick="navigateToPanel('all-items', 'all', 'low-stock')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">ใกล้หมด (Stock)</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="dashboardValLowStock">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="boxes" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+          <div class="stat-card yellow" id="statCardNearExpiry" role="button" tabindex="0" onclick="navigateToPanel('all-items', 'all', 'near-expiry')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">ใกล้หมดอายุ</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="dashboardValNearExpiry">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="clock" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Split Layout -->
+        <div class="dashboard-grid">
+
+          <!-- Pending Requests Card for Admin/Teachers -->
+          <div class="card-container" id="pendingRequestsCard" style="display: none;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                <span>คำขออนุมัติรอดำเนินการ</span>
+              </h2>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="badge badge-orange" id="pendingRequestsCount" style="padding: 2px 8px; font-size: 0.75rem;">0</span>
+              </div>
+            </div>
+            <div id="pendingRequestsContainer" style="flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; max-height: 400px; overflow-y: auto; padding-right: 4px; padding-bottom: 4px;">
+              <!-- Dynamically populated by renderPendingRequests() -->
+            </div>
+          </div>
+
+          <!-- Unified Alerts Panel with Tabs -->
+          <div class="card-container" id="unifiedAlertsCard">
+            <div class="card-header" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+              <h2 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="bell" style="width: 18px; height: 18px; color: var(--accent-blue);"></i>
+                <span>แจ้งเตือนและสถานะเครื่องมือ</span>
+              </h2>
+              <div class="alert-tabs" style="display: flex; gap: 6px; width: 100%;">
+                <button type="button" class="alert-tab-btn active" data-tab="urgent" style="flex: 1; padding: 6px 4px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                  <span>เตือนด่วน</span>
+                  <span class="badge badge-red" id="dashboardUrgentCount" style="padding: 1px 5px; font-size: 0.6875rem; display: none;">0</span>
+                </button>
+                <button type="button" class="alert-tab-btn" data-tab="overdue" style="flex: 1; padding: 6px 4px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                  <span>ค้างส่งคืน</span>
+                  <span class="badge badge-red" id="dashboardOverdueCount" style="padding: 1px 5px; font-size: 0.6875rem; display: none;">0</span>
+                </button>
+                <button type="button" class="alert-tab-btn" data-tab="damaged" style="flex: 1; padding: 6px 4px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                  <span>ชำรุด/ส่งซ่อม</span>
+                </button>
+              </div>
+            </div>
+            
+            <div class="alert-tab-content active" id="tab-urgent" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+              <div id="dashboardUrgentContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+            
+            <div class="alert-tab-content" id="tab-overdue" style="display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+              <div id="dashboardOverdueContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+            
+            <div class="alert-tab-content" id="tab-damaged" style="display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+              <div id="dashboardDamagedContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============================================================
+             LAB USAGE CALENDAR & SCHEDULE OVERVIEW (L0-L2 & All Users)
+             ============================================================ -->
+        <div class="dashboard-lab-calendar-section" id="dashboardLabCalendarSection">
+          <h2 class="sr-only">ปฏิทินและตารางการใช้งานห้องปฏิบัติการ</h2>
+          <!-- 1. Top Summary Stat Row (Aligned with Calendar & Schedule Grid) (Admin Only) -->
+          <div class="lab-calendar-stats-row" id="labCalendarStatsRow" style="display: none;">
+            <div class="lab-stats-left-group">
+              <div class="lab-summary-card stat-pending">
+                <div class="lab-summary-icon red">
+                  <i data-lucide="clock"></i>
+                </div>
+                <div class="lab-summary-content">
+                  <span class="lab-summary-title">รออนุมัติ</span>
+                  <div class="lab-summary-val-wrap">
+                    <span class="lab-summary-val" id="calStatPending">0</span>
+                    <span class="lab-summary-unit">รายการ</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lab-summary-card stat-rooms">
+                <div class="lab-summary-icon green">
+                  <i data-lucide="door-open"></i>
+                </div>
+                <div class="lab-summary-content">
+                  <span class="lab-summary-title">ห้องปฏิบัติการทั้งหมด</span>
+                  <div class="lab-summary-val-wrap">
+                    <span class="lab-summary-val" id="calStatRooms">8</span>
+                    <span class="lab-summary-unit">ห้อง</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="lab-stats-right-group">
+              <div class="lab-summary-card stat-users">
+                <div class="lab-summary-icon blue">
+                  <i data-lucide="users"></i>
+                </div>
+                <div class="lab-summary-content">
+                  <span class="lab-summary-title">สมาชิกในระบบ</span>
+                  <div class="lab-summary-val-wrap">
+                    <span class="lab-summary-val" id="calStatUsers">0</span>
+                    <span class="lab-summary-unit">คน</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Main Calendar & Schedule Split Layout -->
+          <div class="lab-calendar-main-grid">
+            <!-- Left Side: Interactive Calendar -->
+            <div class="lab-calendar-card">
+              <div class="lab-calendar-toolbar">
+                <div class="lab-calendar-nav">
+                  <button type="button" class="btn-cal-nav" id="dashCalBtnPrev" title="เดือนก่อนหน้า" aria-label="เดือนก่อนหน้า">
+                    <i data-lucide="chevron-left"></i>
+                  </button>
+                  <button type="button" class="btn-cal-nav" id="dashCalBtnNext" title="เดือนถัดไป" aria-label="เดือนถัดไป">
+                    <i data-lucide="chevron-right"></i>
+                  </button>
+                  <button type="button" class="btn-cal-today" id="dashCalBtnToday">วันนี้</button>
+                </div>
+                
+                <h3 class="lab-calendar-current-label" id="dashCalMonthLabel">กันยายน 2569</h3>
+
+                <div class="lab-calendar-view-tabs" id="dashCalViewTabs">
+                  <button type="button" class="btn-view-tab active" data-view="month">เดือน</button>
+                  <button type="button" class="btn-view-tab" data-view="week">สัปดาห์</button>
+                  <button type="button" class="btn-view-tab" data-view="day">วัน</button>
+                </div>
+              </div>
+
+              <!-- Month / Week / Day Container -->
+              <div class="lab-calendar-content" id="dashCalContent">
+                <!-- Dynamically Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Right Side Column: Quick Menu + Daily Usage Schedule -->
+            <div class="lab-schedule-column">
+              <!-- Quick Menu Panel (Placed Above Daily Usage Schedule) -->
+              <div class="card-container" id="quickMenuCard">
+                <div class="card-header">
+                  <h2 class="card-title">
+                    <i data-lucide="zap" style="width: 16px; height: 16px; color: #7c3aed;"></i>
+                    <span>เมนูด่วน</span>
+                  </h2>
+                </div>
+                <div class="quick-menu-list">
+                  <button type="button" class="quick-btn blue" id="quickBtnLabBooking" title="จองห้องปฏิบัติการ">
+                    <div class="quick-btn-icon">
+                      <i data-lucide="calendar"></i>
+                    </div>
+                    <div class="quick-btn-info">
+                      <span class="quick-btn-title">
+                        จอง<span class="keep-word">ห้องปฏิบัติการ</span>
+                      </span>
+                    </div>
+                  </button>
+                  <button type="button" class="quick-btn purple" id="quickBtnBorrowReturn" title="ยืม-คืนพัสดุและเคมีภัณฑ์">
+                    <div class="quick-btn-icon">
+                      <i data-lucide="repeat"></i>
+                    </div>
+                    <div class="quick-btn-info">
+                      <span class="quick-btn-title">
+                        <span class="keep-word">ยืม-คืนพัสดุ</span> และ<span class="keep-word">เคมีภัณฑ์</span>
+                      </span>
+                    </div>
+                  </button>
+                  <button type="button" class="quick-btn green" id="quickBtnAddItem" style="display: none;" title="เพิ่มสาร/อุปกรณ์">
+                    <div class="quick-btn-icon">
+                      <i data-lucide="plus-circle"></i>
+                    </div>
+                    <div class="quick-btn-info">
+                      <span class="quick-btn-title">
+                        เพิ่มสาร/อุปกรณ์
+                      </span>
+                    </div>
+                  </button>
+                  <button type="button" class="quick-btn orange" id="quickBtnAdmin" onclick="navigateToPanel('admin')" style="display: none;" title="Admin Panel">
+                    <div class="quick-btn-icon">
+                      <i data-lucide="shield-check"></i>
+                    </div>
+                    <div class="quick-btn-info">
+                      <span class="quick-btn-title">
+                        Admin Panel
+                      </span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Right Side: Category Breakdown Panel (สัดส่วนหมวดหมู่พัสดุ) -->
+              <div class="card-container" id="categoryBreakdownCard">
+                <div class="card-header">
+                  <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="pie-chart" style="width: 16px; height: 16px; color: var(--primary-purple);"></i>
+                    <span>สัดส่วนหมวดหมู่พัสดุ</span>
+                    <span class="badge badge-purple" id="categoryBreakdownCount" style="padding: 2px 8px; font-size: 0.75rem;">0 รายการ</span>
+                  </h2>
+                </div>
+                <div id="categoryBreakdownContainer">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date Events Modal / Popover -->
+        <div class="dash-cal-modal-backdrop" id="dashCalModalBackdrop" style="display: none;">
+          <div class="dash-cal-popover-modal" id="dashCalPopoverModal">
+            <div class="dash-cal-popover-header">
+              <h4 class="dash-cal-popover-title" id="dashCalPopoverTitle">รายการจองวันที่ 18 กันยายน 2569</h4>
+              <button type="button" class="dash-cal-popover-close" id="dashCalPopoverClose" aria-label="ปิด">
+                <i data-lucide="x"></i>
+              </button>
+            </div>
+            <div class="dash-cal-popover-body" id="dashCalPopoverBody">
+              <!-- Dynamically populated list of events -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Lab Status Widget (Full Width 4-Column Grid, Public Only) -->
+        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 20px; width: 100%; box-sizing: border-box;">
+          <div class="card-header" style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px;">
+            <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0; white-space: nowrap;">
+              <i data-lucide="door-open" style="color: var(--primary-color); width: 16px; height: 16px;"></i>
+              <span>สถานะห้องปฏิบัติการวันนี้</span>
+              <span class="badge badge-green" id="todayLabAvailableBadge" style="font-size: 0.75rem; padding: 2px 8px; font-weight: 600;">กำลังโหลด…</span>
+            </h2>
+          </div>
+          <div class="today-labs-grid" id="todayLabsGrid">
+            <!-- Populated dynamically by renderTodayLabStatus() -->
+          </div>
+        </div>
+      </section>

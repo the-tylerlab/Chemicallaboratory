@@ -1,0 +1,1266 @@
+  <section class="panel" id="panel-admin" style="padding-bottom: 40px;">
+    <header class="unified-page-header">
+      <div class="unified-page-header-left">
+        <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
+          <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+        </button>
+        <div class="header-title-wrapper">
+          <h1 class="header-title" style="display: flex; align-items: center; gap: 12px;">ตั้งค่าผู้ดูแลระบบ (Admin Panel)</h1>
+          <p class="header-subtitle">พื้นที่สำหรับผู้ดูแลระบบในการจัดการผู้ใช้งาน ตั้งค่าระบบ และดูภาพรวมการใช้งานขององค์กร</p>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Horizontal Tab Navigation directly below header subtitle -->
+    <div class="admin-nav-bar">
+      <ul class="admin-horizontal-menu" id="adminMenu">
+        <li class="admin-menu-item active" data-tab="admin-users">
+          <i data-lucide="users"></i>
+          <span class="btn-text-desktop">จัดการสิทธิ์ผู้ใช้งาน</span>
+          <span class="btn-text-tablet">จัดการสิทธิ์ผู้ใช้งาน</span>
+          <span class="btn-text-mobile">สิทธิ์ผู้ใช้</span>
+        </li>
+        <li class="admin-menu-item" data-tab="admin-labs">
+          <i data-lucide="flask-conical"></i>
+          <span class="btn-text-desktop">จัดการห้องปฏิบัติการ</span>
+          <span class="btn-text-tablet">ห้องปฏิบัติการ</span>
+          <span class="btn-text-mobile">ห้องแล็บ</span>
+        </li>
+        <li class="admin-menu-item" data-tab="admin-login-banner">
+          <i data-lucide="layout-template"></i>
+          <span class="btn-text-desktop">แบนเนอร์ & ประกาศหน้าเข้าสู่ระบบ</span>
+          <span class="btn-text-tablet">แบนเนอร์ & ประกาศ</span>
+          <span class="btn-text-mobile">แบนเนอร์</span>
+        </li>
+        <li class="admin-menu-item" data-tab="admin-announcement">
+          <i data-lucide="megaphone"></i>
+          <span class="btn-text-desktop">จัดการประกาศหน้าแรก</span>
+          <span class="btn-text-tablet">จัดการประกาศ</span>
+          <span class="btn-text-mobile">ประกาศ</span>
+        </li>
+        <li class="admin-menu-item danger" data-tab="admin-danger">
+          <i data-lucide="alert-octagon"></i>
+          <span class="btn-text-desktop">พื้นที่อันตราย</span>
+          <span class="btn-text-tablet">พื้นที่อันตราย</span>
+          <span class="btn-text-mobile">อันตราย</span>
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Full-Width Admin Content Card -->
+    <div class="admin-content-card">
+        
+        <!-- Users Tab -->
+        <div class="admin-tab active" id="admin-users">
+          <div class="admin-tab-header">
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title">
+                <i data-lucide="users" style="color: #7c3aed;"></i>
+                <span>จัดการสิทธิ์ผู้ใช้งาน (User & Role Management)</span>
+              </h2>
+              <p class="admin-tab-desc">กำหนดระดับสิทธิ์ (L1 - L4) มอบหมายห้องปฏิบัติการ และตรวจสอบบัญชีผู้ใช้งานในระบบ</p>
+            </div>
+            <div class="admin-tab-header-right"></div>
+          </div>
+
+          <!-- FlowAI Inspired KPI Overview Cards -->
+          <div class="admin-kpi-grid">
+            <!-- KPI 1 -->
+            <div class="admin-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed;">
+                  <i data-lucide="users" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">ผู้ใช้งานทั้งหมด</span>
+              </div>
+              <div class="admin-kpi-val" id="kpiTotalUsers">0</div>
+            </div>
+
+            <!-- KPI 2 -->
+            <div class="admin-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: #059669;">
+                  <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">ผู้ดูแล & เจ้าหน้าที่ (L2–L4)</span>
+              </div>
+              <div class="admin-kpi-val" id="kpiStaffAdmins">0</div>
+            </div>
+
+            <!-- KPI 3 -->
+            <div class="admin-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(59, 130, 246, 0.1); color: #2563eb;">
+                  <i data-lucide="flask-conical" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">มอบหมายห้องแล็บแล้ว</span>
+              </div>
+              <div class="admin-kpi-val" id="kpiAssignedLabs">0</div>
+            </div>
+
+            <!-- KPI 4 -->
+            <div class="admin-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(245, 158, 11, 0.1); color: #d97706;">
+                  <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">ระดับสิทธิ์ความปลอดภัย</span>
+              </div>
+              <div class="admin-kpi-val" style="font-size: 18px; line-height: 1.5; color: #1e293b;">4 ระดับ (L1–L4)</div>
+            </div>
+          </div>
+
+          <!-- Smart Search & Filter Toolbar Matching 4 KPI Columns -->
+          <div class="admin-toolbar-grid">
+            <!-- Col 1: Search Input (aligned with KPI 1: ผู้ใช้งานทั้งหมด) -->
+            <div class="admin-search-wrap">
+              <i data-lucide="search" class="admin-search-icon"></i>
+              <input type="text" id="adminUserSearchInput" class="admin-search-input" placeholder="ค้นหาชื่อ, รหัสครู, อีเมล..." oninput="filterAdminUsersTable()">
+            </div>
+
+            <!-- Col 2: Role & Dept Filter Group (aligned with KPI 2: ผู้ดูแล & เจ้าหน้าที่ (L2–L4)) -->
+            <div class="admin-filter-group">
+              <select id="adminUserRoleFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
+                <option value="">ทุกระดับสิทธิ์ (All Roles)</option>
+                <option value="L1">L1 - ครูผู้สอน (Teacher)</option>
+                <option value="L2">L2 - เจ้าหน้าที่แล็บ (Lab Staff)</option>
+                <option value="L3">L3 - ผู้ดูแลระบบ (Admin)</option>
+                <option value="L4">L4 - ผู้บริหาร (Executive)</option>
+              </select>
+
+              <select id="adminUserDeptFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
+                <option value="">ทุกกลุ่มสาระ / หน่วยงาน</option>
+              </select>
+            </div>
+
+            <!-- Col 3: Data Actions (aligned with KPI 3: มอบหมายห้องแล็บแล้ว) -->
+            <div class="admin-toolbar-col3">
+              <button class="btn btn-secondary btn-admin-action" onclick="syncAllToGoogleSheets()" title="ซิงค์ข้อมูลทั้งหมดไปยัง Google Sheets ทันที">
+                <i data-lucide="refresh-cw" style="width: 14px; height: 14px; color: #2563eb;"></i>
+                <span class="btn-text-desktop">ซิงค์ Sheets</span>
+                <span class="btn-text-tablet">ซิงค์ Sheets</span>
+                <span class="btn-text-mobile">ซิงค์ Sheets</span>
+              </button>
+              <button class="btn btn-secondary btn-admin-action" onclick="openBatchAddUsersModal()" title="นำเข้าข้อมูลผู้ใช้จากไฟล์ Excel หรือ Google Sheets">
+                <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #16a34a;"></i>
+                <span class="btn-text-desktop">นำเข้าข้อมูล</span>
+                <span class="btn-text-tablet">นำเข้า</span>
+                <span class="btn-text-mobile">นำเข้า</span>
+              </button>
+            </div>
+
+            <!-- Col 4: Action Buttons (aligned with KPI 4: ระดับสิทธิ์ความปลอดภัย) -->
+            <div class="admin-toolbar-right admin-toolbar-col4">
+              <button class="btn btn-danger btn-batch-delete-user" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none;" title="ลบผู้ใช้งานที่เลือก">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                <span id="batchDeleteUsersCountText">ลบที่เลือก (0)</span>
+              </button>
+              <button class="btn btn-primary btn-admin-action btn-add-user" onclick="openInviteUserModal()">
+                <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+                <span class="btn-text-desktop">เพิ่มผู้ใช้งาน / ครู</span>
+                <span class="btn-text-tablet">เพิ่มผู้ใช้งาน</span>
+                <span class="btn-text-mobile">เพิ่มผู้ใช้งาน</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="admin-table-container" id="adminUsersDesktopTable">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 36px; text-align: center; padding: 9px 4px;">
+                    <input type="checkbox" id="selectAllUsersCheckbox" onchange="toggleSelectAllUsers(this.checked)" title="เลือกทั้งหมด" style="width: 14px; height: 14px; accent-color: var(--primary-purple); cursor: pointer; border-radius: 4px;">
+                  </th>
+                  <th style="padding: 9px 8px; width: 75px; white-space: nowrap;">รหัสครู (ID)</th>
+                  <th style="padding: 9px 8px; min-width: 150px;">ชื่อผู้ใช้งาน (Member Name)</th>
+                  <th style="padding: 9px 8px;">กลุ่มสาระ / หน่วยงาน</th>
+                  <th style="padding: 9px 8px; white-space: nowrap;">ระดับสิทธิ์ (Role)</th>
+                  <th style="padding: 9px 8px;">ห้องที่ได้รับมอบหมาย</th>
+                  <th style="white-space: nowrap; width: 145px; text-align: center; padding: 9px 6px;">รหัสผ่าน (Password)</th>
+                  <th style="text-align: center; width: 125px; white-space: nowrap; padding: 9px 6px;">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="adminUsersTableBody">
+                <!-- Dynamically populated by app.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Mobile User Card List (Visible on mobile/small screens) -->
+          <div class="admin-users-mobile-list" id="adminUsersMobileList">
+            <!-- Dynamically populated by app.js -->
+          </div>
+        </div>
+        
+        <!-- Login Modal Hero & Announcement Settings Tab -->
+        <div class="admin-tab" id="admin-login-banner" style="display: none;">
+          <div class="admin-tab-header">
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title">
+                <i data-lucide="layout-template" style="color: #0284c7;"></i>
+                <span>จัดการแบนเนอร์ & ประกาศด่วนหน้าเข้าสู่ระบบ (Login Hero & Announcement)</span>
+              </h2>
+              <p class="admin-tab-desc">ปรับแต่งการ์ดแสดงผลฝั่งซ้ายของหน้าต่างเข้าสู่ระบบ กำหนดหัวข้อประกาศ ข้อความประชาสัมพันธ์ โทนสี และภาพห้องปฏิบัติการได้ตามต้องการ</p>
+            </div>
+            <div class="admin-tab-header-right">
+              <div class="admin-header-toggle-btn">
+                <span class="admin-header-toggle-label">
+                  <i data-lucide="eye" style="width: 14px; height: 14px; color: #64748b;"></i>
+                  <span>แสดงการ์ดแบนเนอร์</span>
+                </span>
+                <label class="toggle-switch-wrapper" for="adminLoginBannerEnabled" style="margin: 0; gap: 6px;">
+                  <div class="toggle-switch sm">
+                    <input type="checkbox" id="adminLoginBannerEnabled" checked onchange="updateLoginBannerToggleLabel(this.checked); triggerLoginBannerLivePreview();">
+                    <span class="toggle-slider"></span>
+                  </div>
+                  <span class="admin-toggle-status" id="adminLoginBannerStatusText" style="font-size: 12.5px; font-weight: 600; color: #1e293b; min-width: auto;">เปิดใช้งาน</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <form id="adminLoginBannerForm" onsubmit="saveAdminLoginBanner(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+            <div class="admin-form-box">
+              <!-- Quick Suggestion Templates (เทมเพลตข้อความแนะนำ) -->
+              <div class="banner-templates-section" style="margin-bottom: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+                  <span style="font-size: 12.5px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #0284c7;"></i>
+                    <span>เทมเพลตข้อความแนะนำ (คลิกเพื่อเลือกใช้งาน):</span>
+                  </span>
+                  <span style="font-size: 11px; color: #64748b;">กดเลือกเพื่อเติมข้อความอัตโนมัติแล้วแก้ไขต่อได้</span>
+                </div>
+                <div class="banner-quick-templates" id="adminLoginBannerTemplateList" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                  <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('general')">
+                    <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #f59e0b;"></i>
+                    <span>มาตรฐานทั่วไป (SHECU)</span>
+                  </button>
+                  <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('maintenance')">
+                    <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #f59e0b;"></i>
+                    <span>แจ้งปิดปรับปรุง / ตรวจนับสต็อก</span>
+                  </button>
+                  <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('booking')">
+                    <i data-lucide="calendar" style="width: 14px; height: 14px; color: #3b82f6;"></i>
+                    <span>ปฏิทินจองห้องแล็บ</span>
+                  </button>
+                  <button type="button" class="banner-template-chip" onclick="applyLoginBannerTemplate('safety')">
+                    <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #10b981;"></i>
+                    <span>ความปลอดภัย & SDS</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Headline & Subtitle -->
+              <div class="admin-form-grid-2col">
+                <div>
+                  <label for="adminLoginBannerHeadline" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">หัวข้อหลัก (Headline)</label>
+                  <input type="text" id="adminLoginBannerHeadline" class="form-control" value="ระบบคลังสารเคมีและห้องแล็บ" placeholder="เช่น ระบบคลังสารเคมีและห้องแล็บ" oninput="triggerLoginBannerLivePreview()">
+                </div>
+                <div>
+                  <label for="adminLoginBannerBadgeText" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">ข้อความป้ายกำกับ (Badge Tag)</label>
+                  <input type="text" id="adminLoginBannerBadgeText" class="form-control" value="ห้องปฏิบัติการวิทยาศาสตร์" placeholder="เช่น ห้องปฏิบัติการวิทยาศาสตร์, ประกาศด่วน" oninput="triggerLoginBannerLivePreview()">
+                </div>
+              </div>
+
+              <!-- Subtitle / Notice Description -->
+              <div class="form-group" style="margin: 0; width: 100%;">
+                <label for="adminLoginBannerSubtitle" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">ข้อความรายละเอียด / ประกาศด่วน (Subtitle / Description)</label>
+                <textarea id="adminLoginBannerSubtitle" class="form-control" rows="2" placeholder="ระบุข้อความประกาศหรือคำแนะนำการใช้งาน" oninput="triggerLoginBannerLivePreview()" style="font-size: 13.5px; line-height: 1.6; width: 100%; min-height: 64px; padding: 10px 14px; box-sizing: border-box; border-radius: 10px;">บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU</textarea>
+              </div>
+
+              <!-- Theme (Essential only) & Image Option -->
+              <div class="admin-form-grid-theme-media">
+                <div>
+                  <label class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">ธีมสีแบนเนอร์ (Color Palette - เฉพาะสีจำเป็น)</label>
+                  <div class="ticker-theme-chips" id="adminLoginBannerThemeChips">
+                    <button type="button" class="ticker-theme-chip active" data-theme="blue" onclick="selectLoginBannerTheme('blue')">
+                      <span class="ticker-theme-dot" style="background: #0284c7;"></span>
+                      <span>น้ำเงิน SciPortal</span>
+                    </button>
+                    <button type="button" class="ticker-theme-chip" data-theme="green" onclick="selectLoginBannerTheme('green')">
+                      <span class="ticker-theme-dot" style="background: #10b981;"></span>
+                      <span>เขียวความปลอดภัย</span>
+                    </button>
+                    <button type="button" class="ticker-theme-chip" data-theme="purple" onclick="selectLoginBannerTheme('purple')">
+                      <span class="ticker-theme-dot" style="background: #6366f1;"></span>
+                      <span>ม่วงโมเดิร์น</span>
+                    </button>
+                    <button type="button" class="ticker-theme-chip" data-theme="amber" onclick="selectLoginBannerTheme('amber')">
+                      <span class="ticker-theme-dot" style="background: #f59e0b;"></span>
+                      <span>ส้มอำพัน ประกาศแจ้งเตือน</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="adminLoginBannerImgOption" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">รูปแบบภาพประกอบ (Visual Media)</label>
+                  <select id="adminLoginBannerImgOption" class="form-control" onchange="onLoginBannerImgOptionChange(this.value)">
+                    <option value="default">กราฟิกฟีเจอร์มาตรฐาน SHECU (Default Features)</option>
+                    <option value="upload">อัปโหลดไฟล์รูปภาพจากอุปกรณ์ (Upload Image File)</option>
+                    <option value="lab1">ภาพห้องแล็บเคมี (Chemistry Lab)</option>
+                    <option value="lab2">ภาพห้องแล็บฟิสิกส์ (Physics Lab)</option>
+                    <option value="lab3">ภาพห้องแล็บชีววิทยา (Biology Lab)</option>
+                    <option value="custom">ระบุ URL รูปภาพเอง (Custom URL)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Upload Image File Area (Shown when 'upload' selected) -->
+              <div id="adminLoginBannerUploadRow" style="display: none; width: 100%;">
+                <label class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">อัปโหลดไฟล์รูปภาพห้องปฏิบัติการ (Image File Upload)</label>
+                <div class="login-banner-upload-box" onclick="document.getElementById('adminLoginBannerFileInput').click()">
+                  <input type="file" id="adminLoginBannerFileInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" style="display: none;" onchange="handleBannerFileInput(this)">
+                  <i data-lucide="upload-cloud" style="width: 28px; height: 28px; color: #0284c7; margin-bottom: 6px;"></i>
+                  <div style="font-size: 13px; font-weight: 600; color: #1e293b;">คลิกเพื่อเลือกไฟล์รูปภาพ หรือลากไฟล์มาวางที่นี่</div>
+                  <div style="font-size: 11.5px; color: #64748b; margin-top: 3px;">รองรับไฟล์ PNG, JPG, WebP (ระบบจะปรับขนาดภาพให้อัตโนมัติเพื่อความรวดเร็ว)</div>
+                </div>
+                <div id="adminLoginBannerUploadPreview" class="login-banner-upload-preview" style="display: none;">
+                  <img id="adminLoginBannerUploadThumb" src="" alt="Thumbnail" class="login-banner-upload-thumb">
+                  <div style="flex: 1; min-width: 0;">
+                    <div id="adminLoginBannerUploadFilename" style="font-size: 12.5px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">lab-image.jpg</div>
+                    <div id="adminLoginBannerUploadFilesize" style="font-size: 11px; color: #64748b;">ขนาดพร้อมใช้งาน</div>
+                  </div>
+                  <button type="button" class="btn btn-secondary" onclick="clearUploadedBannerImage()" style="padding: 5px 12px; font-size: 12px; color: #dc2626; border-color: #fecaca;">
+                    <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                    <span>ลบรูป</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Custom Image URL Row (Shown when 'custom' selected) -->
+              <div id="adminLoginBannerCustomUrlRow" style="display: none; width: 100%;">
+                <label for="adminLoginBannerCustomUrl" class="form-label" style="font-size: 13px; font-weight: 600; margin-bottom: 6px; display: block;">URL รูปภาพห้องปฏิบัติการ (Custom Image URL)</label>
+                <input type="url" id="adminLoginBannerCustomUrl" class="form-control" placeholder="https://images.unsplash.com/... หรือ URL ภาพของโรงเรียน" oninput="triggerLoginBannerLivePreview()">
+              </div>
+            </div>
+
+            <!-- Live Preview of Left Card -->
+            <div style="width: 100%; box-sizing: border-box;">
+              <div style="font-size: 12.5px; font-weight: 700; color: #334155; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="eye" style="width: 15px; height: 15px; color: #0284c7;"></i>
+                <span>ตัวอย่างการแสดงผลการ์ดฝั่งซ้าย (Live Preview):</span>
+              </div>
+              <div style="max-width: 440px; border-radius: 20px; overflow: hidden; box-shadow: 0 15px 35px -5px rgba(15, 23, 42, 0.14), 0 0 0 1px rgba(15, 23, 42, 0.08);">
+                <div class="login-hero-panel login-hero-theme-blue" id="adminLoginHeroPreviewBox" style="min-height: 440px; padding: 28px 24px;">
+                  <div class="login-hero-ambient-glow"></div>
+                  <div class="login-hero-content">
+                    <div class="login-hero-brand">
+                      <div class="login-brand-icon">
+                        <i data-lucide="flask-conical" style="width: 17px; height: 17px;"></i>
+                      </div>
+                      <div class="login-brand-text">
+                        <span class="brand-title">SciPortal</span>
+                        <span class="brand-sub">Laboratory System</span>
+                      </div>
+                    </div>
+
+                    <div class="login-hero-intro">
+                      <div class="login-hero-badge" id="adminPreviewHeroBadge">
+                        <span class="badge-dot"></span>
+                        <span id="adminPreviewHeroBadgeText">ห้องปฏิบัติการวิทยาศาสตร์</span>
+                      </div>
+                      <h3 class="login-hero-headline" id="adminPreviewHeroHeadline">ระบบคลังสารเคมีและห้องแล็บ</h3>
+                      <p class="login-hero-subtitle" id="adminPreviewHeroSubtitle">บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU</p>
+                    </div>
+
+                    <div class="login-hero-media" id="adminPreviewHeroMedia">
+                      <div class="login-hero-img-wrap" id="adminPreviewHeroImgWrap" style="display: none;">
+                        <img id="adminPreviewHeroImg" src="" alt="Lab" class="login-hero-img">
+                      </div>
+                      <div id="adminPreviewHeroDefaultGraphic" class="login-hero-features-list">
+                        <div class="login-feature-item feature-shecu">
+                          <div class="login-feature-icon-wrap"><i data-lucide="shield-check" style="width: 15px; height: 15px;"></i></div>
+                          <div class="login-feature-text">
+                            <span class="feature-title">มาตรฐานความปลอดภัย SHECU</span>
+                            <span class="feature-desc">ตรวจเช็กและจัดเก็บสารเคมีตามข้อกำหนด</span>
+                          </div>
+                        </div>
+                        <div class="login-feature-item feature-stock">
+                          <div class="login-feature-icon-wrap"><i data-lucide="boxes" style="width: 15px; height: 15px;"></i></div>
+                          <div class="login-feature-text">
+                            <span class="feature-title">ติดตามสต็อกแบบ Real-time</span>
+                            <span class="feature-desc">บันทึกยอดคงเหลือและประวัติการเบิก-จ่าย</span>
+                          </div>
+                        </div>
+                        <div class="login-feature-item feature-calendar">
+                          <div class="login-feature-icon-wrap"><i data-lucide="calendar" style="width: 15px; height: 15px;"></i></div>
+                          <div class="login-feature-text">
+                            <span class="feature-title">ตารางการใช้ห้องปฏิบัติการ</span>
+                            <span class="feature-desc">จัดสรรตารางการทดลองอย่างเป็นระบบ</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="login-hero-footer-status">
+                      <span class="status-indicator-dot"></span>
+                      <span>ระบบพร้อมใช้งาน • มาตรฐานความปลอดภัย SHECU</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="margin-top: 4px; width: 100%;">
+              <button type="submit" class="btn btn-primary admin-btn-save">
+                <i data-lucide="save" style="width: 15px; height: 15px;"></i>
+                <span>บันทึกการตั้งค่าแบนเนอร์หน้าเข้าสู่ระบบ</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Announcement Management Tab -->
+        <div class="admin-tab" id="admin-announcement" style="display: none;">
+          <div class="admin-tab-header">
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title">
+                <i data-lucide="megaphone" style="color: #ea580c;"></i>
+                <span>จัดการประกาศหน้าแรก (Announcement Ticker)</span>
+              </h2>
+              <p class="admin-tab-desc">กำหนดข้อความประกาศ ข่าวสาร หรือข้อควรระวังความปลอดภัย และปรับแต่งความเร็ว ระยะห่าง และธีมสีของแถบตัววิ่ง</p>
+            </div>
+            <div class="admin-tab-header-right">
+              <div class="admin-header-toggle-btn">
+                <span class="admin-header-toggle-label">
+                  <i data-lucide="bell" style="width: 14px; height: 14px; color: #64748b;"></i>
+                  <span>แสดงแถบประกาศ</span>
+                </span>
+                <label class="toggle-switch-wrapper" for="adminAnnouncementEnabled" style="margin: 0; gap: 6px;">
+                  <div class="toggle-switch sm">
+                    <input type="checkbox" id="adminAnnouncementEnabled" checked onchange="updateAnnouncementToggleLabel(this.checked, 'adminAnnouncementStatusText'); triggerAnnouncementLivePreview('admin');">
+                    <span class="toggle-slider"></span>
+                  </div>
+                  <span class="admin-toggle-status" id="adminAnnouncementStatusText" style="font-size: 12.5px; font-weight: 600; color: #1e293b; min-width: auto;">เปิด</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <form id="adminAnnouncementForm" onsubmit="saveAdminAnnouncement(event)" style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+            <!-- Announcement Text Box -->
+            <div class="admin-form-box">
+              <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="message-square" style="width: 16px; height: 16px; color: #ea580c;"></i>
+                <span>ข้อความและเนื้อหาประกาศ (Announcement Content)</span>
+              </div>
+              <div class="form-group" style="margin: 0; width: 100%;">
+                <label for="adminAnnouncementText" class="form-label" style="font-weight: 600; font-size: 13px; margin-bottom: 6px; display: block;">ข้อความประกาศ (คั่นแต่ละข้อความด้วยเครื่องหมาย <code>|</code> หรือขึ้นบรรทัดใหม่)</label>
+                <textarea id="adminAnnouncementText" class="form-control" rows="3" placeholder="สวมใส่อุปกรณ์ PPE ทุกครั้งที่เข้าแล็บ | การทดลองที่มีไอระเหยต้องทำในตู้ดูดควัน Fume Hood | ติดต่อฉุกเฉินและอุบัติเหตุ แจ้งผ่านเมนู 'แจ้งปัญหา'" style="font-size: 13.5px; line-height: 1.6; width: 100%; min-height: 76px; padding: 10px 14px; box-sizing: border-box; border-radius: 10px;" oninput="triggerAnnouncementLivePreview('admin')"></textarea>
+              </div>
+
+              <!-- Templates -->
+              <div class="admin-template-presets">
+                <div class="admin-template-presets-label">
+                  <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #d97706;"></i>
+                  <span>เทมเพลตข้อความแนะนำ:</span>
+                </div>
+                <div class="admin-template-presets-buttons">
+                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('standard')"><i data-lucide="clipboard-list" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> ชุดมาตรฐาน (PPE + Fume Hood + ฉุกเฉิน)</button>
+                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('maintenance')"><i data-lucide="package" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> แจ้งตรวจนับสต็อกประจำสัปดาห์</button>
+                  <button type="button" class="preset-pill-btn" onclick="applyAnnouncementPreset('urgent')"><i data-lucide="alert-triangle" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> แจ้งเตือนปิดปรับปรุงระบบ</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Customization Settings Box -->
+            <div class="admin-form-box">
+              <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="sliders" style="width: 16px; height: 16px; color: #0284c7;"></i>
+                <span>ปรับแต่งการแสดงผลและความเร็ว (Customization & Motion)</span>
+              </div>
+
+              <!-- Badge Title & Theme -->
+              <div class="admin-form-grid-2col">
+                <div>
+                  <label for="adminAnnouncementBadgeText" class="form-label" style="font-size: 12.5px; font-weight: 600; margin-bottom: 6px; display: block;">ข้อความหัวข้อป้าย (Badge Text)</label>
+                  <input type="text" id="adminAnnouncementBadgeText" class="form-control" value="ประกาศ & ความปลอดภัย" placeholder="เช่น ประกาศ, ข่าวด่วน" style="font-size: 13px; height: 36px; padding: 6px 12px; width: 100%; box-sizing: border-box; border-radius: 8px;" oninput="triggerAnnouncementLivePreview('admin')">
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 12.5px; font-weight: 600; margin-bottom: 6px; display: block;">ธีมสีของป้าย (Badge Theme)</label>
+                  <div class="ticker-theme-chips" id="adminTickerThemeChips">
+                    <button type="button" class="ticker-theme-chip active" data-theme="orange" onclick="selectAnnouncementTheme('orange', 'admin')">
+                      <span class="ticker-theme-dot" style="background: #ea580c;"></span>
+                      <span>ส้ม</span>
+                    </button>
+                    <button type="button" class="ticker-theme-chip" data-theme="blue" onclick="selectAnnouncementTheme('blue', 'admin')">
+                      <span class="ticker-theme-dot" style="background: #0284c7;"></span>
+                      <span>น้ำเงิน</span>
+                    </button>
+                    <button type="button" class="ticker-theme-chip" data-theme="green" onclick="selectAnnouncementTheme('green', 'admin')">
+                      <span class="ticker-theme-dot" style="background: #10b981;"></span>
+                      <span>เขียว</span>
+                    </button>
+                    <button type="button" class="ticker-theme-chip" data-theme="purple" onclick="selectAnnouncementTheme('purple', 'admin')">
+                      <span class="ticker-theme-dot" style="background: #7c3aed;"></span>
+                      <span>ม่วง</span>
+                    </button>
+                    <button type="button" class="ticker-theme-chip" data-theme="red" onclick="selectAnnouncementTheme('red', 'admin')">
+                      <span class="ticker-theme-dot" style="background: #dc2626;"></span>
+                      <span>แดง</span>
+                    </button>
+                    <button type="button" class="ticker-theme-chip" data-theme="dark" onclick="selectAnnouncementTheme('dark', 'admin')">
+                      <span class="ticker-theme-dot" style="background: #1e293b;"></span>
+                      <span>ดาร์ก</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Speed & Gap Sliders -->
+              <div class="admin-form-grid-2col">
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label for="adminAnnouncementSpeed" class="form-label" style="font-size: 12.5px; font-weight: 600; margin: 0;">ความเร็วในการเลื่อน (Scroll Speed)</label>
+                    <span class="ticker-slider-val" id="adminAnnouncementSpeedVal">55 วินาที</span>
+                  </div>
+                  <div class="ticker-slider-control">
+                    <span style="font-size: 11px; color: var(--text-muted);">เร็ว</span>
+                    <input type="range" id="adminAnnouncementSpeed" min="15" max="100" step="5" value="55" oninput="onAnnouncementSliderChange('speed', this.value, 'admin')">
+                    <span style="font-size: 11px; color: var(--text-muted);">ช้า</span>
+                  </div>
+                </div>
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label for="adminAnnouncementGap" class="form-label" style="font-size: 12.5px; font-weight: 600; margin: 0;">ระยะเว้นวรรค (Item Spacing)</label>
+                    <span class="ticker-slider-val" id="adminAnnouncementGapVal">36 px</span>
+                  </div>
+                  <div class="ticker-slider-control">
+                    <span style="font-size: 11px; color: var(--text-muted);">แคบ</span>
+                    <input type="range" id="adminAnnouncementGap" min="20" max="100" step="4" value="36" oninput="onAnnouncementSliderChange('gap', this.value, 'admin')">
+                    <span style="font-size: 11px; color: var(--text-muted);">กว้าง</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pause on Hover Toggle -->
+              <div class="admin-toggle-row-compact">
+                <div class="admin-toggle-text-wrap">
+                  <div class="admin-toggle-title">หยุดเลื่อนเมื่อนำเมาส์ชี้ (Pause on Hover)</div>
+                  <div class="admin-toggle-desc">ช่วยให้อ่านข้อความยาวได้สะดวกเมื่อวางเคอร์เซอร์บนแถบประกาศ</div>
+                </div>
+                <label class="toggle-switch-wrapper" for="adminAnnouncementPauseHover">
+                  <div class="toggle-switch">
+                    <input type="checkbox" id="adminAnnouncementPauseHover" checked onchange="triggerAnnouncementLivePreview('admin')">
+                    <span class="toggle-slider"></span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="ticker-preview-container" style="width: 100%; box-sizing: border-box; margin-top: 0;">
+              <div style="font-size: 11.5px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                <span>ตัวอย่างสด (Live Preview):</span>
+              </div>
+              <div class="ticker-preview-bar ticker-theme-orange ticker-pause-hover" id="adminAnnouncementPreviewBar">
+                <div class="ticker-badge" id="adminAnnouncementPreviewBadge">
+                  <i data-lucide="megaphone" style="width: 13px; height: 13px;"></i>
+                  <span id="adminAnnouncementPreviewBadgeText">ประกาศ & ความปลอดภัย</span>
+                </div>
+                <div class="ticker-marquee-wrapper">
+                  <div class="ticker-marquee-track" id="adminAnnouncementPreviewTrack" style="--ticker-duration: 55s; --ticker-gap: 36px;">
+                    <!-- Live Preview Items -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="margin-top: 4px; width: 100%;">
+              <button type="submit" class="btn btn-primary admin-btn-save">
+                <i data-lucide="save" style="width: 15px; height: 15px;"></i>
+                <span>บันทึกการตั้งค่าประกาศ</span>
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <!-- Laboratory Rooms Management Tab -->
+        <div class="admin-tab" id="admin-labs" style="display: none;">
+          <div class="admin-tab-header">
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title">
+                <i data-lucide="flask-conical" style="color: #2563eb;"></i>
+                <span>จัดการห้องปฏิบัติการ (Laboratory Rooms)</span>
+              </h2>
+              <p class="admin-tab-desc">กำหนดชื่อห้อง อาคารสถานที่ และเลือกเฉดสีประจำห้องปฏิบัติการ สำหรับผังตู้จัดเก็บ SHECU และปฏิทิน</p>
+            </div>
+            <div class="admin-tab-header-right">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="resetLabRoomsToDefault()" title="คืนค่าห้องปฏิบัติการเริ่มต้นเป็น Lab 1 - Lab 8" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
+                <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+                <span>คืนค่าเริ่มต้น</span>
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="openLabRoomModal()" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600;">
+                <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
+                <span>เพิ่มห้องปฏิบัติการ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- FlowAI Inspired KPI Overview Cards for Labs (Aligned with Lab Cards) -->
+          <div class="admin-lab-kpi-grid">
+            <div class="admin-lab-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed;">
+                  <i data-lucide="building" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">ห้องแล็บทั้งหมด</span>
+              </div>
+              <div class="admin-kpi-val" id="kpiTotalLabs">0</div>
+            </div>
+
+            <div class="admin-lab-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(2, 132, 199, 0.1); color: #0284c7;">
+                  <i data-lucide="box" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">พัสดุและสารเคมีในห้อง</span>
+              </div>
+              <div class="admin-kpi-val" id="kpiTotalLabItems">0</div>
+            </div>
+
+            <div class="admin-lab-kpi-card">
+              <div class="admin-kpi-header">
+                <div class="admin-kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: #059669;">
+                  <i data-lucide="layout-grid" style="width: 14px; height: 14px;"></i>
+                </div>
+                <span class="admin-kpi-label">ตู้จัดเก็บตามผัง SHECU</span>
+              </div>
+              <div class="admin-kpi-val" id="kpiTotalLabCabinets">0</div>
+            </div>
+          </div>
+
+          <!-- Grid of Lab Cards -->
+          <div id="adminLabRoomsGrid" class="admin-lab-rooms-grid">
+            <!-- Dynamically populated by renderAdminLabRoomsList() -->
+          </div>
+        </div>
+        
+        <!-- Danger Zone Tab -->
+        <div class="admin-tab" id="admin-danger" style="display: none;">
+          <div class="admin-tab-header">
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title" style="color: #dc2626;">
+                <i data-lucide="alert-octagon" style="color: #dc2626;"></i>
+                <span>พื้นที่อันตราย (Danger Zone)</span>
+              </h2>
+              <p class="admin-tab-desc">การตั้งค่าที่ส่งผลกระทบอย่างถาวร เช่น การลบพื้นที่ทำงาน หรือโอนสิทธิ์ความเป็นเจ้าของ โปรดระมัดระวังเป็นอย่างยิ่ง</p>
+            </div>
+            <div class="admin-tab-header-right"></div>
+          </div>
+          
+          <div class="admin-danger-box">
+            <div class="admin-danger-item">
+              <div class="admin-danger-text">
+                <h3 class="admin-danger-title">โอนสิทธิ์ความเป็นเจ้าของ</h3>
+                <p class="admin-danger-desc">โอนพื้นที่ทำงานนี้ให้ผู้อื่น คุณจะเสียสิทธิ์การเป็นแอดมินหลังจากโอนเสร็จสิ้น</p>
+              </div>
+              <button type="button" class="btn btn-secondary admin-danger-btn">โอนสิทธิ์</button>
+            </div>
+            
+            <div class="admin-danger-divider"></div>
+            
+            <div class="admin-danger-item">
+              <div class="admin-danger-text">
+                <h3 class="admin-danger-title danger-text">ลบพื้นที่ทำงาน</h3>
+                <p class="admin-danger-desc">ลบพื้นที่ทำงานและข้อมูลทั้งหมดอย่างถาวร การกระทำนี้ไม่สามารถกู้คืนได้</p>
+              </div>
+              <button type="button" class="btn btn-danger admin-danger-btn" onclick="triggerAdminWorkspaceReset()">ลบพื้นที่ทำงาน</button>
+            </div>
+          </div>
+        </div>
+        
+    </div>
+    
+    <!-- Admin User Modals -->
+    <!-- Invite/Add User Modal -->
+    <!-- Invite/Add User Modal -->
+    <div class="modal-overlay" id="modalInviteUser">
+      <div class="modal-content admin-user-modal-card">
+        <div class="modal-header admin-user-modal-header">
+          <div class="header-brand-wrap">
+            <div class="modal-icon-badge">
+              <i data-lucide="user-plus" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+              <h2 class="modal-title-text">เพิ่มข้อมูลผู้ใช้งาน / ครูใหม่</h2>
+              <p class="modal-subtitle-text">สร้างบัญชีผู้ใช้งานใหม่พร้อมกำหนดระดับสิทธิ์เข้าใช้งานระบบ</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" onclick="closeInviteUserModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <form id="formInviteUser">
+          <div class="modal-body admin-user-modal-body">
+            <div class="admin-user-form-grid">
+              <!-- Row 1: Teacher ID & Full Name -->
+              <div class="form-group">
+                <label class="form-label" for="inviteUserTeacherId">
+                  <span>รหัสประจำตัวครู (ID)</span>
+                  <span style="font-size: 11px; font-weight: 500; color: #7c3aed;">(สร้างอัตโนมัติ/กำหนดเอง)</span>
+                </label>
+                <input type="text" class="form-control" id="inviteUserTeacherId" placeholder="เช่น 2003, T005, SC101" style="font-weight: 600;">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inviteUserName">
+                  <span>ชื่อ - นามสกุล</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
+                </label>
+                <input type="text" class="form-control" id="inviteUserName" required placeholder="เช่น ครูสมหมาย ใจมั่น">
+              </div>
+
+              <!-- Row 2: Department & Email -->
+              <div class="form-group">
+                <label class="form-label" for="inviteUserDept">
+                  <span>กลุ่มสาระ / แผนก / หน่วยงาน</span>
+                </label>
+                <input type="text" class="form-control" id="inviteUserDept" placeholder="เช่น วิทยาศาสตร์และเทคโนโลยี">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inviteUserEmail">
+                  <span>อีเมล (Email)</span>
+                </label>
+                <input type="email" class="form-control" id="inviteUserEmail" placeholder="sommai@school.ac.th">
+              </div>
+
+              <!-- Row 3: Role Level (Span 2) -->
+              <div class="form-group form-col-full">
+                <label class="form-label" for="inviteUserRole">
+                  <span>ระดับบทบาทและสิทธิ์การใช้งาน (Role Level)</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
+                </label>
+                <select class="form-control" id="inviteUserRole" required onchange="toggleAssignedRoomsField('invite')" style="font-weight: 600;">
+                  <option value="L1">L1 — Teacher / User (ครูผู้สอน: ยืม-คืน, จองห้อง, แจ้งชำรุด)</option>
+                  <option value="L2">L2 — Staff / Operator (เจ้าหน้าที่แล็บ: ดูแลคลัง, ตรวจรับคืน, ผังตู้, ซ่อมบำรุง)</option>
+                  <option value="L3">L3 — Manager / System Manager (ผู้ดูแลระบบ: จัดการทุก Function)</option>
+                  <option value="L4">L4 — Executive / Head of Dept (ผู้บริหาร: ดูภาพรวมทั้งหมด Read-Only)</option>
+                </select>
+                <div style="font-size: 11.5px; color: #64748b; margin-top: 5px; display: flex; align-items: center; gap: 4px;">
+                  <i data-lucide="info" style="width: 12px; height: 12px; color: #7c3aed;"></i>
+                  <span>ระบบจะใช้ Teacher ID เป็น Username และ Password เริ่มต้นในการเข้าสู่ระบบครั้งแรก</span>
+                </div>
+              </div>
+
+              <!-- Assigned Rooms for L2 (Span 2) -->
+              <div class="form-col-full" id="inviteAssignedRoomsContainer" style="display: none; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 10px; padding: 12px 14px;">
+                <div style="font-weight: 700; font-size: 12.5px; color: #9a3412; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                  <span>กำหนดห้องปฏิบัติการที่รับผิดชอบ (สำหรับระดับ L2)</span>
+                </div>
+                <div style="font-size: 11.5px; color: #7c2d12; margin-bottom: 8px;">
+                  เจ้าหน้าที่ L2 จะสามารถจัดการคลัง ตรวจรับคืน และดูแลผังตู้เฉพาะห้องที่เลือกไว้เท่านั้น:
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;" id="inviteRoomCheckboxes">
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 1"> <span>Lab 1: เคมี อาคารอัสสัมชัญ</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 2"> <span>Lab 2: ฟิสิกส์ อาคารเซนต์ปีเตอร์</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 3"> <span>Lab 3: ชีววิทยา อาคารเซนต์ปีเตอร์</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 4"> <span>Lab 4: วิทย์ อาคารราฟาเอล</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 5"> <span>Lab 5: สสวท. อาคารราฟาเอล</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 6"> <span>Lab 6: วิทย์ อาคารอัสสัมชัญ</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 7"> <span>Lab 7: ศูนย์ STEM CENTER</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="inviteRoom" value="Lab 8"> <span>Lab 8: วิทย์ EP อาคารยอห์น แมรี่</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer admin-user-modal-footer">
+            <div></div>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #475569;" onclick="closeInviteUserModal()">ยกเลิก</button>
+              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);">
+                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                <span>บันทึกผู้ใช้</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL: BATCH / BULK ADD USERS (EXCEL & TABLE)
+         ========================================== -->
+    <div class="modal-overlay" id="modalBatchAddUsers" style="display: none; align-items: center; justify-content: center; z-index: 1050;">
+      <div class="modal-content" style="width: 1000px; max-width: 96vw; max-height: 92vh; display: flex; flex-direction: column; border-radius: 14px; overflow: hidden; padding: 0; box-shadow: 0 20px 50px -12px rgba(0,0,0,0.25); border: 1px solid rgba(226, 232, 240, 0.9);">
+        
+        <!-- Header -->
+        <div class="modal-header" style="padding: 12px 20px; border-bottom: 1px solid var(--border-color); background: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, rgba(124, 58, 237, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%); color: #7c3aed; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.2);">
+              <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
+            </div>
+            <div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <h2 class="modal-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">นำเข้าผู้ใช้งานหลายคน (Batch User Import)</h2>
+                <span style="background: #f5f3ff; color: #7c3aed; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 12px; border: 1px solid #ddd6fe;">v2.0</span>
+              </div>
+              <p style="margin: 1px 0 0 0; font-size: 11px; color: var(--text-muted);">เลือกวิธีนำเข้าข้อมูล: อัปโหลดไฟล์ Excel / CSV, วางข้อความจากตาราง, หรือกรอกข้อมูลโดยตรง</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" onclick="closeBatchAddUsersModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mode Switcher & Quick Downloads Bar -->
+        <div style="padding: 8px 20px; background: #f8fafc; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <!-- 3 Segmented Modes -->
+          <div class="batch-modal-segment-nav">
+            <button type="button" id="btnBatchTabFile" class="btn-batch-tab active" onclick="switchBatchImportMode('file')">
+              <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #16a34a;"></i>
+              <span>1. อัปโหลดไฟล์ (Excel/CSV)</span>
+            </button>
+            <button type="button" id="btnBatchTabPaste" class="btn-batch-tab" onclick="switchBatchImportMode('paste')">
+              <i data-lucide="clipboard-paste" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <span>2. วางข้อความ (Copy-Paste)</span>
+            </button>
+            <button type="button" id="btnBatchTabTable" class="btn-batch-tab" onclick="switchBatchImportMode('table')">
+              <i data-lucide="table" style="width: 14px; height: 14px; color: #0284c7;"></i>
+              <span>3. กรอกในตารางตรงๆ</span>
+            </button>
+          </div>
+
+          <!-- Template & Guidelines Actions -->
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="batch-quick-btn" onclick="toggleBatchGuidelines()" style="font-size: 11px; padding: 4px 8px; background: #f1f5f9; border-color: #cbd5e1; color: #475569;">
+              <i data-lucide="help-circle" style="width: 13px; height: 13px; color: #6366f1;"></i>
+              <span>คู่มือรูปแบบคอลัมน์</span>
+            </button>
+            <div style="height: 14px; width: 1px; background: #cbd5e1; margin: 0 1px;"></div>
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">ดาวน์โหลดตัวอย่าง:</span>
+            <button type="button" class="batch-quick-btn" onclick="downloadUserTemplate('xlsx')" title="ดาวน์โหลดไฟล์ตัวอย่าง Excel พร้อมหัวตารางที่ถูกต้อง">
+              <i data-lucide="download" style="width: 12px; height: 12px; color: #16a34a;"></i>
+              <span style="color: #15803d; font-weight: 600;">Excel (.xlsx)</span>
+            </button>
+            <button type="button" class="batch-quick-btn" onclick="downloadUserTemplate('csv')" title="ดาวน์โหลดไฟล์ตัวอย่าง CSV">
+              <i data-lucide="download" style="width: 12px; height: 12px; color: #0284c7;"></i>
+              <span style="color: #0369a1; font-weight: 600;">CSV (.csv)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Collapsible Column Format Guidelines -->
+        <div id="batchGuidelinesBox" style="display: none; background: #f5f3ff; border-bottom: 1px solid #ddd6fe; padding: 10px 20px; font-size: 11px; color: #4c1d95;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+            <strong style="font-size: 12px; display: flex; align-items: center; gap: 5px;">
+              <i data-lucide="info" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              โครงสร้างหัวตารางที่รองรับ (เรียงตามลำดับ หรือมีชื่อคอลัมน์ตรงกัน):
+            </strong>
+            <button type="button" onclick="toggleBatchGuidelines()" style="background: none; border: none; color: #7c3aed; font-size: 11px; cursor: pointer; text-decoration: underline;">ปิดคู่มือ</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; background: #ffffff; padding: 8px 10px; border-radius: 7px; border: 1px solid #e9d5ff;">
+            <div><span style="color: #dc2626; font-weight: 700;">1. Teacher ID *</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น 1001, T045)</span></div>
+            <div><span style="color: #dc2626; font-weight: 700;">2. ชื่อ - นามสกุล *</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น ครูสมใจ หมายมั่น)</span></div>
+            <div><span style="color: #475569; font-weight: 700;">3. สิทธิ์ (Role)</span> <br><span style="color: #64748b; font-size: 10.5px;">(L1 ครู, L2 จนท., L3 แอดมิน, L4 ผู้บริหาร)</span></div>
+            <div><span style="color: #475569; font-weight: 700;">4. กลุ่มสาระ / แผนก</span> <br><span style="color: #64748b; font-size: 10.5px;">(ค่าเริ่มต้น: กลุ่มสาระวิทยาศาสตร์)</span></div>
+            <div><span style="color: #475569; font-weight: 700;">5. อีเมล</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น user@school.ac.th)</span></div>
+            <div><span style="color: #475569; font-weight: 700;">6. ห้องแล็บ (เฉพาะ L2)</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น Lab 1, Lab 6)</span></div>
+          </div>
+        </div>
+
+        <!-- Modal Body (Scrollable) -->
+        <div class="modal-body" style="padding: 14px 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 10px;">
+          
+          <!-- Mode 1: File Upload Section -->
+          <div id="batchModeFileSection" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Active File Info (shown when file is loaded) -->
+            <div id="batchActiveFileCard" class="batch-active-file-card" style="display: none;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 30px; height: 30px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center;">
+                  <i data-lucide="file-check" style="width: 17px; height: 17px;"></i>
+                </div>
+                <div>
+                  <div style="font-weight: 700; font-size: 12px; color: #14532d;" id="batchActiveFileName">ไฟล์: data.xlsx</div>
+                  <div style="font-size: 11px; color: #166534;" id="batchActiveFileDetails">ตรวจพบข้อมูล 0 รายการ</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button type="button" class="batch-quick-btn" onclick="document.getElementById('batchUserFileInput').click()" style="padding: 3px 8px; font-size: 11px;">
+                  <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> เปลี่ยนไฟล์
+                </button>
+                <button type="button" class="batch-quick-btn" onclick="clearBatchUploadedFile()" style="padding: 3px 8px; font-size: 11px; color: #b91c1c; border-color: #fecaca; background: #fff5f5;">
+                  <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> ล้างข้อมูล
+                </button>
+              </div>
+            </div>
+
+            <!-- Empty Dropzone -->
+            <div class="batch-upload-dropzone" id="batchUserDropzone" onclick="document.getElementById('batchUserFileInput').click()">
+              <input type="file" id="batchUserFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="handleUserBatchFileUpload(event)">
+              <div style="width: 42px; height: 42px; margin: 0 auto 8px; border-radius: 10px; background: linear-gradient(135deg, #f0fdf4 0%, #e0e7ff 100%); color: #16a34a; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 10px rgba(22, 163, 74, 0.12);">
+                <i data-lucide="cloud-upload" style="width: 22px; height: 22px;"></i>
+              </div>
+              <div style="font-weight: 700; font-size: 13.5px; color: #0f172a; margin-bottom: 3px;">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์ Excel / CSV มาวางที่นี่</div>
+              <div style="font-size: 11px; color: #64748b; margin-bottom: 6px;">รองรับไฟล์นามสกุล <strong>.xlsx, .xls, .csv</strong> (ระบบจะอ่านข้อมูลและแสดงในตารางด้านล่างอัตโนมัติ)</div>
+              <div style="display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 10.5px; color: #475569;">
+                <i data-lucide="sparkles" style="width: 12px; height: 12px; color: #eab308;"></i> ระบบจะตรวจจับชื่อหัวตารางและแมปให้อัตโนมัติ
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode 2: Quick Copy-Paste Textarea Section -->
+          <div id="batchModePasteSection" style="display: none; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label for="batchPasteInput" style="font-size: 11.5px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="clipboard-copy" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+                <span>วางข้อมูลที่คัดลอกจาก Excel หรือ Google Sheets:</span>
+              </label>
+              <button type="button" onclick="fillBatchPasteExample()" style="background: none; border: none; color: #7c3aed; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> ใส่ตัวอย่างทดสอบ
+              </button>
+            </div>
+            <textarea id="batchPasteInput" class="batch-paste-box" rows="4" placeholder="คัดลอกแถวจาก Excel/Sheets (กด Ctrl+C แล้วมาวางที่นี่ด้วย Ctrl+V)&#10;ตัวอย่าง:&#10;1001&#9;ครูสมใจ หมายมั่น&#9;L1&#9;กลุ่มสาระวิทยาศาสตร์&#9;somjai@school.ac.th&#10;2001&#9;นายเอกชัย ช่างแล็บ&#9;L2&#9;บริการห้องแล็บ&#9;ekkachai@school.ac.th&#9;Lab 1, Lab 6"></textarea>
+            <div style="display: flex; justify-content: flex-end; gap: 6px;">
+              <button type="button" class="batch-quick-btn" onclick="document.getElementById('batchPasteInput').value = ''" style="color: #b91c1c; font-size: 11px;">
+                <i data-lucide="x" style="width: 12px; height: 12px;"></i> ล้างข้อความ
+              </button>
+              <button type="button" class="batch-quick-btn batch-quick-btn-primary" onclick="parseBatchPastedTextarea()" style="font-size: 11px;">
+                <i data-lucide="play" style="width: 13px; height: 13px;"></i> แปลงข้อมูลเข้าสู่ตาราง (Parse Data)
+              </button>
+            </div>
+          </div>
+
+          <!-- Mode 3: Direct Table Controls & Bulk Tools Bar -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <!-- Left: Add Rows & Sample Data -->
+            <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+              <span style="font-size: 11px; font-weight: 600; color: #475569; margin-right: 2px;">เพิ่มแถว:</span>
+              <button type="button" class="batch-quick-btn" onclick="addBatchUserRow()" title="เพิ่มแถวว่าง 1 แถว">
+                <i data-lucide="plus" style="width: 12px; height: 12px; color: #16a34a;"></i> +1 แถว
+              </button>
+              <button type="button" class="batch-quick-btn" onclick="addBatchUserRows(5)" title="เพิ่มแถวว่าง 5 แถว">
+                <i data-lucide="plus-circle" style="width: 12px; height: 12px; color: #0284c7;"></i> +5 แถว
+              </button>
+              <button type="button" class="batch-quick-btn" onclick="fillBatchUserSampleData()" style="background: #f5f3ff; border-color: #ddd6fe; color: #6d28d9;" title="ทดลองใส่ข้อมูลจำลอง 3 คน">
+                <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> ใส่ข้อมูลทดสอบ
+              </button>
+            </div>
+
+            <!-- Right: Smart Auto-Fill & Clean Helpers -->
+            <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+              <span style="font-size: 11px; font-weight: 600; color: #475569; margin-right: 2px;"><i data-lucide="zap" style="width: 12px; height: 12px; color: #f59e0b; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> เครื่องมือด่วน:</span>
+              <button type="button" class="batch-quick-btn" onclick="autoFillBatchEmails()" title="เติมอีเมลอัตโนมัติ (เช่น 1001@lab.school.ac.th) สำหรับแถวที่ยังไม่มีอีเมล">
+                <i data-lucide="mail" style="width: 12px; height: 12px; color: #6366f1;"></i> เติมอีเมลอัตโนมัติ
+              </button>
+              <button type="button" class="batch-quick-btn" onclick="autoFillBatchDepartments()" title="เติมกลุ่มสาระมาตรฐานสำหรับแถวที่ยังว่างอยู่">
+                <i data-lucide="building" style="width: 12px; height: 12px; color: #059669;"></i> เติมกลุ่มสาระ
+              </button>
+              <button type="button" class="batch-quick-btn" onclick="clearBatchUserRows()" style="color: #b91c1c; border-color: #fecaca; background: #fff5f5;" title="ล้างรายการทั้งหมดในตาราง">
+                <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i> ล้างตาราง
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Preview & Editable Grid -->
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <!-- Filter & Status Summary Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="font-weight: 700; font-size: 12px; color: #0f172a; display: flex; align-items: center; gap: 5px;">
+                  <i data-lucide="list-checks" style="width: 15px; height: 15px; color: #7c3aed;"></i>
+                  <span>ตารางข้อมูลผู้ใช้งาน</span>
+                </span>
+                
+                <!-- Interactive Filter Chips -->
+                <div style="display: flex; gap: 5px;" id="batchFilterChipsContainer">
+                  <button type="button" class="batch-filter-chip active" id="chipFilterAll" onclick="setBatchFilter('all')" style="background: #f1f5f9; color: #334155; border-color: #cbd5e1;">
+                    ทั้งหมด (<span id="batchUserCount">0</span>)
+                  </button>
+                  <button type="button" class="batch-filter-chip" id="chipFilterValid" onclick="setBatchFilter('valid')" style="background: #dcfce7; color: #15803d; border-color: #bbf7d0;">
+                    <i data-lucide="check-circle-2" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> พร้อมบันทึก: <span id="batchStatValidNum">0</span>
+                  </button>
+                  <button type="button" class="batch-filter-chip" id="chipFilterUpdate" onclick="setBatchFilter('update')" style="background: #fef3c7; color: #b45309; border-color: #fde68a; display: none;">
+                    <i data-lucide="refresh-cw" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> อัปเดตคนเดิม: <span id="batchStatUpdateNum">0</span>
+                  </button>
+                  <button type="button" class="batch-filter-chip" id="chipFilterInvalid" onclick="setBatchFilter('invalid')" style="background: #fee2e2; color: #b91c1c; border-color: #fecaca; display: none;">
+                    <i data-lucide="alert-circle" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> ข้อมูลไม่ครบ: <span id="batchStatInvalidNum">0</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Bulk Role Selector -->
+              <div style="display: flex; align-items: center; gap: 5px;">
+                <span style="font-size: 10.5px; color: var(--text-muted);">ปรับสิทธิ์ทุกคน:</span>
+                <select onchange="bulkSetBatchRole(this.value); this.value='';" style="font-size: 11px; padding: 3px 6px; border-radius: 5px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; color: #334155;">
+                  <option value="">-- เลือกเพื่อเปลี่ยน --</option>
+                  <option value="L1">L1 ครูผู้สอน (Teacher)</option>
+                  <option value="L2">L2 เจ้าหน้าที่แล็บ (Lab Staff)</option>
+                  <option value="L3">L3 ผู้ดูแลระบบ (Admin)</option>
+                  <option value="L4">L4 ผู้บริหาร (Executive)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="batch-table-wrapper" style="border: 1px solid var(--border-color); border-radius: 9px; overflow-x: auto; max-height: 320px; background: #ffffff; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+              <table class="batch-data-table" id="batchUsersTable" style="min-width: 820px;">
+                <thead style="position: sticky; top: 0; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.06);">
+                  <tr>
+                    <th style="width: 38px; text-align: center;">#</th>
+                    <th style="width: 110px;">Teacher ID <span style="color: #ef4444;">*</span></th>
+                    <th style="width: 170px;">ชื่อ - สกุล <span style="color: #ef4444;">*</span></th>
+                    <th style="width: 130px;">ระดับสิทธิ์ (Role)</th>
+                    <th style="width: 170px;">กลุ่มสาระ / หน่วยงาน</th>
+                    <th style="width: 160px;">อีเมล</th>
+                    <th style="width: 130px;">ห้องแล็บ (L2)</th>
+                    <th style="width: 44px; text-align: center;">ลบ</th>
+                  </tr>
+                </thead>
+                <tbody id="batchUsersTableBody">
+                  <!-- Dynamic rows rendered by JavaScript -->
+                </tbody>
+              </table>
+
+              <!-- Empty State Placeholder -->
+              <div id="batchTableEmptyPlaceholder" style="padding: 32px 20px; text-align: center; color: #94a3b8;">
+                <div style="width: 40px; height: 40px; margin: 0 auto 8px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #64748b;">
+                  <i data-lucide="users" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div style="font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 3px;">ยังไม่มีข้อมูลในตาราง</div>
+                <div style="font-size: 11.5px; color: #94a3b8; max-width: 420px; margin: 0 auto 10px;">อัปโหลดไฟล์ Excel/CSV, คัดลอกข้อความมาวาง, หรือกดปุ่มด้านล่างเพื่อเริ่มกรอกข้อมูลทันที</div>
+                <div style="display: flex; justify-content: center; gap: 6px;">
+                  <button type="button" class="batch-quick-btn batch-quick-btn-primary" onclick="addBatchUserRows(3)">
+                    <i data-lucide="plus" style="width: 12px; height: 12px;"></i> เริ่มกรอกข้อมูล (+3 แถว)
+                  </button>
+                  <button type="button" class="batch-quick-btn" onclick="fillBatchUserSampleData()">
+                    <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> โหลดตัวอย่างทดสอบ
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security & Default Password Notice -->
+          <div style="background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 100%); border: 1px solid #bbf7d0; border-radius: 8px; padding: 7px 12px; font-size: 11px; color: #166534; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="shield-check" style="width: 15px; height: 15px; color: #166534; display: inline-block; vertical-align: middle;"></i>
+              <span><strong>ความปลอดภัย & รหัสผ่านเริ่มต้น:</strong> ผู้ใช้ใหม่จะใช้รหัสผ่านเป็น <strong>Teacher ID</strong> ในการเข้าสู่ระบบครั้งแรก (ผู้ใช้เปลี่ยนรหัสผ่านเองได้ตลอดเวลา)</span>
+            </div>
+            <div style="font-size: 11px; color: #15803d; font-weight: 600;" id="batchSummaryNotice">พร้อมบันทึก: 0 คน</div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer" style="padding: 10px 20px; border-top: 1px solid var(--border-color); background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+          <button type="button" class="btn btn-secondary" onclick="closeBatchAddUsersModal()" style="height: 34px; border-radius: 7px; padding: 0 14px; font-size: 12px; font-weight: 500; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer;">
+            ยกเลิก
+          </button>
+          
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn btn-primary" id="btnSubmitBatchUsers" onclick="submitBatchAddUsers()" style="height: 34px; border-radius: 7px; padding: 0 18px; font-size: 12px; font-weight: 600; background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%); color: #ffffff; border: none; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(124, 58, 237, 0.25); cursor: pointer; transition: all 0.2s;" disabled>
+              <i data-lucide="check-check" style="width: 15px; height: 15px;"></i>
+              <span id="btnSubmitBatchUsersText">บันทึกและนำเข้าข้อมูล</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal-overlay" id="modalEditUser">
+      <div class="modal-content admin-user-modal-card">
+        <div class="modal-header admin-user-modal-header">
+          <div class="header-brand-wrap">
+            <div class="modal-icon-badge">
+              <i data-lucide="user-cog" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+              <h2 class="modal-title-text">แก้ไขข้อมูลและสิทธิ์ผู้ใช้งาน</h2>
+              <p class="modal-subtitle-text">ปรับปรุงสิทธิ์การใช้งาน บทบาท และการจัดการรหัสผ่าน</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" onclick="closeEditUserModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <form id="formEditUser">
+          <input type="hidden" id="editUserId">
+          <div class="modal-body admin-user-modal-body">
+            <div class="admin-user-form-grid">
+              <!-- Row 1: Teacher ID & Full Name -->
+              <div class="form-group">
+                <label class="form-label" for="editUserTeacherId">
+                  <span>รหัสประจำตัวครู (ID)</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
+                </label>
+                <input type="text" class="form-control" id="editUserTeacherId" required style="font-weight: 600;">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="editUserName">
+                  <span>ชื่อ - นามสกุล</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
+                </label>
+                <input type="text" class="form-control" id="editUserName" required>
+              </div>
+
+              <!-- Row 2: Department & Email -->
+              <div class="form-group">
+                <label class="form-label" for="editUserDept">
+                  <span>กลุ่มสาระ / แผนก / หน่วยงาน</span>
+                </label>
+                <input type="text" class="form-control" id="editUserDept" placeholder="เช่น วิทยาศาสตร์และเทคโนโลยี">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="editUserEmail">
+                  <span>อีเมล (Email)</span>
+                </label>
+                <input type="email" class="form-control" id="editUserEmail" placeholder="name@school.ac.th">
+              </div>
+
+              <!-- Row 3: Role Level (Span 2) -->
+              <div class="form-group form-col-full">
+                <label class="form-label" for="editUserRole">
+                  <span>ระดับบทบาทและสิทธิ์การใช้งาน (Role Level)</span>
+                  <span style="color: #ef4444; font-weight: 700;">*</span>
+                </label>
+                <select class="form-control" id="editUserRole" required onchange="toggleAssignedRoomsField('edit')" style="font-weight: 600;">
+                  <option value="L1">L1 — Teacher / User (ครูผู้สอน: ยืม-คืน, จองห้อง, แจ้งชำรุด)</option>
+                  <option value="L2">L2 — Staff / Operator (เจ้าหน้าที่แล็บ: ดูแลคลัง, ตรวจรับคืน, ผังตู้, ซ่อมบำรุง)</option>
+                  <option value="L3">L3 — Manager / System Manager (ผู้ดูแลระบบ: จัดการทุก Function)</option>
+                  <option value="L4">L4 — Executive / Head of Dept (ผู้บริหาร: ดูภาพรวมทั้งหมด Read-Only)</option>
+                </select>
+              </div>
+
+              <!-- Assigned Rooms for L2 (Span 2) -->
+              <div class="form-col-full" id="editAssignedRoomsContainer" style="display: none; background: #fff7ed; border: 1px solid #ffedd5; border-radius: 10px; padding: 12px 14px;">
+                <div style="font-weight: 700; font-size: 12.5px; color: #9a3412; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                  <span>กำหนดห้องปฏิบัติการที่รับผิดชอบ (สำหรับระดับ L2)</span>
+                </div>
+                <div style="font-size: 11.5px; color: #7c2d12; margin-bottom: 8px;">
+                  เจ้าหน้าที่ L2 จะสามารถจัดการคลัง ตรวจรับคืน และดูแลผังตู้เฉพาะห้องที่เลือกไว้เท่านั้น:
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;" id="editRoomCheckboxes">
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 1"> <span>Lab 1: เคมี อาคารอัสสัมชัญ</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 2"> <span>Lab 2: ฟิสิกส์ อาคารเซนต์ปีเตอร์</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 3"> <span>Lab 3: ชีววิทยา อาคารเซนต์ปีเตอร์</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 4"> <span>Lab 4: วิทย์ อาคารราฟาเอล</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 5"> <span>Lab 5: สสวท. อาคารราฟาเอล</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 6"> <span>Lab 6: วิทย์ อาคารอัสสัมชัญ</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 7"> <span>Lab 7: ศูนย์ STEM CENTER</span>
+                  </label>
+                  <label style="font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="editRoom" value="Lab 8"> <span>Lab 8: วิทย์ EP อาคารยอห์น แมรี่</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Password Management (Span 2) -->
+              <div class="form-col-full admin-user-pass-card">
+                <div class="admin-user-pass-header">
+                  <div class="admin-user-pass-title">
+                    <i data-lucide="key-round" style="width: 15px; height: 15px; color: #7c3aed;"></i>
+                    <span>การจัดการรหัสผ่านผู้ใช้งาน (Password Management)</span>
+                  </div>
+                  <span class="admin-user-pass-badge">L3 Admin Only</span>
+                </div>
+
+                <div class="admin-user-pass-body">
+                  <!-- Current Password Display Box -->
+                  <div class="admin-pass-field-row">
+                    <label class="admin-pass-label">รหัสผ่านปัจจุบัน</label>
+                    <div class="admin-pass-input-box">
+                      <input type="password" id="editUserCurrentPass" readonly class="admin-pass-input" value="">
+                      <button type="button" class="admin-pass-btn-icon" onclick="toggleEditUserPassVisibility()" title="แสดง/ซ่อนรหัสผ่าน">
+                        <i data-lucide="eye" id="editUserPassEyeIcon" style="width: 14px; height: 14px;"></i>
+                      </button>
+                      <button type="button" class="admin-pass-btn-icon" onclick="copyEditUserPassword()" title="คัดลอกรหัสผ่าน">
+                        <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Actions: Two Clear Cards/Columns -->
+                  <div class="admin-pass-actions-container">
+                    <!-- Option 1: Quick Reset -->
+                    <div class="admin-pass-action-box">
+                      <span class="admin-pass-sublabel">กู้คืนรหัสผ่านเริ่มต้น</span>
+                      <button type="button" class="btn btn-pass-action btn-pass-reset" onclick="adminResetUserToTeacherId()" title="รีเซ็ตรหัสผ่านกลับไปเป็นรหัสครู (Teacher ID)">
+                        <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+                        <span>รีเซ็ตเป็น Teacher ID</span>
+                      </button>
+                    </div>
+
+                    <!-- Option 2: Set Custom Password -->
+                    <div class="admin-pass-action-box" style="flex: 1.3;">
+                      <span class="admin-pass-sublabel">กำหนดรหัสผ่านใหม่</span>
+                      <div class="admin-pass-custom-wrap">
+                        <input type="text" id="editUserNewCustomPass" placeholder="พิมพ์รหัสผ่านใหม่..." class="admin-pass-custom-input">
+                        <button type="button" class="btn btn-pass-action btn-pass-save" onclick="adminApplyCustomPassword()">
+                          <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+                          <span>บันทึกรหัสใหม่</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer admin-user-modal-footer">
+            <button type="button" class="btn btn-danger" style="height: 38px; padding: 0 14px; background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12.5px; display: inline-flex; align-items: center; gap: 5px;" onclick="deleteAdminUser()">
+              <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+              <span>ลบผู้ใช้นี้</span>
+            </button>
+            <div style="display: flex; gap: 10px;">
+              <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #475569;" onclick="closeEditUserModal()">ยกเลิก</button>
+              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);">
+                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                <span>บันทึกการแก้ไข</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>

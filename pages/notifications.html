@@ -1,0 +1,235 @@
+      <section class="panel" id="panel-notifications">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
+              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">การแจ้งเตือน</h1>
+              <p class="header-subtitle">ระบบตรวจสอบวันหมดอายุและสถานะสินค้าคงคลังอัตโนมัติ</p>
+            </div>
+          </div>
+          <div class="unified-page-header-right">
+            <button type="button" class="booking-action-btn" id="btnExportAnnualNotifications" title="ส่งออกรายงานการแจ้งเตือนและสถานะคลังประจำปี (Excel / CSV)">
+              <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
+              <span class="btn-text-desktop">ส่งออกข้อมูลประจำปี</span>
+              <span class="btn-text-tablet">ส่งออกประจำปี</span>
+              <span class="btn-text-mobile">ส่งออก</span>
+            </button>
+            <button type="button" class="booking-action-btn admin-clear-btn" id="btnClearNotifications" title="ล้างข้อมูลการแจ้งเตือนและรายการแจ้งปัญหา" style="display: none;">
+              <i data-lucide="trash-2" style="width: 15px; height: 15px; color: #ef4444; flex-shrink: 0;"></i>
+              <span class="btn-text-desktop" style="color: #ef4444;">เคลียร์ข้อมูล</span>
+              <span class="btn-text-tablet" style="color: #ef4444;">เคลียร์</span>
+              <span class="btn-text-mobile" style="color: #ef4444;">เคลียร์</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- TABS FOR NOTIFICATIONS -->
+        <div class="alert-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+          <button type="button" class="alert-tab-btn active" id="btnTabNotifInventory" onclick="switchNotifTab('inventory')" style="flex: 1; padding: 12px; font-size: 14.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            <i data-lucide="package" style="width: 18px; height: 18px;"></i>
+            <span>แจ้งเตือนคลังพัสดุ</span>
+          </button>
+          <button type="button" class="alert-tab-btn" id="btnTabNotifFeedback" onclick="switchNotifTab('feedback')" style="flex: 1; padding: 12px; font-size: 14.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+            <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
+            <span>ปัญหาและข้อเสนอแนะ</span>
+            <span class="badge badge-purple" id="badgeNotifFeedbackCount" style="padding: 2px 6px; font-size: 11px; display: none;">0</span>
+          </button>
+        </div>
+
+        <!-- TAB CONTENT: INVENTORY ALERTS -->
+        <div id="tabContentNotifInventory" style="display: block;">
+          <!-- EXPIRED ALERTS SECTION -->
+          <div class="alert-section expired">
+            <div class="alert-section-header">
+              <span>หมดอายุแล้ว</span>
+              <span class="alert-count-badge" id="alertCountExpired">0</span>
+            </div>
+            <div class="alert-section-content" id="alertListExpired">
+              <!-- Dynamically loaded list of expired items or empty state -->
+              <div class="empty-state" style="padding: 24px;">
+                <div class="empty-state-text">ไม่มีรายการ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- NEAR EXPIRY ALERTS SECTION -->
+          <div class="alert-section near-expiry">
+            <div class="alert-section-header">
+              <span>ใกล้หมดอายุ (30 วัน)</span>
+              <span class="alert-count-badge" id="alertCountNearExpiry">0</span>
+            </div>
+            <div class="alert-section-content" id="alertListNearExpiry">
+              <!-- Dynamically loaded near expiry items or empty state -->
+              <div class="empty-state" style="padding: 24px;">
+                <div class="empty-state-text">ไม่มีรายการ</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LOW STOCK ALERTS SECTION -->
+          <div class="alert-section low-stock">
+            <div class="alert-section-header">
+              <span>ใกล้หมด (ต่ำกว่าขั้นต่ำ)</span>
+              <span class="alert-count-badge" id="alertCountLowStock">0</span>
+            </div>
+            <div class="alert-section-content" id="alertListLowStock">
+              <!-- Dynamically loaded low stock items or empty state -->
+              <div class="empty-state" style="padding: 24px;">
+                <div class="empty-state-text">ไม่มีรายการ</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB CONTENT: FEEDBACK & REPORTS -->
+        <div id="tabContentNotifFeedback" style="display: none;">
+
+          <!-- 1. PENDING / REPAIR ISSUES SECTION -->
+          <div class="alert-section feedback">
+            <div class="alert-section-header">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
+                <span>รายการแจ้งปัญหาล่าสุด</span>
+              </span>
+              <span class="alert-count-badge" id="alertCountFeedback">2</span>
+            </div>
+            <div class="alert-section-content" id="alertListFeedback">
+              <!-- Issue Card 1 -->
+              <div class="notification-item status-feedback" id="feedback-card-ISSUE-001">
+                <div class="notification-header">
+                  <div class="notification-title-group">
+                    <span class="notification-title">1. ก๊อกน้ำอ่างล้างตารั่วซึม</span>
+                    <span class="notification-code">ISSUE-001</span>
+                  </div>
+                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-001')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+                </div>
+                <div class="notification-meta">
+                  <span class="notification-location">
+                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                    จัดเก็บ: Lab 1 &gt; หน้าตู้ A (ผู้แจ้ง: สมชาย)
+                  </span>
+                </div>
+                <div class="notification-alert-banner feedback" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="alert-triangle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+                    <span>น้ำหยดตลอดเวลา</span>
+                  </div>
+                  <button type="button" onclick="changeFeedbackStatus('ISSUE-001')" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#faf5ff'" onmouseout="this.style.backgroundColor='white'">
+                    รอช่างซ่อม <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Issue Card 2 -->
+              <div class="notification-item status-feedback" id="feedback-card-ISSUE-002">
+                <div class="notification-header">
+                  <div class="notification-title-group">
+                    <span class="notification-title">2. หลอดไฟกระพริบและมีเสียงดัง</span>
+                    <span class="notification-code">ISSUE-002</span>
+                  </div>
+                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-002')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+                </div>
+                <div class="notification-meta">
+                  <span class="notification-location">
+                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                    จัดเก็บ: Lab 2 &gt; โซนเตรียมสาร (ผู้แจ้ง: สมหญิง)
+                  </span>
+                </div>
+                <div class="notification-alert-banner feedback" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="alert-circle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+                    <span>รบกวนการทำงาน</span>
+                  </div>
+                  <button type="button" onclick="changeFeedbackStatus('ISSUE-002')" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#faf5ff'" onmouseout="this.style.backgroundColor='white'">
+                    รอดำเนินการ <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. RESOLVED ISSUES SECTION -->
+          <div class="alert-section resolved">
+            <div class="alert-section-header">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="check-circle" style="width: 18px; height: 18px; color: #10b981;"></i>
+                <span>รายการที่ดำเนินการแก้ไขเรียบร้อยแล้ว</span>
+              </span>
+              <span class="alert-count-badge" id="alertCountResolvedFeedback">2</span>
+            </div>
+            <div class="alert-section-content" id="alertListResolvedFeedback">
+              <!-- Issue Card 3 -->
+              <div class="notification-item status-resolved" id="feedback-card-ISSUE-003">
+                <div class="notification-header">
+                  <div class="notification-title-group">
+                    <span class="notification-title">3. อุปกรณ์จับยึด (Clamp) หลวม</span>
+                    <span class="notification-code">ISSUE-003</span>
+                  </div>
+                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-003')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+                </div>
+                <div class="notification-meta">
+                  <span class="notification-location">
+                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                    จัดเก็บ: Lab 1 &gt; ตู้ C (ผู้แจ้ง: วิชาญ)
+                  </span>
+                </div>
+                <div class="notification-alert-banner resolved" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="check-circle" style="width: 14px; height: 14px; flex-shrink: 0; color: #10b981;"></i>
+                    <span>เปลี่ยนชิ้นใหม่แล้ว</span>
+                  </div>
+                  <button type="button" onclick="changeFeedbackStatus('ISSUE-003')" style="background-color: white; border: 1px solid #a7f3d0; color: #065f46; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#f0fdf4'" onmouseout="this.style.backgroundColor='white'">
+                    แก้ไขแล้ว <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Issue Card 4 -->
+              <div class="notification-item status-resolved" id="feedback-card-ISSUE-004">
+                <div class="notification-header">
+                  <div class="notification-title-group">
+                    <span class="notification-title">4. เครื่องชั่งดิจิตอลแสดงค่าไม่นิ่ง</span>
+                    <span class="notification-code">ISSUE-004</span>
+                  </div>
+                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-004')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
+                </div>
+                <div class="notification-meta">
+                  <span class="notification-location">
+                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                    จัดเก็บ: Lab 1 &gt; โซนเครื่องมือวัด (ผู้แจ้ง: สมศรี)
+                  </span>
+                </div>
+                <div class="notification-alert-banner resolved" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="check-circle" style="width: 14px; height: 14px; flex-shrink: 0; color: #10b981;"></i>
+                    <span>ปรับเทียบ (Calibrate) ใหม่แล้ว</span>
+                  </div>
+                  <button type="button" class="status-pill-btn resolved" onclick="changeFeedbackStatus('ISSUE-004')">
+                    แก้ไขแล้ว <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <script>
+          function switchNotifTab(tabId) {
+            document.getElementById('btnTabNotifInventory').classList.remove('active');
+            document.getElementById('btnTabNotifFeedback').classList.remove('active');
+            document.getElementById('tabContentNotifInventory').style.display = 'none';
+            document.getElementById('tabContentNotifFeedback').style.display = 'none';
+            
+            if (tabId === 'inventory') {
+              document.getElementById('btnTabNotifInventory').classList.add('active');
+              document.getElementById('tabContentNotifInventory').style.display = 'block';
+            } else {
+              document.getElementById('btnTabNotifFeedback').classList.add('active');
+              document.getElementById('tabContentNotifFeedback').style.display = 'block';
+            }
+          }
+        </script>
+      </section>

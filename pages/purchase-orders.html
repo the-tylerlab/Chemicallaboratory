@@ -1,0 +1,260 @@
+      <section class="panel" id="panel-purchase-orders">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
+              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">รายการสั่งซื้อห้องปฏิบัติการ</h1>
+              <p class="header-subtitle">ประวัติและลิสต์รายการสั่งซื้อวัสดุ สารเคมี และอุปกรณ์ทางวิทยาศาสตร์</p>
+            </div>
+          </div>
+          <div class="unified-page-header-right">
+            <button type="button" class="btn btn-secondary po-header-back-btn" onclick="navigateToPanel('add-item')">
+              <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+              <span>กลับหน้าเพิ่มสาร/อุปกรณ์</span>
+            </button>
+
+            <!-- Global Academic Context Pill -->
+            <div class="po-academic-context-pill">
+              <div class="po-pill-group">
+                <i data-lucide="calendar" class="po-pill-icon"></i>
+                <span class="po-pill-label">ปีการศึกษา:</span>
+                <input type="text" id="poAcademicYear" class="po-pill-input" placeholder="2567" maxlength="4" value="2567" required>
+              </div>
+              <div class="po-pill-divider"></div>
+              <div class="po-pill-group">
+                <span class="po-pill-label">เทอม:</span>
+                <select id="poSemester" class="po-pill-select" required>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Annual Budget Overview -->
+        <div class="budget-overview-bar" style="margin-bottom: 24px;">
+          <div class="budget-stat-grid" id="budgetStatGrid">
+
+            
+            <!-- Card 1: Annual Budget -->
+            <div class="stat-card" style="border-left: 1px solid transparent;" onmouseover="this.style.borderColor='var(--primary-purple)'" onmouseout="this.style.borderColor='var(--border-color)'">
+              <div class="stat-info">
+                <span class="stat-title">งบประมาณประจำปี</span>
+                <div class="budget-stat-value-container" id="containerAnnualBudget" style="display: flex; align-items: baseline; gap: 6px;">
+                  <span class="stat-value" id="lblAnnualBudget" style="font-size: 26px;">100,000.00</span>
+                  <span class="budget-currency" style="font-size: 13px; font-weight: 500; color: var(--text-muted);">บาท</span>
+                  <button type="button" class="budget-edit-btn" id="btnEditAnnualBudget" title="แก้ไขงบประมาณประจำปี" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                    <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                  </button>
+                </div>
+                <!-- Inline edit input form (hidden by default) -->
+                <div class="budget-edit-form" id="annualBudgetEditForm" style="display: none; align-items: center; gap: 6px; margin-top: 4px;">
+                  <input type="number" id="txtAnnualBudget" class="form-control" style="width: 130px; padding: 4px 8px; font-size: 14px; height: 30px;" min="0" step="any">
+                  <button type="button" class="btn btn-primary" id="btnSaveAnnualBudget" style="padding: 4px 8px; height: 30px; background-color: var(--accent-green); justify-content: center; min-width: 32px;">
+                    <i data-lucide="check" style="width: 14px; height: 14px; color: white;"></i>
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="btnCancelAnnualBudget" style="padding: 4px 8px; height: 30px; justify-content: center; min-width: 32px;">
+                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="stat-icon" style="background-color: rgba(99, 102, 241, 0.1); color: rgb(99, 102, 241); width: 44px; height: 44px;">
+                <i data-lucide="calendar"></i>
+              </div>
+            </div>
+
+            <!-- Card 2: Total Spent -->
+            <div class="stat-card" style="border-left: 1px solid transparent;" onmouseover="this.style.borderColor='var(--accent-red)'" onmouseout="this.style.borderColor='var(--border-color)'">
+              <div class="stat-info">
+                <span class="stat-title">ยอดใช้จ่ายสะสม</span>
+                <div class="budget-stat-value-container" style="display: flex; align-items: baseline; gap: 6px;">
+                  <span class="stat-value" id="lblTotalSpent" style="font-size: 26px; color: #0f172a;">0.00</span>
+                  <span class="budget-currency" style="font-size: 13px; font-weight: 500; color: var(--text-muted);">บาท</span>
+                </div>
+              </div>
+              <div class="stat-icon" style="background-color: rgba(239, 68, 68, 0.1); color: rgb(239, 68, 68); width: 44px; height: 44px;">
+                <i data-lucide="trending-up"></i>
+              </div>
+            </div>
+
+            <!-- Card 3: Remaining Budget -->
+            <div class="stat-card" id="cardRemainingBudget" style="border: 2px solid transparent;">
+              <div class="stat-info">
+                <span class="stat-title">งบประมาณคงเหลือ</span>
+                <div class="budget-stat-value-container" style="display: flex; align-items: baseline; gap: 6px;">
+                  <span class="stat-value" id="lblRemainingBudget" style="font-size: 26px;">100,000.00</span>
+                  <span class="budget-currency" style="font-size: 13px; font-weight: 500; color: var(--text-muted);">บาท</span>
+                </div>
+              </div>
+              <div class="stat-icon" id="iconRemainingBudget" style="background-color: rgba(16, 185, 129, 0.1); color: rgb(16, 185, 129); width: 44px; height: 44px;">
+                <i data-lucide="wallet"></i>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="purchase-orders-grid" id="purchaseOrdersGrid">
+          <!-- Left Column: Form -->
+          <div class="form-container" id="purchaseOrderFormCol" style="margin-bottom: 0;">
+            <div class="form-panel-header">
+              <h2>บันทึกรายการสั่งซื้อ</h2>
+              <p>กรอกข้อมูลรายละเอียดสินค้าที่ต้องการสั่งซื้อ</p>
+            </div>
+            
+            <form id="purchaseOrderForm">
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="poProductCode" class="form-label">รหัสสินค้า <span style="color: var(--accent-red);">*</span></label>
+                  <input type="text" id="poProductCode" class="form-control" placeholder="ระบุรหัสสินค้า (เช่น CHEM-001)" required>
+                </div>
+                
+                <div class="form-group">
+                  <label for="poProductName" class="form-label">ชื่อสินค้า <span style="color: var(--accent-red);">*</span></label>
+                  <input type="text" id="poProductName" class="form-control" placeholder="ระบุชื่อสินค้า" required>
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="poUnitPrice" class="form-label">ราคาต่อหน่วย (บาท) <span style="color: var(--accent-red);">*</span></label>
+                  <input type="number" step="any" min="0" id="poUnitPrice" class="form-control" placeholder="0.00" required>
+                </div>
+                <div class="form-group">
+                  <label for="poQuantity" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
+                  <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" required>
+                </div>
+              </div>
+
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="poDiscount" class="form-label">ส่วนลด (%)</label>
+                  <input type="number" step="any" min="0" max="100" id="poDiscount" class="form-control" placeholder="0" value="0">
+                </div>
+                <div class="form-group">
+                  <label for="poTotalPrice" class="form-label">ราคาสุทธิ (บาท)</label>
+                  <input type="text" id="poTotalPrice" class="form-control" placeholder="0.00" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: 700;">
+                  <span id="poNetTotalDetail" style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 6px;">0.00 - ลด 0.00 = 0.00 บาท</span>
+                </div>
+              </div>
+
+              <div class="form-actions" style="margin-top: 24px;">
+                <button type="submit" class="btn btn-primary" id="btnSubmitPurchaseOrder" style="background-color: #8b5cf6;">
+                  <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
+                  <span>เพิ่มรายการสินค้า</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnResetPurchaseOrder">รีเซ็ต</button>
+              </div>
+            </form>
+
+            <!-- Draft Items Panel -->
+            <div id="poDraftContainer" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color); display: none;">
+              <h3 style="font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="shopping-basket" style="width: 16px; height: 16px; color: var(--primary-purple);"></i>
+                รายการเตรียมสั่งซื้อชั่วคราว
+              </h3>
+              
+              <!-- Compact Draft Items List -->
+              <div class="draft-items-list" id="poDraftList" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; margin-bottom: 16px; padding: 2px;">
+                <!-- Dynamically populated -->
+              </div>
+              
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 10px 12px; background-color: #f8fafc; border-radius: var(--border-radius-sm); border: 1px dashed var(--border-color);">
+                <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">ราคารวมทั้งสิ้น (ใบสั่งซื้อนี้):</span>
+                <span id="poDraftTotal" style="font-weight: 700; color: var(--primary-purple); font-size: 14px;">0.00 บาท</span>
+              </div>
+
+              <div class="form-actions" style="margin-top: 12px;">
+                <button type="button" class="btn btn-primary" id="btnCommitPoDraft" style="background-color: var(--accent-green); width: 100%; justify-content: center; height: 38px; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--border-radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                  <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                  <span id="btnCommitPoDraftText">บันทึกใบสั่งซื้อทั้งหมด (0 รายการ)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Table List -->
+          <div id="purchaseOrderListCol" style="display: flex; flex-direction: column; gap: 20px; overflow-x: auto;">
+            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+              <div>
+                <h2>รายการสั่งซื้อสะสม</h2>
+                <p>แสดงประวัติการสั่งซื้อพัสดุและสารเคมีในระบบทั้งหมด</p>
+              </div>
+              
+              <!-- Filter Selectors -->
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <select id="filterPoYear" class="form-control" style="width: 150px; padding: 4px 28px 4px 12px !important; height: 36px; font-size: 13px;">
+                    <option value="all">ทุกปีการศึกษา</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <select id="filterPoSemester" class="form-control" style="width: 120px; padding: 4px 28px 4px 12px !important; height: 36px; font-size: 13px;">
+                    <option value="all">ทุกเทอม</option>
+                    <option value="1">เทอม 1</option>
+                    <option value="2">เทอม 2</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Export Actions for Purchase Orders -->
+            <div id="poExportActions" style="display: inline-flex; align-items: center; gap: 10px; margin-top: 0; margin-bottom: 12px; flex-wrap: wrap;">
+              <div style="display: inline-flex; align-items: center; gap: 8px;">
+                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: auto; display: inline-block;">ส่งออก:</span>
+                <button type="button" class="btn" id="btnExportPoCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
+                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
+                </button>
+                <button type="button" class="btn" id="btnExportPoPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
+                  <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
+                </button>
+                <button type="button" class="btn admin-clear-btn" id="btnClearPurchaseOrders" style="display: none; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
+                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ล้างรายการสั่งซื้อ
+                </button>
+              </div>
+            </div>
+
+            <!-- Purchase Orders Table -->
+            <div class="table-container" style="margin-bottom: 0; flex: 1; overflow-x: auto;">
+              <table id="purchaseOrdersTable" class="purchase-orders-table">
+                <thead>
+                  <tr>
+                    <th style="width: 10%;">วันที่สั่ง</th>
+                    <th style="width: 11%;">รหัสสินค้า</th>
+                    <th style="width: 22%;">ชื่อสินค้า</th>
+                    <th style="width: 11%;" class="text-right">ราคา/หน่วย</th>
+                    <th style="width: 9%;" class="text-right">จำนวน</th>
+                    <th style="width: 11%;" class="text-right">รวมก่อนลด</th>
+                    <th style="width: 9%;" class="text-right">ส่วนลด</th>
+                    <th style="width: 11%;" class="text-right">สุทธิ</th>
+                    <th class="po-action-header" style="width: 6%; text-align: center;">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="purchaseOrdersTableBody">
+                  <!-- Dynamically populated -->
+                </tbody>
+                <tfoot>
+                  <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid var(--border-color);">
+                    <td colspan="9" style="padding: 16px 20px;">
+                      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                        <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">
+                          รวมก่อนลดราคา: <span id="poTotalBeforeDiscount" style="color: var(--text-main); font-weight: 600; margin-left: 8px;">0.00 บาท</span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--accent-green); font-weight: 500;">
+                          ส่วนลดสะสม (<span id="poOverallDiscountPercent">0.00</span>%): <span id="poTotalDiscountAmount" style="font-weight: 600; margin-left: 8px;">-0.00 บาท</span>
+                        </div>
+                        <div style="font-size: 15px; color: var(--primary-purple); font-weight: 700; border-top: 1px dashed var(--border-color); padding-top: 8px; width: 280px; text-align: right; margin-top: 4px;">
+                          ราคาหลังหักส่วนลด: <span id="poGrandTotal" style="font-size: 16px; margin-left: 8px;">0.00 บาท</span>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>

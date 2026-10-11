@@ -1,0 +1,216 @@
+      <section class="panel" id="panel-lab-booking">
+        <header class="unified-page-header">
+          <div class="unified-page-header-left">
+            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
+              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div class="header-title-wrapper">
+              <h1 class="header-title">จองห้องปฏิบัติการ</h1>
+              <p class="header-subtitle">ระบบตรวจสอบความว่างและบันทึกจองห้องปฏิบัติการแบบเรียลไทม์</p>
+            </div>
+          </div>
+        </header>
+
+        <div class="borrow-grid booking-grid-layout">
+          <!-- Left Column: Form & Grid -->
+          <div class="form-container" style="margin-bottom: 0;">
+            <div class="form-panel-header">
+              <h2>ตรวจสอบและบันทึกการจอง</h2>
+              <p>เลือกห้องแล็บและวันที่เพื่อดูสถานะความว่างของแต่ละช่วงเวลา</p>
+            </div>
+            
+
+
+            <form id="bookingForm">
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="bookingRoom" class="form-label">ห้องปฏิบัติการ <span style="color: var(--accent-red);">*</span></label>
+                  <select id="bookingRoom" class="form-control" required>
+                    <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                    <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                    <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
+                    <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                    <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="bookingDate" class="form-label">วันที่ต้องการเข้าใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                  <input type="date" id="bookingDate" class="form-control" required>
+                </div>
+              </div>
+
+              <!-- Visual Time-Slot Availability Matrix -->
+              <div class="form-group" style="margin-top: 8px;">
+                <label class="form-label">สถานะช่วงเวลาที่เปิดจอง (คลิกเลือกช่วงเวลาว่างสีเขียว) <span style="color: var(--accent-red);">*</span></label>
+                <div class="booking-slots-grid" id="bookingSlotsGrid">
+                  <!-- Dynamically populated via JS -->
+                </div>
+                <input type="hidden" id="selectedBookingSlot">
+              </div>
+
+              <!-- Guest View Only Notice for Booking (L0) -->
+              <div id="bookingGuestLockBanner" style="display: none; padding: 18px 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.08)); border: 1.5px dashed rgba(99, 102, 241, 0.3); border-radius: 12px; text-align: center; margin-top: 16px;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 4px; color: var(--primary-purple);">
+                  <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
+                  <strong style="font-size: 14px; color: #1e293b;">โหมดดูตารางเวลา (Guest View-Only)</strong>
+                </div>
+                <p style="font-size: 12.5px; color: #64748b; margin: 0 0 12px 0; line-height: 1.5;">
+                  บุคคลทั่วไปสามารถตรวจสอบตารางความว่างของห้องแล็บได้ หากต้องการบันทึกการจองห้องปฏิบัติการ กรุณาเข้าสู่ระบบด้วย Teacher ID
+                </p>
+                <button type="button" class="btn btn-primary" onclick="openLoginModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; font-size: 12.5px; font-weight: 600; background: linear-gradient(135deg, var(--primary-purple), #7c3aed); border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);">
+                  <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
+                  <span>เข้าสู่ระบบเพื่อจองห้อง</span>
+                </button>
+              </div>
+
+              <div id="bookingSubmitFields">
+                <div class="form-row-2" style="margin-top: 14px; gap: 14px;">
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label for="bookingGradeLevel" class="form-label">ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                    <input type="text" id="bookingGradeLevel" class="form-control" placeholder="เช่น ม.4/1, ม.5/2, ม.ต้น" autocomplete="off" required>
+                  </div>
+
+                  <div class="form-group" style="margin-bottom: 0;">
+                    <label for="bookingStudentCount" class="form-label">จำนวนนักเรียนที่เข้าใช้งานทั้งหมด <span style="color: var(--accent-red);">*</span></label>
+                    <div style="position: relative; width: 100%; display: flex; align-items: center;">
+                      <input type="number" id="bookingStudentCount" class="form-control" placeholder="เช่น 35" min="1" max="150" required style="padding-right: 48px;">
+                      <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); font-weight: 500; pointer-events: none;">คน</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 14px;">
+                  <label for="bookingPurpose" class="form-label">ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น) <span style="color: var(--accent-red);">*</span></label>
+                  <textarea id="bookingPurpose" class="form-control" rows="2" placeholder="ระบุกิจกรรม เช่น ทำ Lab เรื่องการไทเทรตกรด-เบส, การทดลองการหักเหของแสง, กิจกรรมชมรมดาราศาสตร์" required style="resize: vertical;"></textarea>
+                </div>
+
+                <div class="form-group" style="margin-top: 14px;">
+                  <label for="bookerName" class="form-label">ลงชื่อคุณครู (พิมพ์เฉพาะชื่อเท่านั้น) <span style="color: var(--accent-red);">*</span></label>
+                  <input type="text" id="bookerName" class="form-control" placeholder="พิมพ์เฉพาะชื่อ-นามสกุล เช่น สมชาย รักการสอน" required>
+                </div>
+
+                <div class="form-actions" style="margin-top: 20px;">
+                  <button type="submit" class="btn btn-primary" id="btnSubmitBooking" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); display: inline-flex; align-items: center; gap: 8px; font-weight: 600;">
+                    <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+                    <span>บันทึกการจอง</span>
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="btnResetBooking">รีเซ็ต</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Right Column: Logs / Calendar -->
+          <div style="display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 0;">
+            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h2>รายการจองห้องปฏิบัติการ</h2>
+                <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center; width: 100%; margin-top: 6px;">
+                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที">
+                  <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
+                  <span>ซิงค์ข้อมูล</span>
+                </button>
+                <button type="button" id="btnQuickExportBookingCSV" class="booking-action-btn">
+                  <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop">ส่งออก Excel</span>
+                  <span class="btn-text-tablet">ส่งออก Excel</span>
+                  <span class="btn-text-mobile">ส่งออก</span>
+                </button>
+                <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn">
+                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop">พิมพ์รายงาน</span>
+                  <span class="btn-text-tablet">พิมพ์รายงาน</span>
+                  <span class="btn-text-mobile">พิมพ์</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- View Toggle Bar -->
+            <div class="view-toggle-bar" id="bookingViewToggle" style="margin-bottom: 0;">
+              <button type="button" class="view-toggle-btn active" id="btnBookingCalendarToggle">
+                <i data-lucide="calendar" style="width: 14px; height: 14px;"></i>
+                <span class="btn-text-desktop">แบบปฏิทินรายเดือน</span>
+                <span class="btn-text-tablet">แบบปฏิทิน</span>
+                <span class="btn-text-mobile">ปฏิทิน</span>
+              </button>
+              <button type="button" class="view-toggle-btn" id="btnBookingListView">
+                <i data-lucide="list" style="width: 14px; height: 14px;"></i>
+                <span class="btn-text-desktop">แบบรายการ</span>
+                <span class="btn-text-tablet">แบบรายการ</span>
+                <span class="btn-text-mobile">รายการ</span>
+              </button>
+            </div>
+
+            <!-- List View Area -->
+            <div id="bookingListViewArea" style="display: none; flex-direction: column; gap: 12px; flex: 1; width: 100%;">
+
+              <!-- Booking Table (Responsive Zero-Scroll Layout) -->
+              <div class="table-container booking-table-container desktop-booking-table" style="margin-bottom: 0; flex: 1; overflow-x: hidden; width: 100%;">
+                <table style="width: 100%; min-width: 0; table-layout: fixed;">
+                  <thead>
+                    <tr>
+                      <th style="width: 35%;">วันเวลาที่ใช้งาน</th>
+                      <th style="width: 65%;">ห้องปฏิบัติการและรายละเอียดกิจกรรม</th>
+                    </tr>
+                  </thead>
+                  <tbody id="bookingsTableBody">
+                    <!-- Dynamically populated -->
+                    <tr>
+                      <td colspan="2" style="text-align: center; padding: 40px;">
+                        <div class="empty-state">
+                          <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
+                          <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Booking Mobile Card List -->
+              <div id="bookingsMobileCardList" class="bookings-mobile-card-list">
+                <!-- Dynamically populated on mobile -->
+              </div>
+            </div>
+
+            <!-- Calendar View Area -->
+            <div id="bookingCalendarViewArea" style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
+              <div class="booking-calendar-wrapper">
+                <div class="calendar-header">
+                  <span class="calendar-title" id="calendarMonthYearLabel">มกราคม 2569</span>
+                  <div class="calendar-nav-buttons">
+                    <button type="button" class="btn btn-secondary" id="btnPrevMonth" style="padding: 4px 8px; font-size: 11px; height: 28px;">
+                      <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btnTodayMonth" style="padding: 4px 8px; font-size: 11px; height: 28px; font-weight: 600;">วันนี้</button>
+                    <button type="button" class="btn btn-secondary" id="btnNextMonth" style="padding: 4px 8px; font-size: 11px; height: 28px;">
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="calendar-grid">
+                  <div class="calendar-weekday">อา.</div>
+                  <div class="calendar-weekday">จ.</div>
+                  <div class="calendar-weekday">อ.</div>
+                  <div class="calendar-weekday">พ.</div>
+                  <div class="calendar-weekday">พฤ.</div>
+                  <div class="calendar-weekday">ศ.</div>
+                  <div class="calendar-weekday">ส.</div>
+                </div>
+                <div class="calendar-grid" id="bookingCalendarGrid" style="border-top: none; padding-top: 0;">
+                  <!-- Dynamically populated -->
+                </div>
+                <!-- Calendar Legend -->
+                <div id="bookingCalendarLegend" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); font-size: 10.5px; font-weight: 600; color: var(--text-muted);">
+                  <!-- Dynamically populated by app.js -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
