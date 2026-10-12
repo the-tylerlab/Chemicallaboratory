@@ -568,9 +568,9 @@
                 <h3 class="lab-calendar-current-label" id="dashCalMonthLabel">กันยายน 2569</h3>
 
                 <div class="lab-calendar-view-tabs" id="dashCalViewTabs">
-                  <button type="button" class="btn-view-tab active" data-view="month">เดือน</button>
-                  <button type="button" class="btn-view-tab" data-view="week">สัปดาห์</button>
                   <button type="button" class="btn-view-tab" data-view="day">วัน</button>
+                  <button type="button" class="btn-view-tab" data-view="week">สัปดาห์</button>
+                  <button type="button" class="btn-view-tab active" data-view="month">เดือน</button>
                 </div>
               </div>
 
@@ -582,55 +582,55 @@
 
             <!-- Right Side Column: Quick Menu + Daily Usage Schedule -->
             <div class="lab-schedule-column">
-              <!-- Quick Menu Panel (Placed Above Daily Usage Schedule) -->
-              <div class="card-container" id="quickMenuCard">
-                <div class="card-header">
-                  <h2 class="card-title">
-                    <i data-lucide="zap" style="width: 16px; height: 16px; color: #7c3aed;"></i>
-                    <span>เมนูด่วน</span>
-                  </h2>
+              <!-- Quick Menu Panel: 2-tier Modern Assistant Input Card Style -->
+              <div class="card-container quick-prompt-card" id="quickMenuCard">
+                <!-- Tier 1 (Top / Upper Tier): Clean Prompt-like Message Box -->
+                <div class="quick-prompt-top">
+                  <div class="quick-prompt-header">
+                    <span class="quick-prompt-greeting">ต้องการจองห้องหรือใช้งานระบบใดวันนี้?</span>
+                    <span class="quick-prompt-badge">
+                      <i data-lucide="sparkles"></i>
+                      <span>Quick Action</span>
+                    </span>
+                  </div>
+                  <p class="quick-prompt-desc">เลือกบริการด่วนด้านล่างเพื่อเข้าสู่ระบบจองห้องปฏิบัติการ หรือทำรายการยืม-คืนพัสดุและเคมีภัณฑ์ทันที</p>
                 </div>
-                <div class="quick-menu-list">
-                  <button type="button" class="quick-btn blue" id="quickBtnLabBooking" title="จองห้องปฏิบัติการ">
-                    <div class="quick-btn-icon">
-                      <i data-lucide="calendar"></i>
-                    </div>
-                    <div class="quick-btn-info">
-                      <span class="quick-btn-title">
-                        จอง<span class="keep-word">ห้องปฏิบัติการ</span>
-                      </span>
-                    </div>
-                  </button>
-                  <button type="button" class="quick-btn purple" id="quickBtnBorrowReturn" title="ยืม-คืนพัสดุและเคมีภัณฑ์">
-                    <div class="quick-btn-icon">
+
+                <!-- Tier 2 (Bottom / Action Bar): Pill Tags, Lab Booking Button, Send Button -->
+                <div class="quick-prompt-bottom">
+                  <div class="quick-prompt-actions-left">
+                    <button type="button" class="quick-prompt-add-btn" title="เมนูด่วนเพิ่มเติม" aria-label="เมนูเพิ่มเติม">
+                      <i data-lucide="plus"></i>
+                    </button>
+                    <!-- Pill Tag: Borrow & Return -->
+                    <button type="button" class="quick-prompt-tag" id="quickBtnBorrowReturn" title="ยืม-คืนพัสดุและเคมีภัณฑ์">
                       <i data-lucide="repeat"></i>
-                    </div>
-                    <div class="quick-btn-info">
-                      <span class="quick-btn-title">
-                        <span class="keep-word">ยืม-คืนพัสดุ</span> และ<span class="keep-word">เคมีภัณฑ์</span>
-                      </span>
-                    </div>
-                  </button>
-                  <button type="button" class="quick-btn green" id="quickBtnAddItem" style="display: none;" title="เพิ่มสาร/อุปกรณ์">
-                    <div class="quick-btn-icon">
+                      <span>ยืม-คืนพัสดุ</span>
+                    </button>
+                    <!-- Pill Tag: Add Item (Staff/Admin) -->
+                    <button type="button" class="quick-prompt-tag" id="quickBtnAddItem" style="display: none;" title="เพิ่มสาร/อุปกรณ์">
                       <i data-lucide="plus-circle"></i>
-                    </div>
-                    <div class="quick-btn-info">
-                      <span class="quick-btn-title">
-                        เพิ่มสาร/อุปกรณ์
-                      </span>
-                    </div>
-                  </button>
-                  <button type="button" class="quick-btn orange" id="quickBtnAdmin" onclick="navigateToPanel('admin')" style="display: none;" title="Admin Panel">
-                    <div class="quick-btn-icon">
+                      <span>เพิ่มสาร/อุปกรณ์</span>
+                    </button>
+                    <!-- Pill Tag: Admin Panel (Admin) -->
+                    <button type="button" class="quick-prompt-tag" id="quickBtnAdmin" onclick="navigateToPanel('admin')" style="display: none;" title="Admin Panel">
                       <i data-lucide="shield-check"></i>
-                    </div>
-                    <div class="quick-btn-info">
-                      <span class="quick-btn-title">
-                        Admin Panel
-                      </span>
-                    </div>
-                  </button>
+                      <span>Admin</span>
+                    </button>
+                  </div>
+
+                  <div class="quick-prompt-actions-right">
+                    <!-- Main Featured Action: จองห้องปฏิบัติการ Dropdown/Pill style button -->
+                    <button type="button" class="quick-prompt-model-btn" id="quickBtnLabBooking" title="กดจองห้องปฏิบัติการ">
+                      <i data-lucide="calendar"></i>
+                      <span class="quick-prompt-model-label">จองห้องปฏิบัติการ</span>
+                      <i data-lucide="chevron-right" class="quick-prompt-chevron"></i>
+                    </button>
+                    <!-- Action Send / Launch button -->
+                    <button type="button" class="quick-prompt-send-btn" id="quickBtnLaunchLabBooking" onclick="navigateToPanel('lab-booking')" title="ไปที่หน้าจองห้อง" aria-label="ไปที่หน้าจองห้อง">
+                      <i data-lucide="arrow-up-right"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -667,7 +667,7 @@
         </div>
 
         <!-- Today's Lab Status Widget (Full Width 4-Column Grid, Public Only) -->
-        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 20px; width: 100%; box-sizing: border-box;">
+        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 10px; width: 100%; box-sizing: border-box;">
           <div class="card-header" style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px;">
             <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0; white-space: nowrap;">
               <i data-lucide="door-open" style="color: var(--primary-color); width: 16px; height: 16px;"></i>
