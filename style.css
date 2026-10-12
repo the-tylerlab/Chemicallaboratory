@@ -1750,7 +1750,7 @@ button.menu-item-link:active {
 #panel-dashboard > .dashboard-grid { order: 4; }
 #panel-dashboard > #dashboardLabCalendarSection {
   order: 5;
-  margin-top: 24px;
+  margin-top: 16px;
 }
 #panel-dashboard > #todayLabStatusCard { 
   order: 6; 
@@ -1763,7 +1763,7 @@ button.menu-item-link:active {
 #panel-dashboard.role-calendar-top > #dashboardLabCalendarSection {
   order: 3;
   margin-top: 0;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 #panel-dashboard.role-calendar-top > .stat-grid {
   order: 4;
@@ -12047,7 +12047,7 @@ body.admin-logged-in .public-only-section {
 .dashboard-lab-calendar-section {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -12510,7 +12510,7 @@ body.admin-logged-in .public-only-section {
 .dash-cal-week-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  gap: 8px;
   height: 100%;
   flex: 1;
   min-height: 0;
@@ -12521,23 +12521,24 @@ body.admin-logged-in .public-only-section {
 .dash-cal-week-col {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 8px 6px;
+  border-radius: 12px;
+  padding: 10px 7px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
   width: 100%;
   height: 100%;
   min-height: 0;
   overflow: hidden;
   box-sizing: border-box;
-  transition: all 0.15s ease;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dash-cal-week-col:hover {
   border-color: #cbd5e1;
-  background: #fcfdfe;
+  background: #f8fafc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .dash-cal-week-col.today {
@@ -12547,20 +12548,20 @@ body.admin-logged-in .public-only-section {
 
 .dash-cal-week-col.selected {
   border-color: var(--primary-purple, #7c3aed);
-  box-shadow: 0 0 0 1.5px var(--primary-purple, #7c3aed);
-  background: rgba(124, 58, 237, 0.04);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  background: rgba(124, 58, 237, 0.03);
 }
 
 .dash-cal-week-header {
   flex-shrink: 0;
   text-align: center;
   border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 6px;
-  margin-bottom: 4px;
+  padding-bottom: 7px;
+  margin-bottom: 2px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
 }
 
 .dash-cal-week-header-left {
@@ -12575,6 +12576,8 @@ body.admin-logged-in .public-only-section {
   align-items: center;
   gap: 4px;
   margin-top: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .dash-cal-week-day-name {
@@ -12587,14 +12590,15 @@ body.admin-logged-in .public-only-section {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--text-main);
+  line-height: 1.2;
 }
 
 .dash-cal-week-badge {
   font-size: 9.5px;
   font-weight: 700;
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 9999px;
-  line-height: 1.3;
+  line-height: 1.35;
   white-space: nowrap;
 }
 
@@ -12621,62 +12625,77 @@ body.admin-logged-in .public-only-section {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   padding-right: 2px;
+  scrollbar-width: thin;
 }
 
 .dash-cal-week-empty-text {
   font-size: 11px;
   color: var(--text-muted);
   text-align: center;
-  margin-top: 14px;
+  margin-top: 20px;
   display: block;
 }
 
 .dash-cal-week-item {
-  padding: 7px 9px;
-  margin-bottom: 5px;
+  padding: 8px;
+  margin-bottom: 0;
   background: #ffffff;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: all 0.15s ease;
+}
+
+.dash-cal-week-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .dash-cal-week-item-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
 .dash-cal-week-time {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--accent-blue, #2563eb);
   white-space: nowrap;
 }
 
 .dash-cal-week-purpose {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--text-main, #0f172a);
-  line-height: 1.3;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dash-cal-week-booker {
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--text-muted, #64748b);
   display: flex;
   align-items: center;
   gap: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dash-cal-week-booker svg,
 .dash-cal-week-booker i {
-  width: 11px;
-  height: 11px;
+  width: 10.5px;
+  height: 10.5px;
   flex-shrink: 0;
 }
 
@@ -12807,14 +12826,266 @@ body.admin-logged-in .public-only-section {
 .lab-schedule-column {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   min-width: 0;
   width: 100%;
 }
 
-.lab-schedule-column #quickMenuCard {
+/* Quick Menu Card - Modern 2-Tier Prompt Assistant Style (Inspired by AI Prompt Interface) */
+#quickMenuCard.quick-prompt-card,
+#quickMenuCard {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 20px !important;
+  padding: 0 !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
   flex-shrink: 0;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: auto !important;
   margin-bottom: 0;
+}
+
+#quickMenuCard:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 8px 30px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Tier 1 (Upper Tier): Spacious & Clean Prompt Input Area */
+.quick-prompt-top {
+  padding: 18px 20px 14px 20px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quick-prompt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.quick-prompt-greeting {
+  font-size: 15px;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.quick-prompt-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.quick-prompt-badge i,
+.quick-prompt-badge svg {
+  width: 12px;
+  height: 12px;
+  color: #8b5cf6;
+}
+
+.quick-prompt-desc {
+  font-size: 12.5px;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Tier 2 (Bottom Tier): Action Bar with Light Gray Pill Background */
+.quick-prompt-bottom {
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.quick-prompt-actions-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Round (+) Plus Button */
+.quick-prompt-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  padding: 0;
+}
+
+.quick-prompt-add-btn:hover {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  transform: scale(1.04);
+}
+
+.quick-prompt-add-btn i,
+.quick-prompt-add-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Pill Tags (Image, 4K, 16:9 style) */
+.quick-prompt-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  white-space: nowrap;
+}
+
+.quick-prompt-tag:hover {
+  background: #f8fafc;
+  color: #7c3aed;
+  border-color: #c4b5fd;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.08);
+}
+
+.quick-prompt-tag i,
+.quick-prompt-tag svg {
+  width: 13px;
+  height: 13px;
+  color: #64748b;
+}
+
+.quick-prompt-tag:hover i,
+.quick-prompt-tag:hover svg {
+  color: #7c3aed;
+}
+
+/* Actions Right (Lab Booking Pill + Send Button) */
+.quick-prompt-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Featured Lab Booking Pill Button (styled like model picker dropdown "Flash 3.5 ⌄") */
+.quick-prompt-model-btn,
+#quickBtnLabBooking {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  padding: 6px 14px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 9999px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  cursor: pointer !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  white-space: nowrap !important;
+  height: 36px !important;
+  box-sizing: border-box !important;
+}
+
+.quick-prompt-model-btn:hover,
+#quickBtnLabBooking:hover {
+  background: #fdf4ff !important;
+  border-color: #d8b4fe !important;
+  color: #7c3aed !important;
+  box-shadow: 0 3px 8px rgba(124, 58, 237, 0.12) !important;
+  transform: translateY(-1px) !important;
+}
+
+.quick-prompt-model-btn i,
+.quick-prompt-model-btn svg,
+#quickBtnLabBooking i,
+#quickBtnLabBooking svg {
+  width: 14px !important;
+  height: 14px !important;
+  color: #7c3aed !important;
+  stroke: #7c3aed !important;
+}
+
+.quick-prompt-chevron {
+  width: 13px !important;
+  height: 13px !important;
+  color: #94a3b8 !important;
+  transition: transform 0.15s ease;
+  margin-left: 1px;
+}
+
+.quick-prompt-model-btn:hover .quick-prompt-chevron,
+#quickBtnLabBooking:hover .quick-prompt-chevron {
+  color: #7c3aed !important;
+  transform: translateX(2px);
+}
+
+/* Circular Send / Launch Button (styled like black circle send icon) */
+.quick-prompt-send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.quick-prompt-send-btn:hover {
+  background: #7c3aed;
+  transform: scale(1.06) rotate(5deg);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+}
+
+.quick-prompt-send-btn i,
+.quick-prompt-send-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
+  color: #ffffff;
 }
 
 .lab-schedule-column #categoryBreakdownCard {
