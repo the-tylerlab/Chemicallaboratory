@@ -2059,10 +2059,18 @@ window.toggleSidebarPin = function(e) {
     } else {
       // Collapse & Unpin
       if (sidebar) {
+        // Keep hover-expand suppressed until the pointer leaves the sidebar,
+        // otherwise the hover preview immediately re-expands it and the click looks ignored.
         sidebar.classList.add("collapse-animating");
-        setTimeout(() => {
+        const releaseHover = () => {
           sidebar.classList.remove("collapse-animating");
-        }, 350);
+          sidebar.removeEventListener("mouseleave", releaseHover);
+        };
+        if (sidebar.matches(":hover")) {
+          sidebar.addEventListener("mouseleave", releaseHover);
+        } else {
+          setTimeout(releaseHover, 350);
+        }
       }
       appContainer.classList.add("sidebar-collapsed");
       if (btnToggleSidebar) {
@@ -23609,20 +23617,34 @@ function renderDashboardWeekView(year, month, container) {
         </div>
         <div class="dash-cal-day-events">
           ${dayBookings.length === 0 ? '<span class="dash-cal-week-empty-text">ไม่มีการจอง</span>' : ''}
-          ${dayBookings.map(b => {
-            const roomInfo = getDashRoomInfo(b.room);
-            const timeRange = getDashSlotTimeRange(b.slot);
-            return `
-              <div class="dash-cal-week-item" style="border-left: 3px solid ${roomInfo.hex || '#6366f1'};">
-                <div class="dash-cal-week-item-top">
-                  <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name}</span>
-                  <span class="dash-cal-week-time">${timeRange}</span>
+          ${(() => {
+            const displayLimit = 4;
+            const visibleBookings = dayBookings.slice(0, displayLimit);
+            const remainingCount = dayBookings.length - displayLimit;
+            let itemsHtml = visibleBookings.map(b => {
+              const roomInfo = getDashRoomInfo(b.room);
+              const timeRange = getDashSlotTimeRange(b.slot);
+              return `
+                <div class="dash-cal-week-item" style="border-left: 3px solid ${roomInfo.hex || '#6366f1'};">
+                  <div class="dash-cal-week-item-top">
+                    <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name}</span>
+                    <span class="dash-cal-week-time">${timeRange}</span>
+                  </div>
+                  <div class="dash-cal-week-purpose" title="${b.purpose || 'ใช้งานแล็บ'}">${b.purpose || 'ใช้งานแล็บ'}</div>
+                  <div class="dash-cal-week-booker" title="ผู้จอง: ${b.bookerName || '-'}"><i data-lucide="user"></i> <span>${b.bookerName || '-'}</span></div>
                 </div>
-                <div class="dash-cal-week-purpose" title="${b.purpose || 'ใช้งานแล็บ'}">${b.purpose || 'ใช้งานแล็บ'}</div>
-                <div class="dash-cal-week-booker" title="ผู้จอง: ${b.bookerName || '-'}"><i data-lucide="user"></i> <span>${b.bookerName || '-'}</span></div>
-              </div>
-            `;
-          }).join("")}
+              `;
+            }).join("");
+
+            if (remainingCount > 0) {
+              itemsHtml += `
+                <button type="button" class="dash-cal-more-btn" onclick="openDashboardDateEventsModal('${dateStr}', event)" style="margin-top: 4px; width: 100%; text-align: center;">
+                  +${remainingCount} คาบเพิ่มเติม
+                </button>
+              `;
+            }
+            return itemsHtml;
+          })()}
         </div>
       </div>
     `;

@@ -110,7 +110,7 @@
   <link rel="stylesheet" href="assets/css/tailwind.css?v=20261011_tw">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20261009_settings_fix">
+  <link rel="stylesheet" href="style.css?v=20261012_pinfix">
   <link rel="stylesheet" href="cabinet-card.css?v=20261010_inset">
 
   <!-- Core Libraries (Local high-performance icon library) -->
@@ -369,7 +369,7 @@
         </div>
 
         <!-- Top Announcement Ticker Bar -->
-        <div class="announcement-ticker-bar ticker-theme-orange ticker-pause-hover" id="announcementTickerBar" style="margin-bottom: 22px;">
+        <div class="announcement-ticker-bar ticker-theme-orange ticker-pause-hover" id="announcementTickerBar" style="margin-bottom: 20px;">
           <div class="ticker-badge" id="tickerBadgeMain">
             <i data-lucide="megaphone" style="width: 14px; height: 14px;"></i>
             <span id="tickerBadgeText">ประกาศ & ความปลอดภัย</span>
@@ -667,7 +667,7 @@
         </div>
 
         <!-- Today's Lab Status Widget (Full Width 4-Column Grid, Public Only) -->
-        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 10px; width: 100%; box-sizing: border-box;">
+        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 0; width: 100%; box-sizing: border-box;">
           <div class="card-header" style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px;">
             <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0; white-space: nowrap;">
               <i data-lucide="door-open" style="color: var(--primary-color); width: 16px; height: 16px;"></i>
@@ -6190,7 +6190,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261010_router_paths"></script>
+  <script src="app.js?v=20261012_pinfix"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {
