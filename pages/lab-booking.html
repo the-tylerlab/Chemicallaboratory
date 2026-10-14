@@ -38,7 +38,10 @@
                 </div>
                 <div class="form-group">
                   <label for="bookingDate" class="form-label">วันที่ต้องการเข้าใช้งาน <span style="color: var(--accent-red);">*</span></label>
-                  <input type="date" id="bookingDate" class="form-control" required>
+                  <div class="booking-date-control">
+                    <input type="date" id="bookingDate" class="form-control" required>
+                    <span class="booking-date-control-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
+                  </div>
                 </div>
               </div>
 
@@ -83,7 +86,7 @@
                 </div>
 
                 <div class="form-group" style="margin-top: 14px;">
-                  <label for="bookingPurpose" class="form-label">ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น) <span style="color: var(--accent-red);">*</span></label>
+                  <label for="bookingPurpose" class="form-label">ระบุกิจกรรมที่ใช้ <span style="color: var(--accent-red);">*</span></label>
                   <textarea id="bookingPurpose" class="form-control" rows="2" placeholder="ระบุกิจกรรม เช่น ทำ Lab เรื่องการไทเทรตกรด-เบส, การทดลองการหักเหของแสง, กิจกรรมชมรมดาราศาสตร์" required style="resize: vertical;"></textarea>
                 </div>
 
@@ -104,28 +107,24 @@
           </div>
 
           <!-- Right Column: Logs / Calendar -->
-          <div style="display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 0;">
+          <div class="booking-records-panel" style="display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 0;">
             <div class="content-header" style="margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
               <div>
                 <h2>รายการจองห้องปฏิบัติการ</h2>
                 <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
               </div>
               <div style="display: flex; gap: 8px; align-items: center; width: 100%; margin-top: 6px;">
-                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที">
+                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที" aria-label="ซิงค์ข้อมูล">
                   <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
                   <span>ซิงค์ข้อมูล</span>
                 </button>
-                <button type="button" id="btnQuickExportBookingCSV" class="booking-action-btn">
+                <button type="button" id="btnQuickExportBookingCSV" class="booking-action-btn" title="ส่งออกข้อมูลการจองเป็น Excel" aria-label="ส่งออก Excel">
                   <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
-                  <span class="btn-text-desktop">ส่งออก Excel</span>
-                  <span class="btn-text-tablet">ส่งออก Excel</span>
-                  <span class="btn-text-mobile">ส่งออก</span>
+                  <span>ส่งออก Excel</span>
                 </button>
-                <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn">
+                <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn" title="พิมพ์รายงานการจอง" aria-label="พิมพ์รายงาน">
                   <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
-                  <span class="btn-text-desktop">พิมพ์รายงาน</span>
-                  <span class="btn-text-tablet">พิมพ์รายงาน</span>
-                  <span class="btn-text-mobile">พิมพ์</span>
+                  <span>พิมพ์รายงาน</span>
                 </button>
               </div>
             </div>

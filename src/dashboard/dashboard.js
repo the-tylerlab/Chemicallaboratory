@@ -125,17 +125,14 @@ export async function updateDashboardMetrics() {
   }
 
   // 4. Category Breakdown Panel
-  const catCountEl = document.getElementById("categoryBreakdownCount");
-  if (catCountEl) catCountEl.innerText = `${total.toLocaleString()} รายการ`;
-
   const catContainer = document.getElementById("categoryBreakdownContainer");
   if (catContainer) {
     const categories = ["สารเคมี", "อุปกรณ์วิทยาศาสตร์", "เครื่องแก้ว", "วัสดุสิ้นเปลือง"];
     const catColors = {
-      "สารเคมี": "#ef4444",
-      "อุปกรณ์วิทยาศาสตร์": "#3b82f6",
-      "เครื่องแก้ว": "#8b5cf6",
-      "วัสดุสิ้นเปลือง": "#10b981"
+      "สารเคมี": "#b86b75",
+      "อุปกรณ์วิทยาศาสตร์": "#5e8f7a",
+      "เครื่องแก้ว": "#657fad",
+      "วัสดุสิ้นเปลือง": "#bd8c52"
     };
 
     const catCounts = categories.map(cat => ({
@@ -144,18 +141,18 @@ export async function updateDashboardMetrics() {
     }));
 
     catContainer.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 12px; padding: 12px 0;">
+      <div class="category-breakdown-list">
         ${catCounts.map(({ cat, count }) => {
           const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
           const color = catColors[cat] || '#6366f1';
           return `
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
-                <span style="color: #334155;">${cat}</span>
-                <span style="color: #64748b;">${count} รายการ (${pct}%)</span>
+            <div class="category-breakdown-row">
+              <div class="category-breakdown-meta">
+                <span class="category-breakdown-name" style="--category-accent: ${color};">${escapeHtml(cat)}</span>
+                <span class="category-breakdown-value"><span class="category-breakdown-count">${count.toLocaleString()}</span> รายการ (<span class="category-breakdown-percent">${pct}</span>%)</span>
               </div>
-              <div style="height: 8px; width: 100%; background: #f1f5f9; border-radius: 999px; overflow: hidden;">
-                <div style="height: 100%; width: ${pct}%; background: ${color}; border-radius: 999px; transition: width 0.4s ease;"></div>
+              <div class="category-breakdown-track" aria-hidden="true">
+                <div class="category-breakdown-fill" style="width: ${pct}%; --category-accent: ${color};"></div>
               </div>
             </div>
           `;
@@ -182,7 +179,7 @@ export async function updateDashboardMetrics() {
 
   if (urgentContainer) {
     if (urgentItems.length === 0) {
-      urgentContainer.innerHTML = `<div style="text-align: center; padding: 16px; color: #10b981; font-size: 13px;"><i data-lucide="check-circle-2" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px;"></i>สต็อกพัสดุและสารเคมีทุกรายการอยู่ในระดับปลอดภัย</div>`;
+      urgentContainer.innerHTML = `<div style="text-align: center; padding: 16px; color: #10b981; font-size: 13px;"><i data-lucide="check-circle-2" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px;"></i>ไม่มีรายการหมดอายุหรือสต็อกต่ำ</div>`;
     } else {
       urgentContainer.innerHTML = urgentItems.slice(0, 5).map(it => {
         const isExp = it.expiry && new Date(it.expiry) < today;
@@ -296,7 +293,7 @@ export async function updateDashboardMetrics() {
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
             <span style="font-size: 12px; color: #64748b; font-weight: 600;">ห้องแล็บที่ฉันจองไว้</span>
             <div style="font-size: 28px; font-weight: 800; color: #4f46e5; margin-top: 4px;">${myBookings.length}</div>
-            <span style="font-size: 11px; color: #10b981;">ใช้งานจริง & รออนุมัติ</span>
+            <span style="font-size: 11px; color: #10b981;">รวมรายการที่รออนุมัติ</span>
           </div>
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
             <span style="font-size: 12px; color: #64748b; font-weight: 600;">พัสดุ/สารเคมีที่ฉันยืม</span>
@@ -306,7 +303,7 @@ export async function updateDashboardMetrics() {
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
             <span style="font-size: 12px; color: #64748b; font-weight: 600;">คาบสอนปฏิบัติการที่จะมาถึง</span>
             <div style="font-size: 28px; font-weight: 800; color: #059669; margin-top: 4px;">${upcomingClasses.length}</div>
-            <span style="font-size: 11px; color: #10b981;">ชั้นเรียนที่พร้อมทดลอง</span>
+            <span style="font-size: 11px; color: #10b981;">รายการจองที่อนุมัติแล้ว</span>
           </div>
         </div>
 
@@ -368,17 +365,17 @@ export async function updateDashboardMetrics() {
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #cbd5e1;">
             <span style="font-size: 12px; color: #475569; font-weight: 600;">เตรียมการทดลองวันนี้</span>
             <div style="font-size: 28px; font-weight: 800; color: #0284c7; margin-top: 4px;">${todayPreps.length}</div>
-            <span style="font-size: 11px; color: #0284c7;">แล็บที่เปิดใช้งานวันนี้</span>
+            <span style="font-size: 11px; color: #0284c7;">รายการจองที่อนุมัติวันนี้</span>
           </div>
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #cbd5e1;">
             <span style="font-size: 12px; color: #475569; font-weight: 600;">คำขอจองห้องรออนุมัติ</span>
             <div style="font-size: 28px; font-weight: 800; color: #7c3aed; margin-top: 4px;">${bookings.filter(b => b.status === 'pending').length}</div>
-            <span style="font-size: 11px; color: #7c3aed;">รอการตรวจสอบคลาสเรียน</span>
+            <span style="font-size: 11px; color: #7c3aed;">รายการที่รออนุมัติ</span>
           </div>
         </div>
 
         <div style="background: white; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0;">
-          <h3 style="margin: 0 0 14px 0; font-size: 15px; font-weight: 700; color: #0f172a;"><i data-lucide="clipboard-list" class="inline-icon"></i> งานจัดเตรียมแล็บวันนี้ (Today's Preparation)</h3>
+          <h3 style="margin: 0 0 14px 0; font-size: 15px; font-weight: 700; color: #0f172a;"><i data-lucide="clipboard-list" class="inline-icon"></i> รายการจองแล็บวันนี้ (Today's Preparation)</h3>
           ${todayPreps.length === 0 ? `
             <div style="text-align: center; padding: 24px; color: #94a3b8; font-size: 13px;">ไม่มีคลาสแล็บวันนี้</div>
           ` : todayPreps.map(p => `
@@ -431,23 +428,23 @@ export async function updateDashboardMetrics() {
   roleContainer.innerHTML = `
     <div style="margin-top: 24px; padding-top: 20px; border-top: 2px dashed #e2e8f0;">
       <h2 style="font-size: 18px; font-weight: 800; color: #581c87; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
-        <span><i data-lucide="briefcase" class="inline-icon"></i> แดชบอร์ดผู้บริหาร (Executive Insights)</span>
+        <span><i data-lucide="briefcase" class="inline-icon"></i> แดชบอร์ดผู้บริหาร</span>
       </h2>
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px;">
         <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">
-          <span style="font-size: 12px; color: #64748b; font-weight: 600;">อัตราการใช้ห้องปฏิบัติการ (Lab Utilization)</span>
+          <span style="font-size: 12px; color: #64748b; font-weight: 600;">อัตราการใช้ห้องปฏิบัติการ</span>
           <div style="font-size: 28px; font-weight: 800; color: #4338ca; margin-top: 4px;">78%</div>
-          <span style="font-size: 11px; color: #4338ca;">จากห้องปฏิบัติการทั้งหมด 8 ห้อง</span>
+          <span style="font-size: 11px; color: #4338ca;">จากห้องปฏิบัติการ 8 ห้อง</span>
         </div>
         <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">
           <span style="font-size: 12px; color: #64748b; font-weight: 600;">มูลค่าสินทรัพย์และเคมีภัณฑ์</span>
           <div style="font-size: 28px; font-weight: 800; color: #047857; margin-top: 4px;">฿${Math.round(totalInventoryValue).toLocaleString()}</div>
-          <span style="font-size: 11px; color: #047857;">พร้อมใช้งานในการเรียนการสอน</span>
+          <span style="font-size: 11px; color: #047857;">คำนวณจากจำนวนและราคาต่อหน่วย</span>
         </div>
         <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">
           <span style="font-size: 12px; color: #64748b; font-weight: 600;">ประเด็นความปลอดภัย / อุบัติเหตุ</span>
           <div style="font-size: 28px; font-weight: 800; color: #10b981; margin-top: 4px;">0</div>
-          <span style="font-size: 11px; color: #10b981;">ไม่มีอุบัติเหตุสารเคมีในรอบเดือน</span>
+          <span style="font-size: 11px; color: #10b981;">เดือนนี้</span>
         </div>
       </div>
     </div>

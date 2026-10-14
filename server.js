@@ -14,6 +14,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_PRODUCTION = NODE_ENV === 'production';
+const devReloadClients = new Set();
+
 // ─── JWT SECRET ENFORCEMENT ──────────────────────────────────────────────────
 // Strictly require JWT_SECRET from environment. NO fallback, NO default hardcoded secret.
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -139,6 +141,29 @@ app.use(compression({
     return compression.filter(req, res);
   }
 }));
+
+if (!IS_PRODUCTION) {
+  app.get('/__dev/reload-events', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+    res.write('event: connected\ndata: ready\n\n');
+    devReloadClients.add(res);
+    req.on('close', () => devReloadClients.delete(res));
+  });
+
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' || !req.accepts('html')) return next();
+    if (!['/', '/index.html', '/dashboard', '/all-items', '/cabinet-layout', '/add-item', '/lab-booking', '/borrow-return', '/purchase-orders', '/reports', '/activity-logs', '/admin', '/notifications'].includes(req.path)) return next();
+
+    fs.readFile(path.join(__dirname, 'index.html'), 'utf8', (err, html) => {
+      if (err) return next(err);
+      const reloadClient = `<script>(function(){const events=new EventSource('/__dev/reload-events');events.addEventListener('reload',function(){window.location.reload()})})()</script>`;
+      res.type('html').set('Cache-Control', 'no-store').send(html.replace('</body>', `${reloadClient}</body>`));
+    });
+  });
+}
 
 // High-performance static serving with ETag validation & asset-optimized caching
 app.use(express.static(path.join(__dirname), {
@@ -5069,6 +5094,24 @@ if (require.main === module) {
     buildPages(false);
     if (!IS_PRODUCTION) {
       watchPages();
+      const watchedExtensions = new Set(['.html', '.css', '.js']);
+      let reloadTimer = null;
+      try {
+        fs.watch(__dirname, { recursive: true }, (_eventType, filename) => {
+          if (!filename) return;
+          const relativePath = String(filename);
+          if (relativePath.split(path.sep).some(part => ['.git', 'node_modules', 'data', 'dist'].includes(part))) return;
+          if (!watchedExtensions.has(path.extname(relativePath))) return;
+
+          clearTimeout(reloadTimer);
+          reloadTimer = setTimeout(() => {
+            for (const client of devReloadClients) client.write('event: reload\ndata: changed\n\n');
+          }, 200);
+        });
+        console.log('[dev-reload] Watching HTML, CSS, and JavaScript files');
+      } catch (err) {
+        console.warn('[dev-reload] File watching unavailable:', err.message);
+      }
     }
   } catch (err) {
     console.warn('[server] Page compiler notice:', err.message);

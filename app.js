@@ -3668,10 +3668,10 @@ function renderCategoryBreakdown() {
 
   const total = items.length || 1;
   const categoriesList = [
-    { name: "สารเคมี", count: counts["สารเคมี"], color: "#8b5cf6" },
-    { name: "อุปกรณ์วิทยาศาสตร์", count: counts["อุปกรณ์วิทยาศาสตร์"], color: "#10b981" },
-    { name: "เครื่องแก้ว", count: counts["เครื่องแก้ว"], color: "#3b82f6" },
-    { name: "วัสดุสิ้นเปลือง", count: counts["วัสดุสิ้นเปลือง"], color: "#f97316" }
+    { name: "สารเคมี", count: counts["สารเคมี"], color: "#b86b75" },
+    { name: "อุปกรณ์วิทยาศาสตร์", count: counts["อุปกรณ์วิทยาศาสตร์"], color: "#5e8f7a" },
+    { name: "เครื่องแก้ว", count: counts["เครื่องแก้ว"], color: "#657fad" },
+    { name: "วัสดุสิ้นเปลือง", count: counts["วัสดุสิ้นเปลือง"], color: "#bd8c52" }
   ];
 
   // Only display 'อื่นๆ' if there are items fall under this fallback category
@@ -3683,16 +3683,13 @@ function renderCategoryBreakdown() {
   categoriesList.forEach(cat => {
     const percentage = Math.round((cat.count / total) * 100);
     html += `
-      <div style="display: flex; flex-direction: column; gap: 6px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
-          <span style="font-weight: 500; display: flex; align-items: center; gap: 8px;">
-            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${cat.color};"></span>
-            ${cat.name}
-          </span>
-          <span style="font-weight: 600; color: var(--text-muted);">${cat.count} รายการ (${percentage}%)</span>
+      <div class="category-breakdown-row">
+        <div class="category-breakdown-meta">
+          <span class="category-breakdown-name" style="--category-accent: ${cat.color};">${cat.name}</span>
+          <span class="category-breakdown-value"><span class="category-breakdown-count">${cat.count.toLocaleString()}</span> รายการ (<span class="category-breakdown-percent">${percentage}</span>%)</span>
         </div>
-        <div style="width: 100%; height: 8px; background-color: rgba(255, 255, 255, 0.08); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
-          <div style="width: ${percentage}%; height: 100%; background-color: ${cat.color}; border-radius: 4px; transition: width 0.8s ease;"></div>
+        <div class="category-breakdown-track" aria-hidden="true">
+          <div class="category-breakdown-fill" style="width: ${percentage}%; --category-accent: ${cat.color};"></div>
         </div>
       </div>
     `;
@@ -3826,7 +3823,9 @@ function selectCategoryTab(category) {
   // Update active pill button state
   const pillBtns = document.querySelectorAll(".category-pill-btn");
   pillBtns.forEach(btn => {
-    if (btn.getAttribute("data-category") === category) {
+    const isActive = btn.getAttribute("data-category") === category;
+    btn.setAttribute("aria-pressed", String(isActive));
+    if (isActive) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
@@ -4234,6 +4233,12 @@ function setupFilterHandlers() {
   });
   
   document.getElementById("filterCategory").addEventListener("change", () => {
+    const selectedCategory = document.getElementById("filterCategory").value;
+    document.querySelectorAll("#categoryTabsNav .category-pill-btn").forEach(btn => {
+      const isActive = btn.getAttribute("data-category") === selectedCategory;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-pressed", String(isActive));
+    });
     currentPage = 1;
     renderItemsTable();
     lucide.createIcons();
@@ -7792,7 +7797,8 @@ function renderBookingSlots() {
   if (!grid) return;
 
   if (!date) {
-    grid.innerHTML = `<div style="grid-column: span 1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 12px;">-- กรุณาเลือกวันที่ก่อนเพื่อตรวจสอบความว่าง --</div>`;
+    grid.innerHTML = `<div class="booking-slots-empty"><i data-lucide="calendar-days"></i><span>เลือกวันที่เพื่อดูช่วงเวลาว่าง</span></div>`;
+    lucide.createIcons();
     return;
   }
 
@@ -7821,11 +7827,14 @@ function renderBookingSlots() {
       statusLabel = `<i data-lucide="mouse-pointer-click" style="width: 12px; height: 12px;"></i> เลือกอยู่`;
     }
 
+    const slotSeparator = slot.indexOf(":");
+    const slotName = slotSeparator >= 0 ? slot.slice(0, slotSeparator).trim() : slot;
+    const slotTime = slotSeparator >= 0 ? slot.slice(slotSeparator + 1).trim() : "";
     html += `
       <div class="booking-slot-card ${statusClass}" onclick="selectBookingSlot('${slot}', ${isBooked})">
         <div class="booking-slot-time">
-          <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
-          <span>${slot}</span>
+          <span class="booking-slot-period">${escapeHTML(slotName || slot)}</span>
+          ${slotTime ? `<span class="booking-slot-range">${escapeHTML(slotTime)}</span>` : ""}
         </div>
         <span class="booking-slot-status ${statusClass}">${statusLabel}</span>
       </div>
@@ -8261,7 +8270,7 @@ function renderBookingsTable() {
     const slotList = (b.slot || b.timeSlot || "").split(", ").filter(Boolean);
     const slotHtml = slotList.map(s => {
       const cleanSlot = s.trim();
-      return `<div style="font-weight: 600; color: #4f46e5; font-size: 11.5px; line-height: 1.3;">${cleanSlot}${cleanSlot.includes("น") ? "" : " น."}</div>`;
+      return `<span class="booking-list-slot">${escapeHTML(cleanSlot)}${cleanSlot.includes("น") ? "" : " น."}</span>`;
     }).join("");
 
     const isApproved = b.status === "approved";
@@ -8274,25 +8283,25 @@ function renderBookingsTable() {
 
     // Desktop Table Row (Zero-scroll, responsive hierarchical columns)
     tableHtml += `
-      <tr class="table-clickable-row" onclick="showBookingDetail('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
-        <td data-label="วันเวลาที่ใช้งาน" style="vertical-align: top; padding: 14px 16px; width: 200px; white-space: nowrap;">
-          <div style="font-size: 13px; font-weight: 700; color: #0f172a; line-height: 1.3;">${formattedDate}</div>
-          <div style="margin-top: 3px; display: flex; flex-direction: column; gap: 2px;">
+      <tr class="table-clickable-row booking-list-row" onclick="showBookingDetail('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
+        <td class="booking-list-date-cell" data-label="วันเวลาที่ใช้งาน">
+          <div class="booking-list-date">${formattedDate}</div>
+          <div class="booking-list-slots">
             ${slotHtml}
           </div>
-          <div style="margin-top: 7px;">
+          <div class="booking-list-status">
             ${statusBadge}
           </div>
         </td>
-        <td data-label="ห้องปฏิบัติการและรายละเอียดกิจกรรม" style="vertical-align: top; padding: 14px 16px;">
-          <div style="margin-bottom: 5px;">
-            <span style="font-family: var(--font-sans); background-color: ${roomColor}12; color: ${roomColor}; font-size: 11.5px; padding: 2px 8px; border-radius: 6px; font-weight: 600; display: inline-block; border: 1px solid ${roomColor}25; word-break: break-word;">${roomName}</span>
+        <td class="booking-list-detail-cell" data-label="ห้องปฏิบัติการและรายละเอียดกิจกรรม">
+          <div class="booking-list-detail-heading">
+            <span class="booking-list-room" style="--booking-room-color: ${roomColor};">${escapeHTML(roomName)}</span>
+            <span class="booking-list-purpose">${escapeHTML(purpose)}</span>
           </div>
-          <div style="font-size: 13.5px; font-weight: 700; color: #0f172a; line-height: 1.4; word-break: break-word;">${escapeHTML(purpose)}</div>
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; font-size: 12px; color: #64748b;">
-            <span>คุณครู: <strong style="color: #334155; font-weight: 600;">${escapeHTML(booker)}</strong></span>
-            ${grade !== '-' ? `<span>• ชั้น: <strong style="color: #334155; font-weight: 600;">${escapeHTML(grade)}</strong></span>` : ''}
-            ${studentCountText ? `<span>(${studentCountText})</span>` : ''}
+          <div class="booking-list-meta">
+            <span>ผู้จอง <strong>${escapeHTML(booker)}</strong></span>
+            ${grade !== '-' ? `<span>ชั้น <strong>${escapeHTML(grade)}</strong></span>` : ''}
+            ${studentCountText ? `<span><strong>${escapeHTML(studentCountText)}</strong></span>` : ''}
           </div>
         </td>
       </tr>
@@ -10260,6 +10269,7 @@ window.showBookingDetail = function(bkId) {
   const footer = document.getElementById("detailModalFooter");
 
   if (!modal || !title || !body || !footer) return;
+  modal.classList.add("booking-detail-modal");
 
   // Set Title
   title.innerHTML = `
@@ -10273,62 +10283,67 @@ window.showBookingDetail = function(bkId) {
   const statusClass = isApproved ? "badge-approved" : (isPending ? "badge-pending" : "badge-cancelled");
   const statusLabel = isApproved ? "อนุมัติแล้ว" : (isPending ? "รออนุมัติ" : "ปฏิเสธ/ยกเลิก");
 
-  let prepHtml = "";
-  if (bk.prepItems && bk.prepItems.length > 0) {
-    prepHtml = `
-      <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #f1f5f9; padding-top: 10px;">
-        <span style="font-weight: 600; color: var(--text-muted);">วัสดุ / สารเคมีที่เตรียมสอน:</span>
-        <div style="display: flex; flex-direction: column; gap: 4px; padding-left: 12px; margin-top: 4px;">
-          ${bk.prepItems.map(pi => {
-            const item = items.find(i => i.code === pi.code);
-            const name = item ? getItemDisplayName(item) : pi.code;
-            const unit = item ? item.unit : "หน่วย";
-            return `<div style="font-size: 13px; font-weight: 500; color: #334155;">• ${name} (${pi.code}) - <strong>${pi.qty}</strong> ${unit}</div>`;
-          }).join("")}
-        </div>
-      </div>
-    `;
+  let bookingPrepItems = bk.prepItems;
+  if (typeof bookingPrepItems === "string") {
+    try { bookingPrepItems = JSON.parse(bookingPrepItems); } catch { bookingPrepItems = []; }
   }
+  if (!Array.isArray(bookingPrepItems)) bookingPrepItems = [];
+  const prepItemsHtml = bookingPrepItems.map(prep => {
+    const entry = prep && typeof prep === "object" ? prep : { code: prep };
+    const code = entry.code || entry.itemCode || entry.item_code || entry.itemId || "";
+    const item = code ? items.find(i => i.code === code || i.id === code) : null;
+    const name = item ? getItemDisplayName(item) : (entry.name || entry.itemName || entry.item_name || code || "ไม่ระบุรายการ");
+    const unit = (item && item.unit) || entry.unit || entry.unitName || "หน่วย";
+    const quantity = entry.qty ?? entry.quantity ?? entry.amount ?? "-";
+    const codeLabel = code && code !== name ? `<span class="booking-detail-prep-code">${escapeHTML(String(code))}</span>` : "";
+    return `<li class="booking-detail-prep-item"><span class="booking-detail-prep-name">${escapeHTML(String(name))}${codeLabel}</span><strong>${escapeHTML(String(quantity))} <small>${escapeHTML(String(unit))}</small></strong></li>`;
+  }).join("");
 
-  // Build Body HTML
+  const roomName = getRoomThaiName(bk.room) || "ไม่ระบุห้องปฏิบัติการ";
+  const bookingDate = formatPrettyThaiDate(normalizeDateStr(bk.date) || bk.date) || "ไม่ระบุวันที่";
+  const bookingTime = bk.slot || bk.timeSlot || "ไม่ระบุเวลา";
+  const gradeLevel = bk.className || bk.gradeLevel || "ไม่ระบุ";
+  const studentCount = formatStudentCount(bk.studentCount) || "ไม่ระบุ";
+  const teacherName = bk.bookerName || bk.teacherName || "ไม่ระบุชื่อผู้จอง";
+  const purpose = bk.purpose || bk.activity || "ไม่ระบุกิจกรรม";
+
   body.innerHTML = `
-    <div style="display: flex; flex-direction: column; gap: 12px;">
-      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">ห้องปฏิบัติการ:</span>
-        <span style="font-weight: 600; color: #0f172a;">${getRoomThaiName(bk.room)}</span>
-      </div>
-      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">วัน/เดือน/ปี ที่ใช้งาน:</span>
-        <span style="font-weight: 600; color: #1e293b;">${formatPrettyThaiDate(bk.date)}</span>
-      </div>
-      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">เวลาที่เข้าใช้:</span>
-        <span style="font-weight: 600; color: #8b5cf6;">${bk.slot || bk.timeSlot || "-"}</span>
-      </div>
-      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">ระดับชั้นเรียน:</span>
-        <span style="font-weight: 600; color: var(--text-main);">${bk.className || bk.gradeLevel || "-"}</span>
-      </div>
-      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">จำนวนนักเรียนทั้งหมด:</span>
-        <span style="font-weight: 600; color: var(--text-main);">${formatStudentCount(bk.studentCount) || "-"}</span>
-      </div>
-      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">ลงชื่อคุณครู:</span>
-        <span style="font-weight: 600; color: var(--text-main);">${bk.bookerName || bk.teacherName || "-"}</span>
-      </div>
-      <div style="display: grid; grid-template-columns: 140px 1fr; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">สถานะการจอง:</span>
-        <span><span class="badge ${statusClass}" style="display: inline-block;">${statusLabel}</span></span>
-      </div>
-      ${bk.purpose || bk.activity ? `
-      <div style="display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-        <span style="font-weight: 600; color: var(--text-muted);">กิจกรรมที่ใช้:</span>
-        <div style="background-color: #f8fafc; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 13px; color: var(--text-main); font-weight: 500; min-height: 40px;">
-          ${bk.purpose || bk.activity}
+    <div class="booking-detail-content">
+      <section class="booking-detail-summary" aria-label="สรุปการจอง">
+        <div class="booking-detail-summary-card booking-detail-summary-room">
+          <span class="booking-detail-summary-icon"><i data-lucide="flask-conical"></i></span>
+          <span class="booking-detail-eyebrow">ห้องปฏิบัติการ</span>
+          <strong>${escapeHTML(String(roomName))}</strong>
         </div>
-      </div>` : ''}
-      ${prepHtml}
+        <div class="booking-detail-summary-card">
+          <span class="booking-detail-summary-icon"><i data-lucide="calendar-days"></i></span>
+          <span class="booking-detail-eyebrow">วันที่ใช้งาน</span>
+          <strong>${escapeHTML(String(bookingDate))}</strong>
+        </div>
+        <div class="booking-detail-summary-card booking-detail-time-card">
+          <span class="booking-detail-summary-icon"><i data-lucide="clock-3"></i></span>
+          <span class="booking-detail-eyebrow">ช่วงเวลา</span>
+          <strong>${escapeHTML(String(bookingTime))}</strong>
+        </div>
+      </section>
+
+      <section class="booking-detail-info-grid" aria-label="ข้อมูลผู้จอง">
+        <div class="booking-detail-info-item"><span>ระดับชั้น</span><strong>${escapeHTML(String(gradeLevel))}</strong></div>
+        <div class="booking-detail-info-item"><span>จำนวนนักเรียน</span><strong>${escapeHTML(String(studentCount))}</strong></div>
+        <div class="booking-detail-info-item"><span>ผู้จอง / ครูผู้สอน</span><strong>${escapeHTML(String(teacherName))}</strong></div>
+        <div class="booking-detail-info-item"><span>สถานะการจอง</span><strong><span class="booking-detail-status ${statusClass}">${statusLabel}</span></strong></div>
+      </section>
+
+      <section class="booking-detail-section">
+        <h3><i data-lucide="clipboard-list"></i> กิจกรรมที่ใช้</h3>
+        <p class="booking-detail-purpose">${escapeHTML(String(purpose))}</p>
+      </section>
+
+      ${prepItemsHtml ? `
+      <section class="booking-detail-section booking-detail-prep-section">
+        <h3><i data-lucide="package-check"></i> วัสดุ / สารเคมีที่เตรียม</h3>
+        <ul class="booking-detail-prep-list">${prepItemsHtml}</ul>
+      </section>` : ""}
     </div>
   `;
 
@@ -10370,7 +10385,9 @@ window.showBookingDetail = function(bkId) {
 
 window.closeDetailModal = function() {
   const modal = document.getElementById("detailModal");
-  if (modal) modal.classList.remove("active");
+  if (modal) {
+    modal.classList.remove("active", "booking-detail-modal");
+  }
 };
 
 // Setup detail modal listeners on load
@@ -10930,7 +10947,7 @@ window.showItemDetail = function(event, itemCode) {
     }
 
     ghsSection = `
-      <div style="background-color: rgba(239, 68, 68, 0.02); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: var(--border-radius-md); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+      <div class="item-detail-safety" style="background-color: rgba(239, 68, 68, 0.02); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: var(--border-radius-md); padding: 16px; display: flex; flex-direction: column; gap: 12px;">
         <span style="font-weight: 600; color: var(--accent-red); display: flex; align-items: center; gap: 6px; font-size: 14px; border-bottom: 1px solid rgba(239, 68, 68, 0.1); padding-bottom: 8px;">
           <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i> ข้อมูลความปลอดภัยและการจัดเก็บ (Safety & Hazard Information)
         </span>
@@ -11086,12 +11103,12 @@ window.showItemDetail = function(event, itemCode) {
 
   // General details view layout
   body.innerHTML = `
-    <div style="display: flex; gap: 16px; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
-      <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; background: #fff; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div class="item-detail-overview" style="display: flex; gap: 16px; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+      <div class="item-detail-qr" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; background: #fff; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; gap: 6px;">
         <img src="${qrUrl}" alt="QR Code" style="width: 100px; height: 100px;">
         <span style="font-family: monospace; font-size: 11px; font-weight: bold; color: var(--text-muted);">${item.code}</span>
       </div>
-      <div style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
+      <div class="item-detail-overview-content" style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
         <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">${getItemDisplayName(item)}</h4>
         <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${item.category}</div>
         <div style="display: grid; grid-template-columns: 80px 1fr; font-size: 13px; margin-top: 8px; gap: 4px;">
@@ -17088,6 +17105,7 @@ function initCalendarEventListeners() {
 }
 
 function getRoomColor(room) {
+  room = typeof room === "string" ? room : String(room || "");
   if (!room) return "#94a3b8"; // Slate
   if (room.includes("Lab 1") || room.includes("เคมี")) return "#3b82f6"; // Blue
   if (room.includes("Lab 2") || room.includes("ฟิสิกส์")) return "#10b981"; // Green
@@ -17142,20 +17160,23 @@ function renderBookingCalendar() {
       cell.classList.add("today");
     }
 
-    const dayBookings = (bookings || []).filter(b => normalizeDateStr(b.date) === cellDateStr && b.status !== "cancelled");
+    const dayBookings = (Array.isArray(bookings) ? bookings : []).filter(b =>
+      b && normalizeDateStr(b.date) === cellDateStr && String(b.status || "").toLowerCase() !== "cancelled"
+    );
 
     let bookingsHtml = "";
     if (dayBookings.length > 0) {
-      const isMobile = window.innerWidth <= 768;
-      const displayLimit = isMobile ? 1 : 2;
+      const displayLimit = 1;
       const visibleBookings = dayBookings.slice(0, displayLimit);
       const remainingCount = dayBookings.length - displayLimit;
 
       visibleBookings.forEach(b => {
+        try {
         const roomColor = getRoomColor(b.room);
-        const roomNameShort = (b.room || "Lab").replace("ห้องปฏิบัติการ", "").trim();
+        const roomName = typeof b.room === "string" ? b.room : String(b.room || "Lab");
+        const roomNameShort = roomName.replace("ห้องปฏิบัติการ", "").trim();
         const booker = b.bookerName || b.teacherName || "";
-        const title = `${getRoomThaiName(b.room)} | ${booker} (${b.slot || ''}): ${b.purpose || ''}`;
+        const title = `${getRoomThaiName(roomName)} | ${booker} (${b.slot || ''}): ${b.purpose || ''}`;
         const isPending = b.status === "pending";
 
         bookingsHtml += `
@@ -17170,12 +17191,16 @@ function renderBookingCalendar() {
             ${isPending ? '<span style="color:#d97706; margin-left:auto; display:inline-flex; align-items:center;"><i data-lucide="clock" style="width:10px; height:10px;"></i></span>' : ''}
           </div>
         `;
+        } catch (error) {
+          // Keep one malformed booking record from preventing the rest of the month from rendering.
+          console.warn("Unable to render booking calendar entry", error);
+        }
       });
 
       if (remainingCount > 0) {
         bookingsHtml += `
           <div class="calendar-more-badge" style="font-size: 9px; font-weight: 700; color: var(--primary-purple); text-align: center; margin-top: 1px; cursor: pointer; line-height: 1;" onclick="event.stopPropagation(); openDashboardDateEventsModal('${cellDateStr}', event);">
-            +${remainingCount}${isMobile ? '' : ' รายการ'}
+          +${remainingCount} รายการ
           </div>
         `;
       }
@@ -17351,19 +17376,14 @@ function renderCabinetRoomTabs() {
     const roomItems = (items || []).filter(it => (it.room || 'Lab 1') === room.id || (room.id === 'Lab 1' && (!it.room || it.room === 'None')));
     const itemCount = roomItems.length;
 
-    const activeBg = isActive ? 'var(--primary-color)' : 'white';
-    const activeColor = isActive ? 'white' : 'var(--text-dark)';
-    const activeBorder = isActive ? 'var(--primary-color)' : 'var(--border-color)';
-    const countBg = isActive ? 'rgba(255, 255, 255, 0.25)' : '#f1f5f9';
-    const countColor = isActive ? 'white' : 'var(--text-muted)';
-
     return `
       <button type="button" class="shecu-room-tab-btn ${isActive ? 'active' : ''}" 
+              aria-pressed="${isActive}"
               onclick="switchCabinetRoom('${room.id.replace(/'/g, "\\'")}')"
-              style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; border: 1.5px solid ${activeBorder}; background: ${activeBg}; color: ${activeColor}; font-weight: ${isActive ? '600' : '500'}; font-size: 12.5px; cursor: pointer; transition: all 0.2s ease; white-space: nowrap; box-shadow: ${isActive ? '0 2px 8px rgba(79, 70, 229, 0.2)' : 'none'}; flex-shrink: 0;">
-        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${isActive ? '#a5b4fc' : (room.hex || '#6366f1')};"></span>
-        <span>${room.id} (${room.name})</span>
-        <span style="font-size: 11px; padding: 2px 7px; border-radius: 10px; background: ${countBg}; color: ${countColor}; font-weight: 600;">${itemCount} รายการ</span>
+              style="--room-accent: ${room.hex || '#6478db'};">
+        <span class="shecu-room-tab-dot" aria-hidden="true"></span>
+        <span class="shecu-room-tab-name">${room.id} (${room.name})</span>
+        <span class="shecu-room-tab-count">${itemCount} รายการ</span>
       </button>
     `;
   }).join("");
@@ -22345,17 +22365,97 @@ function syncAnnouncementFormFields(data) {
   selectAnnouncementTheme(currentTheme, "modal");
 }
 
+function getAnnouncementFlipState() {
+  if (!window.announcementTickerFlipState) {
+    window.announcementTickerFlipState = {
+      messages: [], index: 0, timer: null, transitionTimer: null,
+      hovering: false, pauseOnHover: true,
+      listenersBound: false, reducedMotion: false
+    };
+  }
+  return window.announcementTickerFlipState;
+}
+
+function stopAnnouncementFlipTimer() {
+  const state = getAnnouncementFlipState();
+  if (state.timer) window.clearInterval(state.timer);
+  state.timer = null;
+  if (state.transitionTimer) window.clearTimeout(state.transitionTimer);
+  state.transitionTimer = null;
+}
+
+function startAnnouncementFlipTimer() {
+  const state = getAnnouncementFlipState();
+  stopAnnouncementFlipTimer();
+  const isBlocked = document.hidden || (state.pauseOnHover && state.hovering);
+  if (state.messages.length < 2 || isBlocked) return;
+  state.timer = window.setInterval(() => showAnnouncementFlip(state.index + 1, true), 6500);
+}
+
+function showAnnouncementFlip(nextIndex, animate = true) {
+  const state = getAnnouncementFlipState();
+  const track = document.getElementById("tickerMarqueeTrack");
+  if (!track || state.messages.length === 0) return;
+  state.index = (nextIndex + state.messages.length) % state.messages.length;
+  const message = state.messages[state.index];
+  const render = () => {
+    track.innerHTML = `<span class="ticker-text-item"><span class="ticker-text-dot" aria-hidden="true"></span><span>${escapeHTML(message)}</span></span>`;
+    track.classList.remove("is-flipping-out");
+    track.classList.add("is-flipping-in");
+    if (state.transitionTimer) window.clearTimeout(state.transitionTimer);
+    state.transitionTimer = window.setTimeout(() => track.classList.remove("is-flipping-in"), 280);
+  };
+  if (!animate || state.reducedMotion) {
+    render();
+    return;
+  }
+  track.classList.remove("is-flipping-in");
+  track.classList.add("is-flipping-out");
+  if (state.transitionTimer) window.clearTimeout(state.transitionTimer);
+  state.transitionTimer = window.setTimeout(render, 135);
+}
+
+function bindAnnouncementFlipBehavior() {
+  const state = getAnnouncementFlipState();
+  if (state.listenersBound) return;
+  state.listenersBound = true;
+  const wrapper = document.querySelector("#announcementTickerBar .ticker-marquee-wrapper");
+  wrapper?.addEventListener("pointerenter", () => {
+    state.hovering = true;
+    startAnnouncementFlipTimer();
+  });
+  wrapper?.addEventListener("pointerleave", () => {
+    state.hovering = false;
+    startAnnouncementFlipTimer();
+  });
+  document.addEventListener("visibilitychange", startAnnouncementFlipTimer);
+  const motionPreference = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  if (motionPreference) {
+    state.reducedMotion = motionPreference.matches;
+    motionPreference.addEventListener?.("change", event => {
+      state.reducedMotion = event.matches;
+      startAnnouncementFlipTimer();
+    });
+  }
+}
+
 function renderAnnouncementTicker(customData) {
   const tickerBar = document.getElementById("announcementTickerBar");
   const track = document.getElementById("tickerMarqueeTrack");
   const badgeText = document.getElementById("tickerBadgeText");
   const btnTickerAdminEdit = document.getElementById("btnTickerAdminEdit");
   if (!tickerBar || !track) return;
-
+  const flipState = getAnnouncementFlipState();
+  stopAnnouncementFlipTimer();
+  track.classList.remove("is-flipping-out", "is-flipping-in");
+  bindAnnouncementFlipBehavior();
+  flipState.messages = [];
+  flipState.index = 0;
   const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
   const isL3Admin = (roleLevel === "L3" || (typeof userRole !== "undefined" && userRole === "admin"));
   const isBackoffice = (roleLevel !== "L0");
   const data = customData || getAnnouncementData();
+  flipState.pauseOnHover = data.pauseOnHover !== false;
 
   // Apply Theme Classes (orange, blue, green, purple, red, dark)
   const validThemes = ["orange", "blue", "green", "purple", "red", "dark"];
@@ -22390,7 +22490,7 @@ function renderAnnouncementTicker(customData) {
   if (!data.enabled) {
     if (isL3Admin) {
       // Show subtle disabled indicator for Admin so they can easily re-enable
-      tickerBar.style.display = "flex";
+      tickerBar.style.display = "grid";
       tickerBar.style.opacity = "0.75";
       tickerBar.style.borderStyle = "dashed";
       track.innerHTML = `
@@ -22412,7 +22512,7 @@ function renderAnnouncementTicker(customData) {
     }
   }
 
-  tickerBar.style.display = "flex";
+  tickerBar.style.display = "grid";
   tickerBar.style.opacity = "1";
   tickerBar.style.borderStyle = "solid";
   if (btnTickerAdminEdit) {
@@ -22425,7 +22525,7 @@ function renderAnnouncementTicker(customData) {
 
   const rawText = data.text || "";
   const messages = rawText
-    .split(/[\n|]/)
+    .split(/\s*(?:\||\r?\n)\s*/)
     .map(m => m.trim())
     .filter(m => m.length > 0);
 
@@ -22443,14 +22543,10 @@ function renderAnnouncementTicker(customData) {
     }
   }
 
-  // Duplicate items for seamless continuous looping marquee
-  const displayItems = [...messages, ...messages];
-  track.innerHTML = displayItems.map(msg => `
-    <span class="ticker-text-item">
-      <span class="ticker-text-dot"></span>
-      <span>${escapeHTML(msg)}</span>
-    </span>
-  `).join("");
+  // Show one announcement at a time and rotate through the configured messages.
+  flipState.messages = messages;
+  showAnnouncementFlip(0, false);
+  startAnnouncementFlipTimer();
 }
 
 function updateAnnouncementToggleLabel(isChecked, labelId) {
@@ -23228,26 +23324,26 @@ function renderTodayLabStatus() {
     let detailText = '';
 
     if (activeBooking) {
-      statusBadge = '<span class="today-lab-status-badge status-badge-busy"><i data-lucide="clock" style="width:10px;height:10px;"></i> มีใช้งาน</span>';
+      statusBadge = '<span class="today-lab-status-badge status-badge-busy" aria-label="มีการใช้งาน" title="มีการใช้งาน"><i data-lucide="clock" aria-hidden="true" style="width:12px;height:12px;"></i></span>';
       detailText = `${activeBooking.slot ? 'คาบ ' + activeBooking.slot : 'มีจองวันนี้'} (${activeBooking.bookerName || 'อาจารย์'})`;
     } else {
       freeCount++;
-      statusBadge = '<span class="today-lab-status-badge status-badge-free"><i data-lucide="check-circle" style="width:10px;height:10px;"></i> พร้อมใช้</span>';
+      statusBadge = '<span class="today-lab-status-badge status-badge-free" aria-label="พร้อมใช้" title="พร้อมใช้"><i data-lucide="check-circle" aria-hidden="true" style="width:12px;height:12px;"></i></span>';
       detailText = 'ว่างตลอดทั้งวัน';
     }
 
     return `
-      <div class="today-lab-item">
+      <div class="today-lab-item ${activeBooking ? 'is-occupied' : 'is-available'}">
         <div class="today-lab-header">
           <div style="min-width: 0; flex: 1;">
             <div class="today-lab-name">${lab.id}: ${lab.name}</div>
-            <div class="today-lab-building">${lab.building}</div>
+            <div class="today-lab-building"><i data-lucide="map-pin" aria-hidden="true"></i><span>${lab.building}</span></div>
           </div>
           ${statusBadge}
         </div>
         <div class="today-lab-footer">
           <span class="today-lab-detail" title="${detailText}">${detailText}</span>
-          <button type="button" class="btn-mini-book" onclick="quickBookRoom('${lab.id}')">จองห้องนี้</button>
+          <button type="button" class="btn-mini-book" onclick="quickBookRoom('${lab.id}')"><i data-lucide="calendar-days" aria-hidden="true"></i><span>จองห้องนี้</span></button>
         </div>
       </div>
     `;
@@ -23457,6 +23553,18 @@ function renderDashboardCalendar() {
   const monthLabel = document.getElementById("dashCalMonthLabel");
   const content = document.getElementById("dashCalContent");
   if (!monthLabel || !content) return;
+
+  const rangeUnit = dashCalCurrentView === "day" ? "วัน" : dashCalCurrentView === "week" ? "สัปดาห์" : "เดือน";
+  const btnPrev = document.getElementById("dashCalBtnPrev");
+  const btnNext = document.getElementById("dashCalBtnNext");
+  if (btnPrev) {
+    btnPrev.setAttribute("aria-label", `${rangeUnit}ก่อนหน้า`);
+    btnPrev.title = `${rangeUnit}ก่อนหน้า`;
+  }
+  if (btnNext) {
+    btnNext.setAttribute("aria-label", `${rangeUnit}ถัดไป`);
+    btnNext.title = `${rangeUnit}ถัดไป`;
+  }
 
   const year = dashCalCurrentDate.getFullYear();
   const month = dashCalCurrentDate.getMonth();
@@ -23896,7 +24004,6 @@ function closeDashboardDateEventsModal() {
 function initDashboardCalendar() {
   const btnPrev = document.getElementById("dashCalBtnPrev");
   const btnNext = document.getElementById("dashCalBtnNext");
-  const btnToday = document.getElementById("dashCalBtnToday");
   const datePicker = document.getElementById("dashScheduleDatePicker");
   const popoverClose = document.getElementById("dashCalPopoverClose");
   const backdrop = document.getElementById("dashCalModalBackdrop");
@@ -23928,15 +24035,6 @@ function initDashboardCalendar() {
         dashCalCurrentDate.setDate(dashCalCurrentDate.getDate() + 1);
         dashCalSelectedDate.setDate(dashCalSelectedDate.getDate() + 1);
       }
-      renderDashboardCalendar();
-      renderDashboardDailySchedule();
-    };
-  }
-
-  if (btnToday) {
-    btnToday.onclick = () => {
-      dashCalCurrentDate = new Date();
-      dashCalSelectedDate = new Date();
       renderDashboardCalendar();
       renderDashboardDailySchedule();
     };

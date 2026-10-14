@@ -110,7 +110,7 @@
   <link rel="stylesheet" href="assets/css/tailwind.css?v=20261011_tw">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=20261012_pinfix">
+  <link rel="stylesheet" href="style.css?v=20261013_booking_form_slots_redesign">
   <link rel="stylesheet" href="cabinet-card.css?v=20261010_inset">
 
   <!-- Core Libraries (Local high-performance icon library) -->
@@ -369,12 +369,12 @@
         </div>
 
         <!-- Top Announcement Ticker Bar -->
-        <div class="announcement-ticker-bar ticker-theme-orange ticker-pause-hover" id="announcementTickerBar" style="margin-bottom: 20px;">
-          <div class="ticker-badge" id="tickerBadgeMain">
+        <div class="announcement-ticker-bar ticker-theme-orange" id="announcementTickerBar" aria-label="ประกาศสำคัญ">
+          <div class="ticker-badge" id="tickerBadgeMain" role="img" aria-label="ประกาศสำคัญ">
             <i data-lucide="megaphone" style="width: 14px; height: 14px;"></i>
-            <span id="tickerBadgeText">ประกาศ & ความปลอดภัย</span>
+            <span id="tickerBadgeText" aria-hidden="true">ประกาศ & ความปลอดภัย</span>
           </div>
-          <div class="ticker-marquee-wrapper">
+          <div class="ticker-marquee-wrapper" aria-live="off" aria-atomic="true">
             <div class="ticker-marquee-track" id="tickerMarqueeTrack">
               <!-- Dynamically populated from admin announcement settings -->
             </div>
@@ -555,17 +555,17 @@
             <!-- Left Side: Interactive Calendar -->
             <div class="lab-calendar-card">
               <div class="lab-calendar-toolbar">
-                <div class="lab-calendar-nav">
-                  <button type="button" class="btn-cal-nav" id="dashCalBtnPrev" title="เดือนก่อนหน้า" aria-label="เดือนก่อนหน้า">
-                    <i data-lucide="chevron-left"></i>
-                  </button>
-                  <button type="button" class="btn-cal-nav" id="dashCalBtnNext" title="เดือนถัดไป" aria-label="เดือนถัดไป">
-                    <i data-lucide="chevron-right"></i>
-                  </button>
-                  <button type="button" class="btn-cal-today" id="dashCalBtnToday">วันนี้</button>
+                <div class="lab-calendar-heading">
+                  <h3 class="lab-calendar-current-label" id="dashCalMonthLabel">กันยายน 2569</h3>
+                  <div class="lab-calendar-nav" aria-label="เปลี่ยนช่วงปฏิทิน">
+                    <button type="button" class="btn-cal-nav" id="dashCalBtnPrev" title="เดือนก่อนหน้า" aria-label="เดือนก่อนหน้า">
+                      <i data-lucide="chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn-cal-nav" id="dashCalBtnNext" title="เดือนถัดไป" aria-label="เดือนถัดไป">
+                      <i data-lucide="chevron-right"></i>
+                    </button>
+                  </div>
                 </div>
-                
-                <h3 class="lab-calendar-current-label" id="dashCalMonthLabel">กันยายน 2569</h3>
 
                 <div class="lab-calendar-view-tabs" id="dashCalViewTabs">
                   <button type="button" class="btn-view-tab" data-view="day">วัน</button>
@@ -584,66 +584,49 @@
             <div class="lab-schedule-column">
               <!-- Quick Menu Panel: 2-tier Modern Assistant Input Card Style -->
               <div class="card-container quick-prompt-card" id="quickMenuCard">
-                <!-- Tier 1 (Top / Upper Tier): Clean Prompt-like Message Box -->
-                <div class="quick-prompt-top">
-                  <div class="quick-prompt-header">
-                    <span class="quick-prompt-greeting">ต้องการจองห้องหรือใช้งานระบบใดวันนี้?</span>
-                    <span class="quick-prompt-badge">
-                      <i data-lucide="sparkles"></i>
-                      <span>Quick Action</span>
-                    </span>
+                <div class="quick-prompt-inner">
+                  <div class="quick-prompt-top">
+                    <div class="quick-prompt-header">
+                      <span class="quick-prompt-greeting">ทำรายการในห้องปฏิบัติการ</span>
+                    </div>
+                    <p class="quick-prompt-desc">จองห้อง หรือทำรายการยืมและคืนพัสดุ</p>
                   </div>
-                  <p class="quick-prompt-desc">เลือกบริการด่วนด้านล่างเพื่อเข้าสู่ระบบจองห้องปฏิบัติการ หรือทำรายการยืม-คืนพัสดุและเคมีภัณฑ์ทันที</p>
                 </div>
 
-                <!-- Tier 2 (Bottom / Action Bar): Pill Tags, Lab Booking Button, Send Button -->
                 <div class="quick-prompt-bottom">
-                  <div class="quick-prompt-actions-left">
-                    <button type="button" class="quick-prompt-add-btn" title="เมนูด่วนเพิ่มเติม" aria-label="เมนูเพิ่มเติม">
-                      <i data-lucide="plus"></i>
-                    </button>
-                    <!-- Pill Tag: Borrow & Return -->
-                    <button type="button" class="quick-prompt-tag" id="quickBtnBorrowReturn" title="ยืม-คืนพัสดุและเคมีภัณฑ์">
-                      <i data-lucide="repeat"></i>
-                      <span>ยืม-คืนพัสดุ</span>
-                    </button>
-                    <!-- Pill Tag: Add Item (Staff/Admin) -->
-                    <button type="button" class="quick-prompt-tag" id="quickBtnAddItem" style="display: none;" title="เพิ่มสาร/อุปกรณ์">
-                      <i data-lucide="plus-circle"></i>
-                      <span>เพิ่มสาร/อุปกรณ์</span>
-                    </button>
-                    <!-- Pill Tag: Admin Panel (Admin) -->
-                    <button type="button" class="quick-prompt-tag" id="quickBtnAdmin" onclick="navigateToPanel('admin')" style="display: none;" title="Admin Panel">
-                      <i data-lucide="shield-check"></i>
-                      <span>Admin</span>
-                    </button>
-                  </div>
+                    <div class="quick-prompt-actions-left">
+                      <button type="button" class="quick-prompt-tag" id="quickBtnBorrowReturn" title="ยืม-คืนพัสดุและเคมีภัณฑ์">
+                        <i data-lucide="repeat"></i>
+                        <span>ยืม-คืนพัสดุ</span>
+                      </button>
+                      <button type="button" class="quick-prompt-tag" id="quickBtnAddItem" style="display: none;" title="เพิ่มสาร/อุปกรณ์">
+                        <i data-lucide="plus-circle"></i>
+                        <span>เพิ่มสาร/อุปกรณ์</span>
+                      </button>
+                      <button type="button" class="quick-prompt-tag" id="quickBtnAdmin" onclick="navigateToPanel('admin')" style="display: none;" title="Admin Panel">
+                        <i data-lucide="shield-check"></i>
+                        <span>จัดการระบบ</span>
+                      </button>
+                    </div>
 
-                  <div class="quick-prompt-actions-right">
-                    <!-- Main Featured Action: จองห้องปฏิบัติการ Dropdown/Pill style button -->
-                    <button type="button" class="quick-prompt-model-btn" id="quickBtnLabBooking" title="กดจองห้องปฏิบัติการ">
-                      <i data-lucide="calendar"></i>
-                      <span class="quick-prompt-model-label">จองห้องปฏิบัติการ</span>
-                      <i data-lucide="chevron-right" class="quick-prompt-chevron"></i>
-                    </button>
-                    <!-- Action Send / Launch button -->
-                    <button type="button" class="quick-prompt-send-btn" id="quickBtnLaunchLabBooking" onclick="navigateToPanel('lab-booking')" title="ไปที่หน้าจองห้อง" aria-label="ไปที่หน้าจองห้อง">
-                      <i data-lucide="arrow-up-right"></i>
-                    </button>
-                  </div>
+                    <div class="quick-prompt-actions-right">
+                      <button type="button" class="quick-prompt-model-btn" id="quickBtnLabBooking" title="กดจองห้องปฏิบัติการ">
+                        <i data-lucide="calendar"></i>
+                        <span class="quick-prompt-model-label">จองห้องปฏิบัติการ</span>
+                      </button>
+                    </div>
                 </div>
               </div>
 
               <!-- Right Side: Category Breakdown Panel (สัดส่วนหมวดหมู่พัสดุ) -->
-              <div class="card-container" id="categoryBreakdownCard">
-                <div class="card-header">
-                  <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="pie-chart" style="width: 16px; height: 16px; color: var(--primary-purple);"></i>
+              <div class="card-container category-breakdown-card" id="categoryBreakdownCard">
+                <div class="category-breakdown-header">
+                  <h2 class="card-title">
+                    <i data-lucide="pie-chart" aria-hidden="true"></i>
                     <span>สัดส่วนหมวดหมู่พัสดุ</span>
-                    <span class="badge badge-purple" id="categoryBreakdownCount" style="padding: 2px 8px; font-size: 0.75rem;">0 รายการ</span>
                   </h2>
                 </div>
-                <div id="categoryBreakdownContainer">
+                <div class="category-breakdown-content" id="categoryBreakdownContainer">
                   <!-- Dynamically populated -->
                 </div>
               </div>
@@ -666,13 +649,13 @@
           </div>
         </div>
 
-        <!-- Today's Lab Status Widget (Full Width 4-Column Grid, Public Only) -->
-        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 0; width: 100%; box-sizing: border-box;">
-          <div class="card-header" style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px;">
-            <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0; white-space: nowrap;">
-              <i data-lucide="door-open" style="color: var(--primary-color); width: 16px; height: 16px;"></i>
+        <!-- Today's Lab Status Widget (Public Only) -->
+        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard">
+          <div class="today-lab-status-header">
+            <h2 class="card-title">
+              <i data-lucide="door-open" aria-hidden="true"></i>
               <span>สถานะห้องปฏิบัติการวันนี้</span>
-              <span class="badge badge-green" id="todayLabAvailableBadge" style="font-size: 0.75rem; padding: 2px 8px; font-weight: 600;">กำลังโหลด…</span>
+              <span class="badge badge-green" id="todayLabAvailableBadge">กำลังโหลด…</span>
             </h2>
           </div>
           <div class="today-labs-grid" id="todayLabsGrid">
@@ -680,6 +663,7 @@
           </div>
         </div>
       </section>
+
 
       <!-- ==========================================
            PANEL: REPORTS & STATISTICS
@@ -1286,33 +1270,33 @@
         <!-- List View Area -->
         <div id="allItemsListViewArea" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
           <!-- Category Tabs Navigation -->
-          <div class="category-tabs-nav" id="categoryTabsNav">
-            <button type="button" class="category-pill-btn active" data-category="all" onclick="selectCategoryTab('all')">
+          <div class="category-tabs-nav" id="categoryTabsNav" role="group" aria-label="เลือกหมวดหมู่รายการ">
+            <button type="button" class="category-pill-btn active" data-category="all" aria-pressed="true" onclick="selectCategoryTab('all')">
               <i data-lucide="layers" style="width: 15px; height: 15px;"></i>
               <span>ทั้งหมด</span>
               <span class="pill-count" id="tabCount-all">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="ครุภัณฑ์" onclick="selectCategoryTab('ครุภัณฑ์')">
+            <button type="button" class="category-pill-btn" data-category="ครุภัณฑ์" aria-pressed="false" onclick="selectCategoryTab('ครุภัณฑ์')">
               <i data-lucide="package-check" style="width: 15px; height: 15px;"></i>
               <span>ครุภัณฑ์</span>
               <span class="pill-count" id="tabCount-ครุภัณฑ์">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="สารเคมี" onclick="selectCategoryTab('สารเคมี')">
+            <button type="button" class="category-pill-btn" data-category="สารเคมี" aria-pressed="false" onclick="selectCategoryTab('สารเคมี')">
               <i data-lucide="flask-conical" style="width: 15px; height: 15px;"></i>
               <span>สารเคมี</span>
               <span class="pill-count" id="tabCount-สารเคมี">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="อุปกรณ์วิทยาศาสตร์" onclick="selectCategoryTab('อุปกรณ์วิทยาศาสตร์')">
+            <button type="button" class="category-pill-btn" data-category="อุปกรณ์วิทยาศาสตร์" aria-pressed="false" onclick="selectCategoryTab('อุปกรณ์วิทยาศาสตร์')">
               <i data-lucide="microscope" style="width: 15px; height: 15px;"></i>
               <span>อุปกรณ์วิทยาศาสตร์</span>
               <span class="pill-count" id="tabCount-อุปกรณ์วิทยาศาสตร์">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="เครื่องแก้ว" onclick="selectCategoryTab('เครื่องแก้ว')">
+            <button type="button" class="category-pill-btn" data-category="เครื่องแก้ว" aria-pressed="false" onclick="selectCategoryTab('เครื่องแก้ว')">
               <i data-lucide="beaker" style="width: 15px; height: 15px;"></i>
               <span>เครื่องแก้ว</span>
               <span class="pill-count" id="tabCount-เครื่องแก้ว">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="วัสดุสิ้นเปลือง" onclick="selectCategoryTab('วัสดุสิ้นเปลือง')">
+            <button type="button" class="category-pill-btn" data-category="วัสดุสิ้นเปลือง" aria-pressed="false" onclick="selectCategoryTab('วัสดุสิ้นเปลือง')">
               <i data-lucide="box" style="width: 15px; height: 15px;"></i>
               <span>วัสดุสิ้นเปลือง</span>
               <span class="pill-count" id="tabCount-วัสดุสิ้นเปลือง">0</span>
@@ -1351,10 +1335,10 @@
 
               <!-- Barcode/QR Quick Scan box -->
               <div class="scan-box-container">
-                <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="คลิกเพื่อสแกนด้วยกล้อง">
+                <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="สแกน QR หรือบาร์โค้ดด้วยกล้อง" aria-label="สแกน QR หรือบาร์โค้ดด้วยกล้อง">
                   <i data-lucide="scan" style="color: var(--primary-purple); width: 16px; height: 16px;"></i>
                 </button>
-                <input type="text" id="scanInput" placeholder="สแกน QR / บาร์โค้ด" autocomplete="off">
+                <input type="text" id="scanInput" placeholder="สแกน QR / บาร์โค้ด" aria-label="ป้อนรหัสบาร์โค้ด" autocomplete="off">
               </div>
             </div>
 
@@ -1494,6 +1478,7 @@
         <!-- Cabinet Map View Area -->
 
       </section>
+
 
       <!-- ==========================================
            PANEL: BORROW / RETURN
@@ -1774,7 +1759,10 @@
                 </div>
                 <div class="form-group">
                   <label for="bookingDate" class="form-label">วันที่ต้องการเข้าใช้งาน <span style="color: var(--accent-red);">*</span></label>
-                  <input type="date" id="bookingDate" class="form-control" required>
+                  <div class="booking-date-control">
+                    <input type="date" id="bookingDate" class="form-control" required>
+                    <span class="booking-date-control-icon" aria-hidden="true"><i data-lucide="calendar-days"></i></span>
+                  </div>
                 </div>
               </div>
 
@@ -1819,7 +1807,7 @@
                 </div>
 
                 <div class="form-group" style="margin-top: 14px;">
-                  <label for="bookingPurpose" class="form-label">ระบุกิจกรรมที่ใช้ (เช่น ทำ Lab เรื่อง............../การเรียนการสอนเรื่อง....../กิจกรรมชมรม เป็นต้น) <span style="color: var(--accent-red);">*</span></label>
+                  <label for="bookingPurpose" class="form-label">ระบุกิจกรรมที่ใช้ <span style="color: var(--accent-red);">*</span></label>
                   <textarea id="bookingPurpose" class="form-control" rows="2" placeholder="ระบุกิจกรรม เช่น ทำ Lab เรื่องการไทเทรตกรด-เบส, การทดลองการหักเหของแสง, กิจกรรมชมรมดาราศาสตร์" required style="resize: vertical;"></textarea>
                 </div>
 
@@ -1840,28 +1828,24 @@
           </div>
 
           <!-- Right Column: Logs / Calendar -->
-          <div style="display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 0;">
+          <div class="booking-records-panel" style="display: flex; flex-direction: column; gap: 16px; flex: 1; min-width: 0;">
             <div class="content-header" style="margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
               <div>
                 <h2>รายการจองห้องปฏิบัติการ</h2>
                 <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
               </div>
               <div style="display: flex; gap: 8px; align-items: center; width: 100%; margin-top: 6px;">
-                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที">
+                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที" aria-label="ซิงค์ข้อมูล">
                   <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
                   <span>ซิงค์ข้อมูล</span>
                 </button>
-                <button type="button" id="btnQuickExportBookingCSV" class="booking-action-btn">
+                <button type="button" id="btnQuickExportBookingCSV" class="booking-action-btn" title="ส่งออกข้อมูลการจองเป็น Excel" aria-label="ส่งออก Excel">
                   <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
-                  <span class="btn-text-desktop">ส่งออก Excel</span>
-                  <span class="btn-text-tablet">ส่งออก Excel</span>
-                  <span class="btn-text-mobile">ส่งออก</span>
+                  <span>ส่งออก Excel</span>
                 </button>
-                <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn">
+                <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn" title="พิมพ์รายงานการจอง" aria-label="พิมพ์รายงาน">
                   <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
-                  <span class="btn-text-desktop">พิมพ์รายงาน</span>
-                  <span class="btn-text-tablet">พิมพ์รายงาน</span>
-                  <span class="btn-text-mobile">พิมพ์</span>
+                  <span>พิมพ์รายงาน</span>
                 </button>
               </div>
             </div>
@@ -1950,6 +1934,7 @@
           </div>
         </div>
       </section>
+
 
       <!-- ==========================================
            PANEL: NOTIFICATIONS / ALERTS
@@ -6190,7 +6175,7 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="app.js?v=20261012_pinfix"></script>
+  <script src="app.js?v=20261013_booking_form_slots_redesign"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {

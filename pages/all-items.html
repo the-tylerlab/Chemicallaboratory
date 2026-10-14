@@ -13,33 +13,33 @@
         <!-- List View Area -->
         <div id="allItemsListViewArea" style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
           <!-- Category Tabs Navigation -->
-          <div class="category-tabs-nav" id="categoryTabsNav">
-            <button type="button" class="category-pill-btn active" data-category="all" onclick="selectCategoryTab('all')">
+          <div class="category-tabs-nav" id="categoryTabsNav" role="group" aria-label="เลือกหมวดหมู่รายการ">
+            <button type="button" class="category-pill-btn active" data-category="all" aria-pressed="true" onclick="selectCategoryTab('all')">
               <i data-lucide="layers" style="width: 15px; height: 15px;"></i>
               <span>ทั้งหมด</span>
               <span class="pill-count" id="tabCount-all">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="ครุภัณฑ์" onclick="selectCategoryTab('ครุภัณฑ์')">
+            <button type="button" class="category-pill-btn" data-category="ครุภัณฑ์" aria-pressed="false" onclick="selectCategoryTab('ครุภัณฑ์')">
               <i data-lucide="package-check" style="width: 15px; height: 15px;"></i>
               <span>ครุภัณฑ์</span>
               <span class="pill-count" id="tabCount-ครุภัณฑ์">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="สารเคมี" onclick="selectCategoryTab('สารเคมี')">
+            <button type="button" class="category-pill-btn" data-category="สารเคมี" aria-pressed="false" onclick="selectCategoryTab('สารเคมี')">
               <i data-lucide="flask-conical" style="width: 15px; height: 15px;"></i>
               <span>สารเคมี</span>
               <span class="pill-count" id="tabCount-สารเคมี">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="อุปกรณ์วิทยาศาสตร์" onclick="selectCategoryTab('อุปกรณ์วิทยาศาสตร์')">
+            <button type="button" class="category-pill-btn" data-category="อุปกรณ์วิทยาศาสตร์" aria-pressed="false" onclick="selectCategoryTab('อุปกรณ์วิทยาศาสตร์')">
               <i data-lucide="microscope" style="width: 15px; height: 15px;"></i>
               <span>อุปกรณ์วิทยาศาสตร์</span>
               <span class="pill-count" id="tabCount-อุปกรณ์วิทยาศาสตร์">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="เครื่องแก้ว" onclick="selectCategoryTab('เครื่องแก้ว')">
+            <button type="button" class="category-pill-btn" data-category="เครื่องแก้ว" aria-pressed="false" onclick="selectCategoryTab('เครื่องแก้ว')">
               <i data-lucide="beaker" style="width: 15px; height: 15px;"></i>
               <span>เครื่องแก้ว</span>
               <span class="pill-count" id="tabCount-เครื่องแก้ว">0</span>
             </button>
-            <button type="button" class="category-pill-btn" data-category="วัสดุสิ้นเปลือง" onclick="selectCategoryTab('วัสดุสิ้นเปลือง')">
+            <button type="button" class="category-pill-btn" data-category="วัสดุสิ้นเปลือง" aria-pressed="false" onclick="selectCategoryTab('วัสดุสิ้นเปลือง')">
               <i data-lucide="box" style="width: 15px; height: 15px;"></i>
               <span>วัสดุสิ้นเปลือง</span>
               <span class="pill-count" id="tabCount-วัสดุสิ้นเปลือง">0</span>
@@ -78,10 +78,10 @@
 
               <!-- Barcode/QR Quick Scan box -->
               <div class="scan-box-container">
-                <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="คลิกเพื่อสแกนด้วยกล้อง">
+                <button type="button" id="btnTriggerCameraScan" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10;" title="สแกน QR หรือบาร์โค้ดด้วยกล้อง" aria-label="สแกน QR หรือบาร์โค้ดด้วยกล้อง">
                   <i data-lucide="scan" style="color: var(--primary-purple); width: 16px; height: 16px;"></i>
                 </button>
-                <input type="text" id="scanInput" placeholder="สแกน QR / บาร์โค้ด" autocomplete="off">
+                <input type="text" id="scanInput" placeholder="สแกน QR / บาร์โค้ด" aria-label="ป้อนรหัสบาร์โค้ด" autocomplete="off">
               </div>
             </div>
 

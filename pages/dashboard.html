@@ -5,12 +5,12 @@
         </div>
 
         <!-- Top Announcement Ticker Bar -->
-        <div class="announcement-ticker-bar ticker-theme-orange ticker-pause-hover" id="announcementTickerBar" style="margin-bottom: 20px;">
-          <div class="ticker-badge" id="tickerBadgeMain">
+        <div class="announcement-ticker-bar ticker-theme-orange" id="announcementTickerBar" aria-label="ประกาศสำคัญ">
+          <div class="ticker-badge" id="tickerBadgeMain" role="img" aria-label="ประกาศสำคัญ">
             <i data-lucide="megaphone" style="width: 14px; height: 14px;"></i>
-            <span id="tickerBadgeText">ประกาศ & ความปลอดภัย</span>
+            <span id="tickerBadgeText" aria-hidden="true">ประกาศ & ความปลอดภัย</span>
           </div>
-          <div class="ticker-marquee-wrapper">
+          <div class="ticker-marquee-wrapper" aria-live="off" aria-atomic="true">
             <div class="ticker-marquee-track" id="tickerMarqueeTrack">
               <!-- Dynamically populated from admin announcement settings -->
             </div>
@@ -191,17 +191,17 @@
             <!-- Left Side: Interactive Calendar -->
             <div class="lab-calendar-card">
               <div class="lab-calendar-toolbar">
-                <div class="lab-calendar-nav">
-                  <button type="button" class="btn-cal-nav" id="dashCalBtnPrev" title="เดือนก่อนหน้า" aria-label="เดือนก่อนหน้า">
-                    <i data-lucide="chevron-left"></i>
-                  </button>
-                  <button type="button" class="btn-cal-nav" id="dashCalBtnNext" title="เดือนถัดไป" aria-label="เดือนถัดไป">
-                    <i data-lucide="chevron-right"></i>
-                  </button>
-                  <button type="button" class="btn-cal-today" id="dashCalBtnToday">วันนี้</button>
+                <div class="lab-calendar-heading">
+                  <h3 class="lab-calendar-current-label" id="dashCalMonthLabel">กันยายน 2569</h3>
+                  <div class="lab-calendar-nav" aria-label="เปลี่ยนช่วงปฏิทิน">
+                    <button type="button" class="btn-cal-nav" id="dashCalBtnPrev" title="เดือนก่อนหน้า" aria-label="เดือนก่อนหน้า">
+                      <i data-lucide="chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn-cal-nav" id="dashCalBtnNext" title="เดือนถัดไป" aria-label="เดือนถัดไป">
+                      <i data-lucide="chevron-right"></i>
+                    </button>
+                  </div>
                 </div>
-                
-                <h3 class="lab-calendar-current-label" id="dashCalMonthLabel">กันยายน 2569</h3>
 
                 <div class="lab-calendar-view-tabs" id="dashCalViewTabs">
                   <button type="button" class="btn-view-tab" data-view="day">วัน</button>
@@ -220,66 +220,49 @@
             <div class="lab-schedule-column">
               <!-- Quick Menu Panel: 2-tier Modern Assistant Input Card Style -->
               <div class="card-container quick-prompt-card" id="quickMenuCard">
-                <!-- Tier 1 (Top / Upper Tier): Clean Prompt-like Message Box -->
-                <div class="quick-prompt-top">
-                  <div class="quick-prompt-header">
-                    <span class="quick-prompt-greeting">ต้องการจองห้องหรือใช้งานระบบใดวันนี้?</span>
-                    <span class="quick-prompt-badge">
-                      <i data-lucide="sparkles"></i>
-                      <span>Quick Action</span>
-                    </span>
+                <div class="quick-prompt-inner">
+                  <div class="quick-prompt-top">
+                    <div class="quick-prompt-header">
+                      <span class="quick-prompt-greeting">ทำรายการในห้องปฏิบัติการ</span>
+                    </div>
+                    <p class="quick-prompt-desc">จองห้อง หรือทำรายการยืมและคืนพัสดุ</p>
                   </div>
-                  <p class="quick-prompt-desc">เลือกบริการด่วนด้านล่างเพื่อเข้าสู่ระบบจองห้องปฏิบัติการ หรือทำรายการยืม-คืนพัสดุและเคมีภัณฑ์ทันที</p>
                 </div>
 
-                <!-- Tier 2 (Bottom / Action Bar): Pill Tags, Lab Booking Button, Send Button -->
                 <div class="quick-prompt-bottom">
-                  <div class="quick-prompt-actions-left">
-                    <button type="button" class="quick-prompt-add-btn" title="เมนูด่วนเพิ่มเติม" aria-label="เมนูเพิ่มเติม">
-                      <i data-lucide="plus"></i>
-                    </button>
-                    <!-- Pill Tag: Borrow & Return -->
-                    <button type="button" class="quick-prompt-tag" id="quickBtnBorrowReturn" title="ยืม-คืนพัสดุและเคมีภัณฑ์">
-                      <i data-lucide="repeat"></i>
-                      <span>ยืม-คืนพัสดุ</span>
-                    </button>
-                    <!-- Pill Tag: Add Item (Staff/Admin) -->
-                    <button type="button" class="quick-prompt-tag" id="quickBtnAddItem" style="display: none;" title="เพิ่มสาร/อุปกรณ์">
-                      <i data-lucide="plus-circle"></i>
-                      <span>เพิ่มสาร/อุปกรณ์</span>
-                    </button>
-                    <!-- Pill Tag: Admin Panel (Admin) -->
-                    <button type="button" class="quick-prompt-tag" id="quickBtnAdmin" onclick="navigateToPanel('admin')" style="display: none;" title="Admin Panel">
-                      <i data-lucide="shield-check"></i>
-                      <span>Admin</span>
-                    </button>
-                  </div>
+                    <div class="quick-prompt-actions-left">
+                      <button type="button" class="quick-prompt-tag" id="quickBtnBorrowReturn" title="ยืม-คืนพัสดุและเคมีภัณฑ์">
+                        <i data-lucide="repeat"></i>
+                        <span>ยืม-คืนพัสดุ</span>
+                      </button>
+                      <button type="button" class="quick-prompt-tag" id="quickBtnAddItem" style="display: none;" title="เพิ่มสาร/อุปกรณ์">
+                        <i data-lucide="plus-circle"></i>
+                        <span>เพิ่มสาร/อุปกรณ์</span>
+                      </button>
+                      <button type="button" class="quick-prompt-tag" id="quickBtnAdmin" onclick="navigateToPanel('admin')" style="display: none;" title="Admin Panel">
+                        <i data-lucide="shield-check"></i>
+                        <span>จัดการระบบ</span>
+                      </button>
+                    </div>
 
-                  <div class="quick-prompt-actions-right">
-                    <!-- Main Featured Action: จองห้องปฏิบัติการ Dropdown/Pill style button -->
-                    <button type="button" class="quick-prompt-model-btn" id="quickBtnLabBooking" title="กดจองห้องปฏิบัติการ">
-                      <i data-lucide="calendar"></i>
-                      <span class="quick-prompt-model-label">จองห้องปฏิบัติการ</span>
-                      <i data-lucide="chevron-right" class="quick-prompt-chevron"></i>
-                    </button>
-                    <!-- Action Send / Launch button -->
-                    <button type="button" class="quick-prompt-send-btn" id="quickBtnLaunchLabBooking" onclick="navigateToPanel('lab-booking')" title="ไปที่หน้าจองห้อง" aria-label="ไปที่หน้าจองห้อง">
-                      <i data-lucide="arrow-up-right"></i>
-                    </button>
-                  </div>
+                    <div class="quick-prompt-actions-right">
+                      <button type="button" class="quick-prompt-model-btn" id="quickBtnLabBooking" title="กดจองห้องปฏิบัติการ">
+                        <i data-lucide="calendar"></i>
+                        <span class="quick-prompt-model-label">จองห้องปฏิบัติการ</span>
+                      </button>
+                    </div>
                 </div>
               </div>
 
               <!-- Right Side: Category Breakdown Panel (สัดส่วนหมวดหมู่พัสดุ) -->
-              <div class="card-container" id="categoryBreakdownCard">
-                <div class="card-header">
-                  <h2 class="card-title" style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="pie-chart" style="width: 16px; height: 16px; color: var(--primary-purple);"></i>
+              <div class="card-container category-breakdown-card" id="categoryBreakdownCard">
+                <div class="category-breakdown-header">
+                  <h2 class="card-title">
+                    <i data-lucide="pie-chart" aria-hidden="true"></i>
                     <span>สัดส่วนหมวดหมู่พัสดุ</span>
-                    <span class="badge badge-purple" id="categoryBreakdownCount" style="padding: 2px 8px; font-size: 0.75rem;">0 รายการ</span>
                   </h2>
                 </div>
-                <div id="categoryBreakdownContainer">
+                <div class="category-breakdown-content" id="categoryBreakdownContainer">
                   <!-- Dynamically populated -->
                 </div>
               </div>
@@ -302,13 +285,13 @@
           </div>
         </div>
 
-        <!-- Today's Lab Status Widget (Full Width 4-Column Grid, Public Only) -->
-        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard" style="margin-top: 0; width: 100%; box-sizing: border-box;">
-          <div class="card-header" style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 12px;">
-            <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0; white-space: nowrap;">
-              <i data-lucide="door-open" style="color: var(--primary-color); width: 16px; height: 16px;"></i>
+        <!-- Today's Lab Status Widget (Public Only) -->
+        <div class="public-only-section card-container today-lab-status-card" id="todayLabStatusCard">
+          <div class="today-lab-status-header">
+            <h2 class="card-title">
+              <i data-lucide="door-open" aria-hidden="true"></i>
               <span>สถานะห้องปฏิบัติการวันนี้</span>
-              <span class="badge badge-green" id="todayLabAvailableBadge" style="font-size: 0.75rem; padding: 2px 8px; font-weight: 600;">กำลังโหลด…</span>
+              <span class="badge badge-green" id="todayLabAvailableBadge">กำลังโหลด…</span>
             </h2>
           </div>
           <div class="today-labs-grid" id="todayLabsGrid">
