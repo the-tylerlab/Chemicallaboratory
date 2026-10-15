@@ -13,11 +13,78 @@
 
         <div class="dashboard-grid">
           <!-- 3. Lab Booking Stats Card -->
-          <div class="card-container" id="chartBookingCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
-            <div class="card-header">
-              <h2 class="card-title">สถิติการจองใช้งานห้องปฏิบัติการ</h2>
+          <div class="card-container booking-stats-card" id="chartBookingCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
+            <div class="card-header booking-stats-header">
+              <div class="booking-stats-header-left">
+                <div class="booking-stats-icon-box">
+                  <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
+                </div>
+                <div class="booking-stats-title-group">
+                  <h2 class="card-title booking-stats-title">
+                    <span class="title-desktop">สถิติการจองใช้งานห้องปฏิบัติการ</span>
+                    <span class="title-mobile">สถิติการจองใช้งานแล็บ</span>
+                  </h2>
+                  <p class="booking-stats-subtitle">
+                    วิเคราะห์ความถี่และสถิติสะสมการเข้าใช้งานห้องปฏิบัติการวิทยาศาสตร์แต่ละห้อง
+                  </p>
+                </div>
+              </div>
+              <div class="booking-stats-header-right">
+                <span class="booking-stats-pill" id="bookingChartTotalPill">
+                  <i data-lucide="calendar-check" style="width: 13px; height: 13px;"></i>
+                  <span id="bookingChartTotalText">0 การจอง</span>
+                </span>
+              </div>
             </div>
-            <div id="chartBookingContainer" style="width: 100%; min-height: 200px; box-sizing: border-box;">
+
+            <!-- KPI Mini Cards Strip -->
+            <div class="booking-kpi-grid">
+              <div class="booking-kpi-card">
+                <div class="booking-kpi-icon purple">
+                  <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="booking-kpi-info">
+                  <span class="booking-kpi-label">การจองทั้งหมด</span>
+                  <span class="booking-kpi-value"><strong id="bookingStatTotalCount">0</strong> <small>ครั้ง</small></span>
+                </div>
+              </div>
+
+              <div class="booking-kpi-card">
+                <div class="booking-kpi-icon amber">
+                  <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="booking-kpi-info">
+                  <span class="booking-kpi-label">ห้องใช้งานสูงสุด</span>
+                  <span class="booking-kpi-value highlight" id="bookingStatTopRoom">-</span>
+                  <span class="booking-kpi-sub" id="bookingStatTopUsage">0 ครั้ง</span>
+                </div>
+              </div>
+
+              <div class="booking-kpi-card">
+                <div class="booking-kpi-icon green">
+                  <i data-lucide="door-open" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="booking-kpi-info">
+                  <span class="booking-kpi-label">ห้องที่เปิดรับจอง</span>
+                  <span class="booking-kpi-value"><strong>8</strong> <small>ห้อง</small></span>
+                  <span class="booking-kpi-sub">ครอบคลุมทุกกลุ่มวิทย์</span>
+                </div>
+              </div>
+
+              <div class="booking-kpi-card">
+                <div class="booking-kpi-icon blue">
+                  <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="booking-kpi-info">
+                  <span class="booking-kpi-label">เฉลี่ยต่อห้อง</span>
+                  <span class="booking-kpi-value"><strong id="bookingStatAvgCount">0.0</strong> <small>ครั้ง/ห้อง</small></span>
+                  <span class="booking-kpi-sub">อัตราเฉลี่ยรวม</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div id="chartBookingContainer" class="booking-chart-surface" style="width: 100%; min-height: 220px; box-sizing: border-box;">
               <!-- Dynamic HTML Chart -->
             </div>
           </div>

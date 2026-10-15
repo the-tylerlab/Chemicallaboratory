@@ -4,6 +4,7 @@
   "description": "Chemical Laboratory library system and scientific equipment management backend",
   "main": "server.js",
   "scripts": {
+    "dev": "node server.js",
     "start": "node server.js",
     "migrate": "node scripts/migrate.js",
     "seed:demo": "node scripts/seed_demo.js",

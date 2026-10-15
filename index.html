@@ -200,7 +200,7 @@
             <span class="logo-title">SciPortal</span>
           </div>
         </div>
-        <button class="btn-sidebar-collapse" id="btnToggleSidebar" onclick="toggleSidebarPin(event)" aria-label="ย่อแถบเมนู (Collapse sidebar)" title="ย่อแถบเมนู (Collapse sidebar)">
+        <button class="btn-sidebar-collapse" id="btnToggleSidebar" onclick="toggleSidebarPin(event)" aria-label="ปักหมุดแถบเมนู" aria-pressed="true" title="ยกเลิกการปักหมุดและย่อแถบเมนู">
           <i data-lucide="pin" id="sidebarPinIcon"></i>
         </button>
       </div>
@@ -683,11 +683,78 @@
 
         <div class="dashboard-grid">
           <!-- 3. Lab Booking Stats Card -->
-          <div class="card-container" id="chartBookingCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
-            <div class="card-header">
-              <h2 class="card-title">สถิติการจองใช้งานห้องปฏิบัติการ</h2>
+          <div class="card-container booking-stats-card" id="chartBookingCard" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
+            <div class="card-header booking-stats-header">
+              <div class="booking-stats-header-left">
+                <div class="booking-stats-icon-box">
+                  <i data-lucide="bar-chart-3" style="width: 18px; height: 18px;"></i>
+                </div>
+                <div class="booking-stats-title-group">
+                  <h2 class="card-title booking-stats-title">
+                    <span class="title-desktop">สถิติการจองใช้งานห้องปฏิบัติการ</span>
+                    <span class="title-mobile">สถิติการจองใช้งานแล็บ</span>
+                  </h2>
+                  <p class="booking-stats-subtitle">
+                    วิเคราะห์ความถี่และสถิติสะสมการเข้าใช้งานห้องปฏิบัติการวิทยาศาสตร์แต่ละห้อง
+                  </p>
+                </div>
+              </div>
+              <div class="booking-stats-header-right">
+                <span class="booking-stats-pill" id="bookingChartTotalPill">
+                  <i data-lucide="calendar-check" style="width: 13px; height: 13px;"></i>
+                  <span id="bookingChartTotalText">0 การจอง</span>
+                </span>
+              </div>
             </div>
-            <div id="chartBookingContainer" style="width: 100%; min-height: 200px; box-sizing: border-box;">
+
+            <!-- KPI Mini Cards Strip -->
+            <div class="booking-kpi-grid">
+              <div class="booking-kpi-card">
+                <div class="booking-kpi-icon purple">
+                  <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="booking-kpi-info">
+                  <span class="booking-kpi-label">การจองทั้งหมด</span>
+                  <span class="booking-kpi-value"><strong id="bookingStatTotalCount">0</strong> <small>ครั้ง</small></span>
+                </div>
+              </div>
+
+              <div class="booking-kpi-card">
+                <div class="booking-kpi-icon amber">
+                  <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="booking-kpi-info">
+                  <span class="booking-kpi-label">ห้องใช้งานสูงสุด</span>
+                  <span class="booking-kpi-value highlight" id="bookingStatTopRoom">-</span>
+                  <span class="booking-kpi-sub" id="bookingStatTopUsage">0 ครั้ง</span>
+                </div>
+              </div>
+
+              <div class="booking-kpi-card">
+                <div class="booking-kpi-icon green">
+                  <i data-lucide="door-open" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="booking-kpi-info">
+                  <span class="booking-kpi-label">ห้องที่เปิดรับจอง</span>
+                  <span class="booking-kpi-value"><strong>8</strong> <small>ห้อง</small></span>
+                  <span class="booking-kpi-sub">ครอบคลุมทุกกลุ่มวิทย์</span>
+                </div>
+              </div>
+
+              <div class="booking-kpi-card">
+                <div class="booking-kpi-icon blue">
+                  <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="booking-kpi-info">
+                  <span class="booking-kpi-label">เฉลี่ยต่อห้อง</span>
+                  <span class="booking-kpi-value"><strong id="bookingStatAvgCount">0.0</strong> <small>ครั้ง/ห้อง</small></span>
+                  <span class="booking-kpi-sub">อัตราเฉลี่ยรวม</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div id="chartBookingContainer" class="booking-chart-surface" style="width: 100%; min-height: 220px; box-sizing: border-box;">
               <!-- Dynamic HTML Chart -->
             </div>
           </div>
@@ -1946,232 +2013,276 @@
               <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
             </button>
             <div class="header-title-wrapper">
-              <h1 class="header-title">การแจ้งเตือน</h1>
-              <p class="header-subtitle">ระบบตรวจสอบวันหมดอายุและสถานะสินค้าคงคลังอัตโนมัติ</p>
+              <h1 class="header-title" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span>ศูนย์การแจ้งเตือน (Notifications & Alerts)</span>
+                <span style="font-size: 11px; padding: 2.5px 8px; border-radius: 999px; background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; font-weight: 700; letter-spacing: 0.03em;">Safety & Stock Monitor</span>
+              </h1>
+              <p class="header-subtitle">ระบบตรวจสอบวันหมดอายุ ตรวจจับสต็อกขั้นต่ำ และศูนย์ประสานงานแจ้งซ่อมบำรุงอุปกรณ์</p>
             </div>
           </div>
-          <div class="unified-page-header-right">
-            <button type="button" class="booking-action-btn" id="btnExportAnnualNotifications" title="ส่งออกรายงานการแจ้งเตือนและสถานะคลังประจำปี (Excel / CSV)">
-              <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
-              <span class="btn-text-desktop">ส่งออกข้อมูลประจำปี</span>
-              <span class="btn-text-tablet">ส่งออกประจำปี</span>
-              <span class="btn-text-mobile">ส่งออก</span>
+          <div class="unified-page-header-right notif-header-actions-group">
+            <button type="button" class="notif-header-btn notif-header-btn-cart" onclick="navigateToPanel('purchase-orders')" title="ไปที่หน้ารายการสั่งซื้อ / ตะกร้าจัดซื้อ">
+              <div class="notif-header-btn-icon-wrap cart-icon">
+                <i data-lucide="shopping-cart"></i>
+              </div>
+              <span class="btn-text-desktop">ตะกร้าจัดซื้อ</span>
+              <span class="btn-text-tablet">ตะกร้า</span>
+              <span class="notif-header-cart-badge" id="notifHeaderCartBadge" style="display: none;">0</span>
             </button>
-            <button type="button" class="booking-action-btn admin-clear-btn" id="btnClearNotifications" title="ล้างข้อมูลการแจ้งเตือนและรายการแจ้งปัญหา" style="display: none;">
-              <i data-lucide="trash-2" style="width: 15px; height: 15px; color: #ef4444; flex-shrink: 0;"></i>
-              <span class="btn-text-desktop" style="color: #ef4444;">เคลียร์ข้อมูล</span>
-              <span class="btn-text-tablet" style="color: #ef4444;">เคลียร์</span>
-              <span class="btn-text-mobile" style="color: #ef4444;">เคลียร์</span>
+
+            <button type="button" class="notif-header-btn" id="btnRefreshNotifications" onclick="refreshNotificationsData()" title="รีเฟรชข้อมูลการแจ้งเตือนและสต็อก">
+              <div class="notif-header-btn-icon-wrap refresh-icon">
+                <i data-lucide="refresh-cw"></i>
+              </div>
+              <span class="btn-text-desktop">รีเฟรช</span>
+              <span class="btn-text-mobile" style="display: none;">รีเฟรช</span>
+            </button>
+
+            <button type="button" class="notif-header-btn notif-header-btn-export" id="btnExportAnnualNotifications" title="ส่งออกรายงานการแจ้งเตือนและสถานะคลังประจำปี (Excel / CSV)">
+              <div class="notif-header-btn-icon-wrap export-icon">
+                <i data-lucide="file-spreadsheet"></i>
+              </div>
+              <span class="btn-text-desktop">ส่งออกประจำปี</span>
+              <span class="btn-text-tablet">ส่งออก</span>
+            </button>
+
+            <button type="button" class="notif-header-btn notif-header-btn-danger" id="btnClearNotifications" title="ล้างข้อมูลการแจ้งเตือนและรายการแจ้งปัญหา" style="display: none;">
+              <div class="notif-header-btn-icon-wrap danger-icon">
+                <i data-lucide="trash-2"></i>
+              </div>
+              <span class="btn-text-desktop">เคลียร์ข้อมูล</span>
+              <span class="btn-text-tablet">เคลียร์</span>
             </button>
           </div>
         </header>
 
-        <!-- TABS FOR NOTIFICATIONS -->
-        <div class="alert-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
-          <button type="button" class="alert-tab-btn active" id="btnTabNotifInventory" onclick="switchNotifTab('inventory')" style="flex: 1; padding: 12px; font-size: 14.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-            <i data-lucide="package" style="width: 18px; height: 18px;"></i>
-            <span>แจ้งเตือนคลังพัสดุ</span>
-          </button>
-          <button type="button" class="alert-tab-btn" id="btnTabNotifFeedback" onclick="switchNotifTab('feedback')" style="flex: 1; padding: 12px; font-size: 14.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-            <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
-            <span>ปัญหาและข้อเสนอแนะ</span>
-            <span class="badge badge-purple" id="badgeNotifFeedbackCount" style="padding: 2px 6px; font-size: 11px; display: none;">0</span>
-          </button>
+        <!-- Compact Stat Cards Grid (Matching Dashboard & Admin Panel) -->
+        <div class="stat-grid notif-stat-grid" id="notifStatGrid">
+          <div class="stat-card red" id="statCardNotifExpired" role="button" tabindex="0" onclick="switchNotifTab('inventory'); const el = document.getElementById('notifSectionExpired'); if(el) el.scrollIntoView({behavior:'smooth'});" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">หมดอายุแล้ว</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="notifStatExpired">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="alert-triangle" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+
+          <div class="stat-card yellow" id="statCardNotifNearExpiry" role="button" tabindex="0" onclick="switchNotifTab('inventory'); const el = document.getElementById('notifSectionNearExpiry'); if(el) el.scrollIntoView({behavior:'smooth'});" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">ใกล้หมดอายุ (30 วัน)</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="notifStatNearExpiry">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="clock" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+
+          <div class="stat-card orange" id="statCardNotifLowStock" role="button" tabindex="0" onclick="switchNotifTab('inventory'); const el = document.getElementById('notifSectionLowStock'); if(el) el.scrollIntoView({behavior:'smooth'});" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">ใกล้หมดคลัง (Low Stock)</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="notifStatLowStock">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="boxes" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+
+          <div class="stat-card purple" id="statCardNotifFeedback" role="button" tabindex="0" onclick="switchNotifTab('feedback');" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">แจ้งปัญหา / ซ่อมบำรุง</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="notifStatFeedback">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="message-square" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pill Navigation Bar (Matching Admin Pill Capsule) -->
+        <div class="notif-nav-bar">
+          <ul class="notif-pill-menu" id="notifMenu">
+            <li class="notif-pill-item active" id="btnTabNotifInventory" onclick="switchNotifTab('inventory')">
+              <span class="tab-icon-wrap"><i data-lucide="package"></i></span>
+              <span class="btn-text-desktop">แจ้งเตือนคลังพัสดุ & สารเคมี</span>
+              <span class="btn-text-mobile">คลังพัสดุ</span>
+              <span class="notif-pill-badge" id="badgeNotifInventoryTotal" style="display: none;">0</span>
+            </li>
+            <li class="notif-pill-item" id="btnTabNotifFeedback" onclick="switchNotifTab('feedback')">
+              <span class="tab-icon-wrap"><i data-lucide="message-square"></i></span>
+              <span class="btn-text-desktop">ปัญหาและข้อเสนอแนะ</span>
+              <span class="btn-text-mobile">แจ้งปัญหา</span>
+              <span class="notif-pill-badge purple" id="badgeNotifFeedbackCount" style="display: none;">0</span>
+            </li>
+          </ul>
         </div>
 
         <!-- TAB CONTENT: INVENTORY ALERTS -->
-        <div id="tabContentNotifInventory" style="display: block;">
-          <!-- EXPIRED ALERTS SECTION -->
-          <div class="alert-section expired">
-            <div class="alert-section-header">
-              <span>หมดอายุแล้ว</span>
-              <span class="alert-count-badge" id="alertCountExpired">0</span>
+        <div id="tabContentNotifInventory" class="notif-tab-content-active">
+          
+          <!-- 1. EXPIRED ALERTS CARD -->
+          <div class="card-container notif-card-container expired-card" id="notifSectionExpired">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon red">
+                  <i data-lucide="alert-triangle"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">สารเคมีและพัสดุหมดอายุแล้ว</h2>
+                  <p class="card-subtitle">รายการที่พ้นกำหนดการใช้งาน ต้องดำเนินการตัดจำหน่ายหรือกำจัดตามมาตรฐานความปลอดภัย</p>
+                </div>
+              </div>
+              <div class="card-header-right">
+                <span class="badge badge-red" id="alertCountExpired">0</span>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListExpired">
               <!-- Dynamically loaded list of expired items or empty state -->
-              <div class="empty-state" style="padding: 24px;">
-                <div class="empty-state-text">ไม่มีรายการ</div>
+              <div class="empty-state">
+                <div class="empty-state-text">กำลังตรวจสอบข้อมูล…</div>
               </div>
             </div>
           </div>
 
-          <!-- NEAR EXPIRY ALERTS SECTION -->
-          <div class="alert-section near-expiry">
-            <div class="alert-section-header">
-              <span>ใกล้หมดอายุ (30 วัน)</span>
-              <span class="alert-count-badge" id="alertCountNearExpiry">0</span>
+          <!-- 2. NEAR EXPIRY ALERTS CARD -->
+          <div class="card-container notif-card-container near-expiry-card" id="notifSectionNearExpiry">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon yellow">
+                  <i data-lucide="clock"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">พัสดุและสารเคมีใกล้หมดอายุ (ภายใน 30 วัน)</h2>
+                  <p class="card-subtitle">ควรจัดลำดับการใช้งานก่อน (First-Expire, First-Out: FEFO) เพื่อลดการสูญเสีย</p>
+                </div>
+              </div>
+              <div class="card-header-right">
+                <span class="badge badge-yellow" id="alertCountNearExpiry">0</span>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListNearExpiry">
               <!-- Dynamically loaded near expiry items or empty state -->
-              <div class="empty-state" style="padding: 24px;">
-                <div class="empty-state-text">ไม่มีรายการ</div>
+              <div class="empty-state">
+                <div class="empty-state-text">กำลังตรวจสอบข้อมูล…</div>
               </div>
             </div>
           </div>
 
-          <!-- LOW STOCK ALERTS SECTION -->
-          <div class="alert-section low-stock">
-            <div class="alert-section-header">
-              <span>ใกล้หมด (ต่ำกว่าขั้นต่ำ)</span>
-              <span class="alert-count-badge" id="alertCountLowStock">0</span>
+          <!-- 3. LOW STOCK ALERTS CARD -->
+          <div class="card-container notif-card-container low-stock-card" id="notifSectionLowStock">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon orange">
+                  <i data-lucide="boxes"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">สินค้าและสารเคมีใกล้หมดคลัง (ต่ำกว่าเกณฑ์ขั้นต่ำ)</h2>
+                  <p class="card-subtitle">ปริมาณคงเหลือต่ำกว่าจุดสั่งซื้อ (Reorder Point) ควรจัดเตรียมการสั่งซื้อทดแทน</p>
+                </div>
+              </div>
+              <div class="card-header-right" style="display: flex; align-items: center; gap: 8px;">
+                <span class="badge badge-orange" id="alertCountLowStock">0</span>
+                <button type="button" class="notif-card-cart-btn" id="btnOrderAllLowStock" onclick="addAllLowStockToCart()" title="สั่งซื้อสินค้าใกล้หมดคลังทั้งหมด (Add all low-stock items to cart)">
+                  <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
+                  <span class="btn-text-desktop">สั่งซื้อทั้งหมด (Add to Cart)</span>
+                  <span class="btn-text-mobile">Add to Cart</span>
+                </button>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListLowStock">
               <!-- Dynamically loaded low stock items or empty state -->
-              <div class="empty-state" style="padding: 24px;">
-                <div class="empty-state-text">ไม่มีรายการ</div>
+              <div class="empty-state">
+                <div class="empty-state-text">กำลังตรวจสอบข้อมูล…</div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- TAB CONTENT: FEEDBACK & REPORTS -->
-        <div id="tabContentNotifFeedback" style="display: none;">
+        <div id="tabContentNotifFeedback" style="display: none;" class="notif-tab-content-active">
 
-          <!-- 1. PENDING / REPAIR ISSUES SECTION -->
-          <div class="alert-section feedback">
-            <div class="alert-section-header">
-              <span style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
-                <span>รายการแจ้งปัญหาล่าสุด</span>
-              </span>
-              <span class="alert-count-badge" id="alertCountFeedback">2</span>
+          <!-- 1. PENDING / REPAIR ISSUES CARD -->
+          <div class="card-container notif-card-container feedback-card" id="notifSectionPendingIssues">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon purple">
+                  <i data-lucide="alert-circle"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">รายการแจ้งปัญหาและรอการซ่อมบำรุง</h2>
+                  <p class="card-subtitle">รายการชำรุด หรือข้อขัดข้องที่รอดำเนินการซ่อมบำรุงหรือตรวจสอบ</p>
+                </div>
+              </div>
+              <div class="card-header-right">
+                <span class="badge badge-purple" id="alertCountFeedback">0</span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openCreateFeedbackModal()" style="border-radius: 9999px; font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 4px;">
+                  <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                  <span>แจ้งปัญหาใหม่</span>
+                </button>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListFeedback">
-              <!-- Issue Card 1 -->
-              <div class="notification-item status-feedback" id="feedback-card-ISSUE-001">
-                <div class="notification-header">
-                  <div class="notification-title-group">
-                    <span class="notification-title">1. ก๊อกน้ำอ่างล้างตารั่วซึม</span>
-                    <span class="notification-code">ISSUE-001</span>
-                  </div>
-                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-001')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
-                </div>
-                <div class="notification-meta">
-                  <span class="notification-location">
-                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
-                    จัดเก็บ: Lab 1 &gt; หน้าตู้ A (ผู้แจ้ง: สมชาย)
-                  </span>
-                </div>
-                <div class="notification-alert-banner feedback" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="alert-triangle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span>น้ำหยดตลอดเวลา</span>
-                  </div>
-                  <button type="button" onclick="changeFeedbackStatus('ISSUE-001')" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#faf5ff'" onmouseout="this.style.backgroundColor='white'">
-                    รอช่างซ่อม <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Issue Card 2 -->
-              <div class="notification-item status-feedback" id="feedback-card-ISSUE-002">
-                <div class="notification-header">
-                  <div class="notification-title-group">
-                    <span class="notification-title">2. หลอดไฟกระพริบและมีเสียงดัง</span>
-                    <span class="notification-code">ISSUE-002</span>
-                  </div>
-                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-002')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
-                </div>
-                <div class="notification-meta">
-                  <span class="notification-location">
-                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
-                    จัดเก็บ: Lab 2 &gt; โซนเตรียมสาร (ผู้แจ้ง: สมหญิง)
-                  </span>
-                </div>
-                <div class="notification-alert-banner feedback" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="alert-circle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span>รบกวนการทำงาน</span>
-                  </div>
-                  <button type="button" onclick="changeFeedbackStatus('ISSUE-002')" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#faf5ff'" onmouseout="this.style.backgroundColor='white'">
-                    รอดำเนินการ <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              </div>
+              <!-- Dynamically rendered -->
             </div>
           </div>
 
-          <!-- 2. RESOLVED ISSUES SECTION -->
-          <div class="alert-section resolved">
-            <div class="alert-section-header">
-              <span style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="check-circle" style="width: 18px; height: 18px; color: #10b981;"></i>
-                <span>รายการที่ดำเนินการแก้ไขเรียบร้อยแล้ว</span>
-              </span>
-              <span class="alert-count-badge" id="alertCountResolvedFeedback">2</span>
+          <!-- 2. RESOLVED ISSUES CARD -->
+          <div class="card-container notif-card-container resolved-card" id="notifSectionResolvedIssues">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon green">
+                  <i data-lucide="check-circle"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">รายการที่ดำเนินการแก้ไขเรียบร้อยแล้ว</h2>
+                  <p class="card-subtitle">ประวัติการซ่อมแซมและแก้ไขปัญหาอุปกรณ์ในห้องปฏิบัติการ</p>
+                </div>
+              </div>
+              <div class="card-header-right">
+                <span class="badge badge-green" id="alertCountResolvedFeedback">0</span>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListResolvedFeedback">
-              <!-- Issue Card 3 -->
-              <div class="notification-item status-resolved" id="feedback-card-ISSUE-003">
-                <div class="notification-header">
-                  <div class="notification-title-group">
-                    <span class="notification-title">3. อุปกรณ์จับยึด (Clamp) หลวม</span>
-                    <span class="notification-code">ISSUE-003</span>
-                  </div>
-                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-003')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
-                </div>
-                <div class="notification-meta">
-                  <span class="notification-location">
-                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
-                    จัดเก็บ: Lab 1 &gt; ตู้ C (ผู้แจ้ง: วิชาญ)
-                  </span>
-                </div>
-                <div class="notification-alert-banner resolved" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="check-circle" style="width: 14px; height: 14px; flex-shrink: 0; color: #10b981;"></i>
-                    <span>เปลี่ยนชิ้นใหม่แล้ว</span>
-                  </div>
-                  <button type="button" onclick="changeFeedbackStatus('ISSUE-003')" style="background-color: white; border: 1px solid #a7f3d0; color: #065f46; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#f0fdf4'" onmouseout="this.style.backgroundColor='white'">
-                    แก้ไขแล้ว <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Issue Card 4 -->
-              <div class="notification-item status-resolved" id="feedback-card-ISSUE-004">
-                <div class="notification-header">
-                  <div class="notification-title-group">
-                    <span class="notification-title">4. เครื่องชั่งดิจิตอลแสดงค่าไม่นิ่ง</span>
-                    <span class="notification-code">ISSUE-004</span>
-                  </div>
-                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-004')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
-                </div>
-                <div class="notification-meta">
-                  <span class="notification-location">
-                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
-                    จัดเก็บ: Lab 1 &gt; โซนเครื่องมือวัด (ผู้แจ้ง: สมศรี)
-                  </span>
-                </div>
-                <div class="notification-alert-banner resolved" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="check-circle" style="width: 14px; height: 14px; flex-shrink: 0; color: #10b981;"></i>
-                    <span>ปรับเทียบ (Calibrate) ใหม่แล้ว</span>
-                  </div>
-                  <button type="button" class="status-pill-btn resolved" onclick="changeFeedbackStatus('ISSUE-004')">
-                    แก้ไขแล้ว <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              </div>
+              <!-- Dynamically rendered -->
             </div>
           </div>
 
         </div>
 
         <script>
-          function switchNotifTab(tabId) {
-            document.getElementById('btnTabNotifInventory').classList.remove('active');
-            document.getElementById('btnTabNotifFeedback').classList.remove('active');
-            document.getElementById('tabContentNotifInventory').style.display = 'none';
-            document.getElementById('tabContentNotifFeedback').style.display = 'none';
+          window.switchNotifTab = function(tabId) {
+            const btnInv = document.getElementById('btnTabNotifInventory');
+            const btnFeed = document.getElementById('btnTabNotifFeedback');
+            const contentInv = document.getElementById('tabContentNotifInventory');
+            const contentFeed = document.getElementById('tabContentNotifFeedback');
+            
+            if (btnInv) btnInv.classList.remove('active');
+            if (btnFeed) btnFeed.classList.remove('active');
+            if (contentInv) contentInv.style.display = 'none';
+            if (contentFeed) contentFeed.style.display = 'none';
             
             if (tabId === 'inventory') {
-              document.getElementById('btnTabNotifInventory').classList.add('active');
-              document.getElementById('tabContentNotifInventory').style.display = 'block';
+              if (btnInv) btnInv.classList.add('active');
+              if (contentInv) contentInv.style.display = 'block';
             } else {
-              document.getElementById('btnTabNotifFeedback').classList.add('active');
-              document.getElementById('tabContentNotifFeedback').style.display = 'block';
+              if (btnFeed) btnFeed.classList.add('active');
+              if (contentFeed) contentFeed.style.display = 'block';
+              if (typeof renderFeedbacksList === 'function') renderFeedbacksList();
             }
-          }
+            if (window.lucide) lucide.createIcons();
+          };
         </script>
       </section>
 
@@ -2179,264 +2290,435 @@
            PANEL: PURCHASE ORDERS
            ========================================== -->
             <section class="panel" id="panel-purchase-orders">
-        <header class="unified-page-header">
-          <div class="unified-page-header-left">
-            <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" title="กลับหน้าแดชบอร์ด" class="header-back-btn">
-              <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
-            </button>
-            <div class="header-title-wrapper">
-              <h1 class="header-title">รายการสั่งซื้อห้องปฏิบัติการ</h1>
-              <p class="header-subtitle">ประวัติและลิสต์รายการสั่งซื้อวัสดุ สารเคมี และอุปกรณ์ทางวิทยาศาสตร์</p>
+        <!-- 1. MODERN 2-TIER PROMPT ASSISTANT HEADER CARD -->
+        <div class="card-container quick-prompt-card po-prompt-header-card" id="poHeaderPromptCard">
+          <div class="quick-prompt-inner">
+            <div class="quick-prompt-top po-header-prompt-top">
+              <div class="po-prompt-main-header">
+                <div class="po-prompt-title-wrap">
+                  <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" class="po-prompt-back-btn" title="กลับหน้าแดชบอร์ด">
+                    <i data-lucide="arrow-left"></i>
+                  </button>
+                  <div class="po-prompt-title-content">
+                    <h1 class="po-prompt-title">ทำรายการสั่งซื้อและงบประมาณ</h1>
+                    <p class="po-prompt-desc">จองงบประมาณ จัดทำใบสั่งซื้อ และติดตามประวัติการจัดหาวัสดุอุปกรณ์วิทยาศาสตร์</p>
+                  </div>
+                </div>
+
+                <!-- Redesigned Academic Context Capsule -->
+                <div class="po-academic-context-pill" id="poAcademicContextBadge">
+                  <div class="po-ctx-icon-wrap">
+                    <i data-lucide="calendar" class="po-ctx-icon"></i>
+                  </div>
+                  <div class="po-ctx-field">
+                    <span class="po-ctx-label">ปีการศึกษา</span>
+                    <input type="text" id="poAcademicYear" class="po-ctx-input" placeholder="2567" maxlength="4" value="2567" required title="ระบุปีการศึกษา">
+                  </div>
+                  <span class="po-ctx-divider"></span>
+                  <div class="po-ctx-field">
+                    <span class="po-ctx-label">เทอม</span>
+                    <select id="poSemester" class="po-ctx-select" required title="เลือกภาคเรียน">
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="unified-page-header-right">
-            <button type="button" class="btn btn-secondary po-header-back-btn" onclick="navigateToPanel('add-item')">
-              <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
-              <span>กลับหน้าเพิ่มสาร/อุปกรณ์</span>
-            </button>
 
-            <!-- Global Academic Context Pill -->
-            <div class="po-academic-context-pill">
-              <div class="po-pill-group">
-                <i data-lucide="calendar" class="po-pill-icon"></i>
-                <span class="po-pill-label">ปีการศึกษา:</span>
-                <input type="text" id="poAcademicYear" class="po-pill-input" placeholder="2567" maxlength="4" value="2567" required>
-              </div>
-              <div class="po-pill-divider"></div>
-              <div class="po-pill-group">
-                <span class="po-pill-label">เทอม:</span>
-                <select id="poSemester" class="po-pill-select" required>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <!-- Annual Budget Overview -->
-        <div class="budget-overview-bar" style="margin-bottom: 24px;">
-          <div class="budget-stat-grid" id="budgetStatGrid">
-
-            
-            <!-- Card 1: Annual Budget -->
-            <div class="stat-card" style="border-left: 1px solid transparent;" onmouseover="this.style.borderColor='var(--primary-purple)'" onmouseout="this.style.borderColor='var(--border-color)'">
-              <div class="stat-info">
-                <span class="stat-title">งบประมาณประจำปี</span>
-                <div class="budget-stat-value-container" id="containerAnnualBudget" style="display: flex; align-items: baseline; gap: 6px;">
-                  <span class="stat-value" id="lblAnnualBudget" style="font-size: 26px;">100,000.00</span>
-                  <span class="budget-currency" style="font-size: 13px; font-weight: 500; color: var(--text-muted);">บาท</span>
-                  <button type="button" class="budget-edit-btn" id="btnEditAnnualBudget" title="แก้ไขงบประมาณประจำปี" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;">
-                    <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
-                  </button>
-                </div>
-                <!-- Inline edit input form (hidden by default) -->
-                <div class="budget-edit-form" id="annualBudgetEditForm" style="display: none; align-items: center; gap: 6px; margin-top: 4px;">
-                  <input type="number" id="txtAnnualBudget" class="form-control" style="width: 130px; padding: 4px 8px; font-size: 14px; height: 30px;" min="0" step="any">
-                  <button type="button" class="btn btn-primary" id="btnSaveAnnualBudget" style="padding: 4px 8px; height: 30px; background-color: var(--accent-green); justify-content: center; min-width: 32px;">
-                    <i data-lucide="check" style="width: 14px; height: 14px; color: white;"></i>
-                  </button>
-                  <button type="button" class="btn btn-secondary" id="btnCancelAnnualBudget" style="padding: 4px 8px; height: 30px; justify-content: center; min-width: 32px;">
-                    <i data-lucide="x" style="width: 14px; height: 14px;"></i>
-                  </button>
-                </div>
-              </div>
-              <div class="stat-icon" style="background-color: rgba(99, 102, 241, 0.1); color: rgb(99, 102, 241); width: 44px; height: 44px;">
-                <i data-lucide="calendar"></i>
-              </div>
+          <!-- Bottom Pill Dock: Redesigned Cohesive Action Dock Matching Dashboard Style -->
+          <div class="quick-prompt-bottom">
+            <div class="quick-prompt-actions-left">
+              <button type="button" class="quick-prompt-tag active" id="btnTabPoSplit" onclick="switchPoTab('split')">
+                <i data-lucide="columns-2"></i>
+                <span>ภาพรวม</span>
+              </button>
+              <button type="button" class="quick-prompt-tag" id="btnTabPoHistory" onclick="switchPoTab('history')">
+                <i data-lucide="receipt"></i>
+                <span>ประวัติการสั่งซื้อ</span>
+                <span class="po-pill-badge blue" id="badgePoOrdersCount">0</span>
+              </button>
+              <button type="button" class="quick-prompt-tag" id="btnTabPoCreate" onclick="switchPoTab('create')">
+                <i data-lucide="plus-circle"></i>
+                <span>บันทึกสั่งซื้อใหม่</span>
+                <span class="po-pill-badge orange" id="badgePoDraftCount" style="display: none;">0</span>
+              </button>
             </div>
 
-            <!-- Card 2: Total Spent -->
-            <div class="stat-card" style="border-left: 1px solid transparent;" onmouseover="this.style.borderColor='var(--accent-red)'" onmouseout="this.style.borderColor='var(--border-color)'">
-              <div class="stat-info">
-                <span class="stat-title">ยอดใช้จ่ายสะสม</span>
-                <div class="budget-stat-value-container" style="display: flex; align-items: baseline; gap: 6px;">
-                  <span class="stat-value" id="lblTotalSpent" style="font-size: 26px; color: #0f172a;">0.00</span>
-                  <span class="budget-currency" style="font-size: 13px; font-weight: 500; color: var(--text-muted);">บาท</span>
-                </div>
-              </div>
-              <div class="stat-icon" style="background-color: rgba(239, 68, 68, 0.1); color: rgb(239, 68, 68); width: 44px; height: 44px;">
-                <i data-lucide="trending-up"></i>
-              </div>
+            <div class="quick-prompt-actions-right">
+              <button type="button" class="quick-prompt-tag" id="btnExportPoCSV" title="ส่งออกข้อมูลเป็น CSV / Excel">
+                <i data-lucide="file-spreadsheet" style="color: #10b981;"></i>
+                <span>ส่งออก CSV</span>
+              </button>
+              <button type="button" class="quick-prompt-tag" id="btnExportPoPDF" title="ส่งออกรายงานเป็น PDF / พิมพ์">
+                <i data-lucide="file-text" style="color: #e11d48;"></i>
+                <span>พิมพ์ PDF</span>
+              </button>
+              <button type="button" class="quick-prompt-tag admin-clear-btn" id="btnClearPurchaseOrders" style="display: none; color: #dc2626;" title="ล้างรายการสั่งซื้อทั้งหมด (เฉพาะผู้ดูแลระบบ)">
+                <i data-lucide="trash-2" style="color: #dc2626;"></i>
+                <span>ล้างรายการ</span>
+              </button>
             </div>
-
-            <!-- Card 3: Remaining Budget -->
-            <div class="stat-card" id="cardRemainingBudget" style="border: 2px solid transparent;">
-              <div class="stat-info">
-                <span class="stat-title">งบประมาณคงเหลือ</span>
-                <div class="budget-stat-value-container" style="display: flex; align-items: baseline; gap: 6px;">
-                  <span class="stat-value" id="lblRemainingBudget" style="font-size: 26px;">100,000.00</span>
-                  <span class="budget-currency" style="font-size: 13px; font-weight: 500; color: var(--text-muted);">บาท</span>
-                </div>
-              </div>
-              <div class="stat-icon" id="iconRemainingBudget" style="background-color: rgba(16, 185, 129, 0.1); color: rgb(16, 185, 129); width: 44px; height: 44px;">
-                <i data-lucide="wallet"></i>
-              </div>
-            </div>
-
           </div>
         </div>
 
-        <div class="purchase-orders-grid" id="purchaseOrdersGrid">
-          <!-- Left Column: Form -->
-          <div class="form-container" id="purchaseOrderFormCol" style="margin-bottom: 0;">
-            <div class="form-panel-header">
-              <h2>บันทึกรายการสั่งซื้อ</h2>
-              <p>กรอกข้อมูลรายละเอียดสินค้าที่ต้องการสั่งซื้อ</p>
+        <!-- 2. MODERN 4-CARD BUDGET STAT GRID -->
+        <div class="stat-grid po-stat-grid" id="budgetStatGrid">
+          
+          <!-- Card 1: Annual Budget -->
+          <div class="stat-card purple" id="cardAnnualBudget">
+            <div class="stat-info">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                <span class="stat-title nobrk">งบประมาณประจำปี</span>
+                <button type="button" class="budget-edit-btn" id="btnEditAnnualBudget" title="แก้ไขงบประมาณประจำปี">
+                  <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+                </button>
+              </div>
+              <div class="budget-stat-value-container" id="containerAnnualBudget">
+                <span class="stat-value" id="lblAnnualBudget">100,000.00</span>
+                <span class="stat-sublabel">บาท</span>
+              </div>
+              <!-- Inline edit input form -->
+              <div class="budget-edit-form" id="annualBudgetEditForm" style="display: none; align-items: center; gap: 6px; margin-top: 6px;">
+                <input type="number" id="txtAnnualBudget" class="form-control" style="width: 110px; padding: 4px 8px; font-size: 13px; height: 32px;" min="0" step="any">
+                <button type="button" class="btn btn-primary" id="btnSaveAnnualBudget" style="padding: 4px 8px; height: 32px; background-color: var(--accent-green); justify-content: center; min-width: 32px;">
+                  <i data-lucide="check" style="width: 14px; height: 14px; color: white;"></i>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnCancelAnnualBudget" style="padding: 4px 8px; height: 32px; justify-content: center; min-width: 32px;">
+                  <i data-lucide="x" style="width: 14px; height: 14px;"></i>
+                </button>
+              </div>
             </div>
-            
-            <form id="purchaseOrderForm">
-              <div class="form-row-2">
-                <div class="form-group">
-                  <label for="poProductCode" class="form-label">รหัสสินค้า <span style="color: var(--accent-red);">*</span></label>
-                  <input type="text" id="poProductCode" class="form-control" placeholder="ระบุรหัสสินค้า (เช่น CHEM-001)" required>
+            <div class="stat-icon">
+              <i data-lucide="landmark" style="width: 18px; height: 18px;"></i>
+            </div>
+          </div>
+
+          <!-- Card 2: Total Spent -->
+          <div class="stat-card red" id="cardTotalSpent">
+            <div class="stat-info">
+              <span class="stat-title nobrk">ยอดใช้จ่ายสะสม</span>
+              <div class="budget-stat-value-container">
+                <span class="stat-value" id="lblTotalSpent">0.00</span>
+                <span class="stat-sublabel">บาท</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="trending-up" style="width: 18px; height: 18px;"></i>
+            </div>
+          </div>
+
+          <!-- Card 3: Remaining Budget -->
+          <div class="stat-card green" id="cardRemainingBudget">
+            <div class="stat-info">
+              <span class="stat-title nobrk">งบประมาณคงเหลือ</span>
+              <div class="budget-stat-value-container">
+                <span class="stat-value" id="lblRemainingBudget">100,000.00</span>
+                <span class="stat-sublabel">บาท</span>
+              </div>
+            </div>
+            <div class="stat-icon" id="iconRemainingBudget">
+              <i data-lucide="wallet" style="width: 18px; height: 18px;"></i>
+            </div>
+          </div>
+
+          <!-- Card 4: Draft Cart Items -->
+          <div class="stat-card orange" id="cardDraftCart" role="button" tabindex="0" onclick="switchPoTab('create'); const el = document.getElementById('poDraftContainer'); if(el) el.scrollIntoView({behavior:'smooth'});" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">ตะกร้ารอสั่งซื้อ</span>
+              <div class="budget-stat-value-container">
+                <span class="stat-value" id="lblPoDraftCount">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="shopping-cart" style="width: 18px; height: 18px;"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 3. MAIN WORKSPACE GRID (Modern 2-Tier Card Containers) -->
+        <div class="purchase-orders-grid" id="purchaseOrdersGrid">
+          
+          <!-- Left Column: Form & Draft Cart (2-Tier Quick Prompt Style Card) -->
+          <div class="card-container quick-prompt-card po-form-card" id="purchaseOrderFormCol">
+            <!-- Tier 1: Crisp Elevated White Card Surface -->
+            <div class="quick-prompt-inner" style="width: 100%;">
+              <div class="quick-prompt-top po-form-top">
+                <div class="card-header" style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
+                  <div class="card-header-left">
+                    <div class="notif-header-icon purple">
+                      <i data-lucide="shopping-bag"></i>
+                    </div>
+                    <div>
+                      <h2 class="card-title">บันทึกรายการสั่งซื้อ</h2>
+                      <p class="card-subtitle">กรอกรายละเอียดพัสดุและสารเคมีที่ต้องการจัดหา</p>
+                    </div>
+                  </div>
                 </div>
                 
-                <div class="form-group">
-                  <label for="poProductName" class="form-label">ชื่อสินค้า <span style="color: var(--accent-red);">*</span></label>
-                  <input type="text" id="poProductName" class="form-control" placeholder="ระบุชื่อสินค้า" required>
-                </div>
-              </div>
+                <form id="purchaseOrderForm" class="po-form-body">
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="poProductCode" class="form-label">รหัสสินค้า <span style="color: var(--accent-red);">*</span></label>
+                      <input type="text" id="poProductCode" class="form-control" placeholder="เช่น CHEM-001" required>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="poProductName" class="form-label">ชื่อสินค้า <span style="color: var(--accent-red);">*</span></label>
+                      <input type="text" id="poProductName" class="form-control" placeholder="ระบุชื่อสารเคมีหรืออุปกรณ์" required>
+                    </div>
+                  </div>
 
-              <div class="form-row-2">
-                <div class="form-group">
-                  <label for="poUnitPrice" class="form-label">ราคาต่อหน่วย (บาท) <span style="color: var(--accent-red);">*</span></label>
-                  <input type="number" step="any" min="0" id="poUnitPrice" class="form-control" placeholder="0.00" required>
-                </div>
-                <div class="form-group">
-                  <label for="poQuantity" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
-                  <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" required>
-                </div>
-              </div>
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="poUnitPrice" class="form-label">ราคาต่อหน่วย (บาท) <span style="color: var(--accent-red);">*</span></label>
+                      <input type="number" step="any" min="0" id="poUnitPrice" class="form-control" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="poQuantity" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
+                      <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" required>
+                    </div>
+                  </div>
 
-              <div class="form-row-2">
-                <div class="form-group">
-                  <label for="poDiscount" class="form-label">ส่วนลด (%)</label>
-                  <input type="number" step="any" min="0" max="100" id="poDiscount" class="form-control" placeholder="0" value="0">
-                </div>
-                <div class="form-group">
-                  <label for="poTotalPrice" class="form-label">ราคาสุทธิ (บาท)</label>
-                  <input type="text" id="poTotalPrice" class="form-control" placeholder="0.00" readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: 700;">
-                  <span id="poNetTotalDetail" style="display: block; font-size: 12px; color: var(--text-muted); margin-top: 6px;">0.00 - ลด 0.00 = 0.00 บาท</span>
-                </div>
-              </div>
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="poDiscount" class="form-label">ส่วนลด (%)</label>
+                      <input type="number" step="any" min="0" max="100" id="poDiscount" class="form-control" placeholder="0" value="0">
+                    </div>
+                    <div class="form-group">
+                      <label for="poTotalPrice" class="form-label">ราคาสุทธิ (บาท)</label>
+                      <input type="text" id="poTotalPrice" class="form-control po-net-total-input" placeholder="0.00" readonly>
+                    </div>
+                  </div>
 
-              <div class="form-actions" style="margin-top: 24px;">
-                <button type="submit" class="btn btn-primary" id="btnSubmitPurchaseOrder" style="background-color: #8b5cf6;">
-                  <i data-lucide="plus-circle" style="width: 18px; height: 18px;"></i>
-                  <span>เพิ่มรายการสินค้า</span>
-                </button>
-                <button type="button" class="btn btn-secondary" id="btnResetPurchaseOrder">รีเซ็ต</button>
-              </div>
-            </form>
+                  <div class="po-net-detail-box">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <i data-lucide="calculator" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+                      <span id="poNetTotalDetail">0.00 - ลด 0.00 = 0.00 บาท</span>
+                    </div>
+                  </div>
 
-            <!-- Draft Items Panel -->
-            <div id="poDraftContainer" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-color); display: none;">
-              <h3 style="font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="shopping-basket" style="width: 16px; height: 16px; color: var(--primary-purple);"></i>
-                รายการเตรียมสั่งซื้อชั่วคราว
-              </h3>
-              
-              <!-- Compact Draft Items List -->
-              <div class="draft-items-list" id="poDraftList" style="display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; margin-bottom: 16px; padding: 2px;">
-                <!-- Dynamically populated -->
-              </div>
-              
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 10px 12px; background-color: #f8fafc; border-radius: var(--border-radius-sm); border: 1px dashed var(--border-color);">
-                <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">ราคารวมทั้งสิ้น (ใบสั่งซื้อนี้):</span>
-                <span id="poDraftTotal" style="font-weight: 700; color: var(--primary-purple); font-size: 14px;">0.00 บาท</span>
-              </div>
+                  <div class="form-actions" style="margin-top: 10px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" id="btnSubmitPurchaseOrder" style="flex: 2; height: 38px; border-radius: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                      <i data-lucide="plus-circle" style="width: 15px; height: 15px;"></i>
+                      <span>เพิ่มรายการ</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btnResetPurchaseOrder" style="flex: 1; height: 38px; border-radius: 12px; font-weight: 600;">
+                      รีเซ็ต
+                    </button>
+                  </div>
+                </form>
 
-              <div class="form-actions" style="margin-top: 12px;">
-                <button type="button" class="btn btn-primary" id="btnCommitPoDraft" style="background-color: var(--accent-green); width: 100%; justify-content: center; height: 38px; border: none; cursor: pointer; transition: all 0.2s; border-radius: var(--border-radius-md); font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
-                  <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-                  <span id="btnCommitPoDraftText">บันทึกใบสั่งซื้อทั้งหมด (0 รายการ)</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Column: Table List -->
-          <div id="purchaseOrderListCol" style="display: flex; flex-direction: column; gap: 20px; overflow-x: auto;">
-            <div class="content-header" style="margin-bottom: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
-              <div>
-                <h2>รายการสั่งซื้อสะสม</h2>
-                <p>แสดงประวัติการสั่งซื้อพัสดุและสารเคมีในระบบทั้งหมด</p>
-              </div>
-              
-              <!-- Filter Selectors -->
-              <div style="display: flex; gap: 12px; align-items: center;">
-                <div class="form-group" style="margin-bottom: 0;">
-                  <select id="filterPoYear" class="form-control" style="width: 150px; padding: 4px 28px 4px 12px !important; height: 36px; font-size: 13px;">
-                    <option value="all">ทุกปีการศึกษา</option>
-                  </select>
-                </div>
-                <div class="form-group" style="margin-bottom: 0;">
-                  <select id="filterPoSemester" class="form-control" style="width: 120px; padding: 4px 28px 4px 12px !important; height: 36px; font-size: 13px;">
-                    <option value="all">ทุกเทอม</option>
-                    <option value="1">เทอม 1</option>
-                    <option value="2">เทอม 2</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <!-- Export Actions for Purchase Orders -->
-            <div id="poExportActions" style="display: inline-flex; align-items: center; gap: 10px; margin-top: 0; margin-bottom: 12px; flex-wrap: wrap;">
-              <div style="display: inline-flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; font-weight: 600; color: var(--text-main); width: auto; display: inline-block;">ส่งออก:</span>
-                <button type="button" class="btn" id="btnExportPoCSV" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.2)'" onmouseout="this.style.backgroundColor='rgba(16, 185, 129, 0.1)'">
-                  <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px;"></i> CSV
-                </button>
-                <button type="button" class="btn" id="btnExportPoPDF" style="display: inline-flex; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 500; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.1)'">
-                  <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> PDF
-                </button>
-                <button type="button" class="btn admin-clear-btn" id="btnClearPurchaseOrders" style="display: none; align-items: center; gap: 6px; background-color: rgba(239, 68, 68, 0.08); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 12px; border-radius: var(--border-radius-sm); font-size: 12px; font-weight: 600; height: 34px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(239, 68, 68, 0.15)'" onmouseout="this.style.backgroundColor='rgba(239, 68, 68, 0.08)'">
-                  <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> ล้างรายการสั่งซื้อ
-                </button>
-              </div>
-            </div>
-
-            <!-- Purchase Orders Table -->
-            <div class="table-container" style="margin-bottom: 0; flex: 1; overflow-x: auto;">
-              <table id="purchaseOrdersTable" class="purchase-orders-table">
-                <thead>
-                  <tr>
-                    <th style="width: 10%;">วันที่สั่ง</th>
-                    <th style="width: 11%;">รหัสสินค้า</th>
-                    <th style="width: 22%;">ชื่อสินค้า</th>
-                    <th style="width: 11%;" class="text-right">ราคา/หน่วย</th>
-                    <th style="width: 9%;" class="text-right">จำนวน</th>
-                    <th style="width: 11%;" class="text-right">รวมก่อนลด</th>
-                    <th style="width: 9%;" class="text-right">ส่วนลด</th>
-                    <th style="width: 11%;" class="text-right">สุทธิ</th>
-                    <th class="po-action-header" style="width: 6%; text-align: center;">จัดการ</th>
-                  </tr>
-                </thead>
-                <tbody id="purchaseOrdersTableBody">
-                  <!-- Dynamically populated -->
-                </tbody>
-                <tfoot>
-                  <tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid var(--border-color);">
-                    <td colspan="9" style="padding: 16px 20px;">
-                      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-                        <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">
-                          รวมก่อนลดราคา: <span id="poTotalBeforeDiscount" style="color: var(--text-main); font-weight: 600; margin-left: 8px;">0.00 บาท</span>
-                        </div>
-                        <div style="font-size: 13px; color: var(--accent-green); font-weight: 500;">
-                          ส่วนลดสะสม (<span id="poOverallDiscountPercent">0.00</span>%): <span id="poTotalDiscountAmount" style="font-weight: 600; margin-left: 8px;">-0.00 บาท</span>
-                        </div>
-                        <div style="font-size: 15px; color: var(--primary-purple); font-weight: 700; border-top: 1px dashed var(--border-color); padding-top: 8px; width: 280px; text-align: right; margin-top: 4px;">
-                          ราคาหลังหักส่วนลด: <span id="poGrandTotal" style="font-size: 16px; margin-left: 8px;">0.00 บาท</span>
-                        </div>
+                <!-- Draft Items Panel -->
+                <div id="poDraftContainer" class="po-draft-panel" style="display: none;">
+                  <div class="po-draft-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div class="notif-header-icon orange" style="width: 28px; height: 28px; border-radius: 8px;">
+                        <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
                       </div>
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                      <h3 style="font-size: 13.5px; font-weight: 700; color: #1e293b; margin: 0;">รายการเตรียมสั่งซื้อชั่วคราว (Cart)</h3>
+                    </div>
+                  </div>
+                  
+                  <!-- Compact Draft Items List -->
+                  <div class="draft-items-list" id="poDraftList">
+                    <!-- Dynamically populated -->
+                  </div>
+                  
+                  <div class="po-draft-total-card">
+                    <span class="po-draft-total-label">ราคารวมทั้งสิ้น:</span>
+                    <span id="poDraftTotal" class="po-draft-total-value">0.00 บาท</span>
+                  </div>
+
+                  <div class="form-actions" style="margin-top: 10px;">
+                    <button type="button" class="btn btn-primary po-commit-btn" id="btnCommitPoDraft">
+                      <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                      <span id="btnCommitPoDraftText">บันทึกใบสั่งซื้อทั้งหมด (0 รายการ)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tier 2: Helper Pill Capsule Dock Tray (Full Width Balanced) -->
+            <div class="quick-prompt-bottom po-form-bottom">
+              <div class="quick-prompt-tag" style="cursor: default;">
+                <i data-lucide="calculator" style="color: #7c3aed;"></i>
+                <span>คำนวณสุทธิอัตโนมัติ</span>
+              </div>
+              <button type="button" class="quick-prompt-tag" onclick="const c=document.getElementById('poDraftContainer');if(c){c.style.display=c.style.display==='none'?'block':'none';}">
+                <i data-lucide="shopping-cart" style="color: #ea580c;"></i>
+                <span>ตะกร้าเตรียมสั่ง</span>
+              </button>
             </div>
           </div>
+
+          <!-- Right Column: Table List (2-Tier Quick Prompt Style Card) -->
+          <div class="card-container quick-prompt-card po-list-card" id="purchaseOrderListCol">
+            <!-- Tier 1: Crisp Elevated White Card Surface -->
+            <div class="quick-prompt-inner" style="width: 100%;">
+              <div class="quick-prompt-top po-list-top">
+                <!-- Card Header Section -->
+                <div class="po-card-header">
+                  <div class="po-card-header-left">
+                    <h2 class="card-title">ประวัติการสั่งซื้อ</h2>
+                    <span class="po-count-pill" id="poListTotalBadge">0 รายการ</span>
+                  </div>
+                  
+                  <!-- Filter Selectors & Search Toolbar (Equal Height & Full Padding) -->
+                  <div class="po-filter-toolbar">
+                    <div class="po-search-input-wrap">
+                      <i data-lucide="search" class="po-search-icon"></i>
+                      <input type="text" id="filterPoSearch" class="po-search-input" placeholder="ค้นหารหัส หรือชื่อสินค้า..." autocomplete="off">
+                      <button type="button" class="po-search-clear" id="btnPoSearchClear" style="display: none;" title="ล้างการค้นหา">
+                        <i data-lucide="x"></i>
+                      </button>
+                    </div>
+                    <div class="po-filter-select-group">
+                      <select id="filterPoYear" class="po-filter-select" title="กรองตามปีการศึกษา">
+                        <option value="all">ทุกปีการศึกษา</option>
+                      </select>
+                      <select id="filterPoSemester" class="po-filter-select" title="กรองตามเทอม">
+                        <option value="all">ทุกเทอม</option>
+                        <option value="1">เทอม 1</option>
+                        <option value="2">เทอม 2</option>
+                      </select>
+                    </div>
+                    <button type="button" class="po-icon-btn" onclick="renderOrdersTable()" title="รีเฟรชตารางข้อมูล">
+                      <i data-lucide="refresh-cw"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Purchase Orders Table Container (Zero Horizontal Scroll at 1440x810) -->
+                <div class="table-container po-table-container">
+                  <table id="purchaseOrdersTable" class="purchase-orders-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 9%;">วันที่สั่ง</th>
+                        <th style="width: 10%;">รหัสสินค้า</th>
+                        <th style="width: 20%;">ชื่อรายการ</th>
+                        <th style="width: 12%;" class="text-right">ราคา/หน่วย</th>
+                        <th style="width: 8%;" class="text-right">จำนวน</th>
+                        <th style="width: 13%;" class="text-right">รวมก่อนลด</th>
+                        <th style="width: 10%;" class="text-right">ส่วนลด</th>
+                        <th style="width: 11%;" class="text-right">สุทธิ</th>
+                        <th class="po-action-header" style="width: 7%; text-align: center;">จัดการ</th>
+                      </tr>
+                    </thead>
+                    <tbody id="purchaseOrdersTableBody">
+                      <!-- Dynamically populated -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Pagination Bar: 10 items per page -->
+                <div class="po-pagination-bar" id="poPaginationBar">
+                  <span id="poPaginationInfo" class="po-pagination-info">แสดงรายการที่ 0-0 จาก 0 รายการ</span>
+                  <div class="po-pagination-controls" id="poPaginationControls">
+                    <button type="button" class="po-page-btn" id="btnPoPrevPage" onclick="changePoPage(-1)" title="หน้าก่อนหน้า">
+                      <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+                      <span>ก่อนหน้า</span>
+                    </button>
+                    <span id="poPageIndicator" class="po-page-indicator">หน้า 1 / 1</span>
+                    <button type="button" class="po-page-btn" id="btnPoNextPage" onclick="changePoPage(1)" title="หน้าถัดไป">
+                      <span>ถัดไป</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Tier 2: Floating Pill Capsule Dock Tray -->
+            <div class="quick-prompt-bottom po-list-bottom">
+              <div class="po-list-pills-left">
+                <div class="quick-prompt-tag po-fin-pill" id="poPillBeforeDiscount">
+                  <i data-lucide="calculator"></i>
+                  <span>รวมก่อนลด:</span>
+                  <strong id="poTotalBeforeDiscount">0.00 บาท</strong>
+                </div>
+                <div class="quick-prompt-tag po-fin-pill discount" id="poPillDiscount">
+                  <i data-lucide="tag" style="color: #059669;"></i>
+                  <span>ส่วนลดรวม (<span id="poOverallDiscountPercent">0.00</span>%):</span>
+                  <strong id="poTotalDiscountAmount" style="color: #059669;">-0.00 บาท</strong>
+                </div>
+              </div>
+
+              <div class="po-list-pills-right">
+                <div class="quick-prompt-tag po-fin-pill po-grand-pill" id="poPillGrandTotal">
+                  <i data-lucide="sparkles" style="color: #7c3aed;"></i>
+                  <span>ยอดสุทธิ:</span>
+                  <strong id="poGrandTotal" class="grand-val">0.00 บาท</strong>
+                </div>
+                <button type="button" class="quick-prompt-tag" onclick="renderOrdersTable()" title="รีเฟรชตารางข้อมูล">
+                  <i data-lucide="refresh-cw"></i>
+                  <span>รีเฟรช</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
+
+        <script>
+          window.currentPoTab = window.currentPoTab || 'split';
+          window.switchPoTab = function(tabId) {
+            window.currentPoTab = tabId;
+            const btnSplit = document.getElementById('btnTabPoSplit');
+            const btnHistory = document.getElementById('btnTabPoHistory');
+            const btnCreate = document.getElementById('btnTabPoCreate');
+
+            const formCol = document.getElementById('purchaseOrderFormCol');
+            const listCol = document.getElementById('purchaseOrderListCol');
+            const grid = document.getElementById('purchaseOrdersGrid');
+
+            [btnSplit, btnHistory, btnCreate].forEach(btn => {
+              if (btn) btn.classList.remove('active');
+            });
+
+            const isBackoffice = (typeof isUserLoggedIn === 'function') ? isUserLoggedIn() : true;
+            const isMobileOrTablet = window.innerWidth <= 1024;
+
+            if (tabId === 'history') {
+              if (btnHistory) btnHistory.classList.add('active');
+              if (formCol) formCol.style.display = 'none';
+              if (listCol) {
+                listCol.style.display = 'flex';
+                listCol.style.width = '100%';
+              }
+              if (grid) grid.style.gridTemplateColumns = '1fr';
+            } else if (tabId === 'create') {
+              if (btnCreate) btnCreate.classList.add('active');
+              if (listCol) listCol.style.display = 'none';
+              if (formCol) {
+                formCol.style.display = 'flex';
+                formCol.style.width = '100%';
+              }
+              if (grid) grid.style.gridTemplateColumns = '1fr';
+            } else {
+              // Split view
+              if (btnSplit) btnSplit.classList.add('active');
+              if (formCol) {
+                formCol.style.display = isBackoffice ? 'flex' : 'none';
+                formCol.style.width = '';
+              }
+              if (listCol) {
+                listCol.style.display = 'flex';
+                listCol.style.width = '';
+              }
+              if (grid) {
+                grid.style.gridTemplateColumns = isMobileOrTablet ? '1fr' : (isBackoffice ? '330px minmax(0, 1fr)' : '1fr');
+              }
+            }
+
+            if (window.lucide) lucide.createIcons();
+          };
+        </script>
       </section>
 
       <!-- ==========================================
@@ -2790,8 +3072,11 @@
           <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
         </button>
         <div class="header-title-wrapper">
-          <h1 class="header-title" style="display: flex; align-items: center; gap: 12px;">ตั้งค่าผู้ดูแลระบบ (Admin Panel)</h1>
-          <p class="header-subtitle">พื้นที่สำหรับผู้ดูแลระบบในการจัดการผู้ใช้งาน ตั้งค่าระบบ และดูภาพรวมการใช้งานขององค์กร</p>
+          <h1 class="header-title" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span>ตั้งค่าผู้ดูแลระบบ (Admin Panel)</span>
+            <span style="font-size: 11px; padding: 2.5px 8px; border-radius: 999px; background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; font-weight: 700; letter-spacing: 0.03em;">L3 System Console</span>
+          </h1>
+          <p class="header-subtitle">ศูนย์กลางการบริหารจัดการสิทธิ์ผู้ใช้งาน ตั้งค่าห้องปฏิบัติการ และรักษาความปลอดภัยระบบ</p>
         </div>
       </div>
     </header>
@@ -2800,31 +3085,31 @@
     <div class="admin-nav-bar">
       <ul class="admin-horizontal-menu" id="adminMenu">
         <li class="admin-menu-item active" data-tab="admin-users">
-          <i data-lucide="users"></i>
+          <span class="tab-icon-wrap"><i data-lucide="users"></i></span>
           <span class="btn-text-desktop">จัดการสิทธิ์ผู้ใช้งาน</span>
-          <span class="btn-text-tablet">จัดการสิทธิ์ผู้ใช้งาน</span>
+          <span class="btn-text-tablet">สิทธิ์ผู้ใช้งาน</span>
           <span class="btn-text-mobile">สิทธิ์ผู้ใช้</span>
         </li>
         <li class="admin-menu-item" data-tab="admin-labs">
-          <i data-lucide="flask-conical"></i>
+          <span class="tab-icon-wrap"><i data-lucide="flask-conical"></i></span>
           <span class="btn-text-desktop">จัดการห้องปฏิบัติการ</span>
           <span class="btn-text-tablet">ห้องปฏิบัติการ</span>
           <span class="btn-text-mobile">ห้องแล็บ</span>
         </li>
         <li class="admin-menu-item" data-tab="admin-login-banner">
-          <i data-lucide="layout-template"></i>
+          <span class="tab-icon-wrap"><i data-lucide="layout-template"></i></span>
           <span class="btn-text-desktop">แบนเนอร์ & ประกาศหน้าเข้าสู่ระบบ</span>
           <span class="btn-text-tablet">แบนเนอร์ & ประกาศ</span>
           <span class="btn-text-mobile">แบนเนอร์</span>
         </li>
         <li class="admin-menu-item" data-tab="admin-announcement">
-          <i data-lucide="megaphone"></i>
+          <span class="tab-icon-wrap"><i data-lucide="megaphone"></i></span>
           <span class="btn-text-desktop">จัดการประกาศหน้าแรก</span>
           <span class="btn-text-tablet">จัดการประกาศ</span>
           <span class="btn-text-mobile">ประกาศ</span>
         </li>
         <li class="admin-menu-item danger" data-tab="admin-danger">
-          <i data-lucide="alert-octagon"></i>
+          <span class="tab-icon-wrap"><i data-lucide="alert-octagon"></i></span>
           <span class="btn-text-desktop">พื้นที่อันตราย</span>
           <span class="btn-text-tablet">พื้นที่อันตราย</span>
           <span class="btn-text-mobile">อันตราย</span>
@@ -2833,119 +3118,140 @@
     </div>
     
     <!-- Full-Width Admin Content Card -->
-    <div class="admin-content-card">
+    <div class="admin-content-card card-container">
         
         <!-- Users Tab -->
         <div class="admin-tab active" id="admin-users">
           <div class="admin-tab-header">
             <div class="admin-tab-header-left">
               <h2 class="admin-tab-title">
-                <i data-lucide="users" style="color: #7c3aed;"></i>
+                <i data-lucide="users" style="color: var(--primary-purple);"></i>
                 <span>จัดการสิทธิ์ผู้ใช้งาน (User & Role Management)</span>
               </h2>
               <p class="admin-tab-desc">กำหนดระดับสิทธิ์ (L1 - L4) มอบหมายห้องปฏิบัติการ และตรวจสอบบัญชีผู้ใช้งานในระบบ</p>
             </div>
-            <div class="admin-tab-header-right"></div>
-          </div>
-
-          <!-- FlowAI Inspired KPI Overview Cards -->
-          <div class="admin-kpi-grid">
-            <!-- KPI 1 -->
-            <div class="admin-kpi-card">
-              <div class="admin-kpi-header">
-                <div class="admin-kpi-icon-wrap" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed;">
-                  <i data-lucide="users" style="width: 14px; height: 14px;"></i>
-                </div>
-                <span class="admin-kpi-label">ผู้ใช้งานทั้งหมด</span>
-              </div>
-              <div class="admin-kpi-val" id="kpiTotalUsers">0</div>
-            </div>
-
-            <!-- KPI 2 -->
-            <div class="admin-kpi-card">
-              <div class="admin-kpi-header">
-                <div class="admin-kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: #059669;">
-                  <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
-                </div>
-                <span class="admin-kpi-label">ผู้ดูแล & เจ้าหน้าที่ (L2–L4)</span>
-              </div>
-              <div class="admin-kpi-val" id="kpiStaffAdmins">0</div>
-            </div>
-
-            <!-- KPI 3 -->
-            <div class="admin-kpi-card">
-              <div class="admin-kpi-header">
-                <div class="admin-kpi-icon-wrap" style="background: rgba(59, 130, 246, 0.1); color: #2563eb;">
-                  <i data-lucide="flask-conical" style="width: 14px; height: 14px;"></i>
-                </div>
-                <span class="admin-kpi-label">มอบหมายห้องแล็บแล้ว</span>
-              </div>
-              <div class="admin-kpi-val" id="kpiAssignedLabs">0</div>
-            </div>
-
-            <!-- KPI 4 -->
-            <div class="admin-kpi-card">
-              <div class="admin-kpi-header">
-                <div class="admin-kpi-icon-wrap" style="background: rgba(245, 158, 11, 0.1); color: #d97706;">
-                  <i data-lucide="lock" style="width: 14px; height: 14px;"></i>
-                </div>
-                <span class="admin-kpi-label">ระดับสิทธิ์ความปลอดภัย</span>
-              </div>
-              <div class="admin-kpi-val" style="font-size: 18px; line-height: 1.5; color: #1e293b;">4 ระดับ (L1–L4)</div>
+            <div class="admin-tab-header-right">
+              <span class="badge badge-purple" style="font-size: 11px; padding: 4px 10px; border-radius: 9999px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
+                <span>L3 Console</span>
+              </span>
             </div>
           </div>
 
-          <!-- Smart Search & Filter Toolbar Matching 4 KPI Columns -->
+          <!-- Dashboard-Identical Compact Stat Cards Grid -->
+          <div class="stat-grid admin-stat-grid" id="adminUsersStatGrid">
+            <div class="stat-card blue" id="statCardAdminTotal">
+              <div class="stat-info">
+                <span class="stat-title nobrk">ผู้ใช้งานทั้งหมด</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiTotalUsers">0</span>
+                  <span class="stat-sublabel">บัญชี</span>
+                </div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="users" style="width: 17px; height: 17px;"></i>
+              </div>
+            </div>
+
+            <div class="stat-card green" id="statCardAdminStaff">
+              <div class="stat-info">
+                <span class="stat-title nobrk">ผู้ดูแล & เจ้าหน้าที่</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiStaffAdmins">0</span>
+                  <span class="stat-sublabel">L2–L4</span>
+                </div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="shield-check" style="width: 17px; height: 17px;"></i>
+              </div>
+            </div>
+
+            <div class="stat-card orange" id="statCardAdminLabs">
+              <div class="stat-info">
+                <span class="stat-title nobrk">มอบหมายห้องแล็บ</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiAssignedLabs">0</span>
+                  <span class="stat-sublabel">คน</span>
+                </div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="flask-conical" style="width: 17px; height: 17px;"></i>
+              </div>
+            </div>
+
+            <div class="stat-card yellow" id="statCardAdminSecurity">
+              <div class="stat-info">
+                <span class="stat-title nobrk">ระบบความปลอดภัย</span>
+                <div class="stat-value-group">
+                  <span class="stat-value">100%</span>
+                  <span class="stat-sublabel">Bcrypt & ซ่อนรหัส</span>
+                </div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="lock" style="width: 17px; height: 17px;"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Redesigned Ergonomic Command Toolbar -->
           <div class="admin-toolbar-grid">
-            <!-- Col 1: Search Input (aligned with KPI 1: ผู้ใช้งานทั้งหมด) -->
-            <div class="admin-search-wrap">
-              <i data-lucide="search" class="admin-search-icon"></i>
-              <input type="text" id="adminUserSearchInput" class="admin-search-input" placeholder="ค้นหาชื่อ, รหัสครู, อีเมล..." oninput="filterAdminUsersTable()">
+            <!-- Left Wing: Search & Quick Filters -->
+            <div class="admin-toolbar-left">
+              <div class="admin-search-wrap">
+                <i data-lucide="search" class="admin-search-icon"></i>
+                <input type="text" id="adminUserSearchInput" class="admin-search-input" placeholder="ค้นหาชื่อ, รหัสครู, อีเมล หรือแผนก..." oninput="filterAdminUsersTable()">
+              </div>
+
+              <div class="admin-filter-group">
+                <div class="admin-select-wrapper">
+                  <i data-lucide="filter" class="admin-select-icon"></i>
+                  <select id="adminUserRoleFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
+                    <option value="">ทุกระดับสิทธิ์ (All Roles)</option>
+                    <option value="L1">L1 - ครูผู้สอน (Teacher)</option>
+                    <option value="L2">L2 - เจ้าหน้าที่แล็บ (Lab Staff)</option>
+                    <option value="L3">L3 - ผู้ดูแลระบบ (Admin)</option>
+                    <option value="L4">L4 - ผู้บริหาร (Executive)</option>
+                  </select>
+                </div>
+
+                <div class="admin-select-wrapper">
+                  <i data-lucide="layers" class="admin-select-icon"></i>
+                  <select id="adminUserDeptFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
+                    <option value="">ทุกกลุ่มสาระ / หน่วยงาน</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <!-- Col 2: Role & Dept Filter Group (aligned with KPI 2: ผู้ดูแล & เจ้าหน้าที่ (L2–L4)) -->
-            <div class="admin-filter-group">
-              <select id="adminUserRoleFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
-                <option value="">ทุกระดับสิทธิ์ (All Roles)</option>
-                <option value="L1">L1 - ครูผู้สอน (Teacher)</option>
-                <option value="L2">L2 - เจ้าหน้าที่แล็บ (Lab Staff)</option>
-                <option value="L3">L3 - ผู้ดูแลระบบ (Admin)</option>
-                <option value="L4">L4 - ผู้บริหาร (Executive)</option>
-              </select>
+            <!-- Right Wing: Data Utilities & Add User Action -->
+            <div class="admin-toolbar-right">
+              <div class="admin-toolbar-col3">
+                <button type="button" class="btn btn-admin-action btn-sync-sheets" onclick="syncAllToGoogleSheets()" title="ซิงค์ข้อมูลทั้งหมดไปยัง Google Sheets ทันที">
+                  <i data-lucide="refresh-cw"></i>
+                  <span class="btn-text-desktop">ซิงค์ Sheets</span>
+                  <span class="btn-text-tablet">ซิงค์ Sheets</span>
+                  <span class="btn-text-mobile">ซิงค์</span>
+                </button>
+                <button type="button" class="btn btn-admin-action btn-import-users" onclick="openBatchAddUsersModal()" title="นำเข้าข้อมูลผู้ใช้จากไฟล์ Excel หรือ Google Sheets">
+                  <i data-lucide="file-spreadsheet"></i>
+                  <span class="btn-text-desktop">นำเข้าข้อมูล</span>
+                  <span class="btn-text-tablet">นำเข้า</span>
+                  <span class="btn-text-mobile">นำเข้า</span>
+                </button>
+              </div>
 
-              <select id="adminUserDeptFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">
-                <option value="">ทุกกลุ่มสาระ / หน่วยงาน</option>
-              </select>
-            </div>
-
-            <!-- Col 3: Data Actions (aligned with KPI 3: มอบหมายห้องแล็บแล้ว) -->
-            <div class="admin-toolbar-col3">
-              <button class="btn btn-secondary btn-admin-action" onclick="syncAllToGoogleSheets()" title="ซิงค์ข้อมูลทั้งหมดไปยัง Google Sheets ทันที">
-                <i data-lucide="refresh-cw" style="width: 14px; height: 14px; color: #2563eb;"></i>
-                <span class="btn-text-desktop">ซิงค์ Sheets</span>
-                <span class="btn-text-tablet">ซิงค์ Sheets</span>
-                <span class="btn-text-mobile">ซิงค์ Sheets</span>
-              </button>
-              <button class="btn btn-secondary btn-admin-action" onclick="openBatchAddUsersModal()" title="นำเข้าข้อมูลผู้ใช้จากไฟล์ Excel หรือ Google Sheets">
-                <i data-lucide="file-spreadsheet" style="width: 14px; height: 14px; color: #16a34a;"></i>
-                <span class="btn-text-desktop">นำเข้าข้อมูล</span>
-                <span class="btn-text-tablet">นำเข้า</span>
-                <span class="btn-text-mobile">นำเข้า</span>
-              </button>
-            </div>
-
-            <!-- Col 4: Action Buttons (aligned with KPI 4: ระดับสิทธิ์ความปลอดภัย) -->
-            <div class="admin-toolbar-right admin-toolbar-col4">
-              <button class="btn btn-danger btn-batch-delete-user" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none;" title="ลบผู้ใช้งานที่เลือก">
-                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                <span id="batchDeleteUsersCountText">ลบที่เลือก (0)</span>
-              </button>
-              <button class="btn btn-primary btn-admin-action btn-add-user" onclick="openInviteUserModal()">
-                <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
-                <span class="btn-text-desktop">เพิ่มผู้ใช้งาน / ครู</span>
-                <span class="btn-text-tablet">เพิ่มผู้ใช้งาน</span>
-                <span class="btn-text-mobile">เพิ่มผู้ใช้งาน</span>
-              </button>
+              <div class="admin-toolbar-col4">
+                <button type="button" class="btn btn-danger btn-batch-delete-user" id="btnBatchDeleteUsers" onclick="batchDeleteSelectedUsers()" style="display: none;" title="ลบผู้ใช้งานที่เลือก">
+                  <i data-lucide="trash-2"></i>
+                  <span id="batchDeleteUsersCountText">ลบที่เลือก (0)</span>
+                </button>
+                <button type="button" class="btn btn-primary btn-admin-action btn-add-user" onclick="openInviteUserModal()">
+                  <i data-lucide="user-plus"></i>
+                  <span class="btn-text-desktop">เพิ่มผู้ใช้งาน / ครู</span>
+                  <span class="btn-text-tablet">เพิ่มผู้ใช้งาน</span>
+                  <span class="btn-text-mobile">เพิ่มผู้ใช้</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -2956,24 +3262,44 @@
                   <th style="width: 36px; text-align: center; padding: 9px 4px;">
                     <input type="checkbox" id="selectAllUsersCheckbox" onchange="toggleSelectAllUsers(this.checked)" title="เลือกทั้งหมด" style="width: 14px; height: 14px; accent-color: var(--primary-purple); cursor: pointer; border-radius: 4px;">
                   </th>
-                  <th style="padding: 9px 8px; width: 75px; white-space: nowrap;">รหัสครู (ID)</th>
-                  <th style="padding: 9px 8px; min-width: 150px;">ชื่อผู้ใช้งาน (Member Name)</th>
-                  <th style="padding: 9px 8px;">กลุ่มสาระ / หน่วยงาน</th>
-                  <th style="padding: 9px 8px; white-space: nowrap;">ระดับสิทธิ์ (Role)</th>
-                  <th style="padding: 9px 8px;">ห้องที่ได้รับมอบหมาย</th>
-                  <th style="white-space: nowrap; width: 145px; text-align: center; padding: 9px 6px;">รหัสผ่าน (Password)</th>
-                  <th style="text-align: center; width: 125px; white-space: nowrap; padding: 9px 6px;">จัดการ</th>
+                  <th style="padding: 10px 8px; width: 80px; white-space: nowrap;">รหัสครู (ID)</th>
+                  <th style="padding: 10px 8px; min-width: 155px;">ชื่อผู้ใช้งาน (Member Name)</th>
+                  <th style="padding: 10px 8px;">กลุ่มสาระ / หน่วยงาน</th>
+                  <th style="padding: 10px 8px; white-space: nowrap;">ระดับสิทธิ์ (Role)</th>
+                  <th style="padding: 10px 8px;">ห้องที่ได้รับมอบหมาย</th>
+                  <th style="white-space: nowrap; width: 145px; text-align: center; padding: 10px 8px;">ความปลอดภัย (Security)</th>
+                  <th style="text-align: center; width: 135px; white-space: nowrap; padding: 10px 8px;">จัดการ</th>
                 </tr>
               </thead>
               <tbody id="adminUsersTableBody">
-                <!-- Dynamically populated by app.js -->
+                <!-- Dynamically populated by app.js (10 users per page) -->
               </tbody>
             </table>
+            
+            <!-- Desktop Pagination Footer (10 users per page) -->
+            <div class="admin-pagination-container" id="adminUsersPaginationContainer">
+              <div class="admin-pagination-info" id="adminUsersPaginationInfo">
+                แสดง 0 - 0 จาก 0 ผู้ใช้งาน
+              </div>
+              <div class="admin-pagination-controls" id="adminUsersPaginationControls">
+                <!-- Dynamically populated by app.js -->
+              </div>
+            </div>
           </div>
 
           <!-- Mobile User Card List (Visible on mobile/small screens) -->
           <div class="admin-users-mobile-list" id="adminUsersMobileList">
             <!-- Dynamically populated by app.js -->
+          </div>
+
+          <!-- Mobile Pagination Footer -->
+          <div class="admin-pagination-container admin-mobile-pagination" id="adminUsersMobilePaginationContainer" style="display: none;">
+            <div class="admin-pagination-info" id="adminUsersMobilePaginationInfo">
+              แสดง 0 - 0 จาก 0 ผู้ใช้งาน
+            </div>
+            <div class="admin-pagination-controls" id="adminUsersMobilePaginationControls">
+              <!-- Dynamically populated by app.js -->
+            </div>
           </div>
         </div>
         
@@ -3385,36 +3711,45 @@
             </div>
           </div>
 
-          <!-- FlowAI Inspired KPI Overview Cards for Labs (Aligned with Lab Cards) -->
-          <div class="admin-lab-kpi-grid">
-            <div class="admin-lab-kpi-card">
-              <div class="admin-kpi-header">
-                <div class="admin-kpi-icon-wrap" style="background: rgba(124, 58, 237, 0.1); color: #7c3aed;">
-                  <i data-lucide="building" style="width: 14px; height: 14px;"></i>
+          <!-- Dashboard-Identical Stat Cards Grid for Labs -->
+          <div class="stat-grid admin-stat-grid" id="adminLabsStatGrid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+            <div class="stat-card blue">
+              <div class="stat-info">
+                <span class="stat-title nobrk">ห้องปฏิบัติการทั้งหมด</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiTotalLabs">0</span>
+                  <span class="stat-sublabel">ห้อง</span>
                 </div>
-                <span class="admin-kpi-label">ห้องแล็บทั้งหมด</span>
               </div>
-              <div class="admin-kpi-val" id="kpiTotalLabs">0</div>
+              <div class="stat-icon">
+                <i data-lucide="building" style="width: 17px; height: 17px;"></i>
+              </div>
             </div>
 
-            <div class="admin-lab-kpi-card">
-              <div class="admin-kpi-header">
-                <div class="admin-kpi-icon-wrap" style="background: rgba(2, 132, 199, 0.1); color: #0284c7;">
-                  <i data-lucide="box" style="width: 14px; height: 14px;"></i>
+            <div class="stat-card orange">
+              <div class="stat-info">
+                <span class="stat-title nobrk">พัสดุและสารเคมีในห้อง</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiTotalLabItems">0</span>
+                  <span class="stat-sublabel">รายการ</span>
                 </div>
-                <span class="admin-kpi-label">พัสดุและสารเคมีในห้อง</span>
               </div>
-              <div class="admin-kpi-val" id="kpiTotalLabItems">0</div>
+              <div class="stat-icon">
+                <i data-lucide="box" style="width: 17px; height: 17px;"></i>
+              </div>
             </div>
 
-            <div class="admin-lab-kpi-card">
-              <div class="admin-kpi-header">
-                <div class="admin-kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.1); color: #059669;">
-                  <i data-lucide="layout-grid" style="width: 14px; height: 14px;"></i>
+            <div class="stat-card green">
+              <div class="stat-info">
+                <span class="stat-title nobrk">ตู้จัดเก็บตามผัง SHECU</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiTotalLabCabinets">0</span>
+                  <span class="stat-sublabel">ตู้</span>
                 </div>
-                <span class="admin-kpi-label">ตู้จัดเก็บตามผัง SHECU</span>
               </div>
-              <div class="admin-kpi-val" id="kpiTotalLabCabinets">0</div>
+              <div class="stat-icon">
+                <i data-lucide="layout-grid" style="width: 17px; height: 17px;"></i>
+              </div>
             </div>
           </div>
 
@@ -3979,29 +4314,21 @@
                 </div>
               </div>
 
-              <!-- Password Management (Span 2) -->
+              <!-- Password Management (Span 2) - Privacy Protected: Admins cannot see current passwords -->
               <div class="form-col-full admin-user-pass-card">
                 <div class="admin-user-pass-header">
                   <div class="admin-user-pass-title">
-                    <i data-lucide="key-round" style="width: 15px; height: 15px; color: #7c3aed;"></i>
-                    <span>การจัดการรหัสผ่านผู้ใช้งาน (Password Management)</span>
+                    <i data-lucide="shield-check" style="width: 15px; height: 15px; color: #10b981;"></i>
+                    <span>การรีเซ็ตรหัสผ่านผู้ใช้งาน (Password Security & Reset)</span>
                   </div>
-                  <span class="admin-user-pass-badge">L3 Admin Only</span>
+                  <span class="admin-user-pass-badge" style="background: #ecfdf5; color: #047857; border-color: #a7f3d0;">Bcrypt Protected</span>
                 </div>
 
                 <div class="admin-user-pass-body">
-                  <!-- Current Password Display Box -->
-                  <div class="admin-pass-field-row">
-                    <label class="admin-pass-label">รหัสผ่านปัจจุบัน</label>
-                    <div class="admin-pass-input-box">
-                      <input type="password" id="editUserCurrentPass" readonly class="admin-pass-input" value="">
-                      <button type="button" class="admin-pass-btn-icon" onclick="toggleEditUserPassVisibility()" title="แสดง/ซ่อนรหัสผ่าน">
-                        <i data-lucide="eye" id="editUserPassEyeIcon" style="width: 14px; height: 14px;"></i>
-                      </button>
-                      <button type="button" class="admin-pass-btn-icon" onclick="copyEditUserPassword()" title="คัดลอกรหัสผ่าน">
-                        <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
-                      </button>
-                    </div>
+                  <!-- Privacy Assurance Notice -->
+                  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i data-lucide="lock" style="width: 15px; height: 15px; color: #64748b; flex-shrink: 0;"></i>
+                    <span style="font-size: 11.5px; color: #475569; line-height: 1.4;">เพื่อความปลอดภัยและความเป็นส่วนตัวของผู้ใช้ รหัสผ่านเดิมจะไม่ปรากฏให้แอดมินเห็น แต่สามารถรีเซ็ตรหัสผ่านใหม่ให้ผู้ใช้ได้</span>
                   </div>
 
                   <!-- Actions: Two Clear Cards/Columns -->
@@ -4017,12 +4344,12 @@
 
                     <!-- Option 2: Set Custom Password -->
                     <div class="admin-pass-action-box" style="flex: 1.3;">
-                      <span class="admin-pass-sublabel">กำหนดรหัสผ่านใหม่</span>
+                      <span class="admin-pass-sublabel">กำหนดรหัสผ่านใหม่ชั่วคราว</span>
                       <div class="admin-pass-custom-wrap">
                         <input type="text" id="editUserNewCustomPass" placeholder="พิมพ์รหัสผ่านใหม่..." class="admin-pass-custom-input">
                         <button type="button" class="btn btn-pass-action btn-pass-save" onclick="adminApplyCustomPassword()">
                           <i data-lucide="check" style="width: 13px; height: 13px;"></i>
-                          <span>บันทึกรหัสใหม่</span>
+                          <span>บันทึก</span>
                         </button>
                       </div>
                     </div>
@@ -4998,10 +5325,11 @@
   </style>
 
   <!-- ==========================================
-       CHATBOT: LAB AI ASSISTANT WIDGET
+       CHATBOT: LAB AI ASSISTANT WIDGET (Redesigned)
        ========================================== -->
-  <!-- Floating Action Pill Widget: Chat with Stoki (Animated Bot Face Widget) -->
-  <div class="chatbot-fab" id="chatbotFab" title="Chat with Stoki" role="button" tabindex="0">
+  <!-- Floating Action Pill Widget: Chat with Stoki AI (Animated Eyes Restored) -->
+  <button class="chatbot-fab" id="chatbotFab" title="เปิดแชทกับผู้ช่วย AI Stoki" aria-label="เปิดแชทกับผู้ช่วย AI Stoki" type="button">
+    <div class="chatbot-fab-glow-ring"></div>
     <div class="chatbot-fab-avatar-wrapper">
       <div class="chatbot-fab-avatar">
         <div class="stoki-bot-face">
@@ -5009,104 +5337,201 @@
           <div class="stoki-bot-eye right-eye"></div>
         </div>
       </div>
+      <span class="chatbot-pulse-dot" title="ระบบพร้อมให้บริการ"></span>
     </div>
     <div class="chatbot-fab-content">
-      <span class="chatbot-fab-title">Chat with Stoki</span>
-      <span class="chatbot-fab-subtitle">ผู้ช่วยประจำห้องปฏิบัติการ</span>
+      <div class="chatbot-fab-headline">
+        <span class="chatbot-fab-title">ถาม Stoki AI</span>
+        <span class="chatbot-fab-badge">PRO</span>
+      </div>
+      <span class="chatbot-fab-subtitle">ผู้ช่วยแล็บอัจฉริยะ</span>
     </div>
-  </div>
+  </button>
 
   <!-- Chat Panel Backdrop Overlay -->
   <div class="chatbot-overlay" id="chatbotOverlay"></div>
 
   <!-- Chat Panel -->
   <div class="chatbot-panel" id="chatbotPanel">
+    <!-- Redesigned Chatbot Header -->
     <div class="chatbot-header">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="chatbot-avatar">
-          <img src="stock-bitol-bot.png" id="chatbotHeaderIcon" alt="Stoki">
+      <div class="chatbot-header-info">
+        <div class="chatbot-avatar-ring">
+          <div class="chatbot-avatar">
+            <img src="stock-bitol-bot.png" id="chatbotHeaderIcon" alt="Stoki">
+          </div>
+          <span class="status-live-beacon"></span>
         </div>
-        <div>
-          <div class="chatbot-title">Chat with Stoki</div>
-          <div class="chatbot-status">
+        <div class="chatbot-meta">
+          <div class="chatbot-name-row">
+            <span class="chatbot-title">Stoki AI Assistant</span>
+            <span class="chatbot-version-pill">Lab Intelligence</span>
+          </div>
+          <div class="chatbot-status-row">
             <span class="status-live-dot"></span>
-            <span>พร้อมให้บริการ</span>
+            <span class="chatbot-status-text">ออนไลน์ • พร้อมช่วยเหลือตลอด 24 ชม.</span>
           </div>
         </div>
       </div>
-      <button type="button" class="chatbot-close-btn" id="chatbotCloseBtn" aria-label="ปิดหน้าต่างแชท" title="ปิดหน้าต่างแชท">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
+      <div class="chatbot-header-actions">
+        <button type="button" class="chatbot-action-btn" id="chatbotClearHistoryBtn" aria-label="รีเซ็ตการสนทนา" title="รีเซ็ตการสนทนา">
+          <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+        </button>
+        <button type="button" class="chatbot-close-btn" id="chatbotCloseBtn" aria-label="ปิดหน้าต่างแชท" title="ปิดหน้าต่างแชท">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
     </div>
 
-    <!-- Chat Messages -->
+    <!-- Redesigned Chat Messages Body -->
     <div class="chatbot-body" id="chatbotBody">
-      <!-- Welcome Message Card (Clean & Friendly Conversational UI) -->
-      <div class="chat-message bot welcome-card">
-        <div class="welcome-card-title">
-          <span>สวัสดีครับ! ยินดีต้อนรับครับ</span>
-          <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #f59e0b; display: inline-block; vertical-align: middle;"></i>
+      <!-- Bento Hero Welcome Card -->
+      <div class="chat-welcome-bento">
+        <div class="welcome-bento-header">
+          <div class="welcome-badge">
+            <i data-lucide="sparkles" class="welcome-sparkle-icon"></i>
+            <span>SciPortal AI Intelligence</span>
+          </div>
+          <h4 class="welcome-bento-title">สวัสดีครับ! มีอะไรให้ Stoki ช่วยวันนี้? 👋</h4>
+          <p class="welcome-bento-desc">
+            ผมคือผู้ช่วยอัจฉริยะประจำห้องปฏิบัติการ พร้อมช่วยคุณค้นหาสารเคมี ตรวจสอบสต็อก คำนวณสูตรเคมี และแนะนำแนวทางความปลอดภัยตามมาตรฐาน SHECU
+          </p>
         </div>
-        <p class="welcome-card-text">
-          ผมคือ <strong class="bot-name-text">Stoki-bitol (สต็อกบิทอล)</strong> ผู้ช่วยประจำห้องปฏิบัติการ พร้อมช่วยคุณค้นหาพัสดุ ตรวจสอบสต็อกสารเคมี และช่วยคำนวณสูตรเคมีได้อย่างรวดเร็วครับ
-        </p>
+
+        <div class="welcome-caps-grid">
+          <div class="welcome-cap-item">
+            <div class="cap-icon-box cap-inventory">
+              <i data-lucide="boxes"></i>
+            </div>
+            <div class="cap-text-box">
+              <span class="cap-title">สืบค้นคลังพัสดุ</span>
+              <span class="cap-sub">เช็คสต็อก/หมดอายุ</span>
+            </div>
+          </div>
+          <div class="welcome-cap-item">
+            <div class="cap-icon-box cap-calc">
+              <i data-lucide="flask-conical"></i>
+            </div>
+            <div class="cap-text-box">
+              <span class="cap-title">คำนวณเคมี</span>
+              <span class="cap-sub">ดุลสมการ/มวลโมเลกุล</span>
+            </div>
+          </div>
+          <div class="welcome-cap-item">
+            <div class="cap-icon-box cap-safety">
+              <i data-lucide="shield-alert"></i>
+            </div>
+            <div class="cap-text-box">
+              <span class="cap-title">มาตรฐาน SHECU</span>
+              <span class="cap-sub">จำแนกของเสีย/สารหก</span>
+            </div>
+          </div>
+        </div>
       </div>
       
-      <!-- Suggestion Action Cards Grid -->
-      <div class="chat-suggestions-title">
-        <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #7c3aed;"></i>
-        <span>คำสั่งและคำถามด่วนที่พบบ่อย:</span>
-      </div>
-      <div class="chat-suggestions" id="chatSuggestions">
-        <button type="button" class="chat-suggestion-chip" data-query="ค้นหาสารเคมี">
-          <span class="chip-icon"><i data-lucide="search"></i></span>
-          <span class="chip-label">ค้นหาพัสดุ/สารเคมี</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="เช็คของใกล้หมดคลัง">
-          <span class="chip-icon"><i data-lucide="alert-triangle" style="color: #f59e0b;"></i></span>
-          <span class="chip-label">ตรวจเช็คสต็อกต่ำ</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="เช็คสารเคมีหมดอายุ">
-          <span class="chip-icon"><i data-lucide="clock" style="color: #ef4444;"></i></span>
-          <span class="chip-label">เช็คสารหมดอายุ</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O">
-          <span class="chip-icon"><i data-lucide="flask-conical" style="color: #8b5cf6;"></i></span>
-          <span class="chip-label">ดุลสมการเคมี</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="คำนวณมวลโมเลกุล">
-          <span class="chip-icon"><i data-lucide="scale" style="color: #3b82f6;"></i></span>
-          <span class="chip-label">คำนวณมวลโมเลกุล</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="เตรียมสารละลาย">
-          <span class="chip-icon"><i data-lucide="droplet" style="color: #06b6d4;"></i></span>
-          <span class="chip-label">วิธีเตรียมสารละลาย</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="ปฐมพยาบาลสารเคมีหก">
-          <span class="chip-icon"><i data-lucide="siren" style="color: #dc2626;"></i></span>
-          <span class="chip-label">ปฐมพยาบาลสารหก</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="จำแนกของเสีย">
-          <span class="chip-icon"><i data-lucide="trash-2" style="color: #64748b;"></i></span>
-          <span class="chip-label">จำแนกประเภทของเสีย</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip full-width" data-query="วิธีใช้งานระบบ">
-          <span class="chip-icon"><i data-lucide="book-open" style="color: #10b981;"></i></span>
-          <span class="chip-label">แนะนำวิธีการใช้งานระบบคลัง</span>
-        </button>
+      <!-- Redesigned Quick Prompts Section -->
+      <div class="chat-suggestions-section">
+        <div class="chat-suggestions-header">
+          <div class="chat-suggestions-header-left">
+            <i data-lucide="zap" class="suggestions-zap-icon"></i>
+            <span>คำสั่งด่วนที่พบบ่อย (Quick Actions)</span>
+          </div>
+          <span class="suggestions-count-badge">9 รายการ</span>
+        </div>
+        <div class="chat-suggestions" id="chatSuggestions">
+          <button type="button" class="chat-suggestion-chip" data-query="ค้นหาสารเคมี">
+            <span class="chip-icon chip-icon-search"><i data-lucide="search"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">ค้นหาพัสดุ/สารเคมี</span>
+              <span class="chip-hint">สืบค้นตามชื่อหรือ CAS</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="เช็คของใกล้หมดคลัง">
+            <span class="chip-icon chip-icon-alert"><i data-lucide="alert-triangle"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">ตรวจเช็คสต็อกต่ำ</span>
+              <span class="chip-hint">รายการใกล้หมดคลัง</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="เช็คสารเคมีหมดอายุ">
+            <span class="chip-icon chip-icon-expire"><i data-lucide="clock"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">เช็คสารหมดอายุ</span>
+              <span class="chip-hint">ตรวจวันหมดอายุ</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O">
+            <span class="chip-icon chip-icon-balance"><i data-lucide="flask-conical"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">ดุลสมการเคมี</span>
+              <span class="chip-hint">ระบบดุลอัตโนมัติ</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="คำนวณมวลโมเลกุล">
+            <span class="chip-icon chip-icon-scale"><i data-lucide="scale"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">คำนวณมวลโมเลกุล</span>
+              <span class="chip-hint">Molecular Weight</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="เตรียมสารละลาย">
+            <span class="chip-icon chip-icon-solution"><i data-lucide="droplet"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">วิธีเตรียมสารละลาย</span>
+              <span class="chip-hint">คำนวณความเข้มข้น M, N</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="ปฐมพยาบาลสารเคมีหก">
+            <span class="chip-icon chip-icon-spill"><i data-lucide="siren"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">ปฐมพยาบาลสารหก</span>
+              <span class="chip-hint">ขั้นตอนกรณีฉุกเฉิน</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="จำแนกของเสีย">
+            <span class="chip-icon chip-icon-waste"><i data-lucide="trash-2"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">จำแนกประเภทของเสีย</span>
+              <span class="chip-hint">17 Class SHECU</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip full-width" data-query="วิธีใช้งานระบบ">
+            <span class="chip-icon chip-icon-guide"><i data-lucide="book-open"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">แนะนำวิธีการใช้งานระบบคลังและห้องแล็บ</span>
+              <span class="chip-hint">คู่มือการใช้งานฟังก์ชันหลักของระบบ</span>
+            </span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Chat Input Footer -->
+    <!-- Redesigned Chat Input Footer -->
     <div class="chatbot-footer">
-      <div class="chatbot-input-wrap">
-        <input type="text" id="chatbotInput" placeholder="พิมพ์คำถามหรือคำสั่งที่นี่..." autocomplete="off">
-        <button type="button" id="chatbotSendBtn" title="ส่งข้อความ">
-          <i data-lucide="send" style="width: 14px; height: 14px;"></i>
-        </button>
+      <div class="chatbot-input-container">
+        <div class="chatbot-input-wrap">
+          <span class="chatbot-input-prefix-icon">
+            <i data-lucide="message-square" style="width: 15px; height: 15px;"></i>
+          </span>
+          <input type="text" id="chatbotInput" placeholder="พิมพ์คำถาม เช่น โซเดียมไฮดรอกไซด์, ดุลสมการ..." autocomplete="off">
+          <button type="button" id="chatbotSendBtn" aria-label="ส่งข้อความ" title="ส่งข้อความ (Enter)">
+            <i data-lucide="arrow-up" class="chatbot-send-icon"></i>
+          </button>
+        </div>
+        <div class="chatbot-footer-caption">
+          <div class="chatbot-caption-item">
+            <i data-lucide="sparkles" class="caption-sparkle-icon"></i>
+            <span>SciPortal AI</span>
+          </div>
+          <span class="chatbot-caption-dot">•</span>
+          <div class="chatbot-caption-item">
+            <span>กด <kbd>Enter ↵</kbd> เพื่อส่ง</span>
+          </div>
+          <span class="chatbot-caption-dot">•</span>
+          <div class="chatbot-caption-item">
+            <span>มาตรฐาน SHECU</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -5669,61 +6094,103 @@
 
   <!-- MODAL: HELP & SAFETY (SHECU Information Center) -->
   <div id="helpSafetyModal" class="modal-overlay">
-    <div class="modal-content modal-lg" style="width: 94%; max-width: 860px; height: 480px; max-height: 86vh; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 16px; border: 1px solid #d9dee8; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); font-family: var(--font-sans);">
+    <div class="modal-content modal-lg help-safety-modal-content">
       <!-- Modal Header -->
-      <div class="modal-header" style="padding: 14px 20px; border-bottom: 1px solid #d9dee8; display: flex; justify-content: space-between; align-items: center; background: #ffffff; flex-shrink: 0;">
+      <div class="modal-header help-modal-header">
         <div class="modal-header-left">
-          <div class="modal-header-icon-badge">
-            <i data-lucide="book-open" style="width: 20px; height: 20px;"></i>
+          <div class="modal-header-icon-badge help-header-badge">
+            <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
           </div>
           <div class="modal-title-wrap">
-            <h3 class="modal-title">ศูนย์ข้อมูล และความปลอดภัย</h3>
-            <div class="modal-subtitle">SHECU Information Center • มาตรฐานความปลอดภัยห้องปฏิบัติการ</div>
+            <div class="help-title-row">
+              <h3 class="modal-title">ศูนย์ข้อมูล และความปลอดภัย</h3>
+              <span class="shecu-badge shecu-badge-primary">
+                <i data-lucide="check-circle" style="width: 10px; height: 10px;"></i> SHECU ESPReL
+              </span>
+            </div>
+            <div class="modal-subtitle">SHECU Information Center • มาตรฐานความปลอดภัยห้องปฏิบัติการและการใช้งานระบบ</div>
           </div>
         </div>
-        <button class="modal-close-btn" onclick="closeHelpSafetyModal()" aria-label="ปิดหน้าต่าง">
-          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        <button class="modal-close-btn" onclick="closeHelpSafetyModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
         </button>
       </div>
       
-      <div class="help-modal-body" style="display: flex; flex: 1; min-height: 0; height: calc(100% - 69px); width: 100%; overflow: hidden; box-sizing: border-box;">
-        <!-- Sidebar Tabs -->
-        <div class="help-modal-sidebar" style="width: 200px; flex-shrink: 0; background: #f8fafc; border-right: 1px solid #d9dee8; padding: 10px 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box;">
-          <ul class="help-tabs" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px;">
-            <li class="help-tab active" data-target="help-tab-1">ความปลอดภัย SHECU</li>
-            <li class="help-tab" data-target="help-tab-2">เอกสาร SDS</li>
-            <li class="help-tab" data-target="help-tab-3">จัดการของเสีย</li>
-            <li class="help-tab" data-target="help-tab-4">คู่มือระบบ</li>
-            <li class="help-tab" data-target="help-tab-5">แจ้งปัญหา</li>
-            <li class="help-tab" data-target="help-tab-6">ผู้พัฒนาระบบ</li>
-          </ul>
+      <div class="help-modal-body">
+        <!-- Sidebar Navigation -->
+        <div class="help-modal-sidebar">
+          <div>
+            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 10px 6px;">
+              หมวดหมู่คู่มือ
+            </div>
+            <ul class="help-tabs">
+              <li class="help-tab active" data-target="help-tab-1">
+                <i data-lucide="shield-alert" class="help-tab-icon"></i>
+                <span>ความปลอดภัย SHECU</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-2">
+                <i data-lucide="file-text" class="help-tab-icon"></i>
+                <span>เอกสาร SDS</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-3">
+                <i data-lucide="trash-2" class="help-tab-icon"></i>
+                <span>จัดการของเสีย</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-4">
+                <i data-lucide="book-marked" class="help-tab-icon"></i>
+                <span>คู่มือระบบ</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-5">
+                <i data-lucide="life-buoy" class="help-tab-icon"></i>
+                <span>แจ้งปัญหา / ติดต่อ</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-6">
+                <i data-lucide="code-2" class="help-tab-icon"></i>
+                <span>ผู้พัฒนาระบบ</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="help-sidebar-footer">
+            <span class="pulse-dot"></span>
+            <span>ระบบความปลอดภัยพร้อมใช้</span>
+          </div>
         </div>
         
         <!-- Content Area -->
-        <div class="help-modal-content" style="flex: 1; min-width: 0; width: 100%; padding: 12px 16px; overflow-y: auto; overflow-x: hidden; background: #ffffff; box-sizing: border-box;">
+        <div class="help-modal-content">
           
           <!-- Tab 1: ความปลอดภัย SHECU -->
           <div id="help-tab-1" class="help-content active">
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+              <!-- Quick Banner -->
+              <div class="help-shecu-banner">
+                <div class="help-shecu-banner-left">
+                  <i data-lucide="shield" style="width: 16px; height: 16px; color: #6366f1; flex-shrink: 0;"></i>
+                  <span style="font-size: 12px; font-weight: 600; color: #3730a3;">มาตรฐานความปลอดภัยห้องปฏิบัติการ ESPReL & จุฬาลงกรณ์มหาวิทยาลัย (SHECU)</span>
+                </div>
+                <span class="shecu-badge shecu-badge-primary" style="font-size: 10.5px; padding: 2px 7px;">ESPReL Level 3</span>
+              </div>
+
               <!-- Accordion 1: Incompatible Chemicals -->
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="shield-alert" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-alert" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การจัดเก็บสารเคมีไม่เข้ากัน (Incompatible Chemicals)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-warning">
-                      <i data-lucide="shield-alert" style="width: 11px; height: 11px;"></i> มาตรฐาน SHECU-G
+                      <i data-lucide="alert-triangle" style="width: 10px; height: 10px;"></i> SHECU-G
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <p style="margin: 0 0 6px 0;">สารเคมีต้องถูกจัดเก็บแยกตามกลุ่มความเข้ากันไม่ได้เพื่อป้องกันปฏิกิริยารุนแรง:</p>
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #4b5563;">
+                  <p style="margin: 0 0 5px 0;">สารเคมีต้องถูกจัดเก็บแยกตามกลุ่มความเข้ากันไม่ได้เพื่อป้องกันปฏิกิริยารุนแรง:</p>
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ห้ามเก็บกรดร่วมกับเบส:</strong> แยกตู้เก็บกรดและตู้เก็บด่างอย่างเด็ดขาด</div>
                     <div>• <strong>สารไวไฟร่วมกับตัวออกซิไดซ์:</strong> ต้องแยกจัดเก็บในตู้เก็บสารนิรภัย (Flammable Safety Cabinet)</div>
                     <div>• <strong>สารอันตรายสูง / ไอน้ำมัน:</strong> แยกเก็บในตู้ดูดควัน (Fume Hood) และติดป้ายเตือนอันตราย</div>
@@ -5735,14 +6202,14 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="archive" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="archive" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การควบคุมความจุตู้จัดเก็บ (Cabinet Storage Capacity)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-info">
-                      <i data-lucide="check-circle" style="width: 11px; height: 11px;"></i> สูงสุด 80%
+                      <i data-lucide="check-circle" style="width: 10px; height: 10px;"></i> สูงสุด 80%
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
@@ -5756,14 +6223,14 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="heart-pulse" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="heart-pulse" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การปฐมพยาบาล & อ่างล้างตาฉุกเฉิน (Emergency Eyewash)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-danger">
-                      <i data-lucide="alert-circle" style="width: 11px; height: 11px;"></i> ล้างน้ำ 15 นาที
+                      <i data-lucide="alert-circle" style="width: 10px; height: 10px;"></i> ล้างน้ำ 15 นาที
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
@@ -5782,14 +6249,14 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="search" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="search" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การค้นหาและตรวจสอบเลข CAS No.</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-primary">
-                      <i data-lucide="globe" style="width: 11px; height: 11px;"></i> รหัสสากล
+                      <i data-lucide="globe" style="width: 10px; height: 10px;"></i> รหัสสากล
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
@@ -5803,20 +6270,20 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dbeafe; color: #1e40af; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="file-text" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #1e40af; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">โครงสร้างเอกสารข้อมูลความปลอดภัย SDS ครบทั้ง 16 หัวข้อ</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-info">
-                      <i data-lucide="layers" style="width: 11px; height: 11px;"></i> ครบ 16 หัวข้อหลัก
+                      <i data-lucide="layers" style="width: 10px; height: 10px;"></i> GHS 16 ส่วน
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="font-size: 12px; color: #475569; margin-bottom: 6px;">
+                  <div style="font-size: 11.5px; color: #64748b; margin-bottom: 6px;">
                     เอกสาร SDS ตามระบบ GHS สรุปข้อมูลความปลอดภัย 16 ส่วนมาตรฐาน เพื่อใช้ประเมินความเสี่ยงก่อนปฏิบัติการ:
                   </div>
                   
@@ -5847,37 +6314,37 @@
           <!-- Tab 3: จัดการของเสีย -->
           <div id="help-tab-3" class="help-content" style="display: none;">
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
-              <!-- 3 Waste Separation Cards (Icon + Label + Color) -->
-              <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
+              <!-- 3 Waste Separation Cards -->
+              <div class="waste-bin-grid">
                 <!-- Flammable Red Bin -->
-                <div style="background: #fff5f5; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 10px; min-width: 0; box-sizing: border-box;">
-                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #dc2626; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div class="waste-bin-card red">
+                  <div class="waste-bin-title">
                     <i data-lucide="flame" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังแดง: สารไวไฟ</span>
+                    <span>ถังแดง: สารไวไฟ</span>
                   </div>
-                  <div style="font-size: 11px; color: #7f1d1d; line-height: 1.4; word-break: break-word;">
+                  <div class="waste-bin-desc">
                     ตัวทำละลายอินทรีย์ (Organic Solvents เช่น เอทานอล, อะซิโตน, เมทานอล)
                   </div>
                 </div>
 
                 <!-- Acid-Base Blue Bin -->
-                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 10px; min-width: 0; box-sizing: border-box;">
-                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #2563eb; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div class="waste-bin-card blue">
+                  <div class="waste-bin-title">
                     <i data-lucide="beaker" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังน้ำเงิน: กรด-เบส</span>
+                    <span>ถังน้ำเงิน: กรด-เบส</span>
                   </div>
-                  <div style="font-size: 11px; color: #1e3a8a; line-height: 1.4; word-break: break-word;">
+                  <div class="waste-bin-desc">
                     สารละลายน้ำ / สารละลายกรดและเบสเจือจาง (Aqueous Acid-Base)
                   </div>
                 </div>
 
                 <!-- Contaminated Solids Yellow Bin -->
-                <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 8px 10px; min-width: 0; box-sizing: border-box;">
-                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #ca8a04; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div class="waste-bin-card yellow">
+                  <div class="waste-bin-title">
                     <i data-lucide="trash-2" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังเหลือง: ของแข็ง</span>
+                    <span>ถังเหลือง: ของแข็ง</span>
                   </div>
-                  <div style="font-size: 11px; color: #713f12; line-height: 1.4; word-break: break-word;">
+                  <div class="waste-bin-desc">
                     ของแข็งปนเปื้อนเคมี กระดาษกรอง ถุงมือไนไตรล์ หรือขวดแก้วเปล่า
                   </div>
                 </div>
@@ -5887,20 +6354,20 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ffedd5; color: #ea580c; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="alert-triangle" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ffedd5; color: #ea580c; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">ข้อปฏิบัติและมาตรการความปลอดภัยในการทิ้งของเสีย</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-warning">
-                      <i data-lucide="shield" style="width: 11px; height: 11px;"></i> ข้อกำหนด SHECU
+                      <i data-lucide="shield" style="width: 10px; height: 10px;"></i> ข้อกำหนด SHECU
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ห้ามเทสารเคมีลงอ่างล้างท่อ:</strong> สารละลายเคมีทุกชนิดต้องทิ้งลงในถังรองรับของเสียที่กำหนดไว้เท่านั้น</div>
                     <div>• <strong>ปิดฝาถังให้สนิท:</strong> ปิดฝาถังขยะเคมีให้แน่นหนาทุกครั้งหลังการทิ้ง เพื่อป้องกันการระเหยของไอระเหยสารเคมี</div>
                     <div>• <strong>บันทึกสมุดของเสีย (Waste Log):</strong> บันทึกชื่อสาร ปริมาณ และวันที่ทิ้งลงในสมุดประจำห้องแล็บทุกครั้ง</div>
@@ -5917,20 +6384,20 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="calendar-check" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="calendar-check" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">1. การจองห้องปฏิบัติการ (Lab Booking Workflow)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-primary">
-                      <i data-lucide="user" style="width: 11px; height: 11px;"></i> ครู / ผู้ใช้
+                      <i data-lucide="user" style="width: 10px; height: 10px;"></i> ครู / ผู้ใช้
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ขั้นที่ 1 (เลือกวันเวลา):</strong> เข้าเมนู <em>"จองห้องปฏิบัติการ"</em> ตรวจสอบปฏิทิน แล้วเลือกห้องและคาบเรียนที่ว่าง</div>
                     <div>• <strong>ขั้นที่ 2 (ระบุสารเคมี/พัสดุ):</strong> กรอกชื่อผู้จอง วัตถุประสงค์ และระบุรายการพัสดุที่ต้องการให้จัดเตรียมล่วงหน้า</div>
                     <div>• <strong>ขั้นที่ 3 (รออนุมัติ):</strong> เจ้าหน้าที่ประจำห้อง (L2) หรือแอดมิน (L3) จะตรวจสอบและอนุมัติการเข้าใช้งาน</div>
@@ -5942,20 +6409,20 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="clipboard-list" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="clipboard-list" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">2. การเบิก-ยืมพัสดุและสารเคมี (Borrowing & Return Workflow)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-info">
-                      <i data-lucide="refresh-cw" style="width: 11px; height: 11px;"></i> ตัดสต็อก Real-time
+                      <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> ตัดสต็อก Real-time
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ขั้นที่ 1 (ค้นหาคลัง):</strong> ค้นหาชื่อสารเคมีหรือเครื่องแก้ว กำหนดจำนวนและวันที่ต้องการส่งคืน</div>
                     <div>• <strong>ขั้นที่ 2 (ยื่นคำขอยืม):</strong> ระบบส่งคำขอและตัดยอดคงเหลือในคลังสารเคมีทันทีแบบอัตโนมัติ</div>
                     <div>• <strong>ขั้นที่ 3 (ตรวจรับคืน):</strong> ตรวจสอบสภาพอุปกรณ์ก่อนกดรับคืน หรือบันทึกยอดชำรุดหากมีความเสียหาย</div>
@@ -5967,20 +6434,20 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="qr-code" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">3. การตรวจนับสต็อกและสแกน QR Code (Inventory & QR)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-success">
-                      <i data-lucide="smartphone" style="width: 11px; height: 11px;"></i> สแกนมือถือ
+                      <i data-lucide="smartphone" style="width: 10px; height: 10px;"></i> สแกนมือถือ
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ขั้นที่ 1 (สแกนผ่านกล้อง):</strong> สแกน QR Code ข้างขวดหรือหน้าตู้เพื่อดูยอดคงเหลือและตำแหน่งจัดเก็บ</div>
                     <div>• <strong>ขั้นที่ 2 (พิมพ์สติกเกอร์ฉลาก):</strong> เจ้าหน้าที่ L2+ สามารถกดพิมพ์ฉลากบาร์โค้ด QR Code ติดขวดสารใหม่ได้ทันที</div>
                     <div>• <strong>ขั้นที่ 3 (อัปเดตยอดคงเหลือ):</strong> บันทึกการรับเข้า หรือแก้ไขจุดเตือนขั้นต่ำ (Min Alert) เพื่อป้องกันของหมดคลัง</div>
@@ -5992,106 +6459,106 @@
           
           <!-- Tab 5: แจ้งปัญหา -->
           <div id="help-tab-5" class="help-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 9px; width: 100%; box-sizing: border-box;">
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
               <!-- Emergency Contacts Top Bar -->
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                <div style="font-size: 13.5px; font-weight: 700; color: #1f2937; display: flex; align-items: center; gap: 6px; min-width: 0;">
-                  <i data-lucide="phone-call" style="width: 15px; height: 15px; color: #dc2626; flex-shrink: 0;"></i>
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-main, #1f2937); display: flex; align-items: center; gap: 6px; min-width: 0;">
+                  <i data-lucide="phone-call" style="width: 14px; height: 14px; color: #dc2626; flex-shrink: 0;"></i>
                   <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">เบอร์ติดต่อฉุกเฉินประจำห้องแล็บ</span>
                 </div>
-                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px; background: #ede7ff; color: #4f21a1; border: 1px solid #ddd6fe; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; flex-shrink: 0;" onclick="toggleEmergencyContactEdit(true)">
+                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: #ede7ff; color: #4f21a1; border: 1px solid #ddd6fe; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; flex-shrink: 0;" onclick="toggleEmergencyContactEdit(true)">
                   <i data-lucide="edit-3" style="width: 11px; height: 11px;"></i> แก้ไขข้อมูล
                 </button>
               </div>
 
               <!-- View Mode (Clean 3-Column Grid) -->
               <div id="emergencyContactsView" style="width: 100%; box-sizing: border-box;">
-                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
+                <div class="help-contact-grid">
                   <!-- Card Admin -->
-                  <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                  <div class="help-contact-card">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
                     </div>
                     <div style="min-width: 0; flex: 1; overflow: hidden;">
-                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ผู้ดูแลระบบ (Admin)</div>
-                      <div id="dispContactAdmin" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร)</div>
+                      <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ผู้ดูแลระบบ (Admin)</div>
+                      <div id="dispContactAdmin" style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร)</div>
                     </div>
                   </div>
 
                   <!-- Card Nurse -->
-                  <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="heart-pulse" style="width: 14px; height: 14px;"></i>
+                  <div class="help-contact-card">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="heart-pulse" style="width: 13px; height: 13px;"></i>
                     </div>
                     <div style="min-width: 0; flex: 1; overflow: hidden;">
-                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล</div>
-                      <div id="dispContactNurse" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: อาคาร 1</div>
+                      <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล</div>
+                      <div id="dispContactNurse" style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: อาคาร 1</div>
                     </div>
                   </div>
 
                   <!-- Card Fire -->
-                  <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="flame" style="width: 14px; height: 14px;"></i>
+                  <div class="help-contact-card">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="flame" style="width: 13px; height: 13px;"></i>
                     </div>
                     <div style="min-width: 0; flex: 1; overflow: hidden;">
-                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้ / ฉุกเฉิน</div>
-                      <div id="dispContactFire" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
+                      <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เหตุเพลิงไหม้ / กู้ภัย</div>
+                      <div id="dispContactFire" style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <!-- Edit Mode (Inline Admin Edit) -->
-              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 10px 12px; width: 100%; box-sizing: border-box;">
-                <div style="font-size: 12px; font-weight: 600; color: #4f21a1; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
-                  <i data-lucide="shield" style="width: 13px; height: 13px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน
+              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 8px 10px; width: 100%; box-sizing: border-box;">
+                <div style="font-size: 11.5px; font-weight: 600; color: #4f21a1; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;">
+                  <i data-lucide="shield" style="width: 12px; height: 12px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+                <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 7px;">
                   <div>
-                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แอดมิน / ผู้ดูแล</label>
-                    <input type="text" id="inputContactAdmin" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น แอดมิน (ม.วงศกร): 08x-xxx-xxxx" />
+                    <label style="font-size: 10.5px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แอดมิน / ผู้ดูแล</label>
+                    <input type="text" id="inputContactAdmin" class="form-control" style="font-size: 11.5px; padding: 4px 8px;" placeholder="เช่น แอดมิน (ม.วงศกร): 08x-xxx-xxxx" />
                   </div>
                   <div>
-                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์ห้องพยาบาล</label>
-                    <input type="text" id="inputContactNurse" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น ห้องพยาบาล: อาคาร 1 (เบอร์ 104)" />
+                    <label style="font-size: 10.5px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์ห้องพยาบาล</label>
+                    <input type="text" id="inputContactNurse" class="form-control" style="font-size: 11.5px; padding: 4px 8px;" placeholder="เช่น ห้องพยาบาล: อาคาร 1 (เบอร์ 104)" />
                   </div>
                   <div>
-                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย</label>
-                    <input type="text" id="inputContactFire" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น แจ้งเหตุเพลิงไหม้: 199" />
+                    <label style="font-size: 10.5px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย</label>
+                    <input type="text" id="inputContactFire" class="form-control" style="font-size: 11.5px; padding: 4px 8px;" placeholder="เช่น แจ้งเหตุเพลิงไหม้: 199" />
                   </div>
                 </div>
                 <div style="display: flex; gap: 6px;">
-                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 3px 8px; background: #4f21a1;" onclick="saveEmergencyContacts()">
-                    <i data-lucide="check" style="width: 12px; height: 12px;"></i> บันทึก
+                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; background: #4f21a1;" onclick="saveEmergencyContacts()">
+                    <i data-lucide="check" style="width: 11px; height: 11px;"></i> บันทึก
                   </button>
-                  <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 3px 8px;" onclick="toggleEmergencyContactEdit(false)">
+                  <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;" onclick="toggleEmergencyContactEdit(false)">
                     ยกเลิก
                   </button>
                 </div>
               </div>
 
               <!-- Feedback Form Card -->
-              <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 9px; padding: 10px 12px; width: 100%; box-sizing: border-box;">
+              <div style="background: #f8fafc; border: 1px solid var(--border-color, #e2e8f0); border-radius: 9px; padding: 8px 11px; width: 100%; box-sizing: border-box;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px;">
-                  <div style="display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13px; color: #1f2937; min-width: 0;">
-                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="message-square-plus" style="width: 14px; height: 14px;"></i>
+                  <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px; color: var(--text-main, #1f2937); min-width: 0;">
+                    <div style="width: 22px; height: 22px; border-radius: 5px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="message-square-plus" style="width: 13px; height: 13px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ส่ง Feedback หรือแจ้งปัญหาการใช้งาน</span>
                   </div>
                   <span class="shecu-badge shecu-badge-primary">
-                    <i data-lucide="help-circle" style="width: 11px; height: 11px;"></i> ช่วยเหลือ & แนะนำ
+                    <i data-lucide="help-circle" style="width: 10px; height: 10px;"></i> ช่วยเหลือ & แนะนำ
                   </span>
                 </div>
-                <p style="margin: 0 0 5px 0; font-size: 11.5px; line-height: 1.45; color: #64748b;">
+                <p style="margin: 0 0 5px 0; font-size: 11px; line-height: 1.4; color: #64748b;">
                   หากพบข้อผิดพลาด ต้องการสอบถาม หรือมีข้อเสนอแนะในการพัฒนาระบบ สามารถพิมพ์ข้อความส่งถึงผู้ดูแลระบบได้ทันที
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 5px; width: 100%; box-sizing: border-box;">
-                  <textarea id="feedbackInput" class="form-control" rows="2" style="font-size: 12px; border-radius: 6px; padding: 6px 8px; resize: vertical; min-height: 42px; background: #ffffff; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1;" placeholder="อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ..."></textarea>
+                  <textarea id="feedbackInput" class="form-control" rows="2" style="font-size: 11.5px; border-radius: 6px; padding: 5px 8px; resize: none; min-height: 38px; background: #ffffff; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1;" placeholder="อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ..."></textarea>
                   <div style="display: flex; justify-content: flex-end;">
-                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; font-size: 12px; border-radius: 6px; background: #4f21a1; color: #ffffff; border: none; cursor: pointer; font-weight: 600;" onclick="submitUserFeedback()">
-                      <i data-lucide="send" style="width: 12px; height: 12px;"></i>
+                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; font-size: 11.5px; border-radius: 6px; background: #4f21a1; color: #ffffff; border: none; cursor: pointer; font-weight: 600;" onclick="submitUserFeedback()">
+                      <i data-lucide="send" style="width: 11px; height: 11px;"></i>
                       <span>ส่งข้อความ</span>
                     </button>
                   </div>
@@ -6104,44 +6571,44 @@
           <div id="help-tab-6" class="help-content" style="display: none;">
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
               <!-- Profile Card -->
-              <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 9px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box;">
-                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                  <div style="width: 36px; height: 36px; border-radius: 50%; background: #4f21a1; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;">
+              <div style="background: #f8fafc; border: 1px solid var(--border-color, #e2e8f0); border-radius: 9px; padding: 8px 11px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 9px; min-width: 0;">
+                  <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4f21a1, #7c3aed); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 6px rgba(79, 33, 161, 0.2);">
                     WD
                   </div>
                   <div style="min-width: 0;">
-                    <div style="font-size: 13px; font-weight: 700; color: #1f2937; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <div style="font-size: 12.5px; font-weight: 700; color: var(--text-main, #1f2937); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                       ม.วงศกร ด้วงเกลี้ยง
                     </div>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <div style="font-size: 10.5px; color: #64748b; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                       ผู้พัฒนาและดูแลระบบบริหารจัดการห้องปฏิบัติการวิทยาศาสตร์
                     </div>
                   </div>
                 </div>
                 <span class="shecu-badge shecu-badge-primary">
-                  <i data-lucide="code" style="width: 11px; height: 11px;"></i> Lead Developer
+                  <i data-lucide="code" style="width: 10px; height: 10px;"></i> Lead Developer
                 </span>
               </div>
 
               <!-- System Specs Grid (2 Column) -->
-              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
-                <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                  <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="cpu" style="width: 13px; height: 13px;"></i>
+              <div class="help-specs-grid">
+                <div class="help-spec-card">
+                  <div style="width: 22px; height: 22px; border-radius: 5px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="cpu" style="width: 12px; height: 12px;"></i>
                   </div>
                   <div style="min-width: 0; flex: 1; overflow: hidden;">
-                    <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เวอร์ชันระบบ (App Version)</div>
-                    <div id="devTabSystemVersion" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Version 2.7.0 (PWA)</div>
+                    <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เวอร์ชันระบบ (App Version)</div>
+                    <div id="devTabSystemVersion" style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Version 2.7.0 (PWA)</div>
                   </div>
                 </div>
 
-                <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                  <div style="width: 24px; height: 24px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="database" style="width: 13px; height: 13px;"></i>
+                <div class="help-spec-card">
+                  <div style="width: 22px; height: 22px; border-radius: 5px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="database" style="width: 12px; height: 12px;"></i>
                   </div>
                   <div style="min-width: 0; flex: 1; overflow: hidden;">
-                    <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ฐานข้อมูล & สำรองคลาวด์</div>
-                    <div style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Supabase & Sheets (Real-time)</div>
+                    <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ฐานข้อมูล & สำรองคลาวด์</div>
+                    <div style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Supabase & Sheets (Real-time)</div>
                   </div>
                 </div>
               </div>
@@ -6150,14 +6617,14 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="target" style="width: 14px; height: 14px;"></i>
+                    <div style="width: 22px; height: 22px; border-radius: 5px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="target" style="width: 13px; height: 13px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">วัตถุประสงค์และมาตรฐานระบบ</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-info">
-                      <i data-lucide="award" style="width: 11px; height: 11px;"></i> SHECU Standard
+                      <i data-lucide="award" style="width: 10px; height: 10px;"></i> SHECU Standard
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>

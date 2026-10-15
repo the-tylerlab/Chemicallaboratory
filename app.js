@@ -2049,8 +2049,8 @@ window.toggleSidebarPin = function(e) {
       appContainer.classList.remove("sidebar-collapsed");
       if (btnToggleSidebar) {
         btnToggleSidebar.classList.add("pinned");
-        btnToggleSidebar.setAttribute("title", "ย่อแถบเมนู (Collapse sidebar)");
-        btnToggleSidebar.setAttribute("aria-label", "ย่อแถบเมนู (Collapse sidebar)");
+        btnToggleSidebar.setAttribute("aria-pressed", "true");
+        btnToggleSidebar.setAttribute("title", "ยกเลิกการปักหมุดและย่อแถบเมนู");
       }
       localStorage.setItem("sciportal_sidebar_pinned", "true");
       if (typeof showToast === "function") {
@@ -2075,8 +2075,8 @@ window.toggleSidebarPin = function(e) {
       appContainer.classList.add("sidebar-collapsed");
       if (btnToggleSidebar) {
         btnToggleSidebar.classList.remove("pinned");
-        btnToggleSidebar.setAttribute("title", "ขยายแถบเมนู (Expand sidebar)");
-        btnToggleSidebar.setAttribute("aria-label", "ขยายแถบเมนู (Expand sidebar)");
+        btnToggleSidebar.setAttribute("aria-pressed", "false");
+        btnToggleSidebar.setAttribute("title", "ปักหมุดและขยายแถบเมนู");
       }
       localStorage.setItem("sciportal_sidebar_pinned", "false");
       if (typeof showToast === "function") {
@@ -2104,15 +2104,15 @@ function setupSidebarCollapse() {
       appContainer.classList.remove("sidebar-collapsed");
       if (btnToggleSidebar) {
         btnToggleSidebar.classList.add("pinned");
-        btnToggleSidebar.setAttribute("title", "ย่อแถบเมนู (Collapse sidebar)");
-        btnToggleSidebar.setAttribute("aria-label", "ย่อแถบเมนู (Collapse sidebar)");
+        btnToggleSidebar.setAttribute("aria-pressed", "true");
+        btnToggleSidebar.setAttribute("title", "ยกเลิกการปักหมุดและย่อแถบเมนู");
       }
     } else {
       appContainer.classList.add("sidebar-collapsed");
       if (btnToggleSidebar) {
         btnToggleSidebar.classList.remove("pinned");
-        btnToggleSidebar.setAttribute("title", "ขยายแถบเมนู (Expand sidebar)");
-        btnToggleSidebar.setAttribute("aria-label", "ขยายแถบเมนู (Expand sidebar)");
+        btnToggleSidebar.setAttribute("aria-pressed", "false");
+        btnToggleSidebar.setAttribute("title", "ปักหมุดและขยายแถบเมนู");
       }
     }
   }
@@ -3242,12 +3242,21 @@ function renderFeedbacksList() {
   const pendingFeedbacks = allFeedbacks.filter(f => f.status !== "resolved");
   const resolvedFeedbacks = allFeedbacks.filter(f => f.status === "resolved");
 
-  // Update badge counts
+  // Update badge counts and stat cards
   const pendingBadge = document.getElementById("alertCountFeedback");
   if (pendingBadge) pendingBadge.innerText = pendingFeedbacks.length;
 
   const resolvedBadge = document.getElementById("alertCountResolvedFeedback");
   if (resolvedBadge) resolvedBadge.innerText = resolvedFeedbacks.length;
+
+  const elStatFeedback = document.getElementById("notifStatFeedback");
+  if (elStatFeedback) elStatFeedback.innerText = pendingFeedbacks.length;
+
+  const badgeNotifFeedbackCount = document.getElementById("badgeNotifFeedbackCount");
+  if (badgeNotifFeedbackCount) {
+    badgeNotifFeedbackCount.innerText = pendingFeedbacks.length;
+    badgeNotifFeedbackCount.style.display = pendingFeedbacks.length > 0 ? "inline-flex" : "none";
+  }
 
   // Helper to render individual card
   const renderCard = (fb) => {
@@ -3550,11 +3559,93 @@ async function changeFeedbackStatus(id) {
   }
 }
 
+async function openCreateFeedbackModal() {
+  if (typeof Swal === "undefined") return;
+
+  const defaultCode = "ISSUE-" + Math.floor(1000 + Math.random() * 9000);
+  const { value: formValues } = await Swal.fire({
+    title: '<div style="font-size: 18px; font-weight: 700; color: #1e293b;">แจ้งปัญหา / แจ้งซ่อมบำรุง</div>',
+    html: `
+      <div style="display: flex; flex-direction: column; gap: 12px; text-align: left; font-size: 13px;">
+        <div>
+          <label style="font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">รหัสรายการ</label>
+          <input id="swal-fb-code" class="swal2-input" style="margin: 0; width: 100%; box-sizing: border-box; font-size: 13px; height: 38px; background: #f8fafc;" value="${defaultCode}" readonly>
+        </div>
+        <div>
+          <label style="font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">หัวข้อปัญหา / รายการอุปกรณ์ <span style="color: #ef4444;">*</span></label>
+          <input id="swal-fb-title" class="swal2-input" placeholder="เช่น เครื่องดูดควันชำรุด, สารเคมีหกเลอะ" style="margin: 0; width: 100%; box-sizing: border-box; font-size: 13px; height: 38px;">
+        </div>
+        <div>
+          <label style="font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">ห้องปฏิบัติการ / จุดจัดเก็บ <span style="color: #ef4444;">*</span></label>
+          <input id="swal-fb-location" class="swal2-input" placeholder="เช่น Lab 401 > ตู้ดูดควัน B" style="margin: 0; width: 100%; box-sizing: border-box; font-size: 13px; height: 38px;">
+        </div>
+        <div>
+          <label style="font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">สถานะการดำเนินการ</label>
+          <select id="swal-fb-status" class="swal2-select" style="margin: 0; width: 100%; box-sizing: border-box; font-size: 13px; height: 38px;">
+            <option value="pending">รอดำเนินการ (Pending)</option>
+            <option value="repair">รอช่างซ่อมบำรุง (Maintenance)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">รายละเอียดเพิ่มเติม</label>
+          <textarea id="swal-fb-detail" class="swal2-textarea" placeholder="ระบุรายละเอียดอาการผิดปกติ หรือข้อสังเกตเพื่อความปลอดภัย..." style="margin: 0; width: 100%; box-sizing: border-box; font-size: 13px; height: 75px; resize: vertical;"></textarea>
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'บันทึกการแจ้งปัญหา',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#7c3aed',
+    focusConfirm: false,
+    preConfirm: () => {
+      const title = document.getElementById("swal-fb-title")?.value?.trim();
+      const location = document.getElementById("swal-fb-location")?.value?.trim();
+      const status = document.getElementById("swal-fb-status")?.value || "pending";
+      const detail = document.getElementById("swal-fb-detail")?.value?.trim() || "";
+      const code = document.getElementById("swal-fb-code")?.value || defaultCode;
+
+      if (!title) {
+        Swal.showValidationMessage("กรุณากรอกหัวข้อปัญหา / รายการอุปกรณ์");
+        return false;
+      }
+      if (!location) {
+        Swal.showValidationMessage("กรุณากรอกห้องปฏิบัติการ / จุดจัดเก็บ");
+        return false;
+      }
+
+      return {
+        id: "fb-" + Date.now(),
+        code,
+        title,
+        location: location.startsWith("จัดเก็บ:") ? location : `จัดเก็บ: ${location}`,
+        detail,
+        status,
+        statusText: status === "repair" ? "รอช่างซ่อม" : "รอดำเนินการ",
+        date: new Date().toISOString()
+      };
+    }
+  });
+
+  if (formValues) {
+    if (!Array.isArray(window.feedbacksData)) {
+      window.feedbacksData = [];
+    }
+    window.feedbacksData.unshift(formValues);
+    saveFeedbacksToStorage();
+    renderFeedbacksList();
+    if (typeof updateUI === "function") updateUI();
+    if (typeof showToast === "function") {
+      showToast("บันทึกการแจ้งปัญหาเรียบร้อยแล้ว", "success");
+    }
+  }
+}
+
 window.editFeedback = editFeedback;
 window.changeFeedbackStatus = changeFeedbackStatus;
 window.renderFeedbacksList = renderFeedbacksList;
 window.loadFeedbacksFromStorage = loadFeedbacksFromStorage;
 window.saveFeedbacksToStorage = saveFeedbacksToStorage;
+window.openCreateFeedbackModal = openCreateFeedbackModal;
 
 async function dismissFeedback(id) {
   try {
@@ -4106,10 +4197,12 @@ function renderItemsTable() {
               <i data-lucide="more-vertical" style="width: 16px; height: 16px;"></i>
             </button>
             <div id="rowDropdown-${originalIndex}" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%;">
+              ${isL3Plus ? `
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openMasterDetailModal('${item.code}')">
-                <i data-lucide="file-text"></i>
-                <span>ข้อมูลและสต็อก (Master Data)</span>
+                <i data-lucide="shield-check" style="color: #6366f1;"></i>
+                <span>ข้อมูลและสต็อก (Master Data L3/L4)</span>
               </button>
+              ` : ''}
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openQRCodeModal('${item.code}')">
                 <i data-lucide="qr-code"></i>
                 <span>พิมพ์ป้ายรหัส QR Code</span>
@@ -4265,6 +4358,91 @@ function setupFilterHandlers() {
   });
 }
 
+function updateCartBadges() {
+  const badge = document.getElementById("notifHeaderCartBadge");
+  if (badge) {
+    const count = (typeof purchaseOrderDrafts !== "undefined" && Array.isArray(purchaseOrderDrafts)) ? purchaseOrderDrafts.length : 0;
+    badge.innerText = count;
+    badge.style.display = count > 0 ? "inline-flex" : "none";
+  }
+}
+window.updateCartBadges = updateCartBadges;
+
+window.refreshNotificationsData = function() {
+  const refreshBtn = document.getElementById("btnRefreshNotifications");
+  if (refreshBtn) {
+    refreshBtn.classList.add("spinning");
+    setTimeout(() => refreshBtn.classList.remove("spinning"), 600);
+  }
+  if (typeof updateUI === "function") {
+    updateUI();
+  }
+  if (typeof updateCartBadges === "function") {
+    updateCartBadges();
+  }
+  if (typeof showToast === "function") {
+    showToast("อัปเดตข้อมูลการแจ้งเตือนเรียบร้อยแล้ว", "success");
+  }
+};
+
+window.addAllLowStockToCart = function() {
+  const lowStockItems = (items || []).filter(item => getItemStatus(item) === "low-stock");
+  if (lowStockItems.length === 0) {
+    if (typeof showToast === "function") {
+      showToast("ไม่มีรายการใกล้หมดคลังในขณะนี้", "info");
+    }
+    return;
+  }
+
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L1";
+  let addedCount = 0;
+  let skippedCount = 0;
+
+  lowStockItems.forEach(item => {
+    if (roleLevel === "L2" && typeof canManageItemInRoom === "function" && !canManageItemInRoom(item.room)) {
+      skippedCount++;
+      return;
+    }
+
+    const orderQty = item.minAlert ? Math.ceil(item.minAlert * 2) : 10;
+    const unitPrice = parseFloat(item.price || 0);
+    const totalPrice = unitPrice * orderQty;
+
+    const existingIndex = purchaseOrderDrafts.findIndex(d => d.code === item.code);
+    if (existingIndex !== -1) {
+      purchaseOrderDrafts[existingIndex].quantity += orderQty;
+      purchaseOrderDrafts[existingIndex].totalPrice = purchaseOrderDrafts[existingIndex].quantity * purchaseOrderDrafts[existingIndex].unitPrice;
+    } else {
+      purchaseOrderDrafts.push({
+        id: "draft-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+        code: item.code,
+        name: item.name,
+        unitPrice: unitPrice,
+        quantity: orderQty,
+        totalPrice: totalPrice,
+        discount: 0
+      });
+    }
+    addedCount++;
+  });
+
+  updateCartBadges();
+  if (typeof renderPoDrafts === "function") renderPoDrafts();
+
+  if (addedCount > 0) {
+    if (typeof showToast === "function") {
+      showToast(`เพิ่มรายการใกล้หมดคลัง ${addedCount} รายการลงในตะกร้าสั่งซื้อแล้ว` + (skippedCount > 0 ? ` (ข้าม ${skippedCount} รายการนอกเขตห้อง)` : ""), "success");
+    }
+    if (typeof navigateToPanel === "function") {
+      navigateToPanel("purchase-orders");
+    }
+  } else {
+    if (typeof showToast === "function") {
+      showToast("ไม่สามารถเพิ่มรายการได้เนื่องจากอยู่นอกห้องปฏิบัติการที่ได้รับมอบหมาย", "error");
+    }
+  }
+};
+
 // 3. Notifications Panel: Group details rendering
 function renderNotificationsList(stats) {
   const expiredList = document.getElementById("alertListExpired");
@@ -4275,11 +4453,31 @@ function renderNotificationsList(stats) {
   const feedbacksList = Array.isArray(window.feedbacksData) ? window.feedbacksData : [];
   const unreadFeedbacks = feedbacksList.filter(f => f && f.status !== "resolved");
 
-  // Update counts in header badges
+  // Update counts in header badges and stat cards
   if (document.getElementById("alertCountExpired")) document.getElementById("alertCountExpired").innerText = stats.expired;
   if (document.getElementById("alertCountNearExpiry")) document.getElementById("alertCountNearExpiry").innerText = stats.nearExpiry;
   if (document.getElementById("alertCountLowStock")) document.getElementById("alertCountLowStock").innerText = stats.lowStock;
   if (document.getElementById("alertCountFeedback")) document.getElementById("alertCountFeedback").innerText = unreadFeedbacks.length;
+
+  if (document.getElementById("notifStatExpired")) document.getElementById("notifStatExpired").innerText = stats.expired;
+  if (document.getElementById("notifStatNearExpiry")) document.getElementById("notifStatNearExpiry").innerText = stats.nearExpiry;
+  if (document.getElementById("notifStatLowStock")) document.getElementById("notifStatLowStock").innerText = stats.lowStock;
+  if (document.getElementById("notifStatFeedback")) document.getElementById("notifStatFeedback").innerText = unreadFeedbacks.length;
+
+  const totalInventoryAlerts = (Number(stats.expired) || 0) + (Number(stats.nearExpiry) || 0) + (Number(stats.lowStock) || 0);
+  const badgeInventoryTotal = document.getElementById("badgeNotifInventoryTotal");
+  if (badgeInventoryTotal) {
+    badgeInventoryTotal.innerText = totalInventoryAlerts;
+    badgeInventoryTotal.style.display = totalInventoryAlerts > 0 ? "inline-flex" : "none";
+  }
+
+  const badgeFeedbackCount = document.getElementById("badgeNotifFeedbackCount");
+  if (badgeFeedbackCount) {
+    badgeFeedbackCount.innerText = unreadFeedbacks.length;
+    badgeFeedbackCount.style.display = unreadFeedbacks.length > 0 ? "inline-flex" : "none";
+  }
+
+  updateCartBadges();
 
   let expiredHtml = "";
   let nearExpiryHtml = "";
@@ -4347,7 +4545,13 @@ function renderNotificationsList(stats) {
             <span class="notification-title">${getItemDisplayName(item)}</span>
             <span class="notification-code">${item.code}</span>
           </div>
-          ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตสต็อก"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="notif-item-cart-btn" onclick="addAutoPurchaseOrder('${item.code}')" title="สั่งซื้อ ${getItemDisplayName(item)} (Add to Cart)">
+              <i data-lucide="shopping-cart" style="width: 13px; height: 13px;"></i>
+              <span>Add to Cart</span>
+            </button>
+            ${isAdminLoggedIn ? `<button class="action-icon-btn edit" onclick="editItem(${index})" title="อัปเดตสต็อก"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>` : ""}
+          </div>
         </div>
         <div class="notification-meta">
           <span class="notification-location">
@@ -4355,9 +4559,15 @@ function renderNotificationsList(stats) {
             จัดเก็บ: ${storageStr}
           </span>
         </div>
-        <div class="notification-alert-banner low-stock">
-          <i data-lucide="package" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-          <span><strong>ใกล้หมดคลัง:</strong> คงเหลือ ${item.qty} ${item.unit} (จุดสั่งซื้อขั้นต่ำ: ${item.minAlert} ${item.unit})</span>
+        <div class="notification-alert-banner low-stock" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="package" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
+            <span><strong>ใกล้หมดคลัง:</strong> คงเหลือ ${item.qty} ${item.unit} (จุดสั่งซื้อขั้นต่ำ: ${item.minAlert} ${item.unit})</span>
+          </div>
+          <button type="button" class="notif-quick-cart-pill" onclick="addAutoPurchaseOrder('${item.code}')" title="สั่งซื้อ ${getItemDisplayName(item)} ทันที">
+            <i data-lucide="shopping-cart" style="width: 12px; height: 12px;"></i>
+            <span>สั่งซื้อเพิ่ม (Auto-PO)</span>
+          </button>
         </div>
       </div>
       `;
@@ -8883,8 +9093,29 @@ function setupPurchaseOrders() {
   if (poAcademicYear) poAcademicYear.addEventListener("input", syncContextToFilters);
   if (poSemester) poSemester.addEventListener("change", syncContextToFilters);
 
-  if (filterPoYear) filterPoYear.addEventListener("change", renderOrdersTable);
-  if (filterPoSemester) filterPoSemester.addEventListener("change", renderOrdersTable);
+  if (filterPoYear) filterPoYear.addEventListener("change", () => { window.poCurrentPage = 1; renderOrdersTable(); });
+  if (filterPoSemester) filterPoSemester.addEventListener("change", () => { window.poCurrentPage = 1; renderOrdersTable(); });
+
+  const filterPoSearch = document.getElementById("filterPoSearch");
+  const btnPoSearchClear = document.getElementById("btnPoSearchClear");
+  if (filterPoSearch) {
+    filterPoSearch.addEventListener("input", () => {
+      window.poCurrentPage = 1;
+      if (btnPoSearchClear) {
+        btnPoSearchClear.style.display = filterPoSearch.value.trim() ? "inline-flex" : "none";
+      }
+      renderOrdersTable();
+    });
+  }
+  if (btnPoSearchClear && filterPoSearch) {
+    btnPoSearchClear.addEventListener("click", () => {
+      window.poCurrentPage = 1;
+      filterPoSearch.value = "";
+      btnPoSearchClear.style.display = "none";
+      filterPoSearch.focus();
+      renderOrdersTable();
+    });
+  }
 
   // Setup Budget Inline Editor
   const btnEditAnnualBudget = document.getElementById("btnEditAnnualBudget");
@@ -9039,10 +9270,19 @@ window.renderPoDrafts = function() {
   const listEl = document.getElementById("poDraftList");
   const totalEl = document.getElementById("poDraftTotal");
   const btnCommitText = document.getElementById("btnCommitPoDraftText");
+  const lblPoDraftCount = document.getElementById("lblPoDraftCount");
+  const badgePoDraftCount = document.getElementById("badgePoDraftCount");
+
+  const draftLen = Array.isArray(purchaseOrderDrafts) ? purchaseOrderDrafts.length : 0;
+  if (lblPoDraftCount) lblPoDraftCount.innerText = draftLen;
+  if (badgePoDraftCount) {
+    badgePoDraftCount.innerText = draftLen;
+    badgePoDraftCount.style.display = draftLen > 0 ? "inline-flex" : "none";
+  }
 
   if (!container || !listEl || !totalEl || !btnCommitText) return;
 
-  if (purchaseOrderDrafts.length === 0) {
+  if (draftLen === 0) {
     container.style.display = "none";
     return;
   }
@@ -9059,11 +9299,11 @@ window.renderPoDrafts = function() {
         <div style="display: flex; flex-direction: column; gap: 2px;">
           <span style="font-weight: 600; color: var(--text-main); text-align: left;">${escapeHTML(item.name)}</span>
           <span style="font-size: 11px; color: var(--text-muted); font-family: monospace; text-align: left;">
-            <span style="font-family: monospace;">${escapeHTML(item.code)}</span> • ${item.quantity} x ${item.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.
+            <span style="font-family: monospace; background: #f8fafc; padding: 1px 4px; border-radius: 4px; border: 1px solid #e2e8f0;">${escapeHTML(item.code)}</span> • ${item.quantity} x ${item.unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="font-weight: 700; color: var(--text-main);">${item.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.</span>
+          <span style="font-weight: 700; color: #ea580c;">${item.totalPrice.toLocaleString('th-TH', { minimumFractionDigits: 2 })} บ.</span>
           <button type="button" class="action-icon-btn delete" onclick="deleteDraftItem(${index})" style="padding: 4px; width: 28px; height: 28px; border: none; background: transparent; cursor: pointer;" title="ลบรายการนี้">
             <i data-lucide="trash-2" style="width: 14px; height: 14px; color: var(--accent-red);"></i>
           </button>
@@ -9074,7 +9314,7 @@ window.renderPoDrafts = function() {
 
   listEl.innerHTML = html;
   totalEl.innerText = subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " บาท";
-  btnCommitText.innerText = `บันทึกใบสั่งซื้อทั้งหมด (${purchaseOrderDrafts.length} รายการ)`;
+  btnCommitText.innerText = `บันทึกใบสั่งซื้อทั้งหมด (${draftLen} รายการ)`;
 
   lucide.createIcons();
 };
@@ -9109,6 +9349,19 @@ function updateBudgetUI() {
   if (lblTotalSpent) lblTotalSpent.innerText = totalSpent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (lblRemainingBudget) lblRemainingBudget.innerText = remainingBudget.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  const badgePoOrdersCount = document.getElementById("badgePoOrdersCount");
+  if (badgePoOrdersCount) badgePoOrdersCount.innerText = purchaseOrders.length;
+
+  const draftLen = Array.isArray(purchaseOrderDrafts) ? purchaseOrderDrafts.length : 0;
+  const lblPoDraftCount = document.getElementById("lblPoDraftCount");
+  if (lblPoDraftCount) lblPoDraftCount.innerText = draftLen;
+
+  const badgePoDraftCount = document.getElementById("badgePoDraftCount");
+  if (badgePoDraftCount) {
+    badgePoDraftCount.innerText = draftLen;
+    badgePoDraftCount.style.display = draftLen > 0 ? "inline-flex" : "none";
+  }
+
   if (cardRemainingBudget && iconRemainingBudget) {
     if (remainingBudget < 0) {
       // Exceeded budget - Red
@@ -9134,25 +9387,21 @@ function renderOrdersTable() {
   const grid = document.getElementById("purchaseOrdersGrid");
   const isBackoffice = isUserLoggedIn();
 
-  const isMobileOrTablet = window.innerWidth <= 1024;
+  // Clear hardcoded inline grid rules so CSS grid classes control columns nicely
   const budgetStatGrid = document.getElementById("budgetStatGrid");
   if (budgetStatGrid) {
-    if (isMobileOrTablet) {
-      budgetStatGrid.style.gridTemplateColumns = "";
-      budgetStatGrid.style.gap = "";
-    } else if (isBackoffice) {
-      budgetStatGrid.style.gridTemplateColumns = "380px 1fr 1fr";
-      budgetStatGrid.style.gap = "30px";
-    } else {
-      budgetStatGrid.style.gridTemplateColumns = "repeat(3, 1fr)";
-      budgetStatGrid.style.gap = "20px";
-    }
+    budgetStatGrid.style.gridTemplateColumns = "";
+    budgetStatGrid.style.gap = "";
   }
 
-  if (formCol && grid) {
+  // Sync tab navigation state
+  if (typeof window.switchPoTab === "function") {
+    window.switchPoTab(window.currentPoTab || "split");
+  } else if (formCol && grid) {
+    const isMobileOrTablet = window.innerWidth <= 1024;
     if (isBackoffice) {
       formCol.style.display = "block";
-      grid.style.gridTemplateColumns = isMobileOrTablet ? "1fr" : "380px 1fr";
+      grid.style.gridTemplateColumns = isMobileOrTablet ? "1fr" : "350px minmax(0, 1fr)";
     } else {
       formCol.style.display = "none";
       grid.style.gridTemplateColumns = "1fr";
@@ -9162,31 +9411,7 @@ function renderOrdersTable() {
   const tbody = document.getElementById("purchaseOrdersTableBody");
   if (!tbody) return;
 
-  if (purchaseOrders.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="7" style="text-align: center; padding: 40px;">
-          <div class="empty-state">
-            <div class="empty-state-icon"><i data-lucide="shopping-cart"></i></div>
-            <div class="empty-state-text">ยังไม่มีรายการสั่งซื้อ</div>
-          </div>
-        </td>
-      </tr>
-    `;
-    const grandTotalEl = document.getElementById("poGrandTotal");
-    if (grandTotalEl) grandTotalEl.innerText = formatCurrency(0) + " บาท";
-    const totalBeforeDiscountEl = document.getElementById("poTotalBeforeDiscount");
-    if (totalBeforeDiscountEl) totalBeforeDiscountEl.innerText = formatCurrency(0) + " บาท";
-    const overallDiscountPercentEl = document.getElementById("poOverallDiscountPercent");
-    if (overallDiscountPercentEl) overallDiscountPercentEl.innerText = "0.00";
-    const totalDiscountAmountEl = document.getElementById("poTotalDiscountAmount");
-    if (totalDiscountAmountEl) totalDiscountAmountEl.innerText = "-" + formatCurrency(0) + " บาท";
-    
-    const actionHeaders = document.querySelectorAll(".po-action-header");
-    actionHeaders.forEach(th => th.style.display = isBackoffice ? "" : "none");
-    return;
-  }
-
+  const poListTotalBadge = document.getElementById("poListTotalBadge");
   const actionHeaders = document.querySelectorAll(".po-action-header");
   actionHeaders.forEach(th => th.style.display = isBackoffice ? "" : "none");
 
@@ -9214,11 +9439,100 @@ function renderOrdersTable() {
     filteredOrders = filteredOrders.filter(o => String(o.semester) === String(filterPoSemester.value));
   }
 
+  // Filter by search query
+  const filterPoSearch = document.getElementById("filterPoSearch");
+  const searchQuery = filterPoSearch ? filterPoSearch.value.trim().toLowerCase() : "";
+  if (searchQuery) {
+    filteredOrders = filteredOrders.filter(o => {
+      const name = (o.name || "").toLowerCase();
+      const code = (o.code || "").toLowerCase();
+      const date = (o.date || "").toLowerCase();
+      const notes = (o.notes || "").toLowerCase();
+      return name.includes(searchQuery) || code.includes(searchQuery) || date.includes(searchQuery) || notes.includes(searchQuery);
+    });
+  }
+
+  if (poListTotalBadge) {
+    poListTotalBadge.innerText = `${filteredOrders.length} รายการ`;
+  }
+
+  if (filteredOrders.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="${isBackoffice ? 9 : 8}" style="text-align: center; padding: 48px 24px;">
+          <div class="empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+            <div class="empty-state-icon" style="width: 48px; height: 48px; border-radius: 50%; background: var(--bg-hover, rgba(255,255,255,0.05)); display: flex; align-items: center; justify-content: center; color: var(--text-muted);"><i data-lucide="${searchQuery ? 'search-x' : 'shopping-cart'}" style="width: 24px; height: 24px;"></i></div>
+            <div class="empty-state-text" style="font-size: 14px; font-weight: 500; color: var(--text-secondary);">${searchQuery ? 'ไม่พบรายการที่ตรงกับคำค้นหา' : 'ยังไม่มีรายการสั่งซื้อ'}</div>
+            ${searchQuery ? '<div style="font-size: 12px; color: var(--text-muted);">ลองค้นหาด้วยคำอื่น หรือกดปุ่มล้างการค้นหา</div>' : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+    const grandTotalEl = document.getElementById("poGrandTotal");
+    if (grandTotalEl) grandTotalEl.innerText = formatCurrency(0) + " บาท";
+    const totalBeforeDiscountEl = document.getElementById("poTotalBeforeDiscount");
+    if (totalBeforeDiscountEl) totalBeforeDiscountEl.innerText = formatCurrency(0) + " บาท";
+    const overallDiscountPercentEl = document.getElementById("poOverallDiscountPercent");
+    if (overallDiscountPercentEl) overallDiscountPercentEl.innerText = "0.00";
+    const totalDiscountAmountEl = document.getElementById("poTotalDiscountAmount");
+    if (totalDiscountAmountEl) totalDiscountAmountEl.innerText = "-" + formatCurrency(0) + " บาท";
+
+    const poPaginationBarEl = document.getElementById("poPaginationBar");
+    const poPaginationInfoEl = document.getElementById("poPaginationInfo");
+    const poPageIndicatorEl = document.getElementById("poPageIndicator");
+    const btnPoPrevPageEl = document.getElementById("btnPoPrevPage");
+    const btnPoNextPageEl = document.getElementById("btnPoNextPage");
+
+    if (poPaginationBarEl) poPaginationBarEl.style.display = "none";
+    if (poPaginationInfoEl) poPaginationInfoEl.innerText = "แสดงรายการที่ 0-0 จาก 0 รายการ";
+    if (poPageIndicatorEl) poPageIndicatorEl.innerText = "หน้า 1 / 1";
+    if (btnPoPrevPageEl) btnPoPrevPageEl.disabled = true;
+    if (btnPoNextPageEl) btnPoNextPageEl.disabled = true;
+    
+    if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+    return;
+  }
+
+  // Pagination: 10 items per page
+  window.poCurrentPage = window.poCurrentPage || 1;
+  const poPageSize = 10;
+  const totalPoPages = Math.ceil(filteredOrders.length / poPageSize) || 1;
+  if (window.poCurrentPage > totalPoPages) window.poCurrentPage = totalPoPages;
+  if (window.poCurrentPage < 1) window.poCurrentPage = 1;
+
+  const startIndex = (window.poCurrentPage - 1) * poPageSize;
+  const endIndex = Math.min(startIndex + poPageSize, filteredOrders.length);
+  const pagedOrders = filteredOrders.slice(startIndex, endIndex);
+
+  // Update pagination bar controls
+  const poPaginationBarEl = document.getElementById("poPaginationBar");
+  const poPaginationInfoEl = document.getElementById("poPaginationInfo");
+  const poPageIndicatorEl = document.getElementById("poPageIndicator");
+  const btnPoPrevPageEl = document.getElementById("btnPoPrevPage");
+  const btnPoNextPageEl = document.getElementById("btnPoNextPage");
+
+  if (poPaginationBarEl) {
+    poPaginationBarEl.style.display = filteredOrders.length > 0 ? "flex" : "none";
+  }
+  if (poPaginationInfoEl) {
+    poPaginationInfoEl.innerText = `แสดงรายการที่ ${startIndex + 1}-${endIndex} จาก ${filteredOrders.length} รายการ`;
+  }
+  if (poPageIndicatorEl) {
+    poPageIndicatorEl.innerText = `หน้า ${window.poCurrentPage} / ${totalPoPages}`;
+  }
+  if (btnPoPrevPageEl) {
+    btnPoPrevPageEl.disabled = (window.poCurrentPage <= 1);
+  }
+  if (btnPoNextPageEl) {
+    btnPoNextPageEl.disabled = (window.poCurrentPage >= totalPoPages);
+  }
+
   let html = "";
   let totalBeforeDiscount = 0;
   let totalDiscountAmount = 0;
   let grandTotal = 0;
 
+  // Calculate totals over ALL filtered orders
   filteredOrders.forEach(order => {
     const unitPrice = parseFloat(order.unitPrice) || 0;
     const quantity = parseInt(order.quantity) || 0;
@@ -9230,14 +9544,17 @@ function renderOrdersTable() {
     totalBeforeDiscount += rawTotal;
     totalDiscountAmount += discountAmt;
     grandTotal += netPrice;
-    
-    let discountText = "-";
-    if (discountPercent > 0) {
-      discountText = `<span style="font-size: 13px; color: var(--accent-green); font-weight: 500;">ลด ${discountPercent}%<br><span style="font-size: 11px;">(-${discountAmt.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</span></span>`;
-    } else if (order.budgetDiscount) {
-      discountText = order.budgetDiscount;
-    }
+  });
 
+  // Render rows only for current page (10 items)
+  pagedOrders.forEach(order => {
+    const unitPrice = parseFloat(order.unitPrice) || 0;
+    const quantity = parseInt(order.quantity) || 0;
+    const rawTotal = unitPrice * quantity;
+    const discountPercent = typeof order.discount === 'number' ? order.discount : 0;
+    const discountAmt = rawTotal * (discountPercent / 100);
+    const netPrice = rawTotal - discountAmt;
+    
     // Format Date (e.g. 2024-03-12 -> 12/03/2024)
     let displayDate = "-";
     if (order.date) {
@@ -9251,22 +9568,41 @@ function renderOrdersTable() {
 
     html += `
       <tr>
-        <td data-label="วันที่สั่ง" style="text-align: center; font-size: 13px;">${displayDate}</td>
-        <td data-label="รหัสสินค้า" style="font-weight: 500;"><span style="font-family: monospace;">${escapeHTML(order.code)}</span></td>
-        <td data-label="ชื่อสินค้า">${escapeHTML(order.name)}</td>
-        <td data-label="ราคา/หน่วย" class="text-right">${formatCurrency(unitPrice)}</td>
-        <td data-label="จำนวน" class="text-right">${quantity}${unitText}</td>
-        <td data-label="รวมก่อนลด" class="text-right" style="color: var(--text-muted);">${formatCurrency(rawTotal)}</td>
-        <td data-label="ส่วนลด" class="text-right">${discountText}</td>
-        <td data-label="สุทธิ" class="text-right" style="font-weight: 600; color: var(--primary-purple);">${formatCurrency(netPrice)}</td>
+        <td data-label="วันที่สั่ง" style="text-align: center;">
+          <span class="po-cell-date">${displayDate}</span>
+        </td>
+        <td data-label="รหัสสินค้า">
+          <code class="po-cell-code">${escapeHTML(order.code || '-')}</code>
+        </td>
+        <td data-label="ชื่อรายการ">
+          <div class="po-cell-name">${escapeHTML(order.name || '-')}</div>
+        </td>
+        <td data-label="ราคา/หน่วย" class="text-right">
+          <span class="po-cell-num">${formatCurrency(unitPrice)}</span>
+        </td>
+        <td data-label="จำนวน" class="text-right">
+          <span class="po-cell-qty">${quantity}${unitText ? ` <span class="po-cell-unit">${unitText.trim()}</span>` : ''}</span>
+        </td>
+        <td data-label="รวมก่อนลด" class="text-right">
+          <span class="po-cell-num text-muted">${formatCurrency(rawTotal)}</span>
+        </td>
+        <td data-label="ส่วนลด" class="text-right">
+          ${discountPercent > 0 
+            ? `<span class="po-discount-tag">-${discountPercent}%</span>`
+            : (order.budgetDiscount ? `<span class="po-discount-tag">${escapeHTML(order.budgetDiscount)}</span>` : '<span class="text-muted">-</span>')
+          }
+        </td>
+        <td data-label="สุทธิ" class="text-right">
+          <span class="po-cell-net">${formatCurrency(netPrice)}</span>
+        </td>
         ${isBackoffice ? `
           <td data-label="จัดการ" style="text-align: center; white-space: nowrap;">
-            <div style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
-              <button class="action-icon-btn edit" onclick="editPurchaseOrder('${order.id}')" title="แก้ไขรายการสั่งซื้อ" style="color: var(--primary-purple); background: rgba(139, 92, 246, 0.1); border: none; padding: 6px; border-radius: 4px; cursor: pointer; transition: background-color var(--transition-fast); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;" onmouseover="this.style.background='rgba(139, 92, 246, 0.25)';" onmouseout="this.style.background='rgba(139, 92, 246, 0.1)';">
-                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+            <div class="po-row-actions-group">
+              <button class="po-action-btn edit" onclick="editPurchaseOrder('${order.id}')" title="แก้ไขรายการ">
+                <i data-lucide="edit-3"></i>
               </button>
-              <button class="action-icon-btn delete" onclick="deletePurchaseOrder('${order.id}')" title="ลบรายการสั่งซื้อ" style="color: var(--accent-red); background: rgba(239, 68, 68, 0.1); border: none; padding: 6px; border-radius: 4px; cursor: pointer; transition: background-color var(--transition-fast); display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)';">
-                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+              <button class="po-action-btn delete" onclick="deletePurchaseOrder('${order.id}')" title="ลบรายการ">
+                <i data-lucide="trash-2"></i>
               </button>
             </div>
           </td>
@@ -9304,6 +9640,15 @@ function renderOrdersTable() {
     lucide.createIcons();
   }
 }
+
+window.changePoPage = function(delta) {
+  const current = window.poCurrentPage || 1;
+  const newPage = current + delta;
+  if (newPage >= 1) {
+    window.poCurrentPage = newPage;
+    renderOrdersTable();
+  }
+};
 
 window.deletePurchaseOrder = function(orderId) {
   if (requireOnline('ลบใบสั่งซื้อ')) return;
@@ -10242,17 +10587,19 @@ window.showTransactionDetail = function(txId) {
 
     if (canReturn) {
       actionBtn = `
-        <button class="btn btn-primary" style="background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); setTimeout(() => returnBorrowedItem('${tx.id}'), 200);">
+        <button class="btn btn-primary" style="background-color: var(--accent-green); border-color: var(--accent-green); display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 10px; font-weight: 600;" onclick="closeDetailModal(); setTimeout(() => returnBorrowedItem('${tx.id}'), 200);">
           <i data-lucide="check" style="width: 16px; height: 16px;"></i>
           <span>คืนพัสดุ</span>
         </button>
       `;
     }
   }
-  footer.innerHTML = `
-    <button class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
-    ${actionBtn}
-  `;
+  if (actionBtn) {
+    footer.style.display = "flex";
+    footer.innerHTML = actionBtn;
+  } else {
+    footer.style.display = "none";
+  }
 
   // Show Modal
   modal.classList.add("active");
@@ -10366,17 +10713,19 @@ window.showBookingDetail = function(bkId) {
 
     if (canCancelBooking) {
       actionBtn = `
-        <button class="btn btn-primary" style="background-color: var(--accent-red); border-color: var(--accent-red); display: inline-flex; align-items: center; gap: 6px;" onclick="closeDetailModal(); setTimeout(() => cancelBookingRecord('${bk.id}'), 200);">
+        <button class="btn btn-primary" style="background-color: var(--accent-red); border-color: var(--accent-red); display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 10px; font-weight: 600;" onclick="closeDetailModal(); setTimeout(() => cancelBookingRecord('${bk.id}'), 200);">
           <i data-lucide="x-circle" style="width: 16px; height: 16px;"></i>
           <span>ยกเลิกการจอง</span>
         </button>
       `;
     }
   }
-  footer.innerHTML = `
-    <button class="btn btn-secondary" onclick="closeDetailModal()">ปิด</button>
-    ${actionBtn}
-  `;
+  if (actionBtn) {
+    footer.style.display = "flex";
+    footer.innerHTML = actionBtn;
+  } else {
+    footer.style.display = "none";
+  }
 
   // Show Modal
   modal.classList.add("active");
@@ -10388,6 +10737,8 @@ window.closeDetailModal = function() {
   if (modal) {
     modal.classList.remove("active", "booking-detail-modal");
   }
+  const footer = document.getElementById("detailModalFooter");
+  if (footer) footer.style.display = "";
 };
 
 // Setup detail modal listeners on load
@@ -10959,42 +11310,42 @@ window.showItemDetail = function(event, itemCode) {
           </span>
         </div>
 
-        <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap; margin-top: 4px;">
+        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 2px;">
           <!-- NFPA Diamond -->
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
-            <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">NFPA 704 Rating</span>
-            <div style="width: 130px; height: 130px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-              <div class="nfpa-container">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 3px;">
+            <span style="font-size: 10px; font-weight: 600; color: var(--text-muted);">NFPA 704</span>
+            <div style="width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <div class="nfpa-container" style="width: 70px; height: 70px;">
                 <svg class="nfpa-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
                   <polygon points="50,2.5 73.75,26.25 50,50 26.25,26.25" fill="#ff6666" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
                   <polygon points="73.75,26.25 97.5,50 73.75,73.75 50,50" fill="#ffff66" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
                   <polygon points="50,50 73.75,73.75 50,97.5 26.25,73.75" fill="#ffffff" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
                   <polygon points="26.25,26.25 50,50 26.25,73.75 2.5,50" fill="#6699ff" stroke="#000000" stroke-width="3.5" stroke-linejoin="miter"/>
                 </svg>
-                <div class="nfpa-val nfpa-val-flammability">${nfpa.flammability}</div>
-                <div class="nfpa-val nfpa-val-instability">${nfpa.instability}</div>
-                <div class="nfpa-val nfpa-val-special">${specialHtml}</div>
-                <div class="nfpa-val nfpa-val-health">${nfpa.health}</div>
+                <div class="nfpa-val nfpa-val-flammability" style="top: 8px; font-size: 14px;">${nfpa.flammability}</div>
+                <div class="nfpa-val nfpa-val-instability" style="right: 10px; font-size: 14px;">${nfpa.instability}</div>
+                <div class="nfpa-val nfpa-val-special" style="bottom: 8px; font-size: 10px;">${specialHtml}</div>
+                <div class="nfpa-val nfpa-val-health" style="left: 10px; font-size: 14px;">${nfpa.health}</div>
               </div>
             </div>
           </div>
           
           <!-- GHS Badges -->
-          <div style="flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 200px;">
-            <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">สัญลักษณ์แสดงความเป็นอันตราย (GHS Pictograms)</span>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 170px;">
+            <span style="font-size: 10px; font-weight: 600; color: var(--text-muted);">สัญลักษณ์แสดงความเป็นอันตราย (GHS)</span>
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
               ${ghsBadges}
             </div>
           </div>
         </div>
 
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; border-top: 1px dashed rgba(239, 68, 68, 0.1); padding-top: 12px;">
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; border-top: 1px dashed rgba(239, 68, 68, 0.15); padding-top: 6px;">
           ${item.sdsUrl ? `
-            <a href="${item.sdsUrl}" target="_blank" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; border-color: rgba(239, 68, 68, 0.2); color: var(--accent-red); display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; width: fit-content; background: rgba(239, 68, 68, 0.04);">
-              <i data-lucide="file-text" style="width: 13px; height: 13px;"></i> SDS Safety Sheet
+            <a href="${item.sdsUrl}" target="_blank" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; border-color: rgba(239, 68, 68, 0.25); color: var(--accent-red); display: inline-flex; align-items: center; justify-content: center; gap: 5px; text-decoration: none; width: fit-content; background: rgba(239, 68, 68, 0.05); border-radius: 6px;">
+              <i data-lucide="file-text" style="width: 12px; height: 12px;"></i> SDS Safety Sheet
             </a>
           ` : `
-            <div style="font-size: 12px; color: var(--text-muted);">ไม่มีข้อมูลเอกสาร SDS ความปลอดภัย</div>
+            <div style="font-size: 11px; color: var(--text-muted);">ไม่มีข้อมูลเอกสาร SDS ความปลอดภัย</div>
           `}
         </div>
 
@@ -11085,41 +11436,61 @@ window.showItemDetail = function(event, itemCode) {
     `;
   }
 
-  // Damaged Stats Section
+  // Damaged Stats Section (only show if there is damaged or in-repair stock)
   const damagedQty = item.damagedQty || 0;
   const repairQty = item.repairQty || 0;
-  const damagedSection = `
-    <div style="display: flex; gap: 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius-md); padding: 12px; background: rgba(0,0,0,0.01);">
+  const damagedSection = (damagedQty > 0 || repairQty > 0) ? `
+    <div style="display: flex; gap: 8px; border: 1px solid #fee2e2; border-radius: 8px; padding: 6px 10px; background: #fffafa;">
       <div style="flex: 1;">
-        <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">ชำรุด</span>
-        <div style="font-size: 16px; font-weight: 700; color: var(--accent-red); margin-top: 2px;">${damagedQty} ${item.unit}</div>
+        <span style="font-size: 10px; color: #dc2626; font-weight: 500;">ชำรุด</span>
+        <div style="font-size: 13px; font-weight: 700; color: #dc2626; margin-top: 1px;">${damagedQty} ${item.unit}</div>
       </div>
-      <div style="flex: 1; border-left: 1px solid var(--border-color); padding-left: 12px;">
-        <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">อยู่ระหว่างส่งซ่อม</span>
-        <div style="font-size: 16px; font-weight: 700; color: var(--accent-orange); margin-top: 2px;">${repairQty} ${item.unit}</div>
+      <div style="flex: 1; border-left: 1px solid #fee2e2; padding-left: 8px;">
+        <span style="font-size: 10px; color: #d97706; font-weight: 500;">อยู่ระหว่างส่งซ่อม</span>
+        <div style="font-size: 13px; font-weight: 700; color: #d97706; margin-top: 1px;">${repairQty} ${item.unit}</div>
       </div>
     </div>
-  `;
+  ` : "";
 
-  // General details view layout
+  // General details view layout (Compact, elegant hierarchy)
+  const statusBadgeMarkup = typeof getStatusBadgeMarkup === 'function' 
+    ? getStatusBadgeMarkup(item.status || 'normal')
+    : `<span class="badge badge-green" style="font-size: 10px; padding: 2px 7px;">ปกติ</span>`;
+
   body.innerHTML = `
-      <div class="item-detail-overview" style="display: flex; gap: 16px; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
-      <div class="item-detail-qr" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; background: #fff; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; align-items: center; gap: 6px;">
-        <img src="${qrUrl}" alt="QR Code" style="width: 100px; height: 100px;">
-        <span style="font-family: monospace; font-size: 11px; font-weight: bold; color: var(--text-muted);">${item.code}</span>
+    <div class="item-detail-overview" style="display: flex; gap: 10px; align-items: flex-start; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);">
+      <div class="item-detail-qr" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; background: #fafafa; display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0;">
+        <img src="${qrUrl}" alt="QR Code" style="width: 58px; height: 58px; border-radius: 4px; display: block;">
+        <span style="font-family: monospace; font-size: 10px; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 1px 5px; border-radius: 3px;">${item.code}</span>
       </div>
-      <div class="item-detail-overview-content" style="display: flex; flex-direction: column; gap: 6px; flex: 1;">
-        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">${getItemDisplayName(item)}</h4>
-        <div style="font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">${item.category}</div>
-        <div style="display: grid; grid-template-columns: 80px 1fr; font-size: 13px; margin-top: 8px; gap: 4px;">
-          <span style="color: var(--text-muted); font-weight: 500;">จำนวนคงเหลือ:</span>
-          <span style="font-weight: 700; color: var(--primary-purple);">${item.qty} ${item.unit}</span>
-          
-          <span style="color: var(--text-muted); font-weight: 500;">สถานที่เก็บ:</span>
-          <span style="font-weight: 600;">${item.room || "-"} > ${item.cabinet || "-"} > ${item.shelf || "-"}</span>
-          
-          <span style="color: var(--text-muted); font-weight: 500;">วันหมดอายุ:</span>
-          <span style="font-weight: 600;">${item.expiry ? formatThaiDate(item.expiry) : "-"}</span>
+      <div class="item-detail-overview-content" style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
+            <span class="category-badge" style="background: #f1f5f9; color: #475569; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 600;">${item.category}</span>
+            ${statusBadgeMarkup}
+          </div>
+          ${item.casNo || item.casNumber ? `<span style="font-family: monospace; font-size: 10px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; padding: 1px 5px; border-radius: 3px;">CAS: ${item.casNo || item.casNumber}</span>` : ''}
+        </div>
+        <h3 style="font-size: 14.5px; font-weight: 700; color: #0f172a; margin: 0; line-height: 1.3;">${getItemDisplayName(item)}</h3>
+        ${item.formula ? `<div style="font-family: monospace; font-size: 11.5px; color: #6366f1; font-weight: 600;">สูตรเคมี: ${escapeHtml(item.formula)}</div>` : ''}
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 3px; padding-top: 5px; border-top: 1px dashed #e2e8f0;">
+          <div style="background: #f8fafc; padding: 4px 6px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <div style="font-size: 9.5px; color: #64748b; font-weight: 500;">คงเหลือ</div>
+            <div style="font-size: 12.5px; font-weight: 700; color: #4338ca; margin-top: 1px;">${item.qty} <span style="font-size: 10px; font-weight: 500; color: #64748b;">${item.unit}</span></div>
+          </div>
+          <div style="background: #f8fafc; padding: 4px 6px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <div style="font-size: 9.5px; color: #64748b; font-weight: 500;">ที่เก็บ</div>
+            <div style="font-size: 11px; font-weight: 600; color: #0f172a; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${item.room || '-'} > ${item.cabinet || '-'} > ${item.shelf || '-'}">
+              ${item.room || '-'} › ${item.cabinet || '-'}
+            </div>
+          </div>
+          <div style="background: #f8fafc; padding: 4px 6px; border-radius: 6px; border: 1px solid #f1f5f9;">
+            <div style="font-size: 9.5px; color: #64748b; font-weight: 500;">หมดอายุ</div>
+            <div style="font-size: 11px; font-weight: 600; color: #0f172a; margin-top: 1px;">
+              ${item.expiry ? formatThaiDate(item.expiry) : '-'}
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -11131,42 +11502,40 @@ window.showItemDetail = function(event, itemCode) {
     ${dilutionsSection}
   `;
 
-  // Build Footer Actions
+  // Build Footer Actions (Compact layout)
   const roleLevel = getCurrentRoleLevel();
   const isL2Plus = (roleLevel === "L2" || roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "staff" || userRole === "admin" || userRole === "executive" || userRole === "L2" || userRole === "L3" || userRole === "L4")));
   const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
   const canEditThisItem = isL3Plus || (roleLevel === "L2" && canManageItemInRoom(item.room));
 
   footer.innerHTML = `
-    <div class="modal-footer-left">
-      <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal()">
-        <i data-lucide="x" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
-        <span>ปิด</span>
-      </button>
-    </div>
     <div class="modal-footer-right">
-      <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal(); openMasterDetailModal('${item.code}')" title="ดูข้อมูลสต็อกและประวัติพัสดุ">
-        <i data-lucide="layers" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
-        <span>Master Data</span>
+      ${isL3Plus ? `
+      <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal(); openMasterDetailModal('${item.code}')" title="ดูข้อมูลสต็อกและประวัติพัสดุ (เฉพาะ L3-L4)">
+        <i data-lucide="shield-check" style="width: 13px; height: 13px; flex-shrink: 0; color: #6366f1;"></i>
+        <span>Master Data (L3-L4)</span>
       </button>
+      ` : ''}
+      ${isL2Plus ? `
       <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal(); openQRCodeModal('${item.code}')" title="เปิดป้ายรหัส QR Code ประจำพัสดุ">
-        <i data-lucide="qr-code" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <i data-lucide="qr-code" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
         <span>ป้าย QR Code</span>
       </button>
+      ` : ''}
       ${isL2Plus ? `
       <button type="button" class="btn btn-secondary modal-footer-btn" onclick="printItemLabel('${item.code}')" title="พิมพ์สติกเกอร์บาร์โค้ดติดภาชนะ">
-        <i data-lucide="printer" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <i data-lucide="printer" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
         <span>พิมพ์สติกเกอร์</span>
       </button>
       ` : ''}
       ${canEditThisItem ? `
       <button type="button" class="btn btn-primary modal-footer-btn modal-btn-primary" onclick="closeDetailModal(); editItem(items.findIndex(i => i.code === '${item.code}'))">
-        <i data-lucide="edit-3" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <i data-lucide="edit-3" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
         <span>แก้ไขข้อมูล</span>
       </button>
       ` : `
       <button type="button" class="btn btn-secondary modal-footer-btn" style="border-color: #93c5fd; color: #1d4ed8; background: #eff6ff;" onclick="closeDetailModal(); showContactAdminModal()">
-        <i data-lucide="phone" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+        <i data-lucide="phone" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
         <span>ติดต่อ L3 เพื่อแก้ไข</span>
       </button>
       `}
@@ -11756,7 +12125,9 @@ function renderBookingChart() {
     "Lab 8": 0
   };
 
-  bookings.forEach(b => {
+  const bookingList = Array.isArray(bookings) ? bookings : [];
+
+  bookingList.forEach(b => {
     let roomKey = "Lab 1";
     if (b.room) {
       if (b.room.includes("Lab 2") || b.room.includes("ฟิสิกส์")) roomKey = "Lab 2";
@@ -11771,7 +12142,8 @@ function renderBookingChart() {
     roomCounts[roomKey]++;
   });
 
-  const maxCount = Math.max(...Object.values(roomCounts)) || 1;
+  const totalBookings = Object.values(roomCounts).reduce((sum, c) => sum + c, 0);
+  const maxCount = Math.max(...Object.values(roomCounts)) || 0;
 
   const labs = [
     { key: "Lab 4", name: "วิทย์ ราฟาเอล", x: 40 },
@@ -11784,53 +12156,112 @@ function renderBookingChart() {
     { key: "Lab 8", name: "วิทย์ EP", x: 530 }
   ];
 
+  // Update KPI counters
+  const totalTextEl = document.getElementById("bookingChartTotalText");
+  if (totalTextEl) totalTextEl.textContent = `${totalBookings} การจอง`;
+  const statTotalEl = document.getElementById("bookingStatTotalCount");
+  if (statTotalEl) statTotalEl.textContent = totalBookings;
+
+  let topLabName = "-";
+  let topLabCount = 0;
+  labs.forEach(l => {
+    if (roomCounts[l.key] > topLabCount) {
+      topLabCount = roomCounts[l.key];
+      topLabName = l.name;
+    }
+  });
+
+  const statTopEl = document.getElementById("bookingStatTopRoom");
+  if (statTopEl) statTopEl.textContent = topLabCount > 0 ? topLabName : "ยังไม่มีข้อมูล";
+
+  const statTopUsageEl = document.getElementById("bookingStatTopUsage");
+  if (statTopUsageEl) {
+    if (topLabCount > 0) {
+      const pct = Math.round((topLabCount / (totalBookings || 1)) * 100);
+      statTopUsageEl.textContent = `${topLabCount} ครั้ง (${pct}%)`;
+    } else {
+      statTopUsageEl.textContent = "0 ครั้ง";
+    }
+  }
+
+  const statAvgEl = document.getElementById("bookingStatAvgCount");
+  if (statAvgEl) statAvgEl.textContent = (totalBookings / 8).toFixed(1);
+
   if (window.innerWidth <= 640) {
     let html = `<div class="booking-chart-html">`;
     labs.forEach(lab => {
       const count = roomCounts[lab.key] || 0;
       const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
+      const sharePct = totalBookings > 0 ? Math.round((count / totalBookings) * 100) : 0;
       html += `
         <div class="booking-chart-row">
-          <div class="booking-chart-label" title="${lab.name}">${lab.name}</div>
+          <div class="booking-chart-label-group">
+            <span class="booking-room-tag">${lab.key}</span>
+            <span class="booking-chart-label" title="${lab.name}">${lab.name}</span>
+          </div>
           <div class="booking-chart-track-container">
             <div class="booking-chart-track">
               <div class="booking-chart-bar" style="width: ${percentage}%;"></div>
             </div>
           </div>
-          <div class="booking-chart-value">${count} ครั้ง</div>
+          <div class="booking-chart-value-group">
+            <span class="booking-chart-value">${count} ครั้ง</span>
+            <span class="booking-chart-pct">${sharePct}%</span>
+          </div>
         </div>
       `;
     });
     html += `</div>`;
     container.innerHTML = html;
+    if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
     return;
   }
 
   let html = `<div class="booking-chart-container-desktop">`;
-  html += `<div class="booking-chart-columns">`;
+  html += `
+    <div class="booking-chart-grid-guides">
+      <div class="booking-guide-line"><span class="guide-label">${maxCount > 0 ? maxCount : 10}</span></div>
+      <div class="booking-guide-line"><span class="guide-label">${maxCount > 0 ? Math.round(maxCount * 0.5) : 5}</span></div>
+      <div class="booking-guide-line baseline"><span class="guide-label">0</span></div>
+    </div>
+    <div class="booking-chart-columns">
+  `;
 
   labs.forEach((lab, index) => {
     const count = roomCounts[lab.key] || 0;
     const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
-    
+    const sharePct = totalBookings > 0 ? Math.round((count / totalBookings) * 100) : 0;
+    const isTop = count > 0 && count === topLabCount;
+
     // Smooth purple light-to-dark progression from left to right
-    const lightness = 82 - index * 5.5; // From ~82% (light lavender) to ~43% (deep purple)
-    const barColor = `hsl(262, 72%, ${lightness}%)`;
-    const barGlowColor = `hsla(262, 72%, ${lightness}%, 0.35)`;
+    const lightnessTop = 74 - index * 3.5;
+    const lightnessBottom = 54 - index * 3.5;
+    const barGradient = `linear-gradient(180deg, hsl(258, 85%, ${lightnessTop}%) 0%, hsl(262, 75%, ${lightnessBottom}%) 100%)`;
+    const barGlowColor = `hsla(260, 80%, ${lightnessBottom}%, 0.35)`;
 
     html += `
-      <div class="booking-chart-col">
-        <div class="booking-chart-bar-val">${count} ครั้ง</div>
-        <div class="booking-chart-bar-track">
-          <div class="booking-chart-bar-fill" style="height: ${percentage}%; background: ${barColor}; --bar-glow-color: ${barGlowColor};"></div>
+      <div class="booking-chart-col ${isTop ? 'is-top-booked' : ''}" tabindex="0">
+        <div class="booking-chart-bar-badge ${count > 0 ? 'has-val' : 'zero-val'}">
+          ${isTop ? '<i data-lucide="crown" style="width: 11px; height: 11px; color: #f59e0b; display: inline-block; vertical-align: -1px; margin-right: 3px;"></i>' : ''}
+          <span>${count}</span> <small>ครั้ง</small>
         </div>
-        <div class="booking-chart-bar-label" title="${lab.name}">${lab.name}</div>
+        <div class="booking-chart-bar-track">
+          <div class="booking-chart-bar-fill" style="height: ${percentage}%; background: ${barGradient}; --bar-glow-color: ${barGlowColor};">
+            <div class="booking-chart-bar-shine"></div>
+          </div>
+        </div>
+        <div class="booking-chart-col-footer">
+          <span class="booking-room-tag">${lab.key}</span>
+          <div class="booking-chart-bar-label" title="${lab.name}">${lab.name}</div>
+          <div class="booking-chart-bar-pct">${sharePct}%</div>
+        </div>
       </div>
     `;
   });
 
   html += `</div></div>`;
   container.innerHTML = html;
+  if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
 }
 
 function renderAnalyticsCharts() {
@@ -13813,6 +14244,17 @@ function setupChatbot() {
     headerIcon.src = "stock-bitol-bot.png";
   };
 
+  const clearBtn = document.getElementById("chatbotClearHistoryBtn");
+  const initialBodyHtml = body.innerHTML;
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      body.innerHTML = initialBodyHtml;
+      if (window.lucide) {
+        try { lucide.createIcons({ root: body }); } catch(e) {}
+      }
+    });
+  }
+
   const openChatbot = () => {
     panel.classList.add("active");
     if (overlay) overlay.classList.add("active");
@@ -13823,6 +14265,11 @@ function setupChatbot() {
     if (pulseDot) {
       pulseDot.style.display = "none";
     }
+
+    if (window.lucide) {
+      try { lucide.createIcons({ root: panel }); } catch(e) {}
+    }
+    setTimeout(() => input.focus(), 150);
   };
 
   const closeChatbot = () => {
@@ -13837,6 +14284,33 @@ function setupChatbot() {
     } else {
       openChatbot();
     }
+  });
+
+  // Interactive bot eyes following mouse movement on FAB hover
+  fab.addEventListener("mousemove", (e) => {
+    const face = fab.querySelector(".stoki-bot-face") || fab;
+    const rect = face.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const deltaX = e.clientX - centerX;
+    const deltaY = e.clientY - centerY;
+
+    const maxMoveX = 3.2;
+    const maxMoveY = 2.2;
+    const normX = Math.max(-1, Math.min(1, deltaX / (rect.width * 1.5)));
+    const normY = Math.max(-1, Math.min(1, deltaY / (rect.height * 1.5)));
+
+    const moveX = (normX * maxMoveX).toFixed(2);
+    const moveY = (normY * maxMoveY).toFixed(2);
+
+    fab.style.setProperty("--eye-follow-x", `${moveX}px`);
+    fab.style.setProperty("--eye-follow-y", `${moveY}px`);
+  });
+
+  fab.addEventListener("mouseleave", () => {
+    fab.style.removeProperty("--eye-follow-x");
+    fab.style.removeProperty("--eye-follow-y");
   });
 
   closeBtn.addEventListener("click", closeChatbot);
@@ -13925,6 +14399,10 @@ function setupChatbot() {
     msgDiv.innerHTML = text.replace(/\n/g, "<br>");
     body.appendChild(msgDiv);
     
+    if (window.lucide) {
+      try { lucide.createIcons({ root: msgDiv }); } catch(e) {}
+    }
+
     // Auto-scroll to bottom of the body
     body.scrollTop = body.scrollHeight;
   }
@@ -18168,6 +18646,10 @@ window.addAutoPurchaseOrder = function(itemCode) {
 
   showToast(`เพิ่ม "${item.name}" จำนวน ${orderQty} ${item.unit || 'ชิ้น'} ลงใบสั่งซื้อชั่วคราวแล้ว`, "success");
   
+  if (typeof updateCartBadges === "function") {
+    updateCartBadges();
+  }
+
   if (typeof renderPoDrafts === "function") {
     renderPoDrafts();
   }
@@ -18594,6 +19076,89 @@ function toggleAssignedRoomsField(prefix) {
   }
 }
 
+let adminUsersCurrentPage = 1;
+const ADMIN_USERS_PER_PAGE = 10;
+let lastAdminUsersFilteredList = null;
+
+function renderAdminUsersPagination(totalUsersCount, totalPages, startIndex, endIndex) {
+  const containers = [
+    {
+      info: document.getElementById("adminUsersPaginationInfo"),
+      controls: document.getElementById("adminUsersPaginationControls"),
+      wrap: document.getElementById("adminUsersPaginationContainer")
+    },
+    {
+      info: document.getElementById("adminUsersMobilePaginationInfo"),
+      controls: document.getElementById("adminUsersMobilePaginationControls"),
+      wrap: document.getElementById("adminUsersMobilePaginationContainer")
+    }
+  ];
+
+  const infoText = totalUsersCount === 0
+    ? `แสดง 0 - 0 จาก 0 ผู้ใช้งาน`
+    : `แสดง ${startIndex + 1} - ${endIndex} จาก ${totalUsersCount} ผู้ใช้งาน (หน้า ${adminUsersCurrentPage}/${totalPages})`;
+
+  containers.forEach(({ info, controls, wrap }) => {
+    if (!controls) return;
+    if (info) info.textContent = infoText;
+
+    if (totalUsersCount === 0) {
+      controls.innerHTML = "";
+      if (wrap) wrap.style.display = "none";
+      return;
+    }
+    if (wrap) {
+      wrap.style.display = wrap.classList.contains("admin-mobile-pagination") ? "flex" : "";
+    }
+
+    let html = "";
+    // Prev Button
+    html += `<button type="button" class="btn-page-nav" ${adminUsersCurrentPage <= 1 ? "disabled" : ""} onclick="changeAdminUsersPage(${adminUsersCurrentPage - 1})" title="หน้าก่อนหน้า"><i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i><span>ก่อนหน้า</span></button>`;
+
+    // Page number buttons
+    if (totalPages <= 6) {
+      for (let p = 1; p <= totalPages; p++) {
+        html += `<button type="button" class="page-number-btn ${p === adminUsersCurrentPage ? "active" : ""}" onclick="changeAdminUsersPage(${p})">${p}</button>`;
+      }
+    } else {
+      html += `<button type="button" class="page-number-btn ${1 === adminUsersCurrentPage ? "active" : ""}" onclick="changeAdminUsersPage(1)">1</button>`;
+      
+      let startP = Math.max(2, adminUsersCurrentPage - 1);
+      let endP = Math.min(totalPages - 1, adminUsersCurrentPage + 1);
+
+      if (startP > 2) {
+        html += `<span style="padding: 0 4px; color: #94a3b8; line-height: 32px;">&hellip;</span>`;
+      }
+
+      for (let p = startP; p <= endP; p++) {
+        html += `<button type="button" class="page-number-btn ${p === adminUsersCurrentPage ? "active" : ""}" onclick="changeAdminUsersPage(${p})">${p}</button>`;
+      }
+
+      if (endP < totalPages - 1) {
+        html += `<span style="padding: 0 4px; color: #94a3b8; line-height: 32px;">&hellip;</span>`;
+      }
+
+      html += `<button type="button" class="page-number-btn ${totalPages === adminUsersCurrentPage ? "active" : ""}" onclick="changeAdminUsersPage(${totalPages})">${totalPages}</button>`;
+    }
+
+    // Next Button
+    html += `<button type="button" class="btn-page-nav" ${adminUsersCurrentPage >= totalPages ? "disabled" : ""} onclick="changeAdminUsersPage(${adminUsersCurrentPage + 1})" title="หน้าถัดไป"><span>ถัดไป</span><i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></button>`;
+
+    controls.innerHTML = html;
+  });
+
+  if (window.lucide) lucide.createIcons();
+}
+
+window.changeAdminUsersPage = function(page) {
+  adminUsersCurrentPage = page;
+  renderAdminUsers(lastAdminUsersFilteredList);
+  const tableEl = document.getElementById("adminUsersDesktopTable");
+  if (tableEl && typeof tableEl.scrollIntoView === "function") {
+    tableEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+};
+
 function renderAdminUsers(filteredList = null) {
   const tbody = document.getElementById("adminUsersTableBody");
   if (!tbody) return;
@@ -18638,13 +19203,26 @@ function renderAdminUsers(filteredList = null) {
   const btnBatchDelete = document.getElementById("btnBatchDeleteUsers");
   if (btnBatchDelete) btnBatchDelete.style.display = "none";
   
-  const displayUsers = (filteredList !== null ? filteredList : allUsers).filter(u => u && u.is_deleted !== true && u.isDeleted !== true);
+  if (filteredList !== null) {
+    lastAdminUsersFilteredList = filteredList;
+  }
+  const currentList = (filteredList !== null ? filteredList : (lastAdminUsersFilteredList || allUsers)).filter(u => u && u.is_deleted !== true && u.isDeleted !== true);
 
-  if (!displayUsers || displayUsers.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="padding: 28px; text-align: center; color: #64748b; font-size: 13px;">ไม่พบข้อมูลผู้ใช้งานที่ตรงกับเงื่อนไข</td></tr>`;
+  const totalUsersCount = currentList.length;
+  const totalPages = Math.ceil(totalUsersCount / ADMIN_USERS_PER_PAGE) || 1;
+  if (adminUsersCurrentPage > totalPages) adminUsersCurrentPage = totalPages;
+  if (adminUsersCurrentPage < 1) adminUsersCurrentPage = 1;
+
+  const startIndex = (adminUsersCurrentPage - 1) * ADMIN_USERS_PER_PAGE;
+  const endIndex = Math.min(startIndex + ADMIN_USERS_PER_PAGE, totalUsersCount);
+  const displayUsers = currentList.slice(startIndex, endIndex);
+
+  if (!currentList || currentList.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="padding: 28px; text-align: center; color: #64748b; font-size: 13px;">ไม่พบข้อมูลผู้ใช้งานที่ตรงกับเงื่อนไข</td></tr>`;
     if (mobileList) {
       mobileList.innerHTML = `<div style="padding: 24px; text-align: center; color: #64748b; font-size: 13px; background: #ffffff; border: 1px solid var(--border-color); border-radius: 12px;">ไม่พบข้อมูลผู้ใช้งานที่ตรงกับเงื่อนไข</div>`;
     }
+    renderAdminUsersPagination(0, 1, 0, 0);
     return;
   }
   
@@ -18686,26 +19264,21 @@ function renderAdminUsers(filteredList = null) {
         <span class="badge-role ${badgeInfo.className}" style="font-size: 11px; padding: 2px 7px; border-radius: 5px;">${badgeInfo.level} ${badgeInfo.name}</span>
       </td>
       <td style="padding: 9px 8px; font-size: 11.5px; max-width: 120px;">${roomsHtml}</td>
-      <td style="padding: 9px 6px; white-space: nowrap; width: 145px; min-width: 145px; text-align: center;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
-          <span class="user-pass-val" id="user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="display: inline-block; font-family: monospace; font-size: 11.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 4px; border-radius: 5px; color: #475569; width: 104px; min-width: 104px; max-width: 104px; text-align: center; letter-spacing: 0.5px; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">••••••••</span>
-          <button type="button" onclick="toggleAdminUserPassEye('${escapeHTML(user.id)}')" title="แสดง/ซ่อนรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;">
-            <i data-lucide="eye" id="user-eye-${escapeHTML(user.id)}" style="width: 13px; height: 13px;"></i>
-          </button>
-          <button type="button" onclick="copyAdminUserPass('${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}')" title="คัดลอกรหัสผ่าน" style="background: none; border: none; cursor: pointer; padding: 2px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;">
-            <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
-          </button>
-        </div>
+      <td style="padding: 10px 8px; white-space: nowrap; width: 150px; min-width: 150px; text-align: center;">
+        <span class="user-security-badge" title="รหัสผ่านได้รับการปกป้องด้วยการเข้ารหัส Bcrypt แบบทางเดียว แอดมินไม่สามารถมองเห็นได้">
+          <i data-lucide="shield-check"></i>
+          <span>เข้ารหัสปลอดภัย</span>
+        </span>
       </td>
-      <td style="padding: 9px 6px; text-align: center; white-space: nowrap; width: 125px;">
-        <div style="display: inline-flex; gap: 4px; justify-content: center;">
-          <button class="btn btn-sm" onclick="openEditUserModal('${user.id}')" style="background: #ffffff; border: 1px solid #e2e8f0; color: #334155; cursor: pointer; padding: 3px 6px; border-radius: 5px; font-weight: 500; font-size: 11.5px; display: inline-flex; align-items: center; gap: 3px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);" title="แก้ไขข้อมูล">
-            <i data-lucide="edit-2" style="width: 11px; height: 11px; color: #64748b;"></i>
+      <td style="padding: 10px 8px; text-align: center; white-space: nowrap; width: 135px;">
+        <div style="display: inline-flex; gap: 5px; justify-content: center;">
+          <button class="btn btn-sm btn-admin-edit" onclick="openEditUserModal('${user.id}')" title="แก้ไขข้อมูลผู้ใช้">
+            <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i>
             <span>แก้ไข</span>
           </button>
-          <button class="btn btn-sm" onclick="quickResetUserPassword('${user.id}')" style="background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; cursor: pointer; padding: 3px 6px; border-radius: 5px; font-weight: 500; font-size: 11.5px; display: inline-flex; align-items: center; gap: 2px;" title="รีเซ็ต/จัดการรหัสผ่าน">
-            <i data-lucide="key-round" style="width: 11px; height: 11px;"></i>
-            <span>รหัสผ่าน</span>
+          <button class="btn btn-sm btn-admin-reset-pw" onclick="quickResetUserPassword('${user.id}')" title="รีเซ็ตรหัสผ่าน">
+            <i data-lucide="key-round" style="width: 12px; height: 12px;"></i>
+            <span>รีเซ็ต</span>
           </button>
         </div>
       </td>
@@ -18731,9 +19304,9 @@ function renderAdminUsers(filteredList = null) {
               <i data-lucide="edit-2" style="width: 12px; height: 12px; color: #64748b;"></i>
               <span>แก้ไข</span>
             </button>
-            <button class="btn btn-sm" onclick="quickResetUserPassword('${user.id}')" style="background: #fff7ed; border: 1px solid #fed7aa; color: #c2410c; cursor: pointer; padding: 5px 8px; border-radius: 6px; font-weight: 500; font-size: 11.5px; display: inline-flex; align-items: center; gap: 3px;" title="รีเซ็ต">
+            <button class="btn btn-sm btn-admin-reset-pw" onclick="quickResetUserPassword('${user.id}')" title="รีเซ็ต">
               <i data-lucide="key-round" style="width: 12px; height: 12px;"></i>
-              <span>รหัสผ่าน</span>
+              <span>รีเซ็ต</span>
             </button>
           </div>
         </div>
@@ -18743,11 +19316,10 @@ function renderAdminUsers(filteredList = null) {
             ${roomsHtml}
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="font-size: 11px; color: #64748b;">รหัสผ่าน:</span>
-            <span class="user-pass-val" id="mobile-user-pass-${escapeHTML(user.id)}" data-pass="${escapeHTML(user.display_password || user.plain_password || user.teacherId || '')}" style="display: inline-block; font-family: monospace; font-size: 11.5px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 1px 6px; border-radius: 4px; color: #475569; width: 118px; min-width: 118px; max-width: 118px; text-align: center; letter-spacing: 1px; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">••••••••</span>
-            <button type="button" onclick="toggleAdminUserPassEye('${escapeHTML(user.id)}', true)" title="แสดง/ซ่อน" style="background: none; border: none; cursor: pointer; padding: 1px; color: #64748b;">
-              <i data-lucide="eye" id="mobile-user-eye-${escapeHTML(user.id)}" style="width: 13px; height: 13px;"></i>
-            </button>
+            <span class="user-security-badge" style="font-size: 10.5px; padding: 2px 7px;">
+              <i data-lucide="shield-check" style="width: 11px; height: 11px;"></i>
+              <span>เข้ารหัส Bcrypt</span>
+            </span>
           </div>
         </div>
       `;
@@ -18755,10 +19327,12 @@ function renderAdminUsers(filteredList = null) {
     }
   });
 
+  renderAdminUsersPagination(totalUsersCount, totalPages, startIndex, endIndex);
   if (window.lucide) lucide.createIcons();
 }
 
 window.filterAdminUsersTable = function() {
+  adminUsersCurrentPage = 1;
   if (!Array.isArray(adminUsers)) return;
   const searchInput = document.getElementById("adminUserSearchInput");
   const roleSelect = document.getElementById("adminUserRoleFilter");
@@ -19019,41 +19593,75 @@ window.renderAdminLabRoomsList = function() {
 
   container.innerHTML = rooms.map(room => {
     const stat = roomStats[room.id] || { items: 0, cabs: 0 };
-    const shortId = room.id.length > 6 ? room.id.substring(0, 5) : room.id;
+    const roomHex = room.hex || '#6366f1';
+    const safeRoomId = escapeHTML(room.id);
+    const safeRoomName = escapeHTML(room.name || room.id);
+    const safeBuilding = escapeHTML(room.building || 'ไม่ระบุอาคารสถานที่');
+    const safeRoomIdEscaped = room.id.replace(/'/g, "\\'");
 
     return `
-      <div class="admin-lab-card" data-room-id="${room.id}">
-        <div class="admin-lab-card-top">
-          <div class="admin-lab-color-avatar" style="background: ${room.hex || '#6366f1'};">
-            ${shortId}
+      <div class="admin-lab-card" data-room-id="${safeRoomId}">
+        <div class="admin-lab-card-accent" style="background: ${roomHex};"></div>
+        
+        <div class="admin-lab-card-header">
+          <div class="admin-lab-avatar" style="background: ${roomHex}18; color: ${roomHex}; border: 1.5px solid ${roomHex}35;">
+            <i data-lucide="flask-conical" style="width: 20px; height: 20px;"></i>
           </div>
-          <div class="admin-lab-card-text">
-            <h3 class="admin-lab-card-title" title="${room.id} : ${room.name}">${room.id} (${room.name})</h3>
-            <p class="admin-lab-card-building">
-              <i data-lucide="building" style="width: 12px; height: 12px; flex-shrink: 0;"></i>
-              <span>${room.building || 'ไม่ระบุอาคารสถานที่'}</span>
-            </p>
+          
+          <div class="admin-lab-header-main">
+            <div class="admin-lab-title-row">
+              <span class="admin-lab-code-pill" style="background: ${roomHex}15; color: ${roomHex}; border: 1px solid ${roomHex}30;">
+                ${safeRoomId}
+              </span>
+              <h3 class="admin-lab-card-title" title="${safeRoomId}: ${safeRoomName}">${safeRoomName}</h3>
+            </div>
+            <div class="admin-lab-building-row">
+              <i data-lucide="map-pin" style="width: 12px; height: 12px; flex-shrink: 0;"></i>
+              <span class="admin-lab-building-name">${safeBuilding}</span>
+            </div>
+          </div>
+
+          <div class="admin-lab-header-swatch" title="รหัสสีประจำห้อง: ${roomHex}">
+            <span class="admin-lab-swatch-circle" style="background: ${roomHex};"></span>
+            <span class="admin-lab-swatch-text">${roomHex}</span>
           </div>
         </div>
 
-        <div class="admin-lab-card-meta">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="admin-lab-color-badge" title="รหัสสีประจำห้อง">
-              <span class="admin-lab-color-dot" style="background: ${room.hex || '#6366f1'};"></span>
-              ${room.hex || '#6366f1'}
-            </span>
-            <span style="font-size: 11.5px; color: #64748b;">
-              <strong>${stat.items}</strong> พัสดุ | <strong>${stat.cabs}</strong> ตู้
-            </span>
+        <div class="admin-lab-metrics-row">
+          <div class="admin-lab-metric-chip" onclick="navigateToPanel('all-items');" role="button" tabindex="0" title="คลิกเพื่อดูรายการพัสดุในห้องนี้">
+            <div class="admin-lab-metric-icon icon-blue">
+              <i data-lucide="box" style="width: 14px; height: 14px;"></i>
+            </div>
+            <div class="admin-lab-metric-text">
+              <span class="admin-lab-metric-val">${stat.items}</span>
+              <span class="admin-lab-metric-lbl">พัสดุ & เคมีภัณฑ์</span>
+            </div>
           </div>
 
-          <div class="admin-lab-card-actions">
-            <button type="button" class="admin-lab-btn-action edit" onclick="openLabRoomModal('${room.id.replace(/'/g, "\\'")}')" title="แก้ไขข้อมูลห้องและสี">
-              <i data-lucide="edit-3" style="width: 13px; height: 13px;"></i>
+          <div class="admin-lab-metric-chip" onclick="navigateToPanel('cabinet-layout'); if(typeof switchCabinetRoom==='function') switchCabinetRoom('${safeRoomIdEscaped}');" role="button" tabindex="0" title="คลิกเพื่อดูผังตู้จัดเก็บ SHECU">
+            <div class="admin-lab-metric-icon icon-emerald">
+              <i data-lucide="layout-grid" style="width: 14px; height: 14px;"></i>
+            </div>
+            <div class="admin-lab-metric-text">
+              <span class="admin-lab-metric-val">${stat.cabs}</span>
+              <span class="admin-lab-metric-lbl">ตู้ผัง SHECU</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-lab-card-footer">
+          <button type="button" class="btn-lab-quick-view" onclick="navigateToPanel('cabinet-layout'); if(typeof switchCabinetRoom==='function') switchCabinetRoom('${safeRoomIdEscaped}');" title="เปิดผังตู้จัดเก็บห้องนี้">
+            <i data-lucide="layout-dashboard" style="width: 12.5px; height: 12.5px;"></i>
+            <span>เปิดผังตู้</span>
+          </button>
+
+          <div class="admin-lab-actions-group">
+            <button type="button" class="btn-lab-action edit" onclick="openLabRoomModal('${safeRoomIdEscaped}')" title="แก้ไขข้อมูลห้องและสี">
+              <i data-lucide="edit-3" style="width: 12.5px; height: 12.5px;"></i>
               <span>แก้ไข</span>
             </button>
-            <button type="button" class="admin-lab-btn-action delete" onclick="deleteLabRoom('${room.id.replace(/'/g, "\\'")}')" title="ลบห้องนี้">
-              <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+            <button type="button" class="btn-lab-action delete" onclick="deleteLabRoom('${safeRoomIdEscaped}')" title="ลบห้องนี้">
+              <i data-lucide="trash-2" style="width: 12.5px; height: 12.5px;"></i>
             </button>
           </div>
         </div>
@@ -20417,18 +21025,6 @@ function openEditUserModal(id) {
     cb.checked = assigned.includes(cb.value);
   });
 
-  // Populate Password for L3 Admin
-  const passVal = user.display_password || user.plain_password || user.teacherId || "";
-  const elCurrentPass = document.getElementById("editUserCurrentPass");
-  if (elCurrentPass) {
-    elCurrentPass.value = passVal;
-    elCurrentPass.type = "password";
-  }
-  const elNewCustomPass = document.getElementById("editUserNewCustomPass");
-  if (elNewCustomPass) elNewCustomPass.value = "";
-  const elEyeIcon = document.getElementById("editUserPassEyeIcon");
-  if (elEyeIcon) elEyeIcon.setAttribute("data-lucide", "eye");
-
   toggleAssignedRoomsField('edit');
   document.getElementById("modalEditUser").style.display = "flex";
   if (window.lucide) lucide.createIcons();
@@ -20595,24 +21191,33 @@ window.quickResetUserPassword = async function(userId) {
   const tId = user.teacherId || user.id;
 
   const { value: formValues } = await Swal.fire({
-    title: `<div style="display: flex; align-items: center; justify-content: center; gap: 8px;"><i data-lucide="key-round" style="width: 20px; height: 20px; color: #7c3aed;"></i><span>จัดการรหัสผ่าน: ${escapeHtml(user.name)}</span></div>`,
+    title: `<div style="display: flex; align-items: center; justify-content: center; gap: 8px;"><i data-lucide="key-round" style="width: 20px; height: 20px; color: #7c3aed;"></i><span>รีเซ็ตรหัสผ่าน: ${escapeHtml(user.name)}</span></div>`,
     html: `
-      <div style="text-align: left; font-size: 13.5px; line-height: 1.6;">
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;">
-          <div style="font-size: 12px; color: #64748b;">รหัสผ่านปัจจุบัน:</div>
-          <div style="font-family: monospace; font-size: 15px; font-weight: 700; color: #1e293b;">${user.display_password || user.plain_password || tId}</div>
+      <div style="text-align: left; font-size: 13px; line-height: 1.6;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="shield-check" style="width: 18px; height: 18px; color: #16a34a; flex-shrink: 0;"></i>
+          <span style="font-size: 11.5px; color: #166534; line-height: 1.4;">รหัสผ่านเดิมถูกเข้ารหัสความปลอดภัยทางเดียว (Bcrypt) เพื่อรักษาความเป็นส่วนตัว แอดมินสามารถกำหนดรหัสผ่านชั่วคราวใหม่ หรือรีเซ็ตเป็นค่าตั้งต้นได้</span>
         </div>
         <div style="margin-bottom: 12px;">
-          <label style="display: block; font-weight: 600; margin-bottom: 4px;">ระบุรหัสผ่านใหม่ที่ต้องการ (หรือเว้นว่างเพื่อรีเซ็ตเป็น Teacher ID):</label>
-          <input id="swal-new-password" class="swal2-input" placeholder="พิมพ์รหัสผ่านใหม่ หรือปล่อยว่าง..." style="margin: 0; width: 100%; font-size: 14px; padding: 8px 12px;">
+          <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1e293b; font-size: 12.5px;">กำหนดรหัสผ่านใหม่:</label>
+          <div style="display: flex; gap: 6px;">
+            <input id="swal-new-password" class="swal2-input" placeholder="พิมพ์รหัสผ่านใหม่ หรือกดสุ่ม..." style="margin: 0; width: 100%; font-size: 13px; padding: 7px 10px; height: 36px; box-sizing: border-box; font-family: monospace;">
+            <button type="button" class="swal2-confirm swal2-styled" onclick="const r = Math.random().toString(36).slice(-6) + Math.floor(Math.random()*90 + 10); document.getElementById('swal-new-password').value = r;" style="margin: 0; padding: 0 10px; height: 36px; background: #6366f1; font-size: 11.5px; border-radius: 6px; white-space: nowrap; flex-shrink: 0;">
+              สุ่มรหัส
+            </button>
+          </div>
+          <div style="font-size: 11px; color: #64748b; margin-top: 5px;">* ปล่อยว่างเพื่อรีเซ็ตกลับเป็นรหัสครู (Teacher ID: <b>${escapeHtml(tId)}</b>)</div>
         </div>
       </div>
     `,
     focusConfirm: false,
     showCancelButton: true,
-    confirmButtonText: 'บันทึกรหัสผ่าน',
+    confirmButtonText: 'บันทึกการรีเซ็ต',
     cancelButtonText: 'ยกเลิก',
     confirmButtonColor: '#4f46e5',
+    didOpen: () => {
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    },
     preConfirm: () => {
       const val = document.getElementById('swal-new-password').value.trim();
       return { newPassword: val || tId, isDefault: !val };
@@ -20636,15 +21241,26 @@ window.quickResetUserPassword = async function(userId) {
     const data = await res.json();
     if (!res.ok || !data.success) throw new Error(data.message || 'ไม่สามารถรีเซ็ตได้');
 
-    user.display_password = formValues.newPassword;
-    user.plain_password = formValues.newPassword;
     renderAdminUsers();
 
     Swal.fire({
       icon: 'success',
-      title: 'บันทึกเรียบร้อย',
-      html: `รหัสผ่านของ <b>${user.name}</b> คือ: <code>${formValues.newPassword}</code>`,
-      confirmButtonColor: '#4f46e5'
+      title: 'รีเซ็ตรหัสผ่านเรียบร้อย',
+      html: `
+        <div style="font-size: 13px; color: #334155; line-height: 1.6; text-align: center;">
+          รหัสผ่านชั่วคราวใหม่ของ <b>${escapeHtml(user.name)}</b>:
+          <div style="margin: 10px auto; padding: 8px 14px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 17px; font-weight: 700; color: #4338ca; letter-spacing: 1px; display: inline-block;">
+            ${escapeHtml(formValues.newPassword)}
+          </div>
+          <div style="font-size: 11.5px; color: #64748b;">กรุณาคัดลอกรหัสผ่านนี้ส่งให้ผู้ใช้งานเพื่อเข้าสู่ระบบ</div>
+        </div>
+      `,
+      confirmButtonText: 'คัดลอกรหัสผ่านและปิด',
+      confirmButtonColor: '#4f46e5',
+      preConfirm: () => {
+        navigator.clipboard.writeText(formValues.newPassword);
+        if (typeof showToast === 'function') showToast('คัดลอกรหัสผ่านเรียบร้อยแล้ว', 'success');
+      }
     });
   } catch (e) {
     Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: e.message, confirmButtonColor: '#4f46e5' });
@@ -24584,8 +25200,172 @@ if (typeof window.openRoleDashboard !== 'function') {
 // P2 ADVANCED INVENTORY & MASTER DATA MODALS (ADMIN-CONTROLLED)
 // ==========================================================================
 
+// Helper: Render industrial landscape asset label card matching laboratory standard
+window.renderAssetLabelCard = function(item) {
+  if (!item) return '';
+
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(JSON.stringify({
+    system: "SCIPORTAL-LAB",
+    code: item.code,
+    name: item.name,
+    room: item.room || '',
+    cabinet: item.cabinet || '',
+    shelf: item.shelf || ''
+  }))}`;
+
+  // 1. Cabinet name formatting (e.g. CABINET 1, CABINET 3)
+  let cabinetName = (item.cabinet || 'CABINET 1').trim();
+  if (cabinetName.startsWith('ตู้')) {
+    cabinetName = cabinetName.replace(/^ตู้\s*/, 'CABINET ');
+  } else if (!cabinetName.toLowerCase().startsWith('cabinet')) {
+    cabinetName = `CABINET ${cabinetName}`;
+  }
+  cabinetName = cabinetName.toUpperCase();
+
+  // 2. Badge styling & text
+  let badgeBg = '#2563eb';
+  let badgeText = 'GENERAL';
+
+  if (item.category === 'สารเคมี' || (item.chemicalType && item.chemicalType !== 'general')) {
+    badgeBg = '#dc2626';
+    const ghsCode = (item.ghs && item.ghs.length > 0 && item.ghs[0]) ? item.ghs[0].toUpperCase() : 'GHS05';
+    let hazardType = 'CORROSIVE';
+    if (item.chemicalType) {
+      hazardType = item.chemicalType.toUpperCase();
+    } else if (item.ghs && item.ghs.includes('flammable')) {
+      hazardType = 'FLAMMABLE';
+    } else if (item.ghs && item.ghs.includes('toxic')) {
+      hazardType = 'TOXIC';
+    } else if (item.ghs && item.ghs.includes('oxidizing')) {
+      hazardType = 'OXIDIZING';
+    }
+    badgeText = `${hazardType} · ${ghsCode}`;
+  } else if (item.category === 'เครื่องแก้ว' || (item.category || '').toLowerCase().includes('glass')) {
+    badgeBg = '#2563eb';
+    badgeText = 'GLASSWARE';
+  } else if (item.category === 'อุปกรณ์' || item.category === 'เครื่องมือวิทยาศาสตร์' || (item.category || '').toLowerCase().includes('apparatus') || (item.category || '').toLowerCase().includes('equipment')) {
+    badgeBg = '#0d9488';
+    badgeText = 'APPARATUS';
+  } else if (item.category === 'วัสดุสิ้นเปลือง' || (item.category || '').toLowerCase().includes('consumable')) {
+    badgeBg = '#d97706';
+    badgeText = 'CONSUMABLE';
+  } else {
+    badgeBg = '#475569';
+    badgeText = (item.category || 'LAB ASSET').toUpperCase();
+  }
+
+  // 3. Shelf value formatting (e.g. S2, S1, S3)
+  const shelfMatch = (item.shelf || '').match(/\d+/);
+  const shelfVal = shelfMatch ? `S${shelfMatch[0]}` : (item.shelf ? item.shelf.toUpperCase().replace(/\s+/g, '') : 'S1');
+
+  // 4. Row/Bin value formatting (e.g. B-04, G-12, E-02)
+  let binVal = item.position || item.bin || '';
+  if (!binVal) {
+    const letter = item.category === 'เครื่องแก้ว' ? 'G' : (item.category === 'สารเคมี' ? 'B' : 'E');
+    const num = shelfMatch ? (parseInt(shelfMatch[0]) * 2) : 4;
+    binVal = `${letter}-${num < 10 ? '0' + num : num}`;
+  }
+
+  // 5. Pos or Unit label & value
+  const isApparatus = (item.category === 'อุปกรณ์' || item.category === 'เครื่องมือวิทยาศาสตร์' || badgeText === 'APPARATUS');
+  const unitOrPosLabel = isApparatus ? 'UNIT' : 'POS';
+  let unitOrPosVal = item.slot || (isApparatus ? '1' : (item.category === 'เครื่องแก้ว' ? 'A' : '3'));
+
+  // 6. Subtitle / Specification
+  let subInfo = '';
+  if (item.category === 'สารเคมี') {
+    const grade = item.grade || item.spec || 'AR Grade';
+    const cas = item.casNo || item.casNumber ? `CAS ${item.casNo || item.casNumber}` : (item.formula ? `Formula: ${item.formula}` : '');
+    subInfo = [grade, cas].filter(Boolean).join(' · ');
+  } else if (item.category === 'เครื่องแก้ว') {
+    const vol = item.capacity || item.volume ? `Volume: ${item.capacity || item.volume}` : (item.spec || 'Volume: 250 mL');
+    const brand = item.brand || item.manufacturer || 'Pyrex';
+    subInfo = [vol, brand].filter(Boolean).join(' · ');
+  } else {
+    const model = item.model || item.brand || item.spec || 'LabTech MS-300';
+    const volt = item.voltage || item.rating || '220V';
+    subInfo = [model, volt].filter(Boolean).join(' · ');
+  }
+
+  // 7. Quantity and Unit formatting
+  let unitText = item.unit || 'ชิ้น';
+  const unitMap = {
+    'ขวด': 'Btl',
+    'ชิ้น': 'Pcs',
+    'เครื่อง': 'Units',
+    'อัน': 'Pcs',
+    'ชุด': 'Sets',
+    'กล่อง': 'Boxes',
+    'หลอด': 'Tubes',
+    'แผ่น': 'Pcs'
+  };
+  if (unitMap[unitText]) {
+    unitText = unitMap[unitText];
+  } else if (unitText === 'Unit' || unitText === 'unit') {
+    unitText = 'Units';
+  }
+
+  return `
+    <div class="asset-label-card">
+      <!-- Left QR Box -->
+      <div class="asset-label-qr-box">
+        <div class="asset-label-qr-tag">QR</div>
+        <img class="asset-label-qr-img" src="${qrImageUrl}" alt="QR Code">
+      </div>
+
+      <!-- Vertical Divider -->
+      <div class="asset-label-divider"></div>
+
+      <!-- Middle Location & Coordinates -->
+      <div class="asset-label-mid">
+        <div>
+          <div class="asset-label-cabinet">${escapeHtml(cabinetName)}</div>
+          <span class="asset-label-pill" style="background-color: ${badgeBg};">${escapeHtml(badgeText)}</span>
+        </div>
+        <div class="asset-label-coords">
+          <div class="asset-label-coord-item">
+            <span class="asset-label-coord-label">SHELF</span>
+            <span class="asset-label-coord-value">${escapeHtml(shelfVal)}</span>
+          </div>
+          <div class="asset-label-coord-item">
+            <span class="asset-label-coord-label">ROW/BIN</span>
+            <span class="asset-label-coord-value">${escapeHtml(binVal)}</span>
+          </div>
+          <div class="asset-label-coord-item">
+            <span class="asset-label-coord-label">${escapeHtml(unitOrPosLabel)}</span>
+            <span class="asset-label-coord-value">${escapeHtml(unitOrPosVal)}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Item Info & Quantity -->
+      <div class="asset-label-right">
+        <div style="width: 100%;">
+          <h4 class="asset-label-item-name">${escapeHtml(item.name)}</h4>
+          <div class="asset-label-item-sub">${escapeHtml(subInfo)}</div>
+        </div>
+        <div>
+          <div class="asset-label-item-qty">Qty: ${item.qty || 0} ${escapeHtml(unitText)}</div>
+          <div class="asset-label-item-id">ID: ${escapeHtml(item.code)} · chemicallab</div>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
 // 1. QR Code / Barcode Asset Label Modal
 window.openQRCodeModal = function(code) {
+  const roleLevel = getCurrentRoleLevel();
+  const isL2Plus = (roleLevel === "L2" || roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "staff" || userRole === "admin" || userRole === "executive" || userRole === "L2" || userRole === "L3" || userRole === "L4")));
+  if (!isL2Plus) {
+    if (typeof showToast === "function") {
+      showToast("การพิมพ์ป้าย Sticker Label อนุญาตเฉพาะเจ้าหน้าที่แล็บ (L2) ขึ้นไปเท่านั้น", "warning");
+    } else {
+      alert("การพิมพ์ป้าย Sticker Label อนุญาตเฉพาะเจ้าหน้าที่แล็บ (L2) ขึ้นไปเท่านั้น");
+    }
+    return;
+  }
+
   const item = (typeof items !== 'undefined' ? items : []).find(i => (i.code || '').toLowerCase() === (code || '').toLowerCase());
   if (!item) return;
 
@@ -24595,49 +25375,49 @@ window.openQRCodeModal = function(code) {
   const modal = document.createElement("div");
   modal.id = "qrAssetModal";
   modal.className = "modal-overlay active";
-  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;";
-
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(JSON.stringify({
-    system: "SCIPORTAL-LAB",
-    code: item.code,
-    name: item.name,
-    room: item.room || '',
-    cabinet: item.cabinet || ''
-  }))}`;
-
-  const locationText = [item.room, item.cabinet, item.shelf].filter(Boolean).join(" | ");
+  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;";
 
   modal.innerHTML = `
-    <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 440px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;"><i data-lucide="tag" style="width: 16px; height: 16px; color: #7c3aed;"></i> ป้ายรหัสประจำสารเคมี / ครุภัณฑ์</h3>
-        <button onclick="document.getElementById('qrAssetModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
-      </div>
-
-      <!-- Printable Card -->
-      <div id="printableAssetTag" style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px; background: #ffffff; text-align: center; margin-bottom: 16px;">
-        <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">ห้องปฏิบัติการวิทยาศาสตร์ - SCIPORTAL</div>
-        <div style="font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">${escapeHtml(item.name)}</div>
-        ${item.formula ? `<div style="font-family: monospace; font-size: 13px; color: #0284c7; font-weight: 600; margin-bottom: 8px;">${escapeHtml(item.formula)}</div>` : ''}
-        
-        <div style="display: flex; justify-content: center; margin: 12px 0;">
-          <img src="${qrImageUrl}" alt="Asset QR Code" style="width: 140px; height: 140px; border-radius: 8px; border: 1px solid #e2e8f0;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="background: #e0e7ff; color: #4338ca; padding: 6px; border-radius: 8px; display: inline-flex;">
+            <i data-lucide="tag" style="width: 17px; height: 17px;"></i>
+          </span>
+          <div>
+            <h3 style="margin: 0; font-size: 15.5px; font-weight: 700; color: #0f172a; line-height: 1.2;">พิมพ์ป้ายรหัสพัสดุ (Asset QR Label)</h3>
+            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">รูปแบบมาตรฐานห้องปฏิบัติการเคมีและเครื่องมือวิทยาศาสตร์</div>
+          </div>
         </div>
-
-        <div style="font-family: monospace; font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px;">${escapeHtml(item.code)}</div>
-        <div style="font-size: 11px; color: #64748b;">
-          พิกัด: ${escapeHtml(locationText || '-')}
-        </div>
-        ${item.expiry ? `<div style="font-size: 11px; color: #e11d48; font-weight: 600; margin-top: 4px;">EXP: ${formatThaiDate(item.expiry)}</div>` : ''}
-      </div>
-
-      <!-- Actions -->
-      <div style="display: flex; justify-content: center; gap: 8px;">
-        <button class="btn btn-secondary" onclick="printAssetLabel()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
-          <i data-lucide="printer" style="width: 14px; height: 14px;"></i> สั่งพิมพ์ป้าย (Print Label)
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('qrAssetModal').remove()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
-        <button class="btn btn-primary" onclick="document.getElementById('qrAssetModal').remove()" style="padding: 8px 16px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
+      </div>
+
+      <div class="modal-body">
+        <div style="font-size: 12px; font-weight: 600; color: #475569; display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: flex; align-items: center; gap: 5px;">
+            <i data-lucide="eye" style="width: 14px; height: 14px; color: #6366f1;"></i>
+            <span>ตัวอย่างป้ายพัสดุ (Print Preview)</span>
+          </span>
+          <span style="font-size: 11px; color: #64748b;">สเกลมาตรฐาน 100 × 50 mm / Sticker Label</span>
+        </div>
+
+        <div id="printableAssetTag">
+          ${renderAssetLabelCard(item)}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-footer-btn" onclick="document.getElementById('qrAssetModal').remove()" style="padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 500;">
           ปิด
+        </button>
+        <button type="button" class="btn btn-primary modal-footer-btn modal-btn-primary" onclick="printAssetLabel()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px; border-radius: 8px; font-size: 12.5px; font-weight: 600; background: #0f172a; color: #ffffff;">
+          <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+          <span>สั่งพิมพ์ป้ายนี้ (Print Label)</span>
         </button>
       </div>
     </div>
@@ -24648,22 +25428,190 @@ window.openQRCodeModal = function(code) {
 };
 
 window.printAssetLabel = function() {
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL2Plus = (roleLevel === "L2" || roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "staff" || userRole === "admin" || userRole === "executive" || userRole === "L2" || userRole === "L3" || userRole === "L4")));
+  if (!isL2Plus) {
+    if (typeof showToast === "function") {
+      showToast("การพิมพ์ป้าย Sticker Label อนุญาตเฉพาะเจ้าหน้าที่แล็บ (L2) ขึ้นไปเท่านั้น", "warning");
+    } else {
+      alert("การพิมพ์ป้าย Sticker Label อนุญาตเฉพาะเจ้าหน้าที่แล็บ (L2) ขึ้นไปเท่านั้น");
+    }
+    return;
+  }
+
   const printContent = document.getElementById("printableAssetTag");
   if (!printContent) return;
-  const win = window.open('', '', 'width=600,height=600');
+  const win = window.open('', '', 'width=750,height=500');
   win.document.write(`
+    <!DOCTYPE html>
     <html>
       <head>
-        <title>Print Asset Label</title>
+        <title>Asset QR Label Print - SciPortal</title>
+        <meta charset="utf-8">
         <style>
-          body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-          .tag { border: 2px dashed #000; padding: 20px; border-radius: 8px; text-align: center; max-width: 320px; }
+          @page {
+            size: auto;
+            margin: 10mm;
+          }
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+          }
+          .asset-label-card {
+            background: #ffffff !important;
+            border: 1.2px solid #0f172a !important;
+            border-radius: 10px !important;
+            padding: 10px 14px !important;
+            display: flex !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+            box-sizing: border-box !important;
+            width: 480px !important;
+            text-align: left !important;
+            page-break-inside: avoid;
+          }
+          .asset-label-qr-box {
+            width: 76px !important;
+            height: 76px !important;
+            border: 1.2px solid #0f172a !important;
+            border-radius: 6px !important;
+            padding: 4px !important;
+            position: relative !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+          }
+          .asset-label-qr-tag {
+            position: absolute !important;
+            top: 4px !important;
+            left: 5px !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            line-height: 1 !important;
+          }
+          .asset-label-qr-img {
+            width: 54px !important;
+            height: 54px !important;
+            display: block !important;
+            margin-top: 8px !important;
+          }
+          .asset-label-divider {
+            width: 1px !important;
+            background: #cbd5e1 !important;
+            margin: 2px 0 !important;
+            flex-shrink: 0 !important;
+          }
+          .asset-label-mid {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            min-width: 130px !important;
+          }
+          .asset-label-cabinet {
+            font-size: 16px !important;
+            font-weight: 900 !important;
+            color: #0f172a !important;
+            line-height: 1.1 !important;
+            margin: 0 0 3px 0 !important;
+            text-transform: uppercase !important;
+          }
+          .asset-label-pill {
+            display: inline-block !important;
+            padding: 2px 7px !important;
+            border-radius: 999px !important;
+            font-size: 9px !important;
+            font-weight: 800 !important;
+            color: #ffffff !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.03em !important;
+            margin-bottom: 5px !important;
+            width: fit-content !important;
+          }
+          .asset-label-coords {
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+          }
+          .asset-label-coord-item {
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .asset-label-coord-label {
+            font-size: 8px !important;
+            font-weight: 700 !important;
+            color: #64748b !important;
+            text-transform: uppercase !important;
+            line-height: 1 !important;
+          }
+          .asset-label-coord-value {
+            font-size: 15px !important;
+            font-weight: 900 !important;
+            color: #0f172a !important;
+            line-height: 1.15 !important;
+            margin-top: 2px !important;
+          }
+          .asset-label-right {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            align-items: flex-end !important;
+            text-align: right !important;
+            flex: 1 !important;
+            min-width: 135px !important;
+            padding-left: 8px !important;
+          }
+          .asset-label-item-name {
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+          }
+          .asset-label-item-sub {
+            font-size: 10px !important;
+            font-weight: 500 !important;
+            color: #64748b !important;
+            margin-top: 2px !important;
+          }
+          .asset-label-item-qty {
+            font-size: 15px !important;
+            font-weight: 900 !important;
+            color: #0f172a !important;
+            line-height: 1.1 !important;
+            margin: 0 !important;
+          }
+          .asset-label-item-id {
+            font-size: 9px !important;
+            font-family: monospace !important;
+            font-weight: 600 !important;
+            color: #64748b !important;
+            margin-top: 2px !important;
+          }
         </style>
       </head>
       <body>
-        <div class="tag">${printContent.innerHTML}</div>
+        ${printContent.innerHTML}
         <script>
-          window.onload = function() { window.print(); window.close(); }
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.close();
+            }, 250);
+          };
         </script>
       </body>
     </html>
@@ -24770,8 +25718,20 @@ window.handleStockAdjustmentSubmit = async function(event, itemCode) {
   }
 };
 
-// 3. Master Data & Stock Details Modal
+// 3. Master Data & Stock Details Modal (Exclusive for L3-L4 Admins & Executives)
 window.openMasterDetailModal = function(code) {
+  const role = typeof getCurrentRoleLevel === 'function' ? getCurrentRoleLevel() : 'L0';
+  const isL3Plus = (role === 'L3' || role === 'L4' || role === 'admin' || role === 'executive' || (typeof userRole !== 'undefined' && (userRole === 'admin' || userRole === 'executive' || userRole === 'L3' || userRole === 'L4')));
+
+  if (!isL3Plus) {
+    if (typeof showToast === 'function') {
+      showToast('เฉพาะผู้ดูแลระบบระดับ L3-L4 เท่านั้นที่ได้รับสิทธิ์เข้าถึง Master Data', 'error');
+    } else if (typeof showNotification === 'function') {
+      showNotification('เฉพาะผู้ดูแลระบบระดับ L3-L4 เท่านั้นที่ได้รับสิทธิ์เข้าถึง Master Data', 'warning');
+    }
+    return;
+  }
+
   const item = (typeof items !== 'undefined' ? items : []).find(i => (i.code || '').toLowerCase() === (code || '').toLowerCase());
   if (!item) {
     if (typeof showToast === 'function') showToast('ไม่พบข้อมูลพัสดุ', 'error');
@@ -24781,109 +25741,177 @@ window.openMasterDetailModal = function(code) {
   const existing = document.getElementById("masterDetailModal");
   if (existing) existing.remove();
 
-  const role = typeof getCurrentRoleLevel === 'function' ? getCurrentRoleLevel() : 'L0';
-  const isL3Plus = (role === 'L3' || role === 'admin' || (typeof userRole !== 'undefined' && (userRole === 'admin' || userRole === 'L3')));
-  const isL2Staff = (role === 'L2' || role === 'staff');
-  const isAdminOrStaff = isL3Plus || isL2Staff || (typeof isAdminLoggedIn !== 'undefined' && isAdminLoggedIn);
-
   const q = parseFloat(item.qty !== undefined ? item.qty : 0);
   const minStock = item.minAlert !== undefined ? item.minAlert : (item.minStock || 3);
-  const reorderPt = item.reorderPoint !== undefined ? item.reorderPoint : 6;
-  const safetyStock = item.safetyStock !== undefined ? item.safetyStock : 3;
+  const reorderPt = item.reorderPoint !== undefined ? item.reorderPoint : (minStock * 2);
+  const safetyStock = item.safetyStock !== undefined ? item.safetyStock : minStock;
 
   const sdsSearchUrl = item.sdsUrl || item.sds_url || `https://pubchem.ncbi.nlm.nih.gov/#query=${encodeURIComponent(item.casNo || item.casNumber || item.name)}`;
 
   const modal = document.createElement("div");
   modal.id = "masterDetailModal";
   modal.className = "modal-overlay active";
-  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;";
+  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;";
 
   modal.innerHTML = `
-    <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0;">
+    <div class="modal-content">
       <!-- Modal Header -->
-      <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-family: monospace; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>
-            <span class="category-badge" style="font-size: 12px; color: #64748b;">${escapeHtml(item.category || '-')}</span>
+      <div style="padding: 20px 24px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: flex-start; background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span style="background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: #ffffff; padding: 3px 9px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.5px;">
+              <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> MASTER RECORD (L3-L4)
+            </span>
+            <span style="font-family: monospace; background: #e0e7ff; color: #4338ca; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>
+            <span class="category-badge" style="font-size: 12px; color: #475569; background: #f1f5f9; padding: 3px 9px; border-radius: 999px; font-weight: 600;">${escapeHtml(item.category || '-')}</span>
           </div>
-          <h2 style="margin: 8px 0 2px 0; font-size: 18px; color: #0f172a; font-weight: 700;">${escapeHtml(item.name)}</h2>
-          ${item.formula ? `<div style="font-family: monospace; font-size: 14px; color: #64748b;">สูตรเคมี: ${escapeHtml(item.formula)}</div>` : ''}
+          <div>
+            <h2 style="margin: 0; font-size: 19px; color: #0f172a; font-weight: 700; line-height: 1.35;">
+              ${escapeHtml(item.name)}
+              ${item.formula ? `<span style="font-family: monospace; font-size: 14px; color: #6366f1; font-weight: 600; margin-left: 6px;">(${escapeHtml(item.formula)})</span>` : ''}
+            </h2>
+            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+              ศูนย์ควบคุมข้อมูลสต็อกขั้นสูง การจัดซื้อ ล็อตสินค้า และพิกัดความปลอดภัยห้องปฏิบัติการ
+            </div>
+          </div>
         </div>
-        <button onclick="document.getElementById('masterDetailModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8; padding: 4px;">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('masterDetailModal').remove()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
       <!-- Modal Body -->
-      <div style="padding: 24px;">
-        <!-- Grid Sections -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-          <!-- Left Column: Master & Stock -->
-          <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="package" style="width: 14px; height: 14px; color: #7c3aed;"></i> <span>สต็อกและการจัดซื้อ</span>
+      <div style="padding: 24px; background: #f8fafc; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; max-height: calc(90vh - 145px);">
+        <!-- 4 KPI Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+          <div class="master-kpi-card highlight">
+            <div style="font-size: 11.5px; color: #0369a1; font-weight: 600;">คงเหลือปัจจุบัน (Stock)</div>
+            <div style="font-size: 20px; font-weight: 800; color: #0284c7; margin-top: 4px;">
+              ${q} <span style="font-size: 13px; font-weight: 600; color: #0369a1;">${escapeHtml(item.unit || 'หน่วย')}</span>
+            </div>
+            <div style="font-size: 10.5px; color: #0284c7; margin-top: 2px;">อัปเดตเรียลไทม์ในระบบ</div>
+          </div>
+          <div class="master-kpi-card">
+            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">เกณฑ์เตือนขั้นต่ำ (Min)</div>
+            <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 4px;">
+              ${minStock} <span style="font-size: 12px; font-weight: 500; color: #64748b;">${escapeHtml(item.unit || 'หน่วย')}</span>
+            </div>
+            <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">จุดแจ้งเตือนห้องแล็บ</div>
+          </div>
+          <div class="master-kpi-card">
+            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">จุดสั่งซื้อใหม่ (Reorder)</div>
+            <div style="font-size: 18px; font-weight: 700; color: #4338ca; margin-top: 4px;">
+              ${reorderPt} <span style="font-size: 12px; font-weight: 500; color: #64748b;">${escapeHtml(item.unit || 'หน่วย')}</span>
+            </div>
+            <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">เกณฑ์เปิดใบขอซื้อ (PR)</div>
+          </div>
+          <div class="master-kpi-card">
+            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">สต็อกสำรอง (Safety)</div>
+            <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 4px;">
+              ${safetyStock} <span style="font-size: 12px; font-weight: 500; color: #64748b;">${escapeHtml(item.unit || 'หน่วย')}</span>
+            </div>
+            <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">สำรองภาวะฉุกเฉิน</div>
+          </div>
+        </div>
+
+        <!-- 2 Detailed Master Bento Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+          <!-- Left Column: Procurement & Batch Traceability -->
+          <div class="master-info-card">
+            <h4 style="margin: 0; font-size: 13.5px; color: #4338ca; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
+              <i data-lucide="package-check" style="width: 16px; height: 16px; color: #6366f1;"></i>
+              <span>การจัดซื้อและล็อตสินค้า (Procurement & Lot)</span>
             </h4>
-            <div style="font-size: 13px; line-height: 1.8;">
-              <div><strong>คงเหลือปัจจุบัน:</strong> <span style="font-size: 16px; font-weight: 700; color: #0284c7;">${q} ${escapeHtml(item.unit || 'ขวด')}</span></div>
-              ${isAdminOrStaff ? `
-                <div><strong>เกณฑ์เตือนขั้นต่ำ (Min Stock):</strong> ${minStock} ${escapeHtml(item.unit || 'ขวด')}</div>
-                <div><strong>จุดสั่งซื้อใหม่ (Reorder Point):</strong> ${reorderPt} ${escapeHtml(item.unit || 'ขวด')}</div>
-                <div><strong>สต็อกเพื่อความปลอดภัย (Safety Stock):</strong> ${safetyStock} ${escapeHtml(item.unit || 'ขวด')}</div>
-                <div><strong>Lot / Batch Number:</strong> ${escapeHtml(item.lotNumber || '-')}</div>
-                <div><strong>วันที่รับเข้า:</strong> ${formatThaiDate(item.receivedDate || item.createdAt || getSystemISODate())}</div>
-                <div><strong>วันหมดอายุ:</strong> ${item.expiry ? formatThaiDate(item.expiry) : '-'}</div>
-                <div><strong>ผู้จัดจำหน่าย (Supplier):</strong> ${escapeHtml(item.supplier || '-')}</div>
-              ` : `
-                <div><strong>เกณฑ์เตือนขั้นต่ำ:</strong> ${minStock} ${escapeHtml(item.unit || 'ขวด')}</div>
-                <div><strong>วันหมดอายุ:</strong> ${item.expiry ? formatThaiDate(item.expiry) : '-'}</div>
-                <div style="color: #94a3b8; font-size: 12px; margin-top: 8px; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
-                  <i data-lucide="lock" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i> ข้อมูลจัดซื้อขั้นสูง (Lot, Safety Stock, Supplier) สำหรับผู้ดูแลระบบเท่านั้น
-                </div>
-              `}
+            <div class="master-info-row">
+              <span class="master-info-label">Lot / Batch Number:</span>
+              <span class="master-info-value" style="font-family: monospace; color: #4338ca;">${escapeHtml(item.lotNumber || item.lot_number || '-')}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">วันที่รับเข้าคลัง:</span>
+              <span class="master-info-value">${formatThaiDate(item.receivedDate || item.createdAt || getSystemISODate())}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">วันหมดอายุพัสดุ:</span>
+              <span class="master-info-value" style="color: ${item.expiry ? '#b91c1c' : '#0f172a'};">${item.expiry ? formatThaiDate(item.expiry) : 'ไม่ระบุ'}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">ผู้จัดจำหน่าย (Vendor):</span>
+              <span class="master-info-value">${escapeHtml(item.supplier || '-')}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">หน่วยนับในระบบ:</span>
+              <span class="master-info-value">${escapeHtml(item.unit || 'หน่วย')}</span>
             </div>
           </div>
 
-          <!-- Right Column: Location & Safety -->
-          <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="map-pin" style="width: 14px; height: 14px; color: #7c3aed;"></i> <span>ตำแหน่งและความปลอดภัย</span>
+          <!-- Right Column: Location & Safety Matrix -->
+          <div class="master-info-card">
+            <h4 style="margin: 0; font-size: 13.5px; color: #4338ca; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
+              <i data-lucide="shield-alert" style="width: 16px; height: 16px; color: #ef4444;"></i>
+              <span>ตำแหน่งและความปลอดภัย (Location & Safety)</span>
             </h4>
-            <div style="font-size: 13px; line-height: 1.8;">
-              <div><strong>ห้องปฏิบัติการ:</strong> ${escapeHtml(item.room || '-')}</div>
-              <div><strong>ตู้จัดเก็บ:</strong> ${escapeHtml(item.cabinet || '-')}</div>
-              <div><strong>ชั้นวาง / ตำแหน่ง:</strong> ${escapeHtml(item.shelf || '-')} ${item.position ? `(ช่อง ${escapeHtml(item.position)})` : ''}</div>
-              <div><strong>CAS Number:</strong> ${escapeHtml(item.casNo || item.casNumber || '-')}</div>
-              <div><strong>กลุ่มจัดเก็บทางเคมี:</strong> <span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: 600;">${escapeHtml(item.storageGroup || 'G')}</span></div>
-              <div><strong>ระดับเตือนอันตราย:</strong> ${escapeHtml(item.signalWord || 'Warning')}</div>
+            <div class="master-info-row">
+              <span class="master-info-label">ห้องปฏิบัติการ:</span>
+              <span class="master-info-value">${escapeHtml(item.room || '-')}</span>
             </div>
-
-            <!-- SDS Link Button -->
-            <div style="margin-top: 14px;">
-              <a href="${escapeHtml(sdsSearchUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #0284c7; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600;">
-                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> ดูเอกสารความปลอดภัย (SDS Link)
+            <div class="master-info-row">
+              <span class="master-info-label">ตู้จัดเก็บสาร:</span>
+              <span class="master-info-value">${escapeHtml(item.cabinet || '-')}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">ชั้นวาง / ตำแหน่ง:</span>
+              <span class="master-info-value">${escapeHtml(item.shelf || '-')} ${item.position ? `(ช่อง ${escapeHtml(item.position)})` : ''}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">CAS Registry No.:</span>
+              <span class="master-info-value" style="font-family: monospace;">${escapeHtml(item.casNo || item.casNumber || '-')}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">กลุ่มสารเคมี SHECU:</span>
+              <span class="master-info-value">
+                <span style="background: #e0e7ff; color: #4338ca; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 700;">
+                  ${escapeHtml(item.storageGroup || 'Class G - General')}
+                </span>
+              </span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">ระดับเตือนอันตราย:</span>
+              <span class="master-info-value" style="color: ${item.signalWord === 'Danger' ? '#dc2626' : '#d97706'};">
+                ${escapeHtml(item.signalWord || 'Warning')}
+              </span>
+            </div>
+            <div style="margin-top: 6px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
+              <a href="${escapeHtml(sdsSearchUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #0284c7; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);">
+                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> ดูเอกสารความปลอดภัย (SDS Sheet)
               </a>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Quick Action Toolbar -->
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            ${isAdminOrStaff ? `
-            <button class="btn btn-secondary" onclick="document.getElementById('masterDetailModal').remove(); openStockMovementsModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
-              <i data-lucide="history" style="width: 14px; height: 14px;"></i> บันทึกการเบิก/ใช้ (Movement)
-            </button>
-            <button class="btn btn-secondary" onclick="document.getElementById('masterDetailModal').remove(); openStockAdjustmentModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
-              <i data-lucide="scale" style="width: 14px; height: 14px;"></i> ปรับปรุงยอดคงคลัง
-            </button>
-            ` : ''}
-            <button class="btn btn-secondary" onclick="document.getElementById('masterDetailModal').remove(); openQRCodeModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
-              <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i> ป้าย QR Code
-            </button>
-          </div>
-          <button class="btn btn-primary" onclick="document.getElementById('masterDetailModal').remove()" style="padding: 8px 20px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">
-            ปิด
-          </button>
-        </div>
+      <!-- Quick Action Toolbar (L3/L4 Operational Actions) -->
+      <div style="padding: 14px 24px; border-top: 1px solid #edf2f7; background: #ffffff; display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary modal-footer-btn" onclick="document.getElementById('masterDetailModal').remove(); openStockMovementsModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 12.5px;">
+          <i data-lucide="history" style="width: 14px; height: 14px;"></i>
+          <span>บันทึกเบิก/ใช้ (Movement)</span>
+        </button>
+        <button type="button" class="btn btn-secondary modal-footer-btn" onclick="document.getElementById('masterDetailModal').remove(); openStockAdjustmentModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 12.5px;">
+          <i data-lucide="scale" style="width: 14px; height: 14px;"></i>
+          <span>ปรับปรุงยอดสต็อก</span>
+        </button>
+        ${(typeof isL2Plus !== 'undefined' ? isL2Plus : (getCurrentRoleLevel() !== 'L0' && getCurrentRoleLevel() !== 'L1')) ? `
+        <button type="button" class="btn btn-secondary modal-footer-btn" onclick="document.getElementById('masterDetailModal').remove(); openQRCodeModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 12.5px;">
+          <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i>
+          <span>ป้าย QR Code</span>
+        </button>
+        ` : ''}
+        <button type="button" class="btn btn-primary modal-footer-btn modal-btn-primary" onclick="document.getElementById('masterDetailModal').remove(); editItem(items.findIndex(i => i.code === '${escapeHtml(item.code)}'))" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; font-size: 12.5px;">
+          <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+          <span>แก้ไขข้อมูล Master</span>
+        </button>
       </div>
     </div>
   `;

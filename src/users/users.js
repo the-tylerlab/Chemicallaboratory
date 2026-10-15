@@ -160,22 +160,17 @@ export function renderUsersTable() {
         </td>
         <td><span style="font-size: 12px; color: #64748b;">${escapeHtml(rooms)}</span></td>
         <td><span style="font-size: 12px; color: #64748b;">${escapeHtml(u.department || '-')}</span></td>
-        <td style="white-space: nowrap; width: 190px; min-width: 190px;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="user-pass-val" id="mod-user-pass-${tId}" data-pass="${pass}" style="display: inline-block; font-family: monospace; font-size: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px 7px; border-radius: 6px; color: #475569; width: 128px; min-width: 128px; max-width: 128px; text-align: center; letter-spacing: 1px; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle;">••••••••</span>
-            <button type="button" onclick="if(window.toggleAdminUserPassEye) toggleAdminUserPassEye('${tId}');" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;" title="แสดง/ซ่อนรหัสผ่าน">
-              <i data-lucide="eye" id="user-eye-${tId}" style="width: 13px; height: 13px;"></i>
-            </button>
-            <button type="button" onclick="if(window.copyAdminUserPass) copyAdminUserPass('${pass}');" style="background: none; border: none; cursor: pointer; padding: 2px 3px; color: #64748b; display: inline-flex; align-items: center; justify-content: center;" title="คัดลอกรหัสผ่าน">
-              <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
-            </button>
-          </div>
+        <td style="white-space: nowrap; width: 150px; text-align: center;">
+          <span class="user-security-badge" title="รหัสผ่านได้รับการปกป้องด้วยการเข้ารหัส Bcrypt แบบทางเดียว">
+            <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i>
+            <span>เข้ารหัสปลอดภัย</span>
+          </span>
         </td>
         <td style="text-align: right; white-space: nowrap;">
           <button class="action-btn" title="แก้ไขสิทธิ์" onclick="openEditUserModal('${tId}')">
             <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
           </button>
-          <button class="action-btn" style="color: #c2410c;" title="รีเซ็ตรหัสผ่าน" onclick="if(window.quickResetUserPassword) quickResetUserPassword('${u.id || tId}');">
+          <button class="action-btn" style="color: #6d28d9;" title="รีเซ็ตรหัสผ่าน" onclick="if(window.quickResetUserPassword) quickResetUserPassword('${u.id || tId}');">
             <i data-lucide="key-round" style="width: 14px; height: 14px;"></i>
           </button>
           <button class="action-btn" style="color: #ef4444;" title="ลบผู้ใช้" onclick="confirmDeleteUser('${tId}', '${name}')">

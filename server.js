@@ -71,19 +71,24 @@ app.disable('x-powered-by');
 // Security Headers Middleware
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
+  if (IS_PRODUCTION) {
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  } else {
+    // In local development, permit embedding for IDE Simple Browser / Webview Preview
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  }
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
-  res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
 
   const cspDirectives = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: blob: https:",
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://script.google.com https://script.googleusercontent.com",
-    "frame-ancestors 'none'",
+    IS_PRODUCTION ? "frame-ancestors 'none'" : "frame-ancestors 'self' vscode-webview: *",
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'"
@@ -3900,14 +3905,16 @@ app.get('/api/users', optionalAuth, async (req, res) => {
   const role = req.user ? normalizeRole(req.user.role || req.user.roleLevel) : 'L0';
 
   if (role === 'L3') {
-    // Admin gets full user list with visible display_password for password management
+    // Admin gets full user list. For security, passwords are encrypted and NEVER exposed.
     const adminView = users.map(u => {
       const copy = { ...u };
       copy.initials = calculateUserInitials(u.name) || u.initials || 'U';
-      const isAdmin = (u.teacherId === 'admin' || u.teacherId === '10823' || u.id === 'u_admin' || u.id === 'u_10823');
-      copy.display_password = u.plain_password || u.display_password || (isAdmin ? 'SciAdmin@2026' : (u.teacherId || ''));
+      copy.hasPassword = !!u.password;
+      copy.passwordChangedAt = u.password_changed_at;
       delete copy.password;
       delete copy.password_hash;
+      delete copy.plain_password;
+      delete copy.display_password;
       return copy;
     });
     return res.json(adminView);
@@ -5095,6 +5102,7 @@ if (require.main === module) {
     if (!IS_PRODUCTION) {
       watchPages();
       const watchedExtensions = new Set(['.html', '.css', '.js']);
+      const watchedFileSignatures = new Map();
       let reloadTimer = null;
       try {
         fs.watch(__dirname, { recursive: true }, (_eventType, filename) => {
@@ -5102,6 +5110,16 @@ if (require.main === module) {
           const relativePath = String(filename);
           if (relativePath.split(path.sep).some(part => ['.git', 'node_modules', 'data', 'dist'].includes(part))) return;
           if (!watchedExtensions.has(path.extname(relativePath))) return;
+
+          let fileSignature;
+          try {
+            const stat = fs.statSync(path.join(__dirname, relativePath));
+            fileSignature = `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}`;
+          } catch {
+            return;
+          }
+          if (watchedFileSignatures.get(relativePath) === fileSignature) return;
+          watchedFileSignatures.set(relativePath, fileSignature);
 
           clearTimeout(reloadTimer);
           reloadTimer = setTimeout(() => {
