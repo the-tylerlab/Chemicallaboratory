@@ -321,6 +321,7 @@ export function renderItemsTable() {
   }
 
   const role = getCurrentRoleLevel();
+  const isL2Plus = (role === 'L2' || role === 'L3' || role === 'L4');
   const canEdit = (role === 'L2' || role === 'L3');
   const now = new Date();
 
@@ -390,9 +391,11 @@ export function renderItemsTable() {
           <button class="action-btn" title="ประวัติการเคลื่อนไหวสต็อก (Movement History)" onclick="openStockMovementsModal('${escapeHtml(item.code)}')">
             <i data-lucide="history" style="width: 14px; height: 14px;"></i>
           </button>
-          <button class="action-btn" title="พิมพ์ป้าย QR Code / Barcode" onclick="openQRCodeModal('${escapeHtml(item.code)}')">
+          ${isL2Plus ? `
+          <button class="action-btn" title="พิมพ์ป้าย QR Code / Barcode (Sticker Label)" onclick="openQRCodeModal('${escapeHtml(item.code)}')">
             <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i>
           </button>
+          ` : ''}
           ${canEdit ? `
             <button class="action-btn" title="ขอปรับยอดสต็อก (Adjustment)" onclick="openStockAdjustmentModal('${escapeHtml(item.code)}')">
               <i data-lucide="scale" style="width: 14px; height: 14px;"></i>
@@ -414,6 +417,16 @@ export function renderItemsTable() {
 // --------------------------------------------------------------------------
 
 export function viewItemDetails(code) {
+  const role = typeof getCurrentRoleLevel === 'function' ? getCurrentRoleLevel() : 'L0';
+  const isL3Plus = (role === 'L3' || role === 'L4' || role === 'admin' || role === 'executive' || (typeof userRole !== 'undefined' && (userRole === 'admin' || userRole === 'executive' || userRole === 'L3' || userRole === 'L4')));
+
+  if (!isL3Plus) {
+    if (typeof showToast === 'function') {
+      showToast('เฉพาะผู้ดูแลระบบระดับ L3-L4 เท่านั้นที่ได้รับสิทธิ์เข้าถึง Master Data', 'error');
+    }
+    return;
+  }
+
   const item = state.items.find(i => (i.code || '').toLowerCase() === code.toLowerCase());
   if (!item) {
     if (typeof window.showToast === 'function') window.showToast('ไม่พบข้อมูลพัสดุ', 'error');
@@ -424,87 +437,169 @@ export function viewItemDetails(code) {
   const existing = document.getElementById("masterDetailModal");
   if (existing) existing.remove();
 
-  const modal = document.createElement("div");
-  modal.id = "masterDetailModal";
-  modal.className = "modal-overlay active";
-  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px;";
-
   const q = parseFloat(item.qty !== undefined ? item.qty : (item.quantity || 0));
-  const minStock = parseFloat(item.minAlert !== undefined ? item.minAlert : (item.minStock || 5));
+  const minStock = parseFloat(item.minAlert !== undefined ? item.minAlert : (item.minStock || 3));
   const reorderPt = parseFloat(item.reorderPoint !== undefined ? item.reorderPoint : (minStock * 2));
   const safetyStock = parseFloat(item.safetyStock !== undefined ? item.safetyStock : minStock);
 
   const sdsSearchUrl = item.sdsUrl || item.sds_url || `https://pubchem.ncbi.nlm.nih.gov/#query=${encodeURIComponent(item.casNumber || item.name)}`;
 
+  const modal = document.createElement("div");
+  modal.id = "masterDetailModal";
+  modal.className = "modal-overlay active";
+  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px;";
+
   modal.innerHTML = `
-    <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid #e2e8f0;">
+    <div class="modal-content">
       <!-- Modal Header -->
-      <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-family: monospace; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>
-            <span class="category-badge">${escapeHtml(item.category || '-')}</span>
+      <div style="padding: 20px 24px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: flex-start; background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span style="background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: #ffffff; padding: 3px 9px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.5px;">
+              <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> MASTER RECORD (L3-L4)
+            </span>
+            <span style="font-family: monospace; background: #e0e7ff; color: #4338ca; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>
+            <span class="category-badge" style="font-size: 12px; color: #475569; background: #f1f5f9; padding: 3px 9px; border-radius: 999px; font-weight: 600;">${escapeHtml(item.category || '-')}</span>
           </div>
-          <h2 style="margin: 8px 0 2px 0; font-size: 18px; color: #0f172a; font-weight: 700;">${escapeHtml(item.name)}</h2>
-          ${item.formula ? `<div style="font-family: monospace; font-size: 14px; color: #64748b;">สูตรเคมี: ${escapeHtml(item.formula)}</div>` : ''}
+          <div>
+            <h2 style="margin: 0; font-size: 19px; color: #0f172a; font-weight: 700; line-height: 1.35;">
+              ${escapeHtml(item.name)}
+              ${item.formula ? `<span style="font-family: monospace; font-size: 14px; color: #6366f1; font-weight: 600; margin-left: 6px;">(${escapeHtml(item.formula)})</span>` : ''}
+            </h2>
+            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+              ศูนย์ควบคุมข้อมูลสต็อกขั้นสูง การจัดซื้อ ล็อตสินค้า และพิกัดความปลอดภัยห้องปฏิบัติการ
+            </div>
+          </div>
         </div>
-        <button onclick="document.getElementById('masterDetailModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8; padding: 4px;">&times;</button>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('masterDetailModal').remove()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
 
       <!-- Modal Body -->
-      <div style="padding: 24px;">
-        <!-- Grid Sections -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-          <!-- Left Column: Master & Stock -->
-          <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;"><i data-lucide="package" class="inline-icon"></i> สต็อกและการจัดซื้อ</h4>
-            <div style="font-size: 13px; line-height: 1.8;">
-              <div><strong>คงเหลือปัจจุบัน:</strong> <span style="font-size: 16px; font-weight: 700; color: #0284c7;">${q} ${escapeHtml(item.unit || 'ชิ้น')}</span></div>
-              <div><strong>เกณฑ์เตือนขั้นต่ำ (Min Stock):</strong> ${minStock} ${escapeHtml(item.unit || 'ชิ้น')}</div>
-              <div><strong>จุดสั่งซื้อใหม่ (Reorder Point):</strong> ${reorderPt} ${escapeHtml(item.unit || 'ชิ้น')}</div>
-              <div><strong>สต็อกเพื่อความปลอดภัย (Safety Stock):</strong> ${safetyStock} ${escapeHtml(item.unit || 'ชิ้น')}</div>
-              <div><strong>Lot / Batch Number:</strong> ${escapeHtml(item.lotNumber || item.lot_number || '-')}</div>
-              <div><strong>วันที่รับเข้า:</strong> ${formatDate(item.receivedDate || item.received_date || item.createdAt)}</div>
-              <div><strong>วันหมดอายุ:</strong> ${formatDate(item.expiry || item.expiryDate || item.expiry_date)}</div>
-              <div><strong>ผู้จัดจำหน่าย (Supplier):</strong> ${escapeHtml(item.supplier || '-')}</div>
+      <div style="padding: 24px; background: #f8fafc; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; max-height: calc(90vh - 145px);">
+        <!-- 4 KPI Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+          <div class="master-kpi-card highlight">
+            <div style="font-size: 11.5px; color: #0369a1; font-weight: 600;">คงเหลือปัจจุบัน (Stock)</div>
+            <div style="font-size: 20px; font-weight: 800; color: #0284c7; margin-top: 4px;">
+              ${q} <span style="font-size: 13px; font-weight: 600; color: #0369a1;">${escapeHtml(item.unit || 'ชิ้น')}</span>
+            </div>
+            <div style="font-size: 10.5px; color: #0284c7; margin-top: 2px;">อัปเดตเรียลไทม์ในระบบ</div>
+          </div>
+          <div class="master-kpi-card">
+            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">เกณฑ์เตือนขั้นต่ำ (Min)</div>
+            <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 4px;">
+              ${minStock} <span style="font-size: 12px; font-weight: 500; color: #64748b;">${escapeHtml(item.unit || 'ชิ้น')}</span>
+            </div>
+            <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">จุดแจ้งเตือนห้องแล็บ</div>
+          </div>
+          <div class="master-kpi-card">
+            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">จุดสั่งซื้อใหม่ (Reorder)</div>
+            <div style="font-size: 18px; font-weight: 700; color: #4338ca; margin-top: 4px;">
+              ${reorderPt} <span style="font-size: 12px; font-weight: 500; color: #64748b;">${escapeHtml(item.unit || 'ชิ้น')}</span>
+            </div>
+            <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">เกณฑ์เปิดใบขอซื้อ (PR)</div>
+          </div>
+          <div class="master-kpi-card">
+            <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">สต็อกสำรอง (Safety)</div>
+            <div style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 4px;">
+              ${safetyStock} <span style="font-size: 12px; font-weight: 500; color: #64748b;">${escapeHtml(item.unit || 'ชิ้น')}</span>
+            </div>
+            <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">สำรองภาวะฉุกเฉิน</div>
+          </div>
+        </div>
+
+        <!-- 2 Detailed Master Bento Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+          <!-- Left Column: Procurement & Batch Traceability -->
+          <div class="master-info-card">
+            <h4 style="margin: 0; font-size: 13.5px; color: #4338ca; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
+              <i data-lucide="package-check" style="width: 16px; height: 16px; color: #6366f1;"></i>
+              <span>การจัดซื้อและล็อตสินค้า (Procurement & Lot)</span>
+            </h4>
+            <div class="master-info-row">
+              <span class="master-info-label">Lot / Batch Number:</span>
+              <span class="master-info-value" style="font-family: monospace; color: #4338ca;">${escapeHtml(item.lotNumber || item.lot_number || '-')}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">วันที่รับเข้าคลัง:</span>
+              <span class="master-info-value">${formatDate(item.receivedDate || item.received_date || item.createdAt)}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">วันหมดอายุพัสดุ:</span>
+              <span class="master-info-value" style="color: ${item.expiry || item.expiryDate ? '#b91c1c' : '#0f172a'};">${formatDate(item.expiry || item.expiryDate || item.expiry_date)}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">ผู้จัดจำหน่าย (Vendor):</span>
+              <span class="master-info-value">${escapeHtml(item.supplier || '-')}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">หน่วยนับในระบบ:</span>
+              <span class="master-info-value">${escapeHtml(item.unit || 'ชิ้น')}</span>
             </div>
           </div>
 
-          <!-- Right Column: Location & Safety -->
-          <div style="background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <h4 style="margin: 0 0 12px 0; font-size: 13px; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em;"><i data-lucide="map-pin" class="inline-icon"></i> ตำแหน่งและความปลอดภัย</h4>
-            <div style="font-size: 13px; line-height: 1.8;">
-              <div><strong>ห้องปฏิบัติการ:</strong> ${escapeHtml(item.room || '-')}</div>
-              <div><strong>ตู้จัดเก็บ:</strong> ${escapeHtml(item.cabinet || '-')}</div>
-              <div><strong>ชั้นวาง / ตำแหน่ง:</strong> ${escapeHtml(item.shelf || '-')} ${item.position ? `(ช่อง ${escapeHtml(item.position)})` : ''}</div>
-              <div><strong>CAS Number:</strong> ${escapeHtml(item.casNumber || item.cas_number || '-')}</div>
-              <div><strong>กลุ่มจัดเก็บทางเคมี:</strong> <span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${escapeHtml(item.storageGroup || item.chemicalType || 'General')}</span></div>
-              <div><strong>ระดับเตือนอันตราย:</strong> ${escapeHtml(item.signalWord || 'Warning')}</div>
+          <!-- Right Column: Location & Safety Matrix -->
+          <div class="master-info-card">
+            <h4 style="margin: 0; font-size: 13.5px; color: #4338ca; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
+              <i data-lucide="shield-alert" style="width: 16px; height: 16px; color: #ef4444;"></i>
+              <span>ตำแหน่งและความปลอดภัย (Location & Safety)</span>
+            </h4>
+            <div class="master-info-row">
+              <span class="master-info-label">ห้องปฏิบัติการ:</span>
+              <span class="master-info-value">${escapeHtml(item.room || '-')}</span>
             </div>
-
-            <!-- SDS Link Button -->
-            <div style="margin-top: 14px;">
-              <a href="${escapeHtml(sdsSearchUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #0284c7; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600;">
-                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> ดูเอกสารความปลอดภัย (SDS Link)
+            <div class="master-info-row">
+              <span class="master-info-label">ตู้จัดเก็บสาร:</span>
+              <span class="master-info-value">${escapeHtml(item.cabinet || '-')}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">ชั้นวาง / ตำแหน่ง:</span>
+              <span class="master-info-value">${escapeHtml(item.shelf || '-')} ${item.position ? `(ช่อง ${escapeHtml(item.position)})` : ''}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">CAS Registry No.:</span>
+              <span class="master-info-value" style="font-family: monospace;">${escapeHtml(item.casNumber || item.cas_number || '-')}</span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">กลุ่มสารเคมี SHECU:</span>
+              <span class="master-info-value">
+                <span style="background: #e0e7ff; color: #4338ca; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 700;">
+                  ${escapeHtml(item.storageGroup || item.chemicalType || 'General')}
+                </span>
+              </span>
+            </div>
+            <div class="master-info-row">
+              <span class="master-info-label">ระดับเตือนอันตราย:</span>
+              <span class="master-info-value" style="color: ${item.signalWord === 'Danger' ? '#dc2626' : '#d97706'};">
+                ${escapeHtml(item.signalWord || 'Warning')}
+              </span>
+            </div>
+            <div style="margin-top: 6px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
+              <a href="${escapeHtml(sdsSearchUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #0284c7; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);">
+                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> ดูเอกสารความปลอดภัย (SDS Sheet)
               </a>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Quick Action Toolbar -->
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary" onclick="document.getElementById('masterDetailModal').remove(); openStockMovementsModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
-              <i data-lucide="history" style="width: 14px; height: 14px;"></i> บันทึกการเบิก/ใช้ (Movement)
-            </button>
-            <button class="btn btn-secondary" onclick="document.getElementById('masterDetailModal').remove(); openQRCodeModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
-              <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i> ป้าย QR Code
-            </button>
-          </div>
-          <button class="btn btn-primary" onclick="document.getElementById('masterDetailModal').remove()" style="padding: 8px 20px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;">
-            ปิด
-          </button>
-        </div>
+      <!-- Quick Action Toolbar (L3/L4 Operational Actions) -->
+      <div style="padding: 14px 24px; border-top: 1px solid #edf2f7; background: #ffffff; display: flex; justify-content: flex-end; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <button type="button" class="btn btn-secondary modal-footer-btn" onclick="document.getElementById('masterDetailModal').remove(); openStockMovementsModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 12.5px;">
+          <i data-lucide="history" style="width: 14px; height: 14px;"></i>
+          <span>บันทึกเบิก/ใช้ (Movement)</span>
+        </button>
+        ${(getCurrentRoleLevel() === 'L2' || getCurrentRoleLevel() === 'L3' || getCurrentRoleLevel() === 'L4') ? `
+        <button type="button" class="btn btn-secondary modal-footer-btn" onclick="document.getElementById('masterDetailModal').remove(); openQRCodeModal('${escapeHtml(item.code)}');" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; font-size: 12.5px;">
+          <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i>
+          <span>ป้าย QR Code</span>
+        </button>
+        ` : ''}
       </div>
     </div>
   `;
@@ -757,7 +852,170 @@ export async function handleAdjustmentSubmit(event, itemCode) {
 // 8. PRINTABLE QR CODE / BARCODE ASSET LABEL (P2 Labeling)
 // --------------------------------------------------------------------------
 
+export function renderAssetLabelCard(item) {
+  if (!item) return '';
+
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(JSON.stringify({
+    system: "SCIPORTAL-LAB",
+    code: item.code,
+    name: item.name,
+    room: item.room || '',
+    cabinet: item.cabinet || '',
+    shelf: item.shelf || ''
+  }))}`;
+
+  // 1. Cabinet name formatting
+  let cabinetName = (item.cabinet || 'CABINET 1').trim();
+  if (cabinetName.startsWith('ตู้')) {
+    cabinetName = cabinetName.replace(/^ตู้\s*/, 'CABINET ');
+  } else if (!cabinetName.toLowerCase().startsWith('cabinet')) {
+    cabinetName = `CABINET ${cabinetName}`;
+  }
+  cabinetName = cabinetName.toUpperCase();
+
+  // 2. Badge styling & text
+  let badgeBg = '#2563eb';
+  let badgeText = 'GENERAL';
+
+  if (item.category === 'สารเคมี' || (item.chemicalType && item.chemicalType !== 'general')) {
+    badgeBg = '#dc2626';
+    const ghsCode = (item.ghs && item.ghs.length > 0 && item.ghs[0]) ? item.ghs[0].toUpperCase() : 'GHS05';
+    let hazardType = 'CORROSIVE';
+    if (item.chemicalType) {
+      hazardType = item.chemicalType.toUpperCase();
+    } else if (item.ghs && item.ghs.includes('flammable')) {
+      hazardType = 'FLAMMABLE';
+    } else if (item.ghs && item.ghs.includes('toxic')) {
+      hazardType = 'TOXIC';
+    } else if (item.ghs && item.ghs.includes('oxidizing')) {
+      hazardType = 'OXIDIZING';
+    }
+    badgeText = `${hazardType} · ${ghsCode}`;
+  } else if (item.category === 'เครื่องแก้ว' || (item.category || '').toLowerCase().includes('glass')) {
+    badgeBg = '#2563eb';
+    badgeText = 'GLASSWARE';
+  } else if (item.category === 'อุปกรณ์' || item.category === 'เครื่องมือวิทยาศาสตร์' || (item.category || '').toLowerCase().includes('apparatus') || (item.category || '').toLowerCase().includes('equipment')) {
+    badgeBg = '#0d9488';
+    badgeText = 'APPARATUS';
+  } else if (item.category === 'วัสดุสิ้นเปลือง' || (item.category || '').toLowerCase().includes('consumable')) {
+    badgeBg = '#d97706';
+    badgeText = 'CONSUMABLE';
+  } else {
+    badgeBg = '#475569';
+    badgeText = (item.category || 'LAB ASSET').toUpperCase();
+  }
+
+  // 3. Shelf value formatting
+  const shelfMatch = (item.shelf || '').match(/\d+/);
+  const shelfVal = shelfMatch ? `S${shelfMatch[0]}` : (item.shelf ? item.shelf.toUpperCase().replace(/\s+/g, '') : 'S1');
+
+  // 4. Row/Bin value formatting
+  let binVal = item.position || item.bin || '';
+  if (!binVal) {
+    const letter = item.category === 'เครื่องแก้ว' ? 'G' : (item.category === 'สารเคมี' ? 'B' : 'E');
+    const num = shelfMatch ? (parseInt(shelfMatch[0]) * 2) : 4;
+    binVal = `${letter}-${num < 10 ? '0' + num : num}`;
+  }
+
+  // 5. Pos or Unit label & value
+  const isApparatus = (item.category === 'อุปกรณ์' || item.category === 'เครื่องมือวิทยาศาสตร์' || badgeText === 'APPARATUS');
+  const unitOrPosLabel = isApparatus ? 'UNIT' : 'POS';
+  let unitOrPosVal = item.slot || (isApparatus ? '1' : (item.category === 'เครื่องแก้ว' ? 'A' : '3'));
+
+  // 6. Subtitle / Specification
+  let subInfo = '';
+  if (item.category === 'สารเคมี') {
+    const grade = item.grade || item.spec || 'AR Grade';
+    const cas = item.casNo || item.casNumber ? `CAS ${item.casNo || item.casNumber}` : (item.formula ? `Formula: ${item.formula}` : '');
+    subInfo = [grade, cas].filter(Boolean).join(' · ');
+  } else if (item.category === 'เครื่องแก้ว') {
+    const vol = item.capacity || item.volume ? `Volume: ${item.capacity || item.volume}` : (item.spec || 'Volume: 250 mL');
+    const brand = item.brand || item.manufacturer || 'Pyrex';
+    subInfo = [vol, brand].filter(Boolean).join(' · ');
+  } else {
+    const model = item.model || item.brand || item.spec || 'LabTech MS-300';
+    const volt = item.voltage || item.rating || '220V';
+    subInfo = [model, volt].filter(Boolean).join(' · ');
+  }
+
+  // 7. Quantity and Unit formatting
+  let unitText = item.unit || 'ชิ้น';
+  const unitMap = {
+    'ขวด': 'Btl',
+    'ชิ้น': 'Pcs',
+    'เครื่อง': 'Units',
+    'อัน': 'Pcs',
+    'ชุด': 'Sets',
+    'กล่อง': 'Boxes',
+    'หลอด': 'Tubes',
+    'แผ่น': 'Pcs'
+  };
+  if (unitMap[unitText]) {
+    unitText = unitMap[unitText];
+  } else if (unitText === 'Unit' || unitText === 'unit') {
+    unitText = 'Units';
+  }
+
+  return `
+    <div class="asset-label-card">
+      <!-- Left QR Box -->
+      <div class="asset-label-qr-box">
+        <div class="asset-label-qr-tag">QR</div>
+        <img class="asset-label-qr-img" src="${qrImageUrl}" alt="QR Code">
+      </div>
+
+      <!-- Vertical Divider -->
+      <div class="asset-label-divider"></div>
+
+      <!-- Middle Location & Coordinates -->
+      <div class="asset-label-mid">
+        <div>
+          <div class="asset-label-cabinet">${escapeHtml(cabinetName)}</div>
+          <span class="asset-label-pill" style="background-color: ${badgeBg};">${escapeHtml(badgeText)}</span>
+        </div>
+        <div class="asset-label-coords">
+          <div class="asset-label-coord-item">
+            <span class="asset-label-coord-label">SHELF</span>
+            <span class="asset-label-coord-value">${escapeHtml(shelfVal)}</span>
+          </div>
+          <div class="asset-label-coord-item">
+            <span class="asset-label-coord-label">ROW/BIN</span>
+            <span class="asset-label-coord-value">${escapeHtml(binVal)}</span>
+          </div>
+          <div class="asset-label-coord-item">
+            <span class="asset-label-coord-label">${escapeHtml(unitOrPosLabel)}</span>
+            <span class="asset-label-coord-value">${escapeHtml(unitOrPosVal)}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Item Info & Quantity -->
+      <div class="asset-label-right">
+        <div style="width: 100%;">
+          <h4 class="asset-label-item-name">${escapeHtml(item.name)}</h4>
+          <div class="asset-label-item-sub">${escapeHtml(subInfo)}</div>
+        </div>
+        <div>
+          <div class="asset-label-item-qty">Qty: ${item.qty || item.quantity || 0} ${escapeHtml(unitText)}</div>
+          <div class="asset-label-item-id">ID: ${escapeHtml(item.code)} · chemicallab</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 export async function openQRCodeModal(code) {
+  const role = getCurrentRoleLevel();
+  const isL2Plus = (role === 'L2' || role === 'L3' || role === 'L4');
+  if (!isL2Plus) {
+    if (typeof showToast === 'function') {
+      showToast("การพิมพ์ป้าย Sticker Label อนุญาตเฉพาะเจ้าหน้าที่แล็บ (L2) ขึ้นไปเท่านั้น", "warning");
+    } else {
+      alert("การพิมพ์ป้าย Sticker Label อนุญาตเฉพาะเจ้าหน้าที่แล็บ (L2) ขึ้นไปเท่านั้น");
+    }
+    return;
+  }
+
   const item = state.items.find(i => (i.code || '').toLowerCase() === code.toLowerCase());
   if (!item) return;
 
@@ -767,47 +1025,49 @@ export async function openQRCodeModal(code) {
   const modal = document.createElement("div");
   modal.id = "qrAssetModal";
   modal.className = "modal-overlay active";
-  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px;";
-
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(JSON.stringify({
-    system: "SCIPORTAL-LAB",
-    code: item.code,
-    name: item.name,
-    room: item.room,
-    cabinet: item.cabinet
-  }))}`;
+  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px;";
 
   modal.innerHTML = `
-    <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 440px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); text-align: center;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;"><i data-lucide="tag" class="inline-icon"></i> ป้ายรหัสประจำสารเคมี / ครุภัณฑ์</h3>
-        <button onclick="document.getElementById('qrAssetModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
-      </div>
-
-      <!-- Printable Card -->
-      <div id="printableAssetTag" style="border: 2px dashed #cbd5e1; border-radius: 12px; padding: 16px; background: #ffffff; text-align: center; margin-bottom: 16px;">
-        <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">ห้องปฏิบัติการวิทยาศาสตร์ - SCIPORTAL</div>
-        <div style="font-size: 16px; font-weight: 800; color: #0f172a; margin-bottom: 2px;">${escapeHtml(item.name)}</div>
-        ${item.formula ? `<div style="font-family: monospace; font-size: 13px; color: #0284c7; font-weight: 600; margin-bottom: 8px;">${escapeHtml(item.formula)}</div>` : ''}
-        
-        <div style="display: flex; justify-content: center; margin: 12px 0;">
-          <img src="${qrImageUrl}" alt="Asset QR Code" style="width: 140px; height: 140px; border-radius: 8px; border: 1px solid #e2e8f0;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="background: #e0e7ff; color: #4338ca; padding: 6px; border-radius: 8px; display: inline-flex;">
+            <i data-lucide="tag" style="width: 17px; height: 17px;"></i>
+          </span>
+          <div>
+            <h3 style="margin: 0; font-size: 15.5px; font-weight: 700; color: #0f172a; line-height: 1.2;">พิมพ์ป้ายรหัสพัสดุ (Asset QR Label)</h3>
+            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">รูปแบบมาตรฐานห้องปฏิบัติการเคมีและเครื่องมือวิทยาศาสตร์</div>
+          </div>
         </div>
-
-        <div style="font-family: monospace; font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px;">${escapeHtml(item.code)}</div>
-        <div style="font-size: 11px; color: #64748b;">
-          พิกัด: ${escapeHtml(item.room || '-')} | ${escapeHtml(item.cabinet || '-')} | ${escapeHtml(item.shelf || '-')}
-        </div>
-        ${item.expiry || item.expiryDate ? `<div style="font-size: 11px; color: #e11d48; font-weight: 600; margin-top: 2px;">EXP: ${formatDate(item.expiry || item.expiryDate)}</div>` : ''}
-      </div>
-
-      <!-- Actions -->
-      <div style="display: flex; justify-content: center; gap: 8px;">
-        <button class="btn btn-secondary" onclick="printAssetLabel()" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; cursor: pointer; font-size: 13px;">
-          <i data-lucide="printer" style="width: 14px; height: 14px;"></i> สั่งพิมพ์ป้าย (Print Label)
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('qrAssetModal').remove()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
-        <button class="btn btn-primary" onclick="document.getElementById('qrAssetModal').remove()" style="padding: 8px 16px; background: #0f172a; color: #ffffff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
+      </div>
+
+      <div class="modal-body">
+        <div style="font-size: 12px; font-weight: 600; color: #475569; display: flex; align-items: center; justify-content: space-between;">
+          <span style="display: flex; align-items: center; gap: 5px;">
+            <i data-lucide="eye" style="width: 14px; height: 14px; color: #6366f1;"></i>
+            <span>ตัวอย่างป้ายพัสดุ (Print Preview)</span>
+          </span>
+          <span style="font-size: 11px; color: #64748b;">สเกลมาตรฐาน 100 × 50 mm / Sticker Label</span>
+        </div>
+
+        <div id="printableAssetTag">
+          ${renderAssetLabelCard(item)}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary modal-footer-btn" onclick="document.getElementById('qrAssetModal').remove()" style="padding: 7px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 500;">
           ปิด
+        </button>
+        <button type="button" class="btn btn-primary modal-footer-btn modal-btn-primary" onclick="printAssetLabel()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px; border-radius: 8px; font-size: 12.5px; font-weight: 600; background: #0f172a; color: #ffffff;">
+          <i data-lucide="printer" style="width: 14px; height: 14px;"></i>
+          <span>สั่งพิมพ์ป้ายนี้ (Print Label)</span>
         </button>
       </div>
     </div>
@@ -818,22 +1078,190 @@ export async function openQRCodeModal(code) {
 }
 
 export function printAssetLabel() {
+  const role = getCurrentRoleLevel();
+  const isL2Plus = (role === 'L2' || role === 'L3' || role === 'L4');
+  if (!isL2Plus) {
+    if (typeof showToast === 'function') {
+      showToast("การพิมพ์ป้าย Sticker Label อนุญาตเฉพาะเจ้าหน้าที่แล็บ (L2) ขึ้นไปเท่านั้น", "warning");
+    } else {
+      alert("การพิมพ์ป้าย Sticker Label อนุญาตเฉพาะเจ้าหน้าที่แล็บ (L2) ขึ้นไปเท่านั้น");
+    }
+    return;
+  }
+
   const printContent = document.getElementById("printableAssetTag");
   if (!printContent) return;
-  const win = window.open('', '', 'width=600,height=600');
+  const win = window.open('', '', 'width=750,height=500');
   win.document.write(`
+    <!DOCTYPE html>
     <html>
       <head>
-        <title>Print Asset Label</title>
+        <title>Asset QR Label Print - SciPortal</title>
+        <meta charset="utf-8">
         <style>
-          body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-          .tag { border: 2px solid #000; padding: 20px; border-radius: 8px; text-align: center; max-width: 320px; }
+          @page {
+            size: auto;
+            margin: 10mm;
+          }
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+          }
+          .asset-label-card {
+            background: #ffffff !important;
+            border: 1.2px solid #0f172a !important;
+            border-radius: 10px !important;
+            padding: 10px 14px !important;
+            display: flex !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+            box-sizing: border-box !important;
+            width: 480px !important;
+            text-align: left !important;
+            page-break-inside: avoid;
+          }
+          .asset-label-qr-box {
+            width: 76px !important;
+            height: 76px !important;
+            border: 1.2px solid #0f172a !important;
+            border-radius: 6px !important;
+            padding: 4px !important;
+            position: relative !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+          }
+          .asset-label-qr-tag {
+            position: absolute !important;
+            top: 4px !important;
+            left: 5px !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            line-height: 1 !important;
+          }
+          .asset-label-qr-img {
+            width: 54px !important;
+            height: 54px !important;
+            display: block !important;
+            margin-top: 8px !important;
+          }
+          .asset-label-divider {
+            width: 1px !important;
+            background: #cbd5e1 !important;
+            margin: 2px 0 !important;
+            flex-shrink: 0 !important;
+          }
+          .asset-label-mid {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            min-width: 130px !important;
+          }
+          .asset-label-cabinet {
+            font-size: 16px !important;
+            font-weight: 900 !important;
+            color: #0f172a !important;
+            line-height: 1.1 !important;
+            margin: 0 0 3px 0 !important;
+            text-transform: uppercase !important;
+          }
+          .asset-label-pill {
+            display: inline-block !important;
+            padding: 2px 7px !important;
+            border-radius: 999px !important;
+            font-size: 9px !important;
+            font-weight: 800 !important;
+            color: #ffffff !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.03em !important;
+            margin-bottom: 5px !important;
+            width: fit-content !important;
+          }
+          .asset-label-coords {
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+          }
+          .asset-label-coord-item {
+            display: flex !important;
+            flex-direction: column !important;
+          }
+          .asset-label-coord-label {
+            font-size: 8px !important;
+            font-weight: 700 !important;
+            color: #64748b !important;
+            text-transform: uppercase !important;
+            line-height: 1 !important;
+          }
+          .asset-label-coord-value {
+            font-size: 15px !important;
+            font-weight: 900 !important;
+            color: #0f172a !important;
+            line-height: 1.15 !important;
+            margin-top: 2px !important;
+          }
+          .asset-label-right {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            align-items: flex-end !important;
+            text-align: right !important;
+            flex: 1 !important;
+            min-width: 135px !important;
+            padding-left: 8px !important;
+          }
+          .asset-label-item-name {
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+          }
+          .asset-label-item-sub {
+            font-size: 10px !important;
+            font-weight: 500 !important;
+            color: #64748b !important;
+            margin-top: 2px !important;
+          }
+          .asset-label-item-qty {
+            font-size: 15px !important;
+            font-weight: 900 !important;
+            color: #0f172a !important;
+            line-height: 1.1 !important;
+            margin: 0 !important;
+          }
+          .asset-label-item-id {
+            font-size: 9px !important;
+            font-family: monospace !important;
+            font-weight: 600 !important;
+            color: #64748b !important;
+            margin-top: 2px !important;
+          }
         </style>
       </head>
       <body>
-        <div class="tag">${printContent.innerHTML}</div>
+        ${printContent.innerHTML}
         <script>
-          window.onload = function() { window.print(); window.close(); }
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.close();
+            }, 250);
+          };
         </script>
       </body>
     </html>

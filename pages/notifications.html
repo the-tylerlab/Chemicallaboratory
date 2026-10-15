@@ -5,231 +5,275 @@
               <i data-lucide="arrow-left" style="width: 20px; height: 20px;"></i>
             </button>
             <div class="header-title-wrapper">
-              <h1 class="header-title">การแจ้งเตือน</h1>
-              <p class="header-subtitle">ระบบตรวจสอบวันหมดอายุและสถานะสินค้าคงคลังอัตโนมัติ</p>
+              <h1 class="header-title" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span>ศูนย์การแจ้งเตือน (Notifications & Alerts)</span>
+                <span style="font-size: 11px; padding: 2.5px 8px; border-radius: 999px; background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; font-weight: 700; letter-spacing: 0.03em;">Safety & Stock Monitor</span>
+              </h1>
+              <p class="header-subtitle">ระบบตรวจสอบวันหมดอายุ ตรวจจับสต็อกขั้นต่ำ และศูนย์ประสานงานแจ้งซ่อมบำรุงอุปกรณ์</p>
             </div>
           </div>
-          <div class="unified-page-header-right">
-            <button type="button" class="booking-action-btn" id="btnExportAnnualNotifications" title="ส่งออกรายงานการแจ้งเตือนและสถานะคลังประจำปี (Excel / CSV)">
-              <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
-              <span class="btn-text-desktop">ส่งออกข้อมูลประจำปี</span>
-              <span class="btn-text-tablet">ส่งออกประจำปี</span>
-              <span class="btn-text-mobile">ส่งออก</span>
+          <div class="unified-page-header-right notif-header-actions-group">
+            <button type="button" class="notif-header-btn notif-header-btn-cart" onclick="navigateToPanel('purchase-orders')" title="ไปที่หน้ารายการสั่งซื้อ / ตะกร้าจัดซื้อ">
+              <div class="notif-header-btn-icon-wrap cart-icon">
+                <i data-lucide="shopping-cart"></i>
+              </div>
+              <span class="btn-text-desktop">ตะกร้าจัดซื้อ</span>
+              <span class="btn-text-tablet">ตะกร้า</span>
+              <span class="notif-header-cart-badge" id="notifHeaderCartBadge" style="display: none;">0</span>
             </button>
-            <button type="button" class="booking-action-btn admin-clear-btn" id="btnClearNotifications" title="ล้างข้อมูลการแจ้งเตือนและรายการแจ้งปัญหา" style="display: none;">
-              <i data-lucide="trash-2" style="width: 15px; height: 15px; color: #ef4444; flex-shrink: 0;"></i>
-              <span class="btn-text-desktop" style="color: #ef4444;">เคลียร์ข้อมูล</span>
-              <span class="btn-text-tablet" style="color: #ef4444;">เคลียร์</span>
-              <span class="btn-text-mobile" style="color: #ef4444;">เคลียร์</span>
+
+            <button type="button" class="notif-header-btn" id="btnRefreshNotifications" onclick="refreshNotificationsData()" title="รีเฟรชข้อมูลการแจ้งเตือนและสต็อก">
+              <div class="notif-header-btn-icon-wrap refresh-icon">
+                <i data-lucide="refresh-cw"></i>
+              </div>
+              <span class="btn-text-desktop">รีเฟรช</span>
+              <span class="btn-text-mobile" style="display: none;">รีเฟรช</span>
+            </button>
+
+            <button type="button" class="notif-header-btn notif-header-btn-export" id="btnExportAnnualNotifications" title="ส่งออกรายงานการแจ้งเตือนและสถานะคลังประจำปี (Excel / CSV)">
+              <div class="notif-header-btn-icon-wrap export-icon">
+                <i data-lucide="file-spreadsheet"></i>
+              </div>
+              <span class="btn-text-desktop">ส่งออกประจำปี</span>
+              <span class="btn-text-tablet">ส่งออก</span>
+            </button>
+
+            <button type="button" class="notif-header-btn notif-header-btn-danger" id="btnClearNotifications" title="ล้างข้อมูลการแจ้งเตือนและรายการแจ้งปัญหา" style="display: none;">
+              <div class="notif-header-btn-icon-wrap danger-icon">
+                <i data-lucide="trash-2"></i>
+              </div>
+              <span class="btn-text-desktop">เคลียร์ข้อมูล</span>
+              <span class="btn-text-tablet">เคลียร์</span>
             </button>
           </div>
         </header>
 
-        <!-- TABS FOR NOTIFICATIONS -->
-        <div class="alert-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
-          <button type="button" class="alert-tab-btn active" id="btnTabNotifInventory" onclick="switchNotifTab('inventory')" style="flex: 1; padding: 12px; font-size: 14.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-            <i data-lucide="package" style="width: 18px; height: 18px;"></i>
-            <span>แจ้งเตือนคลังพัสดุ</span>
-          </button>
-          <button type="button" class="alert-tab-btn" id="btnTabNotifFeedback" onclick="switchNotifTab('feedback')" style="flex: 1; padding: 12px; font-size: 14.5px; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-            <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
-            <span>ปัญหาและข้อเสนอแนะ</span>
-            <span class="badge badge-purple" id="badgeNotifFeedbackCount" style="padding: 2px 6px; font-size: 11px; display: none;">0</span>
-          </button>
+        <!-- Compact Stat Cards Grid (Matching Dashboard & Admin Panel) -->
+        <div class="stat-grid notif-stat-grid" id="notifStatGrid">
+          <div class="stat-card red" id="statCardNotifExpired" role="button" tabindex="0" onclick="switchNotifTab('inventory'); const el = document.getElementById('notifSectionExpired'); if(el) el.scrollIntoView({behavior:'smooth'});" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">หมดอายุแล้ว</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="notifStatExpired">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="alert-triangle" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+
+          <div class="stat-card yellow" id="statCardNotifNearExpiry" role="button" tabindex="0" onclick="switchNotifTab('inventory'); const el = document.getElementById('notifSectionNearExpiry'); if(el) el.scrollIntoView({behavior:'smooth'});" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">ใกล้หมดอายุ (30 วัน)</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="notifStatNearExpiry">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="clock" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+
+          <div class="stat-card orange" id="statCardNotifLowStock" role="button" tabindex="0" onclick="switchNotifTab('inventory'); const el = document.getElementById('notifSectionLowStock'); if(el) el.scrollIntoView({behavior:'smooth'});" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">ใกล้หมดคลัง (Low Stock)</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="notifStatLowStock">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="boxes" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+
+          <div class="stat-card purple" id="statCardNotifFeedback" role="button" tabindex="0" onclick="switchNotifTab('feedback');" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="stat-info">
+              <span class="stat-title nobrk">แจ้งปัญหา / ซ่อมบำรุง</span>
+              <div class="stat-value-group">
+                <span class="stat-value" id="notifStatFeedback">0</span>
+                <span class="stat-sublabel">รายการ</span>
+              </div>
+            </div>
+            <div class="stat-icon">
+              <i data-lucide="message-square" style="width: 17px; height: 17px;"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pill Navigation Bar (Matching Admin Pill Capsule) -->
+        <div class="notif-nav-bar">
+          <ul class="notif-pill-menu" id="notifMenu">
+            <li class="notif-pill-item active" id="btnTabNotifInventory" onclick="switchNotifTab('inventory')">
+              <span class="tab-icon-wrap"><i data-lucide="package"></i></span>
+              <span class="btn-text-desktop">แจ้งเตือนคลังพัสดุ & สารเคมี</span>
+              <span class="btn-text-mobile">คลังพัสดุ</span>
+              <span class="notif-pill-badge" id="badgeNotifInventoryTotal" style="display: none;">0</span>
+            </li>
+            <li class="notif-pill-item" id="btnTabNotifFeedback" onclick="switchNotifTab('feedback')">
+              <span class="tab-icon-wrap"><i data-lucide="message-square"></i></span>
+              <span class="btn-text-desktop">ปัญหาและข้อเสนอแนะ</span>
+              <span class="btn-text-mobile">แจ้งปัญหา</span>
+              <span class="notif-pill-badge purple" id="badgeNotifFeedbackCount" style="display: none;">0</span>
+            </li>
+          </ul>
         </div>
 
         <!-- TAB CONTENT: INVENTORY ALERTS -->
-        <div id="tabContentNotifInventory" style="display: block;">
-          <!-- EXPIRED ALERTS SECTION -->
-          <div class="alert-section expired">
-            <div class="alert-section-header">
-              <span>หมดอายุแล้ว</span>
-              <span class="alert-count-badge" id="alertCountExpired">0</span>
+        <div id="tabContentNotifInventory" class="notif-tab-content-active">
+          
+          <!-- 1. EXPIRED ALERTS CARD -->
+          <div class="card-container notif-card-container expired-card" id="notifSectionExpired">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon red">
+                  <i data-lucide="alert-triangle"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">สารเคมีและพัสดุหมดอายุแล้ว</h2>
+                  <p class="card-subtitle">รายการที่พ้นกำหนดการใช้งาน ต้องดำเนินการตัดจำหน่ายหรือกำจัดตามมาตรฐานความปลอดภัย</p>
+                </div>
+              </div>
+              <div class="card-header-right">
+                <span class="badge badge-red" id="alertCountExpired">0</span>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListExpired">
               <!-- Dynamically loaded list of expired items or empty state -->
-              <div class="empty-state" style="padding: 24px;">
-                <div class="empty-state-text">ไม่มีรายการ</div>
+              <div class="empty-state">
+                <div class="empty-state-text">กำลังตรวจสอบข้อมูล…</div>
               </div>
             </div>
           </div>
 
-          <!-- NEAR EXPIRY ALERTS SECTION -->
-          <div class="alert-section near-expiry">
-            <div class="alert-section-header">
-              <span>ใกล้หมดอายุ (30 วัน)</span>
-              <span class="alert-count-badge" id="alertCountNearExpiry">0</span>
+          <!-- 2. NEAR EXPIRY ALERTS CARD -->
+          <div class="card-container notif-card-container near-expiry-card" id="notifSectionNearExpiry">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon yellow">
+                  <i data-lucide="clock"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">พัสดุและสารเคมีใกล้หมดอายุ (ภายใน 30 วัน)</h2>
+                  <p class="card-subtitle">ควรจัดลำดับการใช้งานก่อน (First-Expire, First-Out: FEFO) เพื่อลดการสูญเสีย</p>
+                </div>
+              </div>
+              <div class="card-header-right">
+                <span class="badge badge-yellow" id="alertCountNearExpiry">0</span>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListNearExpiry">
               <!-- Dynamically loaded near expiry items or empty state -->
-              <div class="empty-state" style="padding: 24px;">
-                <div class="empty-state-text">ไม่มีรายการ</div>
+              <div class="empty-state">
+                <div class="empty-state-text">กำลังตรวจสอบข้อมูล…</div>
               </div>
             </div>
           </div>
 
-          <!-- LOW STOCK ALERTS SECTION -->
-          <div class="alert-section low-stock">
-            <div class="alert-section-header">
-              <span>ใกล้หมด (ต่ำกว่าขั้นต่ำ)</span>
-              <span class="alert-count-badge" id="alertCountLowStock">0</span>
+          <!-- 3. LOW STOCK ALERTS CARD -->
+          <div class="card-container notif-card-container low-stock-card" id="notifSectionLowStock">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon orange">
+                  <i data-lucide="boxes"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">สินค้าและสารเคมีใกล้หมดคลัง (ต่ำกว่าเกณฑ์ขั้นต่ำ)</h2>
+                  <p class="card-subtitle">ปริมาณคงเหลือต่ำกว่าจุดสั่งซื้อ (Reorder Point) ควรจัดเตรียมการสั่งซื้อทดแทน</p>
+                </div>
+              </div>
+              <div class="card-header-right" style="display: flex; align-items: center; gap: 8px;">
+                <span class="badge badge-orange" id="alertCountLowStock">0</span>
+                <button type="button" class="notif-card-cart-btn" id="btnOrderAllLowStock" onclick="addAllLowStockToCart()" title="สั่งซื้อสินค้าใกล้หมดคลังทั้งหมด (Add all low-stock items to cart)">
+                  <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
+                  <span class="btn-text-desktop">สั่งซื้อทั้งหมด (Add to Cart)</span>
+                  <span class="btn-text-mobile">Add to Cart</span>
+                </button>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListLowStock">
               <!-- Dynamically loaded low stock items or empty state -->
-              <div class="empty-state" style="padding: 24px;">
-                <div class="empty-state-text">ไม่มีรายการ</div>
+              <div class="empty-state">
+                <div class="empty-state-text">กำลังตรวจสอบข้อมูล…</div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- TAB CONTENT: FEEDBACK & REPORTS -->
-        <div id="tabContentNotifFeedback" style="display: none;">
+        <div id="tabContentNotifFeedback" style="display: none;" class="notif-tab-content-active">
 
-          <!-- 1. PENDING / REPAIR ISSUES SECTION -->
-          <div class="alert-section feedback">
-            <div class="alert-section-header">
-              <span style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
-                <span>รายการแจ้งปัญหาล่าสุด</span>
-              </span>
-              <span class="alert-count-badge" id="alertCountFeedback">2</span>
+          <!-- 1. PENDING / REPAIR ISSUES CARD -->
+          <div class="card-container notif-card-container feedback-card" id="notifSectionPendingIssues">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon purple">
+                  <i data-lucide="alert-circle"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">รายการแจ้งปัญหาและรอการซ่อมบำรุง</h2>
+                  <p class="card-subtitle">รายการชำรุด หรือข้อขัดข้องที่รอดำเนินการซ่อมบำรุงหรือตรวจสอบ</p>
+                </div>
+              </div>
+              <div class="card-header-right">
+                <span class="badge badge-purple" id="alertCountFeedback">0</span>
+                <button type="button" class="btn btn-primary btn-sm" onclick="openCreateFeedbackModal()" style="border-radius: 9999px; font-size: 12px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 4px;">
+                  <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                  <span>แจ้งปัญหาใหม่</span>
+                </button>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListFeedback">
-              <!-- Issue Card 1 -->
-              <div class="notification-item status-feedback" id="feedback-card-ISSUE-001">
-                <div class="notification-header">
-                  <div class="notification-title-group">
-                    <span class="notification-title">1. ก๊อกน้ำอ่างล้างตารั่วซึม</span>
-                    <span class="notification-code">ISSUE-001</span>
-                  </div>
-                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-001')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
-                </div>
-                <div class="notification-meta">
-                  <span class="notification-location">
-                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
-                    จัดเก็บ: Lab 1 &gt; หน้าตู้ A (ผู้แจ้ง: สมชาย)
-                  </span>
-                </div>
-                <div class="notification-alert-banner feedback" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="alert-triangle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span>น้ำหยดตลอดเวลา</span>
-                  </div>
-                  <button type="button" onclick="changeFeedbackStatus('ISSUE-001')" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#faf5ff'" onmouseout="this.style.backgroundColor='white'">
-                    รอช่างซ่อม <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Issue Card 2 -->
-              <div class="notification-item status-feedback" id="feedback-card-ISSUE-002">
-                <div class="notification-header">
-                  <div class="notification-title-group">
-                    <span class="notification-title">2. หลอดไฟกระพริบและมีเสียงดัง</span>
-                    <span class="notification-code">ISSUE-002</span>
-                  </div>
-                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-002')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
-                </div>
-                <div class="notification-meta">
-                  <span class="notification-location">
-                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
-                    จัดเก็บ: Lab 2 &gt; โซนเตรียมสาร (ผู้แจ้ง: สมหญิง)
-                  </span>
-                </div>
-                <div class="notification-alert-banner feedback" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="alert-circle" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span>รบกวนการทำงาน</span>
-                  </div>
-                  <button type="button" onclick="changeFeedbackStatus('ISSUE-002')" style="background-color: white; border: 1px solid #d8b4fe; color: #6b21a8; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#faf5ff'" onmouseout="this.style.backgroundColor='white'">
-                    รอดำเนินการ <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              </div>
+              <!-- Dynamically rendered -->
             </div>
           </div>
 
-          <!-- 2. RESOLVED ISSUES SECTION -->
-          <div class="alert-section resolved">
-            <div class="alert-section-header">
-              <span style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="check-circle" style="width: 18px; height: 18px; color: #10b981;"></i>
-                <span>รายการที่ดำเนินการแก้ไขเรียบร้อยแล้ว</span>
-              </span>
-              <span class="alert-count-badge" id="alertCountResolvedFeedback">2</span>
+          <!-- 2. RESOLVED ISSUES CARD -->
+          <div class="card-container notif-card-container resolved-card" id="notifSectionResolvedIssues">
+            <div class="card-header">
+              <div class="card-header-left">
+                <div class="notif-header-icon green">
+                  <i data-lucide="check-circle"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">รายการที่ดำเนินการแก้ไขเรียบร้อยแล้ว</h2>
+                  <p class="card-subtitle">ประวัติการซ่อมแซมและแก้ไขปัญหาอุปกรณ์ในห้องปฏิบัติการ</p>
+                </div>
+              </div>
+              <div class="card-header-right">
+                <span class="badge badge-green" id="alertCountResolvedFeedback">0</span>
+              </div>
             </div>
             <div class="alert-section-content" id="alertListResolvedFeedback">
-              <!-- Issue Card 3 -->
-              <div class="notification-item status-resolved" id="feedback-card-ISSUE-003">
-                <div class="notification-header">
-                  <div class="notification-title-group">
-                    <span class="notification-title">3. อุปกรณ์จับยึด (Clamp) หลวม</span>
-                    <span class="notification-code">ISSUE-003</span>
-                  </div>
-                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-003')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
-                </div>
-                <div class="notification-meta">
-                  <span class="notification-location">
-                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
-                    จัดเก็บ: Lab 1 &gt; ตู้ C (ผู้แจ้ง: วิชาญ)
-                  </span>
-                </div>
-                <div class="notification-alert-banner resolved" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="check-circle" style="width: 14px; height: 14px; flex-shrink: 0; color: #10b981;"></i>
-                    <span>เปลี่ยนชิ้นใหม่แล้ว</span>
-                  </div>
-                  <button type="button" onclick="changeFeedbackStatus('ISSUE-003')" style="background-color: white; border: 1px solid #a7f3d0; color: #065f46; border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#f0fdf4'" onmouseout="this.style.backgroundColor='white'">
-                    แก้ไขแล้ว <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Issue Card 4 -->
-              <div class="notification-item status-resolved" id="feedback-card-ISSUE-004">
-                <div class="notification-header">
-                  <div class="notification-title-group">
-                    <span class="notification-title">4. เครื่องชั่งดิจิตอลแสดงค่าไม่นิ่ง</span>
-                    <span class="notification-code">ISSUE-004</span>
-                  </div>
-                  <button class="action-icon-btn edit" title="แก้ไข" onclick="editFeedback('ISSUE-004')"><i data-lucide="edit-3" style="width: 14px; height: 14px;"></i></button>
-                </div>
-                <div class="notification-meta">
-                  <span class="notification-location">
-                    <i data-lucide="map-pin" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
-                    จัดเก็บ: Lab 1 &gt; โซนเครื่องมือวัด (ผู้แจ้ง: สมศรี)
-                  </span>
-                </div>
-                <div class="notification-alert-banner resolved" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <i data-lucide="check-circle" style="width: 14px; height: 14px; flex-shrink: 0; color: #10b981;"></i>
-                    <span>ปรับเทียบ (Calibrate) ใหม่แล้ว</span>
-                  </div>
-                  <button type="button" class="status-pill-btn resolved" onclick="changeFeedbackStatus('ISSUE-004')">
-                    แก้ไขแล้ว <i data-lucide="chevron-down" style="width: 12px; height: 12px;"></i>
-                  </button>
-                </div>
-              </div>
+              <!-- Dynamically rendered -->
             </div>
           </div>
 
         </div>
 
         <script>
-          function switchNotifTab(tabId) {
-            document.getElementById('btnTabNotifInventory').classList.remove('active');
-            document.getElementById('btnTabNotifFeedback').classList.remove('active');
-            document.getElementById('tabContentNotifInventory').style.display = 'none';
-            document.getElementById('tabContentNotifFeedback').style.display = 'none';
+          window.switchNotifTab = function(tabId) {
+            const btnInv = document.getElementById('btnTabNotifInventory');
+            const btnFeed = document.getElementById('btnTabNotifFeedback');
+            const contentInv = document.getElementById('tabContentNotifInventory');
+            const contentFeed = document.getElementById('tabContentNotifFeedback');
+            
+            if (btnInv) btnInv.classList.remove('active');
+            if (btnFeed) btnFeed.classList.remove('active');
+            if (contentInv) contentInv.style.display = 'none';
+            if (contentFeed) contentFeed.style.display = 'none';
             
             if (tabId === 'inventory') {
-              document.getElementById('btnTabNotifInventory').classList.add('active');
-              document.getElementById('tabContentNotifInventory').style.display = 'block';
+              if (btnInv) btnInv.classList.add('active');
+              if (contentInv) contentInv.style.display = 'block';
             } else {
-              document.getElementById('btnTabNotifFeedback').classList.add('active');
-              document.getElementById('tabContentNotifFeedback').style.display = 'block';
+              if (btnFeed) btnFeed.classList.add('active');
+              if (contentFeed) contentFeed.style.display = 'block';
+              if (typeof renderFeedbacksList === 'function') renderFeedbacksList();
             }
-          }
+            if (window.lucide) lucide.createIcons();
+          };
         </script>
       </section>

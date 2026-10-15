@@ -51,7 +51,21 @@ function watchPages() {
   console.log('[build_pages] Watching pages/ and index.template.html for changes...');
 
   let debounceTimer = null;
+  const sourceSignatures = new Map();
+  const getSourceSignature = (file) => {
+    try {
+      const stat = fs.statSync(path.resolve(ROOT_DIR, file));
+      return `${stat.dev}:${stat.ino}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}`;
+    } catch {
+      return null;
+    }
+  };
+
   const triggerRebuild = (file) => {
+    const signature = getSourceSignature(file);
+    if (!signature || sourceSignatures.get(file) === signature) return;
+    sourceSignatures.set(file, signature);
+
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
       console.log(`[build_pages] Change detected in ${file}, rebuilding index.html...`);

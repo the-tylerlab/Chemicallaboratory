@@ -200,7 +200,7 @@
             <span class="logo-title">SciPortal</span>
           </div>
         </div>
-        <button class="btn-sidebar-collapse" id="btnToggleSidebar" onclick="toggleSidebarPin(event)" aria-label="ย่อแถบเมนู (Collapse sidebar)" title="ย่อแถบเมนู (Collapse sidebar)">
+        <button class="btn-sidebar-collapse" id="btnToggleSidebar" onclick="toggleSidebarPin(event)" aria-label="ปักหมุดแถบเมนู" aria-pressed="true" title="ยกเลิกการปักหมุดและย่อแถบเมนู">
           <i data-lucide="pin" id="sidebarPinIcon"></i>
         </button>
       </div>
@@ -1362,10 +1362,11 @@
   </style>
 
   <!-- ==========================================
-       CHATBOT: LAB AI ASSISTANT WIDGET
+       CHATBOT: LAB AI ASSISTANT WIDGET (Redesigned)
        ========================================== -->
-  <!-- Floating Action Pill Widget: Chat with Stoki (Animated Bot Face Widget) -->
-  <div class="chatbot-fab" id="chatbotFab" title="Chat with Stoki" role="button" tabindex="0">
+  <!-- Floating Action Pill Widget: Chat with Stoki AI (Animated Eyes Restored) -->
+  <button class="chatbot-fab" id="chatbotFab" title="เปิดแชทกับผู้ช่วย AI Stoki" aria-label="เปิดแชทกับผู้ช่วย AI Stoki" type="button">
+    <div class="chatbot-fab-glow-ring"></div>
     <div class="chatbot-fab-avatar-wrapper">
       <div class="chatbot-fab-avatar">
         <div class="stoki-bot-face">
@@ -1373,104 +1374,201 @@
           <div class="stoki-bot-eye right-eye"></div>
         </div>
       </div>
+      <span class="chatbot-pulse-dot" title="ระบบพร้อมให้บริการ"></span>
     </div>
     <div class="chatbot-fab-content">
-      <span class="chatbot-fab-title">Chat with Stoki</span>
-      <span class="chatbot-fab-subtitle">ผู้ช่วยประจำห้องปฏิบัติการ</span>
+      <div class="chatbot-fab-headline">
+        <span class="chatbot-fab-title">ถาม Stoki AI</span>
+        <span class="chatbot-fab-badge">PRO</span>
+      </div>
+      <span class="chatbot-fab-subtitle">ผู้ช่วยแล็บอัจฉริยะ</span>
     </div>
-  </div>
+  </button>
 
   <!-- Chat Panel Backdrop Overlay -->
   <div class="chatbot-overlay" id="chatbotOverlay"></div>
 
   <!-- Chat Panel -->
   <div class="chatbot-panel" id="chatbotPanel">
+    <!-- Redesigned Chatbot Header -->
     <div class="chatbot-header">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="chatbot-avatar">
-          <img src="stock-bitol-bot.png" id="chatbotHeaderIcon" alt="Stoki">
+      <div class="chatbot-header-info">
+        <div class="chatbot-avatar-ring">
+          <div class="chatbot-avatar">
+            <img src="stock-bitol-bot.png" id="chatbotHeaderIcon" alt="Stoki">
+          </div>
+          <span class="status-live-beacon"></span>
         </div>
-        <div>
-          <div class="chatbot-title">Chat with Stoki</div>
-          <div class="chatbot-status">
+        <div class="chatbot-meta">
+          <div class="chatbot-name-row">
+            <span class="chatbot-title">Stoki AI Assistant</span>
+            <span class="chatbot-version-pill">Lab Intelligence</span>
+          </div>
+          <div class="chatbot-status-row">
             <span class="status-live-dot"></span>
-            <span>พร้อมให้บริการ</span>
+            <span class="chatbot-status-text">ออนไลน์ • พร้อมช่วยเหลือตลอด 24 ชม.</span>
           </div>
         </div>
       </div>
-      <button type="button" class="chatbot-close-btn" id="chatbotCloseBtn" aria-label="ปิดหน้าต่างแชท" title="ปิดหน้าต่างแชท">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
+      <div class="chatbot-header-actions">
+        <button type="button" class="chatbot-action-btn" id="chatbotClearHistoryBtn" aria-label="รีเซ็ตการสนทนา" title="รีเซ็ตการสนทนา">
+          <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+        </button>
+        <button type="button" class="chatbot-close-btn" id="chatbotCloseBtn" aria-label="ปิดหน้าต่างแชท" title="ปิดหน้าต่างแชท">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+        </button>
+      </div>
     </div>
 
-    <!-- Chat Messages -->
+    <!-- Redesigned Chat Messages Body -->
     <div class="chatbot-body" id="chatbotBody">
-      <!-- Welcome Message Card (Clean & Friendly Conversational UI) -->
-      <div class="chat-message bot welcome-card">
-        <div class="welcome-card-title">
-          <span>สวัสดีครับ! ยินดีต้อนรับครับ</span>
-          <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #f59e0b; display: inline-block; vertical-align: middle;"></i>
+      <!-- Bento Hero Welcome Card -->
+      <div class="chat-welcome-bento">
+        <div class="welcome-bento-header">
+          <div class="welcome-badge">
+            <i data-lucide="sparkles" class="welcome-sparkle-icon"></i>
+            <span>SciPortal AI Intelligence</span>
+          </div>
+          <h4 class="welcome-bento-title">สวัสดีครับ! มีอะไรให้ Stoki ช่วยวันนี้? 👋</h4>
+          <p class="welcome-bento-desc">
+            ผมคือผู้ช่วยอัจฉริยะประจำห้องปฏิบัติการ พร้อมช่วยคุณค้นหาสารเคมี ตรวจสอบสต็อก คำนวณสูตรเคมี และแนะนำแนวทางความปลอดภัยตามมาตรฐาน SHECU
+          </p>
         </div>
-        <p class="welcome-card-text">
-          ผมคือ <strong class="bot-name-text">Stoki-bitol (สต็อกบิทอล)</strong> ผู้ช่วยประจำห้องปฏิบัติการ พร้อมช่วยคุณค้นหาพัสดุ ตรวจสอบสต็อกสารเคมี และช่วยคำนวณสูตรเคมีได้อย่างรวดเร็วครับ
-        </p>
+
+        <div class="welcome-caps-grid">
+          <div class="welcome-cap-item">
+            <div class="cap-icon-box cap-inventory">
+              <i data-lucide="boxes"></i>
+            </div>
+            <div class="cap-text-box">
+              <span class="cap-title">สืบค้นคลังพัสดุ</span>
+              <span class="cap-sub">เช็คสต็อก/หมดอายุ</span>
+            </div>
+          </div>
+          <div class="welcome-cap-item">
+            <div class="cap-icon-box cap-calc">
+              <i data-lucide="flask-conical"></i>
+            </div>
+            <div class="cap-text-box">
+              <span class="cap-title">คำนวณเคมี</span>
+              <span class="cap-sub">ดุลสมการ/มวลโมเลกุล</span>
+            </div>
+          </div>
+          <div class="welcome-cap-item">
+            <div class="cap-icon-box cap-safety">
+              <i data-lucide="shield-alert"></i>
+            </div>
+            <div class="cap-text-box">
+              <span class="cap-title">มาตรฐาน SHECU</span>
+              <span class="cap-sub">จำแนกของเสีย/สารหก</span>
+            </div>
+          </div>
+        </div>
       </div>
       
-      <!-- Suggestion Action Cards Grid -->
-      <div class="chat-suggestions-title">
-        <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #7c3aed;"></i>
-        <span>คำสั่งและคำถามด่วนที่พบบ่อย:</span>
-      </div>
-      <div class="chat-suggestions" id="chatSuggestions">
-        <button type="button" class="chat-suggestion-chip" data-query="ค้นหาสารเคมี">
-          <span class="chip-icon"><i data-lucide="search"></i></span>
-          <span class="chip-label">ค้นหาพัสดุ/สารเคมี</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="เช็คของใกล้หมดคลัง">
-          <span class="chip-icon"><i data-lucide="alert-triangle" style="color: #f59e0b;"></i></span>
-          <span class="chip-label">ตรวจเช็คสต็อกต่ำ</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="เช็คสารเคมีหมดอายุ">
-          <span class="chip-icon"><i data-lucide="clock" style="color: #ef4444;"></i></span>
-          <span class="chip-label">เช็คสารหมดอายุ</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O">
-          <span class="chip-icon"><i data-lucide="flask-conical" style="color: #8b5cf6;"></i></span>
-          <span class="chip-label">ดุลสมการเคมี</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="คำนวณมวลโมเลกุล">
-          <span class="chip-icon"><i data-lucide="scale" style="color: #3b82f6;"></i></span>
-          <span class="chip-label">คำนวณมวลโมเลกุล</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="เตรียมสารละลาย">
-          <span class="chip-icon"><i data-lucide="droplet" style="color: #06b6d4;"></i></span>
-          <span class="chip-label">วิธีเตรียมสารละลาย</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="ปฐมพยาบาลสารเคมีหก">
-          <span class="chip-icon"><i data-lucide="siren" style="color: #dc2626;"></i></span>
-          <span class="chip-label">ปฐมพยาบาลสารหก</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip" data-query="จำแนกของเสีย">
-          <span class="chip-icon"><i data-lucide="trash-2" style="color: #64748b;"></i></span>
-          <span class="chip-label">จำแนกประเภทของเสีย</span>
-        </button>
-        <button type="button" class="chat-suggestion-chip full-width" data-query="วิธีใช้งานระบบ">
-          <span class="chip-icon"><i data-lucide="book-open" style="color: #10b981;"></i></span>
-          <span class="chip-label">แนะนำวิธีการใช้งานระบบคลัง</span>
-        </button>
+      <!-- Redesigned Quick Prompts Section -->
+      <div class="chat-suggestions-section">
+        <div class="chat-suggestions-header">
+          <div class="chat-suggestions-header-left">
+            <i data-lucide="zap" class="suggestions-zap-icon"></i>
+            <span>คำสั่งด่วนที่พบบ่อย (Quick Actions)</span>
+          </div>
+          <span class="suggestions-count-badge">9 รายการ</span>
+        </div>
+        <div class="chat-suggestions" id="chatSuggestions">
+          <button type="button" class="chat-suggestion-chip" data-query="ค้นหาสารเคมี">
+            <span class="chip-icon chip-icon-search"><i data-lucide="search"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">ค้นหาพัสดุ/สารเคมี</span>
+              <span class="chip-hint">สืบค้นตามชื่อหรือ CAS</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="เช็คของใกล้หมดคลัง">
+            <span class="chip-icon chip-icon-alert"><i data-lucide="alert-triangle"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">ตรวจเช็คสต็อกต่ำ</span>
+              <span class="chip-hint">รายการใกล้หมดคลัง</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="เช็คสารเคมีหมดอายุ">
+            <span class="chip-icon chip-icon-expire"><i data-lucide="clock"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">เช็คสารหมดอายุ</span>
+              <span class="chip-hint">ตรวจวันหมดอายุ</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O">
+            <span class="chip-icon chip-icon-balance"><i data-lucide="flask-conical"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">ดุลสมการเคมี</span>
+              <span class="chip-hint">ระบบดุลอัตโนมัติ</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="คำนวณมวลโมเลกุล">
+            <span class="chip-icon chip-icon-scale"><i data-lucide="scale"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">คำนวณมวลโมเลกุล</span>
+              <span class="chip-hint">Molecular Weight</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="เตรียมสารละลาย">
+            <span class="chip-icon chip-icon-solution"><i data-lucide="droplet"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">วิธีเตรียมสารละลาย</span>
+              <span class="chip-hint">คำนวณความเข้มข้น M, N</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="ปฐมพยาบาลสารเคมีหก">
+            <span class="chip-icon chip-icon-spill"><i data-lucide="siren"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">ปฐมพยาบาลสารหก</span>
+              <span class="chip-hint">ขั้นตอนกรณีฉุกเฉิน</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip" data-query="จำแนกของเสีย">
+            <span class="chip-icon chip-icon-waste"><i data-lucide="trash-2"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">จำแนกประเภทของเสีย</span>
+              <span class="chip-hint">17 Class SHECU</span>
+            </span>
+          </button>
+          <button type="button" class="chat-suggestion-chip full-width" data-query="วิธีใช้งานระบบ">
+            <span class="chip-icon chip-icon-guide"><i data-lucide="book-open"></i></span>
+            <span class="chip-content">
+              <span class="chip-label">แนะนำวิธีการใช้งานระบบคลังและห้องแล็บ</span>
+              <span class="chip-hint">คู่มือการใช้งานฟังก์ชันหลักของระบบ</span>
+            </span>
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Chat Input Footer -->
+    <!-- Redesigned Chat Input Footer -->
     <div class="chatbot-footer">
-      <div class="chatbot-input-wrap">
-        <input type="text" id="chatbotInput" placeholder="พิมพ์คำถามหรือคำสั่งที่นี่..." autocomplete="off">
-        <button type="button" id="chatbotSendBtn" title="ส่งข้อความ">
-          <i data-lucide="send" style="width: 14px; height: 14px;"></i>
-        </button>
+      <div class="chatbot-input-container">
+        <div class="chatbot-input-wrap">
+          <span class="chatbot-input-prefix-icon">
+            <i data-lucide="message-square" style="width: 15px; height: 15px;"></i>
+          </span>
+          <input type="text" id="chatbotInput" placeholder="พิมพ์คำถาม เช่น โซเดียมไฮดรอกไซด์, ดุลสมการ..." autocomplete="off">
+          <button type="button" id="chatbotSendBtn" aria-label="ส่งข้อความ" title="ส่งข้อความ (Enter)">
+            <i data-lucide="arrow-up" class="chatbot-send-icon"></i>
+          </button>
+        </div>
+        <div class="chatbot-footer-caption">
+          <div class="chatbot-caption-item">
+            <i data-lucide="sparkles" class="caption-sparkle-icon"></i>
+            <span>SciPortal AI</span>
+          </div>
+          <span class="chatbot-caption-dot">•</span>
+          <div class="chatbot-caption-item">
+            <span>กด <kbd>Enter ↵</kbd> เพื่อส่ง</span>
+          </div>
+          <span class="chatbot-caption-dot">•</span>
+          <div class="chatbot-caption-item">
+            <span>มาตรฐาน SHECU</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -2033,61 +2131,103 @@
 
   <!-- MODAL: HELP & SAFETY (SHECU Information Center) -->
   <div id="helpSafetyModal" class="modal-overlay">
-    <div class="modal-content modal-lg" style="width: 94%; max-width: 860px; height: 480px; max-height: 86vh; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 16px; border: 1px solid #d9dee8; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); font-family: var(--font-sans);">
+    <div class="modal-content modal-lg help-safety-modal-content">
       <!-- Modal Header -->
-      <div class="modal-header" style="padding: 14px 20px; border-bottom: 1px solid #d9dee8; display: flex; justify-content: space-between; align-items: center; background: #ffffff; flex-shrink: 0;">
+      <div class="modal-header help-modal-header">
         <div class="modal-header-left">
-          <div class="modal-header-icon-badge">
-            <i data-lucide="book-open" style="width: 20px; height: 20px;"></i>
+          <div class="modal-header-icon-badge help-header-badge">
+            <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
           </div>
           <div class="modal-title-wrap">
-            <h3 class="modal-title">ศูนย์ข้อมูล และความปลอดภัย</h3>
-            <div class="modal-subtitle">SHECU Information Center • มาตรฐานความปลอดภัยห้องปฏิบัติการ</div>
+            <div class="help-title-row">
+              <h3 class="modal-title">ศูนย์ข้อมูล และความปลอดภัย</h3>
+              <span class="shecu-badge shecu-badge-primary">
+                <i data-lucide="check-circle" style="width: 10px; height: 10px;"></i> SHECU ESPReL
+              </span>
+            </div>
+            <div class="modal-subtitle">SHECU Information Center • มาตรฐานความปลอดภัยห้องปฏิบัติการและการใช้งานระบบ</div>
           </div>
         </div>
-        <button class="modal-close-btn" onclick="closeHelpSafetyModal()" aria-label="ปิดหน้าต่าง">
-          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        <button class="modal-close-btn" onclick="closeHelpSafetyModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <i data-lucide="x" style="width: 16px; height: 16px;"></i>
         </button>
       </div>
       
-      <div class="help-modal-body" style="display: flex; flex: 1; min-height: 0; height: calc(100% - 69px); width: 100%; overflow: hidden; box-sizing: border-box;">
-        <!-- Sidebar Tabs -->
-        <div class="help-modal-sidebar" style="width: 200px; flex-shrink: 0; background: #f8fafc; border-right: 1px solid #d9dee8; padding: 10px 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box;">
-          <ul class="help-tabs" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px;">
-            <li class="help-tab active" data-target="help-tab-1">ความปลอดภัย SHECU</li>
-            <li class="help-tab" data-target="help-tab-2">เอกสาร SDS</li>
-            <li class="help-tab" data-target="help-tab-3">จัดการของเสีย</li>
-            <li class="help-tab" data-target="help-tab-4">คู่มือระบบ</li>
-            <li class="help-tab" data-target="help-tab-5">แจ้งปัญหา</li>
-            <li class="help-tab" data-target="help-tab-6">ผู้พัฒนาระบบ</li>
-          </ul>
+      <div class="help-modal-body">
+        <!-- Sidebar Navigation -->
+        <div class="help-modal-sidebar">
+          <div>
+            <div style="font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 10px 6px;">
+              หมวดหมู่คู่มือ
+            </div>
+            <ul class="help-tabs">
+              <li class="help-tab active" data-target="help-tab-1">
+                <i data-lucide="shield-alert" class="help-tab-icon"></i>
+                <span>ความปลอดภัย SHECU</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-2">
+                <i data-lucide="file-text" class="help-tab-icon"></i>
+                <span>เอกสาร SDS</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-3">
+                <i data-lucide="trash-2" class="help-tab-icon"></i>
+                <span>จัดการของเสีย</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-4">
+                <i data-lucide="book-marked" class="help-tab-icon"></i>
+                <span>คู่มือระบบ</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-5">
+                <i data-lucide="life-buoy" class="help-tab-icon"></i>
+                <span>แจ้งปัญหา / ติดต่อ</span>
+              </li>
+              <li class="help-tab" data-target="help-tab-6">
+                <i data-lucide="code-2" class="help-tab-icon"></i>
+                <span>ผู้พัฒนาระบบ</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div class="help-sidebar-footer">
+            <span class="pulse-dot"></span>
+            <span>ระบบความปลอดภัยพร้อมใช้</span>
+          </div>
         </div>
         
         <!-- Content Area -->
-        <div class="help-modal-content" style="flex: 1; min-width: 0; width: 100%; padding: 12px 16px; overflow-y: auto; overflow-x: hidden; background: #ffffff; box-sizing: border-box;">
+        <div class="help-modal-content">
           
           <!-- Tab 1: ความปลอดภัย SHECU -->
           <div id="help-tab-1" class="help-content active">
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
+              <!-- Quick Banner -->
+              <div class="help-shecu-banner">
+                <div class="help-shecu-banner-left">
+                  <i data-lucide="shield" style="width: 16px; height: 16px; color: #6366f1; flex-shrink: 0;"></i>
+                  <span style="font-size: 12px; font-weight: 600; color: #3730a3;">มาตรฐานความปลอดภัยห้องปฏิบัติการ ESPReL & จุฬาลงกรณ์มหาวิทยาลัย (SHECU)</span>
+                </div>
+                <span class="shecu-badge shecu-badge-primary" style="font-size: 10.5px; padding: 2px 7px;">ESPReL Level 3</span>
+              </div>
+
               <!-- Accordion 1: Incompatible Chemicals -->
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="shield-alert" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-alert" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การจัดเก็บสารเคมีไม่เข้ากัน (Incompatible Chemicals)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-warning">
-                      <i data-lucide="shield-alert" style="width: 11px; height: 11px;"></i> มาตรฐาน SHECU-G
+                      <i data-lucide="alert-triangle" style="width: 10px; height: 10px;"></i> SHECU-G
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <p style="margin: 0 0 6px 0;">สารเคมีต้องถูกจัดเก็บแยกตามกลุ่มความเข้ากันไม่ได้เพื่อป้องกันปฏิกิริยารุนแรง:</p>
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #4b5563;">
+                  <p style="margin: 0 0 5px 0;">สารเคมีต้องถูกจัดเก็บแยกตามกลุ่มความเข้ากันไม่ได้เพื่อป้องกันปฏิกิริยารุนแรง:</p>
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ห้ามเก็บกรดร่วมกับเบส:</strong> แยกตู้เก็บกรดและตู้เก็บด่างอย่างเด็ดขาด</div>
                     <div>• <strong>สารไวไฟร่วมกับตัวออกซิไดซ์:</strong> ต้องแยกจัดเก็บในตู้เก็บสารนิรภัย (Flammable Safety Cabinet)</div>
                     <div>• <strong>สารอันตรายสูง / ไอน้ำมัน:</strong> แยกเก็บในตู้ดูดควัน (Fume Hood) และติดป้ายเตือนอันตราย</div>
@@ -2099,14 +2239,14 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="archive" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="archive" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การควบคุมความจุตู้จัดเก็บ (Cabinet Storage Capacity)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-info">
-                      <i data-lucide="check-circle" style="width: 11px; height: 11px;"></i> สูงสุด 80%
+                      <i data-lucide="check-circle" style="width: 10px; height: 10px;"></i> สูงสุด 80%
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
@@ -2120,14 +2260,14 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="heart-pulse" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="heart-pulse" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การปฐมพยาบาล & อ่างล้างตาฉุกเฉิน (Emergency Eyewash)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-danger">
-                      <i data-lucide="alert-circle" style="width: 11px; height: 11px;"></i> ล้างน้ำ 15 นาที
+                      <i data-lucide="alert-circle" style="width: 10px; height: 10px;"></i> ล้างน้ำ 15 นาที
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
@@ -2146,14 +2286,14 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="search" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="search" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การค้นหาและตรวจสอบเลข CAS No.</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-primary">
-                      <i data-lucide="globe" style="width: 11px; height: 11px;"></i> รหัสสากล
+                      <i data-lucide="globe" style="width: 10px; height: 10px;"></i> รหัสสากล
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
@@ -2167,20 +2307,20 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dbeafe; color: #1e40af; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="file-text" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #1e40af; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">โครงสร้างเอกสารข้อมูลความปลอดภัย SDS ครบทั้ง 16 หัวข้อ</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-info">
-                      <i data-lucide="layers" style="width: 11px; height: 11px;"></i> ครบ 16 หัวข้อหลัก
+                      <i data-lucide="layers" style="width: 10px; height: 10px;"></i> GHS 16 ส่วน
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="font-size: 12px; color: #475569; margin-bottom: 6px;">
+                  <div style="font-size: 11.5px; color: #64748b; margin-bottom: 6px;">
                     เอกสาร SDS ตามระบบ GHS สรุปข้อมูลความปลอดภัย 16 ส่วนมาตรฐาน เพื่อใช้ประเมินความเสี่ยงก่อนปฏิบัติการ:
                   </div>
                   
@@ -2211,37 +2351,37 @@
           <!-- Tab 3: จัดการของเสีย -->
           <div id="help-tab-3" class="help-content" style="display: none;">
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
-              <!-- 3 Waste Separation Cards (Icon + Label + Color) -->
-              <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
+              <!-- 3 Waste Separation Cards -->
+              <div class="waste-bin-grid">
                 <!-- Flammable Red Bin -->
-                <div style="background: #fff5f5; border: 1px solid #fecaca; border-radius: 8px; padding: 8px 10px; min-width: 0; box-sizing: border-box;">
-                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #dc2626; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div class="waste-bin-card red">
+                  <div class="waste-bin-title">
                     <i data-lucide="flame" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังแดง: สารไวไฟ</span>
+                    <span>ถังแดง: สารไวไฟ</span>
                   </div>
-                  <div style="font-size: 11px; color: #7f1d1d; line-height: 1.4; word-break: break-word;">
+                  <div class="waste-bin-desc">
                     ตัวทำละลายอินทรีย์ (Organic Solvents เช่น เอทานอล, อะซิโตน, เมทานอล)
                   </div>
                 </div>
 
                 <!-- Acid-Base Blue Bin -->
-                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 10px; min-width: 0; box-sizing: border-box;">
-                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #2563eb; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div class="waste-bin-card blue">
+                  <div class="waste-bin-title">
                     <i data-lucide="beaker" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังน้ำเงิน: กรด-เบส</span>
+                    <span>ถังน้ำเงิน: กรด-เบส</span>
                   </div>
-                  <div style="font-size: 11px; color: #1e3a8a; line-height: 1.4; word-break: break-word;">
+                  <div class="waste-bin-desc">
                     สารละลายน้ำ / สารละลายกรดและเบสเจือจาง (Aqueous Acid-Base)
                   </div>
                 </div>
 
                 <!-- Contaminated Solids Yellow Bin -->
-                <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 8px 10px; min-width: 0; box-sizing: border-box;">
-                  <div style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: #ca8a04; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div class="waste-bin-card yellow">
+                  <div class="waste-bin-title">
                     <i data-lucide="trash-2" style="width: 14px; height: 14px; flex-shrink: 0;"></i>
-                    <span style="overflow: hidden; text-overflow: ellipsis;">ถังเหลือง: ของแข็ง</span>
+                    <span>ถังเหลือง: ของแข็ง</span>
                   </div>
-                  <div style="font-size: 11px; color: #713f12; line-height: 1.4; word-break: break-word;">
+                  <div class="waste-bin-desc">
                     ของแข็งปนเปื้อนเคมี กระดาษกรอง ถุงมือไนไตรล์ หรือขวดแก้วเปล่า
                   </div>
                 </div>
@@ -2251,20 +2391,20 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ffedd5; color: #ea580c; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="alert-triangle" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ffedd5; color: #ea580c; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">ข้อปฏิบัติและมาตรการความปลอดภัยในการทิ้งของเสีย</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-warning">
-                      <i data-lucide="shield" style="width: 11px; height: 11px;"></i> ข้อกำหนด SHECU
+                      <i data-lucide="shield" style="width: 10px; height: 10px;"></i> ข้อกำหนด SHECU
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ห้ามเทสารเคมีลงอ่างล้างท่อ:</strong> สารละลายเคมีทุกชนิดต้องทิ้งลงในถังรองรับของเสียที่กำหนดไว้เท่านั้น</div>
                     <div>• <strong>ปิดฝาถังให้สนิท:</strong> ปิดฝาถังขยะเคมีให้แน่นหนาทุกครั้งหลังการทิ้ง เพื่อป้องกันการระเหยของไอระเหยสารเคมี</div>
                     <div>• <strong>บันทึกสมุดของเสีย (Waste Log):</strong> บันทึกชื่อสาร ปริมาณ และวันที่ทิ้งลงในสมุดประจำห้องแล็บทุกครั้ง</div>
@@ -2281,20 +2421,20 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="calendar-check" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="calendar-check" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">1. การจองห้องปฏิบัติการ (Lab Booking Workflow)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-primary">
-                      <i data-lucide="user" style="width: 11px; height: 11px;"></i> ครู / ผู้ใช้
+                      <i data-lucide="user" style="width: 10px; height: 10px;"></i> ครู / ผู้ใช้
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ขั้นที่ 1 (เลือกวันเวลา):</strong> เข้าเมนู <em>"จองห้องปฏิบัติการ"</em> ตรวจสอบปฏิทิน แล้วเลือกห้องและคาบเรียนที่ว่าง</div>
                     <div>• <strong>ขั้นที่ 2 (ระบุสารเคมี/พัสดุ):</strong> กรอกชื่อผู้จอง วัตถุประสงค์ และระบุรายการพัสดุที่ต้องการให้จัดเตรียมล่วงหน้า</div>
                     <div>• <strong>ขั้นที่ 3 (รออนุมัติ):</strong> เจ้าหน้าที่ประจำห้อง (L2) หรือแอดมิน (L3) จะตรวจสอบและอนุมัติการเข้าใช้งาน</div>
@@ -2306,20 +2446,20 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="clipboard-list" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="clipboard-list" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">2. การเบิก-ยืมพัสดุและสารเคมี (Borrowing & Return Workflow)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-info">
-                      <i data-lucide="refresh-cw" style="width: 11px; height: 11px;"></i> ตัดสต็อก Real-time
+                      <i data-lucide="refresh-cw" style="width: 10px; height: 10px;"></i> ตัดสต็อก Real-time
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ขั้นที่ 1 (ค้นหาคลัง):</strong> ค้นหาชื่อสารเคมีหรือเครื่องแก้ว กำหนดจำนวนและวันที่ต้องการส่งคืน</div>
                     <div>• <strong>ขั้นที่ 2 (ยื่นคำขอยืม):</strong> ระบบส่งคำขอและตัดยอดคงเหลือในคลังสารเคมีทันทีแบบอัตโนมัติ</div>
                     <div>• <strong>ขั้นที่ 3 (ตรวจรับคืน):</strong> ตรวจสอบสภาพอุปกรณ์ก่อนกดรับคืน หรือบันทึกยอดชำรุดหากมีความเสียหาย</div>
@@ -2331,20 +2471,20 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="qr-code" style="width: 15px; height: 15px;"></i>
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="qr-code" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">3. การตรวจนับสต็อกและสแกน QR Code (Inventory & QR)</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-success">
-                      <i data-lucide="smartphone" style="width: 11px; height: 11px;"></i> สแกนมือถือ
+                      <i data-lucide="smartphone" style="width: 10px; height: 10px;"></i> สแกนมือถือ
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
                 </summary>
                 <div class="help-accordion-body">
-                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #475569;">
+                  <div style="display: flex; flex-direction: column; gap: 3px; font-size: 12px;">
                     <div>• <strong>ขั้นที่ 1 (สแกนผ่านกล้อง):</strong> สแกน QR Code ข้างขวดหรือหน้าตู้เพื่อดูยอดคงเหลือและตำแหน่งจัดเก็บ</div>
                     <div>• <strong>ขั้นที่ 2 (พิมพ์สติกเกอร์ฉลาก):</strong> เจ้าหน้าที่ L2+ สามารถกดพิมพ์ฉลากบาร์โค้ด QR Code ติดขวดสารใหม่ได้ทันที</div>
                     <div>• <strong>ขั้นที่ 3 (อัปเดตยอดคงเหลือ):</strong> บันทึกการรับเข้า หรือแก้ไขจุดเตือนขั้นต่ำ (Min Alert) เพื่อป้องกันของหมดคลัง</div>
@@ -2356,106 +2496,106 @@
           
           <!-- Tab 5: แจ้งปัญหา -->
           <div id="help-tab-5" class="help-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 9px; width: 100%; box-sizing: border-box;">
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
               <!-- Emergency Contacts Top Bar -->
               <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                <div style="font-size: 13.5px; font-weight: 700; color: #1f2937; display: flex; align-items: center; gap: 6px; min-width: 0;">
-                  <i data-lucide="phone-call" style="width: 15px; height: 15px; color: #dc2626; flex-shrink: 0;"></i>
+                <div style="font-size: 13px; font-weight: 700; color: var(--text-main, #1f2937); display: flex; align-items: center; gap: 6px; min-width: 0;">
+                  <i data-lucide="phone-call" style="width: 14px; height: 14px; color: #dc2626; flex-shrink: 0;"></i>
                   <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">เบอร์ติดต่อฉุกเฉินประจำห้องแล็บ</span>
                 </div>
-                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px; background: #ede7ff; color: #4f21a1; border: 1px solid #ddd6fe; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; flex-shrink: 0;" onclick="toggleEmergencyContactEdit(true)">
+                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: #ede7ff; color: #4f21a1; border: 1px solid #ddd6fe; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; flex-shrink: 0;" onclick="toggleEmergencyContactEdit(true)">
                   <i data-lucide="edit-3" style="width: 11px; height: 11px;"></i> แก้ไขข้อมูล
                 </button>
               </div>
 
               <!-- View Mode (Clean 3-Column Grid) -->
               <div id="emergencyContactsView" style="width: 100%; box-sizing: border-box;">
-                <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
+                <div class="help-contact-grid">
                   <!-- Card Admin -->
-                  <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="shield-check" style="width: 14px; height: 14px;"></i>
+                  <div class="help-contact-card">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
                     </div>
                     <div style="min-width: 0; flex: 1; overflow: hidden;">
-                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ผู้ดูแลระบบ (Admin)</div>
-                      <div id="dispContactAdmin" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร)</div>
+                      <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ผู้ดูแลระบบ (Admin)</div>
+                      <div id="dispContactAdmin" style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แอดมิน (ม.วงศกร)</div>
                     </div>
                   </div>
 
                   <!-- Card Nurse -->
-                  <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="heart-pulse" style="width: 14px; height: 14px;"></i>
+                  <div class="help-contact-card">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="heart-pulse" style="width: 13px; height: 13px;"></i>
                     </div>
                     <div style="min-width: 0; flex: 1; overflow: hidden;">
-                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล</div>
-                      <div id="dispContactNurse" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: อาคาร 1</div>
+                      <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล</div>
+                      <div id="dispContactNurse" style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ห้องพยาบาล: อาคาร 1</div>
                     </div>
                   </div>
 
                   <!-- Card Fire -->
-                  <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="flame" style="width: 14px; height: 14px;"></i>
+                  <div class="help-contact-card">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #fee2e2; color: #dc2626; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="flame" style="width: 13px; height: 13px;"></i>
                     </div>
                     <div style="min-width: 0; flex: 1; overflow: hidden;">
-                      <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้ / ฉุกเฉิน</div>
-                      <div id="dispContactFire" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
+                      <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เหตุเพลิงไหม้ / กู้ภัย</div>
+                      <div id="dispContactFire" style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">แจ้งเหตุเพลิงไหม้: 199</div>
                     </div>
                   </div>
                 </div>
               </div>
 
               <!-- Edit Mode (Inline Admin Edit) -->
-              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 10px 12px; width: 100%; box-sizing: border-box;">
-                <div style="font-size: 12px; font-weight: 600; color: #4f21a1; margin-bottom: 6px; display: flex; align-items: center; gap: 5px;">
-                  <i data-lucide="shield" style="width: 13px; height: 13px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน
+              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 8px 10px; width: 100%; box-sizing: border-box;">
+                <div style="font-size: 11.5px; font-weight: 600; color: #4f21a1; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;">
+                  <i data-lucide="shield" style="width: 12px; height: 12px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+                <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 7px;">
                   <div>
-                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แอดมิน / ผู้ดูแล</label>
-                    <input type="text" id="inputContactAdmin" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น แอดมิน (ม.วงศกร): 08x-xxx-xxxx" />
+                    <label style="font-size: 10.5px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แอดมิน / ผู้ดูแล</label>
+                    <input type="text" id="inputContactAdmin" class="form-control" style="font-size: 11.5px; padding: 4px 8px;" placeholder="เช่น แอดมิน (ม.วงศกร): 08x-xxx-xxxx" />
                   </div>
                   <div>
-                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์ห้องพยาบาล</label>
-                    <input type="text" id="inputContactNurse" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น ห้องพยาบาล: อาคาร 1 (เบอร์ 104)" />
+                    <label style="font-size: 10.5px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์ห้องพยาบาล</label>
+                    <input type="text" id="inputContactNurse" class="form-control" style="font-size: 11.5px; padding: 4px 8px;" placeholder="เช่น ห้องพยาบาล: อาคาร 1 (เบอร์ 104)" />
                   </div>
                   <div>
-                    <label style="font-size: 11px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย</label>
-                    <input type="text" id="inputContactFire" class="form-control" style="font-size: 12px; padding: 4px 8px;" placeholder="เช่น แจ้งเหตุเพลิงไหม้: 199" />
+                    <label style="font-size: 10.5px; color: #64748b; margin-bottom: 1px; display: block;">เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย</label>
+                    <input type="text" id="inputContactFire" class="form-control" style="font-size: 11.5px; padding: 4px 8px;" placeholder="เช่น แจ้งเหตุเพลิงไหม้: 199" />
                   </div>
                 </div>
                 <div style="display: flex; gap: 6px;">
-                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; padding: 3px 8px; background: #4f21a1;" onclick="saveEmergencyContacts()">
-                    <i data-lucide="check" style="width: 12px; height: 12px;"></i> บันทึก
+                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; background: #4f21a1;" onclick="saveEmergencyContacts()">
+                    <i data-lucide="check" style="width: 11px; height: 11px;"></i> บันทึก
                   </button>
-                  <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 3px 8px;" onclick="toggleEmergencyContactEdit(false)">
+                  <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;" onclick="toggleEmergencyContactEdit(false)">
                     ยกเลิก
                   </button>
                 </div>
               </div>
 
               <!-- Feedback Form Card -->
-              <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 9px; padding: 10px 12px; width: 100%; box-sizing: border-box;">
+              <div style="background: #f8fafc; border: 1px solid var(--border-color, #e2e8f0); border-radius: 9px; padding: 8px 11px; width: 100%; box-sizing: border-box;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px;">
-                  <div style="display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13px; color: #1f2937; min-width: 0;">
-                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="message-square-plus" style="width: 14px; height: 14px;"></i>
+                  <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px; color: var(--text-main, #1f2937); min-width: 0;">
+                    <div style="width: 22px; height: 22px; border-radius: 5px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="message-square-plus" style="width: 13px; height: 13px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ส่ง Feedback หรือแจ้งปัญหาการใช้งาน</span>
                   </div>
                   <span class="shecu-badge shecu-badge-primary">
-                    <i data-lucide="help-circle" style="width: 11px; height: 11px;"></i> ช่วยเหลือ & แนะนำ
+                    <i data-lucide="help-circle" style="width: 10px; height: 10px;"></i> ช่วยเหลือ & แนะนำ
                   </span>
                 </div>
-                <p style="margin: 0 0 5px 0; font-size: 11.5px; line-height: 1.45; color: #64748b;">
+                <p style="margin: 0 0 5px 0; font-size: 11px; line-height: 1.4; color: #64748b;">
                   หากพบข้อผิดพลาด ต้องการสอบถาม หรือมีข้อเสนอแนะในการพัฒนาระบบ สามารถพิมพ์ข้อความส่งถึงผู้ดูแลระบบได้ทันที
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 5px; width: 100%; box-sizing: border-box;">
-                  <textarea id="feedbackInput" class="form-control" rows="2" style="font-size: 12px; border-radius: 6px; padding: 6px 8px; resize: vertical; min-height: 42px; background: #ffffff; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1;" placeholder="อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ..."></textarea>
+                  <textarea id="feedbackInput" class="form-control" rows="2" style="font-size: 11.5px; border-radius: 6px; padding: 5px 8px; resize: none; min-height: 38px; background: #ffffff; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1;" placeholder="อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ..."></textarea>
                   <div style="display: flex; justify-content: flex-end;">
-                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; font-size: 12px; border-radius: 6px; background: #4f21a1; color: #ffffff; border: none; cursor: pointer; font-weight: 600;" onclick="submitUserFeedback()">
-                      <i data-lucide="send" style="width: 12px; height: 12px;"></i>
+                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; font-size: 11.5px; border-radius: 6px; background: #4f21a1; color: #ffffff; border: none; cursor: pointer; font-weight: 600;" onclick="submitUserFeedback()">
+                      <i data-lucide="send" style="width: 11px; height: 11px;"></i>
                       <span>ส่งข้อความ</span>
                     </button>
                   </div>
@@ -2468,44 +2608,44 @@
           <div id="help-tab-6" class="help-content" style="display: none;">
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; box-sizing: border-box;">
               <!-- Profile Card -->
-              <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 9px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box;">
-                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-                  <div style="width: 36px; height: 36px; border-radius: 50%; background: #4f21a1; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;">
+              <div style="background: #f8fafc; border: 1px solid var(--border-color, #e2e8f0); border-radius: 9px; padding: 8px 11px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 9px; min-width: 0;">
+                  <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #4f21a1, #7c3aed); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 6px rgba(79, 33, 161, 0.2);">
                     WD
                   </div>
                   <div style="min-width: 0;">
-                    <div style="font-size: 13px; font-weight: 700; color: #1f2937; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <div style="font-size: 12.5px; font-weight: 700; color: var(--text-main, #1f2937); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                       ม.วงศกร ด้วงเกลี้ยง
                     </div>
-                    <div style="font-size: 11px; color: #64748b; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <div style="font-size: 10.5px; color: #64748b; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                       ผู้พัฒนาและดูแลระบบบริหารจัดการห้องปฏิบัติการวิทยาศาสตร์
                     </div>
                   </div>
                 </div>
                 <span class="shecu-badge shecu-badge-primary">
-                  <i data-lucide="code" style="width: 11px; height: 11px;"></i> Lead Developer
+                  <i data-lucide="code" style="width: 10px; height: 10px;"></i> Lead Developer
                 </span>
               </div>
 
               <!-- System Specs Grid (2 Column) -->
-              <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; box-sizing: border-box;">
-                <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                  <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="cpu" style="width: 13px; height: 13px;"></i>
+              <div class="help-specs-grid">
+                <div class="help-spec-card">
+                  <div style="width: 22px; height: 22px; border-radius: 5px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="cpu" style="width: 12px; height: 12px;"></i>
                   </div>
                   <div style="min-width: 0; flex: 1; overflow: hidden;">
-                    <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เวอร์ชันระบบ (App Version)</div>
-                    <div id="devTabSystemVersion" style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Version 2.7.0 (PWA)</div>
+                    <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">เวอร์ชันระบบ (App Version)</div>
+                    <div id="devTabSystemVersion" style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Version 2.7.0 (PWA)</div>
                   </div>
                 </div>
 
-                <div style="background: #f8fafc; border: 1px solid #d9dee8; border-radius: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 8px; min-width: 0; box-sizing: border-box;">
-                  <div style="width: 24px; height: 24px; border-radius: 6px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i data-lucide="database" style="width: 13px; height: 13px;"></i>
+                <div class="help-spec-card">
+                  <div style="width: 22px; height: 22px; border-radius: 5px; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i data-lucide="database" style="width: 12px; height: 12px;"></i>
                   </div>
                   <div style="min-width: 0; flex: 1; overflow: hidden;">
-                    <div style="font-size: 10.5px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ฐานข้อมูล & สำรองคลาวด์</div>
-                    <div style="font-size: 11.5px; font-weight: 700; color: #1f2937; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Supabase & Sheets (Real-time)</div>
+                    <div style="font-size: 10px; font-weight: 600; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ฐานข้อมูล & สำรองคลาวด์</div>
+                    <div style="font-size: 11px; font-weight: 700; color: var(--text-main, #1f2937); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Supabase & Sheets (Real-time)</div>
                   </div>
                 </div>
               </div>
@@ -2514,14 +2654,14 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                      <i data-lucide="target" style="width: 14px; height: 14px;"></i>
+                    <div style="width: 22px; height: 22px; border-radius: 5px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="target" style="width: 13px; height: 13px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">วัตถุประสงค์และมาตรฐานระบบ</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
                     <span class="shecu-badge shecu-badge-info">
-                      <i data-lucide="award" style="width: 11px; height: 11px;"></i> SHECU Standard
+                      <i data-lucide="award" style="width: 10px; height: 10px;"></i> SHECU Standard
                     </span>
                     <i data-lucide="chevron-down" class="help-accordion-chevron"></i>
                   </div>
