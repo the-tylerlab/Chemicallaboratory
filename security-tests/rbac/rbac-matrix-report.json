@@ -1,7 +1,7 @@
 {
   "testSuite": "READ-ONLY RBAC Security Matrix Test",
   "target": "https://chemicallab.vercel.app",
-  "timestamp": "2026-10-07T08:33:40.138Z",
+  "timestamp": "2026-10-15T15:07:10.538Z",
   "environment": "Production",
   "roleArchitecture": {
     "discoveredRoles": [
@@ -434,7 +434,7 @@
     {
       "test": "GET /api/auth/me?id=u_admin (User/L1)",
       "expected": "Returns authenticated user profile only (no IDOR)",
-      "actual": "User ID returned: u_1001 (Matches L1 token identity)",
+      "actual": "User ID returned: u_1002 (Matches L1 token identity)",
       "result": "PASS"
     }
   ],

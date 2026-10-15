@@ -50,6 +50,101 @@ var ALL_VALID_SHEET_NAMES = [
   '7. Announcements'
 ];
 
+// -------------------------------------------------------------
+// SECONDARY GOOGLE SHEET FOR LABEL PRINTING (พิมพ์ฉลากพัสดุและเคมีภัณฑ์)
+// Sheet URL: https://docs.google.com/spreadsheets/d/1nyZPEmhXYukJjAYIeBYvH4cO98n_Dsz5AdQKT4PdzsE
+// -------------------------------------------------------------
+var LABEL_PRINTING_SHEET_ID = '1nyZPEmhXYukJjAYIeBYvH4cO98n_Dsz5AdQKT4PdzsE';
+
+function syncToLabelPrintingSheet(action, data) {
+  try {
+    if (!LABEL_PRINTING_SHEET_ID) return 'no_sheet_id';
+    var labelSS = SpreadsheetApp.openById(LABEL_PRINTING_SHEET_ID);
+    if (!labelSS) return 'sheet_not_found';
+    var sheet = labelSS.getSheets()[0];
+    if (!sheet) return 'no_active_tab';
+
+    var LABEL_HEADERS = ['Code', 'Name', 'Category', 'qty', 'unit', 'room', 'cabinet', 'shelf', 'QR_Target_URL'];
+
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(LABEL_HEADERS);
+      sheet.getRange(1, 1, 1, LABEL_HEADERS.length).setFontWeight('bold').setBackground('#f1f5f9');
+    }
+
+    if (action === 'REPLACE_ALL' && Array.isArray(data)) {
+      var lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        sheet.getRange(2, 1, lastRow - 1, LABEL_HEADERS.length).clearContent();
+      }
+      var rows = data.map(function(item) {
+        var code = String(item.code || item.Code || '').trim();
+        return [
+          code,
+          item.name || item.Name || '',
+          item.category || item.Category || '',
+          item.qty !== undefined ? item.qty : (item.quantity !== undefined ? item.quantity : 0),
+          item.unit || item.Unit || '',
+          item.room || item.Room || '',
+          item.cabinet || item.Cabinet || '',
+          item.shelf || item.Shelf || '',
+          'https://chemicallab.vercel.app/#/item?id=' + encodeURIComponent(code)
+        ];
+      });
+      if (rows.length > 0) {
+        sheet.getRange(2, 1, rows.length, LABEL_HEADERS.length).setValues(rows);
+      }
+      return 'replaced_' + rows.length + '_labels';
+    }
+
+    if (action === 'DELETE') {
+      var code = String(data.code || data.Code || '').trim();
+      if (!code) return 'missing_code';
+      var lastRow = sheet.getLastRow();
+      if (lastRow <= 1) return 'sheet_empty';
+      var codes = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+      for (var i = codes.length - 1; i >= 0; i--) {
+        if (String(codes[i][0]).trim() === code) {
+          sheet.deleteRow(i + 2);
+          return 'deleted_label_' + code;
+        }
+      }
+      return 'label_not_found';
+    }
+
+    // Default: UPSERT single item
+    var item = data;
+    var code = String(item.code || item.Code || '').trim();
+    if (!code) return 'missing_code';
+    var rowValues = [
+      code,
+      item.name || item.Name || '',
+      item.category || item.Category || '',
+      item.qty !== undefined ? item.qty : (item.quantity !== undefined ? item.quantity : 0),
+      item.unit || item.Unit || '',
+      item.room || item.Room || '',
+      item.cabinet || item.Cabinet || '',
+      item.shelf || item.Shelf || '',
+      'https://chemicallab.vercel.app/#/item?id=' + encodeURIComponent(code)
+    ];
+
+    var lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      var codes = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+      for (var i = 0; i < codes.length; i++) {
+        if (String(codes[i][0]).trim() === code) {
+          sheet.getRange(i + 2, 1, 1, LABEL_HEADERS.length).setValues([rowValues]);
+          return 'updated_label_' + code;
+        }
+      }
+    }
+    sheet.appendRow(rowValues);
+    return 'inserted_label_' + code;
+  } catch (err) {
+    Logger.log('syncToLabelPrintingSheet notice: ' + err.message);
+    return 'error: ' + err.message;
+  }
+}
+
 function resolveSheetName(tableName) {
   if (!tableName) return null;
   var raw = String(tableName).trim();
@@ -818,6 +913,22 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
+    if (action === 'SYNC_LABEL_SHEET' || action === 'UPDATE_LABELS') {
+      var itemsToSync = Array.isArray(data) ? data : [];
+      if (itemsToSync.length === 0) {
+        var itemSheet = ss.getSheetByName(CANONICAL_TABS.ITEMS) || ss.getSheetByName('1.Items');
+        if (itemSheet) {
+          itemsToSync = extractSheetData(itemSheet, CANONICAL_TABS.ITEMS);
+        }
+      }
+      var labelResult = syncToLabelPrintingSheet('REPLACE_ALL', itemsToSync);
+      return ContentService.createTextOutput(JSON.stringify({ 
+        status: "success", 
+        message: "Label printing sheet synced successfully (" + itemsToSync.length + " items).",
+        details: labelResult
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (action === 'GET_DATA' || action === 'FETCH' || action === 'READ') {
       var sheet = ss.getSheetByName(table);
       if (!sheet) {
@@ -864,6 +975,9 @@ function doPost(e) {
           });
           sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
         }
+        if (table === CANONICAL_TABS.ITEMS || table === 'Items' || table === '1.Items') {
+          syncToLabelPrintingSheet('REPLACE_ALL', data);
+        }
         return ContentService.createTextOutput(JSON.stringify({ 
           status: "success", 
           result: "replaced_" + data.length + "_rows",
@@ -877,6 +991,9 @@ function doPost(e) {
       renumberBookingRows();
     } else {
       result = (action === 'DELETE') ? deleteRow(sheet, data, keyField) : upsertRow(sheet, data, keyField);
+      if (table === CANONICAL_TABS.ITEMS || table === 'Items' || table === '1.Items') {
+        syncToLabelPrintingSheet(action, data);
+      }
     }
 
     return ContentService.createTextOutput(JSON.stringify({ 

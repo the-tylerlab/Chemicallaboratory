@@ -3328,25 +3328,25 @@ button.menu-item-link:active {
 
 /* Modal Tabs */
 /* ==========================================================================
-   HELP & SAFETY MODAL REDESIGN (#helpSafetyModal) - FIXED HEIGHT ARCHITECTURE
+   HELP & SAFETY MODAL (#helpSafetyModal)
    ========================================================================== */
 #helpSafetyModal .modal-content.help-safety-modal-content {
-  width: 92% !important;
-  max-width: 880px !important;
-  height: 460px !important;
-  min-height: 460px !important;
-  max-height: 460px !important;
-  border-radius: 18px !important;
-  border: 1px solid var(--border-color, #e2e8f0) !important;
-  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.3) inset !important;
-  background: var(--bg-card, #ffffff) !important;
-  position: relative !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  padding: 0 !important;
-  font-family: var(--font-sans) !important;
-  box-sizing: border-box !important;
+  width: 92%;
+  max-width: 880px;
+  height: 460px;
+  min-height: 460px;
+  max-height: 460px;
+  border-radius: 18px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+  background: var(--bg-card, #ffffff);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  font-family: var(--font-sans);
+  box-sizing: border-box;
 }
 
 #helpSafetyModal .modal-content.help-safety-modal-content::before {
@@ -3356,21 +3356,21 @@ button.menu-item-link:active {
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  background: var(--color-primary, #6366f1);
   z-index: 10;
 }
 
 /* Modal Header */
 .help-modal-header {
-  padding: 10px 20px !important;
-  border-bottom: 1px solid var(--border-color, #e2e8f0) !important;
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  background: var(--bg-card, #ffffff) !important;
-  flex-shrink: 0 !important;
-  height: 54px !important;
-  box-sizing: border-box !important;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-card, #ffffff);
+  flex-shrink: 0;
+  height: 54px;
+  box-sizing: border-box;
   gap: 12px;
 }
 
@@ -3382,16 +3382,16 @@ button.menu-item-link:active {
 }
 
 .help-header-badge {
-  width: 34px !important;
-  height: 34px !important;
-  border-radius: 9px !important;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(168, 85, 247, 0.16)) !important;
-  border: 1px solid rgba(99, 102, 241, 0.24) !important;
-  color: #6366f1 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  flex-shrink: 0 !important;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.24);
+  color: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.12);
 }
 
@@ -3403,16 +3403,16 @@ button.menu-item-link:active {
 }
 
 .help-modal-header .modal-title {
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  color: var(--text-main, #0f172a) !important;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main, #0f172a);
   letter-spacing: -0.2px;
   margin: 0;
 }
 
 .help-modal-header .modal-subtitle {
-  font-size: 11.5px !important;
-  color: var(--text-muted, #64748b) !important;
+  font-size: 11.5px;
+  color: var(--text-muted, #64748b);
   margin-top: 1px;
   line-height: 1.3;
 }
@@ -3440,30 +3440,30 @@ button.menu-item-link:active {
 
 /* Modal Body */
 .help-modal-body {
-  display: flex !important;
-  flex: 1 !important;
-  min-height: 0 !important;
-  height: calc(100% - 54px) !important;
-  max-height: calc(100% - 54px) !important;
-  width: 100% !important;
-  overflow: hidden !important;
-  box-sizing: border-box !important;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  height: calc(100% - 54px);
+  max-height: calc(100% - 54px);
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 /* Sidebar */
 .help-modal-sidebar {
-  width: 210px !important;
-  flex-shrink: 0 !important;
-  background: #f8fafc !important;
-  border-right: 1px solid var(--border-color, #e2e8f0) !important;
-  padding: 10px 8px !important;
-  height: 100% !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  box-sizing: border-box !important;
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: space-between !important;
+  width: 210px;
+  flex-shrink: 0;
+  background: #f8fafc;
+  border-right: 1px solid var(--border-color, #e2e8f0);
+  padding: 10px 8px;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .help-tabs {
@@ -3511,10 +3511,10 @@ button.menu-item-link:active {
 }
 
 .help-tab.active {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.08)) !important;
-  color: #4f46e5 !important;
-  font-weight: 700 !important;
-  border-left: 3px solid #6366f1 !important;
+  background: rgba(99, 102, 241, 0.1);
+  color: #4f46e5;
+  font-weight: 700;
+  border-left: 3px solid #6366f1;
   box-shadow: 0 1px 3px rgba(99, 102, 241, 0.08);
 }
 
@@ -3545,16 +3545,16 @@ button.menu-item-link:active {
 
 /* Content Area */
 .help-modal-content {
-  flex: 1 !important;
-  min-width: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-height: 100% !important;
-  padding: 14px 18px !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  background: var(--bg-card, #ffffff) !important;
-  box-sizing: border-box !important;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  padding: 14px 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg-card, #ffffff);
+  box-sizing: border-box;
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
@@ -3578,7 +3578,7 @@ button.menu-item-link:active {
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.06) 100%);
+  background: rgba(99, 102, 241, 0.06);
   border: 1px solid rgba(99, 102, 241, 0.2);
   border-radius: 9px;
   margin-bottom: 8px;
@@ -3829,22 +3829,22 @@ button.menu-item-link:active {
 
 /* Dark mode overrides for Help Modal */
 body.dark-mode #helpSafetyModal .modal-content.help-safety-modal-content {
-  background: var(--bg-card, #1e1e2d) !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+  background: var(--bg-card, #1e1e2d);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
 }
 
 body.dark-mode .help-modal-header {
-  background: var(--bg-card, #1e1e2d) !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  background: var(--bg-card, #1e1e2d);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
 body.dark-mode .help-modal-header .modal-title {
-  color: #f8fafc !important;
+  color: #f8fafc;
 }
 
 body.dark-mode .help-modal-header .modal-subtitle {
-  color: #94a3b8 !important;
+  color: #94a3b8;
 }
 
 body.dark-mode .help-modal-header .modal-close-btn {
@@ -3859,8 +3859,8 @@ body.dark-mode .help-modal-header .modal-close-btn:hover {
 }
 
 body.dark-mode .help-modal-sidebar {
-  background: rgba(15, 23, 42, 0.6) !important;
-  border-right-color: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(15, 23, 42, 0.6);
+  border-right-color: rgba(255, 255, 255, 0.08);
 }
 
 body.dark-mode .help-tab {
@@ -3873,8 +3873,8 @@ body.dark-mode .help-tab:hover {
 }
 
 body.dark-mode .help-tab.active {
-  background: rgba(99, 102, 241, 0.15) !important;
-  color: #818cf8 !important;
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
 }
 
 body.dark-mode .help-sidebar-footer {
@@ -3883,7 +3883,7 @@ body.dark-mode .help-sidebar-footer {
 }
 
 body.dark-mode .help-modal-content {
-  background: var(--bg-card, #1e1e2d) !important;
+  background: var(--bg-card, #1e1e2d);
   scrollbar-color: #475569 transparent;
 }
 
@@ -17548,7 +17548,7 @@ body.admin-logged-in .public-only-section {
   line-height: 1.5;
 }
 
-/* Tier 2 (Bottom Tier): Action Bar with Light Gray Pill Background */
+/* Tier 2 (Bottom Tier): Action Bar with 2-Column Responsive Grid Layout */
 .quick-prompt-bottom {
   background: transparent;
   border-top: 0;
@@ -17559,55 +17559,157 @@ body.admin-logged-in .public-only-section {
   gap: 8px;
 }
 
-.quick-prompt-actions-left {
+#quickMenuCard .quick-prompt-bottom {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  padding: 4px !important;
+  align-items: stretch;
+}
+
+#quickMenuCard .quick-prompt-actions-left,
+#quickMenuCard .quick-prompt-actions-right {
   display: contents;
 }
 
-.quick-prompt-actions-right {
-  display: contents;
+/* Logical ordering for quick buttons:
+   Row 1: Common Operations (ยืม-คืนพัสดุ & จองห้องปฏิบัติการ)
+   Row 2: Management Operations (เพิ่มสาร/อุปกรณ์ & จัดการระบบ) */
+#quickMenuCard #quickBtnBorrowReturn {
+  order: 1;
+}
+
+#quickMenuCard #quickBtnLabBooking {
+  order: 2;
+}
+
+#quickMenuCard #quickBtnAddItem {
+  order: 3;
+}
+
+#quickMenuCard #quickBtnAdmin {
+  order: 4;
+}
+
+/* For Staff (L2) where quickBtnAdmin is hidden, make quickBtnAddItem span full width */
+#quickMenuCard.role-l2 #quickBtnAddItem {
+  grid-column: 1 / -1;
 }
 
 #quickMenuCard .quick-prompt-bottom > button,
 #quickMenuCard .quick-prompt-actions-left > button,
 #quickMenuCard .quick-prompt-actions-right > button {
-  flex: 1 1 0;
+  width: 100%;
   min-width: 0;
   height: 42px !important;
   justify-content: center;
-  padding-inline: 8px;
+  padding-inline: 10px;
   white-space: nowrap;
   box-sizing: border-box;
 }
 
+#quickMenuCard .quick-prompt-bottom button > span,
+#quickMenuCard .quick-prompt-model-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 #quickMenuCard #quickBtnBorrowReturn,
-#quickMenuCard #quickBtnLabBooking {
+#quickMenuCard #quickBtnLabBooking,
+#quickMenuCard #quickBtnAddItem,
+#quickMenuCard #quickBtnAdmin {
   color: var(--color-gray-1000, #30343b);
   transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
 
 #quickMenuCard #quickBtnBorrowReturn:active,
-#quickMenuCard #quickBtnLabBooking:active {
+#quickMenuCard #quickBtnLabBooking:active,
+#quickMenuCard #quickBtnAddItem:active,
+#quickMenuCard #quickBtnAdmin:active {
   transform: translateY(1px) scale(0.97) !important;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
 }
 
 #quickMenuCard #quickBtnBorrowReturn:focus-visible,
-#quickMenuCard #quickBtnLabBooking:focus-visible {
+#quickMenuCard #quickBtnLabBooking:focus-visible,
+#quickMenuCard #quickBtnAddItem:focus-visible,
+#quickMenuCard #quickBtnAdmin:focus-visible {
   color: var(--color-gray-1200, #171923);
   outline: 2px solid var(--color-focus, #3b82f6);
   outline-offset: 2px;
-  transform: scale(1.1);
+  transform: scale(1.02);
   z-index: 1;
+}
+
+/* Thematic icon accents */
+#quickMenuCard #quickBtnBorrowReturn i,
+#quickMenuCard #quickBtnBorrowReturn svg {
+  color: #2563eb !important;
+  stroke: #2563eb !important;
+}
+
+#quickMenuCard #quickBtnLabBooking i,
+#quickMenuCard #quickBtnLabBooking svg {
+  color: #7c3aed !important;
+  stroke: #7c3aed !important;
+}
+
+#quickMenuCard #quickBtnAddItem i,
+#quickMenuCard #quickBtnAddItem svg {
+  color: #059669 !important;
+  stroke: #059669 !important;
+}
+
+#quickMenuCard #quickBtnAdmin i,
+#quickMenuCard #quickBtnAdmin svg {
+  color: #d97706 !important;
+  stroke: #d97706 !important;
+}
+
+/* Refined contextual hover styles */
+@media (hover: hover) {
+  #quickMenuCard #quickBtnBorrowReturn:hover {
+    background: #eff6ff !important;
+    border-color: #bfdbfe !important;
+    color: #1d4ed8 !important;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.08) !important;
+  }
+
+  #quickMenuCard #quickBtnLabBooking:hover {
+    background: #f6f4ff !important;
+    border-color: #ddd6fe !important;
+    color: #4c3b85 !important;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.08) !important;
+  }
+
+  #quickMenuCard #quickBtnAddItem:hover {
+    background: #f0fdf4 !important;
+    border-color: #bbf7d0 !important;
+    color: #047857 !important;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.08) !important;
+  }
+
+  #quickMenuCard #quickBtnAdmin:hover {
+    background: #fffbeb !important;
+    border-color: #fde68a !important;
+    color: #b45309 !important;
+    box-shadow: 0 2px 6px rgba(217, 119, 6, 0.08) !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   #quickMenuCard #quickBtnBorrowReturn,
-  #quickMenuCard #quickBtnLabBooking {
+  #quickMenuCard #quickBtnLabBooking,
+  #quickMenuCard #quickBtnAddItem,
+  #quickMenuCard #quickBtnAdmin {
     transition: none;
   }
 
   #quickMenuCard #quickBtnBorrowReturn:active,
-  #quickMenuCard #quickBtnLabBooking:active {
+  #quickMenuCard #quickBtnLabBooking:active,
+  #quickMenuCard #quickBtnAddItem:active,
+  #quickMenuCard #quickBtnAdmin:active {
     transform: none !important;
   }
 }
@@ -17622,18 +17724,13 @@ body.admin-logged-in .public-only-section {
   font-size: 12px;
 }
 
-#quickMenuCard .quick-prompt-model-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 #quickMenuCard .quick-prompt-model-btn .quick-prompt-chevron {
   flex-shrink: 0;
 }
 
 @media (max-width: 420px) {
   #quickMenuCard .quick-prompt-bottom {
-    gap: 5px;
+    gap: 6px !important;
     padding-inline: 4px;
   }
 
@@ -17641,11 +17738,10 @@ body.admin-logged-in .public-only-section {
   #quickMenuCard .quick-prompt-actions-left > button,
   #quickMenuCard .quick-prompt-actions-right > button {
     gap: 4px !important;
-    padding-inline: 5px !important;
+    padding-inline: 6px !important;
     font-size: 11px !important;
   }
 }
-
 /* Round (+) Plus Button */
 .quick-prompt-add-btn {
   display: inline-flex;

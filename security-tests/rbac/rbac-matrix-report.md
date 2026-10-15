@@ -2,7 +2,7 @@
 
 ## Environment
 - **Target:** `https://chemicallab.vercel.app`
-- **Test Date:** Wed, 07 Oct 2026 08:33:40 GMT
+- **Test Date:** Thu, 15 Oct 2026 15:07:10 GMT
 - **Test Type:** Role-Based Access Control (RBAC) & Authorization Integrity Test
 - **Read-Only Mode:** **YES** (Zero mutations, zero code changes)
 
@@ -97,7 +97,7 @@ From read-only source code inspection of `server.js`, the following role hierarc
 ## Object-Level Authorization (IDOR / BOLA)
 | Test Case | Expected | Actual | Result |
 | :--- | :--- | :--- | :---: |
-| `GET /api/auth/me?id=u_admin (User/L1)` | Returns authenticated user profile only (no IDOR) | User ID returned: u_1001 (Matches L1 token identity) | **PASS** |
+| `GET /api/auth/me?id=u_admin (User/L1)` | Returns authenticated user profile only (no IDOR) | User ID returned: u_1002 (Matches L1 token identity) | **PASS** |
 
 - **Finding:** No IDOR/BOLA vulnerability detected on safe read endpoints. Identity is bound strictly to server-verified JWT claims.
 
