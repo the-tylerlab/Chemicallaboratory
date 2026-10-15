@@ -733,6 +733,28 @@ function sanitizeUser(u) {
   return copy;
 }
 
+// Helper: Sanitize item object for Supabase strict schema
+function sanitizeItemForSupabase(it) {
+  if (!it) return null;
+  return {
+    code: String(it.code || '').trim(),
+    name: String(it.name || '').trim(),
+    category: String(it.category || 'สารเคมี').trim(),
+    qty: Number(it.qty !== undefined ? it.qty : (it.quantity || 0)),
+    damagedQty: Number(it.damagedQty || 0),
+    unit: String(it.unit || 'ขวด').trim(),
+    minAlert: Number(it.minAlert || 0),
+    expiry: String(it.expiry || '').trim(),
+    room: String(it.room || 'Lab 1').trim(),
+    cabinet: String(it.cabinet || '').trim(),
+    shelf: String(it.shelf || '').trim(),
+    chemicalType: it.chemicalType || 'G',
+    sdsUrl: String(it.sdsUrl || '').trim(),
+    ghs: Array.isArray(it.ghs) ? it.ghs : (typeof it.ghs === 'string' && it.ghs ? it.ghs.split(',').map(s => s.trim()) : []),
+    createdAt: it.createdAt || it.created_at || new Date().toISOString()
+  };
+}
+
 // Middleware: Authenticate JWT Token
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
@@ -1006,6 +1028,7 @@ function writeEmergencyContacts(contacts) {
 // GOOGLE_SCRIPT_URL must be set in .env to enable Google Sheets sync.
 // If absent, all syncToGoogleSheets() calls are silently skipped (graceful no-op).
 const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || null;
+const GOOGLE_LABEL_SHEET_ID = process.env.GOOGLE_LABEL_SHEET_ID || '1nyZPEmhXYukJjAYIeBYvH4cO98n_Dsz5AdQKT4PdzsE';
 
 async function syncToGoogleSheets(table, action, data, keyField = 'id') {
   if (!GOOGLE_SCRIPT_URL) return;
@@ -1394,7 +1417,43 @@ app.post('/api/sync-google-sheets', authenticateToken, requireRole('L3'), async 
       syncToGoogleSheets('Announcements', 'UPSERT', announcements, 'badgeText');
     }
 
-    res.json({ success: true, message: 'Google Sheets sync dispatched for all records.' });
+    // Also trigger label sheet sync
+    if (GOOGLE_SCRIPT_URL && items && items.length > 0) {
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SYNC_LABEL_SHEET',
+          targetSheetId: GOOGLE_LABEL_SHEET_ID,
+          data: items
+        })
+      }).catch(err => console.warn('[LabelSheetSync] Batch notice:', err.message));
+    }
+
+    res.json({ success: true, message: 'Google Sheets sync dispatched for all records and label sheet.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Manual Trigger: Sync Items to Google Sheet Label Printing Channel — L2 Staff / L3 Admin
+app.post('/api/sync-label-sheet', authenticateToken, requireRole('L2', 'L3'), async (req, res) => {
+  try {
+    const items = await fetchLiveItems(false);
+    if (!GOOGLE_SCRIPT_URL) {
+      return res.status(400).json({ success: false, message: 'GOOGLE_SCRIPT_URL not configured in environment' });
+    }
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'SYNC_LABEL_SHEET',
+        targetSheetId: GOOGLE_LABEL_SHEET_ID,
+        data: items
+      })
+    });
+    const result = await response.json();
+    res.json({ success: true, count: items.length, targetSheetId: GOOGLE_LABEL_SHEET_ID, result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1493,7 +1552,7 @@ app.post('/api/items', authenticateToken, requireRole('L2', 'L3'), async (req, r
 
   // 1. Sync to Supabase (Primary Source of Truth)
   if (supabase) {
-    supabase.from('items').upsert(newItem, { onConflict: 'code' }).then(null, err => {
+    supabase.from('items').upsert(sanitizeItemForSupabase(newItem), { onConflict: 'code' }).then(null, err => {
       console.warn("[SourceOfTruth:Supabase] upsert item err:", err.message);
     });
   }
@@ -1548,7 +1607,7 @@ app.put('/api/items/:code', authenticateToken, requireRole('L2', 'L3'), async (r
 
   // 1. Sync to Supabase (Primary Source of Truth)
   if (supabase) {
-    supabase.from('items').upsert(items[index], { onConflict: 'code' }).then(null, err => {
+    supabase.from('items').upsert(sanitizeItemForSupabase(items[index]), { onConflict: 'code' }).then(null, err => {
       console.warn("[SourceOfTruth:Supabase] update item err:", err.message);
     });
   }
@@ -1652,7 +1711,7 @@ app.post('/api/items/import', authenticateToken, requireRole('L3'), async (req, 
     writeDatabase(items);
     itemsCache = items;
     if (supabase && newItemsToSync.length > 0) {
-      supabase.from('items').upsert(newItemsToSync, { onConflict: 'code' }).then(null, err => {
+      supabase.from('items').upsert(newItemsToSync.map(sanitizeItemForSupabase), { onConflict: 'code' }).then(null, err => {
         console.warn("Supabase batch import items err:", err.message);
       });
     }

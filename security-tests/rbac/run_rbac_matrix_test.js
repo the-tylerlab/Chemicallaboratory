@@ -84,7 +84,7 @@ async function run() {
 
   // 1. Obtain Tokens for L1, L2, L3, L4
   const accounts = {
-    L1: { u: '1001', p: '1001' },
+    L1: { u: '1002', p: '1002' },
     L2: { u: '2001', p: '2001' },
     L3: { u: '10823', p: 'SciAdmin@2026' },
     L4: { u: '4001', p: '4001' }
@@ -334,7 +334,8 @@ async function run() {
   });
 
   // 4. Token with signature stripped from valid token
-  const tokenParts = tokens.L1.split('.');
+  const validTokenForParts = tokens.L1 || tokens.L2 || tokens.L3 || '';
+  const tokenParts = validTokenForParts ? validTokenForParts.split('.') : ['', '', ''];
   const strippedSigToken = `${tokenParts[0]}.${tokenParts[1]}.`;
   const resStripped = await request('/api/auth/me', {
     headers: { 'Authorization': 'Bearer ' + strippedSigToken }

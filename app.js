@@ -2538,6 +2538,11 @@ function applyDashboardRoleLayout() {
   if (quickBtnAdmin) {
     quickBtnAdmin.style.display = isL3Admin ? "flex" : "none";
   }
+  const quickMenuCard = document.getElementById("quickMenuCard");
+  if (quickMenuCard) {
+    quickMenuCard.classList.toggle("role-l3", isL3Admin);
+    quickMenuCard.classList.toggle("role-l2", isL2Staff);
+  }
 
   // 4. Pending Requests & Alerts
   const pendingRequestsCard = document.getElementById("pendingRequestsCard");
@@ -2695,6 +2700,11 @@ function updateUI() {
   if (poExportActions) poExportActions.style.display = isL3OrL4 ? "inline-flex" : "none";
   if (quickBtnAddItem) quickBtnAddItem.style.display = (isL3Admin || isL2Staff) ? "flex" : "none";
   if (quickBtnAdmin) quickBtnAdmin.style.display = isL3Admin ? "flex" : "none";
+  const quickMenuCardEl3 = document.getElementById("quickMenuCard");
+  if (quickMenuCardEl3) {
+    quickMenuCardEl3.classList.toggle("role-l3", isL3Admin);
+    quickMenuCardEl3.classList.toggle("role-l2", isL2Staff);
+  }
 
   // Toggle display of admin-only clear data buttons
   document.querySelectorAll(".admin-clear-btn").forEach(btn => {
@@ -9883,6 +9893,11 @@ function updateLoginUI() {
   const quickBtnAdminEl = document.getElementById("quickBtnAdmin");
   if (quickBtnAdminEl) {
     quickBtnAdminEl.style.display = isL3Admin ? "flex" : "none";
+  }
+  const quickMenuCardEl2 = document.getElementById("quickMenuCard");
+  if (quickMenuCardEl2) {
+    quickMenuCardEl2.classList.toggle("role-l3", isL3Admin);
+    quickMenuCardEl2.classList.toggle("role-l2", isL2Staff);
   }
 
   // 4.5. Guest View-Only Lock Banners for Borrow and Booking
@@ -22238,104 +22253,57 @@ function calculatePONetPrice() {
   document.getElementById('poNetTotalDetail').innerText = `${grossTotal.toFixed(2)} - ลด ${discountAmount.toFixed(2)} = ${netTotal.toFixed(2)} บาท`;
 }
 // ==========================================
-// HELP & SAFETY MODAL LOGIC
+// HELP & SAFETY MODAL
 // ==========================================
+
+function switchHelpTab(tabId) {
+  const targetTab = document.querySelector(`.help-tab[data-target="${tabId}"]`);
+  const targetContent = document.getElementById(tabId);
+  if (!targetTab || !targetContent) return;
+
+  document.querySelectorAll('.help-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.help-content').forEach(c => {
+    c.style.display = 'none';
+    c.classList.remove('active');
+  });
+
+  targetTab.classList.add('active');
+  targetContent.style.display = 'block';
+  targetContent.classList.add('active');
+  if (window.lucide) window.lucide.createIcons();
+}
 
 function openHelpSafetyModal(tabId = null) {
   const modal = document.getElementById('helpSafetyModal');
-  
-  // Close mobile sidebar if it's open
-  const sidebar = document.querySelector('.sidebar');
-  const mobileOverlay = document.getElementById('mobile-overlay');
-  if (sidebar && sidebar.classList.contains('active')) {
-    sidebar.classList.remove('active');
-  }
-  if (mobileOverlay && mobileOverlay.classList.contains('active')) {
-    mobileOverlay.classList.remove('active');
-  }
+  if (!modal) return;
 
-  if (modal) {
-    modal.classList.add('active');
-    loadEmergencyContacts();
-    if (window.lucide) {
-      window.lucide.createIcons();
-    }
-    
-    // Switch to a specific tab if requested
-    if (tabId) {
-      const targetTab = document.querySelector(`.help-tab[data-target="${tabId}"]`);
-      if (targetTab) {
-        // Find existing click event logic
-        const tabs = document.querySelectorAll('.help-tab');
-        const contents = document.querySelectorAll('.help-content');
-        
-        // Remove active class from all
-        tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => c.style.display = 'none');
-        
-        // Add active class to target
-        targetTab.classList.add('active');
-        const targetContent = document.getElementById(tabId);
-        if (targetContent) {
-          targetContent.style.display = 'block';
-        }
-      }
-    }
-  }
+  document.querySelector('.sidebar')?.classList.remove('active');
+  document.getElementById('mobile-overlay')?.classList.remove('active');
+
+  modal.classList.add('active');
+  loadEmergencyContacts();
+  if (window.lucide) window.lucide.createIcons();
+  if (tabId) switchHelpTab(tabId);
 }
 
 function closeHelpSafetyModal() {
-  const modal = document.getElementById('helpSafetyModal');
-  if (modal) {
-    modal.classList.remove('active');
-  }
+  document.getElementById('helpSafetyModal')?.classList.remove('active');
 }
 
+window.openHelpSafetyModal = openHelpSafetyModal;
+window.closeHelpSafetyModal = closeHelpSafetyModal;
+window.switchHelpTab = switchHelpTab;
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Bind open button
-  const btnHelp = document.getElementById('btnHelpSafetyModal');
-  if (btnHelp) {
-    btnHelp.addEventListener('click', openHelpSafetyModal);
-  }
-
-  // Bind tabs
-  const tabs = document.querySelectorAll('.help-tab');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      // Remove active class from all tabs
-      tabs.forEach(t => t.classList.remove('active'));
-      // Add active class to clicked tab
-      tab.classList.add('active');
-
-      // Hide all content
-      document.querySelectorAll('.help-content').forEach(content => {
-        content.style.display = 'none';
-        content.classList.remove('active');
-      });
-
-      // Show target content
-      const targetId = tab.getAttribute('data-target');
-      const targetContent = document.getElementById(targetId);
-      if (targetContent) {
-        targetContent.style.display = 'block';
-        targetContent.classList.add('active');
-        if (window.lucide) {
-          window.lucide.createIcons();
-        }
-      }
-    });
+  document.getElementById('btnHelpSafetyModal')?.addEventListener('click', () => openHelpSafetyModal());
+  document.querySelectorAll('.help-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchHelpTab(tab.getAttribute('data-target')));
+  });
+  ['poUnitPrice', 'poQuantity', 'poDiscount'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', calculatePONetPrice);
   });
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-  const poInputs = ['poUnitPrice', 'poQuantity', 'poDiscount'];
-  poInputs.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.addEventListener('input', calculatePONetPrice);
-    }
-  });
-});
 // --- New Cabinet/Station Card UI Functions ---
 window.addNewCabinetCard = function() {
   const cabinetGrid = document.querySelector('.shecu-unified-grid');

@@ -21,7 +21,8 @@
     "build:css": "tailwindcss -i global.css -o assets/css/tailwind.css --minify",
     "watch:css": "tailwindcss -i global.css -o assets/css/tailwind.css --watch",
     "build": "npm run build:pages && npm run build:css && npm run build:agentation",
-    "build:agentation": "esbuild src/agentation-entry.js --bundle --minify --outfile=agentation.bundle.js --format=iife --define:process.env.NODE_ENV='\"production\"'"
+    "build:agentation": "esbuild src/agentation-entry.js --bundle --minify --outfile=agentation.bundle.js --format=iife --define:process.env.NODE_ENV='\"production\"'",
+    "sync:label-sheet": "node scripts/sync_to_label_sheet.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.3",
