@@ -113,20 +113,6 @@
                 <h2>รายการจองห้องปฏิบัติการ</h2>
                 <p>แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ</p>
               </div>
-              <div style="display: flex; gap: 8px; align-items: center; width: 100%; margin-top: 6px;">
-                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที" aria-label="ซิงค์ข้อมูล">
-                  <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
-                  <span>ซิงค์ข้อมูล</span>
-                </button>
-                <button type="button" id="btnQuickExportBookingCSV" class="booking-action-btn" title="ส่งออกข้อมูลการจองเป็น Excel" aria-label="ส่งออก Excel">
-                  <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
-                  <span>ส่งออก Excel</span>
-                </button>
-                <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn" title="พิมพ์รายงานการจอง" aria-label="พิมพ์รายงาน">
-                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
-                  <span>พิมพ์รายงาน</span>
-                </button>
-              </div>
             </div>
 
             <!-- View Toggle Bar -->
@@ -148,13 +134,59 @@
             <!-- List View Area -->
             <div id="bookingListViewArea" style="display: none; flex-direction: column; gap: 12px; flex: 1; width: 100%;">
 
+              <!-- Filter & Actions Toolbar (Matches Borrow/Return Layout - Single Row) -->
+              <div id="bookingListToolbar" class="borrow-action-toolbar" style="display: flex; gap: 8px; align-items: center; width: 100%; flex-wrap: nowrap; overflow-x: auto;">
+                <div class="borrow-filter-container" style="flex: 1 1 200px; min-width: 160px; position: relative;">
+                  <select id="exportBookingRoomFilter" class="booking-filter-select" style="width: 100%; padding-left: 34px; padding-right: 28px; cursor: pointer; text-align: left; appearance: none; -webkit-appearance: none; font-size: 13px; font-weight: 500; color: #334155;">
+                    <option value="all">ทุกห้องปฏิบัติการ</option>
+                    <option value="Lab 1">ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ</option>
+                    <option value="Lab 2">ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 3">ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์</option>
+                    <option value="Lab 4">ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล</option>
+                    <option value="Lab 5">ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล</option>
+                    <option value="Lab 6">ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ</option>
+                    <option value="Lab 7">ห้องศูนย์ STEM CENTER</option>
+                    <option value="Lab 8">ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่</option>
+                  </select>
+                  <i data-lucide="filter" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #64748b; pointer-events: none;"></i>
+                  <i data-lucide="chevron-down" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #94a3b8; pointer-events: none;"></i>
+                </div>
+
+                <div class="borrow-filter-container" style="flex: 0 0 125px; min-width: 110px; position: relative;">
+                  <select id="exportBookingStatusFilter" class="booking-filter-select" style="width: 100%; padding-left: 30px; padding-right: 26px; cursor: pointer; text-align: left; appearance: none; -webkit-appearance: none; font-size: 13px; font-weight: 500; color: #334155;">
+                    <option value="all">ทุกสถานะ</option>
+                    <option value="approved">อนุมัติแล้ว</option>
+                    <option value="pending">รออนุมัติ</option>
+                    <option value="rejected">ปฏิเสธ / ยกเลิก</option>
+                  </select>
+                  <i data-lucide="check-circle-2" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 13px; height: 13px; color: #64748b; pointer-events: none;"></i>
+                  <i data-lucide="chevron-down" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #94a3b8; pointer-events: none;"></i>
+                </div>
+
+                <button type="button" id="btnQuickExportBookingCSV" class="booking-action-btn" title="ส่งออกข้อมูลการจองเป็น Excel" aria-label="ส่งออก Excel">
+                  <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px; color: #10b981; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop">Excel</span>
+                  <span class="btn-text-tablet">Excel</span>
+                  <span class="btn-text-mobile">Excel</span>
+                </button>
+                <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn" title="พิมพ์รายงานการจอง (PDF)" aria-label="พิมพ์รายงาน">
+                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
+                  <span class="btn-text-desktop">พิมพ์</span>
+                  <span class="btn-text-tablet">พิมพ์</span>
+                  <span class="btn-text-mobile">PDF</span>
+                </button>
+                <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn icon-only-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที" aria-label="ซิงค์ข้อมูล">
+                  <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
+                </button>
+              </div>
+
               <!-- Booking Table (Responsive Zero-Scroll Layout) -->
               <div class="table-container booking-table-container desktop-booking-table" style="margin-bottom: 0; flex: 1; overflow-x: hidden; width: 100%;">
                 <table style="width: 100%; min-width: 0; table-layout: fixed;">
                   <thead>
                     <tr>
-                      <th style="width: 35%;">วันเวลาที่ใช้งาน</th>
-                      <th style="width: 65%;">ห้องปฏิบัติการและรายละเอียดกิจกรรม</th>
+                      <th style="width: 26%;">วันเวลาที่ใช้งาน</th>
+                      <th style="width: 74%;">ห้องปฏิบัติการและรายละเอียดกิจกรรม</th>
                     </tr>
                   </thead>
                   <tbody id="bookingsTableBody">
