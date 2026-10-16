@@ -1569,14 +1569,37 @@ button.menu-item-link:active {
 
 /* Keep detail-dialog footer polish after legacy modal rules. */
 #detailModalFooter {
-  padding: 12px 20px !important;
-  background: #fff !important;
-  box-shadow: 0 -5px 16px rgba(15, 23, 42, .035);
+  padding: 10px 18px !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -2px 10px rgba(15, 23, 42, .03);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+#detailModalFooter .modal-footer-left {
+  display: none !important; /* Choose one close button: top-right X button is the single dismiss */
+}
+
+#detailModalFooter .modal-footer-right {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+  flex-wrap: wrap !important;
+  width: auto !important;
+  margin-left: auto !important;
 }
 
 #detailModalFooter .modal-footer-btn {
-  height: 42px !important;
-  border-radius: 12px !important;
+  height: 35px !important;
+  padding: 0 12px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
 }
 
 @media (max-width: 640px) {
@@ -1584,14 +1607,12 @@ button.menu-item-link:active {
     align-items: stretch !important;
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom)) !important;
   }
-  #detailModalFooter .modal-footer-left,
   #detailModalFooter .modal-footer-right {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
   }
-  #detailModalFooter .modal-footer-left { display: none; }
   #detailModalFooter .modal-footer-btn {
     width: 100%;
     min-width: 0 !important;
@@ -1811,95 +1832,65 @@ button.menu-item-link:active {
   transition: background-color 140ms ease;
 }
 
+#panel-lab-booking .table-clickable-row,
+#panel-lab-booking .booking-list-row {
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+#panel-lab-booking .table-clickable-row:hover td,
 #panel-lab-booking .booking-list-row:hover td {
-  background: #f8faff !important;
+  background: #f8fafc !important;
 }
 
-#panel-lab-booking .booking-list-date-cell {
-  width: 35%;
+#panel-lab-booking .booking-table-container tbody td {
+  padding: 14px 16px !important;
   vertical-align: top !important;
-  background: #fbfcfe;
-  white-space: normal !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  box-sizing: border-box !important;
 }
 
-#panel-lab-booking .booking-list-date {
-  color: #202b40;
-  font-size: 13px;
-  font-weight: 750;
-  line-height: 1.4;
+#panel-lab-booking .booking-table-container thead th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
 }
 
-#panel-lab-booking .booking-list-slots {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 7px;
-}
-
-#panel-lab-booking .booking-list-slot {
-  display: inline-flex;
-  align-items: center;
-  min-height: 23px;
-  padding: 3px 8px;
-  border: 1px solid #e4e9f3;
-  border-radius: 8px;
-  background: #fff;
-  color: #596987;
-  font-size: 10.5px;
-  font-weight: 650;
-  line-height: 1.2;
-}
-
-#panel-lab-booking .booking-list-status {
-  margin-top: 9px;
-}
-
-#panel-lab-booking .booking-list-detail-cell {
-  vertical-align: top !important;
-}
-
-#panel-lab-booking .booking-list-detail-heading {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
+#panel-lab-booking .booking-table-container tbody tr:last-child td {
+  border-bottom: none !important;
 }
 
 #panel-lab-booking .booking-list-room {
   display: inline-flex;
   max-width: 100%;
-  padding: 3px 9px;
-  border: 1px solid color-mix(in srgb, var(--booking-room-color) 24%, white);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--booking-room-color) 9%, white);
-  color: var(--booking-room-color);
-  font-size: 10px;
-  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(99, 102, 241, 0.08);
+  color: #4f46e5;
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  font-size: 11.5px;
+  font-weight: 600;
   line-height: 1.35;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
-#panel-lab-booking .booking-list-purpose {
-  color: #1e293b;
-  font-size: 13px;
+#panel-lab-booking .booking-list-id-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10.5px;
   font-weight: 700;
-  line-height: 1.5;
-  overflow-wrap: anywhere;
-}
-
-#panel-lab-booking .booking-list-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px 14px;
-  margin-top: 7px;
-  color: #738099;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-#panel-lab-booking .booking-list-meta strong {
-  color: #4a5870;
-  font-weight: 650;
+  color: #4338ca;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  padding: 1.5px 7px;
+  border-radius: 6px;
+  line-height: 1.35;
+  white-space: nowrap;
 }
 
 #panel-lab-booking .bookings-mobile-card-list {
@@ -2089,9 +2080,11 @@ button.menu-item-link:active {
 #panel-lab-booking .booking-records-panel > .content-header > div:last-child {
   gap: 7px !important;
   margin-top: 2px !important;
+  width: 100% !important;
+  padding: 4px !important;
 }
 
-#panel-lab-booking .booking-action-btn {
+#panel-lab-booking .booking-records-panel > .content-header .booking-action-btn {
   flex: 1 1 0 !important;
   width: auto !important;
   min-width: 0 !important;
@@ -2106,12 +2099,12 @@ button.menu-item-link:active {
   color: #56657d !important;
 }
 
-#panel-lab-booking .booking-action-btn > span {
+#panel-lab-booking .booking-records-panel > .content-header .booking-action-btn > span {
   display: inline !important;
   font-size: 12px;
 }
 
-#panel-lab-booking .booking-action-btn:hover {
+#panel-lab-booking .booking-records-panel > .content-header .booking-action-btn:hover {
   transform: none !important;
   border-color: #e2e8f0 !important;
   background: #fff !important;
@@ -2119,13 +2112,78 @@ button.menu-item-link:active {
   color: #25344b !important;
 }
 
-#panel-lab-booking .booking-records-panel > .content-header > div:last-child {
+/* Dedicated #bookingListToolbar Styling (Strict Single Row & Icon Buttons) */
+#bookingListToolbar {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
   width: 100% !important;
-  padding: 4px !important;
-  border: 1px solid #e4e9f1;
-  border-radius: 14px;
-  background: #f2f5f9;
-  justify-content: space-between;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  padding-bottom: 2px !important;
+}
+
+#bookingListToolbar .borrow-filter-container {
+  display: flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+}
+
+#bookingListToolbar select.booking-filter-select {
+  flex: 1 !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  border-radius: var(--border-radius-lg, 12px) !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #334155 !important;
+  padding: 0 30px 0 34px !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+}
+
+#bookingListToolbar .booking-action-btn {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  padding: 0 12px !important;
+  border-radius: var(--border-radius-lg, 12px) !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+#bookingListToolbar .booking-action-btn.icon-only-btn {
+  width: 42px !important;
+  min-width: 42px !important;
+  padding: 0 !important;
+}
+
+#bookingListToolbar .booking-action-btn:hover {
+  background-color: var(--bg-main, #f8fafc) !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08) !important;
+  transform: translateY(-1px) !important;
 }
 
 #panel-lab-booking .calendar-grid:has(.calendar-weekday) {
@@ -2608,25 +2666,77 @@ button.menu-item-link:active {
 }
 
 #detailModal .item-detail-qr {
-  min-width: 68px !important;
-  max-width: 68px !important;
+  width: 74px !important;
+  min-width: 74px !important;
+  max-width: 74px !important;
   padding: 5px !important;
-  border-color: #e2e8f0 !important;
+  box-sizing: border-box !important;
+  border: 1px solid #e2e8f0 !important;
   border-radius: 8px !important;
-  box-shadow: none !important;
-  gap: 3px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+  cursor: pointer;
+  background: #ffffff !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+}
+
+#detailModal .item-detail-qr:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08) !important;
+  border-color: #cbd5e1 !important;
 }
 
 #detailModal .item-detail-qr img {
-  width: 58px !important;
-  height: 58px !important;
+  width: 62px !important;
+  height: 62px !important;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
   border-radius: 4px;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  display: block;
+  background: #ffffff;
 }
 
 #detailModal .item-detail-overview-content h3,
 #detailModal .item-detail-overview-content h4 {
   font-size: 14.5px !important;
   line-height: 1.35;
+  margin: 0 !important;
+}
+
+/* Compact status badge container in Item Detail Overview */
+#detailModal .item-detail-overview-content .item-detail-status-group {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  height: 19px !important;
+  line-height: 19px !important;
+}
+
+#detailModal .item-detail-overview-content .item-detail-status-group .badge,
+#detailModal .item-detail-overview-content .item-detail-status-group .category-badge {
+  height: 19px !important;
+  line-height: 19px !important;
+  padding: 0 6px !important;
+  font-size: 9.5px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  gap: 3px !important;
+  margin: 0 !important;
+}
+
+#detailModal .item-detail-overview-content .item-detail-status-group .badge i,
+#detailModal .item-detail-overview-content .item-detail-status-group .badge svg {
+  width: 10.5px !important;
+  height: 10.5px !important;
   margin: 0 !important;
 }
 
@@ -2644,13 +2754,14 @@ button.menu-item-link:active {
 }
 
 #detailModalFooter {
-  padding: 10px 16px !important;
-  background: #fff !important;
-  box-shadow: 0 -3px 12px rgba(15, 23, 42, .03);
+  padding: 10px 18px !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -2px 10px rgba(15, 23, 42, .03);
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
-  gap: 7px !important;
+  gap: 8px !important;
   flex-wrap: wrap !important;
 }
 
@@ -2662,21 +2773,25 @@ button.menu-item-link:active {
   display: flex !important;
   align-items: center !important;
   justify-content: flex-end !important;
-  gap: 6px !important;
+  gap: 7px !important;
   flex-wrap: wrap !important;
-  width: 100%;
+  width: auto !important;
+  margin-left: auto !important;
 }
 
 #detailModalFooter .modal-footer-btn {
-  height: 32px !important;
-  padding: 0 10px !important;
+  height: 35px !important;
+  padding: 0 12px !important;
   border-radius: 8px !important;
   font-size: 12px !important;
-  font-weight: 500;
+  font-weight: 600 !important;
   display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
   gap: 5px !important;
   transition: all 0.15s ease !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
 }
 
 /* Master Detail Modal (L3/L4 Executive Audit & Management) */
@@ -3036,278 +3151,484 @@ button.menu-item-link:active {
 }
 
 /* Booking detail dialog */
+/* ==========================================================================
+   REDESIGNED BOOKING DETAIL MODAL (SCIPORTAL LABORATORY PASSPORT)
+   ========================================================================== */
 #detailModal.booking-detail-modal .modal-content {
-  width: min(720px, calc(100vw - 32px)) !important;
-  max-width: 720px !important;
-  max-height: min(86dvh, 760px) !important;
-  border: 1px solid #e1e7f0;
-  border-radius: 22px;
+  width: min(650px, calc(100vw - 32px)) !important;
+  max-width: 650px !important;
+  max-height: min(88dvh, 760px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+  box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(99, 102, 241, 0.12) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 #detailModal.booking-detail-modal .modal-header {
-  padding: 13px 18px;
-  background: #fff;
+  padding: 14px 20px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #faf8ff 100%) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
 }
 
 #detailModal.booking-detail-modal .modal-title {
+  display: flex !important;
+  align-items: center !important;
   gap: 10px !important;
-  color: #1a263b;
-  font-size: 17px;
 }
 
-#detailModal.booking-detail-modal .modal-title svg {
-  width: 18px;
-  height: 18px;
-  padding: 8px;
-  box-sizing: content-box;
-  border-radius: 11px;
-  background: #f1edff;
-  color: #7658d6 !important;
+#detailModal.booking-detail-modal .modal-close-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border-radius: 8px !important;
+  background: #f1f5f9 !important;
+  border: none !important;
+  color: #64748b !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+}
+
+#detailModal.booking-detail-modal .modal-close-btn:hover {
+  background: #fee2e2 !important;
+  color: #ef4444 !important;
+  transform: rotate(90deg);
 }
 
 #detailModal.booking-detail-modal .modal-body {
-  flex: 0 1 auto;
-  padding: 12px 16px !important;
-  background: #f6f8fc;
+  flex: 1 1 auto !important;
+  padding: 16px 20px !important;
+  background: #f8fafc !important;
+  gap: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  max-height: calc(88dvh - 125px) !important;
 }
 
-.booking-detail-content {
+/* Redesigned Modal Components */
+.bdm-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 11px;
   width: 100%;
 }
 
-.booking-detail-summary {
-  display: grid;
-  grid-template-columns: minmax(1.2fr, 1.4fr) repeat(2, minmax(0, 1fr));
-  gap: 7px;
+/* 1. Hero Card: Lab Room Spotlight */
+.bdm-hero-card {
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.05);
 }
 
-.booking-detail-summary-card {
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  align-content: start;
-  align-items: center;
-  column-gap: 9px;
-  row-gap: 2px;
-  min-width: 0;
-  padding: 8px 10px;
-  border: 1px solid #e4e9f2;
-  border-radius: 14px;
-  background: #fff;
-}
-
-.booking-detail-summary-room {
-  border-color: #e2e7fb;
-  background: linear-gradient(145deg, #fff 0%, #fafaff 100%);
-}
-
-.booking-detail-summary-icon {
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-  background: #f1edff;
-  color: #7658d6;
-}
-
-.booking-detail-summary-icon svg {
-  width: 15px;
-  height: 15px;
-}
-
-.booking-detail-eyebrow {
-  color: #77839a;
-  font-size: 10px;
-  font-weight: 650;
-  line-height: 1.2;
-}
-
-.booking-detail-summary-card strong {
-  min-width: 0;
-  color: #243149;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
-}
-
-.booking-detail-info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  padding: 8px;
-  border: 1px solid #e7ebf2;
-  border-radius: 15px;
-  background: #fff;
-}
-
-.booking-detail-info-item {
+.bdm-hero-top {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.bdm-room-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
-  padding: 6px 8px;
-  border-radius: 10px;
-  background: #f8f9fc;
 }
 
-.booking-detail-info-item > span {
-  color: #7a879d;
-  font-size: 10px;
-  font-weight: 600;
+.bdm-room-badge-icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
 }
 
-.booking-detail-info-item > strong {
-  color: #29364d;
-  font-size: 12px;
+.bdm-room-badge-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.bdm-room-text-group {
+  min-width: 0;
+}
+
+.bdm-room-name {
+  font-size: 15px;
   font-weight: 700;
-  line-height: 1.45;
-  overflow-wrap: anywhere;
+  color: #1e1b4b;
+  line-height: 1.3;
+  word-break: break-word;
 }
 
-.booking-detail-status {
+.bdm-room-sub {
+  font-size: 11px;
+  color: #6b21a8;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.bdm-status-wrapper {
+  flex-shrink: 0;
+}
+
+.bdm-status-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 23px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.booking-detail-status.badge-approved { background: #eaf8ef; color: #16834c; }
-.booking-detail-status.badge-pending { background: #fff4df; color: #a66300; }
-.booking-detail-status.badge-cancelled { background: #f0f2f5; color: #687386; }
-
-.booking-detail-section {
-  padding: 9px 11px;
-  border: 1px solid #e7ebf2;
-  border-radius: 15px;
-  background: #fff;
-}
-
-.booking-detail-section h3 {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 0 0 6px;
-  color: #47556d;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.booking-detail-section h3 svg {
-  width: 14px;
-  height: 14px;
-  color: #7b68cc;
-}
-
-.booking-detail-purpose {
-  margin: 0;
-  padding: 7px 9px;
-  border-radius: 10px;
-  background: #f8f9fc;
-  color: #29364d;
-  font-size: 12px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-
-.booking-detail-prep-list {
-  display: flex;
-  flex-direction: column;
   gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
-.booking-detail-prep-item {
+.bdm-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.bdm-status-pill.badge-approved {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+.bdm-status-pill.badge-approved .bdm-status-dot {
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.bdm-status-pill.badge-pending {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.bdm-status-pill.badge-pending .bdm-status-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.bdm-status-pill.badge-cancelled {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+.bdm-status-pill.badge-cancelled .bdm-status-dot {
+  background: #ef4444;
+}
+
+.bdm-hero-bottom {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 6px 8px;
-  border: 1px solid #edf0f5;
-  border-radius: 10px;
-  background: #fbfcfe;
-  color: #344158;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(167, 139, 250, 0.4);
+  font-size: 11.5px;
+}
+
+.bdm-booking-id-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b21a8;
+  font-weight: 500;
+}
+
+.bdm-id-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4338ca;
+  background: #ffffff;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.bdm-copy-id-btn {
+  background: #ffffff;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: #5b21b6;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.bdm-copy-id-btn:hover {
+  background: #f3e8ff;
+  color: #4c1d95;
+  border-color: #c084fc;
+}
+
+/* 2. Grid Cards */
+.bdm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bdm-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.bdm-card-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.bdm-schedule-date {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bdm-schedule-time {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4338ca;
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bdm-teacher-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.bdm-class-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11.5px;
+}
+
+.bdm-pill-grade {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 1px 7px;
+  border-radius: 5px;
+  font-weight: 600;
+  color: #334155;
   font-size: 11px;
 }
 
-.booking-detail-prep-name {
+.bdm-pill-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #475569;
+  font-weight: 500;
+}
+
+/* 3. Purpose Card */
+.bdm-purpose-card {
+  border-left: 4px solid #6366f1 !important;
+}
+
+.bdm-purpose-body {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+/* 4. Prep Items Card */
+.bdm-card-header-flex {
   display: flex;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.bdm-prep-counter {
+  font-size: 11px;
+  font-weight: 700;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 1.5px 8px;
+  border-radius: 12px;
+}
+
+.bdm-prep-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.bdm-prep-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  font-size: 12px;
+  gap: 10px;
+}
+
+.bdm-prep-item-left {
+  display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
-  font-weight: 650;
+  flex: 1;
 }
 
-.booking-detail-prep-code {
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: #eef2f8;
-  color: #69768c;
-  font-family: var(--font-mono, monospace);
-  font-size: 9px;
-}
-
-.booking-detail-prep-item > strong {
-  flex-shrink: 0;
-  color: #5c6e90;
-  font-size: 11px;
-}
-
-.booking-detail-prep-item small {
-  color: #7b8799;
-  font-size: 9px;
+.bdm-prep-item-name {
   font-weight: 600;
+  color: #1e293b;
+  word-break: break-word;
 }
 
+.bdm-prep-item-code {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 10px;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 1px 5px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.bdm-prep-item-qty {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.bdm-prep-item-qty strong {
+  font-weight: 700;
+}
+
+.bdm-prep-empty {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+
+/* Modal Footer Styling */
 #detailModal.booking-detail-modal #detailModalFooter {
-  justify-content: flex-end !important;
-  padding: 9px 16px !important;
-  background: #fff !important;
+  padding: 12px 20px !important;
+  border-top: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 10px !important;
 }
 
-#detailModal.booking-detail-modal #detailModalFooter .btn {
-  min-height: 40px;
-  border-radius: 11px;
+.bdm-footer-btn {
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 10px !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  box-sizing: border-box !important;
+  transition: all 0.15s ease !important;
 }
 
-@media (max-width: 640px) {
-  #detailModal.booking-detail-modal.modal-overlay {
-    align-items: flex-end;
-    padding: 8px;
+.bdm-footer-btn.print-btn {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+}
+.bdm-footer-btn.print-btn:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+.bdm-footer-btn.cancel-btn {
+  background: #fee2e2 !important;
+  border: 1px solid #fecaca !important;
+  color: #dc2626 !important;
+}
+.bdm-footer-btn.cancel-btn:hover {
+  background: #fecaca !important;
+  color: #b91c1c !important;
+}
+
+.bdm-footer-btn.close-btn {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+}
+.bdm-footer-btn.close-btn:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+@media (max-width: 600px) {
+  .bdm-grid {
+    grid-template-columns: 1fr;
   }
-  #detailModal.booking-detail-modal .modal-content {
-    max-height: calc(100dvh - 16px) !important;
-    border-radius: 22px 22px 16px 16px;
+  .bdm-hero-top {
+    flex-direction: column;
+    align-items: flex-start;
   }
-  #detailModal.booking-detail-modal .modal-header {
-    padding: 13px 15px;
-  }
-  #detailModal.booking-detail-modal .modal-body {
-    padding: 12px !important;
-  }
-  .booking-detail-content { gap: 7px; }
-  .booking-detail-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-  .booking-detail-summary-room { grid-column: 1 / -1; }
-  .booking-detail-summary-card { padding: 8px; }
-  .booking-detail-info-grid { gap: 5px; padding: 7px; }
-  .booking-detail-info-item { padding: 6px 7px; }
-  .booking-detail-section { padding: 9px; }
   #detailModal.booking-detail-modal #detailModalFooter {
-    padding: 8px 12px calc(8px + env(safe-area-inset-bottom)) !important;
+    flex-direction: column-reverse;
+    gap: 8px;
   }
+  .bdm-footer-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
 }
 
 .footer-bottom-compact:hover .status-dot {
@@ -19133,25 +19454,7 @@ input[type="date"].dash-schedule-date-input-hidden,
   color: #0284c7 !important;
 }
 
-/* Tab 3: Login Banner (Emerald / Mint Teal) */
-.admin-horizontal-menu .admin-menu-item[data-tab="admin-login-banner"] .tab-icon-wrap {
-  color: #059669;
-}
-.admin-horizontal-menu .admin-menu-item[data-tab="admin-login-banner"]:hover:not(.active) {
-  color: #047857;
-}
-.admin-horizontal-menu .admin-menu-item[data-tab="admin-login-banner"]:hover:not(.active) .tab-icon-wrap {
-  background: #ecfdf5;
-  color: #059669;
-}
-.admin-horizontal-menu .admin-menu-item[data-tab="admin-login-banner"].active {
-  color: #047857 !important;
-  border-color: #a7f3d0 !important;
-}
-.admin-horizontal-menu .admin-menu-item[data-tab="admin-login-banner"].active .tab-icon-wrap {
-  background: #ecfdf5 !important;
-  color: #059669 !important;
-}
+
 
 /* Tab 4: Announcement (Amber / Warm Orange) */
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-announcement"] .tab-icon-wrap {
@@ -21577,20 +21880,342 @@ select.admin-filter-select:focus {
 }
 
 /* ==========================================================================
-   SPLIT-PANEL LOGIN MODAL & HERO ANNOUNCEMENT STYLES (CLEAN & MINIMAL)
+   MODERN MINIMALIST LOGIN MODAL (PICTURE MATCH)
    ========================================================================== */
 
-.login-split-modal {
-  max-width: 820px !important;
-  width: 95vw !important;
+#loginModal .modal-content.modern-login-modal {
+  width: min(410px, calc(100vw - 32px)) !important;
+  max-width: 410px !important;
   padding: 0 !important;
-  border-radius: 20px !important;
-  overflow: hidden !important;
+  border-radius: 28px !important;
   background: #ffffff !important;
-  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(15, 23, 42, 0.08) !important;
-  border: none !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden !important;
   position: relative !important;
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.modern-login-close {
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  border-radius: 50% !important;
+  background: #f1f5f9 !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+  z-index: 20 !important;
+}
+
+.modern-login-close:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  transform: rotate(90deg) !important;
+}
+
+.modern-login-card {
+  padding: 32px 30px 24px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Aura and Icon Badge */
+.modern-login-aura-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.modern-login-aura {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(148, 163, 184, 0.2) 0%, rgba(241, 245, 249, 0.05) 60%, transparent 75%);
+  background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+  background-size: 8px 8px;
+  background-position: center;
+  mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 70%);
+  -webkit-mask-image: radial-gradient(circle, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 70%);
+  pointer-events: none;
+}
+
+.modern-login-icon-badge {
+  position: relative;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.modern-login-header {
+  text-align: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.modern-login-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 5px 0;
+  letter-spacing: -0.3px;
+}
+
+.modern-login-subtitle {
+  font-size: 12.5px;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+.modern-login-error {
+  width: 100%;
+  box-sizing: border-box;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 8px 12px;
+  color: #b91c1c;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.modern-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.modern-login-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border: 1.5px solid transparent;
+  border-radius: 13px;
+  height: 46px;
+  padding: 0 14px;
+  transition: all 0.18s ease;
+  box-sizing: border-box;
+}
+
+.modern-login-input-wrap:focus-within {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05);
+}
+
+.modern-login-input-icon {
+  display: flex;
+  align-items: center;
+  color: #94a3b8;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.modern-login-input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  font-size: 13.5px !important;
+  color: #0f172a !important;
+  padding: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  height: 100% !important;
+}
+
+.modern-login-input::placeholder {
+  color: #94a3b8;
+}
+
+.modern-login-input:-webkit-autofill,
+.modern-login-input:-webkit-autofill:hover,
+.modern-login-input:-webkit-autofill:focus,
+.modern-login-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #f1f5f9 inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+.modern-login-pwd-toggle {
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+
+.modern-login-pwd-toggle:hover {
+  color: #475569;
+}
+
+.modern-login-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  padding: 0 2px;
+  margin-top: -2px;
+  margin-bottom: 2px;
+}
+
+.modern-login-remember {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  cursor: pointer;
+  user-select: none;
+}
+
+.modern-login-remember input {
+  accent-color: #0f172a;
+  cursor: pointer;
+}
+
+.modern-login-forgot {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.modern-login-forgot:hover {
+  color: #0f172a;
+  text-decoration: underline;
+}
+
+.modern-login-submit-btn {
+  width: 100%;
+  height: 46px;
+  background: #111827;
+  color: #ffffff;
+  border: none;
+  border-radius: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.15);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modern-login-submit-btn:hover {
+  background: #1f2937;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(17, 24, 39, 0.22);
+}
+
+.modern-login-submit-btn:active {
+  transform: scale(0.99);
+}
+
+.modern-login-divider {
+  width: 100%;
+  position: relative;
+  text-align: center;
+  margin: 18px 0 14px 0;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.modern-login-divider span {
+  position: relative;
+  top: -9px;
+  background: #ffffff;
+  padding: 0 10px;
+  font-size: 11.5px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.modern-login-social-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+
+.modern-social-btn {
+  height: 40px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.modern-social-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.06);
+}
+
+.modern-social-btn:active {
+  transform: scale(0.97);
+}
+
+.modern-login-card-footer {
+  width: 100%;
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  padding: 13px 20px;
+  text-align: center;
+  font-size: 11.5px;
+  color: #64748b;
+  box-sizing: border-box;
+}
+
+.modern-login-card-footer a {
+  color: #0f172a;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.modern-login-card-footer a:hover {
+  text-decoration: underline;
 }
 
 .login-modal-close-corner {
@@ -22889,270 +23514,265 @@ select.admin-filter-select:focus {
 
 .admin-lab-rooms-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
   margin-top: 16px;
 }
 
-.admin-lab-card {
-  background: var(--bg-card, #ffffff);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
+@media (max-width: 1100px) {
+  .admin-lab-rooms-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .admin-lab-rooms-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-lab-rooms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* NYC Metro Line Style Lab Cards (Compact 4-column Layout) */
+.nyc-metro-card {
+  background-color: var(--metro-bg, #16a34a);
+  color: var(--metro-fg, #000000);
+  border-radius: 22px;
+  padding: 15px 16px 13px 16px;
+  position: relative;
   display: flex;
   flex-direction: column;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  justify-content: space-between;
+  min-height: 205px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 2.5px solid rgba(255, 255, 255, 0.85);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
   box-sizing: border-box;
 }
 
-.admin-lab-card:hover {
+.nyc-metro-card:hover {
   transform: translateY(-3px);
-  border-color: #cbd5e1;
-  box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14), 0 4px 10px rgba(0, 0, 0, 0.06);
 }
 
-.admin-lab-card-accent {
-  height: 4px;
-  width: 100%;
-  flex-shrink: 0;
-}
-
-.admin-lab-card-header {
-  padding: 16px 18px 12px 18px;
+.nyc-metro-card-top {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-}
-
-.admin-lab-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.admin-lab-card:hover .admin-lab-avatar {
-  transform: scale(1.08) rotate(3deg);
-}
-
-.admin-lab-header-main {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-}
-
-.admin-lab-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.admin-lab-code-pill {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
-.admin-lab-card-title {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--text-main);
-  margin: 0;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.admin-lab-building-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-.admin-lab-building-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.admin-lab-header-swatch {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: #f8fafc;
-  border: 1px solid var(--border-color);
-  padding: 3px 8px;
-  border-radius: 9999px;
-  font-family: monospace;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
-.admin-lab-swatch-circle {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.admin-lab-metrics-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 0 18px 14px 18px;
-}
-
-.admin-lab-metric-chip {
-  background: #f8fafc;
-  border: 1px solid #f1f5f9;
-  border-radius: 10px;
-  padding: 8px 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.admin-lab-metric-chip:hover {
-  background: #f1f5f9;
-  border-color: #e2e8f0;
-  transform: translateY(-1px);
-}
-
-.admin-lab-metric-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.admin-lab-metric-icon.icon-blue {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.admin-lab-metric-icon.icon-emerald {
-  background: #f0fdf4;
-  color: #16a34a;
-}
-
-.admin-lab-metric-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.admin-lab-metric-val {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-main);
-  line-height: 1.1;
-}
-
-.admin-lab-metric-lbl {
-  font-size: 10.5px;
-  color: var(--text-muted);
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.admin-lab-card-footer {
-  padding: 10px 18px 14px 18px;
-  border-top: 1px solid #f1f5f9;
-  display: flex;
-  align-items: center;
   justify-content: space-between;
   gap: 8px;
-  background: #ffffff;
-  margin-top: auto;
 }
 
-.btn-lab-quick-view {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: #ffffff;
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 5px 11px;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+.nyc-metro-title-group {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
-.btn-lab-quick-view:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
-  color: var(--primary-purple);
-}
-
-.admin-lab-actions-group {
+.nyc-metro-eyebrow-row {
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-bottom: 2px;
+  overflow: hidden;
 }
 
-.btn-lab-action {
+.nyc-metro-tag-pill {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--metro-chip-bg, rgba(0, 0, 0, 0.1));
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
+.nyc-metro-station-name {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  margin: 0;
+  color: inherit;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block;
+  max-width: 100%;
+}
+
+.nyc-metro-station-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--metro-sub, rgba(0, 0, 0, 0.68));
+  margin: 0;
+  letter-spacing: -0.01em;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.nyc-metro-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.nyc-metro-icon-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--metro-btn-bg, rgba(0, 0, 0, 0.08));
+  border: none;
+  color: inherit;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 11px;
-  border-radius: 9999px;
-  font-size: 11.5px;
-  font-weight: 600;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.15s ease;
-  border: 1px solid transparent;
+  transition: all 0.18s ease;
+  backdrop-filter: blur(4px);
 }
 
-.btn-lab-action.edit {
-  background: #f5f3ff;
-  color: #7c3aed;
-  border-color: #ede9fe;
+.nyc-metro-icon-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+  transform: scale(1.08);
 }
 
-.btn-lab-action.edit:hover {
-  background: #ede9fe;
-  color: #6d28d9;
+.nyc-metro-icon-btn.delete:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.nyc-metro-bullets-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 6px 0;
+}
+
+.nyc-metro-bullet {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 900;
+  font-size: 13px;
+  color: #000000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  letter-spacing: -0.02em;
+  border: 1.5px solid rgba(0, 0, 0, 0.14);
+}
+
+.bullet-yellow {
+  background-color: #fde047;
+}
+
+.bullet-lavender {
+  background-color: #d8b4fe;
+}
+
+.nyc-metro-line-label {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.nyc-metro-metrics-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 4px 0 10px 0;
+}
+
+.nyc-metro-metric-chip {
+  background: var(--metro-chip-bg, rgba(0, 0, 0, 0.08));
+  backdrop-filter: blur(4px);
+  border-radius: 9999px;
+  padding: 4px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: inherit;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.nyc-metro-metric-chip:hover {
+  background: var(--metro-chip-hover, rgba(0, 0, 0, 0.15));
   transform: translateY(-1px);
 }
 
-.btn-lab-action.delete {
-  background: #fef2f2;
-  color: #ef4444;
-  border-color: #fee2e2;
-  padding: 5px 9px;
+.nyc-metro-metric-val {
+  font-weight: 800;
+  font-size: 11.5px;
 }
 
-.btn-lab-action.delete:hover {
-  background: #fee2e2;
-  color: #dc2626;
-  transform: translateY(-1px);
+.nyc-metro-metric-lbl {
+  font-size: 10px;
+  opacity: 0.85;
+}
+
+.nyc-metro-card-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.nyc-metro-arrow-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: left center;
+}
+
+.nyc-metro-arrow-btn:hover {
+  transform: translateX(6px) scale(1.1);
+}
+
+.nyc-metro-arrow-svg {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+
+.nyc-metro-big-num {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 56px;
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: inherit;
+  user-select: none;
+  transform: translateY(2px);
 }
 
 .color-preset-pill {
@@ -23176,6 +23796,905 @@ select.admin-filter-select:focus {
   border-color: #0f172a;
   transform: scale(1.12);
   box-shadow: 0 0 0 2px white, 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   NYC METRO STYLE MODAL (#labRoomModal > .modal-content)
+   Authentic MTA Subway Signage, Vignelli Standards & Wayfinding Aesthetics
+   ========================================================================== */
+
+#labRoomModal {
+  background: rgba(10, 15, 26, 0.72) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+#labRoomModal .modal-content,
+#labRoomModal .nyc-metro-modal {
+  background: #ffffff !important;
+  border-radius: 18px !important;
+  width: 100% !important;
+  max-width: 590px !important;
+  box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.55), 0 0 0 2px #18191e, 0 0 25px rgba(0, 0, 0, 0.2) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border: 2px solid #27272a !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Inter", Arial, sans-serif !important;
+  position: relative !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark-mode #labRoomModal .modal-content,
+body.dark-mode #labRoomModal .nyc-metro-modal {
+  background: #0f1013 !important;
+  box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.85), 0 0 0 2px #27272a, 0 0 30px rgba(0, 0, 0, 0.5) !important;
+  border-color: #3f3f46 !important;
+}
+
+/* Industrial Corner Screws (Authentic Subway Sign Mounting Bolts) */
+.nyc-screw {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #cbd5e1 50%, #64748b 100%);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(0, 0, 0, 0.6);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.nyc-screw::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 2px;
+  width: 6px;
+  height: 2px;
+  background: rgba(15, 23, 42, 0.75);
+  transform: rotate(45deg);
+  border-radius: 0.5px;
+}
+
+.nyc-screw.top-left { top: 10px; left: 10px; }
+.nyc-screw.top-right { top: 10px; right: 10px; }
+.nyc-screw.bottom-left { bottom: 10px; left: 10px; }
+.nyc-screw.bottom-right { bottom: 10px; right: 10px; }
+
+/* Subway Route Color Top Stripe */
+.nyc-metro-modal-stripe {
+  height: 7px;
+  width: 100%;
+  background: var(--metro-active-color, #EE352E);
+  transition: background 0.22s ease;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Enamel Black Subway Station Signage Header */
+.nyc-metro-modal-header {
+  background: #000000;
+  color: #ffffff;
+  padding: 18px 24px 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 2px solid #222222;
+  position: relative;
+}
+
+.nyc-metro-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.nyc-metro-modal-bullet {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--metro-active-color, #EE352E);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: -0.04em;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45), inset 0 1px 1.5px rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nyc-metro-modal-title-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.nyc-metro-modal-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 3px;
+  overflow: hidden;
+}
+
+.mta-bullet-badge {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  background: #fccc0a;
+  color: #000000;
+  font-weight: 900;
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  padding: 1.5px 6px;
+  border-radius: 3px;
+  line-height: 1.1;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.mta-system-sub {
+  font-size: 10px;
+  font-weight: 800;
+  color: #a1a1aa;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nyc-metro-modal-title {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  color: #ffffff !important;
+  margin: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.nyc-metro-modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #1f2024;
+  border: 1px solid #32353c;
+  color: #d4d4d8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nyc-metro-modal-close:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.5);
+}
+
+/* Wayfinding Track Sub-Bar */
+.nyc-metro-subbar {
+  background: #f4f4f5;
+  border-bottom: 2px solid #e4e4e7;
+  padding: 7px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #52525b;
+  text-transform: uppercase;
+}
+
+body.dark-mode .nyc-metro-subbar {
+  background: #141518;
+  border-bottom-color: #27272a;
+  color: #a1a1aa;
+}
+
+.nyc-metro-subbar-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.nyc-metro-subbar-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+  display: inline-block;
+}
+
+.nyc-metro-subbar-item.code-indicator {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 900;
+  color: #000000;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+body.dark-mode .nyc-metro-subbar-item.code-indicator {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Modal Body / Form - Subway Tile Wall Texture */
+.nyc-metro-modal-body {
+  padding: 20px 24px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  background-color: #fafbfc;
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px);
+  background-size: 32px 20px;
+  overflow-y: auto;
+  max-height: calc(85vh - 120px);
+}
+
+body.dark-mode .nyc-metro-modal-body {
+  background-color: #0f1013;
+  background-image: 
+    linear-gradient(to right, rgba(39, 39, 42, 0.4) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(39, 39, 42, 0.4) 1px, transparent 1px);
+}
+
+/* Two-column Grid for ID and Building */
+.nyc-metro-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 600px) {
+  .nyc-metro-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.nyc-metro-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nyc-metro-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.nyc-metro-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #0f172a;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+body.dark-mode .nyc-metro-label {
+  color: #f1f5f9;
+}
+
+.nyc-metro-label-num {
+  font-size: 9.5px;
+  font-weight: 900;
+  background: #000000;
+  color: #ffffff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+
+body.dark-mode .nyc-metro-label-num {
+  background: #27272a;
+  color: #fccc0a;
+}
+
+.nyc-metro-required {
+  color: #ef4444;
+  font-weight: 900;
+}
+
+.nyc-metro-sublabel-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #71717a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 1.5px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+body.dark-mode .nyc-metro-sublabel-tag {
+  background: #1f2024;
+  border-color: #2e3038;
+  color: #a1a1aa;
+}
+
+.nyc-metro-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nyc-metro-input-icon {
+  position: absolute;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  pointer-events: none;
+}
+
+body.dark-mode .nyc-metro-input-icon {
+  color: #94a3b8;
+}
+
+.nyc-metro-input {
+  width: 100% !important;
+  border-radius: 9px !important;
+  border: 2px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  padding: 9px 12px 9px 36px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+  transition: all 0.18s ease !important;
+}
+
+.nyc-metro-input:focus {
+  border-color: #000000 !important;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+body.dark-mode .nyc-metro-input {
+  background: #16171b !important;
+  border-color: #2e3038 !important;
+  color: #f1f5f9 !important;
+}
+
+body.dark-mode .nyc-metro-input:focus {
+  border-color: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15) !important;
+}
+
+.nyc-metro-hint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 1px;
+  line-height: 1.3;
+}
+
+body.dark-mode .nyc-metro-hint {
+  color: #94a3b8;
+}
+
+/* Bullet Presets Grid */
+.nyc-metro-bullet-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 3px;
+  margin-bottom: 8px;
+}
+
+.nyc-subway-bullet-preset {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--bullet-bg, #0039A6);
+  color: var(--bullet-fg, #ffffff);
+  border: 2px solid transparent;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease;
+  padding: 0;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.nyc-subway-bullet-preset:hover {
+  transform: scale(1.18);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.nyc-subway-bullet-preset.active {
+  transform: scale(1.15);
+  border-color: transparent;
+  box-shadow: 0 0 0 2.5px #ffffff, 0 0 0 4.5px #000000, 0 5px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .nyc-subway-bullet-preset.active {
+  box-shadow: 0 0 0 2.5px #0f1013, 0 0 0 4.5px #ffffff, 0 5px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* Custom Hex & Color Picker */
+.nyc-metro-custom-color-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 7px 12px;
+}
+
+body.dark-mode .nyc-metro-custom-color-bar {
+  background: #141518;
+  border-color: #27272a;
+}
+
+.nyc-metro-color-swatch-wrap {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #000000;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+body.dark-mode .nyc-metro-color-swatch-wrap {
+  border-color: #ffffff;
+}
+
+.nyc-metro-color-picker {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 48px;
+  height: 48px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+}
+
+.nyc-metro-hex-input-wrap {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  overflow: hidden;
+  width: 110px;
+  flex-shrink: 0;
+}
+
+body.dark-mode .nyc-metro-hex-input-wrap {
+  background: #121316;
+  border-color: #3f3f46;
+}
+
+.nyc-metro-hex-prefix {
+  font-size: 10px;
+  font-weight: 800;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 6px 7px;
+  line-height: 1;
+}
+
+body.dark-mode .nyc-metro-hex-prefix {
+  background: #27272a;
+  color: #a1a1aa;
+}
+
+.nyc-metro-hex-input {
+  width: 100% !important;
+  border: none !important;
+  background: transparent !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  padding: 6px 8px !important;
+  color: #0f172a !important;
+  outline: none !important;
+}
+
+body.dark-mode .nyc-metro-hex-input {
+  color: #f1f5f9 !important;
+}
+
+.nyc-metro-color-guide {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.25;
+}
+
+body.dark-mode .nyc-metro-color-guide {
+  color: #94a3b8;
+}
+
+/* Preview Section & Authentic Subway Sign */
+.nyc-metro-preview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+body.dark-mode .nyc-metro-preview-section {
+  background: #141518;
+  border-color: #27272a;
+}
+
+.nyc-metro-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+body.dark-mode .nyc-metro-preview-header {
+  color: #94a3b8;
+}
+
+.nyc-metro-preview-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.nyc-metro-preview-scale {
+  font-size: 9.5px;
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+}
+
+/* The Authentic NYC Subway Signboard */
+.nyc-subway-signboard {
+  background: #0d0e12;
+  border-radius: 12px;
+  padding: 16px 18px 16px 16px;
+  border: 2px solid #27272a;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.nyc-subway-sign-watermark {
+  position: absolute;
+  right: 50px;
+  bottom: -15px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-size: 92px;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.06em;
+}
+
+.nyc-subway-sign-topline {
+  height: 5px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--metro-active-color, #EE352E);
+  transition: background 0.22s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.nyc-subway-sign-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  position: relative;
+  z-index: 2;
+}
+
+.nyc-subway-sign-bullet {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--metro-active-color, #EE352E);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -0.04em;
+  flex-shrink: 0;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45), inset 0 1px 1.5px rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  transition: all 0.22s ease;
+}
+
+.nyc-subway-sign-text-group {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.nyc-subway-sign-station-name {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.nyc-subway-sign-subtitle-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #a1a1aa;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nyc-subway-sign-sep {
+  opacity: 0.5;
+}
+
+.nyc-subway-sign-transfers {
+  color: #71717a;
+}
+
+.nyc-subway-sign-arrow-wrap {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nyc-subway-sign-arrow-wrap:hover {
+  transform: translateX(4px);
+}
+
+.nyc-subway-sign-arrow-wrap .nyc-metro-arrow-svg {
+  width: 26px;
+  height: 26px;
+}
+
+/* Classic live preview chip for tabs */
+.nyc-metro-tab-preview-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+  margin-top: 2px;
+  width: fit-content;
+}
+
+body.dark-mode .nyc-metro-tab-preview-chip {
+  background: #0f1013;
+  border-color: #27272a;
+  color: #cbd5e1;
+}
+
+.nyc-metro-tab-chip-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.05em;
+}
+
+.nyc-metro-tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.nyc-metro-tab-text {
+  font-weight: 700;
+}
+
+.nyc-metro-tab-count {
+  font-size: 9.5px;
+  padding: 1.5px 6px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 700;
+}
+
+body.dark-mode .nyc-metro-tab-count {
+  background: #27272a;
+  color: #94a3b8;
+}
+
+/* Modal Footer Actions */
+.nyc-metro-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 2px solid #e4e4e7;
+}
+
+body.dark-mode .nyc-metro-modal-footer {
+  border-top-color: #27272a;
+}
+
+.nyc-metro-caution-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+body.dark-mode .nyc-metro-caution-pill {
+  background: #271e0c;
+  color: #fde047;
+  border-color: #78350f;
+}
+
+.caution-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d97706;
+  box-shadow: 0 0 6px rgba(217, 119, 6, 0.6);
+  display: inline-block;
+}
+
+.nyc-metro-footer-btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nyc-metro-btn-cancel {
+  border-radius: 8px;
+  padding: 9px 15px;
+  font-size: 12.5px;
+  font-weight: 700;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all 0.16s ease;
+}
+
+.nyc-metro-btn-cancel:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+body.dark-mode .nyc-metro-btn-cancel {
+  background: #1c1d22;
+  border-color: #3f3f46;
+  color: #cbd5e1;
+}
+
+body.dark-mode .nyc-metro-btn-cancel:hover {
+  background: #27272a;
+  color: #ffffff;
+}
+
+.nyc-metro-btn-save {
+  border-radius: 8px;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  background: #000000;
+  color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nyc-metro-btn-save:hover {
+  background: var(--metro-active-color, #1e293b);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+.nyc-metro-btn-save:active {
+  transform: translateY(0);
+}
+
+body.dark-mode .nyc-metro-btn-save {
+  background: #ffffff;
+  color: #000000;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+}
+
+body.dark-mode .nyc-metro-btn-save:hover {
+  background: var(--metro-active-color, #f1f5f9);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
 }
 
 /* User Profile Modal Polish */
@@ -24873,14 +26392,17 @@ select.admin-filter-select:focus {
 
 /* Detail modal footer overrides legacy footer defaults. */
 #detailModalFooter {
-  padding: 12px 20px !important;
-  background: #fff !important;
-  box-shadow: 0 -5px 16px rgba(15, 23, 42, .035);
+  padding: 10px 18px !important;
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -2px 10px rgba(15, 23, 42, .03);
 }
 
 #detailModalFooter .modal-footer-btn {
-  height: 42px !important;
-  border-radius: 12px !important;
+  height: 35px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
 }
 
 @media (max-width: 640px) {
@@ -24888,14 +26410,12 @@ select.admin-filter-select:focus {
     align-items: stretch !important;
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom)) !important;
   }
-  #detailModalFooter .modal-footer-left,
   #detailModalFooter .modal-footer-right {
     width: 100%;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
   }
-  #detailModalFooter .modal-footer-left { display: none; }
   #detailModalFooter .modal-footer-btn {
     width: 100%;
     min-width: 0 !important;

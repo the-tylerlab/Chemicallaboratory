@@ -1480,6 +1480,31 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// ─── HIGH-SPEED BARCODE & DATA MATRIX GENERATOR ────────────────────────────
+// Supports datamatrix, qrcode, code128 with zero external dependencies
+app.get('/api/barcode', async (req, res) => {
+  try {
+    const { bcid = 'datamatrix', text, scale = '3', rotate = 'N' } = req.query;
+    if (!text) {
+      return res.status(400).json({ error: 'Missing required text parameter' });
+    }
+    const bwipjs = require('bwip-js');
+    const png = await bwipjs.toBuffer({
+      bcid: String(bcid).toLowerCase(),
+      text: String(text),
+      scale: Math.max(1, Math.min(10, parseInt(scale, 10) || 3)),
+      rotate: ['N', 'R', 'L', 'I'].includes(rotate) ? rotate : 'N',
+      paddingwidth: 2,
+      paddingheight: 2,
+    });
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+    res.send(png);
+  } catch (err) {
+    res.status(400).json({ error: 'Barcode generation failed', message: err.message });
+  }
+});
+
 // ─── PUBLIC CLIENT CONFIG ENDPOINT ───────────────────────────────────────────
 // Serves Supabase anon/publishable key + URL to the frontend.
 // The anon key is RLS-scoped and designed for client use, but must NOT be

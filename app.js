@@ -17,6 +17,19 @@ if (typeof window !== "undefined") {
   window.API_BASE = API_BASE;
   window.resolveApiBase = resolveApiBase;
 }
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+if (typeof window !== "undefined") {
+  window.escapeHtml = escapeHtml;
+  window.escapeHTML = escapeHtml;
+}
 
 // Global fetch rewriter to seamlessly route /api/ requests to API_BASE and attach JWT token
 if (typeof window !== "undefined" && window.fetch && !window.__GLOBAL_FETCH_INTERCEPTOR_INSTALLED__) {
@@ -8443,13 +8456,125 @@ function setupBookingForm() {
   }
 }
 
+function formatBookingPeriodAndTime(slot, timeSlot) {
+  let rawSlot = (slot || "").trim();
+  let rawTime = (timeSlot || "").trim();
+
+  // If timeSlot or rawSlot contains 10:30 - 12:20 or 10.30 - 12.20, correct to period 4-5 bell schedule: 10:50 - 12:30
+  if (/10[:.]30\s*[-–]\s*12[:.]20/.test(rawTime)) {
+    rawTime = rawTime.replace(/10[:.]30\s*[-–]\s*12[:.]20/g, "10:50 - 12:30");
+  }
+  if (/10[:.]30\s*[-–]\s*12[:.]20/.test(rawSlot)) {
+    rawSlot = rawSlot.replace(/10[:.]30\s*[-–]\s*12[:.]20/g, "10:50 - 12:30");
+  }
+
+  const periodMap = {
+    "1": { time: "08:10 - 09:00", label: "คาบ 1" },
+    "2": { time: "09:00 - 09:50", label: "คาบ 2" },
+    "3": { time: "09:50 - 10:40", label: "คาบ 3" },
+    "4": { time: "10:50 - 11:40", label: "คาบ 4" },
+    "5": { time: "11:40 - 12:30", label: "คาบ 5" },
+    "6": { time: "13:20 - 14:10", label: "คาบ 6" },
+    "7": { time: "14:10 - 15:00", label: "คาบ 7" },
+    "8": { time: "15:10 - 16:00", label: "คาบ 8" },
+    "1-2": { time: "08:10 - 09:50", label: "คาบ 1 - 2" },
+    "2-3": { time: "09:00 - 10:40", label: "คาบ 2 - 3" },
+    "3-4": { time: "09:50 - 11:40", label: "คาบ 3 - 4" },
+    "4-5": { time: "10:50 - 12:30", label: "คาบ 4 - 5" },
+    "5-6": { time: "11:40 - 14:10", label: "คาบ 5 - 6" },
+    "6-7": { time: "13:20 - 15:00", label: "คาบ 6 - 7" },
+    "7-8": { time: "14:10 - 16:00", label: "คาบ 7 - 8" },
+  };
+
+  const combined = `${rawSlot} ${rawTime}`;
+  let periodLabel = "";
+  let timeStr = "";
+
+  if (/1\s*[-–,]\s*2|คาบ\s*1\s*[-–]\s*2/i.test(combined)) {
+    periodLabel = "คาบ 1 - 2";
+    timeStr = "08:10 - 09:50";
+  } else if (/4\s*[-–,]\s*5|คาบ\s*4\s*[-–]\s*5/i.test(combined)) {
+    periodLabel = "คาบ 4 - 5";
+    timeStr = "10:50 - 12:30";
+  } else if (/6\s*[-–,]\s*7|คาบ\s*6\s*[-–]\s*7/i.test(combined)) {
+    periodLabel = "คาบ 6 - 7";
+    timeStr = "13:20 - 15:00";
+  } else if (/7\s*[-–,]\s*8|คาบ\s*7\s*[-–]\s*8/i.test(combined)) {
+    periodLabel = "คาบ 7 - 8";
+    timeStr = "14:10 - 16:00";
+  } else if (/3\s*[-–,]\s*4|คาบ\s*3\s*[-–]\s*4/i.test(combined)) {
+    periodLabel = "คาบ 3 - 4";
+    timeStr = "09:50 - 11:40";
+  } else if (/2\s*[-–,]\s*3|คาบ\s*2\s*[-–]\s*3/i.test(combined)) {
+    periodLabel = "คาบ 2 - 3";
+    timeStr = "09:00 - 10:40";
+  } else if (/5\s*[-–,]\s*6|คาบ\s*5\s*[-–]\s*6/i.test(combined)) {
+    periodLabel = "คาบ 5 - 6";
+    timeStr = "11:40 - 14:10";
+  } else {
+    const singleMatch = combined.match(/คาบ\s*([1-8])\b/) || combined.match(/\b([1-8])\b/);
+    if (singleMatch && periodMap[singleMatch[1]]) {
+      periodLabel = periodMap[singleMatch[1]].label;
+      timeStr = periodMap[singleMatch[1]].time;
+    }
+  }
+
+  if (!timeStr) {
+    const timeMatch = combined.match(/(\d{1,2}[:.]\d{2})\s*[-–]\s*(\d{1,2}[:.]\d{2})/);
+    if (timeMatch) {
+      let t1 = timeMatch[1].replace(".", ":").padStart(5, "0");
+      let t2 = timeMatch[2].replace(".", ":").padStart(5, "0");
+      if (t1 === "10:30" && t2 === "12:20") {
+        t1 = "10:50";
+        t2 = "12:30";
+      }
+      timeStr = `${t1} - ${t2}`;
+    }
+  }
+
+  if (!periodLabel && timeStr) {
+    for (const key in periodMap) {
+      if (periodMap[key].time === timeStr) {
+        periodLabel = periodMap[key].label;
+        break;
+      }
+    }
+  }
+
+  const finalTime = timeStr ? (timeStr.includes("น") ? timeStr : `${timeStr} น.`) : (rawTime ? (rawTime.includes("น") ? rawTime : `${rawTime} น.`) : (rawSlot || "ไม่ระบุเวลา"));
+  const finalPeriod = periodLabel || (rawSlot.includes("คาบ") ? rawSlot : "");
+
+  return {
+    time: finalTime,
+    period: finalPeriod,
+    fullDisplay: finalPeriod ? `${finalTime} (${finalPeriod})` : finalTime
+  };
+}
+
 function renderBookingsTable() {
   const tableBody = document.getElementById("bookingsTableBody");
   const mobileList = document.getElementById("bookingsMobileCardList");
   if (!tableBody && !mobileList) return;
 
+  const roomFilterEl = document.getElementById("exportBookingRoomFilter");
+  if (roomFilterEl && !roomFilterEl._hasFilterListener) {
+    roomFilterEl.addEventListener("change", () => renderBookingsTable());
+    roomFilterEl._hasFilterListener = true;
+  }
+  const selectedRoom = roomFilterEl ? roomFilterEl.value : "all";
+
+  const statusFilterEl = document.getElementById("exportBookingStatusFilter");
+  if (statusFilterEl && !statusFilterEl._hasFilterListener) {
+    statusFilterEl.addEventListener("change", () => renderBookingsTable());
+    statusFilterEl._hasFilterListener = true;
+  }
+  const selectedStatus = statusFilterEl ? statusFilterEl.value : "all";
+
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isAdmin = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
+
   // Sort bookings: newest date first
-  const sortedBookings = [...bookings].sort((a, b) => {
+  let sortedBookings = [...bookings].sort((a, b) => {
     const isoA = a.date ? (normalizeDateStr(a.date) + 'T00:00:00') : (a.createdAt || 0);
     const isoB = b.date ? (normalizeDateStr(b.date) + 'T00:00:00') : (b.createdAt || 0);
     const dateA = new Date(isoA);
@@ -8457,15 +8582,29 @@ function renderBookingsTable() {
     return dateB - dateA;
   });
 
+  if (selectedRoom && selectedRoom !== "all") {
+    sortedBookings = sortedBookings.filter(b => b.room === selectedRoom || getRoomThaiName(b.room) === selectedRoom);
+  }
+
+  if (selectedStatus && selectedStatus !== "all") {
+    sortedBookings = sortedBookings.filter(b => {
+      if (selectedStatus === 'approved') return b.status === 'approved';
+      if (selectedStatus === 'pending') return b.status === 'pending';
+      if (selectedStatus === 'rejected') return b.status === 'rejected' || b.status === 'cancelled';
+      return true;
+    });
+  }
+
   if (sortedBookings.length === 0) {
+    const emptyMsg = "ยังไม่มีประวัติการจองห้องปฏิบัติการตามเงื่อนไขที่เลือก";
     const emptyHtml = `
-      <div class="empty-state" style="padding: 30px 16px;">
+      <div class="empty-state" style="padding: 40px 16px;">
         <div class="empty-state-icon"><i data-lucide="calendar-x"></i></div>
-        <div class="empty-state-text">ยังไม่มีประวัติการจองห้องปฏิบัติการ</div>
+        <div class="empty-state-text">${emptyMsg}</div>
       </div>
     `;
     if (tableBody) {
-      tableBody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 40px;">${emptyHtml}</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="2" style="text-align: center; padding: 48px;">${emptyHtml}</td></tr>`;
     }
     if (mobileList) {
       mobileList.innerHTML = emptyHtml;
@@ -8481,87 +8620,106 @@ function renderBookingsTable() {
     const rawDate = normalizeDateStr(b.date) || b.date;
     const formattedDate = formatPrettyThaiDate(rawDate);
     const roomName = getRoomThaiName(b.room);
-    const roomColor = getRoomColor(b.room);
     const booker = b.bookerName || b.teacherName || "-";
     const grade = b.className || b.gradeLevel || "-";
     const studentCountText = formatStudentCount(b.studentCount);
-    const purpose = b.purpose || b.activity || "-";
+    const purpose = b.purpose || b.activity || b.experimentName || "-";
 
-    const slotList = (b.slot || b.timeSlot || "").split(", ").filter(Boolean);
-    const slotHtml = slotList.map(s => {
-      const cleanSlot = s.trim();
-      return `<span class="booking-list-slot">${escapeHTML(cleanSlot)}${cleanSlot.includes("น") ? "" : " น."}</span>`;
-    }).join("");
+    const timeInfo = formatBookingPeriodAndTime(b.slot, b.timeSlot);
 
     const isApproved = b.status === "approved";
     const isPending = b.status === "pending";
     const statusBadge = isApproved 
-      ? "<span class='badge-status approved' style='color:#10b981; font-size:11px; font-weight:600; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;'><span style='width:6px; height:6px; border-radius:50%; background:#10b981;'></span> อนุมัติแล้ว</span>" 
+      ? `<span class="badge-status approved" style="color:#10b981; font-size:11px; font-weight:600; background:rgba(16,185,129,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span> อนุมัติแล้ว</span>` 
       : (isPending 
-          ? "<span class='badge-status pending' style='color:#f59e0b; font-size:11px; font-weight:600; background:rgba(245,158,11,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;'><span style='width:6px; height:6px; border-radius:50%; background:#f59e0b;'></span> รออนุมัติ</span>" 
-          : "<span class='badge-status rejected' style='color:#ef4444; font-size:11px; font-weight:600; background:rgba(239,68,68,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;'><span style='width:6px; height:6px; border-radius:50%; background:#ef4444;'></span> ปฏิเสธ</span>");
+          ? `<span class="badge-status pending" style="color:#f59e0b; font-size:11px; font-weight:600; background:rgba(245,158,11,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#f59e0b;"></span> รออนุมัติ</span>` 
+          : `<span class="badge-status rejected" style="color:#ef4444; font-size:11px; font-weight:600; background:rgba(239,68,68,0.1); padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:4px;"><span style="width:6px; height:6px; border-radius:50%; background:#ef4444;"></span> ปฏิเสธ</span>`);
 
-    // Desktop Table Row (Zero-scroll, responsive hierarchical columns)
+    let prepCount = 0;
+    if (Array.isArray(b.prepItems)) {
+      prepCount = b.prepItems.length;
+    } else if (Array.isArray(b.requiredChemicals) || Array.isArray(b.requiredEquipment)) {
+      prepCount = (b.requiredChemicals ? b.requiredChemicals.length : 0) + (b.requiredEquipment ? b.requiredEquipment.length : 0);
+    }
+
+    // Desktop Table Row (1:1 Layout Match with Borrow-Return History Table - Compact & Room-focused)
     tableHtml += `
-      <tr class="table-clickable-row booking-list-row" onclick="showBookingDetail('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
-        <td class="booking-list-date-cell" data-label="วันเวลาที่ใช้งาน">
-          <div class="booking-list-date">${formattedDate}</div>
-          <div class="booking-list-slots">
-            ${slotHtml}
+      <tr class="table-clickable-row" onclick="showBookingDetail('${b.id}')" style="cursor: pointer;" title="คลิกเพื่อดูรายละเอียดเพิ่มเติม">
+        <td data-label="วันเวลาที่ใช้งาน" style="vertical-align: top; padding: 12px 14px; width: 195px; white-space: nowrap;">
+          <div style="font-weight: 700; color: #0f172a; font-size: 13px; line-height: 1.3;">${formattedDate}</div>
+          <div style="font-size: 11.5px; color: #475569; font-weight: 600; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+            <i data-lucide="clock" style="width: 12px; height: 12px; color: #64748b; flex-shrink: 0;"></i>
+            <span>${escapeHTML(timeInfo.time)}</span>
           </div>
-          <div class="booking-list-status">
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
             ${statusBadge}
+            ${(isAdmin && b.id) ? `<span style="font-size: 10px; color: #94a3b8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;" title="หมายเลขการจองห้อง (Booking ID)">#${escapeHTML(b.id)}</span>` : ''}
           </div>
         </td>
-        <td class="booking-list-detail-cell" data-label="ห้องปฏิบัติการและรายละเอียดกิจกรรม">
-          <div class="booking-list-detail-heading">
-            <span class="booking-list-room" style="--booking-room-color: ${roomColor};">${escapeHTML(roomName)}</span>
-            <span class="booking-list-purpose">${escapeHTML(purpose)}</span>
+        <td data-label="ห้องปฏิบัติการและรายละเอียดกิจกรรม" style="vertical-align: top; padding: 12px 16px;">
+          <!-- 1. Room badge prominently featured at top -->
+          <div style="margin-bottom: 5px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.08); color: #4338ca; border: 1px solid rgba(99,102,241,0.24); padding: 3px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 700; word-break: break-word;">
+              <i data-lucide="flask-conical" style="width: 13px; height: 13px; color: #4f46e5; flex-shrink: 0;"></i>
+              <span>${escapeHTML(roomName || "ไม่ระบุห้องปฏิบัติการ")}</span>
+            </span>
           </div>
-          <div class="booking-list-meta">
-            <span>ผู้จอง <strong>${escapeHTML(booker)}</strong></span>
-            ${grade !== '-' ? `<span>ชั้น <strong>${escapeHTML(grade)}</strong></span>` : ''}
-            ${studentCountText ? `<span><strong>${escapeHTML(studentCountText)}</strong></span>` : ''}
+
+          <!-- 2. Purpose / Activity (Clean 13px) -->
+          <div style="font-weight: 600; color: #1e293b; font-size: 13px; line-height: 1.4; word-break: break-word;">
+            ${escapeHTML(purpose)}
+          </div>
+
+          <!-- 3. Combined compact metadata (Reduced font, removed redundant prefixes) -->
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; font-size: 11.5px; color: #64748b;">
+            ${booker ? `<span style="color: #334155; font-weight: 600;">${escapeHTML(booker)}</span>` : ''}
+            ${grade !== '-' ? `<span>• <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-weight: 600; color: #475569;">${escapeHTML(grade)}</span></span>` : ''}
+            ${studentCountText ? `<span>• ${escapeHTML(studentCountText)}</span>` : ''}
+            ${prepCount > 0 ? `<span>• เตรียม ${prepCount} รายการ</span>` : ''}
           </div>
         </td>
       </tr>
     `;
 
-    // Mobile Card View
+    // Mobile Card View (Compact & Room on top)
     mobileHtml += `
       <div class="booking-mobile-card" onclick="showBookingDetail('${b.id}')">
-        <div class="booking-card-top">
-          <div class="booking-card-date">
-            <i data-lucide="calendar" style="width: 13px; height: 13px; color: var(--primary-purple);"></i>
-            <span>${formattedDate}</span>
+        <!-- Room at top -->
+        ${roomName ? `
+          <div style="margin-bottom: 5px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.08); color: #4338ca; border: 1px solid rgba(99,102,241,0.24); padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; word-break: break-word;">
+              <i data-lucide="flask-conical" style="width: 13px; height: 13px; color: #4f46e5; flex-shrink: 0;"></i>
+              <span>${escapeHTML(roomName)}</span>
+            </span>
           </div>
-          <div class="booking-card-room" style="background-color: ${roomColor}15; color: ${roomColor};">
-            ${roomName}
-          </div>
+        ` : ''}
+
+        <div class="booking-card-purpose" style="font-weight: 600; color: #1e293b; font-size: 13px; line-height: 1.4;">${escapeHTML(purpose)}</div>
+
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 5px; font-size: 11.5px; color: #64748b;">
+          <span style="display: inline-flex; align-items: center; gap: 4px; font-weight: 600; color: #0f172a;">
+            <i data-lucide="calendar" style="width: 12px; height: 12px; color: var(--primary-purple);"></i>
+            ${formattedDate}
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 4px; color: #475569; font-weight: 500;">
+            <i data-lucide="clock" style="width: 12px; height: 12px; color: #64748b;"></i>
+            ${escapeHTML(timeInfo.time)}
+          </span>
         </div>
 
-        <div class="booking-card-body">
-          <div class="booking-card-purpose">${escapeHTML(purpose)}</div>
-          
-          <div class="booking-card-meta-grid">
-            <div class="booking-card-meta-item">
-              <span class="booking-meta-label">เวลาเข้าใช้:</span>
-              <span class="booking-meta-val slots-val">${(b.slot || b.timeSlot || "-")}${(b.slot || b.timeSlot || "").includes("น") || !(b.slot || b.timeSlot) ? "" : " น."}</span>
-            </div>
-            <div class="booking-card-meta-item">
-              <span class="booking-meta-label">ระดับชั้น:</span>
-              <span class="booking-meta-val">${grade} ${studentCountText ? `(${studentCountText})` : ''}</span>
-            </div>
-            <div class="booking-card-meta-item">
-              <span class="booking-meta-label">ผู้จอง/ครู:</span>
-              <span class="booking-meta-val">${escapeHTML(booker)}</span>
-            </div>
-          </div>
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px; font-size: 11.5px; color: #64748b;">
+          ${booker ? `<span style="color: #334155; font-weight: 600;">${escapeHTML(booker)}</span>` : ''}
+          ${grade !== '-' ? `<span>• <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #f1f5f9; padding: 1px 6px; border-radius: 4px; font-weight: 600; color: #475569;">${escapeHTML(grade)}</span></span>` : ''}
+          ${studentCountText ? `<span>• ${escapeHTML(studentCountText)}</span>` : ''}
+          ${prepCount > 0 ? `<span>• เตรียม ${prepCount} รายการ</span>` : ''}
         </div>
 
-        <div class="booking-card-footer">
-          <div>${statusBadge}</div>
-          <span class="booking-card-arrow"><i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i></span>
+        <div class="booking-card-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 7px; border-top: 1px dashed #e2e8f0;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            ${statusBadge}
+            ${(isAdmin && b.id) ? `<span style="font-size: 10px; color: #94a3b8; font-family: ui-monospace, monospace;">#${escapeHTML(b.id)}</span>` : ''}
+          </div>
+          <span class="booking-card-arrow"><i data-lucide="chevron-right" style="width: 14px; height: 14px; color: #94a3b8;"></i></span>
         </div>
       </div>
     `;
@@ -10621,6 +10779,169 @@ window.showTransactionDetail = function(txId) {
   lucide.createIcons();
 };
 
+window.copyBookingId = function(id, btn) {
+  if (!id) return;
+  if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(id).then(() => {
+      if (btn) {
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="check" style="width: 12px; height: 12px; color: #10b981;"></i> คัดลอกแล้ว`;
+        btn.style.borderColor = "#10b981";
+        btn.style.color = "#047857";
+        if (window.lucide) lucide.createIcons();
+        setTimeout(() => {
+          btn.innerHTML = originalHtml;
+          btn.style.borderColor = "";
+          btn.style.color = "";
+          if (window.lucide) lucide.createIcons();
+        }, 1800);
+      }
+    }).catch(() => {
+      if (typeof showToast === "function") showToast("คัดลอกรหัส: " + id, "info");
+    });
+  } else {
+    if (typeof showToast === "function") showToast("รหัสการจอง: " + id, "info");
+  }
+};
+
+window.printBookingSlip = function(bkId) {
+  const bk = bookings.find(b => b.id === bkId);
+  if (!bk) return;
+  const roomName = getRoomThaiName(bk.room) || "ไม่ระบุห้องปฏิบัติการ";
+  const bookingDate = formatPrettyThaiDate(normalizeDateStr(bk.date) || bk.date) || "ไม่ระบุวันที่";
+  const timeInfo = formatBookingPeriodAndTime(bk.slot, bk.timeSlot);
+  const bookingTime = timeInfo.fullDisplay || "ไม่ระบุเวลา";
+  const gradeLevel = bk.className || bk.gradeLevel || "ไม่ระบุ";
+  const studentCount = formatStudentCount(bk.studentCount) || "ไม่ระบุ";
+  const teacherName = bk.bookerName || bk.teacherName || "ไม่ระบุชื่อผู้จอง";
+  const purpose = bk.purpose || bk.activity || "ไม่ระบุกิจกรรม";
+  const isApproved = bk.status === "approved";
+  const isPending = bk.status === "pending";
+  const statusLabel = isApproved ? "อนุมัติแล้ว" : (isPending ? "รออนุมัติ" : "ปฏิเสธ/ยกเลิก");
+
+  let bookingPrepItems = bk.prepItems;
+  if (typeof bookingPrepItems === "string") {
+    try { bookingPrepItems = JSON.parse(bookingPrepItems); } catch { bookingPrepItems = []; }
+  }
+  if (!Array.isArray(bookingPrepItems)) bookingPrepItems = [];
+
+  const prepRows = bookingPrepItems.length > 0 ? bookingPrepItems.map((prep, idx) => {
+    const entry = prep && typeof prep === "object" ? prep : { code: prep };
+    const code = entry.code || entry.itemCode || entry.item_code || entry.itemId || "";
+    const item = code ? items.find(i => i.code === code || i.id === code) : null;
+    const name = item ? getItemDisplayName(item) : (entry.name || entry.itemName || entry.item_name || code || "ไม่ระบุรายการ");
+    const unit = (item && item.unit) || entry.unit || entry.unitName || "หน่วย";
+    const quantity = entry.qty ?? entry.quantity ?? entry.amount ?? "-";
+    return `<tr>
+      <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px;">${idx + 1}</td>
+      <td style="border: 1px solid #cbd5e1; padding: 6px;">${escapeHTML(String(name))}${code ? ` <span style="font-size: 11px; color: #64748b;">(${escapeHTML(String(code))})</span>` : ''}</td>
+      <td style="text-align: right; border: 1px solid #cbd5e1; padding: 6px;">${escapeHTML(String(quantity))} ${escapeHTML(String(unit))}</td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="3" style="text-align: center; border: 1px solid #cbd5e1; padding: 8px; color: #64748b;">ไม่มีการขอเตรียมวัสดุ/สารเคมีเพิ่มเติม</td></tr>`;
+
+  const printWindow = window.open("", "_blank");
+  if (!printWindow) {
+    if (typeof showToast === "function") showToast("โปรดอนุญาตป๊อปอัปเพื่อพิมพ์ใบจอง", "warning");
+    return;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="th">
+    <head>
+      <meta charset="UTF-8">
+      <title>ใบจองห้องปฏิบัติการวิทยาศาสตร์ - ${escapeHTML(String(bk.id || ''))}</title>
+      <style>
+        @page { size: A4 portrait; margin: 15mm; }
+        body { font-family: 'Sarabun', 'Segoe UI', Tahoma, sans-serif; font-size: 14px; color: #0f172a; line-height: 1.6; margin: 0; padding: 20px; }
+        .slip-header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; }
+        .slip-title { font-size: 18px; font-weight: 700; margin: 0; }
+        .slip-sub { font-size: 13px; color: #475569; margin-top: 4px; }
+        .slip-meta { display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 12px; }
+        .slip-box { border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; margin-bottom: 14px; background: #fafafa; }
+        .slip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 12px; }
+        .slip-field { display: flex; gap: 8px; }
+        .slip-field strong { color: #334155; min-width: 100px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+        th { background: #f1f5f9; border: 1px solid #cbd5e1; padding: 6px; font-weight: 700; }
+        .slip-signatures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 36px; text-align: center; font-size: 12px; }
+        .sig-line { border-bottom: 1px dashed #64748b; margin: 30px 10px 8px 10px; }
+        @media print {
+          body { padding: 0; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="slip-header">
+        <h1 class="slip-title">ใบขอใช้ห้องปฏิบัติการวิทยาศาสตร์ (SciPortal Chemical Laboratory)</h1>
+        <div class="slip-sub">กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี</div>
+      </div>
+      <div class="slip-meta">
+        <div><strong>รหัสการจอง:</strong> ${escapeHTML(String(bk.id || '-'))}</div>
+        <div><strong>สถานะ:</strong> ${escapeHTML(String(statusLabel))}</div>
+        <div><strong>พิมพ์เมื่อ:</strong> ${new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+      </div>
+      <div class="slip-box">
+        <div class="slip-grid">
+          <div class="slip-field"><strong>ห้องปฏิบัติการ:</strong> <span>${escapeHTML(String(roomName))}</span></div>
+          <div class="slip-field"><strong>วันที่ใช้งาน:</strong> <span>${escapeHTML(String(bookingDate))}</span></div>
+          <div class="slip-field"><strong>ช่วงเวลา:</strong> <span>${escapeHTML(String(bookingTime))}</span></div>
+          <div class="slip-field"><strong>ผู้ขอใช้:</strong> <span>${escapeHTML(String(teacherName))}</span></div>
+          <div class="slip-field"><strong>ระดับชั้น:</strong> <span>${escapeHTML(String(gradeLevel))}</span></div>
+          <div class="slip-field"><strong>จำนวนนักเรียน:</strong> <span>${escapeHTML(String(studentCount))}</span></div>
+        </div>
+        <div class="slip-field" style="margin-top: 4px;">
+          <strong>กิจกรรม:</strong> <span>${escapeHTML(String(purpose))}</span>
+        </div>
+      </div>
+
+      <div style="font-weight: 700; margin-top: 14px; margin-bottom: 4px;">รายการวัสดุ สารเคมี และอุปกรณ์ที่จัดเตรียม:</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px; text-align: center;">ลำดับ</th>
+            <th style="text-align: left;">รายการ</th>
+            <th style="width: 120px; text-align: right;">จำนวน</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${prepRows}
+        </tbody>
+      </table>
+
+      <div class="slip-signatures">
+        <div>
+          <div class="sig-line"></div>
+          <div>(......................................................)</div>
+          <div>ครูผู้สอน / ผู้ขอใช้ห้อง</div>
+        </div>
+        <div>
+          <div class="sig-line"></div>
+          <div>(......................................................)</div>
+          <div>เจ้าหน้าที่ประจำห้องปฏิบัติการ</div>
+        </div>
+        <div>
+          <div class="sig-line"></div>
+          <div>(......................................................)</div>
+          <div>หัวหน้ากลุ่มสาระฯ / ผู้อนุมัติ</div>
+        </div>
+      </div>
+
+      <div class="no-print" style="margin-top: 24px; text-align: center;">
+        <button onclick="window.print()" style="padding: 8px 20px; font-size: 14px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; cursor: pointer;">พิมพ์เอกสารนี้</button>
+      </div>
+      <script>
+        window.onload = function() {
+          setTimeout(function() { window.print(); }, 400);
+        };
+      </script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+};
+
 window.showBookingDetail = function(bkId) {
   const bk = bookings.find(b => b.id === bkId);
   if (!bk) return;
@@ -10633,84 +10954,156 @@ window.showBookingDetail = function(bkId) {
   if (!modal || !title || !body || !footer) return;
   modal.classList.add("booking-detail-modal");
 
-  // Set Title
+  // Modern Modal Header
   title.innerHTML = `
-    <i data-lucide="calendar" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
-    <span>รายละเอียดการจองห้องปฏิบัติการ</span>
+    <i data-lucide="flask-conical" style="width: 20px; height: 20px; color: #6366f1;"></i>
+    <span style="font-weight: 700; font-size: 15px; color: #0f172a;">รายละเอียดการจองห้องปฏิบัติการ</span>
   `;
 
-  // Determine status and badge classes
+  // Status configuration
   const isApproved = bk.status === "approved";
   const isPending = bk.status === "pending";
   const statusClass = isApproved ? "badge-approved" : (isPending ? "badge-pending" : "badge-cancelled");
   const statusLabel = isApproved ? "อนุมัติแล้ว" : (isPending ? "รออนุมัติ" : "ปฏิเสธ/ยกเลิก");
 
+  // Prep items formatting
   let bookingPrepItems = bk.prepItems;
   if (typeof bookingPrepItems === "string") {
     try { bookingPrepItems = JSON.parse(bookingPrepItems); } catch { bookingPrepItems = []; }
   }
   if (!Array.isArray(bookingPrepItems)) bookingPrepItems = [];
-  const prepItemsHtml = bookingPrepItems.map(prep => {
+
+  const prepItemsHtml = bookingPrepItems.length > 0 ? bookingPrepItems.map(prep => {
     const entry = prep && typeof prep === "object" ? prep : { code: prep };
     const code = entry.code || entry.itemCode || entry.item_code || entry.itemId || "";
     const item = code ? items.find(i => i.code === code || i.id === code) : null;
     const name = item ? getItemDisplayName(item) : (entry.name || entry.itemName || entry.item_name || code || "ไม่ระบุรายการ");
     const unit = (item && item.unit) || entry.unit || entry.unitName || "หน่วย";
     const quantity = entry.qty ?? entry.quantity ?? entry.amount ?? "-";
-    const codeLabel = code && code !== name ? `<span class="booking-detail-prep-code">${escapeHTML(String(code))}</span>` : "";
-    return `<li class="booking-detail-prep-item"><span class="booking-detail-prep-name">${escapeHTML(String(name))}${codeLabel}</span><strong>${escapeHTML(String(quantity))} <small>${escapeHTML(String(unit))}</small></strong></li>`;
-  }).join("");
+    const codeBadge = code && code !== name ? `<span class="bdm-prep-item-code">${escapeHTML(String(code))}</span>` : "";
+    return `
+      <div class="bdm-prep-item-row">
+        <div class="bdm-prep-item-left">
+          <span class="bdm-prep-item-name">${escapeHTML(String(name))}</span>
+          ${codeBadge}
+        </div>
+        <div class="bdm-prep-item-qty">
+          <strong>${escapeHTML(String(quantity))}</strong> <small>${escapeHTML(String(unit))}</small>
+        </div>
+      </div>
+    `;
+  }).join("") : "";
 
   const roomName = getRoomThaiName(bk.room) || "ไม่ระบุห้องปฏิบัติการ";
   const bookingDate = formatPrettyThaiDate(normalizeDateStr(bk.date) || bk.date) || "ไม่ระบุวันที่";
-  const bookingTime = bk.slot || bk.timeSlot || "ไม่ระบุเวลา";
+  const timeInfo = formatBookingPeriodAndTime(bk.slot, bk.timeSlot);
+  const bookingTime = timeInfo.fullDisplay || "ไม่ระบุเวลา";
   const gradeLevel = bk.className || bk.gradeLevel || "ไม่ระบุ";
   const studentCount = formatStudentCount(bk.studentCount) || "ไม่ระบุ";
   const teacherName = bk.bookerName || bk.teacherName || "ไม่ระบุชื่อผู้จอง";
   const purpose = bk.purpose || bk.activity || "ไม่ระบุกิจกรรม";
 
+  // Build Redesigned Body
   body.innerHTML = `
-    <div class="booking-detail-content">
-      <section class="booking-detail-summary" aria-label="สรุปการจอง">
-        <div class="booking-detail-summary-card booking-detail-summary-room">
-          <span class="booking-detail-summary-icon"><i data-lucide="flask-conical"></i></span>
-          <span class="booking-detail-eyebrow">ห้องปฏิบัติการ</span>
-          <strong>${escapeHTML(String(roomName))}</strong>
+    <div class="bdm-container">
+      <!-- 1. Hero Spotlight Card -->
+      <section class="bdm-hero-card" aria-label="ห้องปฏิบัติการและสถานะ">
+        <div class="bdm-hero-top">
+          <div class="bdm-room-group">
+            <div class="bdm-room-badge-icon">
+              <i data-lucide="flask-conical"></i>
+            </div>
+            <div class="bdm-room-text-group">
+              <div class="bdm-room-name">${escapeHTML(String(roomName))}</div>
+              <div class="bdm-room-sub">ห้องปฏิบัติการวิทยาศาสตร์ SciPortal Chemical Lab</div>
+            </div>
+          </div>
+          <div class="bdm-status-wrapper">
+            <span class="bdm-status-pill ${statusClass}">
+              <span class="bdm-status-dot"></span>
+              <span>${statusLabel}</span>
+            </span>
+          </div>
         </div>
-        <div class="booking-detail-summary-card">
-          <span class="booking-detail-summary-icon"><i data-lucide="calendar-days"></i></span>
-          <span class="booking-detail-eyebrow">วันที่ใช้งาน</span>
-          <strong>${escapeHTML(String(bookingDate))}</strong>
-        </div>
-        <div class="booking-detail-summary-card booking-detail-time-card">
-          <span class="booking-detail-summary-icon"><i data-lucide="clock-3"></i></span>
-          <span class="booking-detail-eyebrow">ช่วงเวลา</span>
-          <strong>${escapeHTML(String(bookingTime))}</strong>
+        <div class="bdm-hero-bottom">
+          <div class="bdm-booking-id-tag">
+            <i data-lucide="hash" style="width: 13px; height: 13px;"></i>
+            <span>รหัสการจอง:</span>
+            <span class="bdm-id-value">${escapeHTML(String(bk.id || "-"))}</span>
+          </div>
+          ${bk.id ? `
+          <button type="button" class="bdm-copy-id-btn" onclick="copyBookingId('${bk.id}', this)" title="คัดลอกรหัสการจอง">
+            <i data-lucide="copy" style="width: 12px; height: 12px;"></i>
+            <span>คัดลอกรหัส</span>
+          </button>
+          ` : ""}
         </div>
       </section>
 
-      <section class="booking-detail-info-grid" aria-label="ข้อมูลผู้จอง">
-        <div class="booking-detail-info-item"><span>ระดับชั้น</span><strong>${escapeHTML(String(gradeLevel))}</strong></div>
-        <div class="booking-detail-info-item"><span>จำนวนนักเรียน</span><strong>${escapeHTML(String(studentCount))}</strong></div>
-        <div class="booking-detail-info-item"><span>ผู้จอง / ครูผู้สอน</span><strong>${escapeHTML(String(teacherName))}</strong></div>
-        <div class="booking-detail-info-item"><span>สถานะการจอง</span><strong><span class="booking-detail-status ${statusClass}">${statusLabel}</span></strong></div>
+      <!-- 2. Core Schedule & Booker Grid -->
+      <section class="bdm-grid" aria-label="กำหนดการและผู้จอง">
+        <div class="bdm-card">
+          <div class="bdm-card-label">
+            <i data-lucide="calendar" style="width: 13px; height: 13px; color: #6366f1;"></i>
+            <span>วันและเวลาที่ใช้งาน</span>
+          </div>
+          <div class="bdm-schedule-date">${escapeHTML(String(bookingDate))}</div>
+          <div class="bdm-schedule-time">
+            <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+            <span>${escapeHTML(String(bookingTime))}</span>
+          </div>
+        </div>
+
+        <div class="bdm-card">
+          <div class="bdm-card-label">
+            <i data-lucide="user-check" style="width: 13px; height: 13px; color: #6366f1;"></i>
+            <span>ผู้จองและกลุ่มผู้เรียน</span>
+          </div>
+          <div class="bdm-teacher-name">${escapeHTML(String(teacherName))}</div>
+          <div class="bdm-class-pills">
+            <span class="bdm-pill-grade">${escapeHTML(String(gradeLevel))}</span>
+            <span class="bdm-pill-count">
+              <i data-lucide="users" style="width: 12px; height: 12px;"></i>
+              <span>${escapeHTML(String(studentCount))}</span>
+            </span>
+          </div>
+        </div>
       </section>
 
-      <section class="booking-detail-section">
-        <h3><i data-lucide="clipboard-list"></i> กิจกรรมที่ใช้</h3>
-        <p class="booking-detail-purpose">${escapeHTML(String(purpose))}</p>
+      <!-- 3. Purpose & Experiment Activities -->
+      <section class="bdm-card bdm-purpose-card" aria-label="กิจกรรมการทดลอง">
+        <div class="bdm-card-label">
+          <i data-lucide="clipboard-list" style="width: 13px; height: 13px; color: #6366f1;"></i>
+          <span>กิจกรรม / วัตถุประสงค์การทดลอง</span>
+        </div>
+        <div class="bdm-purpose-body">${escapeHTML(String(purpose))}</div>
       </section>
 
-      ${prepItemsHtml ? `
-      <section class="booking-detail-section booking-detail-prep-section">
-        <h3><i data-lucide="package-check"></i> วัสดุ / สารเคมีที่เตรียม</h3>
-        <ul class="booking-detail-prep-list">${prepItemsHtml}</ul>
-      </section>` : ""}
+      <!-- 4. Preparation Items -->
+      <section class="bdm-card bdm-prep-card" aria-label="วัสดุและสารเคมีที่ต้องเตรียม">
+        <div class="bdm-card-header-flex">
+          <div class="bdm-card-label" style="margin-bottom: 0;">
+            <i data-lucide="package-check" style="width: 13px; height: 13px; color: #10b981;"></i>
+            <span>วัสดุ อุปกรณ์ และสารเคมีที่ต้องเตรียม</span>
+          </div>
+          ${bookingPrepItems.length > 0 ? `
+          <span class="bdm-prep-counter">${bookingPrepItems.length} รายการ</span>
+          ` : ""}
+        </div>
+        <div class="bdm-prep-items-list">
+          ${prepItemsHtml ? prepItemsHtml : `
+          <div class="bdm-prep-empty">
+            <i data-lucide="info" style="width: 13px; height: 13px;"></i>
+            <span>ไม่มีการระบุรายการวัสดุหรือสารเคมีเพิ่มเติมสำหรับรอบการจองนี้</span>
+          </div>
+          `}
+        </div>
+      </section>
     </div>
   `;
 
-  // Build Footer Actions
-  let actionBtn = "";
+  // Build Footer Actions (Print on left, Cancel + Close on right)
+  let cancelBtnHtml = "";
   if (isApproved) {
     let canCancelBooking = false;
     const r = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
@@ -10727,24 +11120,32 @@ window.showBookingDetail = function(bkId) {
     }
 
     if (canCancelBooking) {
-      actionBtn = `
-        <button class="btn btn-primary" style="background-color: var(--accent-red); border-color: var(--accent-red); display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 10px; font-weight: 600;" onclick="closeDetailModal(); setTimeout(() => cancelBookingRecord('${bk.id}'), 200);">
-          <i data-lucide="x-circle" style="width: 16px; height: 16px;"></i>
+      cancelBtnHtml = `
+        <button type="button" class="btn btn-primary bdm-footer-btn bdm-btn-cancel" onclick="closeDetailModal(); setTimeout(() => cancelBookingRecord('${bk.id}'), 200);">
+          <i data-lucide="x-circle" style="width: 15px; height: 15px;"></i>
           <span>ยกเลิกการจอง</span>
         </button>
       `;
     }
   }
-  if (actionBtn) {
-    footer.style.display = "flex";
-    footer.innerHTML = actionBtn;
-  } else {
-    footer.style.display = "none";
-  }
 
-  // Show Modal
+  footer.style.display = "flex";
+  footer.innerHTML = `
+    <button type="button" class="btn btn-outline bdm-footer-btn" onclick="printBookingSlip('${bk.id}')" title="พิมพ์ใบขอใช้ห้องปฏิบัติการ">
+      <i data-lucide="printer" style="width: 15px; height: 15px;"></i>
+      <span>พิมพ์ใบจอง</span>
+    </button>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      ${cancelBtnHtml}
+      <button type="button" class="btn btn-outline bdm-footer-btn" onclick="closeDetailModal()">
+        <span>ปิดหน้าต่าง</span>
+      </button>
+    </div>
+  `;
+
+  // Show Modal and render lucide icons
   modal.classList.add("active");
-  lucide.createIcons();
+  if (window.lucide) lucide.createIcons();
 };
 
 window.closeDetailModal = function() {
@@ -11220,6 +11621,256 @@ window.rejectBorrowRequest = async function(txId) {
   }
 };
 
+// Local synchronous QR Code Generator using QRCode.js
+window.generateItemQrDataUrl = function(code, size = 180) {
+  if (typeof QRCode !== 'undefined') {
+    try {
+      let temp = document.getElementById('__hidden_qr_gen__');
+      if (!temp) {
+        temp = document.createElement('div');
+        temp.id = '__hidden_qr_gen__';
+        temp.style.cssText = 'position: fixed; left: -9999px; top: -9999px; width: ' + size + 'px; height: ' + size + 'px; opacity: 0; pointer-events: none; z-index: -1;';
+        document.body.appendChild(temp);
+      }
+      temp.innerHTML = '';
+      new QRCode(temp, {
+        text: String(code || ''),
+        width: size,
+        height: size,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      const canvas = temp.querySelector('canvas');
+      if (canvas && typeof canvas.toDataURL === 'function') {
+        const dataUrl = canvas.toDataURL('image/png');
+        if (dataUrl && dataUrl.length > 100) return dataUrl;
+      }
+      const img = temp.querySelector('img');
+      if (img && img.src && img.src.startsWith('data:')) {
+        return img.src;
+      }
+    } catch (e) {
+      console.warn('generateItemQrDataUrl error:', e);
+    }
+  }
+  return null;
+};
+
+// Local Data Matrix Generator using bwipjs in browser or local server endpoint
+window.generateItemDataMatrixUrl = function(code, scale = 3) {
+  if (typeof bwipjs !== 'undefined' && typeof bwipjs.toCanvas === 'function') {
+    try {
+      let temp = document.getElementById('__hidden_dm_gen__');
+      if (!temp) {
+        temp = document.createElement('canvas');
+        temp.id = '__hidden_dm_gen__';
+        temp.style.cssText = 'position: fixed; left: -9999px; top: -9999px; opacity: 0; pointer-events: none; z-index: -1;';
+        document.body.appendChild(temp);
+      }
+      bwipjs.toCanvas(temp, {
+        bcid: 'datamatrix',
+        text: String(code || ''),
+        scale: scale,
+        paddingwidth: 2,
+        paddingheight: 2
+      });
+      const url = temp.toDataURL('image/png');
+      if (url && url.length > 100) return url;
+    } catch (e) {
+      console.warn('Local bwip-js Data Matrix error:', e);
+    }
+  }
+  // Server-rendered endpoint fallback
+  const base = typeof API_BASE === 'string' ? API_BASE.replace(/\/api$/, '') : '';
+  return `${base}/api/barcode?bcid=datamatrix&text=${encodeURIComponent(code)}&scale=${scale}`;
+};
+
+// Unified 2D Barcode Generator (supports 'datamatrix' and 'qrcode')
+window.generateItemBarcodeUrl = function(code, format = 'datamatrix', scale = 3) {
+  if (format === 'datamatrix') {
+    return window.generateItemDataMatrixUrl(code, scale);
+  }
+  const local = typeof generateItemQrDataUrl === 'function' ? generateItemQrDataUrl(code, 180) : null;
+  return local || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(code)}`;
+};
+
+// Toggle detail modal QR/Data Matrix format on the fly
+window.toggleDetailQrFormat = function(code) {
+  const img = document.getElementById('detailItemCodeImg');
+  const labelQr = document.getElementById('detailQrFormatLabel');
+  const labelDm = document.getElementById('detailDmFormatLabel');
+  if (!img) return;
+
+  const current = img.dataset.format || 'qrcode';
+  if (current === 'qrcode') {
+    img.dataset.format = 'datamatrix';
+    img.src = window.generateItemDataMatrixUrl(code, 4);
+    img.alt = `Data Matrix Code ${code}`;
+    if (labelQr) { labelQr.style.color = '#94a3b8'; labelQr.style.fontWeight = '500'; }
+    if (labelDm) { labelDm.style.color = '#059669'; labelDm.style.fontWeight = '800'; }
+    if (typeof showToast === 'function') showToast('สลับเป็น Data Matrix Code เรียบร้อย (เหมาะกับหลอดทดลอง)', 'info');
+  } else {
+    img.dataset.format = 'qrcode';
+    const localQr = typeof generateItemQrDataUrl === 'function' ? generateItemQrDataUrl(code, 180) : null;
+    img.src = localQr || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(code)}`;
+    img.alt = `QR Code ${code}`;
+    if (labelQr) { labelQr.style.color = '#4338ca'; labelQr.style.fontWeight = '800'; }
+    if (labelDm) { labelDm.style.color = '#94a3b8'; labelDm.style.fontWeight = '500'; }
+    if (typeof showToast === 'function') showToast('สลับเป็น QR Code เรียบร้อย', 'info');
+  }
+};
+
+// Error fallback handler for Detail Modal QR Code
+window.handleDetailQrError = function(imgEl, code) {
+  if (!imgEl) return;
+  // Fallback 1: Try local generator
+  if (typeof generateItemQrDataUrl === 'function') {
+    const local = generateItemQrDataUrl(code, 180);
+    if (local) {
+      imgEl.src = local;
+      return;
+    }
+  }
+  // Fallback 2: Local server barcode endpoint
+  if (!imgEl.dataset.triedServer) {
+    imgEl.dataset.triedServer = "1";
+    const base = typeof API_BASE === 'string' ? API_BASE.replace(/\/api$/, '') : '';
+    imgEl.src = `${base}/api/barcode?bcid=qrcode&text=${encodeURIComponent(code)}&scale=3`;
+    return;
+  }
+  // Fallback 3: Clean SVG QR Code fallback
+  imgEl.src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="%234338ca" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`;
+  imgEl.style.padding = '8px';
+  imgEl.style.background = '#f8fafc';
+};
+
+// Switch format in the Quick View Modal
+window.switchQuickViewFormat = function(code, format) {
+  const img = document.getElementById('qrQuickViewImg');
+  const tag = document.getElementById('qrQuickViewTag');
+  const info = document.getElementById('qrQuickViewInfo');
+  const btnQr = document.getElementById('btnViewQr');
+  const btnDm = document.getElementById('btnViewDm');
+  if (!img) return;
+
+  if (format === 'datamatrix') {
+    img.src = window.generateItemDataMatrixUrl(code, 4);
+    if (tag) {
+      tag.innerText = 'DATA MATRIX (ECC 200)';
+      tag.style.color = '#059669';
+    }
+    if (info) {
+      info.innerHTML = '<span style="color: #059669; font-weight: 700;">✓ มาตรฐานหลอดทดลอง/งานวิจัย (Data Matrix ECC 200):</span> ขนาดกะทัดรัด ประหยัดพื้นที่ เหมาะสำหรับหลอดทดลอง (Vials) และขวดสารเคมีขนาดเล็ก ทนต่อคราบสารเคมีหกใส่และรอยขูดขีดได้ดีเยี่ยม สแกนได้ด้วยตัวสแกนในระบบแล็บหรือ Google Lens';
+    }
+    if (btnQr && btnDm) {
+      btnQr.style.background = 'transparent';
+      btnQr.style.color = '#64748b';
+      btnQr.style.boxShadow = 'none';
+      btnDm.style.background = '#ffffff';
+      btnDm.style.color = '#059669';
+      btnDm.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+    }
+  } else {
+    const qrSrc = typeof generateItemQrDataUrl === 'function' ? generateItemQrDataUrl(code, 240) : null;
+    img.src = qrSrc || `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(code)}`;
+    if (tag) {
+      tag.innerText = 'QR CODE (มาตรฐาน)';
+      tag.style.color = '#4338ca';
+    }
+    if (info) {
+      info.innerHTML = '<span style="color: #4338ca; font-weight: 700;">✓ สแกนง่ายด้วยมือถือทั่วไป:</span> เหมาะสำหรับติดเครื่องมือวิทยาศาสตร์ ตู้เก็บ หรือขวดขนาดกลาง-ใหญ่ สแกนได้ทันทีด้วยกล้องมือถือทุกรุ่น (iPhone / Android)';
+    }
+    if (btnQr && btnDm) {
+      btnQr.style.background = '#ffffff';
+      btnQr.style.color = '#4338ca';
+      btnQr.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+      btnDm.style.background = 'transparent';
+      btnDm.style.color = '#64748b';
+      btnDm.style.boxShadow = 'none';
+    }
+  }
+};
+
+// Click handler to preview / zoom 2D code or open label modal
+window.previewOrPrintQr = function(code) {
+  const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+  const isL2Plus = (roleLevel === "L2" || roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "staff" || userRole === "admin" || userRole === "executive" || userRole === "L2" || userRole === "L3" || userRole === "L4")));
+  
+  const item = (typeof items !== 'undefined' ? items : []).find(i => (i.code || '').toLowerCase() === (code || '').toLowerCase());
+  if (!item) return;
+
+  const existing = document.getElementById("qrQuickViewModal");
+  if (existing) existing.remove();
+
+  const localQr = typeof generateItemQrDataUrl === 'function' ? generateItemQrDataUrl(item.code, 240) : null;
+  const qrUrlLarge = localQr || `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(item.code)}`;
+
+  const modal = document.createElement("div");
+  modal.id = "qrQuickViewModal";
+  modal.className = "modal-overlay active";
+  modal.style.cssText = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 10001; padding: 16px;";
+  
+  modal.innerHTML = `
+    <div class="modal-content" style="max-width: 380px; text-align: center; background: #ffffff; border-radius: 16px; padding: 22px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="background: #e0e7ff; color: #4338ca; padding: 6px; border-radius: 8px; display: inline-flex;">
+            <i data-lucide="qr-code" style="width: 17px; height: 17px;"></i>
+          </span>
+          <span style="font-weight: 700; font-size: 15px; color: #0f172a;">2D Code ประจำพัสดุ</span>
+        </div>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('qrQuickViewModal').remove()" style="background: none; border: none; cursor: pointer; color: #64748b; padding: 4px;">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <!-- Format Switcher Segment -->
+      <div style="display: flex; gap: 4px; background: #f1f5f9; padding: 3px; border-radius: 999px; margin-bottom: 14px; justify-content: center;">
+        <button type="button" id="btnViewQr" onclick="switchQuickViewFormat('${escapeHtml(item.code)}', 'qrcode')" style="padding: 5px 12px; border: none; border-radius: 999px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: #ffffff; color: #4338ca; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.15s ease;">
+          📱 QR Code (ทั่วไป)
+        </button>
+        <button type="button" id="btnViewDm" onclick="switchQuickViewFormat('${escapeHtml(item.code)}', 'datamatrix')" style="padding: 5px 12px; border: none; border-radius: 999px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: transparent; color: #64748b; transition: all 0.15s ease;">
+          🧪 Data Matrix (หลอดทดลอง)
+        </button>
+      </div>
+
+      <div style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); position: relative;">
+        <span id="qrQuickViewTag" style="position: absolute; top: 6px; right: 8px; font-size: 9.5px; font-weight: 700; color: #4338ca; letter-spacing: 0.5px;">QR CODE</span>
+        <img id="qrQuickViewImg" src="${qrUrlLarge}" alt="Code ${escapeHtml(item.code)}" onerror="handleDetailQrError(this, '${escapeHtml(item.code)}')" style="width: 180px; height: 180px; display: block; border-radius: 6px; image-rendering: pixelated; margin-top: 10px; object-fit: contain;">
+      </div>
+
+      <div id="qrQuickViewInfo" style="font-size: 11px; line-height: 1.45; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; text-align: left;">
+        <span style="color: #4338ca; font-weight: 700;">✓ สแกนง่ายด้วยมือถือทั่วไป:</span> เหมาะสำหรับติดเครื่องมือวิทยาศาสตร์ ตู้เก็บ หรือขวดขนาดกลาง-ใหญ่ สแกนได้ทันทีด้วยกล้องมือถือทุกรุ่น (iPhone / Android)
+      </div>
+
+      <div style="font-family: monospace; font-size: 13px; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 3px 10px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">
+        ${escapeHtml(item.code)}
+      </div>
+      <div style="font-size: 13.5px; font-weight: 600; color: #0f172a; margin-bottom: 2px; line-height: 1.35;">
+        ${escapeHtml(typeof getItemDisplayName === 'function' ? getItemDisplayName(item) : item.name)}
+      </div>
+      <div style="font-size: 11px; color: #64748b; margin-bottom: 14px;">
+        สถานที่จัดเก็บ: ${escapeHtml(item.room || '-')} › ${escapeHtml(item.cabinet || '-')} › ${escapeHtml(item.shelf || '-')}
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        ${isL2Plus ? `
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('qrQuickViewModal').remove(); openQRCodeModal('${escapeHtml(item.code)}');" style="flex: 1; justify-content: center; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+          <i data-lucide="printer" style="width: 14px; height: 14px;"></i> พิมพ์ป้าย Sticker
+        </button>
+        ` : ''}
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('qrQuickViewModal').remove()" style="flex: 1; justify-content: center; padding: 8px 12px; border-radius: 8px; font-size: 12px;">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+};
+
 window.showItemDetail = function(event, itemCode) {
   if (event && (event.target.closest('button') || event.target.closest('.action-icon-btn'))) return;
 
@@ -11369,8 +12020,9 @@ window.showItemDetail = function(event, itemCode) {
     `;
   }
 
-  // QR Code URL
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(item.code)}`;
+  // QR Code URL (Instant local canvas first, fallback to high-res CDN)
+  const localQr = typeof generateItemQrDataUrl === 'function' ? generateItemQrDataUrl(item.code, 180) : null;
+  const qrUrl = localQr || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(item.code)}`;
 
   // Dilutions Section (only for Chemicals)
   let dilutionsSection = "";
@@ -11468,23 +12120,41 @@ window.showItemDetail = function(event, itemCode) {
   ` : "";
 
   // General details view layout (Compact, elegant hierarchy)
-  const statusBadgeMarkup = typeof getStatusBadgeMarkup === 'function' 
-    ? getStatusBadgeMarkup(item.status || 'normal')
-    : `<span class="badge badge-green" style="font-size: 10px; padding: 2px 7px;">ปกติ</span>`;
+  // Compact status badge markup matching category badge height
+  const compactStatusBadgeMarkup = (function() {
+    const s = item.status || 'normal';
+    let icon = 'check-circle-2';
+    let label = 'ปกติ';
+    let colorClass = 'badge-green';
+    if (s === 'expired') { icon = 'alert-octagon'; label = 'หมดอายุ'; colorClass = 'badge-red'; }
+    else if (s === 'near-expiry') { icon = 'clock'; label = 'ใกล้หมดอายุ'; colorClass = 'badge-yellow'; }
+    else if (s === 'low-stock') { icon = 'alert-triangle'; label = 'ใกล้หมดคลัง'; colorClass = 'badge-orange'; }
+    return `<span class="badge ${colorClass}" style="height: 19px; line-height: 19px; padding: 0 6px; font-size: 9.5px; border-radius: 999px; display: inline-flex; align-items: center; gap: 3px; margin: 0; box-sizing: border-box;">
+      <i data-lucide="${icon}" style="width: 10.5px; height: 10.5px; margin: 0; flex-shrink: 0;"></i>
+      <span>${label}</span>
+    </span>`;
+  })();
 
   body.innerHTML = `
     <div class="item-detail-overview" style="display: flex; gap: 10px; align-items: flex-start; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);">
-      <div class="item-detail-qr" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; background: #fafafa; display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0;">
-        <img src="${qrUrl}" alt="QR Code" style="width: 58px; height: 58px; border-radius: 4px; display: block;">
-        <span style="font-family: monospace; font-size: 10px; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 1px 5px; border-radius: 3px;">${item.code}</span>
+      <div class="item-detail-qr" onclick="previewOrPrintQr('${escapeHtml(item.code)}')" title="คลิกเพื่อดู 2D Code ขนาดใหญ่ หรือพิมพ์ป้าย" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 5px; background: #ffffff; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 74px; min-width: 74px; max-width: 74px; box-sizing: border-box; flex-shrink: 0; cursor: pointer;">
+        <img id="detailItemCodeImg" data-format="qrcode" src="${qrUrl}" alt="Code ${escapeHtml(item.code)}" title="คลิกเพื่อขยายขนาดใหญ่ หรือกดปุ่ม ⇄ เพื่อสลับ QR / Data Matrix" loading="eager" decoding="async" onerror="handleDetailQrError(this, '${escapeHtml(item.code)}')" style="width: 62px; height: 62px; aspect-ratio: 1 / 1; object-fit: contain; border-radius: 4px; display: block; image-rendering: -webkit-optimize-contrast; image-rendering: pixelated; background: #ffffff;">
+        <div style="display: flex; flex-direction: column; align-items: stretch; gap: 2.5px; width: 100%;">
+          <span style="font-family: monospace; font-size: 9px; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 1.5px 3px; border-radius: 3px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">${item.code}</span>
+          <button type="button" onclick="event.stopPropagation(); toggleDetailQrFormat('${escapeHtml(item.code)}')" title="สลับการแสดงผลระหว่าง QR Code และ Data Matrix (สำหรับขวด/หลอดทดลอง)" style="border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; font-size: 8px; font-weight: 700; padding: 2px 2px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px; width: 100%; line-height: 1.1; transition: all 0.15s ease;">
+            <span id="detailQrFormatLabel" style="color: #4338ca; font-weight: 800;">QR</span>
+            <span style="color: #94a3b8; font-size: 7px;">⇄</span>
+            <span id="detailDmFormatLabel" style="color: #94a3b8; font-weight: 500;">DM</span>
+          </button>
+        </div>
       </div>
       <div class="item-detail-overview-content" style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
-            <span class="category-badge" style="background: #f1f5f9; color: #475569; padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 600;">${item.category}</span>
-            ${statusBadgeMarkup}
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; min-height: 20px;">
+          <div class="item-detail-status-group" style="display: inline-flex; align-items: center; gap: 4px; flex-wrap: nowrap; height: 19px; line-height: 19px;">
+            <span class="category-badge" style="background: #f1f5f9; color: #475569; padding: 0 6px; border-radius: 999px; font-size: 9.5px; font-weight: 600; height: 19px; line-height: 19px; display: inline-flex; align-items: center; margin: 0; box-sizing: border-box;">${item.category}</span>
+            ${compactStatusBadgeMarkup}
           </div>
-          ${item.casNo || item.casNumber ? `<span style="font-family: monospace; font-size: 10px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; padding: 1px 5px; border-radius: 3px;">CAS: ${item.casNo || item.casNumber}</span>` : ''}
+          ${item.casNo || item.casNumber ? `<span style="font-family: monospace; font-size: 9.5px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0 5px; border-radius: 3px; height: 19px; line-height: 19px; display: inline-flex; align-items: center; box-sizing: border-box;">CAS: ${item.casNo || item.casNumber}</span>` : ''}
         </div>
         <h3 style="font-size: 14.5px; font-weight: 700; color: #0f172a; margin: 0; line-height: 1.3;">${getItemDisplayName(item)}</h3>
         ${item.formula ? `<div style="font-family: monospace; font-size: 11.5px; color: #6366f1; font-weight: 600;">สูตรเคมี: ${escapeHtml(item.formula)}</div>` : ''}
@@ -11517,7 +12187,7 @@ window.showItemDetail = function(event, itemCode) {
     ${dilutionsSection}
   `;
 
-  // Build Footer Actions (Compact layout)
+  // Build Footer Actions (Single close dismiss: top-right X button in modal header)
   const roleLevel = getCurrentRoleLevel();
   const isL2Plus = (roleLevel === "L2" || roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "staff" || userRole === "admin" || userRole === "executive" || userRole === "L2" || userRole === "L3" || userRole === "L4")));
   const isL3Plus = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
@@ -11527,30 +12197,30 @@ window.showItemDetail = function(event, itemCode) {
     <div class="modal-footer-right">
       ${isL3Plus ? `
       <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal(); openMasterDetailModal('${item.code}')" title="ดูข้อมูลสต็อกและประวัติพัสดุ (เฉพาะ L3-L4)">
-        <i data-lucide="shield-check" style="width: 13px; height: 13px; flex-shrink: 0; color: #6366f1;"></i>
-        <span>Master Data (L3-L4)</span>
+        <i data-lucide="shield-check" style="width: 13.5px; height: 13.5px; flex-shrink: 0; color: #6366f1;"></i>
+        <span>Master Data</span>
       </button>
       ` : ''}
       ${isL2Plus ? `
       <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal(); openQRCodeModal('${item.code}')" title="เปิดป้ายรหัส QR Code ประจำพัสดุ">
-        <i data-lucide="qr-code" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
-        <span>ป้าย QR Code</span>
+        <i data-lucide="qr-code" style="width: 13.5px; height: 13.5px; flex-shrink: 0;"></i>
+        <span>ป้าย QR</span>
       </button>
       ` : ''}
       ${isL2Plus ? `
       <button type="button" class="btn btn-secondary modal-footer-btn" onclick="printItemLabel('${item.code}')" title="พิมพ์สติกเกอร์บาร์โค้ดติดภาชนะ">
-        <i data-lucide="printer" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
+        <i data-lucide="printer" style="width: 13.5px; height: 13.5px; flex-shrink: 0;"></i>
         <span>พิมพ์สติกเกอร์</span>
       </button>
       ` : ''}
       ${canEditThisItem ? `
       <button type="button" class="btn btn-primary modal-footer-btn modal-btn-primary" onclick="closeDetailModal(); editItem(items.findIndex(i => i.code === '${item.code}'))">
-        <i data-lucide="edit-3" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
+        <i data-lucide="edit-3" style="width: 13.5px; height: 13.5px; flex-shrink: 0;"></i>
         <span>แก้ไขข้อมูล</span>
       </button>
       ` : `
       <button type="button" class="btn btn-secondary modal-footer-btn" style="border-color: #93c5fd; color: #1d4ed8; background: #eff6ff;" onclick="closeDetailModal(); showContactAdminModal()">
-        <i data-lucide="phone" style="width: 13px; height: 13px; flex-shrink: 0;"></i>
+        <i data-lucide="phone" style="width: 13.5px; height: 13.5px; flex-shrink: 0;"></i>
         <span>ติดต่อ L3 เพื่อแก้ไข</span>
       </button>
       `}
@@ -11560,6 +12230,19 @@ window.showItemDetail = function(event, itemCode) {
   // Open the modal
   modal.classList.add("active");
   lucide.createIcons();
+
+  // Instant sharp client-side QR generation guarantee
+  setTimeout(() => {
+    const qrImgEl = body.querySelector('.item-detail-qr img');
+    if (qrImgEl) {
+      if (typeof generateItemQrDataUrl === 'function') {
+        const sharpQr = generateItemQrDataUrl(item.code, 180);
+        if (sharpQr) {
+          qrImgEl.src = sharpQr;
+        }
+      }
+    }
+  }, 10);
 };
 
 window.toggleAddDilutionForm = function() {
@@ -13937,8 +14620,16 @@ function startCameraScan() {
     }
   }
 
-  // Initialize new Html5Qrcode instance
-  html5QrcodeScanner = new Html5Qrcode("qr-reader");
+  // Initialize new Html5Qrcode instance with multi-format support (QR Code + Data Matrix + 1D Barcodes)
+  const formatsToSupport = (typeof Html5QrcodeSupportedFormats !== 'undefined') ? [
+    Html5QrcodeSupportedFormats.QR_CODE,
+    Html5QrcodeSupportedFormats.DATA_MATRIX,
+    Html5QrcodeSupportedFormats.CODE_128,
+    Html5QrcodeSupportedFormats.CODE_39,
+    Html5QrcodeSupportedFormats.EAN_13
+  ] : undefined;
+
+  html5QrcodeScanner = new Html5Qrcode("qr-reader", { formatsToSupport, verbose: false });
 
   const qrCodeSuccessCallback = (decodedText, decodedResult) => {
     console.log(`Scan successful. Decoded text: ${decodedText}`, decodedResult);
@@ -13946,11 +14637,15 @@ function startCameraScan() {
     // Stop scanning and close modal
     stopCameraScan();
 
-    const code = decodedText.trim();
+    let code = decodedText.trim();
     if (!code) return;
+    try {
+      const parsed = JSON.parse(code);
+      if (parsed && parsed.code) code = parsed.code.trim();
+    } catch (e) {}
 
     // Search items list for a matching code
-    const item = items.find(i => i.code.toLowerCase() === code.toLowerCase());
+    const item = items.find(i => (i.code || '').toLowerCase() === code.toLowerCase());
     if (item) {
       showItemDetail(null, item.code);
       showToast(`สแกนพบพัสดุ: ${getItemDisplayName(item)}`, "success");
@@ -17662,6 +18357,8 @@ function renderBookingCalendar() {
       const displayLimit = 1;
       const visibleBookings = dayBookings.slice(0, displayLimit);
       const remainingCount = dayBookings.length - displayLimit;
+      const roleLevel = typeof getCurrentRoleLevel === "function" ? getCurrentRoleLevel() : "L0";
+      const isAdmin = (roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "admin" || userRole === "executive" || userRole === "L3" || userRole === "L4")));
 
       visibleBookings.forEach(b => {
         try {
@@ -17669,7 +18366,7 @@ function renderBookingCalendar() {
         const roomName = typeof b.room === "string" ? b.room : String(b.room || "Lab");
         const roomNameShort = roomName.replace("ห้องปฏิบัติการ", "").trim();
         const booker = b.bookerName || b.teacherName || "";
-        const title = `${getRoomThaiName(roomName)} | ${booker} (${b.slot || ''}): ${b.purpose || ''}`;
+        const title = `${(isAdmin && b.id) ? `[หมายเลข: ${b.id}] ` : ''}${getRoomThaiName(roomName)} | ${booker} (${b.slot || ''}): ${b.purpose || ''}`;
         const isPending = b.status === "pending";
 
         bookingsHtml += `
@@ -17762,14 +18459,14 @@ function renderBookingCalendar() {
    LABORATORY ROOMS CONFIGURATION & MANAGEMENT SUBSYSTEM
    ========================================================================== */
 const DEFAULT_LAB_ROOMS = [
-  { id: "Lab 1", name: "ห้องปฏิบัติการเคมี", building: "อาคารอัสสัมชัญ", pillClass: "pill-darkblue", hex: "#2563eb" },
-  { id: "Lab 2", name: "ห้องปฏิบัติการฟิสิกส์", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-green", hex: "#16a34a" },
-  { id: "Lab 3", name: "ห้องปฏิบัติการชีววิทยา", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-blue", hex: "#0284c7" },
-  { id: "Lab 4", name: "ห้องปฏิบัติการวิทยาศาสตร์", building: "อาคารราฟาเอล", pillClass: "pill-orange", hex: "#ea580c" },
-  { id: "Lab 5", name: "ห้องศูนย์ สสวท.", building: "อาคารราฟาเอล", pillClass: "pill-yellow", hex: "#eab308" },
-  { id: "Lab 6", name: "ห้องแล็บวิทย์ ม.ต้น", building: "อาคารอัสสัมชัญ", pillClass: "pill-purple", hex: "#9333ea" },
-  { id: "Lab 7", name: "ห้อง STEM CENTER", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-pink", hex: "#db2777" },
-  { id: "Lab 8", name: "ห้องแล็บวิทย์ (EP)", building: "อาคารยอห์น แมรี่", pillClass: "pill-indigo", hex: "#4f46e5" }
+  { id: "Lab 1", name: "ห้องปฏิบัติการเคมี", building: "อาคารอัสสัมชัญ", pillClass: "pill-green", hex: "#16a34a" },
+  { id: "Lab 2", name: "ห้องปฏิบัติการฟิสิกส์", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-orange", hex: "#ff6319" },
+  { id: "Lab 3", name: "ห้องปฏิบัติการชีววิทยา", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-blue", hex: "#0039a6" },
+  { id: "Lab 4", name: "ห้องปฏิบัติการวิทยาศาสตร์", building: "อาคารราฟาเอล", pillClass: "pill-yellow", hex: "#f59e0b" },
+  { id: "Lab 5", name: "ห้องศูนย์ สสวท.", building: "อาคารราฟาเอล", pillClass: "pill-purple", hex: "#9333ea" },
+  { id: "Lab 6", name: "ห้องแล็บวิทย์ ม.ต้น", building: "อาคารอัสสัมชัญ", pillClass: "pill-red", hex: "#ee352e" },
+  { id: "Lab 7", name: "ห้อง STEM CENTER", building: "อาคารเซนต์ปีเตอร์", pillClass: "pill-teal", hex: "#0d9488" },
+  { id: "Lab 8", name: "ห้องแล็บวิทย์ (EP)", building: "อาคารยอห์น แมรี่", pillClass: "pill-lime", hex: "#65a30d" }
 ];
 
 function getStoredLabRooms() {
@@ -18748,8 +19445,6 @@ document.addEventListener("DOMContentLoaded", () => {
         targetTab.style.display = "block";
         if (targetTabId === "admin-announcement" && typeof initAdminAnnouncementForm === "function") {
           initAdminAnnouncementForm();
-        } else if (targetTabId === "admin-login-banner" && typeof initLoginBannerAdmin === "function") {
-          initLoginBannerAdmin();
         } else if (targetTabId === "admin-labs" && typeof renderAdminLabRoomsList === "function") {
           renderAdminLabRoomsList();
         }
@@ -19550,18 +20245,18 @@ window.batchDeleteSelectedUsers = async function() {
 // ==========================================
 
 const LAB_COLOR_PRESETS = [
-  "#2563eb", // Sapphire Blue
-  "#16a34a", // Emerald Green
-  "#0284c7", // Sky Blue
-  "#ea580c", // Vibrant Orange
-  "#d97706", // Warm Amber
-  "#7c3aed", // Royal Purple
-  "#9333ea", // Bright Violet
-  "#db2777", // Pink
-  "#4f46e5", // Indigo
-  "#0d9488", // Deep Teal
-  "#e11d48", // Rose Red
-  "#475569"  // Slate
+  "#0039A6", // 8th Ave Express (A, C, E) - Blue
+  "#FF6319", // 6th Ave (B, D, F, M) - Orange
+  "#EE352E", // 7th Ave (1, 2, 3) - Red
+  "#00933C", // Lexington Ave (4, 5, 6) - Green
+  "#FCCC0A", // Broadway (N, Q, R, W) - Yellow
+  "#B933AD", // Flushing Line (7) - Purple
+  "#6CBE45", // Crosstown (G) - Lime Green
+  "#996633", // Nassau St (J, Z) - Brown
+  "#A7A9AC", // Canarsie (L) - Light Slate
+  "#00ADD0", // 2nd Ave (T/Q) - Turquoise
+  "#2563EB", // Sapphire Transit Blue
+  "#7C3AED"  // Royal Violet
 ];
 
 window.renderAdminLabRoomsList = function() {
@@ -19606,79 +20301,102 @@ window.renderAdminLabRoomsList = function() {
     return;
   }
 
-  container.innerHTML = rooms.map(room => {
+  container.innerHTML = rooms.map((room, index) => {
     const stat = roomStats[room.id] || { items: 0, cabs: 0 };
-    const roomHex = room.hex || '#6366f1';
+    const roomHex = room.hex || '#16a34a';
     const safeRoomId = escapeHTML(room.id);
     const safeRoomName = escapeHTML(room.name || room.id);
     const safeBuilding = escapeHTML(room.building || 'ไม่ระบุอาคารสถานที่');
     const safeRoomIdEscaped = room.id.replace(/'/g, "\\'");
 
+    // Derive NYC Metro Line Number
+    const numMatch = room.id.match(/\d+/);
+    const lineNum = numMatch ? numMatch[0] : (index + 1);
+
+    // Derive NYC Metro Line Code (Subject)
+    let lineCode = "LB";
+    const nameLower = (room.name || '').toLowerCase();
+    if (nameLower.includes('เคมี') || nameLower.includes('chem')) lineCode = 'CH';
+    else if (nameLower.includes('ฟิสิกส์') || nameLower.includes('phys')) lineCode = 'PH';
+    else if (nameLower.includes('ชีว') || nameLower.includes('bio')) lineCode = 'BI';
+    else if (nameLower.includes('สสวท') || nameLower.includes('ipst')) lineCode = 'IP';
+    else if (nameLower.includes('stem')) lineCode = 'ST';
+    else if (nameLower.includes('ep') || nameLower.includes('english')) lineCode = 'EP';
+    else if (nameLower.includes('ม.ต้น')) lineCode = 'MS';
+    else if (nameLower.includes('วิทย์') || nameLower.includes('sci')) lineCode = 'SC';
+    else lineCode = room.id.replace(/[^a-zA-Z0-9]/g, '').slice(0, 2).toUpperCase() || ('L' + lineNum);
+
+    // Dynamic contrast determination
+    let contrastColor = '#000000';
+    try {
+      const c = roomHex.replace('#', '');
+      const r = parseInt(c.substring(0, 2), 16) || 0;
+      const g = parseInt(c.substring(2, 4), 16) || 0;
+      const b = parseInt(c.substring(4, 6), 16) || 0;
+      const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+      contrastColor = (yiq >= 140) ? '#000000' : '#ffffff';
+    } catch(e) {
+      contrastColor = '#000000';
+    }
+
+    const isLightContrast = contrastColor === '#000000';
+    const chipBg = isLightContrast ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.18)';
+    const chipHoverBg = isLightContrast ? 'rgba(0,0,0,0.14)' : 'rgba(255,255,255,0.26)';
+    const btnBg = isLightContrast ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.2)';
+    const subColor = isLightContrast ? 'rgba(0,0,0,0.68)' : 'rgba(255,255,255,0.8)';
+
+    // Clean station name for NYC Subway signage (remove redundant "ห้องปฏิบัติการ" prefix)
+    let stationTitle = safeRoomName.replace(/^(ห้องปฏิบัติการ|ห้องแล็บ|ห้องศูนย์|ห้อง)/, '').trim();
+    if (!stationTitle) stationTitle = safeRoomName;
+
     return `
-      <div class="admin-lab-card" data-room-id="${safeRoomId}">
-        <div class="admin-lab-card-accent" style="background: ${roomHex};"></div>
-        
-        <div class="admin-lab-card-header">
-          <div class="admin-lab-avatar" style="background: ${roomHex}18; color: ${roomHex}; border: 1.5px solid ${roomHex}35;">
-            <i data-lucide="flask-conical" style="width: 20px; height: 20px;"></i>
+      <div class="admin-lab-card nyc-metro-card" data-room-id="${safeRoomId}" style="--metro-bg: ${roomHex}; --metro-fg: ${contrastColor}; --metro-chip-bg: ${chipBg}; --metro-chip-hover: ${chipHoverBg}; --metro-btn-bg: ${btnBg}; --metro-sub: ${subColor};">
+        <div class="nyc-metro-card-top">
+          <div class="nyc-metro-title-group">
+            <div class="nyc-metro-eyebrow-row">
+              <span class="nyc-metro-tag-pill">${safeRoomId}</span>
+              <span class="nyc-metro-station-sub" title="${safeBuilding}">${safeBuilding}</span>
+            </div>
+            <h3 class="nyc-metro-station-name" title="${safeRoomId}: ${safeRoomName}">${stationTitle}</h3>
           </div>
           
-          <div class="admin-lab-header-main">
-            <div class="admin-lab-title-row">
-              <span class="admin-lab-code-pill" style="background: ${roomHex}15; color: ${roomHex}; border: 1px solid ${roomHex}30;">
-                ${safeRoomId}
-              </span>
-              <h3 class="admin-lab-card-title" title="${safeRoomId}: ${safeRoomName}">${safeRoomName}</h3>
-            </div>
-            <div class="admin-lab-building-row">
-              <i data-lucide="map-pin" style="width: 12px; height: 12px; flex-shrink: 0;"></i>
-              <span class="admin-lab-building-name">${safeBuilding}</span>
-            </div>
-          </div>
-
-          <div class="admin-lab-header-swatch" title="รหัสสีประจำห้อง: ${roomHex}">
-            <span class="admin-lab-swatch-circle" style="background: ${roomHex};"></span>
-            <span class="admin-lab-swatch-text">${roomHex}</span>
-          </div>
-        </div>
-
-        <div class="admin-lab-metrics-row">
-          <div class="admin-lab-metric-chip" onclick="navigateToPanel('all-items');" role="button" tabindex="0" title="คลิกเพื่อดูรายการพัสดุในห้องนี้">
-            <div class="admin-lab-metric-icon icon-blue">
-              <i data-lucide="box" style="width: 14px; height: 14px;"></i>
-            </div>
-            <div class="admin-lab-metric-text">
-              <span class="admin-lab-metric-val">${stat.items}</span>
-              <span class="admin-lab-metric-lbl">พัสดุ & เคมีภัณฑ์</span>
-            </div>
-          </div>
-
-          <div class="admin-lab-metric-chip" onclick="navigateToPanel('cabinet-layout'); if(typeof switchCabinetRoom==='function') switchCabinetRoom('${safeRoomIdEscaped}');" role="button" tabindex="0" title="คลิกเพื่อดูผังตู้จัดเก็บ SHECU">
-            <div class="admin-lab-metric-icon icon-emerald">
-              <i data-lucide="layout-grid" style="width: 14px; height: 14px;"></i>
-            </div>
-            <div class="admin-lab-metric-text">
-              <span class="admin-lab-metric-val">${stat.cabs}</span>
-              <span class="admin-lab-metric-lbl">ตู้ผัง SHECU</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="admin-lab-card-footer">
-          <button type="button" class="btn-lab-quick-view" onclick="navigateToPanel('cabinet-layout'); if(typeof switchCabinetRoom==='function') switchCabinetRoom('${safeRoomIdEscaped}');" title="เปิดผังตู้จัดเก็บห้องนี้">
-            <i data-lucide="layout-dashboard" style="width: 12.5px; height: 12.5px;"></i>
-            <span>เปิดผังตู้</span>
-          </button>
-
-          <div class="admin-lab-actions-group">
-            <button type="button" class="btn-lab-action edit" onclick="openLabRoomModal('${safeRoomIdEscaped}')" title="แก้ไขข้อมูลห้องและสี">
+          <div class="nyc-metro-top-actions">
+            <button type="button" class="nyc-metro-icon-btn" onclick="openLabRoomModal('${safeRoomIdEscaped}')" title="แก้ไขข้อมูลห้องและสี">
               <i data-lucide="edit-3" style="width: 12.5px; height: 12.5px;"></i>
-              <span>แก้ไข</span>
             </button>
-            <button type="button" class="btn-lab-action delete" onclick="deleteLabRoom('${safeRoomIdEscaped}')" title="ลบห้องนี้">
+            <button type="button" class="nyc-metro-icon-btn delete" onclick="deleteLabRoom('${safeRoomIdEscaped}')" title="ลบห้องนี้">
               <i data-lucide="trash-2" style="width: 12.5px; height: 12.5px;"></i>
             </button>
           </div>
+        </div>
+
+        <div class="nyc-metro-bullets-row">
+          <div class="nyc-metro-bullet bullet-yellow" title="สายทาง ${lineNum}">${lineNum}</div>
+          <div class="nyc-metro-bullet bullet-lavender" title="รหัสประจำห้อง ${lineCode}">${lineCode}</div>
+          <span class="nyc-metro-line-label">LINE ${lineNum}</span>
+        </div>
+
+        <div class="nyc-metro-metrics-row">
+          <div class="nyc-metro-metric-chip" onclick="navigateToPanel('all-items');" role="button" tabindex="0" title="คลิกเพื่อดูรายการพัสดุในห้องนี้">
+            <i data-lucide="box" style="width: 12.5px; height: 12.5px;"></i>
+            <span class="nyc-metro-metric-val">${stat.items}</span>
+            <span class="nyc-metro-metric-lbl">พัสดุ & เคมี</span>
+          </div>
+
+          <div class="nyc-metro-metric-chip" onclick="navigateToPanel('cabinet-layout'); if(typeof switchCabinetRoom==='function') switchCabinetRoom('${safeRoomIdEscaped}');" role="button" tabindex="0" title="คลิกเพื่อดูผังตู้จัดเก็บ SHECU">
+            <i data-lucide="layout-grid" style="width: 12.5px; height: 12.5px;"></i>
+            <span class="nyc-metro-metric-val">${stat.cabs}</span>
+            <span class="nyc-metro-metric-lbl">ตู้ SHECU</span>
+          </div>
+        </div>
+
+        <div class="nyc-metro-card-bottom">
+          <button type="button" class="nyc-metro-arrow-btn" onclick="navigateToPanel('cabinet-layout'); if(typeof switchCabinetRoom==='function') switchCabinetRoom('${safeRoomIdEscaped}');" title="เปิดผังตู้จัดเก็บ ${safeRoomName}">
+            <svg class="nyc-metro-arrow-svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3 13.5h12.5l-4.8 4.8 2.3 2.3 8.7-8.7-8.7-8.7-2.3 2.3 4.8 4.8H3v3.2z"/>
+            </svg>
+          </button>
+          <div class="nyc-metro-big-num">${lineNum}</div>
         </div>
       </div>
     `;
@@ -19743,25 +20461,46 @@ window.closeLabRoomModal = function() {
   if (modal) modal.style.display = "none";
 };
 
+const MTA_SUBWAY_BULLETS = [
+  { code: "1", hex: "#EE352E", line: "Broadway - 7th Ave (Red)" },
+  { code: "4", hex: "#00933C", line: "Lexington Ave (Green)" },
+  { code: "7", hex: "#B933AD", line: "Flushing Line (Purple)" },
+  { code: "A", hex: "#0039A6", line: "8th Ave Express (Blue)" },
+  { code: "B", hex: "#FF6319", line: "6th Ave Express (Orange)" },
+  { code: "N", hex: "#FCCC0A", line: "Broadway Line (Yellow)" },
+  { code: "G", hex: "#6CBE45", line: "Crosstown (Lime Green)" },
+  { code: "L", hex: "#A7A9AC", line: "14th St - Canarsie (Slate)" },
+  { code: "J", hex: "#996633", line: "Nassau St (Brown)" },
+  { code: "S", hex: "#808183", line: "42nd St Shuttle (Charcoal)" },
+  { code: "T", hex: "#00ADD0", line: "Second Ave (Turquoise)" },
+  { code: "E", hex: "#2563EB", line: "Transit Sapphire (Blue)" },
+  { code: "V", hex: "#7C3AED", line: "Electric Violet (Purple)" },
+  { code: "M", hex: "#EA580C", line: "Metro Amber (Orange)" }
+];
+
 function renderLabColorPresets(activeHex) {
   const container = document.getElementById("labColorPresetsContainer");
   if (!container) return;
 
-  const currentHex = (activeHex || "#2563eb").toLowerCase();
+  const currentHex = (activeHex || "#0039A6").toLowerCase();
 
-  container.innerHTML = LAB_COLOR_PRESETS.map(c => {
-    const isAct = c.toLowerCase() === currentHex;
+  container.innerHTML = MTA_SUBWAY_BULLETS.map((item) => {
+    const isAct = item.hex.toLowerCase() === currentHex;
+    const isLight = item.hex.toLowerCase() === "#fccc0a" || item.hex.toLowerCase() === "#a7a9ac";
+    const fg = isLight ? "#000000" : "#ffffff";
     return `
-      <button type="button" class="color-preset-pill ${isAct ? 'active' : ''}" 
-              style="background-color: ${c};" 
-              title="${c}" 
-              onclick="selectLabColorPreset('${c}')">
+      <button type="button" 
+              class="color-preset-pill nyc-subway-bullet-preset ${isAct ? 'active' : ''}" 
+              style="--bullet-bg: ${item.hex}; --bullet-fg: ${fg}; background-color: ${item.hex}; color: ${fg};" 
+              title="MTA Route Line ${item.code}: ${item.line} (${item.hex})" 
+              onclick="selectLabColorPreset('${item.hex}', '${item.code}')">
+        <span>${item.code}</span>
       </button>
     `;
   }).join("");
 }
 
-window.selectLabColorPreset = function(hex) {
+window.selectLabColorPreset = function(hex, code = null) {
   const hexInput = document.getElementById("labRoomHexInput");
   const colorPicker = document.getElementById("labRoomColorPicker");
 
@@ -19769,7 +20508,7 @@ window.selectLabColorPreset = function(hex) {
   if (colorPicker) colorPicker.value = hex;
 
   renderLabColorPresets(hex);
-  updateLabRoomLivePreview();
+  updateLabRoomLivePreview(code);
 };
 
 window.onLabRoomColorPickerChange = function(hex) {
@@ -19790,20 +20529,95 @@ window.onLabRoomHexInputChange = function(val) {
   updateLabRoomLivePreview();
 };
 
-window.updateLabRoomLivePreview = function() {
+window.updateLabRoomLivePreview = function(overrideBullet = null) {
   const idInput = document.getElementById("labRoomIdInput");
   const nameInput = document.getElementById("labRoomNameInput");
+  const buildingInput = document.getElementById("labRoomBuildingInput");
   const hexInput = document.getElementById("labRoomHexInput");
 
   const dot = document.getElementById("previewColorDot");
   const text = document.getElementById("previewRoomText");
 
-  const roomId = idInput && idInput.value.trim() ? idInput.value.trim() : "Lab";
-  const roomName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "ห้องปฏิบัติการ";
-  const hex = hexInput && hexInput.value.trim() ? hexInput.value.trim() : "#2563eb";
+  const roomId = idInput && idInput.value.trim() ? idInput.value.trim() : "Lab 1";
+  const roomName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "ห้องปฏิบัติการเคมี";
+  const building = buildingInput && buildingInput.value.trim() ? buildingInput.value.trim() : "อาคารวิทยาศาสตร์";
+  let hex = hexInput && hexInput.value.trim() ? hexInput.value.trim() : "#0039A6";
+  if (!hex.startsWith("#")) hex = "#" + hex;
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) hex = "#0039A6";
 
+  // Calculate contrast text color (white or black) for the route bullet
+  let isLight = false;
+  const cleanHex = hex.replace("#", "");
+  const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+  const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+  const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  isLight = yiq > 165;
+  const bulletFg = isLight ? "#000000" : "#ffffff";
+
+  // Bullet symbol: e.g. "Lab 1" -> "1", "Lab 12" -> "12", "STEM" -> "S"
+  let bulletCode = overrideBullet;
+  if (!bulletCode) {
+    bulletCode = roomId.replace(/^[^\d]*(\d+).*$/i, "$1");
+    if (!bulletCode || bulletCode === roomId) {
+      bulletCode = roomId.trim().charAt(0).toUpperCase() || "1";
+    }
+    if (bulletCode.length > 2) {
+      bulletCode = bulletCode.substring(0, 2);
+    }
+  }
+
+  // Update dynamic CSS variable on modal
+  const modalContent = document.getElementById("labRoomModalContent");
+  if (modalContent) modalContent.style.setProperty("--metro-active-color", hex);
+
+  // Update original live preview elements for tab chips
   if (dot) dot.style.background = hex;
   if (text) text.textContent = `${roomId} (${roomName})`;
+
+  // Update NYC Metro Top Stripe
+  const stripe = document.getElementById("labRoomModalStripe");
+  if (stripe) stripe.style.background = hex;
+
+  // Update NYC Metro Header Bullet
+  const headerBullet = document.getElementById("labModalHeaderBullet");
+  const headerBulletText = document.getElementById("labModalHeaderBulletText");
+  if (headerBullet) {
+    headerBullet.style.background = hex;
+    headerBullet.style.color = bulletFg;
+  }
+  if (headerBulletText) headerBulletText.textContent = bulletCode;
+
+  // Update Subway Subbar Code
+  const subbarCode = document.getElementById("modalSubbarRoomCode");
+  if (subbarCode) subbarCode.textContent = `LINE ${bulletCode} • ${roomId.toUpperCase()}`;
+
+  // Update Subway Signboard Live Preview
+  const signTopline = document.getElementById("nycSubwaySignTopline");
+  if (signTopline) signTopline.style.background = hex;
+
+  const previewBullet = document.getElementById("previewSubwayBullet");
+  const previewBulletText = document.getElementById("previewSubwayBulletText");
+  if (previewBullet) {
+    previewBullet.style.background = hex;
+    previewBullet.style.color = bulletFg;
+  }
+  if (previewBulletText) previewBulletText.textContent = bulletCode;
+
+  const previewStationName = document.getElementById("previewSubwayStationName");
+  if (previewStationName) {
+    previewStationName.textContent = `${roomId.toUpperCase()} • ${roomName}`;
+  }
+
+  const previewBuilding = document.getElementById("previewSubwayBuilding");
+  if (previewBuilding) {
+    previewBuilding.textContent = building;
+  }
+
+  const watermark = document.getElementById("previewSubwayWatermark");
+  if (watermark) {
+    watermark.textContent = bulletCode;
+  }
 };
 
 window.handleSaveLabRoom = function(e) {
@@ -23426,452 +24240,16 @@ window.syncAnnouncementFormFields = syncAnnouncementFormFields;
 window.initAdminAnnouncementForm = initAdminAnnouncementForm;
 
 // ==========================================
-// LOGIN HERO & ANNOUNCEMENT BANNER MANAGEMENT
+// LOGIN HERO BANNER (REMOVED AS REQUESTED)
 // ==========================================
-
-const DEFAULT_LOGIN_BANNER_CONFIG = {
-  enabled: true,
-  headline: "ระบบคลังสารเคมีและห้องแล็บ",
-  badgeText: "ห้องปฏิบัติการวิทยาศาสตร์",
-  subtitle: "บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU",
-  theme: "blue",
-  imgOption: "default",
-  customUrl: "",
-  uploadedImage: "",
-  uploadedFileName: ""
-};
-
-const LOGIN_BANNER_TEMPLATES = {
-  general: {
-    headline: "ระบบคลังสารเคมีและห้องแล็บ",
-    badgeText: "ห้องปฏิบัติการวิทยาศาสตร์",
-    subtitle: "บริหารจัดการคลังเคมีภัณฑ์ เบิก-คืนอุปกรณ์ และบันทึกประวัติการทดลองตามมาตรฐาน SHECU",
-    theme: "blue"
-  },
-  maintenance: {
-    headline: "งดบริการเบิกจ่ายสารเคมีชั่วคราว",
-    badgeText: "แจ้งปิดปรับปรุงสต็อก",
-    subtitle: "ระบบเปิดตรวจสอบข้อมูลได้ตามปกติ แต่ของดรับคำขอเบิกเคมีภัณฑ์ในวันศุกร์นี้ เพื่อตรวจนับพัสดุและจัดหมวดหมู่ความปลอดภัย",
-    theme: "amber"
-  },
-  booking: {
-    headline: "เปิดรับจองห้องปฏิบัติการล่วงหน้า",
-    badgeText: "ปฏิทินห้องปฏิบัติการ",
-    subtitle: "อาจารย์และเจ้าหน้าที่สามารถตรวจสอบตารางห้องว่างและส่งคำขอใช้งานห้องแล็บผ่านระบบได้แล้ววันนี้",
-    theme: "purple"
-  },
-  safety: {
-    headline: "แนวปฏิบัติความปลอดภัยในห้องแล็บ",
-    badgeText: "มาตรฐานความปลอดภัย SHECU",
-    subtitle: "โปรดสวมใส่อุปกรณ์คุ้มครองความปลอดภัย (PPE) ตรวจสอบเอกสารความปลอดภัย SDS และบันทึกการใช้งานสารเคมีทุกครั้ง",
-    theme: "green"
-  }
-};
-
-const LAB_SAMPLE_IMAGES = {
-  lab1: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80",
-  lab2: "https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&w=800&q=80",
-  lab3: "https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80"
-};
-
-let currentSelectedLoginBannerTheme = "blue";
-let currentUploadedBannerImage = "";
-let currentUploadedBannerFileName = "";
-
-function getLoginBannerConfig() {
-  try {
-    const saved = localStorage.getItem("lab_login_banner_config");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Migrate legacy AI marketing copy or obsolete themes
-      if (parsed.headline === "แพลตฟอร์มจัดการห้องปฏิบัติการอัจฉริยะ" || parsed.badgeText === "ประกาศด่วนประจำห้องแล็บ") {
-        parsed.headline = DEFAULT_LOGIN_BANNER_CONFIG.headline;
-        parsed.badgeText = DEFAULT_LOGIN_BANNER_CONFIG.badgeText;
-        parsed.subtitle = DEFAULT_LOGIN_BANNER_CONFIG.subtitle;
-      }
-      if (parsed.theme === "dark") {
-        parsed.theme = "amber";
-      } else if (parsed.theme === "orange" || parsed.theme === "red" || parsed.theme === "light") {
-        parsed.theme = "blue";
-      }
-      return { ...DEFAULT_LOGIN_BANNER_CONFIG, ...parsed };
-    }
-  } catch (e) {}
-  return { ...DEFAULT_LOGIN_BANNER_CONFIG };
-}
-
-function applyLoginBannerUI(customConfig = null) {
-  const config = customConfig || getLoginBannerConfig();
-  const heroSide = document.getElementById("loginHeroSide");
-  const splitGrid = document.getElementById("loginSplitGrid");
-  const modalContent = document.querySelector("#loginModal .login-split-modal");
-  
-  if (!heroSide || !splitGrid) return;
-
-  if (!config.enabled) {
-    heroSide.style.display = "none";
-    splitGrid.style.gridTemplateColumns = "1fr";
-    if (modalContent) modalContent.style.maxWidth = "440px";
-    return;
-  }
-
-  heroSide.style.display = "flex";
-  splitGrid.style.gridTemplateColumns = "";
-  if (modalContent) modalContent.style.maxWidth = "820px";
-
-  // Apply Essential Theme Classes (blue, green, purple, amber)
-  const themes = ["blue", "green", "purple", "amber", "dark", "light", "orange", "red"];
-  themes.forEach(t => heroSide.classList.remove(`login-hero-theme-${t}`));
-  
-  let validTheme = config.theme || "blue";
-  if (validTheme === "dark") {
-    validTheme = "amber";
-  } else if (validTheme === "light" || validTheme === "orange" || validTheme === "red") {
-    validTheme = "blue";
-  }
-  heroSide.classList.add(`login-hero-theme-${validTheme}`);
-
-  // Apply Text Content
-  const badgeTextEl = document.getElementById("loginHeroBadgeText");
-  const headlineEl = document.getElementById("loginHeroHeadline");
-  const subtitleEl = document.getElementById("loginHeroSubtitle");
-  const heroImgEl = document.getElementById("loginHeroImage");
-  const heroImgWrapEl = document.getElementById("loginHeroImageWrap");
-  const defaultGraphicEl = document.getElementById("loginHeroDefaultGraphic");
-
-  if (badgeTextEl) badgeTextEl.textContent = config.badgeText || "ห้องปฏิบัติการวิทยาศาสตร์";
-  if (headlineEl) headlineEl.textContent = config.headline || "ระบบคลังสารเคมีและห้องแล็บ";
-  if (subtitleEl) subtitleEl.textContent = config.subtitle || "";
-
-  // Apply Visual Media: Uploaded Image, Preset Sample, Custom URL, or Default Features Graphic
-  let imgSrc = "";
-  if (config.imgOption === "upload" && (config.uploadedImage || currentUploadedBannerImage)) {
-    imgSrc = config.uploadedImage || currentUploadedBannerImage;
-  } else if (config.imgOption === "custom" && config.customUrl) {
-    imgSrc = config.customUrl.trim();
-  } else if (LAB_SAMPLE_IMAGES[config.imgOption]) {
-    imgSrc = LAB_SAMPLE_IMAGES[config.imgOption];
-  }
-
-  if (imgSrc && heroImgEl && defaultGraphicEl) {
-    heroImgEl.src = imgSrc;
-    if (heroImgWrapEl) heroImgWrapEl.style.display = "block";
-    else heroImgEl.style.display = "block";
-    defaultGraphicEl.style.display = "none";
-  } else if (heroImgEl && defaultGraphicEl) {
-    if (heroImgWrapEl) heroImgWrapEl.style.display = "none";
-    else heroImgEl.style.display = "none";
-    defaultGraphicEl.style.display = "flex";
-  }
-
-  if (window.lucide) lucide.createIcons();
-}
-
-function applyLoginBannerTemplate(templateKey) {
-  const tmpl = LOGIN_BANNER_TEMPLATES[templateKey];
-  if (!tmpl) return;
-
-  const headlineInput = document.getElementById("adminLoginBannerHeadline");
-  const badgeInput = document.getElementById("adminLoginBannerBadgeText");
-  const subtitleInput = document.getElementById("adminLoginBannerSubtitle");
-
-  if (headlineInput) headlineInput.value = tmpl.headline;
-  if (badgeInput) badgeInput.value = tmpl.badgeText;
-  if (subtitleInput) subtitleInput.value = tmpl.subtitle;
-
-  if (tmpl.theme) {
-    selectLoginBannerTheme(tmpl.theme);
-  } else {
-    triggerLoginBannerLivePreview();
-  }
-
-  if (typeof showToast === "function") {
-    showToast(`เลือกเทมเพลต: "${tmpl.badgeText}" เรียบร้อยแล้ว`, "info");
-  }
-}
-
-function initLoginBannerAdmin() {
-  const config = getLoginBannerConfig();
-  const toggle = document.getElementById("adminLoginBannerEnabled");
-  const statusText = document.getElementById("adminLoginBannerStatusText");
-  const headlineInput = document.getElementById("adminLoginBannerHeadline");
-  const badgeInput = document.getElementById("adminLoginBannerBadgeText");
-  const subtitleInput = document.getElementById("adminLoginBannerSubtitle");
-  const imgOptionSelect = document.getElementById("adminLoginBannerImgOption");
-  const customUrlInput = document.getElementById("adminLoginBannerCustomUrl");
-  const customUrlRow = document.getElementById("adminLoginBannerCustomUrlRow");
-  const uploadRow = document.getElementById("adminLoginBannerUploadRow");
-
-  if (toggle) toggle.checked = config.enabled;
-  if (statusText) statusText.textContent = config.enabled ? "เปิดใช้งาน" : "ปิดการใช้งาน";
-  if (headlineInput) headlineInput.value = config.headline;
-  if (badgeInput) badgeInput.value = config.badgeText;
-  if (subtitleInput) subtitleInput.value = config.subtitle;
-  if (imgOptionSelect) imgOptionSelect.value = config.imgOption || "default";
-  if (customUrlInput) customUrlInput.value = config.customUrl || "";
-
-  currentUploadedBannerImage = config.uploadedImage || "";
-  currentUploadedBannerFileName = config.uploadedFileName || "";
-  renderUploadedImageAdminPreview();
-
-  if (customUrlRow) customUrlRow.style.display = (config.imgOption === "custom") ? "block" : "none";
-  if (uploadRow) uploadRow.style.display = (config.imgOption === "upload") ? "block" : "none";
-
-  const initialTheme = (config.theme === "dark") ? "amber" : ((config.theme === "orange" || config.theme === "red" || config.theme === "light") ? "blue" : (config.theme || "blue"));
-  selectLoginBannerTheme(initialTheme);
-  triggerLoginBannerLivePreview();
-}
-
-function selectLoginBannerTheme(themeName) {
-  currentSelectedLoginBannerTheme = themeName;
-  const chips = document.querySelectorAll("#adminLoginBannerThemeChips .ticker-theme-chip");
-  chips.forEach(chip => {
-    if (chip.getAttribute("data-theme") === themeName) {
-      chip.classList.add("active");
-    } else {
-      chip.classList.remove("active");
-    }
-  });
-  triggerLoginBannerLivePreview();
-}
-
-function onLoginBannerImgOptionChange(val) {
-  const customUrlRow = document.getElementById("adminLoginBannerCustomUrlRow");
-  const uploadRow = document.getElementById("adminLoginBannerUploadRow");
-  if (customUrlRow) {
-    customUrlRow.style.display = (val === "custom") ? "block" : "none";
-  }
-  if (uploadRow) {
-    uploadRow.style.display = (val === "upload") ? "block" : "none";
-  }
-  triggerLoginBannerLivePreview();
-}
-
-function handleBannerFileInput(input) {
-  if (!input || !input.files || !input.files[0]) return;
-  const file = input.files[0];
-  if (!file.type.startsWith("image/")) {
-    if (typeof showToast === "function") showToast("กรุณาเลือกไฟล์รูปภาพ (PNG, JPG, WebP)", "error");
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const rawDataUrl = e.target.result;
-    // Compress and resize image to fit comfortably in localStorage (<150KB)
-    const img = new Image();
-    img.onload = function() {
-      const canvas = document.createElement("canvas");
-      let width = img.width;
-      let height = img.height;
-      const maxDim = 800;
-
-      if (width > maxDim || height > maxDim) {
-        if (width > height) {
-          height = Math.round((height * maxDim) / width);
-          width = maxDim;
-        } else {
-          width = Math.round((width * maxDim) / height);
-          height = maxDim;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-
-      const optimizedDataUrl = canvas.toDataURL("image/jpeg", 0.82);
-      currentUploadedBannerImage = optimizedDataUrl;
-      currentUploadedBannerFileName = file.name;
-
-      renderUploadedImageAdminPreview();
-      triggerLoginBannerLivePreview();
-      if (typeof showToast === "function") showToast("อัปโหลดและประมวลผลรูปภาพเรียบร้อยแล้ว", "success");
-    };
-    img.src = rawDataUrl;
-  };
-  reader.readAsDataURL(file);
-}
-
-function renderUploadedImageAdminPreview() {
-  const previewContainer = document.getElementById("adminLoginBannerUploadPreview");
-  const thumb = document.getElementById("adminLoginBannerUploadThumb");
-  const nameEl = document.getElementById("adminLoginBannerUploadFilename");
-  const sizeEl = document.getElementById("adminLoginBannerUploadFilesize");
-
-  if (!previewContainer) return;
-
-  if (currentUploadedBannerImage) {
-    previewContainer.style.display = "flex";
-    if (thumb) thumb.src = currentUploadedBannerImage;
-    if (nameEl) nameEl.textContent = currentUploadedBannerFileName || "ภาพที่อัปโหลด";
-    if (sizeEl) sizeEl.textContent = "ความละเอียดเหมาะสม พร้อมแสดงผล";
-  } else {
-    previewContainer.style.display = "none";
-  }
-  if (window.lucide) lucide.createIcons();
-}
-
-function clearUploadedBannerImage() {
-  currentUploadedBannerImage = "";
-  currentUploadedBannerFileName = "";
-  const fileInput = document.getElementById("adminLoginBannerFileInput");
-  if (fileInput) fileInput.value = "";
-  renderUploadedImageAdminPreview();
-  triggerLoginBannerLivePreview();
-  if (typeof showToast === "function") showToast("ลบรูปภาพที่อัปโหลดเรียบร้อยแล้ว", "info");
-}
-
-function updateLoginBannerToggleLabel(checked) {
-  const statusText = document.getElementById("adminLoginBannerStatusText");
-  if (statusText) {
-    statusText.textContent = checked ? "เปิดใช้งาน" : "ปิดการใช้งาน";
-  }
-}
-
-function triggerLoginBannerLivePreview() {
-  const previewBox = document.getElementById("adminLoginHeroPreviewBox");
-  if (!previewBox) return;
-
-  const headlineInput = document.getElementById("adminLoginBannerHeadline");
-  const badgeInput = document.getElementById("adminLoginBannerBadgeText");
-  const subtitleInput = document.getElementById("adminLoginBannerSubtitle");
-  const imgOptionSelect = document.getElementById("adminLoginBannerImgOption");
-  const customUrlInput = document.getElementById("adminLoginBannerCustomUrl");
-
-  const badgeEl = document.getElementById("adminPreviewHeroBadgeText");
-  const headlineEl = document.getElementById("adminPreviewHeroHeadline");
-  const subtitleEl = document.getElementById("adminPreviewHeroSubtitle");
-  const imgEl = document.getElementById("adminPreviewHeroImg");
-  const imgWrapEl = document.getElementById("adminPreviewHeroImgWrap");
-  const defaultGraphic = document.getElementById("adminPreviewHeroDefaultGraphic");
-
-  if (badgeEl && badgeInput) badgeEl.textContent = badgeInput.value || "ห้องปฏิบัติการวิทยาศาสตร์";
-  if (headlineEl && headlineInput) headlineEl.textContent = headlineInput.value || "หัวข้อประกาศ";
-  if (subtitleEl && subtitleInput) subtitleEl.textContent = subtitleInput.value || "";
-
-  // Apply Theme to Preview (blue, green, purple, amber)
-  const themes = ["blue", "green", "purple", "amber", "dark", "light", "orange", "red"];
-  themes.forEach(t => previewBox.classList.remove(`login-hero-theme-${t}`));
-  
-  let validTheme = currentSelectedLoginBannerTheme || "blue";
-  if (validTheme === "dark") {
-    validTheme = "amber";
-  } else if (validTheme === "light" || validTheme === "orange" || validTheme === "red") {
-    validTheme = "blue";
-  }
-  previewBox.classList.add(`login-hero-theme-${validTheme}`);
-
-  // Image preview
-  const imgOption = imgOptionSelect ? imgOptionSelect.value : "default";
-  let imgSrc = "";
-  if (imgOption === "upload" && currentUploadedBannerImage) {
-    imgSrc = currentUploadedBannerImage;
-  } else if (imgOption === "custom" && customUrlInput && customUrlInput.value.trim()) {
-    imgSrc = customUrlInput.value.trim();
-  } else if (LAB_SAMPLE_IMAGES[imgOption]) {
-    imgSrc = LAB_SAMPLE_IMAGES[imgOption];
-  }
-
-  if (imgSrc && imgEl && defaultGraphic) {
-    imgEl.src = imgSrc;
-    if (imgWrapEl) imgWrapEl.style.display = "block";
-    else imgEl.style.display = "block";
-    defaultGraphic.style.display = "none";
-  } else if (imgEl && defaultGraphic) {
-    if (imgWrapEl) imgWrapEl.style.display = "none";
-    else imgEl.style.display = "none";
-    defaultGraphic.style.display = "flex";
-  }
-
-  if (window.lucide) lucide.createIcons();
-}
-
-async function saveAdminLoginBanner(e) {
-  if (e) e.preventDefault();
-  const submitBtn = document.querySelector("#adminLoginBannerForm button[type='submit']");
-  const origBtnContent = submitBtn ? submitBtn.innerHTML : "";
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `<span class="loading-spinner-inline" style="width: 13px; height: 13px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 0.7s linear infinite;"></span> <span>กำลังบันทึก...</span>`;
-  }
-
-  const toggle = document.getElementById("adminLoginBannerEnabled");
-  const headlineInput = document.getElementById("adminLoginBannerHeadline");
-  const badgeInput = document.getElementById("adminLoginBannerBadgeText");
-  const subtitleInput = document.getElementById("adminLoginBannerSubtitle");
-  const imgOptionSelect = document.getElementById("adminLoginBannerImgOption");
-  const customUrlInput = document.getElementById("adminLoginBannerCustomUrl");
-
-  const newConfig = {
-    enabled: toggle ? toggle.checked : true,
-    headline: headlineInput ? headlineInput.value.trim() : DEFAULT_LOGIN_BANNER_CONFIG.headline,
-    badgeText: badgeInput ? badgeInput.value.trim() : DEFAULT_LOGIN_BANNER_CONFIG.badgeText,
-    subtitle: subtitleInput ? subtitleInput.value.trim() : "",
-    theme: currentSelectedLoginBannerTheme || "blue",
-    imgOption: imgOptionSelect ? imgOptionSelect.value : "default",
-    customUrl: customUrlInput ? customUrlInput.value.trim() : "",
-    uploadedImage: currentUploadedBannerImage || "",
-    uploadedFileName: currentUploadedBannerFileName || ""
-  };
-
-  try {
-    localStorage.setItem("lab_login_banner_config", JSON.stringify(newConfig));
-  } catch (err) {
-    console.warn("Storage quota warning:", err);
-  }
-
-  // Sync Login Banner to Supabase Cloud
-  if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
-    try {
-      await supabase.from("system").upsert({
-        key: "lab_login_banner_config",
-        value: newConfig
-      });
-      console.log("[Success] Login banner config synced to Supabase Cloud");
-    } catch (err) {
-      console.warn("Supabase login banner sync error:", err);
-    }
-  }
-
-  applyLoginBannerUI(newConfig);
-  if (typeof showToast === "function") {
-    showToast("บันทึกการตั้งค่าแบนเนอร์หน้าเข้าสู่ระบบเรียบร้อยแล้ว!", "success");
-  }
-
-  if (submitBtn) {
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = origBtnContent;
-    if (window.lucide) lucide.createIcons();
-  }
-}
-
-async function loadLoginBannerSettings() {
-  if (typeof isSupabaseOnline !== "undefined" && isSupabaseOnline && typeof supabase !== "undefined") {
-    try {
-      const { data } = await supabase.from("system").select("value").eq("key", "lab_login_banner_config").maybeSingle();
-      if (data && data.value) {
-        localStorage.setItem("lab_login_banner_config", JSON.stringify(data.value));
-        applyLoginBannerUI(data.value);
-      }
-    } catch (e) {}
-  }
-}
-
+function getLoginBannerConfig() { return { enabled: false }; }
+function applyLoginBannerUI() {}
+function initLoginBannerAdmin() {}
+function loadLoginBannerSettings() {}
 window.loadLoginBannerSettings = loadLoginBannerSettings;
-
 window.getLoginBannerConfig = getLoginBannerConfig;
 window.applyLoginBannerUI = applyLoginBannerUI;
-window.applyLoginBannerTemplate = applyLoginBannerTemplate;
 window.initLoginBannerAdmin = initLoginBannerAdmin;
-window.selectLoginBannerTheme = selectLoginBannerTheme;
-window.onLoginBannerImgOptionChange = onLoginBannerImgOptionChange;
-window.handleBannerFileInput = handleBannerFileInput;
-window.clearUploadedBannerImage = clearUploadedBannerImage;
-window.updateLoginBannerToggleLabel = updateLoginBannerToggleLabel;
-window.triggerLoginBannerLivePreview = triggerLoginBannerLivePreview;
-window.saveAdminLoginBanner = saveAdminLoginBanner;
 
 function renderTodayLabStatus() {
   const container = document.getElementById("todayLabsGrid");
@@ -25169,17 +25547,26 @@ if (typeof window.openRoleDashboard !== 'function') {
 // ==========================================================================
 
 // Helper: Render industrial landscape asset label card matching laboratory standard
-window.renderAssetLabelCard = function(item) {
+window.renderAssetLabelCard = function(item, format = 'qrcode') {
   if (!item) return '';
 
-  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(JSON.stringify({
-    system: "SCIPORTAL-LAB",
-    code: item.code,
-    name: item.name,
-    room: item.room || '',
-    cabinet: item.cabinet || '',
-    shelf: item.shelf || ''
-  }))}`;
+  const isDataMatrix = format === 'datamatrix';
+  let qrImageUrl;
+  if (isDataMatrix) {
+    qrImageUrl = typeof window.generateItemDataMatrixUrl === 'function'
+      ? window.generateItemDataMatrixUrl(item.code, 4)
+      : `/api/barcode?bcid=datamatrix&text=${encodeURIComponent(item.code)}&scale=4`;
+  } else {
+    const localQr = typeof generateItemQrDataUrl === 'function' ? generateItemQrDataUrl(item.code, 180) : null;
+    qrImageUrl = localQr || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(JSON.stringify({
+      system: "SCIPORTAL-LAB",
+      code: item.code,
+      name: item.name,
+      room: item.room || '',
+      cabinet: item.cabinet || '',
+      shelf: item.shelf || ''
+    }))}`;
+  }
 
   // 1. Cabinet name formatting (e.g. CABINET 1, CABINET 3)
   let cabinetName = (item.cabinet || 'CABINET 1').trim();
@@ -25275,10 +25662,10 @@ window.renderAssetLabelCard = function(item) {
 
   return `
     <div class="asset-label-card">
-      <!-- Left QR Box -->
+      <!-- Left QR / Data Matrix Box -->
       <div class="asset-label-qr-box">
-        <div class="asset-label-qr-tag">QR</div>
-        <img class="asset-label-qr-img" src="${qrImageUrl}" alt="QR Code">
+        <div class="asset-label-qr-tag" style="${isDataMatrix ? 'font-size: 8px; color: #059669; letter-spacing: 0px;' : ''}">${isDataMatrix ? 'DATA MATRIX' : 'QR'}</div>
+        <img class="asset-label-qr-img" src="${qrImageUrl}" alt="${isDataMatrix ? 'Data Matrix' : 'QR Code'}" style="image-rendering: pixelated; object-fit: contain;">
       </div>
 
       <!-- Vertical Divider -->
@@ -25366,16 +25753,31 @@ window.openQRCodeModal = function(code) {
       </div>
 
       <div class="modal-body">
-        <div style="font-size: 12px; font-weight: 600; color: #475569; display: flex; align-items: center; justify-content: space-between;">
+        <!-- Label Format Selector (QR Code vs Data Matrix) -->
+        <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between; background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+          <span style="font-size: 12px; font-weight: 700; color: #334155; display: inline-flex; align-items: center; gap: 5px;">
+            <i data-lucide="layers" style="width: 14px; height: 14px; color: #6366f1;"></i> รูปแบบ 2D Barcode:
+          </span>
+          <div style="display: flex; gap: 4px; background: #f1f5f9; padding: 2px; border-radius: 8px;">
+            <button type="button" id="btnLabelFormatQr" onclick="changeAssetLabelFormat('${escapeHtml(item.code)}', 'qrcode')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; font-weight: 700; border: none; cursor: pointer; background: #ffffff; color: #4338ca; box-shadow: 0 1px 2px rgba(0,0,0,0.06); transition: all 0.15s ease;">
+              📱 QR Code (มาตรฐาน)
+            </button>
+            <button type="button" id="btnLabelFormatDm" onclick="changeAssetLabelFormat('${escapeHtml(item.code)}', 'datamatrix')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: #64748b; transition: all 0.15s ease;">
+              🧪 Data Matrix (หลอดทดลอง/ขวดเล็ก)
+            </button>
+          </div>
+        </div>
+
+        <div style="font-size: 12px; font-weight: 600; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
           <span style="display: flex; align-items: center; gap: 5px;">
             <i data-lucide="eye" style="width: 14px; height: 14px; color: #6366f1;"></i>
             <span>ตัวอย่างป้ายพัสดุ (Print Preview)</span>
           </span>
-          <span style="font-size: 11px; color: #64748b;">สเกลมาตรฐาน 100 × 50 mm / Sticker Label</span>
+          <span id="labelSpecNotice" style="font-size: 11px; color: #64748b;">สเกลมาตรฐาน 100 × 50 mm / Sticker Label</span>
         </div>
 
         <div id="printableAssetTag">
-          ${renderAssetLabelCard(item)}
+          ${renderAssetLabelCard(item, 'qrcode')}
         </div>
       </div>
 
@@ -25392,6 +25794,58 @@ window.openQRCodeModal = function(code) {
   `;
 
   document.body.appendChild(modal);
+  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+};
+
+window.changeAssetLabelFormat = function(code, format = 'qrcode') {
+  const item = (typeof items !== 'undefined' ? items : []).find(i => (i.code || '').toLowerCase() === (code || '').toLowerCase());
+  if (!item) return;
+
+  const container = document.getElementById("printableAssetTag");
+  if (container && typeof window.renderAssetLabelCard === 'function') {
+    container.innerHTML = window.renderAssetLabelCard(item, format);
+  }
+
+  const btnQr = document.getElementById("btnLabelFormatQr");
+  const btnDm = document.getElementById("btnLabelFormatDm");
+  const notice = document.getElementById("labelSpecNotice");
+
+  if (format === 'datamatrix') {
+    if (btnDm) {
+      btnDm.style.background = "#ffffff";
+      btnDm.style.color = "#059669";
+      btnDm.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
+    }
+    if (btnQr) {
+      btnQr.style.background = "transparent";
+      btnQr.style.color = "#64748b";
+      btnQr.style.boxShadow = "none";
+    }
+    if (notice) {
+      notice.textContent = "สเกลความละเอียดสูง 10-25 mm / Micro Tube & Vial Label (Data Matrix ECC 200)";
+    }
+    if (typeof showToast === 'function') {
+      showToast("สลับตัวอย่างป้ายเป็นแบบ Data Matrix Code เรียบร้อย", "info");
+    }
+  } else {
+    if (btnQr) {
+      btnQr.style.background = "#ffffff";
+      btnQr.style.color = "#4338ca";
+      btnQr.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
+    }
+    if (btnDm) {
+      btnDm.style.background = "transparent";
+      btnDm.style.color = "#64748b";
+      btnDm.style.boxShadow = "none";
+    }
+    if (notice) {
+      notice.textContent = "สเกลมาตรฐาน 100 × 50 mm / Sticker Label (QR Code รองรับมือถือทุกเครื่อง)";
+    }
+    if (typeof showToast === 'function') {
+      showToast("สลับตัวอย่างป้ายเป็นแบบ QR Code เรียบร้อย", "info");
+    }
+  }
+
   if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
 };
 

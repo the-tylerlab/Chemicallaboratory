@@ -557,7 +557,14 @@ export function startQrScanner(onSuccessCallback) {
   if (!qrReaderElem) return;
 
   if (typeof Html5Qrcode !== "undefined") {
-    html5QrCodeScanner = new Html5Qrcode("qr-reader");
+    const formatsToSupport = (typeof Html5QrcodeSupportedFormats !== 'undefined') ? [
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.DATA_MATRIX,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.EAN_13
+    ] : undefined;
+    html5QrCodeScanner = new Html5Qrcode("qr-reader", formatsToSupport ? { formatsToSupport, verbose: false } : undefined);
     html5QrCodeScanner.start(
       { facingMode: "environment" },
       { fps: 10, qrbox: { width: 250, height: 250 } },
