@@ -295,7 +295,7 @@
             </button>
           </li>
           <li>
-            <button type="button" id="btnHelpSafetyModal" class="menu-item-link">
+            <button type="button" id="btnHelpSafetyModal" onclick="openHelpSafetyModal(event)" class="menu-item-link">
               <i data-lucide="book-open"></i> <span>ศูนย์ข้อมูล และความปลอดภัย</span>
             </button>
           </li>
@@ -5990,7 +5990,7 @@
   </div>
 
   <!-- MODAL: HELP & SAFETY (SHECU Information Center) -->
-  <div id="helpSafetyModal" class="modal-overlay">
+  <div id="helpSafetyModal" class="modal-overlay" onclick="if(event.target === this) closeHelpSafetyModal()">
     <div class="modal-content modal-lg help-safety-modal-content">
       <!-- Modal Header -->
       <div class="modal-header help-modal-header">
@@ -6550,8 +6550,27 @@
       }
     }, 1200);
 
-    // Dynamic Lucide Icons Auto-Renderer for newly inserted DOM nodes
+    // Dynamic Lucide Icons Auto-Renderer for newly inserted DOM nodes (safe against infinite re-render loops)
     (function() {
+      function patchLucide() {
+        if (!window.lucide || typeof window.lucide.createIcons !== 'function' || window.lucide._isSafePatched) return;
+        var originalCreate = window.lucide.createIcons;
+        window.lucide.createIcons = function(options) {
+          // If no unrendered icon placeholders exist, skip immediately to prevent screen flickering & loops
+          var unrendered = document.querySelectorAll('i[data-lucide], span[data-lucide], :not(svg)[data-lucide]');
+          if (unrendered.length === 0) return;
+          try {
+            originalCreate.call(window.lucide, options);
+          } catch(e) {}
+          // Mark rendered SVGs so they are never targeted again
+          document.querySelectorAll('svg.lucide[data-lucide]').forEach(function(svg) {
+            svg.setAttribute('data-lucide-rendered', svg.getAttribute('data-lucide'));
+            svg.removeAttribute('data-lucide');
+          });
+        };
+        window.lucide._isSafePatched = true;
+      }
+
       var lucideDebounce = null;
       function triggerLucide() {
         if (!window.lucide || typeof window.lucide.createIcons !== 'function') {
@@ -6560,6 +6579,7 @@
             attempts++;
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
               clearInterval(poll);
+              patchLucide();
               try { window.lucide.createIcons(); } catch(e) {}
             } else if (attempts > 30) {
               clearInterval(poll);
@@ -6567,37 +6587,49 @@
           }, 100);
           return;
         }
+        patchLucide();
         clearTimeout(lucideDebounce);
         lucideDebounce = setTimeout(function() {
           try { window.lucide.createIcons(); } catch(e) {}
-        }, 20);
+        }, 40);
       }
+
       if (typeof MutationObserver !== 'undefined') {
         var observer = new MutationObserver(function(mutations) {
+          var hasUnrenderedIcons = false;
           for (var i = 0; i < mutations.length; i++) {
             var m = mutations[i];
             if (m.addedNodes && m.addedNodes.length > 0) {
               for (var j = 0; j < m.addedNodes.length; j++) {
                 var node = m.addedNodes[j];
                 if (node.nodeType === 1) {
-                  if (node.hasAttribute('data-lucide') || (node.querySelector && node.querySelector('[data-lucide]'))) {
-                    triggerLucide();
-                    return;
+                  // Skip already rendered SVG elements to completely prevent mutation recursion
+                  if (node.tagName === 'svg' || node.tagName === 'SVG' || node.classList?.contains('lucide')) {
+                    continue;
+                  }
+                  if ((node.hasAttribute('data-lucide') && node.tagName !== 'svg' && node.tagName !== 'SVG') ||
+                      (node.querySelector && node.querySelector('i[data-lucide], span[data-lucide], :not(svg)[data-lucide]'))) {
+                    hasUnrenderedIcons = true;
+                    break;
                   }
                 }
               }
             }
+            if (hasUnrenderedIcons) break;
+          }
+          if (hasUnrenderedIcons) {
+            triggerLucide();
           }
         });
         observer.observe(document.body, { childList: true, subtree: true });
       }
+
       // Initial trigger on load
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', triggerLucide);
       } else {
         triggerLucide();
       }
-      triggerLucide();
     })();
   </script>
   <!-- Agentation: Visual Feedback Toolbar for AI Coding Agents -->
