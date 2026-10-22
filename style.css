@@ -3668,6 +3668,9 @@ button.menu-item-link:active {
   padding: 0;
   font-family: var(--font-sans);
   box-sizing: border-box;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 #helpSafetyModal .modal-content.help-safety-modal-content::before {
@@ -25895,7 +25898,14 @@ body.dark-mode .nyc-metro-btn-save:hover {
 
 #announcementTickerBar .ticker-badge > span { display: none; }
 #announcementTickerBar .ticker-badge > svg,
-#announcementTickerBar .ticker-badge > i { width: 16px !important; height: 16px !important; }
+#announcementTickerBar .ticker-badge > i {
+  width: 16px !important;
+  height: 16px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
 #announcementTickerBar .ticker-marquee-wrapper {
   grid-area: messages;

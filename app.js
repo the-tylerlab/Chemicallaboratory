@@ -23091,13 +23091,20 @@ function openHelpSafetyModal(tabId = null) {
   const modal = document.getElementById('helpSafetyModal');
   if (!modal) return;
 
+  const targetTabId = (typeof tabId === 'string' && tabId.trim()) ? tabId.trim() : null;
+
   document.querySelector('.sidebar')?.classList.remove('active');
   document.getElementById('mobile-overlay')?.classList.remove('active');
+  document.body.classList.remove('mobile-sidebar-open');
 
   modal.classList.add('active');
   loadEmergencyContacts();
-  if (window.lucide) window.lucide.createIcons();
-  if (tabId) switchHelpTab(tabId);
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+  if (targetTabId) {
+    switchHelpTab(targetTabId);
+  }
 }
 
 function closeHelpSafetyModal() {
@@ -23872,10 +23879,21 @@ function renderAnnouncementTicker(customData) {
   if (badgeText) {
     const rawBadge = data.badgeText || "ประกาศ & ความปลอดภัย";
     badgeText.textContent = rawBadge;
-    const badgeIcon = tickerBar.querySelector("#tickerBadgeMain [data-lucide], #tickerBadgeMain svg");
+    let badgeIcon = tickerBar.querySelector("#tickerBadgeMain svg, #tickerBadgeMain [data-lucide], #tickerBadgeMain [data-lucide-rendered], #tickerBadgeMain i");
+    if (!badgeIcon) {
+      const badgeContainer = document.getElementById("tickerBadgeMain");
+      if (badgeContainer) {
+        if (!badgeContainer.querySelector("svg, i, [data-lucide], [data-lucide-rendered]")) {
+          badgeContainer.insertAdjacentHTML("afterbegin", '<i data-lucide="megaphone" style="width: 14px; height: 14px;"></i>');
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+          }
+        }
+        badgeIcon = tickerBar.querySelector("#tickerBadgeMain svg, #tickerBadgeMain [data-lucide], #tickerBadgeMain [data-lucide-rendered], #tickerBadgeMain i");
+      }
+    }
     if (badgeIcon) {
-      const startsWithEmoji = /^\p{Extended_Pictographic}/u.test(rawBadge.trim());
-      badgeIcon.style.display = startsWithEmoji ? "none" : "inline-block";
+      badgeIcon.style.display = "inline-flex";
     }
   }
 
