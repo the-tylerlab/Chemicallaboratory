@@ -166,7 +166,7 @@
                     </div>
                     <div class="form-group">
                       <label for="poQuantity" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
-                      <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" required>
+                      <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" data-rolling-counter required>
                     </div>
                   </div>
 
@@ -183,7 +183,7 @@
 
                   <div class="po-net-detail-box">
                     <div style="display: flex; align-items: center; gap: 6px;">
-                      <i data-lucide="calculator" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+                      <i data-lucide="calculator" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
                       <span id="poNetTotalDetail">0.00 - ลด 0.00 = 0.00 บาท</span>
                     </div>
                   </div>
@@ -233,7 +233,7 @@
             <!-- Tier 2: Helper Pill Capsule Dock Tray (Full Width Balanced) -->
             <div class="quick-prompt-bottom po-form-bottom">
               <div class="quick-prompt-tag" style="cursor: default;">
-                <i data-lucide="calculator" style="color: #7c3aed;"></i>
+                <i data-lucide="calculator" style="color: #8f8cf0;"></i>
                 <span>คำนวณสุทธิอัตโนมัติ</span>
               </div>
               <button type="button" class="quick-prompt-tag" onclick="const c=document.getElementById('poDraftContainer');if(c){c.style.display=c.style.display==='none'?'block':'none';}">
@@ -338,7 +338,7 @@
 
               <div class="po-list-pills-right">
                 <div class="quick-prompt-tag po-fin-pill po-grand-pill" id="poPillGrandTotal">
-                  <i data-lucide="sparkles" style="color: #7c3aed;"></i>
+                  <i data-lucide="sparkles" style="color: #8f8cf0;"></i>
                   <span>ยอดสุทธิ:</span>
                   <strong id="poGrandTotal" class="grand-val">0.00 บาท</strong>
                 </div>

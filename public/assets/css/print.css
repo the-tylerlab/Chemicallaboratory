@@ -418,7 +418,7 @@
   width: 185px;
   height: 130px; /* Increased from 105px to 130px to make it longer */
   background: #ffffff;
-  border: 1.5px dashed #8b5cf6; /* Match primary theme color */
+  border: 1.5px dashed #9996f2; /* Match primary theme color */
   border-radius: 6px;
   padding: 10px;
   padding-top: 25px; /* More padding at top to leave space for tear line */

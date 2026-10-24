@@ -96,7 +96,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "AD",
-    color: "#7c3aed"
+    color: "#8f8cf0"
   },
   {
     id: "u_10823",
@@ -107,7 +107,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "วด",
-    color: "#7c3aed"
+    color: "#8f8cf0"
   },
   {
     id: "u_10572",
@@ -118,7 +118,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "พป",
-    color: "#7c3aed"
+    color: "#8f8cf0"
   },
   {
     id: "u_4001",
@@ -195,7 +195,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาเคมี)",
     assignedRooms: [],
     initials: "สร",
-    color: "#0284c7"
+    color: "#68c8e5"
   },
   {
     id: "u_1002",
@@ -206,7 +206,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาฟิสิกส์)",
     assignedRooms: [],
     initials: "วฝ",
-    color: "#0284c7"
+    color: "#68c8e5"
   },
   {
     id: "u_10746",
@@ -217,7 +217,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "สช",
-    color: "#0284c7"
+    color: "#68c8e5"
   },
   {
     id: "u_10797",
@@ -228,7 +228,7 @@ const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "ธพ",
-    color: "#0284c7"
+    color: "#68c8e5"
   }
 ];
 if (typeof window !== "undefined") {
@@ -946,7 +946,7 @@ async function syncAllToGoogleSheets(silent = false) {
             <p><i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #16a34a; vertical-align: middle; margin-right: 6px;"></i>ส่งออกประวัติธุรกรรมและการสั่งซื้อเพื่อเป็นสมุดทะเบียนและรายงานวิชาการเรียบร้อยแล้ว</p>
           </div>`,
           showConfirmButton: true,
-          confirmButtonColor: '#2563eb'
+          confirmButtonColor: '#716de3'
         });
       } else {
         showToast('สำรองข้อมูลไปยัง Google Sheets เรียบร้อยแล้ว', 'success');
@@ -984,7 +984,7 @@ function requireOnline(actionLabel) {
       icon: 'warning',
       title: 'ไม่สามารถเชื่อมต่อระบบยืนยันตัวตนได้',
       text: 'กรุณาลองใหม่ โหมด Offline อนุญาตให้อ่านข้อมูลที่แคชไว้เท่านั้น ไม่สามารถดำเนินการเพิ่ม/แก้ไข/ลบ/อนุมัติ/จัดการผู้ใช้ได้',
-      confirmButtonColor: '#7c3aed',
+      confirmButtonColor: '#8f8cf0',
       confirmButtonText: 'ตกลง'
     });
   } else if (typeof showToast === 'function') {
@@ -1148,9 +1148,774 @@ function dismissSkeletonLoader() {
   }
 }
 
+function setupSiteUtilityBar() {
+  const languageButton = document.getElementById("siteLanguageToggle");
+  const en = {
+    "แดชบอร์ด": "Dashboard", "หน้าแรก": "Home", "ภาพรวมสถานะคลังพัสดุและสารเคมี": "Inventory and chemical stock overview",
+    "แจ้งตรวจนับสต็อก": "Stock count reminder", "กรุณาส่งคืนพัสดุและทำความสะอาดเครื่องแก้วก่อนเวลาดังกล่าว": "Please return equipment and clean glassware before the scheduled time.",
+    "รายการทั้งหมด": "Total items", "รายการ": "items", "หมดอายุแล้ว": "Expired", "ใกล้หมด (Stock)": "Low stock", "ใกล้หมดอายุ": "Expiring soon",
+    "คำขออนุมัติรอดำเนินการ": "Pending approvals", "จองห้องแล็บ": "Book a lab", "จองห้อง": "Room booking", "ผู้ขอจอง": "Requested by", "วันที่": "Date",
+    "ภาพรวม": "Overview", "หน้าหลัก": "Home", "คลังพัสดุ": "Inventory", "พัสดุ": "Equipment", "สารเคมี": "Chemicals", "ห้องปฏิบัติการ": "Laboratory",
+    "การจอง": "Bookings", "รายการจอง": "Bookings", "จองห้องปฏิบัติการ": "Lab booking", "ยืม-คืน": "Borrow / return", "ยืมคืน": "Borrow / return",
+    "จัดการผู้ใช้": "User management", "ผู้ใช้งาน": "Users", "ผู้ใช้": "Users", "ผู้ดูแลระบบ": "Administration", "ตั้งค่า": "Settings", "รายงาน": "Reports",
+    "ประวัติการใช้งาน": "Activity logs", "แจ้งเตือน": "Notifications", "การแจ้งเตือน": "Notifications", "คำขอเบิก": "Requisitions", "จัดซื้อ": "Procurement", "คำสั่งซื้อ": "Purchase orders",
+    "บันทึกกิจกรรม": "Activity log", "ข้อความ": "Messages", "ดาวน์โหลด": "Downloads", "ช่วยเหลือ": "Help", "ออกจากระบบ": "Log out", "โปรไฟล์": "Profile",
+    "ค้นหา": "Search", "ค้นหา...": "Search...", "ค้นหารายการ": "Search items", "ค้นหาพัสดุ": "Search equipment", "กรอง": "Filter", "ตัวกรอง": "Filters", "รีเซ็ต": "Reset",
+    "เพิ่ม": "Add", "เพิ่มรายการ": "Add item", "เพิ่มพัสดุ": "Add equipment", "แก้ไข": "Edit", "ลบ": "Delete", "บันทึก": "Save", "ยกเลิก": "Cancel", "ปิด": "Close",
+    "ยืนยัน": "Confirm", "ตกลง": "OK", "ส่ง": "Submit", "ส่งคำขอ": "Submit request", "รายละเอียด": "Details", "สถานะ": "Status", "หมายเหตุ": "Notes",
+    "รหัส": "Code", "ชื่อ": "Name", "จำนวน": "Quantity", "หน่วย": "Unit", "ประเภท": "Category", "ห้อง": "Room", "อาคาร": "Building", "ตำแหน่ง": "Location",
+    "คงเหลือ": "In stock", "พร้อมใช้งาน": "Available", "กำลังยืม": "On loan", "รอดำเนินการ": "Pending", "อนุมัติ": "Approve", "ไม่อนุมัติ": "Reject",
+    "สำเร็จ": "Success", "เกิดข้อผิดพลาด": "An error occurred", "ไม่พบข้อมูล": "No data found", "ไม่มีข้อมูล": "No data available", "กำลังโหลด...": "Loading...",
+    "วันนี้": "Today", "เมื่อวาน": "Yesterday", "ทั้งหมด": "All", "อื่นๆ": "Other", "อื่น ๆ": "Other", "จำนวนรายการ": "Item count", "จำนวนทั้งหมด": "Total count",
+    "ยอดรวม": "Total", "ผู้ขอ": "Requester", "ผู้อนุมัติ": "Approver", "เริ่มวันที่": "Start date", "ถึงวันที่": "End date", "เวลา": "Time",
+    "คู่มือการใช้งาน": "User guide", "API Documentation": "API Documentation", "จอง": "Book", "คืน": "Return", "ยืม": "Borrow", "รับเข้า": "Check in",
+    "จัดการห้องปฏิบัติการ": "Laboratory management", "จัดการคลัง": "Inventory management", "จัดการสารเคมี": "Chemical management", "แสดง": "Show", "รายการต่อหน้า": "items per page",
+    "หน้าก่อนหน้า": "Previous page", "หน้าถัดไป": "Next page", "ไม่มีรายการ": "No items", "ดูทั้งหมด": "View all", "ดูรายละเอียด": "View details",
+    "กำลังดำเนินการ": "In progress", "เสร็จสิ้น": "Completed", "ยกเลิกแล้ว": "Cancelled", "รออนุมัติ": "Awaiting approval", "คืนแล้ว": "Returned",
+    "ศูนย์รวมข้อมูล": "Information center", "ระบบจัดการห้องปฏิบัติการ": "Laboratory management system", "ห้องปฏิบัติการฟิสิกส์": "Physics laboratory",
+    "คลังสารเคมีและอุปกรณ์": "Chemicals and equipment", "คลังสารเคมีและพัสดุ": "Chemicals and equipment", "ผัง SHECU": "SHECU storage map", "ผังตู้ SHECU": "SHECU cabinet map", "นำเข้าข้อมูล": "Import data",
+    "รายงานและสถิติ": "Reports and analytics", "ยืม-คืนอุปกรณ์": "Borrow / return equipment", "คำขออนุมัติ": "Approval requests",
+    "ยืม-คืนพัสดุ": "Borrow / return equipment", "งานปฏิบัติการ": "Operations", "แผงควบคุมระบบ (Admin)": "Admin panel",
+    "แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น.": "Weekly chemical and equipment inventory check: Friday, 16:00–18:00.",
+    "ไม่มีคำขอยืมหรือจองห้องแล็บรอดำเนินการในขณะนี้": "There are no pending borrowing or laboratory booking requests.",
+    "คลังพัสดุพร้อมใช้งาน! ไม่มีรายการหมดอายุหรือใกล้หมดสต็อกในขณะนี้": "Inventory is ready to use. No items are expired or low in stock.",
+    "โหมดผู้บริหาร (Executive Overview — Read Only)": "Executive overview — read only"
+    ,"จองห้องปฏิบัติการ": "Lab booking", "ระบบตรวจสอบความว่างและบันทึกจองห้องปฏิบัติการแบบเรียลไทม์": "Check availability and book laboratory rooms in real time.",
+    "ตรวจสอบและบันทึกการจอง": "Review and save booking", "เลือกห้องแล็บและวันที่เพื่อดูสถานะความว่างของแต่ละช่วงเวลา": "Select a laboratory and date to see available time slots.",
+    "ห้องปฏิบัติการ *": "Laboratory *", "วันที่ต้องการเข้าใช้งาน *": "Requested date *", "สถานะช่วงเวลาที่เปิดจอง (คลิกเลือกช่วงเวลาว่างสีเขียว) *": "Available time slots (select a green slot) *",
+    "ว่าง": "Available", "ไม่ว่าง": "Unavailable", "พักกลางวัน": "Lunch break", "ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน *": "Student grade level *",
+    "จำนวนนักเรียนที่เข้าใช้งานทั้งหมด *": "Total number of students *", "คน": "people", "ระบุกิจกรรมที่ใช้ *": "Activity *", "ผู้จอง *": "Booked by *",
+    "บันทึกการจอง": "Save booking", "รายการจองห้องปฏิบัติการ": "Laboratory bookings", "แสดงรายการบันทึกการเข้าใช้ห้องปฏิบัติการทั้งหมดในระบบ": "View all laboratory usage records.",
+    "แบบปฏิทินรายเดือน": "Monthly calendar", "แบบรายการ": "List view", "วันนี้": "Today", "เลือกเดือน": "Select month", "เลือกวันที่": "Select date",
+    "สถานะ": "Status", "ผู้จอง": "Booked by", "ช่วงเวลา": "Time slot", "เวลาเริ่ม": "Start time", "เวลาสิ้นสุด": "End time", "คาบเรียน": "Period",
+    "ค้นหาพัสดุหรือสารเคมี...": "Search equipment or chemicals...", "ค้นหาตามชื่อ รหัส หรือหมวดหมู่...": "Search by name, code, or category...",
+    "ค้นหาห้องปฏิบัติการ...": "Search laboratories...", "ไม่มีรายการพัสดุ": "No equipment found", "ไม่มีรายการสารเคมี": "No chemicals found",
+    "ชื่อพัสดุ": "Equipment name", "ชื่อสารเคมี": "Chemical name", "ชื่อรายการ": "Item name", "รหัสพัสดุ": "Equipment code", "รหัสสารเคมี": "Chemical code",
+    "หมวดหมู่": "Category", "หมวด": "Category", "จำนวนคงเหลือ": "Quantity in stock", "จำนวนที่ต้องการ": "Requested quantity", "หน่วยนับ": "Unit",
+    "วันหมดอายุ": "Expiration date", "วันที่หมดอายุ": "Expiration date", "วันรับเข้า": "Date received", "ผู้จำหน่าย": "Supplier", "บริษัท": "Company",
+    "สถานที่จัดเก็บ": "Storage location", "จุดจัดเก็บ": "Storage location", "ตู้จัดเก็บ": "Storage cabinet", "เลข CAS": "CAS number", "สูตรเคมี": "Chemical formula",
+    "อุปกรณ์": "Equipment", "เครื่องแก้ว": "Glassware", "ครุภัณฑ์": "Equipment assets", "วัสดุสิ้นเปลือง": "Consumables", "สารละลาย": "Solutions",
+    "เพิ่มพัสดุใหม่": "Add equipment", "เพิ่มสารเคมีใหม่": "Add chemical", "นำเข้าจากไฟล์": "Import from file", "ส่งออกข้อมูล": "Export data", "พิมพ์": "Print",
+    "ยืนยันการลบ": "Confirm deletion", "คุณต้องการลบรายการนี้หรือไม่": "Are you sure you want to delete this item?", "บันทึกข้อมูลสำเร็จ": "Saved successfully",
+    "เพิ่มข้อมูลสำเร็จ": "Added successfully", "แก้ไขข้อมูลสำเร็จ": "Updated successfully", "ลบข้อมูลสำเร็จ": "Deleted successfully", "กรุณารอสักครู่...": "Please wait...",
+    "จัดการห้องปฏิบัติการ (Laboratory Rooms)": "Manage laboratory rooms", "ห้องปฏิบัติการทั้งหมด": "All laboratories", "เพิ่มห้องปฏิบัติการ": "Add laboratory",
+    "คืนค่าเริ่มต้น": "Restore defaults", "จัดการสิทธิ์ผู้ใช้งาน": "Manage user permissions", "จัดการผู้ใช้และสิทธิ์": "Manage users and permissions",
+    "ชื่อผู้ใช้งาน": "Username", "ชื่อ-นามสกุล": "Full name", "อีเมล": "Email", "รหัสผ่าน": "Password", "บทบาท": "Role", "สิทธิ์การใช้งาน": "Access permissions",
+    "ผู้ดูแลระบบ": "Administrator", "ผู้ใช้งานทั่วไป": "Standard user", "เจ้าหน้าที่": "Staff", "นักเรียน": "Student", "ครู": "Teacher",
+    "ค้นหาผู้ใช้งาน...": "Search users...", "เพิ่มผู้ใช้งาน": "Add user", "แก้ไขผู้ใช้งาน": "Edit user", "ลบบัญชี": "Delete account",
+    "การตั้งค่าระบบ": "System settings", "ตั้งค่าระบบ": "System settings", "บันทึกการตั้งค่า": "Save settings", "ตั้งค่าทั่วไป": "General settings",
+    "รายงานสรุป": "Summary report", "รายงานการยืม-คืน": "Borrowing and return report", "รายงานคลังพัสดุ": "Inventory report", "รายงานการจองห้อง": "Room booking report",
+    "ตั้งแต่วันที่": "From date", "ถึงวันที่": "To date", "ช่วงวันที่": "Date range", "เลือกช่วงวันที่": "Select date range", "ภาคเรียน": "Semester", "ปีการศึกษา": "Academic year",
+    "ค้นหา...": "Search...", "กำลังค้นหา...": "Searching...", "ไม่พบรายการที่ค้นหา": "No matching results", "ไม่มีข้อมูลในช่วงเวลานี้": "No data for this period",
+    "รายละเอียดเพิ่มเติม": "More details", "ข้อมูลทั่วไป": "General information", "ข้อมูลพัสดุ": "Equipment information", "ข้อมูลสารเคมี": "Chemical information",
+    "คำอธิบาย": "Description", "รูปภาพ": "Image", "แนบไฟล์": "Attach file", "อัปโหลดไฟล์": "Upload file", "เลือกไฟล์": "Choose file",
+    "ตรวจสอบ": "Review", "รอการอนุมัติ": "Awaiting approval", "อนุมัติแล้ว": "Approved", "ไม่อนุมัติ": "Rejected", "ไม่ผ่าน": "Rejected",
+    "ยืนยันการอนุมัติ": "Confirm approval", "ยืนยันการปฏิเสธ": "Confirm rejection", "เหตุผล": "Reason", "ระบุเหตุผล": "Enter a reason",
+    "แจ้งเตือนและสถานะเครื่องมือ": "Notifications and equipment status", "เตือนด่วน": "Urgent alerts", "กำลังดำเนินการ": "In progress", "ชำรุด/ส่งซ่อม": "Damaged / under repair",
+    "หมดอายุ": "Expired", "หมดอายุแล้ว": "Expired", "ใกล้หมด": "Low", "ใกล้หมดคลัง": "Low stock", "ปกติ": "Normal", "จำนวนคงเหลือน้อย": "Low stock", "วันที่สร้าง": "Created date", "วันที่แก้ไขล่าสุด": "Last updated",
+    "ขวด": "bottle", "ชิ้น": "piece", "กล่อง": "box", "ชุด": "set", "อัน": "item", "ถุง": "bag", "ม้วน": "roll", "แผ่น": "sheet", "คู่": "pair", "เครื่อง": "unit",
+    "วันที่ต้องการเข้าใช้งาน *": "Requested date *", "สถานะช่วงเวลาที่เปิดจอง (คลิกเลือกช่วงเวลาว่างสีเขียว) *": "Available time slots (select a green slot) *",
+    "ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน *": "Student grade level *", "จำนวนนักเรียนที่เข้าใช้งานทั้งหมด *": "Total number of students *",
+    "ระบุกิจกรรมที่ใช้ *": "Activity *", "เลือกห้องแล็บ": "Select a laboratory", "เลือกวันที่": "Select a date",
+    "ห้องศูนย์ สสวท. (วิทยาศาสตร์) อาคารราฟาเอล": "IPST Science Center, Raphael Building", "ห้องปฏิบัติการวิทยาศาสตร์ อาคารราฟาเอล": "Science Laboratory, Raphael Building",
+    "ห้องปฏิบัติการวิทยาศาสตร์ อาคารอัสสัมชัญ": "Science Laboratory, Assumption Building", "ห้องปฏิบัติการเคมี อาคารอัสสัมชัญ": "Chemistry Laboratory, Assumption Building",
+    "ห้องปฏิบัติการฟิสิกส์ อาคารเซนต์ปีเตอร์": "Physics Laboratory, St. Peter Building", "ห้องปฏิบัติการชีววิทยา อาคารเซนต์ปีเตอร์": "Biology Laboratory, St. Peter Building",
+    "ห้องศูนย์ STEM CENTER": "STEM Center", "ห้องปฏิบัติการวิทยาศาสตร์ (EP) อาคารยอห์น แมรี่": "Science Laboratory (EP), John Mary Building",
+    "อา.": "Sun", "จ.": "Mon", "อ.": "Tue", "พ.": "Wed", "พฤ.": "Thu", "ศ.": "Fri", "ส.": "Sat",
+    "มกราคม": "January", "กุมภาพันธ์": "February", "มีนาคม": "March", "เมษายน": "April", "พฤษภาคม": "May", "มิถุนายน": "June",
+    "กรกฎาคม": "July", "สิงหาคม": "August", "กันยายน": "September", "ตุลาคม": "October", "พฤศจิกายน": "November", "ธันวาคม": "December",
+    "วันที่ต้องการเข้าใช้งาน": "Requested date", "สถานะช่วงเวลาที่เปิดจอง (คลิกเลือกช่วงเวลาว่างสีเขียว)": "Available time slots (select a green slot)",
+    "ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน": "Student grade level", "จำนวนนักเรียนที่เข้าใช้งานทั้งหมด": "Total number of students", "ระบุกิจกรรมที่ใช้": "Activity",
+    "แสดงสารเคมีและอุปกรณ์วิทยาศาสตร์ในระบบพร้อมฟิลเตอร์ค้นหาและการจัดการ": "Browse and manage chemicals and scientific equipment in the system.",
+    "เลือกหมวดหมู่รายการ": "Select item category", "ทุกหมวดหมู่": "All categories", "ทุกสถานะ": "All statuses", "ค้นหารหัส, ชื่อ, หมวดหมู่...": "Search code, name, or category...",
+    "สแกน QR / บาร์โค้ด": "Scan QR / barcode", "สแกน QR หรือบาร์โค้ดด้วยกล้อง": "Scan a QR code or barcode with the camera", "ป้อนรหัสบาร์โค้ด": "Enter barcode",
+    "อุปกรณ์วิทยาศาสตร์": "Scientific equipment", "เลือกแล้ว": "Selected", "พบข้อมูลทั้งหมด": "Showing all", "ส่งออกข้อมูลเป็น Excel (.csv)": "Export data as Excel (.csv)",
+    "ส่งออก Excel": "Export Excel", "พิมพ์รายงานสรุปพัสดุ (PDF / Print)": "Print inventory summary (PDF / print)", "พิมพ์รายงาน": "Print report",
+    "ล้างคลังพัสดุทั้งหมด": "Clear all inventory", "ล้างคลังพัสดุ": "Clear inventory", "รายละเอียดสินค้า": "Item details", "จัดการ": "Actions",
+    "ตรวจนับครุภัณฑ์ประจำปีงบประมาณ 2569": "Annual asset inventory for fiscal year 2026", "สามารถกดตรวจนับสภาพครุภัณฑ์ในแต่ละรายการ หรือพิมพ์รายงานเพื่อเสนอผู้บริหารสิ้นปี": "Inspect each asset or print the year-end report for administrators.",
+    "ส่งออก CSV": "Export CSV", "พิมพ์รายงานสิ้นปี (PDF)": "Print year-end report (PDF)", "พิมพ์ QR Code": "Print QR code", "ย้ายสถานที่": "Move location", "ลบรายการ": "Delete item"
+    ,"ประวัติการใช้งานระบบ (Activity Log)": "System activity log", "รีเฟรช": "Refresh", "ล้างประวัติ": "Clear history", "วันและเวลา": "Date and time",
+    "ผู้ดำเนินการ": "Performed by", "ประเภทกิจกรรม": "Activity type", "ค้นหากิจกรรม, ผู้ใช้, รหัสสาร...": "Search activity, user, or chemical code...",
+    "เพิ่มสาร/อุปกรณ์": "Add chemical / equipment", "รายการสั่งซื้อ": "Purchase orders", "รันรหัสอัตโนมัติ": "Generate code automatically", "ถัดไป": "Next", "ย้อนกลับ": "Back",
+    "ยกเลิกการแก้ไข": "Discard changes", "ล้างฟอร์ม": "Clear form", "รหัสสาร/อุปกรณ์ *": "Chemical / equipment code *", "ชื่อสาร/อุปกรณ์ *": "Chemical / equipment name *",
+    "ประเภทความเป็นอันตราย (ตรวจจัดเก็บซ้ำซ้อน)": "Hazard classification (check storage compatibility)", "ลิงก์ SDS": "SDS link", "สัญลักษณ์แสดงความเป็นอันตราย GHS": "GHS hazard pictograms",
+    "จำนวนที่ชำรุด": "Damaged quantity", "จำนวนส่งซ่อม": "Quantity under repair", "จุดสั่งซื้อขั้นต่ำ": "Minimum reorder point", "เช่น CHEM-001, AST-001": "e.g. CHEM-001, AST-001",
+    "ผังตู้จัดเก็บ SHECU": "SHECU cabinet map", "แก้ไขแผนผัง": "Edit layout", "เพิ่มตู้จัดเก็บใหม่": "Add storage cabinet", "บันทึกแผนผัง": "Save layout", "ค้นหาสารเคมีเพื่อดูตำแหน่งตู้...": "Search chemicals to locate a cabinet...",
+    "ยืม-คืนพัสดุและเคมี": "Borrow / return equipment and chemicals", "บันทึกรายการยืม-คืน": "Record borrowing / return", "ประวัติการทำรายการล่าสุด": "Recent transactions",
+    "เข้าสู่ระบบด้วย Teacher ID": "Sign in with Teacher ID", "วันทำรายการ": "Transaction date", "รายการพัสดุและผู้ยืม": "Equipment and borrower",
+    "ประเภทรายการ *": "Transaction type *", "ยืมสาร/อุปกรณ์ เบิกใช้สำหรับเข้าเรียน/ทำปฏิบัติการ": "Borrow chemicals / equipment for class or lab work",
+    "คืนสาร/อุปกรณ์ บันทึกส่งคืนพัสดุและอุปกรณ์เคมี": "Return chemicals / equipment", "เลือกรายการสารเคมี / อุปกรณ์ *": "Select chemicals / equipment *",
+    "รายการที่เลือกเพื่อทำรายการ *": "Selected items *", "ผู้ทำรายการ *": "Processed by *", "ตรวจสอบรายการค้างยืมและระบุของชำรุด (ถ้ามี)": "Review outstanding loans and report any damage.",
+    "วันที่ใช้งาน *": "Usage date *", "คาบเรียนที่ใช้งาน *": "Class period *", "หมายเหตุ / วัตถุประสงค์การใช้งาน": "Notes / purpose", "พิมพ์ค้นหาชื่อ หรือรหัส...": "Search by name or code...",
+    "ปฏิทินและตารางการใช้งานห้องปฏิบัติการ": "Laboratory calendar and schedule", "สัดส่วนหมวดหมู่พัสดุ": "Inventory by category", "สถานะห้องปฏิบัติการวันนี้ กำลังโหลด…": "Laboratory status today — loading…",
+    "เตือนด่วน": "Urgent alerts", "ค้างส่งคืน": "Overdue returns", "วัน": "Day", "สัปดาห์": "Week", "เดือน": "Month", "จัดการระบบ": "System administration",
+    "ศูนย์การแจ้งเตือน (Notifications & Alerts) Safety & Stock Monitor": "Notifications and alerts — safety and stock monitor",
+    "สารเคมีและพัสดุหมดอายุแล้ว": "Expired chemicals and equipment", "พัสดุและสารเคมีใกล้หมดอายุ (ภายใน 30 วัน)": "Chemicals and equipment expiring within 30 days",
+    "สินค้าและสารเคมีใกล้หมดคลัง (ต่ำกว่าเกณฑ์ขั้นต่ำ)": "Items below minimum stock level", "รายการแจ้งปัญหาและรอการซ่อมบำรุง": "Issues reported and awaiting maintenance",
+    "รายการที่ดำเนินการแก้ไขเรียบร้อยแล้ว": "Resolved issues", "ตะกร้าจัดซื้อ": "Purchase cart", "ส่งออกประจำปี": "Export annual report", "เคลียร์ข้อมูล": "Clear data", "สั่งซื้อทั้งหมด (Add to Cart)": "Order all (add to cart)", "แจ้งปัญหาใหม่": "Report an issue",
+    "ทำรายการสั่งซื้อและงบประมาณ": "Purchase orders and budget", "บันทึกรายการสั่งซื้อ": "Record purchase order", "ประวัติการสั่งซื้อ": "Purchase history", "ภาพรวม": "Overview",
+    "บันทึกสั่งซื้อใหม่": "New purchase order", "ล้างรายการ": "Clear items", "บันทึกใบสั่งซื้อทั้งหมด": "Save all purchase orders", "ตะกร้าเตรียมสั่ง": "Order cart",
+    "วันที่สั่ง": "Order date", "รหัสสินค้า": "Product code", "ชื่อสินค้า": "Product name", "ราคา/หน่วย": "Price / unit", "ราคาต่อหน่วย (บาท) *": "Unit price (THB) *",
+    "รวมก่อนลด": "Subtotal", "ส่วนลด": "Discount", "สุทธิ": "Net total", "ราคาสุทธิ (บาท)": "Net price (THB)", "ระบุชื่อสารเคมีหรืออุปกรณ์": "Enter chemical or equipment name",
+    "สถิติการจองใช้งานห้องปฏิบัติการ": "Laboratory booking statistics", "ส่งออกรายงานคลัง": "Export inventory report", "ส่งออกรายงานการจอง": "Export booking report",
+    "คาดการณ์พัสดุใกล้หมด (Smart Stock & Auto-PO)": "Low stock forecast (smart stock and auto purchase order)",
+    "ส่งออกรายงานคลังพัสดุ (CSV)": "Export inventory report (CSV)", "ส่งออกประวัติการยืม-คืน (CSV)": "Export borrowing / return history (CSV)",
+    "พิมพ์รายงานสรุปสถานะคลัง (PDF)": "Print inventory status report (PDF)", "ล้างประวัติการจองทั้งหมด": "Clear all booking history", "กรองห้องปฏิบัติการ:": "Filter laboratories:"
+    ,"ตั้งค่าผู้ดูแลระบบ (Admin Panel)": "Administrator settings", "จัดการสิทธิ์ผู้ใช้งาน (User & Role Management)": "Manage users and roles",
+    "จัดการประกาศหน้าแรก (Announcement Ticker)": "Manage homepage announcements", "จัดการห้องปฏิบัติการ (Laboratory Rooms)": "Manage laboratory rooms",
+    "พื้นที่อันตราย (Danger Zone)": "Danger zone", "เพิ่มข้อมูลผู้ใช้งาน / ครูใหม่": "Add a new user / teacher", "นำเข้าผู้ใช้งานหลายคน (Batch User Import)": "Import multiple users",
+    "แก้ไขข้อมูลและสิทธิ์ผู้ใช้งาน": "Edit user details and permissions", "ชุดมาตรฐาน (PPE + Fume Hood + ฉุกเฉิน)": "Standard safety notices (PPE, fume hood, emergency)",
+    "แจ้งตรวจนับสต็อกประจำสัปดาห์": "Weekly inventory check reminder", "แจ้งเตือนปิดปรับปรุงระบบ": "System maintenance notice", "บันทึกการตั้งค่าประกาศ": "Save announcement settings",
+    "รหัสครู (ID)": "Teacher ID", "ชื่อผู้ใช้งาน (Member Name)": "User name", "กลุ่มสาระ / หน่วยงาน": "Department / organization", "ระดับสิทธิ์ (Role)": "Access level (role)",
+    "ห้องที่ได้รับมอบหมาย": "Assigned laboratories", "ความปลอดภัย (Security)": "Security", "ชื่อ - สกุล *": "Full name *", "ระดับบทบาทและสิทธิ์การใช้งาน (Role Level) *": "Role and access level *",
+    "ข้อความประกาศ (คั่นแต่ละข้อความด้วยเครื่องหมาย | หรือขึ้นบรรทัดใหม่)": "Announcement text (separate messages with | or a new line)",
+    "ข้อความหัวข้อป้าย (Badge Text)": "Badge text", "ธีมสีของป้าย (Badge Theme)": "Badge color theme", "ความเร็วในการเลื่อน (Scroll Speed)": "Scroll speed", "ระยะเว้นวรรค (Item Spacing)": "Item spacing",
+    "ห้องแล็บ (L2)": "Laboratory (L2)", "ส้ม": "Orange", "น้ำเงิน": "Blue", "เขียว": "Green", "เปิด": "Enabled", "ปิด": "Disabled",
+    "คืนค่าเริ่มต้น": "Restore defaults", "ซิงค์ Sheets": "Sync Sheets", "ลบที่เลือก": "Delete selected", "เพิ่มผู้ใช้งาน / ครู": "Add user / teacher",
+    "ชื่อ - นามสกุล": "Full name", "กลุ่มสาระ / แผนก / หน่วยงาน": "Department / division / organization", "อีเมล (Email)": "Email", "รหัสประจำตัวครู (ID)": "Teacher ID",
+    "ค้นหาชื่อ, รหัสครู, อีเมล หรือแผนก...": "Search name, teacher ID, email, or department...", "พิมพ์รหัสผ่านใหม่...": "Enter a new password..."
+    ,"ศูนย์กลางการบริหารจัดการสิทธิ์ผู้ใช้งาน ตั้งค่าห้องปฏิบัติการ และรักษาความปลอดภัยระบบ": "Manage user access, laboratory settings, and system security.",
+    "จัดการประกาศหน้าแรก": "Manage homepage announcements", "กำหนดระดับสิทธิ์ (L1 - L4) มอบหมายห้องปฏิบัติการ และตรวจสอบบัญชีผู้ใช้งานในระบบ": "Set access levels (L1–L4), assign laboratories, and review user accounts.",
+    "ผู้ใช้งานทั้งหมด": "All users", "บัญชี": "accounts", "ผู้ดูแล & เจ้าหน้าที่": "Admins & staff", "มอบหมายห้องแล็บ": "Assigned laboratories", "ระบบความปลอดภัย": "System security",
+    "ทุกระดับสิทธิ์ (All Roles)": "All access levels", "ทุกกลุ่มสาระ / หน่วยงาน": "All departments / organizations", "L1 - ครูผู้สอน (Teacher)": "L1 - Teacher",
+    "L2 - เจ้าหน้าที่แล็บ (Lab Staff)": "L2 - Laboratory staff", "L3 - ผู้ดูแลระบบ (Admin)": "L3 - Administrator", "L4 - ผู้บริหาร (Executive)": "L4 - Executive",
+    "L4 ผู้บริหาร (READ ONLY)": "L4 Executive (read only)", "L3 ผู้ดูแลระบบ": "L3 Administrator", "L2 เจ้าหน้าที่แล็บ": "L2 Laboratory staff", "L1 ครูผู้สอน": "L1 Teacher",
+    "ภาพรวมทุกห้อง (Read Only)": "Overview of all laboratories (read only)", "ทุกห้อง (All Labs)": "All laboratories", "ไม่มีรายการผู้ใช้งาน": "No users found", "ลองปรับเปลี่ยนเงื่อนไขการค้นหาหรือตัวกรอง": "Adjust your search or filters and try again",
+    "พื้นที่อันตราย": "Danger zone", "ซ่อนรหัส": "Hide password", "Bcrypt & ซ่อนรหัส": "Bcrypt & password hashing", "L4 ผู้บริหาร": "L4 Executive", "ผู้บริหาร (READ ONLY)": "Executive (read only)", "ผู้บริหาร": "Executive", "อาจารย์ผู้ดูแลระบบ (Admin)": "System administrator",
+    "ก่อนหน้า": "Previous", "แสดง": "Show", "จาก": "of", "ผู้ใช้งาน": "users", "หน้า": "Page", "คณะกรรมการบริหารสถานศึกษา": "School board",
+    "L4 ผู้บริหาร (Read Only)": "L4 Executive (read only)", "เข้ารหัสปลอดภัย": "Securely hashed", "เข้ารหัส Bcrypt": "Bcrypt hashed", "สิทธิ์ผู้ใช้งาน": "User permissions", "สิทธิ์ผู้ใช้": "User permissions",
+    "ห้องแล็บ": "Laboratory", "จัดการประกาศ": "Manage announcements", "ประกาศ": "Announcements", "อันตราย": "Danger zone", "ซิงค์": "Sync", "นำเข้า": "Import", "เพิ่มผู้ใช้": "Add user",
+    "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี": "Science and Technology Department", "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาฟิสิกส์)": "Science and Technology Department (Physics)",
+    "งานบริการห้องปฏิบัติการวิทยาศาสตร์": "Science laboratory services"
+  };
+  Object.assign(en, {
+    "ทำรายการในห้องปฏิบัติการ": "Laboratory actions",
+    "จองห้อง หรือทำรายการยืมและคืนพัสดุ": "Book a room, or borrow and return equipment.",
+    "กรอกข้อมูลรายละเอียดของสารเคมีหรืออุปกรณ์เพื่อบันทึกเข้าสู่คลังแล็บ": "Enter the chemical or equipment details to add it to the laboratory inventory.",
+    "ระบบบันทึกรายการยืม-คืนสารเคมีและอุปกรณ์วิทยาศาสตร์ พร้อมตัดสต็อกอัตโนมัติ": "Record chemical and equipment loans and returns with automatic inventory updates.",
+    "จองงบประมาณ จัดทำใบสั่งซื้อ และติดตามประวัติการจัดหาวัสดุอุปกรณ์วิทยาศาสตร์": "Reserve budgets, create purchase orders, and track laboratory supply purchases.",
+    "กรอกรายละเอียดพัสดุและสารเคมีที่ต้องการจัดหา": "Enter the equipment and chemicals you want to purchase.",
+    "ส่งออกข้อมูลรายงานคลังพัสดุและวิเคราะห์ประวัติการใช้งานห้องปฏิบัติการ": "Export inventory reports and analyze laboratory usage history.",
+    "ตรวจสอบ บันทึก และติดตามทุกกิจกรรมการเปลี่ยนแปลงข้อมูลในระบบ (Audit Trail)": "Review, record, and track all changes made in the system (audit trail).",
+    "ระบบตรวจสอบวันหมดอายุ ตรวจจับสต็อกขั้นต่ำ และศูนย์ประสานงานแจ้งซ่อมบำรุงอุปกรณ์": "Monitor expiration dates and minimum stock levels, and coordinate equipment repairs.",
+    "เลือกห้องปฏิบัติการ:": "Select a laboratory:",
+    "กำลังดู:": "Viewing:",
+    "รายการชั้นวาง": "Shelf inventory",
+    "จัดเก็บปลอดภัย": "Safely stored",
+    "ไม่ระบุกลุ่ม": "Unclassified",
+    "ประเภทสารเคมี:": "Chemical type:",
+    "สัญลักษณ์แสดงความเป็นอันตราย (GHS)": "Hazard pictograms (GHS)",
+    "ไม่มีข้อมูลเอกสาร SDS ความปลอดภัย": "No safety data sheet (SDS) is available.",
+    "ไม่มีรายการสารละลายเจือจาง": "No diluted solutions have been added.",
+    "รายการสารละลายเจือจาง (Dilutions)": "Dilutions",
+    "+ เพิ่มสารละลายเจือจาง": "+ Add dilution",
+    "ความเข้มข้น": "Concentration",
+    "ปริมาตร": "Volume",
+    "ที่จัดเก็บ": "Location",
+    "ลบ": "Delete",
+    "ใกล้หมดอายุ (30 วัน)": "Expiring soon (30 days)",
+    "แจ้งปัญหา / ซ่อมบำรุง": "Issues / maintenance",
+    "ปัญหาและข้อเสนอแนะ": "Issues and suggestions",
+    "รายการที่พ้นกำหนดการใช้งาน ต้องดำเนินการตัดจำหน่ายหรือกำจัดตามมาตรฐานความปลอดภัย": "Expired items must be decommissioned or disposed of according to safety standards.",
+    "ไม่มีรายการสารเคมีหรืออุปกรณ์หมดอายุ": "No chemicals or equipment have expired.",
+    "ไม่มีรายการพัสดุใกล้หมดอายุใน 30 วัน": "No items will expire within 30 days.",
+    "คงเหลือ:": "Remaining:",
+    "จุดเตือน:": "Reorder point:",
+    "ใช้เฉลี่ย:": "Average usage:",
+    "สต็อกต่ำกว่าเกณฑ์": "Stock is below the threshold.",
+    "สั่งซื้อเพิ่ม (Add to PO)": "Add to purchase order",
+    "จำนวนนักเรียนที่เข้าใช้งานทั้งหมด": "Total students",
+    "คน": "people",
+    "ทำรายการในห้องปฏิบัติการ": "Laboratory actions",
+    "บันทึกกิจกรรมทั้งหมด": "Total activities",
+    "การจัดการพัสดุ/สารเคมี": "Equipment / chemical management",
+    "รายการบันทึกล่าสุด": "Recent activity",
+    "รายการยืม-คืนพัสดุ": "Equipment loans and returns",
+    "เพิ่ม/แก้ไข/ลบ": "Add / edit / delete",
+    "การจัดการระบบ": "System management",
+    "ต.ค.": "Oct",
+    "ม.ค.": "Jan",
+    "ก.พ.": "Feb",
+    "มี.ค.": "Mar",
+    "เม.ย.": "Apr",
+    "พ.ค.": "May",
+    "มิ.ย.": "Jun",
+    "ก.ค.": "Jul",
+    "ส.ค.": "Aug",
+    "ก.ย.": "Sep",
+    "พ.ย.": "Nov",
+    "ธ.ค.": "Dec"
+  });
+  Object.assign(en, {
+    "แก้ไขประกาศ": "Edit announcement",
+    "สมาชิกในระบบ": "System members",
+    "สถานะห้องปฏิบัติการวันนี้": "Today's laboratory status",
+    "เทอม": "Semester",
+    "งบประมาณประจำปี": "Annual budget",
+    "ยอดใช้จ่ายสะสม": "Total spent",
+    "งบประมาณคงเหลือ": "Remaining budget",
+    "ตะกร้ารอสั่งซื้อ": "Purchase cart",
+    "ดูรายการที่เตรียมไว้": "View prepared items",
+    "ราคาต่อหน่วย (บาท)": "Unit price (THB)",
+    "ราคารวมทั้งสิ้น:": "Grand total:",
+    "บันทึกใบสั่งซื้อทั้งหมด (0 รายการ)": "All purchase orders (0)",
+    "คำนวณสุทธิอัตโนมัติ": "Net total calculated automatically",
+    "ทุกปีการศึกษา": "All academic years",
+    "ทุกเทอม": "All semesters",
+    "เทอม 1": "Semester 1",
+    "เทอม 2": "Semester 2",
+    "รวมก่อนลด:": "Subtotal:",
+    "ส่วนลดรวม (": "Total discount (",
+    "ยอดสุทธิ:": "Net total:",
+    "ทำรายการยืมสารเคมี/อุปกรณ์เพื่อเบิกใช้ หรือบันทึกส่งคืนเข้าสต็อก": "Borrow chemicals or equipment for use, or record returns to inventory.",
+    "ประเภทรายการ": "Transaction type",
+    "ยืมสาร/อุปกรณ์": "Borrow chemicals / equipment",
+    "เบิกใช้สำหรับเข้าเรียน/ทำปฏิบัติการ": "Check out for class or laboratory work",
+    "คืนสาร/อุปกรณ์": "Return chemicals / equipment",
+    "บันทึกส่งคืนพัสดุและอุปกรณ์เคมี": "Record equipment and chemical returns",
+    "เลือกรายการสารเคมี / อุปกรณ์": "Select chemicals / equipment",
+    "-- ค้นหาและเลือกรายการที่ต้องการเพิ่ม --": "-- Search and select items to add --",
+    "รายการที่เลือกเพื่อทำรายการ": "Selected items",
+    "(กรุณาเลือกรายการสารเคมี / อุปกรณ์จากกล่องด้านบนเพื่อทำรายการ)": "(Select chemicals or equipment from the list above to continue.)",
+    "ผู้ทำรายการ": "Processed by",
+    "-- เลือกห้องแล็บ --": "-- Select a laboratory --",
+    "เบิกใช้นอกห้องปฏิบัติการ": "Use outside the laboratory",
+    "คาบเรียนที่ใช้งาน": "Class period",
+    "-- เลือกคาบเรียน --": "-- Select a class period --",
+    "พักกลางวัน (12:30 - 13:20)": "Lunch break (12:30–13:20)",
+    "ไม่อยู่ในคาบเรียน": "Outside class periods",
+    "แสดงประวัติการยืมและการส่งคืนสินค้าพัสดุวิทยาศาสตร์แบบเรียลไทม์": "View laboratory equipment loan and return history in real time.",
+    "ยังไม่มีประวัติการทำรายการยืม-คืน": "No loan or return history yet.",
+    "สถิติการจองใช้งานแล็บ": "Laboratory booking statistics",
+    "วิเคราะห์ความถี่และสถิติสะสมการเข้าใช้งานห้องปฏิบัติการวิทยาศาสตร์แต่ละห้อง": "Analyze usage frequency and cumulative statistics for each laboratory.",
+    "การจองทั้งหมด": "Total bookings",
+    "ห้องใช้งานสูงสุด": "Most-used laboratory",
+    "ห้องที่เปิดรับจอง": "Available laboratories",
+    "ครอบคลุมทุกกลุ่มวิทย์": "Across all science departments",
+    "เฉลี่ยต่อห้อง": "Average per laboratory",
+    "ครั้ง/ห้อง": "bookings / laboratory",
+    "อัตราเฉลี่ยรวม": "Overall average rate",
+    "-- ทุกห้องปฏิบัติการ --": "-- All laboratories --",
+    "0 รายการใกล้หมด": "0 low-stock items",
+    "พัสดุและสารเคมีทุกรายการมีสต็อกเพียงพอสำหรับการใช้งาน ไม่พบรายการใกล้หมด": "All equipment and chemicals are sufficiently stocked. No low-stock items were found.",
+    "เพิ่ม / แก้ไข / ลบ": "Add / edit / delete",
+    "เบิก ยืม และคืน": "Check out, borrow, and return",
+    "ทุกประเภทกิจกรรม": "All activity types",
+    "จัดการพัสดุ/สารเคมี": "Equipment / chemical management",
+    "ยืม - คืนพัสดุ": "Equipment loans / returns",
+    "ผังห้องปฏิบัติการ": "Laboratory layout",
+    "การแจ้งปัญหา": "Issue reports",
+    "ข้อมูลอัปเดตแบบเรียลไทม์ตามการทำงานในระบบ": "Data updates in real time as the system is used.",
+    "ตะกร้า": "Cart",
+    "ส่งออก": "Export",
+    "เคลียร์": "Clear",
+    "แจ้งปัญหา": "Report an issue",
+    "รายการชำรุด หรือข้อขัดข้องที่รอดำเนินการซ่อมบำรุงหรือตรวจสอบ": "Damaged items or issues awaiting maintenance or inspection.",
+    "ประวัติการซ่อมแซมและแก้ไขปัญหาอุปกรณ์ในห้องปฏิบัติการ": "History of laboratory equipment repairs and fixes.",
+    "ความปลอดภัย": "Safety",
+    "การจัดเก็บ": "Storage",
+    "รหัสสาร/อุปกรณ์": "Chemical / equipment code",
+    "ชื่อสาร/อุปกรณ์": "Chemical / equipment name",
+    "-- เลือกหมวดหมู่ --": "-- Select a category --",
+    "หลอด": "Tube",
+    "ความปลอดภัยและการจัดการความเสี่ยง": "Safety and risk management",
+    "-- ไม่ใช่สารเคมี / ไม่ระบุ --": "-- Not a chemical / unspecified --",
+    "ไม่มี": "None",
+    "เตือนเมื่อต่ำกว่านี้": "Alert below this level",
+    "สถานที่จัดเก็บ (ระบุให้ครบถ้วน)": "Storage location (complete all fields)",
+    "ตู้เก็บของ": "Cabinet",
+    "ชั้นวาง": "Shelf",
+    "ประเมินและจำแนกประเภทของเสียทางห้องปฏิบัติการอ้างอิงตามระบบการจำแนกของเสีย 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย": "Assess and classify laboratory waste using Chulalongkorn University's 17-category waste classification system.",
+    "โหมดแก้ไขและจัดเรียงแผนผัง": "Edit and arrange the layout",
+    "ตู้สารเคมี": "Chemical cabinets",
+    "ตู้เครื่องแก้ว": "Glassware cabinets",
+    "สารเคมีของเหลว": "Liquid chemicals",
+    "สารเคมีอันตราย": "Hazardous chemicals",
+    "พบสารไม่เข้ากัน": "Incompatible chemicals found",
+    "แก้ไขข้อมูล/เพิ่มชั้นวาง": "Edit details / add shelves",
+    "ลบตู้จัดเก็บ": "Delete cabinet",
+    "ตู้รอจัดเก็บ": "Unassigned cabinet",
+    "วิทย์ ราฟาเอล": "Science Laboratory, Raphael",
+    "สสวท. ราฟาเอล": "IPST Science Center, Raphael",
+    "วิทย์ อัสสัมฯ": "Science Laboratory, Assumption",
+    "แล็บเคมี": "Chemistry Laboratory",
+    "แล็บชีวะ": "Biology Laboratory",
+    "ยังไม่มีข้อมูล": "No data available",
+    "สต็อกพร้อมใช้งาน": "Inventory is ready",
+    "ด่วน": "Urgent",
+    "ตู้เก็บเครื่องแก้ว": "Glassware cabinet",
+    "เครื่องแก้ว": "Glassware",
+    "โต๊ะชั่งน้ำหนัก": "Weighing station",
+    "จุดปฏิบัติงาน": "Workstation",
+    "พร้อมใช้งาน": "Available",
+    "โต๊ะปฏิบัติการ 1": "Worktable 1",
+    "พื้นที่ทั่วไป": "General area",
+    "ลบที่เลือก (0)": "Delete selected (0)",
+    "กำหนดข้อความประกาศ ข่าวสาร หรือข้อควรระวังความปลอดภัย และปรับแต่งความเร็ว ระยะห่าง และธีมสีของแถบตัววิ่ง": "Set announcements, news, and safety notices. Customize the ticker's speed, spacing, and color theme.",
+    "แสดงแถบประกาศ": "Show announcement ticker",
+    "หรือขึ้นบรรทัดใหม่)": "or start a new line)",
+    "เทมเพลตข้อความแนะนำ:": "Suggested message templates:",
+    "ช่วยให้อ่านข้อความยาวได้สะดวกเมื่อวางเคอร์เซอร์บนแถบประกาศ": "Pause over the announcement ticker to read longer messages.",
+    "การตั้งค่าที่ส่งผลกระทบอย่างถาวร เช่น การลบพื้นที่ทำงาน หรือโอนสิทธิ์ความเป็นเจ้าของ โปรดระมัดระวังเป็นอย่างยิ่ง": "These changes are permanent. Use caution when deleting this workspace or transferring ownership.",
+    "โอนสิทธิ์ความเป็นเจ้าของ": "Transfer ownership",
+    "โอนพื้นที่ทำงานนี้ให้ผู้อื่น คุณจะเสียสิทธิ์การเป็นแอดมินหลังจากโอนเสร็จสิ้น": "Transfer this workspace to someone else. You will lose administrator access after the transfer.",
+    "โอนสิทธิ์": "Transfer ownership",
+    "ลบพื้นที่ทำงาน": "Delete workspace",
+    "ลบพื้นที่ทำงานและข้อมูลทั้งหมดอย่างถาวร การกระทำนี้ไม่สามารถกู้คืนได้": "Permanently delete this workspace and all its data. This action cannot be undone.",
+    "สร้างบัญชีผู้ใช้งานใหม่พร้อมกำหนดระดับสิทธิ์เข้าใช้งานระบบ": "Create a new user account and assign an access level.",
+    "(สร้างอัตโนมัติ/กำหนดเอง)": "(generated automatically / set manually)",
+    "บันทึกผู้ใช้": "Save user",
+    "3. กรอกในตารางตรงๆ": "3. Enter data directly in the table",
+    "คู่มือรูปแบบคอลัมน์": "Column format guide",
+    "ดาวน์โหลดตัวอย่าง:": "Download a sample:",
+    "โครงสร้างหัวตารางที่รองรับ (เรียงตามลำดับ หรือมีชื่อคอลัมน์ตรงกัน):": "Supported column headers (in order or with matching names):",
+    "ปิดคู่มือ": "Close guide",
+    "(เช่น ครูสมใจ หมายมั่น)": "(e.g. Somjai Maiman)",
+    "4. กลุ่มสาระ / แผนก": "4. Department / division",
+    "(ค่าเริ่มต้น: กลุ่มสาระวิทยาศาสตร์)": "(default: Science Department)",
+    "5. อีเมล": "5. Email",
+    "ตรวจพบข้อมูล 0 รายการ": "0 records detected",
+    "เปลี่ยนไฟล์": "Change file",
+    "ล้างข้อมูล": "Clear data",
+    "รองรับไฟล์นามสกุล": "Supported file extensions:",
+    "(ระบบจะอ่านข้อมูลและแสดงในตารางด้านล่างอัตโนมัติ)": "(The system will read the file and display its contents in the table below.)",
+    "ระบบจะตรวจจับชื่อหัวตารางและแมปให้อัตโนมัติ": "The system will detect and map column headers automatically.",
+    "ใส่ตัวอย่างทดสอบ": "Insert sample data",
+    "ล้างข้อความ": "Clear text",
+    "เพิ่มแถว:": "Add rows:",
+    "+1 แถว": "+1 row",
+    "+5 แถว": "+5 rows",
+    "ใส่ข้อมูลทดสอบ": "Insert test data",
+    "เครื่องมือด่วน:": "Quick tools:",
+    "เติมอีเมลอัตโนมัติ": "Fill emails automatically",
+    "เติมกลุ่มสาระ": "Fill departments",
+    "ล้างตาราง": "Clear table",
+    "ตารางข้อมูลผู้ใช้งาน": "User data table",
+    "ทั้งหมด (": "Total (",
+    "พร้อมบันทึก:": "Ready to save:",
+    "อัปเดตคนเดิม:": "Existing users to update:",
+    "ข้อมูลไม่ครบ:": "Incomplete records:",
+    "ปรับสิทธิ์ทุกคน:": "Change access for all:",
+    "-- เลือกเพื่อเปลี่ยน --": "-- Select an access level --",
+    "ชื่อ - สกุล": "Full name",
+    "ยังไม่มีข้อมูลในตาราง": "No data in the table yet",
+    "เริ่มกรอกข้อมูล (+3 แถว)": "Start entering data (+3 rows)",
+    "โหลดตัวอย่างทดสอบ": "Load sample data",
+    "ผู้ใช้ใหม่จะใช้รหัสผ่านเป็น": "New users will use this password:",
+    "ในการเข้าสู่ระบบครั้งแรก (ผู้ใช้เปลี่ยนรหัสผ่านเองได้ตลอดเวลา)": "for their first sign-in. Users can change their password at any time.",
+    "พร้อมบันทึก: 0 คน": "Ready to save: 0 users",
+    "บันทึกและนำเข้าข้อมูล": "Save and import data",
+    "ปรับปรุงสิทธิ์การใช้งาน บทบาท และการจัดการรหัสผ่าน": "Update access, roles, and password settings.",
+    "เพื่อความปลอดภัยและความเป็นส่วนตัวของผู้ใช้ รหัสผ่านเดิมจะไม่ปรากฏให้แอดมินเห็น แต่สามารถรีเซ็ตรหัสผ่านใหม่ให้ผู้ใช้ได้": "For security and privacy, existing passwords are hidden from administrators. You can reset a user's password.",
+    "กู้คืนรหัสผ่านเริ่มต้น": "Restore default password",
+    "กำหนดรหัสผ่านใหม่ชั่วคราว": "Set a temporary password",
+    "ลบผู้ใช้นี้": "Delete this user",
+    "บันทึกการแก้ไข": "Save changes",
+    "ตู้ที่ซ่อนอยู่ (": "Hidden cabinets (",
+    "ชั้น 2 (ตรวจสอบ)": "Shelf 2 (check)",
+    "บาท": "THB",
+    "บันทึกรายการ": "Save transaction",
+    "พัสดุและสารเคมีในห้อง": "Equipment and chemicals in the room",
+    "ตู้": "Cabinet"
+  });
+  Object.assign(en, {
+    "รายละเอียดสาร/อุปกรณ์": "Chemical / equipment details",
+    "ที่เก็บ": "Location",
+    "ข้อมูลความปลอดภัยและการจัดเก็บ (Safety & Hazard Information)": "Safety and hazard information",
+    "ไม่มีสัญลักษณ์อันตรายเฉพาะ": "No specific hazard pictograms",
+    "ป้าย QR": "QR label",
+    "พิมพ์สติกเกอร์": "Print label",
+    "แก้ไขข้อมูล": "Edit information",
+    "ดูข้อมูลสต็อกและประวัติพัสดุ (เฉพาะ L3-L4)": "View inventory and equipment history (L3–L4 only)",
+    "เปิดป้ายรหัส QR Code ประจำพัสดุ": "Open this item's QR code label",
+    "พิมพ์สติกเกอร์บาร์โค้ดติดภาชนะ": "Print a barcode label for the container",
+    "สลับการแสดงผลระหว่าง QR Code และ Data Matrix (สำหรับขวด/หลอดทดลอง)": "Switch between QR code and Data Matrix (for bottles / test tubes)",
+    "คลิกเพื่อดู 2D Code ขนาดใหญ่ หรือพิมพ์ป้าย": "Click to view the 2D code larger or print a label",
+    "คลิกเพื่อขยายขนาดใหญ่ หรือกดปุ่ม ⇄ เพื่อสลับ QR / Data Matrix": "Click to enlarge or select ⇄ to switch between QR and Data Matrix",
+    "ครั้ง": "times",
+    "ปักหมุดแถบเมนู": "Pin sidebar",
+    "ปักหมุดและขยายแถบเมนู": "Pin and expand the sidebar",
+    "แผงควบคุมระบบ (Admin Panel)": "Administrator panel",
+    "แจ้งปัญหาการใช้งาน": "Report a problem",
+    "ตัวเลือกเพิ่มเติม": "More options",
+    "ข้อมูลและสต็อก (Master Data L3/L4)": "Inventory and stock (Master Data L3/L4)",
+    "พิมพ์ป้ายรหัส QR Code": "Print QR code label",
+    "บันทึกเบิก/ใช้ (Movement)": "Record issue / usage (movement)",
+    "ขอปรับปรุงยอดสต็อก": "Request stock adjustment",
+    "แก้ไขข้อมูลรายการ": "Edit item details"
+  });
+  Object.assign(en, {
+    "ประวัติการอัปเดตระบบ (Version History)": "System update history",
+    "แก้ไขปัญหาการแสดงผลกล่องค้นหา, ปุ่มต่างๆ, และหน้าจองห้องปฏิบัติการเมื่อแสดงบนหน้าจอมือถือและแท็บเล็ต": "Fixed the search box, buttons, and laboratory booking layout on phones and tablets.",
+    "แก้ไขปัญหารูปแบบไวยากรณ์ Transition ที่ไม่ถูกต้องและปิดท้ายแท็กที่สูญหายทั้งหมด": "Fixed invalid transition syntax and restored missing closing tags.",
+    "ยกเลิกการใช้งาน Service Worker และ Manifest เพื่อลดปัญหาแคชสะสม และบังคับให้เบราว์เซอร์ดึงข้อมูลใหม่เสมอ (Cache-Control)": "Disabled the service worker and manifest to prevent stale caches and ensure the browser always fetches fresh data (Cache-Control).",
+    "แก้ไขปัญหาการชนกันของคลาส CSS ที่ทำให้แถบเมนูด้านซ้ายแสดงสีเข้ม/อ่อนไม่สม่ำเสมอกัน": "Fixed conflicting CSS classes that caused inconsistent sidebar colors.",
+    "เพิ่มป๊อปอัพและเสียงจำลองเครื่องพิมพ์สติกเกอร์ฉลากติดขวดสารเคมีและอุปกรณ์เมื่อกดสั่งพิมพ์": "Added a printer-style popup and sound when printing chemical and equipment labels.",
+    "เพิ่มระบบล้างฐานข้อมูลแยกตามแต่ละโมดูลพร้อมช่องกรอกรหัสยืนยันความปลอดภัยเพื่อป้องกันข้อมูลสูญหาย": "Added per-module data clearing with a security confirmation code to help prevent accidental data loss.",
+    "เพิ่มแถบรายละเอียดราคารวม, ส่วนลดสะสม, และราคาสุทธิหลังหักส่วนลดอย่างสมบูรณ์แบบ": "Added a complete summary of subtotal, accumulated discounts, and the final discounted price.",
+    "แชทบอทวิเคราะห์คำนวณสูตรเตรียมสารละลายและความเข้มข้นอัตโนมัติ": "The chatbot can analyze solution preparation formulas and calculate concentrations automatically.",
+    "เพิ่มระบบหน้าต่างยืนยันความสำเร็จ (Booking Confirmation Modal) ทันทีหลังส่งคำขอจอง พร้อมข้อมูลสรุปและคำแนะนำเตือนใจความสำคัญให้ผู้ใช้": "Added a booking confirmation immediately after submission, with a summary and important reminders.",
+    "ไว้เป็นหลักฐานเพื่อแสดงต่อเจ้าหน้าที่ห้องปฏิบัติการอย่างชัดเจน": "Keep it as proof to show laboratory staff when you arrive.",
+    "เพิ่มแถบช่วยจำแนกของเสียห้องปฏิบัติการ 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย และระบบแนะนำจัดเก็บสารเคมีร่วมตามความเข้ากันได้ 11 กลุ่มความเข้ากันได้ (SHECU)": "Added guidance for classifying 17 laboratory waste types and compatibility-based storage recommendations for 11 SHECU chemical groups.",
+    "ติดตั้งแชทบอทให้คำปรึกษาเคมี/ปฐมพยาบาลเบื้องต้น พร้อมเครื่องดุลสมการและคำนวณมวลโมเลกุลอัตโนมัติ": "Added a chemistry and first-aid chatbot, plus tools for balancing equations and calculating molecular mass.",
+    "เปิดใช้งานระบบตารางจองคาบเวลาเข้าใช้ห้องแล็บ คัดกรองและแบ่งสิทธิ์ครูและเจ้าหน้าที่": "Launched laboratory time-slot booking with separate access for teachers and staff.",
+    "ติดตั้งระบบแจ้งเตือนสต็อกขั้นต่ำ (Min Stock) และแจ้งรายการสารเคมีใกล้และหมดอายุอัตโนมัติ": "Added minimum-stock alerts and automatic notifications for chemicals nearing or past their expiration date.",
+    "บันทึกภาพหน้าจอ (Capture)": "Capture a screenshot",
+    "เพิ่มตู้จัดเก็บ": "Add storage cabinet", "ตู้สารเคมี (Chemical Cabinet)": "Chemical cabinet", "ตู้เครื่องแก้ว (Glassware Cabinet)": "Glassware cabinet",
+    "ตู้ฉุกเฉิน / ตู้พักของรอจัดเก็บ (Emergency / Temporary Cabinet)": "Emergency / temporary cabinet", "ชื่อ / รหัส (Name / ID)": "Name / ID",
+    "จำนวนชั้นวาง (Number of Shelves)": "Number of shelves", "ความจุสุทธิ (Total Capacity)": "Total capacity", "สถานะการแสดงผล (Visibility)": "Visibility",
+    "ซ่อนตู้นี้จากผู้ใช้งานทั่วไป (เฉพาะแอดมินที่มองเห็น)": "Hide this cabinet from regular users (visible to administrators only)", "บันทึกข้อมูล": "Save",
+    "ยืนยันการลบตู้จัดเก็บ": "Confirm cabinet deletion", "คุณต้องการลบ \"": "Delete \"", "\" ออกจากระบบใช่หรือไม่? ข้อมูลทั้งหมดที่เกี่ยวข้องจะถูกลบอย่างถาวร": "\" from the system? All related data will be permanently deleted.", "ลบตู้จัดเก็บ": "Delete cabinet",
+    "คำแนะนำการจัดเก็บสารเคมี": "Chemical storage guidance", "บันทึกผลการตรวจนับครุภัณฑ์": "Save asset audit", "รหัสครุภัณฑ์:": "Asset ID:",
+    "สภาพความพร้อมใช้งาน": "Condition", "ใช้งานได้ตามปกติ (100%)": "Fully functional (100%)", "มีตำหนิเล็กน้อย แต่ยังใช้งานได้": "Minor defects, still usable",
+    "ชำรุด - อยู่ระหว่างส่งซ่อม": "Damaged — under repair", "ชำรุดใช้งานไม่ได้ (รอจำหน่ายออก)": "Damaged and unusable (pending disposal)",
+    "จำนวนในบัญชี": "Recorded quantity", "จำนวนที่นับได้จริง": "Counted quantity", "รอบปีงบประมาณที่ตรวจนับ": "Audit fiscal year", "หมายเหตุ / บันทึกเพิ่มเติม": "Notes / additional details", "บันทึกผลการตรวจนับ": "Save audit results",
+    "นำเข้าไฟล์พัสดุและสารเคมี (Excel / CSV)": "Import equipment and chemicals (Excel / CSV)", "ดาวน์โหลดไฟล์เทมเพลตและอัปโหลดเข้าสู่ฐานข้อมูลคลัง": "Download a template and upload it to the inventory database",
+    "ดาวน์โหลดไฟล์ต้นแบบเทมเพลต": "Download template", "ดาวน์โหลดไฟล์เทมเพลตเพื่อกรอกข้อมูล": "Download the data entry template", "ชีตแรกเป็นคู่มือการใช้งาน": "The first sheet contains instructions",
+    "ชีตถัดไปเป็นตารางกรอกข้อมูล": "The next sheet contains the data entry table", "เลือกไฟล์ที่กรอกข้อมูลแล้ว": "Choose a completed file", "เลือกไฟล์ Excel / CSV": "Choose an Excel / CSV file",
+    "ยังไม่ได้เลือกไฟล์": "No file selected", "• รองรับไฟล์นามสกุล": "• Supported file types:", "(ระบบจะอ่านข้อมูลจากชีตกรอกข้อมูลอัตโนมัติ)": "(The system will automatically read data from the entry sheet.)",
+    "• คอลัมน์จำเป็น:": "• Required columns:", "รหัส*, ชื่อ*, หมวดหมู่*, จำนวน*, หน่วย*": "Code*, Name*, Category*, Quantity*, Unit*",
+    "• ข้อมูลจะถูกนำเข้าและซิงค์ไปยัง Supabase Cloud และ Google Sheets แบบเรียลไทม์": "• Data will be imported and synced to Supabase Cloud and Google Sheets in real time.", "ยืนยันการนำเข้า": "Confirm import",
+    "ยืนยันการล้างข้อมูลอย่างถาวร": "Confirm permanent data deletion", "การลบข้อมูลนี้มีผลถาวรและไม่สามารถเรียกคืนได้": "This deletion is permanent and cannot be undone.",
+    "สิทธิ์การใช้งาน: เฉพาะระดับ": "Access: level", "L3 (ผู้ดูแลระบบ)": "L3 (Administrator)", "L4 (ผู้บริหาร)": "L4 (Executive)",
+    "ข้อมูลทั้งหมดในส่วนที่เลือกจะถูกลบออกจากฐานข้อมูลและหน่วยความจำอย่างถาวร เพื่อความปลอดภัยโปรด": "All data in the selected section will be permanently deleted from the database and memory. For security, please",
+    "กดปุ่มค้างไว้ (Hold to delete)": "Hold the button", "กดค้างเพื่อลบข้อมูล (Hold to delete)": "Hold to delete data", "เพื่อยืนยันการลบ": "to confirm deletion",
+    "กำลังเตรียมข้อมูลสำหรับล้างระบบ...": "Preparing data for deletion...", "กำลังยืนยัน... ปล่อยเพื่อยกเลิก": "Confirming... Release to cancel", "ยืนยันการลบแล้ว": "Deletion confirmed",
+    "เปลี่ยนสถานที่จัดเก็บ (แบบกลุ่ม)": "Change storage location (bulk)", "ระบุสถานที่จัดเก็บใหม่สำหรับพัสดุที่เลือกจำนวน": "Choose a new storage location for the selected items",
+    "ห้องเก็บสารเคมี/อุปกรณ์": "Chemical / equipment storage room", "เลือกห้อง...": "Select a room...", "ห้อง 131": "Room 131", "ห้อง 132": "Room 132", "ห้อง 133": "Room 133", "ห้อง 134": "Room 134",
+    "ห้องพักครู": "Staff room", "ตู้หมายเลข": "Cabinet number", "ชั้นที่": "Shelf", "บันทึกสถานที่ใหม่": "Save new location",
+    "แก้ไขห้องปฏิบัติการ": "Edit laboratory", "รหัสย่อสำหรับใช้เป็นตัวอ้างอิงบนตู้จัดเก็บ SHECU และรายการพัสดุ": "A short reference code for SHECU cabinets and inventory items",
+    "สถานที่ตั้งทางกายภาพของห้องปฏิบัติการ": "Physical location of the laboratory", "เลือกสีหลักของเว็บไซต์ หรือระบุโค้ดสี Hex เพื่อใช้บนผังตู้และปฏิทิน": "Choose a primary website color or enter a hex code for the cabinet map and calendar",
+    "LAB 1 • ห้องปฏิบัติการเคมี": "LAB 1 • Chemistry Laboratory", "Lab 1 (ห้องปฏิบัติการเคมี)": "Lab 1 (Chemistry Laboratory)", "อาคารวิทยาศาสตร์": "Science Building", "19 รายการ": "19 items", "บันทึกห้องปฏิบัติการ": "Save laboratory",
+    "ไม่สามารถเข้าถึงโปรเจกต์นี้ได้": "Unable to access this project", "คุณไม่มีสิทธิ์เข้าถึงโปรเจกต์นี้ กรุณาขอสิทธิ์จากผู้ดูแล": "You do not have access to this project. Please request access from an administrator.",
+    "ขอสิทธิ์เข้าถึง": "Request access", "รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง": "The teacher ID or password is incorrect", "จดจำการเข้าสู่ระบบ": "Remember me",
+    "ข้อมูลบัญชีผู้ใช้งาน": "Account information", "รหัสผู้ใช้": "User ID", "อีเมลติดต่อ": "Contact email", "ห้องปฏิบัติการที่รับผิดชอบ": "Assigned laboratory", "ทุกห้องปฏิบัติการ": "All laboratories",
+    "สถานะการใช้งาน": "Account status", "เข้าสู่ระบบอยู่ (Active)": "Active", "สิทธิ์การใช้งานที่ได้รับ": "Granted permissions", "ตามระดับสิทธิ์": "Based on access level",
+    "สแกนคิวอาร์โค้ด / บาร์โค้ด": "Scan QR code / barcode", "วางคิวอาร์โค้ดหรือบาร์โค้ดให้อยู่ในกรอบของกล้องเพื่อทำการสแกน": "Place the QR code or barcode inside the camera frame to scan it",
+    "ยืนยันการดำเนินการ": "Confirm action", "คุณแน่ใจหรือไม่ว่าต้องการดำเนินการนี้?": "Are you sure you want to continue?",
+    "ยืนยันการลบพื้นที่ทำงาน": "Confirm workspace deletion", "การกระทำนี้จะล้างข้อมูลทั้งหมดในระบบอย่างถาวร": "This action will permanently delete all system data.", "คำเตือนสำคัญ: ข้อมูลจะไม่สามารถกู้คืนได้!": "Important: This data cannot be recovered!",
+    "เพื่อยืนยัน": "to confirm", "กำลังล้างพื้นที่ทำงาน...": "Clearing workspace...", "ผู้ช่วยแล็บอัจฉริยะ": "Smart Lab Assistant", "ออนไลน์ • พร้อมช่วยเหลือตลอด 24 ชม.": "Online • Available 24/7",
+    "สืบค้นคลังพัสดุ": "Search inventory", "เช็คสต็อก/หมดอายุ": "Check stock / expiration", "คำนวณเคมี": "Chemistry calculator", "ดุลสมการ/มวลโมเลกุล": "Balance equations / molecular mass", "จำแนกของเสีย/สารหก": "Classify waste / spills",
+    "โปรดบันทึกภาพหน้าจอ!": "Please save a screenshot!", "ส่งซ่อมพัสดุ (ชำรุด -> ส่งซ่อม)": "Send equipment for repair (damaged → under repair)", "ซ่อมเสร็จสิ้น (ลดชำรุด/ส่งซ่อม -> เพิ่มคลังสินค้าที่ดี)": "Repair complete (reduce damaged / under repair, return to usable stock)",
+    "จ่ายออก/ทิ้ง (ซ่อมไม่ได้ -> หักยอดชำรุดถาวร)": "Write off / dispose (unrepairable → permanently remove from damaged stock)", "ยอดชำรุด (Damaged)": "Damaged quantity", "ยอดส่งซ่อม (Under Repair)": "Under repair",
+    "ความปลอดภัย SHECU": "SHECU Safety", "เอกสาร SDS": "SDS documents", "มาตรฐานความปลอดภัยห้องปฏิบัติการ ESPReL & จุฬาลงกรณ์มหาวิทยาลัย (SHECU)": "Laboratory safety standards from ESPReL and Chulalongkorn University (SHECU)",
+    "สารเคมีต้องถูกจัดเก็บแยกตามกลุ่มความเข้ากันไม่ได้เพื่อป้องกันปฏิกิริยารุนแรง:": "Store chemicals separately by incompatibility group to prevent hazardous reactions:", "ห้ามเก็บกรดร่วมกับเบส:": "Never store acids with bases:", "แยกตู้เก็บกรดและตู้เก็บด่างอย่างเด็ดขาด": "Keep acids and alkalis in separate cabinets.",
+    "สารไวไฟร่วมกับตัวออกซิไดซ์:": "Flammables and oxidizers:", "สารอันตรายสูง / ไอน้ำมัน:": "Highly hazardous substances / oil vapors:", "แยกเก็บในตู้ดูดควัน (Fume Hood) และติดป้ายเตือนอันตราย": "Store in a fume hood and post a hazard warning.",
+    "สูงสุด 80%": "Maximum 80%", "ตรวจสอบความจุของตู้เก็บสารเคมีและชั้นวาง": "Check the capacity of chemical cabinets and shelves.", "ไม่ควรเก็บเกิน 80%": "Do not exceed 80%", "ของพื้นที่จัดเก็บ เพื่อให้มีการระบายอากาศที่ดี สะดวกต่อการหยิบใช้ และป้องกันอุบัติเหตุขวดสารเคมีเบียดตกหล่น": "of storage capacity. This allows ventilation, easy access, and helps prevent bottles from being knocked over.",
+    "ล้างน้ำ 15 นาที": "Rinse for 15 minutes", "หากสารเคมีกระเด็นเข้าตาหรือสัมผัสร่างกาย ให้ล้างด้วยน้ำสะอาดจากอ่างล้างตาฉุกเฉินหรือฝักบัวฉุกเฉินอย่างต่อเนื่องเป็นเวลาอย่างน้อย": "If chemicals get in your eyes or on your skin, rinse continuously at an emergency eyewash or shower for at least", "ห้ามขยี้ตา และรีบแจ้งห้องพยาบาลทันที": "Do not rub your eyes. Notify the nurse immediately.",
+    "รหัสสากล": "International identifier", "เป็นรหัสเฉพาะสากลสำหรับสารเคมีแต่ละชนิด สามารถตรวจสอบได้จากฉลากข้างขวด หรือค้นหาผ่านตารางคลังสารเคมีในระบบเพื่อความแม่นยำในการเตรียมการทดลอง": "is a unique identifier for each chemical. Check the bottle label or search the system inventory to prepare experiments accurately.",
+    "ข้อมูลสารเคมี/บริษัท": "Identification / company", "ระบุความเป็นอันตราย": "Hazard identification", "ส่วนประกอบ/ข้อมูลผสม": "Composition / ingredients", "มาตรการปฐมพยาบาล": "First-aid measures", "มาตรการผจญเพลิง": "Fire-fighting measures", "การจัดการเมื่อหกรั่วไหล": "Accidental release measures", "การใช้และการจัดเก็บ": "Handling and storage", "สมบัติกายภาพและเคมี": "Physical and chemical properties", "ความคงตัว/ปฏิกิริยา": "Stability and reactivity", "ข้อมูลด้านพิษวิทยา": "Toxicological information", "ข้อมูลผลกระทบนิเวศ": "Ecological information", "มาตรการกำจัดของเสีย": "Disposal considerations", "ข้อมูลการขนส่ง": "Transport information", "กฎหมายและข้อบังคับ": "Regulatory information", "ข้อมูลอื่นๆ ที่เกี่ยวข้อง": "Other information",
+    "ถังแดง: สารไวไฟ": "Red bin: Flammable substances", "ตัวทำละลายอินทรีย์ (Organic Solvents เช่น เอทานอล, อะซิโตน, เมทานอล)": "Organic solvents such as ethanol, acetone, and methanol", "ถังน้ำเงิน: กรด-เบส": "Blue bin: Acids and bases", "สารละลายน้ำ / สารละลายกรดและเบสเจือจาง (Aqueous Acid-Base)": "Aqueous solutions / dilute acids and bases", "ถังเหลือง: ของแข็ง": "Yellow bin: Solids", "ของแข็งปนเปื้อนเคมี กระดาษกรอง ถุงมือไนไตรล์ หรือขวดแก้วเปล่า": "Chemically contaminated solids, filter paper, nitrile gloves, or empty glass bottles",
+    "ข้อปฏิบัติและมาตรการความปลอดภัยในการทิ้งของเสีย": "Safe waste disposal practices", "ข้อกำหนด SHECU": "SHECU requirements", "ห้ามเทสารเคมีลงอ่างล้างท่อ:": "Never pour chemicals down the drain:", "สารละลายเคมีทุกชนิดต้องทิ้งลงในถังรองรับของเสียที่กำหนดไว้เท่านั้น": "Dispose of all chemical solutions in designated waste containers only.", "ปิดฝาถังให้สนิท:": "Close container lids tightly:", "ปิดฝาถังขยะเคมีให้แน่นหนาทุกครั้งหลังการทิ้ง เพื่อป้องกันการระเหยของไอระเหยสารเคมี": "Secure chemical waste lids after every use to prevent vapors from escaping.", "บันทึกชื่อสาร ปริมาณ และวันที่ทิ้งลงในสมุดประจำห้องแล็บทุกครั้ง": "Record the substance, quantity, and disposal date in the laboratory log each time.",
+    "ครู / ผู้ใช้": "Teacher / user", "ขั้นที่ 1 (เลือกวันเวลา):": "Step 1 (choose a date and time):", "เข้าเมนู": "Open", "\"จองห้องปฏิบัติการ\"": "\"Lab Booking\"", "ตรวจสอบปฏิทิน แล้วเลือกห้องและคาบเรียนที่ว่าง": "Check the calendar and choose an available room and period.", "ขั้นที่ 2 (ระบุสารเคมี/พัสดุ):": "Step 2 (list chemicals / equipment):", "กรอกชื่อผู้จอง วัตถุประสงค์ และระบุรายการพัสดุที่ต้องการให้จัดเตรียมล่วงหน้า": "Enter the booker and purpose, and list any equipment to prepare in advance.", "ขั้นที่ 3 (รออนุมัติ):": "Step 3 (await approval):", "เจ้าหน้าที่ประจำห้อง (L2) หรือแอดมิน (L3) จะตรวจสอบและอนุมัติการเข้าใช้งาน": "Room staff (L2) or an administrator (L3) will review and approve the booking.",
+    "ตัดสต็อก Real-time": "Real-time stock deduction", "ขั้นที่ 1 (ค้นหาคลัง):": "Step 1 (search inventory):", "ค้นหาชื่อสารเคมีหรือเครื่องแก้ว กำหนดจำนวนและวันที่ต้องการส่งคืน": "Find chemicals or glassware, then enter the quantity and return date.", "ขั้นที่ 2 (ยื่นคำขอยืม):": "Step 2 (submit a loan request):", "ระบบส่งคำขอและตัดยอดคงเหลือในคลังสารเคมีทันทีแบบอัตโนมัติ": "The system submits the request and automatically updates available stock.", "ขั้นที่ 3 (ตรวจรับคืน):": "Step 3 (process the return):", "ตรวจสอบสภาพอุปกรณ์ก่อนกดรับคืน หรือบันทึกยอดชำรุดหากมีความเสียหาย": "Inspect equipment before accepting the return, and record any damage.",
+    "สแกนมือถือ": "Scan with a phone", "ขั้นที่ 1 (สแกนผ่านกล้อง):": "Step 1 (scan with the camera):", "สแกน QR Code ข้างขวดหรือหน้าตู้เพื่อดูยอดคงเหลือและตำแหน่งจัดเก็บ": "Scan the QR code on a bottle or cabinet to view stock and storage location.", "ขั้นที่ 2 (พิมพ์สติกเกอร์ฉลาก):": "Step 2 (print a label):", "เจ้าหน้าที่ L2+ สามารถกดพิมพ์ฉลากบาร์โค้ด QR Code ติดขวดสารใหม่ได้ทันที": "L2 staff and above can print a QR code label for a new chemical bottle.", "ขั้นที่ 3 (อัปเดตยอดคงเหลือ):": "Step 3 (update stock):", "บันทึกการรับเข้า หรือแก้ไขจุดเตือนขั้นต่ำ (Min Alert) เพื่อป้องกันของหมดคลัง": "Record incoming stock or adjust the minimum alert to prevent stockouts.",
+    "เบอร์ติดต่อฉุกเฉินประจำห้องแล็บ": "Laboratory emergency contacts", "แก้ไขข้อมูล": "Edit information", "แอดมิน (ม.วงศกร)": "Administrator (Wongsakorn)", "ห้องพยาบาล": "Nurse's office", "ห้องพยาบาล: อาคาร 1": "Nurse's office: Building 1", "เหตุเพลิงไหม้ / กู้ภัย": "Fire / rescue", "แจ้งเหตุเพลิงไหม้: 199": "Fire emergency: 199", "แก้ไขเบอร์ติดต่อฉุกเฉิน": "Edit emergency contacts", "เบอร์แอดมิน / ผู้ดูแล": "Administrator / manager number", "เบอร์ห้องพยาบาล": "Nurse's office number", "เบอร์แจ้งเหตุเพลิงไหม้ / กู้ภัย": "Fire / rescue number", "ส่ง Feedback หรือแจ้งปัญหาการใช้งาน": "Send feedback or report a problem", "ช่วยเหลือ & แนะนำ": "Help and feedback", "หากพบข้อผิดพลาด ต้องการสอบถาม หรือมีข้อเสนอแนะในการพัฒนาระบบ สามารถพิมพ์ข้อความส่งถึงผู้ดูแลระบบได้ทันที": "If you find an issue, have a question, or want to suggest an improvement, send a message to the administrator.", "ส่งข้อความ": "Send message", "ผู้พัฒนาและดูแลระบบบริหารจัดการห้องปฏิบัติการวิทยาศาสตร์": "Developer and maintainer of the science laboratory management system", "วัตถุประสงค์และมาตรฐานระบบ": "System purpose and standards", "ระบบนี้พัฒนาขึ้นเพื่อยกระดับการจัดการคลังสารเคมี อุปกรณ์วิทยาศาสตร์ และการจองห้องปฏิบัติการตามมาตรฐานความปลอดภัย SHECU มุ่งเน้นการอำนวยความสะดวกในการเรียนการสอนและงานวิจัยอย่างมีประสิทธิภาพสูงสุด": "This system supports chemical and equipment inventory management and laboratory bookings in line with SHECU safety standards, helping teaching and research run efficiently.",
+    "แสดงแถบประกาศหน้าแรก": "Show homepage announcement", "เปิดหรือปิดการแสดงแถบประกาศสำหรับผู้ใช้ทุกคน": "Show or hide the announcement bar for all users", "เปิดใช้งาน": "Enable", "หรือขึ้นบรรทัดใหม่):": "or start a new line):", "เทมเพลต:": "Templates:", "ชุดมาตรฐาน": "Standard", "ตรวจสต็อก": "Stock check", "ปรับปรุงระบบ": "Maintenance", "ปรับแต่งความเร็ว ระยะห่าง และธีมสี": "Customize speed, spacing, and color theme", "ข้อความหัวข้อป้าย": "Badge text", "ธีมสีป้าย": "Badge theme", "ความเร็วเลื่อน": "Scroll speed", "เร็ว": "Fast", "ช้า": "Slow", "ระยะเว้นวรรค": "Item spacing", "แคบ": "Narrow", "กว้าง": "Wide", "บันทึกประกาศ": "Save announcements",
+    "ยืนยันการสร้างใบเบิกซื้อ (Auto-PO)": "Confirm automatic purchase order", "ระบบจะทำการสร้างใบสั่งซื้อชั่วคราวสำหรับพัสดุและสารเคมีที่": "The system will create a draft purchase order for equipment and chemicals that are",
+    "ต่ำกว่าจุดสั่งซื้อ": "below the reorder point", "อัตโนมัติ กรุณาตรวจสอบและยืนยันการดำเนินการ": "automatically. Review and confirm to continue.", "จำนวนรายการพัสดุ:": "Number of items:", "ประมาณการมูลค่ารวม:": "Estimated total:", "ยืนยันการสร้างใบสั่งซื้อ": "Confirm purchase order", "ยืนยันการล้างรายการ": "Confirm clearing items", "คุณแน่ใจหรือไม่ว่าต้องการล้างรายการสั่งซื้อทั้งหมด?": "Are you sure you want to clear all purchase orders?", "*การกระทำนี้ไม่สามารถเรียกคืนข้อมูลกลับมาได้": "*This action cannot be undone.", "ล้างรายการทั้งหมด": "Clear all items",
+    "เครื่องพิมพ์สติกเกอร์ QR Code": "QR code label printer", "พิมพ์สติกเกอร์ (Print Label)": "Print label", "ปิดหน้าต่าง": "Close window",
+    "ประเภท (Type)": "Type", "และ": "and", "หรือ": "or", "Excel (.xlsx) แนะนำ (2 ชีต)": "Excel (.xlsx) recommended (2 sheets)", "STATION SIGN PREVIEW (ตัวอย่างป้ายสถานีรถไฟใต้ดิน NYC)": "Station sign preview (NYC subway style)",
+    "รหัสห้อง (STATION / LINE CODE)": "Room code (station / line code)", "อาคาร / สถานที่ตั้ง (CONCOURSE)": "Building / location", "ชื่อห้องปฏิบัติการ (STATION NAME)": "Laboratory name", "สีประจำห้อง (CORE WEBSITE PALETTE)": "Laboratory color (core website palette)",
+    "รายละเอียดตู้เก็บพัสดุ": "Cabinet details", "คำเตือนความปลอดภัย (SHECU Incompatibility)": "Safety warning (SHECU incompatibility)", "มีสารเคมีที่ไม่ควรเก็บร่วมตู้เดียวกันเนื่องจากมีความเสี่ยงเกิดปฏิกิริยารุนแรง": "Some chemicals should not share a cabinet because they may react dangerously.",
+    "จัดการพัสดุชำรุดและส่งซ่อม": "Manage damaged equipment and repairs", "รหัส: -": "Code: -", "ชำรุดทั้งหมด": "Total damaged", "อยู่ระหว่างส่งซ่อม": "Under repair", "เลือกการดำเนินการ": "Choose an action", "ดำเนินการจากส่วนใด": "Apply action to", "จำนวนที่ต้องการจัดการ": "Quantity to process", "จำนวนสูงสุดที่ทำรายการได้: -": "Maximum quantity allowed: -",
+    "โปรดบันทึกภาพหน้าจอ!": "Please save a screenshot!", "กรุณา": "Please", "แคปภาพหน้าจอนี้ไว้": "save a screenshot of this page", "เพื่อใช้เป็นหลักฐานยืนยันการจองกับเจ้าหน้าที่เมื่อเข้าใช้งานห้องปฏิบัติการ": "as proof of your booking when you arrive at the laboratory.", "รายละเอียดการจอง": "Booking details", "หมายเลขการจอง": "Booking number", "ห้องปฏิบัติการ:": "Laboratory:", "วันที่ใช้งาน:": "Date:", "คาบเวลา:": "Time slot:", "ระดับชั้นเรียน:": "Grade:", "จำนวนนักเรียน:": "Students:", "คุณครูผู้สอน:": "Teacher:", "กิจกรรมที่ใช้:": "Activity:", "สถานะ:": "Status:", "รายการอุปกรณ์เตรียมแล็บ:": "Lab preparation items:", "รับทราบและปิด": "Got it, close",
+    "ถาม Stoki AI": "Ask Stoki AI", "สวัสดีครับ! มีอะไรให้ Stoki ช่วยวันนี้? 👋": "Hello! How can Stoki help you today? 👋", "ผมคือผู้ช่วยอัจฉริยะประจำห้องปฏิบัติการ พร้อมช่วยคุณค้นหาสารเคมี ตรวจสอบสต็อก คำนวณสูตรเคมี และแนะนำแนวทางความปลอดภัยตามมาตรฐาน SHECU": "I am your laboratory assistant. I can help find chemicals, check stock, calculate formulas, and provide SHECU safety guidance.",
+    "คำสั่งด่วนที่พบบ่อย (Quick Actions)": "Quick actions", "9 รายการ": "9 items", "ค้นหาพัสดุ/สารเคมี": "Find equipment / chemicals", "สืบค้นตามชื่อหรือ CAS": "Search by name or CAS", "เช็คสต็อก/หมดอายุ": "Check stock / expiration", "ตรวจเช็คสต็อกต่ำ": "Check low stock", "รายการใกล้หมดคลัง": "Low-stock items", "เช็คสารหมดอายุ": "Check expired chemicals", "ตรวจวันหมดอายุ": "Check expiration dates", "ดุลสมการเคมี": "Balance chemical equations", "ระบบดุลอัตโนมัติ": "Automatic equation balancing", "คำนวณมวลโมเลกุล": "Calculate molecular mass", "วิธีเตรียมสารละลาย": "Solution preparation", "คำนวณความเข้มข้น M, N": "Calculate concentration (M, N)", "ปฐมพยาบาลสารหก": "Chemical spill first aid", "ขั้นตอนกรณีฉุกเฉิน": "Emergency procedures", "จำแนกประเภทของเสีย": "Classify waste", "แนะนำวิธีการใช้งานระบบคลังและห้องแล็บ": "Learn how to use inventory and laboratory tools", "คู่มือการใช้งานฟังก์ชันหลักของระบบ": "Guide to the system's main features", "เพื่อส่ง": "to send",
+    "SHECU Information Center • มาตรฐานความปลอดภัยห้องปฏิบัติการและการใช้งานระบบ": "SHECU information center • Laboratory safety standards and system guide", "หมวดหมู่คู่มือ": "Guide categories", "จัดการของเสีย": "Waste management", "คู่มือระบบ": "System guide", "แจ้งปัญหา / ติดต่อ": "Report an issue / contact", "ผู้พัฒนาระบบ": "System developer", "ระบบความปลอดภัยพร้อมใช้": "Safety system ready", "เวอร์ชันระบบ (App Version)": "App version", "ฐานข้อมูล & สำรองคลาวด์": "Database and cloud backup",
+    "ขั้นตอน: ": "Step: ", "เลข": "Number", "15 นาที": "15 minutes", "GHS 16 ส่วน": "16 GHS sections", "การควบคุม/อุปกรณ์ PPE": "Exposure controls / PPE", "บันทึกสมุดของเสีย (Waste Log):": "Waste log:", "1. การจองห้องปฏิบัติการ (Lab Booking Workflow)": "1. Laboratory booking workflow", "2. การเบิก-ยืมพัสดุและสารเคมี (Borrowing & Return Workflow)": "2. Equipment and chemical borrowing / return workflow", "3. การตรวจนับสต็อกและสแกน QR Code (Inventory & QR)": "3. Inventory audit and QR scanning",
+    "วันที่ใช้งาน": "Date", "ระดับชั้นเรียน": "Grade", "จำนวนนักเรียน": "Students", "คุณครูผู้สอน": "Teacher", "กิจกรรมที่ใช้": "Activity", "รายการอุปกรณ์เตรียมแล็บ": "Lab preparation items", "รายละเอียดการจองห้อง": "Booking details", "ยกเลิกการจอง": "Cancel booking", "ปฏิเสธคำขอ": "Reject request",
+    "ไม่พบข้อมูลอุปกรณ์": "Equipment not found", "บันทึกการแจ้งซ่อมเรียบร้อยแล้ว": "Repair request saved", "บันทึกการบำรุงรักษาเรียบร้อยแล้ว": "Maintenance record saved", "ไม่สามารถสร้าง QR Code ได้": "Unable to create the QR code", "เกิดข้อผิดพลาดในการโหลด QR Code": "An error occurred while loading the QR code", "กรุณาเลือกรายการที่ต้องการพิมพ์ QR Code": "Select an item to print a QR code", "ไม่พบข้อมูลรายการยืม": "Loan record not found", "บันทึกรับคืนพัสดุเรียบร้อยแล้ว": "Equipment return recorded", "ไม่พบคำขอจัดซื้อ": "Purchase request not found", "ตรวจรับพัสดุเรียบร้อย ยอดคงคลังได้รับการเพิ่มโดยอัตโนมัติ": "Receiving complete. Inventory has been updated automatically.", "บันทึกคำขอปรับปรุงยอดสต็อกเรียบร้อยแล้ว": "Stock adjustment request saved", "กรุณาระบุตัวเลขที่ถูกต้อง": "Enter a valid number", "คัดลอกรหัสผ่าน:": "Copy password:", "ระบุความจุสูงสุดของตู้นี้ (จำนวนขวด/รายการ):": "Enter this cabinet's maximum capacity (bottles / items):",
+    "รายการสารเคมี ครุภัณฑ์ ประวัติเบิก-จ่าย และข้อมูลการจองห้องแล็บทั้งหมดจะถูกลบออกจากระบบอย่างสมบูรณ์ เพื่อความปลอดภัยโปรด": "All chemicals, equipment, transaction histories, and laboratory bookings will be permanently deleted. For security, please",
+    "กดค้างเพื่อลบพื้นที่ทำงาน (Hold to delete)": "Hold to delete workspace", "มาตรฐาน SHECU": "SHECU standards", "บันทึกการจองห้องแล็บสำเร็จ": "Laboratory booking saved successfully",
+    "ศูนย์ข้อมูล และความปลอดภัย": "Information and safety center", "การจัดเก็บสารเคมีไม่เข้ากัน (Incompatible Chemicals)": "Incompatible chemical storage", "ต้องแยกจัดเก็บในตู้เก็บสารนิรภัย (Flammable Safety Cabinet)": "Store separately in a flammable safety cabinet",
+    "การควบคุมความจุตู้จัดเก็บ (Cabinet Storage Capacity)": "Cabinet storage capacity", "การปฐมพยาบาล & อ่างล้างตาฉุกเฉิน (Emergency Eyewash)": "First aid and emergency eyewash", "การค้นหาและตรวจสอบเลข CAS No.": "Search and verify CAS numbers",
+    "โครงสร้างเอกสารข้อมูลความปลอดภัย SDS ครบทั้ง 16 หัวข้อ": "All 16 sections of a Safety Data Sheet (SDS)", "เอกสาร SDS ตามระบบ GHS สรุปข้อมูลความปลอดภัย 16 ส่วนมาตรฐาน เพื่อใช้ประเมินความเสี่ยงก่อนปฏิบัติการ:": "A GHS Safety Data Sheet summarizes 16 standard sections to help assess risks before laboratory work:",
+    "ผู้ดูแลระบบ (Admin)": "Administrator", "จัดการแถบประกาศหน้าแรก (Announcement Ticker)": "Manage homepage announcement ticker", "ข้อความประกาศ (คั่นแต่ละข้อความด้วยเครื่องหมาย": "Announcement text (separate messages with",
+    "หยุดเลื่อนเมื่อนำเมาส์ชี้ (Pause on Hover)": "Pause on hover", "ตัวอย่างสด (Live Preview):": "Live preview:", "ประกาศ & ความปลอดภัย": "Announcements and safety", "55 วินาที": "55 seconds", "0 รายการ": "0 items", "0.00 บาท": "THB 0.00", "จัดเก็บ: -": "Storage: -",
+    "แก้ไขการแสดงผลบนอุปกรณ์เคลื่อนที่ (Mobile Responsiveness UI Fix):": "Mobile layout fixes", "ปรับปรุงประสิทธิภาพไวยากรณ์ (CSS Code Quality):": "CSS code quality improvements", "ปิดระบบ PWA และ Offline Cache:": "Disable PWA and offline cache", "แก้ไขการแสดงผลแถบเมนู (Sidebar Active UI):": "Fix active sidebar appearance",
+    "ระบบพิมพ์สติกเกอร์บาร์โค้ด QR Code แบบแอนิเมชันพร้อมเสียง (Animated QR Code Label Printer):": "Animated QR code label printer with sound", "ระบบล้างข้อมูล Admin (Admin Data Clearing):": "Administrator data clearing", "สรุปข้อมูลยอดราคารวมตารางสั่งซื้อสะสม (Committed PO Summary):": "Committed purchase order summary", "คู่มือเตรียมสารเคมีในระบบ Catalyst:": "Catalyst chemical preparation guide",
+    "ป๊อปอัพใบยืนยันการจองหลังจองห้องแล็บสำเร็จ (Booking Confirmation Modal):": "Booking confirmation popup", "ระบบจำแนกของเสียและคู่มือการจัดเก็บเคมีร่วมกัน (CU WasteTrack & Storage Guide):": "CU WasteTrack and chemical compatibility storage guide", "ผู้ช่วย AI แชทบอท Catalyst และเครื่องคำนวณสูตรเคมี:": "Catalyst AI chatbot and chemistry calculator", "ระบบจองห้องปฏิบัติการ (Lab Booking Suite):": "Laboratory booking suite", "การจัดการคลังสารเคมีแจ้งเตือนหมดอายุ:": "Chemical inventory expiration alerts",
+    "แก้ไขการแสดงผลบนอุปกรณ์เคลื่อนที่": "Fix mobile display", "ปรับปรุงประสิทธิภาพไวยากรณ์": "Improve code quality", "ปิดระบบ PWA และ Offline Cache": "Disable PWA and offline cache", "แก้ไขการแสดงผลแถบเมนู": "Fix sidebar display", "ระบบพิมพ์สติกเกอร์บาร์โค้ด QR Code แบบแอนิเมชันพร้อมเสียง": "Animated QR code label printer with sound", "ระบบล้างข้อมูล Admin": "Administrator data clearing", "สรุปข้อมูลยอดราคารวมตารางสั่งซื้อสะสม": "Committed purchase order summary", "คู่มือเตรียมสารเคมีในระบบ Catalyst": "Catalyst chemical preparation guide", "ป๊อปอัพใบยืนยันการจองหลังจองห้องแล็บสำเร็จ": "Booking confirmation popup", "ระบบจำแนกของเสียและคู่มือการจัดเก็บเคมีร่วมกัน": "Waste classification and chemical storage guide", "ผู้ช่วย AI แชทบอท Catalyst และเครื่องคำนวณสูตรเคมี": "Catalyst AI chatbot and chemistry calculator", "ระบบจองห้องปฏิบัติการ": "Laboratory booking system", "การจัดการคลังสารเคมีแจ้งเตือนหมดอายุ": "Chemical inventory expiration alerts",
+    "เช่น ตู้ A, ตู้สารเคมี 1": "e.g. Cabinet A, Chemical Cabinet 1", "ระบุจำนวนชั้น (เช่น 4)": "Enter the number of shelves (e.g. 4)", "ความจุสูงสุด (รายการ)": "Maximum capacity (items)", "เช่น แบตเตอรี่เสื่อมสภาพ, อุปกรณ์ครบชุด": "e.g. Degraded battery, complete equipment set", "เช่น 01 หรือ A": "e.g. 01 or A", "เช่น 2": "e.g. 2",
+    "ปิด (Close)": "Close", "EXIT / ปิดหน้าต่าง": "Exit / close window", "เช่น Lab 1, Lab 9, STEM": "e.g. Lab 1, Lab 9, STEM", "เช่น อาคารอัสสัมชัญ ชั้น 3": "e.g. Assumption Building, 3rd floor", "เช่น ห้องปฏิบัติการเคมี, ห้องปฏิบัติการวิเคราะห์": "e.g. Chemistry Laboratory, Analysis Laboratory", "คลิกเพื่อเลือกสีอิสระ": "Click to choose a custom color",
+    "เข้าสู่ระบบด้วย Google": "Sign in with Google", "ครูผู้สอน (Demo Teacher T101)": "Teacher (demo account T101)", "ผู้ดูแลระบบ (Demo Admin)": "Administrator (demo account)", "เปิดแชทกับผู้ช่วย AI Stoki": "Open chat with Stoki AI", "ระบบพร้อมให้บริการ": "System is ready", "รีเซ็ตการสนทนา": "Reset conversation", "ปิดหน้าต่างแชท": "Close chat", "พิมพ์คำถาม เช่น โซเดียมไฮดรอกไซด์, ดุลสมการ...": "Ask a question, e.g. sodium hydroxide or balance an equation...", "ส่งข้อความ (Enter)": "Send message (Enter)",
+    "เช่น แอดมิน (ม.วงศกร): 08x-xxx-xxxx": "e.g. Administrator: 08x-xxx-xxxx", "เช่น ห้องพยาบาล: อาคาร 1 (เบอร์ 104)": "e.g. Nurse's office: Building 1 (ext. 104)", "เช่น แจ้งเหตุเพลิงไหม้: 199": "e.g. Fire emergency: 199", "อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ...": "Describe the issue or share your suggestion...", "สวมใส่อุปกรณ์ PPE ทุกครั้งที่เข้าแล็บ | การทดลองที่มีไอระเหยต้องทำในตู้ดูดควัน Fume Hood": "Wear PPE in the laboratory | Perform experiments that produce vapors in a fume hood",
+    "ข้อความและเนื้อหาประกาศ (Announcement Content)": "Announcement content", "ปรับแต่งการแสดงผลและความเร็ว (Customization & Motion)": "Display and motion settings", "กำหนดชื่อห้อง อาคารสถานที่ และเลือกเฉดสีประจำห้องปฏิบัติการ สำหรับผังตู้จัดเก็บ SHECU และปฏิทิน": "Set laboratory names, building locations, and room colors for the SHECU cabinet map and calendar.", "ตู้จัดเก็บตามผัง SHECU": "SHECU storage cabinets",
+    "ระดับบทบาทและสิทธิ์การใช้งาน (Role Level)": "Roles and access levels", "L1 — Teacher / User (ครูผู้สอน: ยืม-คืน, จองห้อง, แจ้งชำรุด)": "L1 — Teacher / User (borrow and return items, book rooms, report damage)", "L2 — Staff / Operator (เจ้าหน้าที่แล็บ: ดูแลคลัง, ตรวจรับคืน, ผังตู้, ซ่อมบำรุง)": "L2 — Staff / Operator (manage inventory, process returns, manage cabinets, and maintain equipment)", "L3 — Manager / System Manager (ผู้ดูแลระบบ: จัดการทุก Function)": "L3 — Manager / System Manager (manage all system functions)", "L4 — Executive / Head of Dept (ผู้บริหาร: ดูภาพรวมทั้งหมด Read-Only)": "L4 — Executive / Head of Department (view all summaries; read only)",
+    "ระบบจะใช้ Teacher ID เป็น Username และ Password เริ่มต้นในการเข้าสู่ระบบครั้งแรก": "Your Teacher ID will be used as your username and initial password for your first sign-in.", "กำหนดห้องปฏิบัติการที่รับผิดชอบ (สำหรับระดับ L2)": "Assign laboratories (for L2 staff)", "เจ้าหน้าที่ L2 จะสามารถจัดการคลัง ตรวจรับคืน และดูแลผังตู้เฉพาะห้องที่เลือกไว้เท่านั้น:": "L2 staff can manage inventory, process returns, and maintain cabinets only in their assigned laboratories:",
+    "Lab 1: เคมี อาคารอัสสัมชัญ": "Lab 1: Chemistry, Assumption Building", "Lab 2: ฟิสิกส์ อาคารเซนต์ปีเตอร์": "Lab 2: Physics, St. Peter Building", "Lab 3: ชีววิทยา อาคารเซนต์ปีเตอร์": "Lab 3: Biology, St. Peter Building", "Lab 4: วิทย์ อาคารราฟาเอล": "Lab 4: Science, Raphael Building", "Lab 5: สสวท. อาคารราฟาเอล": "Lab 5: IPST, Raphael Building", "Lab 6: วิทย์ อาคารอัสสัมชัญ": "Lab 6: Science, Assumption Building", "Lab 7: ศูนย์ STEM CENTER": "Lab 7: STEM Center", "Lab 8: วิทย์ EP อาคารยอห์น แมรี่": "Lab 8: Science EP, John Mary Building",
+    "เลือกวิธีนำเข้าข้อมูล: อัปโหลดไฟล์ Excel / CSV, วางข้อความจากตาราง, หรือกรอกข้อมูลโดยตรง": "Choose an import method: upload an Excel / CSV file, paste table data, or enter data directly.", "1. อัปโหลดไฟล์ (Excel/CSV)": "1. Upload a file (Excel / CSV)", "2. วางข้อความ (Copy-Paste)": "2. Paste data", "(เช่น 1001, T045)": "(e.g. 1001, T045)", "2. ชื่อ - นามสกุล *": "2. Full name *", "3. สิทธิ์ (Role)": "3. Access level (role)", "(L1 ครู, L2 จนท., L3 แอดมิน, L4 ผู้บริหาร)": "(L1 Teacher, L2 Staff, L3 Admin, L4 Executive)", "(เช่น user@school.ac.th)": "(e.g. user@school.ac.th)", "6. ห้องแล็บ (เฉพาะ L2)": "6. Laboratory (L2 only)", "(เช่น Lab 1, Lab 6)": "(e.g. Lab 1, Lab 6)", "ไฟล์: data.xlsx": "File: data.xlsx", "คลิกเพื่อเลือกไฟล์ หรือลากไฟล์ Excel / CSV มาวางที่นี่": "Click to choose a file, or drag an Excel / CSV file here", "วางข้อมูลที่คัดลอกจาก Excel หรือ Google Sheets:": "Paste data copied from Excel or Google Sheets:", "แปลงข้อมูลเข้าสู่ตาราง (Parse Data)": "Parse data into a table", "L1 ครูผู้สอน (Teacher)": "L1 Teacher", "L2 เจ้าหน้าที่แล็บ (Lab Staff)": "L2 Laboratory staff", "L3 ผู้ดูแลระบบ (Admin)": "L3 Administrator", "L4 ผู้บริหาร (Executive)": "L4 Executive", "อัปโหลดไฟล์ Excel/CSV, คัดลอกข้อความมาวาง, หรือกดปุ่มด้านล่างเพื่อเริ่มกรอกข้อมูลทันที": "Upload an Excel / CSV file, paste copied data, or use the button below to start entering information.", "ความปลอดภัย & รหัสผ่านเริ่มต้น:": "Security and initial password:", "การรีเซ็ตรหัสผ่านผู้ใช้งาน (Password Security & Reset)": "User password security and reset", "รีเซ็ตเป็น Teacher ID": "Reset to Teacher ID",
+    "กลุ่ม A - เบสอินทรีย์ (Organic Bases)": "Group A — Organic bases", "กลุ่ม B - สารที่ลุกติดไฟเอง/ทำปฏิกิริยากับน้ำ (Pyrophoric/Water Reactive)": "Group B — Pyrophoric / water-reactive substances", "กลุ่ม C - เบสอนินทรีย์ (Inorganic Bases)": "Group C — Inorganic bases", "กลุ่ม D - กรดอินทรีย์ (Organic Acids)": "Group D — Organic acids", "กลุ่ม E - สารออกซิไดเซอร์อนินทรีย์ (Inorganic Oxidizers)": "Group E — Inorganic oxidizers", "กลุ่ม F - กรดอนินทรีย์ (Inorganic Acids)": "Group F — Inorganic acids", "กลุ่ม G - สารเคมีทั่วไปที่ไม่ว่องไว (Non-reactive/General)": "Group G — Non-reactive / general chemicals", "กลุ่ม I - สารออกซิไดเซอร์ที่เป็นกรดแก่ (Strong Oxidizing Acids)": "Group I — Strong oxidizing acids", "กลุ่ม K - สารระเบิดได้ที่มีความคงตัว (Stable Explosives)": "Group K — Stable explosives", "กลุ่ม L - สารไวไฟและตัวทำละลายอินทรีย์ (Flammables/Solvents)": "Group L — Flammables / organic solvents", "กลุ่ม X - สารที่ไม่เข้ากันกับสารอื่น (Incompatible with ALL)": "Group X — Incompatible with all other groups", "ค่าระดับความเสี่ยง NFPA 704 (สำหรับสารเคมี)": "NFPA 704 hazard ratings (chemicals)", "Health (สุขภาพ)": "Health", "Flammable (ไวไฟ)": "Flammability", "Instability (เสถียร)": "Instability", "Special (เฉพาะ)": "Special hazards", "OX (ออกซิไดซ์)": "OX (oxidizer)", "W (ทำปฏิกิริยากับน้ำ)": "W (water reactive)", "SA (แก๊สอันตราย)": "SA (simple asphyxiant gas)", "ห้อง/Lab": "Room / lab", "ระบบช่วยเหลือจำแนกประเภทของเสียสารเคมี (CU WasteTrack)": "Chemical waste classification assistant (CU WasteTrack)",
+    "โหมดบุคคลทั่วไป (Guest / Public)": "Guest mode (public)", "บุคคลทั่วไปสามารถสืบค้นและดูข้อมูลสารเคมี/พัสดุและ SDS ได้อย่างเดียว หากต้องการทำรายการยืม-คืนพัสดุ กรุณาเข้าสู่ระบบด้วย Teacher ID": "Guests can search and view chemical / equipment information and SDS documents. Sign in with your Teacher ID to borrow or return equipment.",
+    "ศูนย์การแจ้งเตือน (Notifications & Alerts)": "Notifications and alerts", "ใกล้หมดคลัง (Low Stock)": "Low stock", "แจ้งเตือนคลังพัสดุ & สารเคมี": "Equipment and chemical inventory alerts", "กำลังตรวจสอบข้อมูล…": "Checking data…", "ควรจัดลำดับการใช้งานก่อน (First-Expire, First-Out: FEFO) เพื่อลดการสูญเสีย": "Use items that expire first before newer stock (FEFO) to reduce waste.", "ปริมาณคงเหลือต่ำกว่าจุดสั่งซื้อ (Reorder Point) ควรจัดเตรียมการสั่งซื้อทดแทน": "Stock is below the reorder point. Prepare a replenishment order.", "กำลังโหลด…": "Loading…",
+    "โหมดดูตารางเวลา (Guest View-Only)": "Schedule view (guests: view only)", "บุคคลทั่วไปสามารถตรวจสอบตารางความว่างของห้องแล็บได้ หากต้องการบันทึกการจองห้องปฏิบัติการ กรุณาเข้าสู่ระบบด้วย Teacher ID": "Guests can check laboratory availability. Sign in with your Teacher ID to book a laboratory.",
+    "สารบัญจัดเก็บสารเคมี อุปกรณ์ และเครื่องแก้วในห้องทดลอง (Interactive Directory)": "Interactive directory of chemicals, equipment, and glassware in the laboratory", "ลากการ์ดเพื่อสลับตำแหน่ง (Drag & Drop) หรือกดลูกศรซ้าย-ขวาที่การ์ดเพื่อย้ายลำดับ และกดปุ่มลบเพื่อลบรายการ": "Drag and drop cards to reorder them, use the left and right arrows, or select delete to remove an item.", "มาตรฐาน SHECU: ปลอดภัยทุกตู้": "SHECU standard: safety in every cabinet", "มุมซ้าย (ตาชั่ง A)": "Left corner (Balance A)",
+    "ตรวจสอบ บันทึก และติดตามทุกกิจกรรมการเปลี่ยนแปลงข้อมูลในระบบ (Audit Trail)": "Review, record, and track all changes made in the system (audit trail)", "ดำเนินการโดย Admin/Staff": "Performed by admin / staff", "พิมพ์ PDF": "Print PDF", "ส่วนลด (%)": "Discount (%)", "0.00 - ลด 0.00 = 0.00 บาท": "0.00 - discount 0.00 = THB 0.00", "รายการเตรียมสั่งซื้อชั่วคราว (Cart)": "Draft purchase list (cart)",
+    "คุณกำลังใช้งานในระดับสิทธิ์ L2: หากต้องการแก้ไข เพิ่ม หรือลบข้อมูลสารเคมี/ครุภัณฑ์ กรุณาติดต่อผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4)": "You are using L2 access. To edit, add, or delete chemical / equipment records, contact an administrator (L3) or executive (L4).", "ติดต่อ L3 / L4": "Contact L3 / L4",
+    "คาดการณ์พัสดุใกล้หมด (Auto-PO)": "Low-stock forecast (automatic purchase order)", "วิเคราะห์อัตราการใช้งานย้อนหลัง 60 วัน เพื่อแจ้งเตือนสารเคมีและอุปกรณ์ที่ใกล้หมดล่วงหน้า พร้อมเพิ่มลงในใบสั่งซื้อ (Auto-PO) ได้ในคลิกเดียว": "Analyze the last 60 days of usage to identify low-stock chemicals and equipment, then add them to a purchase order in one click.",
+    "แล็บฟิสิกส์": "Physics laboratory", "ตู้ A": "Cabinet A", "ตู้ B": "Cabinet B", "ชั้น C": "Shelf C", "พิมพ์รายงาน PDF": "Print PDF report"
+  });
+  Object.assign(en, {
+    "กลับหน้าแดชบอร์ด": "Back to dashboard", "เช่น กรดไฮโดรคลอริก": "e.g. hydrochloric acid", "หมายเลขประจำตัวสารเคมี (Chemical Abstracts Service) สำหรับสารเคมีเท่านั้น": "Chemical Abstracts Service number (chemicals only)", "เช่น 7647-01-0": "e.g. 7647-01-0", "เช่น https://example.com/sds/acid.pdf": "e.g. https://example.com/sds/acid.pdf", "ระบบสัญลักษณ์แสดงอันตรายของสารเคมี (สีน้ำเงิน: สุขภาพ, สีแดง: ไวไฟ, สีเหลือง: ความไวปฏิกิริยา, สีขาว: ข้อควรระวังพิเศษ)": "Chemical hazard symbol system (blue: health, red: flammability, yellow: reactivity, white: special hazards)", "เช่น Lab 1": "e.g. Lab 1", "เช่น ตู้ A": "e.g. Cabinet A", "เช่น ชั้น 2": "e.g. Shelf 2",
+    "ชื่อผู้ทำรายการจากบัญชีที่เข้าสู่ระบบ": "Transaction name from the signed-in account", "ระบุเหตุผลในการเบิกใช้ หรือรายละเอียดเพิ่มเติม...": "Enter the reason for use or additional details...", "ส่งออกข้อมูลเป็น Excel / CSV": "Export data as Excel / CSV", "พิมพ์รายงานสรุปประวัติ": "Print summary report", "ล้างประวัติการทำรายการยืม-คืน": "Clear borrowing / return history", "ส่วนจัดการระบบ": "System management section", "ซิงค์ข้อมูลทั้งหมดไปยัง Google Sheets ทันที": "Sync all data to Google Sheets now", "นำเข้าข้อมูลผู้ใช้จากไฟล์ Excel หรือ Google Sheets": "Import users from Excel or Google Sheets", "ลบผู้ใช้งานที่เลือก": "Delete selected users", "เลือกทั้งหมด": "Select all",
+    "สวมใส่อุปกรณ์ PPE ทุกครั้งที่เข้าแล็บ | การทดลองที่มีไอระเหยต้องทำในตู้ดูดควัน Fume Hood | ติดต่อฉุกเฉินและอุบัติเหตุ แจ้งผ่านเมนู 'แจ้งปัญหา'": "Wear PPE in the laboratory | Perform experiments that produce vapors in a fume hood | For emergencies or accidents, use the 'Report an issue' menu.", "เช่น ประกาศ, ข่าวด่วน": "e.g. Announcement, urgent news", "คืนค่าห้องปฏิบัติการเริ่มต้นเป็น Lab 1 - Lab 8": "Restore the default laboratories (Lab 1–Lab 8)", "เช่น 2003, T005, SC101": "e.g. 2003, T005, SC101", "เช่น ครูสมหมาย ใจมั่น": "e.g. Sommai Jaiมั่น", "เช่น วิทยาศาสตร์และเทคโนโลยี": "e.g. Science and Technology", "ดาวน์โหลดไฟล์ตัวอย่าง Excel พร้อมหัวตารางที่ถูกต้อง": "Download an Excel example with the correct column headers", "ดาวน์โหลดไฟล์ตัวอย่าง CSV": "Download a CSV example", "คัดลอกแถวจาก Excel/Sheets (กด Ctrl+C แล้วมาวางที่นี่ด้วย Ctrl+V)": "Copy rows from Excel / Sheets (Ctrl+C), then paste here (Ctrl+V)", "ตัวอย่าง:": "Example:",
+    "1001\tครูสมใจ หมายมั่น\tL1\tกลุ่มสาระวิทยาศาสตร์\tsomjai@school.ac.th": "1001\tSomjai Maiman\tL1\tScience Department\tsomjai@school.ac.th", "2001\tนายเอกชัย ช่างแล็บ\tL2\tบริการห้องแล็บ\tekkachai@school.ac.th\tLab 1, Lab 6": "2001\tEkkachai Lab Technician\tL2\tLaboratory Services\tekkachai@school.ac.th\tLab 1, Lab 6",
+    "เพิ่มแถวว่าง 1 แถว": "Add 1 blank row", "เพิ่มแถวว่าง 5 แถว": "Add 5 blank rows", "ทดลองใส่ข้อมูลจำลอง 3 คน": "Fill with 3 sample users", "เติมอีเมลอัตโนมัติ (เช่น 1001@lab.school.ac.th) สำหรับแถวที่ยังไม่มีอีเมล": "Fill missing email addresses (e.g. 1001@lab.school.ac.th)", "เติมกลุ่มสาระมาตรฐานสำหรับแถวที่ยังว่างอยู่": "Fill in the standard department for blank rows", "ล้างรายการทั้งหมดในตาราง": "Clear all rows in the table", "รีเซ็ตรหัสผ่านกลับไปเป็นรหัสครู (Teacher ID)": "Reset password to the Teacher ID",
+    "ไปที่หน้ารายการสั่งซื้อ / ตะกร้าจัดซื้อ": "Go to purchase orders / cart", "รีเฟรชข้อมูลการแจ้งเตือนและสต็อก": "Refresh alerts and stock data", "ส่งออกรายงานการแจ้งเตือนและสถานะคลังประจำปี (Excel / CSV)": "Export the annual alerts and inventory status report (Excel / CSV)", "ล้างข้อมูลการแจ้งเตือนและรายการแจ้งปัญหา": "Clear alerts and reported issues", "สั่งซื้อสินค้าใกล้หมดคลังทั้งหมด (Add all low-stock items to cart)": "Add all low-stock items to the cart", "ประกาศสำคัญ": "Important announcement", "แก้ไข/เพิ่มข้อความประกาศ (เฉพาะแอดมิน)": "Edit / add announcement (administrators only)", "เปลี่ยนช่วงปฏิทิน": "Change calendar range", "เดือนก่อนหน้า": "Previous month", "เดือนถัดไป": "Next month",
+    "ยืม-คืนพัสดุและเคมีภัณฑ์": "Borrow / return equipment and chemicals", "กดจองห้องปฏิบัติการ": "Select to book a laboratory", "เช่น ม.4/1, ม.5/2, ม.ต้น": "e.g. Grade 10/1, Grade 11/2, junior high", "เช่น 35": "e.g. 35", "ระบุกิจกรรม เช่น ทำ Lab เรื่องการไทเทรตกรด-เบส, การทดลองการหักเหของแสง, กิจกรรมชมรมดาราศาสตร์": "Enter an activity, e.g. acid-base titration, light refraction, or astronomy club", "ชื่อผู้จองจากบัญชีที่เข้าสู่ระบบ": "Booker name from the signed-in account", "ส่งออกข้อมูลการจองเป็น Excel": "Export booking data as Excel", "พิมพ์รายงานการจอง (PDF)": "Print booking report (PDF)", "ซิงค์ข้อมูลกับ Google Sheets ทันที": "Sync with Google Sheets now", "ซิงค์ข้อมูล": "Sync data", "ส่งออกประวัติการใช้งานเป็นไฟล์ CSV": "Export activity history as CSV", "รีเฟรชประวัติการใช้งาน": "Refresh activity history", "ล้างประวัติกิจกรรม": "Clear activity history",
+    "ระบุปีการศึกษา": "Enter academic year", "เลือกภาคเรียน": "Select semester", "ส่งออกข้อมูลเป็น CSV / Excel": "Export data as CSV / Excel", "ส่งออกรายงานเป็น PDF / พิมพ์": "Export report as PDF / print", "ล้างรายการสั่งซื้อทั้งหมด (เฉพาะผู้ดูแลระบบ)": "Clear all purchase orders (administrators only)", "สรุปงบประมาณประจำปี": "Annual budget summary", "แก้ไขงบประมาณประจำปี": "Edit annual budget", "งบประมาณประจำปี (บาท)": "Annual budget (THB)", "บันทึกงบประมาณ": "Save budget", "ยกเลิกการแก้ไขงบประมาณ": "Cancel budget changes", "เช่น CHEM-001": "e.g. CHEM-001", "ค้นหารหัส หรือชื่อสินค้า...": "Search by code or item name...", "ล้างการค้นหา": "Clear search", "กรองตามปีการศึกษา": "Filter by academic year", "กรองตามเทอม": "Filter by semester", "รีเฟรชตารางข้อมูล": "Refresh table", "เลือกรายการพัสดุทั้งหมด": "Select all equipment",
+    "คัดลอกแถวจาก Excel/Sheets (กด Ctrl+C แล้วมาวางที่นี่ด้วย Ctrl+V) ตัวอย่าง: 1001 ครูสมใจ หมายมั่น L1 กลุ่มสาระวิทยาศาสตร์ somjai@school.ac.th 2001 นายเอกชัย ช่างแล็บ L2 บริการห้องแล็บ ekkachai@school.ac.th Lab 1, Lab 6": "Copy rows from Excel / Sheets (Ctrl+C) and paste here (Ctrl+V). Example: 1001 Somjai Maiman, L1, Science Department, somjai@school.ac.th; 2001 Ekkachai, L2, Laboratory Services, ekkachai@school.ac.th, Lab 1 and Lab 6."
+  });
+  Object.assign(en, {
+    "พร้อมใช้งาน (Good)": "Good",
+    "อยู่ระหว่างส่งซ่อม (Under Repair)": "Under repair",
+    "ชำรุด (Damaged)": "Damaged",
+    "ชำรุด (Damaged)": "Damaged",
+    "ปลดระวาง (Decommissioned)": "Decommissioned",
+    "ยังไม่มีประวัติการยืมอุปกรณ์นี้": "No loan history for this equipment yet",
+    "แจ้งเครื่องมือชำรุด / ส่งซ่อม (Report Repair)": "Report equipment damage / request repair",
+    "รายการอุปกรณ์": "Equipment",
+    "ระดับความเร่งด่วน": "Priority",
+    "ปานกลาง (Medium)": "Medium",
+    "เร่งด่วน มีคลาสเรียนสัปดาห์นี้ (High)": "High — a class is scheduled this week",
+    "ฉุกเฉิน อุปกรณ์หลักเสียหาย (Urgent)": "Urgent — essential equipment is damaged",
+    "ไม่เร่งด่วน (Low)": "Low",
+    "อาการที่ชำรุด หรือข้อขัดข้อง": "Damage or issue description",
+    "ระบุอาการชำรุด เช่น หน้าจอไม่แสดงผล, อุณหภูมิไม่คงที่, สายไฟชำรุด...": "Describe the issue, e.g. display not working, unstable temperature, or damaged power cable...",
+    "ส่งรายงานแจ้งซ่อม": "Submit repair report",
+    "บันทึกการแจ้งซ่อมเรียบร้อยแล้ว สถานะเปลี่ยนเป็น อยู่ระหว่างส่งซ่อม": "Repair report saved. Status changed to Under repair.",
+    "บันทึกการบำรุงรักษา / สอบเทียบ (Maintenance & Calibration)": "Record maintenance / calibration",
+    "ประเภทการดำเนินการ": "Service type",
+    "บำรุงรักษาตามรอบ (Preventive Maintenance)": "Preventive maintenance",
+    "สอบเทียบความเที่ยงตรง (Calibration)": "Calibration",
+    "ซ่อมแซมและเปลี่ยนอะไหล่ (Repair)": "Repair and parts replacement",
+    "ตรวจสภาพความปลอดภัย (Safety Inspection)": "Safety inspection",
+    "ช่างผู้ดำเนินการ / บริษัท": "Technician / company",
+    "เช่น บจก. สอบเทียบสากล": "e.g. Acme Calibration Co.",
+    "ค่าใช้จ่าย (บาท)": "Cost (THB)",
+    "เลขที่ใบรับรอง (Certificate No.)": "Certificate number",
+    "วันครบกำหนดรอบถัดไป": "Next due date",
+    "บันทึกผลการทดสอบ / หมายเหตุ": "Test results / notes",
+    "เช่น ผลการทดสอบผ่านเกณฑ์ ISO/IEC 17025...": "e.g. Test passed ISO/IEC 17025 requirements...",
+    "บันทึกการบำรุงรักษา": "Save maintenance record",
+    "บันทึกการบำรุงรักษา/สอบเทียบเรียบร้อยแล้ว": "Maintenance / calibration record saved.",
+    "บันทึกการบำรุงรักษาเรียบร้อยแล้ว": "Maintenance record saved."
+  });
+  const fragments = [["จองห้อง:", "Room booking:"], ["ผู้ขอจอง:", "Requested by:"], ["วันที่:", "Date:"], ["สั่งซื้อ ", "Order "], [" ทันที", " now"]];
+  const originalText = new WeakMap();
+  const renderedText = new WeakMap();
+  const originalAttrs = new WeakMap();
+  const renderedAttrs = new WeakMap();
+  let language = "th";
+  try { language = localStorage.getItem("sciportal-language") || "th"; } catch (e) {}
+
+  const translate = (value) => {
+    const trimmed = value.trim();
+    const normalized = trimmed.replace(/\s+/g, " ");
+    if (en[trimmed] || en[normalized]) return value.replace(trimmed, en[trimmed] || en[normalized]);
+    const cabinet = trimmed.match(/^ตู้ที่\s*(\d+)$/);
+    if (cabinet) return `Cabinet ${cabinet[1]}`;
+    const shelf = trimmed.match(/^ชั้น\s*(\d+)$/);
+    if (shelf) return `Shelf ${shelf[1]}`;
+    const quantityUnit = trimmed.match(/^(\d+(?:[.,]\d+)?)\s*(ขวด|ชิ้น|กล่อง|ชุด|อัน|ถุง|ม้วน|แผ่น|คู่|เครื่อง)$/);
+    if (quantityUnit) {
+      const units = { "ขวด": "bottle", "ชิ้น": "piece", "กล่อง": "box", "ชุด": "set", "อัน": "item", "ถุง": "bag", "ม้วน": "roll", "แผ่น": "sheet", "คู่": "pair", "เครื่อง": "unit" };
+      const count = Number(quantityUnit[1].replace(",", "."));
+      const unit = units[quantityUnit[2]];
+      return `${quantityUnit[1]} ${unit}${count === 1 ? "" : "s"}`;
+    }
+    const calendarDate = trimmed.match(/^(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)\s+(\d{4})$/);
+    if (calendarDate) {
+      const year = Number(calendarDate[2]);
+      return `${en[calendarDate[1]]} ${year > 2400 ? year - 543 : year}`;
+    }
+    const datedEntry = trimmed.match(/^(\d{1,2})\s+(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)\s+(\d{4})(\s+\(ล่าสุด\))?$/);
+    if (datedEntry) {
+      const year = Number(datedEntry[3]);
+      return `${en[datedEntry[2]]} ${datedEntry[1]}, ${year > 2400 ? year - 543 : year}${datedEntry[4] ? " (latest)" : ""}`;
+    }
+    const abbreviatedDate = trimmed.match(/^(\d{1,2})\s+(ม\.ค\.|ก\.พ\.|มี\.ค\.|เม\.ย\.|พ\.ค\.|มิ\.ย\.|ก\.ค\.|ส\.ค\.|ก\.ย\.|ต\.ค\.|พ\.ย\.|ธ\.ค\.)\s+(\d{4})$/);
+    if (abbreviatedDate) {
+      const year = Number(abbreviatedDate[3]);
+      return `${en[abbreviatedDate[2]]} ${abbreviatedDate[1]}, ${year > 2400 ? year - 543 : year}`;
+    }
+    const datedBooking = trimmed.match(/^รายการจองวันที่\s+(\d{1,2})\s+(มกราคม|กุมภาพันธ์|มีนาคม|เมษายน|พฤษภาคม|มิถุนายน|กรกฎาคม|สิงหาคม|กันยายน|ตุลาคม|พฤศจิกายน|ธันวาคม)\s+(\d{4})$/);
+    if (datedBooking) {
+      const year = Number(datedBooking[3]);
+      return `Bookings for ${en[datedBooking[2]]} ${datedBooking[1]}, ${year > 2400 ? year - 543 : year}`;
+    }
+    const countedMetric = trimmed.match(/^(\d[\d,]*)\s+(การจอง|ครั้ง|ห้อง|สารเคมี|อุปกรณ์|คน)$/);
+    if (countedMetric) {
+      const labels = { "การจอง": "bookings", "ครั้ง": "visits", "ห้อง": "rooms", "สารเคมี": "chemicals", "อุปกรณ์": "equipment", "คน": "people" };
+      return `${countedMetric[1]} ${labels[countedMetric[2]]}`;
+    }
+    const bookingMetric = trimmed.match(/^([\d,.]+)\s*ครั้ง(?:\s*\/\s*ห้อง)?(?:\s*\((\d+(?:\.\d+)?)%\))?$/);
+    if (bookingMetric) return `${bookingMetric[1]} bookings${trimmed.includes("/ห้อง") ? " / laboratory" : ""}${bookingMetric[2] ? ` (${bookingMetric[2]}%)` : ""}`;
+    const capacityLabel = trimmed.match(/^ความจุ:\s*(\d[\d,]*\s*\/\s*\d[\d,]*)$/);
+    if (capacityLabel) return `Capacity: ${capacityLabel[1]}`;
+    const hiddenCabinets = trimmed.match(/^ตู้ที่ซ่อนอยู่\s*\((\d+)\)$/);
+    if (hiddenCabinets) return `${hiddenCabinets[1]} hidden cabinets`;
+    const classPeriod = trimmed.match(/^เทอม\s*(\d+)$/);
+    if (classPeriod) return `Semester ${classPeriod[1]}`;
+    const activityPager = trimmed.match(/^แสดงรายการที่\s*(\d+)\s*-\s*(\d+)\s+จาก\s+(\d+)\s+รายการ$/);
+    if (activityPager) return `Showing ${activityPager[1]}–${activityPager[2]} of ${activityPager[3]} items`;
+    const shortPager = trimmed.match(/^แสดง\s+(\d+)\s*-\s*(\d+)\s+จาก\s+(\d+)\s+ผู้ใช้งาน$/);
+    if (shortPager) return `Showing ${shortPager[1]}–${shortPager[2]} of ${shortPager[3]} users`;
+    const simplePager = trimmed.match(/^แสดง\s+(\d+)\s+รายการ$/);
+    if (simplePager) return `Showing ${simplePager[1]} items`;
+    const pageCount = trimmed.match(/^หน้า\s*(\d+)\s*\/\s*(\d+)$/);
+    if (pageCount) return `Page ${pageCount[1]} / ${pageCount[2]}`;
+    const orderCount = trimmed.match(/^บันทึกใบสั่งซื้อทั้งหมด\s*\((\d+)\s*รายการ\)$/);
+    if (orderCount) return `All purchase orders (${orderCount[1]})`;
+    const countLabel = trimmed.match(/^(\d[\d,]*)\s+รายการ$/);
+    if (countLabel) return `${countLabel[1]} ${Number(countLabel[1].replace(/,/g, "")) === 1 ? "item" : "items"}`;
+    const lowStockCount = trimmed.match(/^ใกล้หมด\s+(\d[\d,]*)\s+รายการ$/);
+    if (lowStockCount) return `${lowStockCount[1]} low-stock items`;
+    const bahtAmount = trimmed.match(/^(-?[\d,]+(?:\.\d{1,2})?)\s*บาท$/);
+    if (bahtAmount) return `THB ${bahtAmount[1]}`;
+    const period = trimmed.match(/^คาบ\s*(\d+)$/);
+    if (period) return `Period ${period[1]}`;
+    const scheduledPeriod = trimmed.match(/^คาบ\s*(\d+)\s*\(([^)]+)\)$/);
+    if (scheduledPeriod) return `Period ${scheduledPeriod[1]} (${scheduledPeriod[2]})`;
+    const moreItems = trimmed.match(/^\+(\d+)\s*รายการ$/);
+    if (moreItems) return `+${moreItems[1]} more`;
+    const deleteSelected = trimmed.match(/^ลบที่เลือก\s*\((\d+)\)$/);
+    if (deleteSelected) return `Delete selected (${deleteSelected[1]})`;
+    const pager = trimmed.match(/^แสดง\s+(\d+)\s*-\s*(\d+)\s+จาก\s+(\d+)\s+ผู้ใช้งาน\s*\(หน้า\s*(\d+)\/(\d+)\)$/);
+    if (pager) return `Showing ${pager[1]}–${pager[2]} of ${pager[3]} users (page ${pager[4]}/${pager[5]})`;
+    return fragments.reduce((text, [thai, english]) => text.split(thai).join(english), value)
+      .replace(/ตู้ที่\s*(\d+)/g, "Cabinet $1")
+      .replace(/ชั้น\s*(\d+)/g, "Shelf $1");
+  };
+  const translateDialog = (value) => {
+    let text = translate(String(value ?? ""));
+    if (language !== "en") return text;
+    const replacements = [
+      ["คุณต้องการยืนยันการคืนพัสดุทั้งหมดจำนวน", "Return all"], ["รายการ ของผู้ยืม", "items borrowed by"],
+      ["คุณต้องการยืนยันการคืนพัสดุ", "Confirm return of"], ["จำนวน ", "quantity "], [" หน่วย จากผู้ยืม ", " units borrowed by "],
+      ["คุณต้องการยกเลิกการจองห้อง ", "Cancel the booking for "], ["ช่วงเวลา ", "during slot "], ["ในวันที่ ", "on "],
+      ["คุณต้องการปฏิเสธคำขอจองห้องปฏิบัติการของ ", "Reject the laboratory booking request from "],
+      ["คุณต้องการลบแผน ", "Delete plan "], ["คุณต้องการลบรายการที่เลือกจำนวน ", "Delete "],
+      [" รายการใช่หรือไม่?", " selected items?"], ["ใช่หรือไม่?", "?"],
+      ["ไม่สามารถยกเลิกการจองได้:", "Unable to cancel the booking:"], ["เกิดข้อผิดพลาดในการสแกน:", "Scan error:"],
+      ["เกิดข้อผิดพลาด:", "Error:"], ["ไม่สามารถส่งคำขอได้:", "Unable to submit the request:"],
+      ["ไม่สามารถบันทึกได้:", "Unable to save:"], ["ไม่สามารถบันทึกรับคืนได้:", "Unable to record the return:"],
+      ["ไม่สามารถพิจารณาคำขอได้:", "Unable to process the request:"], ["ไม่สามารถบันทึกตรวจรับได้:", "Unable to record receiving:"]
+    ];
+    const dialogPatterns = [
+      [/^คุณต้องการล้างประวัติการใช้งานทั้งหมดใช่หรือไม่\?\s*\(การดำเนินการนี้ไม่สามารถย้อนกลับได้\)$/u, "Do you want to clear all activity history? This action cannot be undone."],
+      [/^คุณต้องการยืนยันการคืนพัสดุทั้งหมดจำนวน\s*(\d+)\s*รายการ ของผู้ยืม "(.+)" ใช่หรือไม่\?$/u, "Confirm return of all $1 items borrowed by \"$2\"?"],
+      [/^คุณต้องการยืนยันการคืนพัสดุ "(.+)" จำนวน\s*(\d+)\s*หน่วย จากผู้ยืม "(.+)" ใช่หรือไม่\?$/u, "Confirm return of $1 ($2 units) borrowed by $3?"],
+      [/^คุณต้องการยกเลิกการจองห้อง "(.+)" ช่วงเวลา (.+) ในวันที่ (.+) ใช่หรือไม่\?$/u, "Cancel the booking for $1, time slot $2, on $3?"],
+      [/^คุณต้องการปฏิเสธคำขอจองห้องปฏิบัติการของ "(.+)" ใช่หรือไม่\?$/u, "Reject the laboratory booking request from $1?"],
+      [/^คุณต้องการลบรายการที่เลือกจำนวน\s*(\d+)\s*รายการใช่หรือไม่\?\s*\(การกระทำนี้ไม่สามารถกู้คืนได้\)$/u, "Delete $1 selected items? This action cannot be undone."],
+      [/^คุณต้องการคืนค่าห้องปฏิบัติการเริ่มต้น \(Lab 1 - Lab 8\) ใช่หรือไม่\?\s*การแก้ไขชื่อ อาคาร และสีที่กำหนดเองทั้งหมดจะถูกรีเซ็ตกลับเป็นค่าเริ่มต้น$/u, "Restore the default laboratories (Lab 1–Lab 8)? All custom names, buildings, and colors will be reset."],
+      [/^คุณต้องการปฏิเสธคำขอยืมนี้ใช่หรือไม่\?$/u, "Reject this borrowing request?"],
+      [/^คุณต้องการลบสารละลายเจือจางนี้ใช่หรือไม่\?$/u, "Delete this diluted solution?"],
+      [/^คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้\?$/u, "Are you sure you want to delete this user?"],
+      [/^คุณต้องการลบแผน "(.+)" ใช่หรือไม่\?$/u, "Delete plan \"$1\"?"],
+      [/^คุณต้องการล้างอุปกรณ์ทั้งหมดออกจากบอร์ดใช่หรือไม่\?$/u, "Remove all equipment from the board?"],
+      [/^กรุณาระบุเหตุผลที่ไม่อนุมัติการจองห้องปฏิบัติการ:$/u, "Enter a reason for rejecting this laboratory booking:"],
+      [/^คัดลอกรหัสผ่าน:$/u, "Copy password:"],
+      [/^หากท่านลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ \(Admin\) เพื่อขอรีเซ็ตรหัสผ่าน$/u, "If you forgot your password, contact an administrator to reset it."],
+      [/^ไม่สามารถยกเลิกการจองห้องปฏิบัตินี้ได้: (.+)$/u, "Unable to cancel this laboratory booking: $1"],
+      [/^พบรายการยืมของ (.+) โดย (.+)\s*คุณต้องการทำรายการรับคืนทันทีหรือไม่\?$/u, "An active loan for $1 is assigned to $2. Process the return now?"],
+      [/^การพิมพ์ป้าย Sticker Label อนุญาตเฉพาะเจ้าหน้าที่แล็บ \(L2\) ขึ้นไปเท่านั้น$/u, "Sticker label printing is available to laboratory staff (L2) and above only."],
+      [/^ผู้ใช้ทั่วไป \(L0\): ไม่สามารถทำรายการคืนพัสดุได้ กรุณาเข้าสู่ระบบ$/u, "Guest users (L0) cannot return equipment. Please sign in."],
+      [/^ครูผู้สอน \(L1\): สามารถคืนพัสดุได้เฉพาะรายการของตนเองเท่านั้น$/u, "Teachers (L1) can return only items they borrowed."],
+      [/^คุณไม่มีสิทธิ์ตรวจรับคืนพัสดุของห้อง "(.+)" \(เฉพาะห้องที่ได้รับมอบหมายเท่านั้น\)$/u, "You are not authorized to process returns for room $1. You can access assigned rooms only."]
+    ];
+    for (const [pattern, replacement] of dialogPatterns) {
+      const match = String(value ?? "").match(pattern);
+      if (match) return String(value ?? "").replace(pattern, replacement);
+    }
+    return replacements.reduce((result, [thai, english]) => result.split(thai).join(english), text);
+  };
+  if (!window.__sciportalLocalizedDialogs) {
+    const nativeAlert = window.alert.bind(window);
+    const nativeConfirm = window.confirm.bind(window);
+    const nativePrompt = window.prompt.bind(window);
+    window.alert = (message) => nativeAlert(translateDialog(message));
+    window.confirm = (message) => nativeConfirm(translateDialog(message));
+    window.prompt = (message, defaultValue) => nativePrompt(translateDialog(message), defaultValue);
+    window.__sciportalLocalizedDialogs = true;
+  }
+  const processText = (node) => {
+    if (node.nodeType !== Node.TEXT_NODE || !node.parentElement) return;
+    if (node.parentElement.closest("script,style,textarea,code,[data-no-translate]")) return;
+    const current = node.nodeValue;
+    if (renderedText.has(node) && renderedText.get(node) !== current) originalText.set(node, current);
+    if (!originalText.has(node)) originalText.set(node, current);
+    const original = originalText.get(node);
+    const next = language === "en" ? translate(original) : original;
+    if (current !== next) node.nodeValue = next;
+    renderedText.set(node, next);
+  };
+  const processAttribute = (element, name) => {
+    const current = element.getAttribute(name);
+    if (current == null) return;
+    let originals = originalAttrs.get(element);
+    let rendereds = renderedAttrs.get(element);
+    if (!originals) { originals = new Map(); originalAttrs.set(element, originals); }
+    if (!rendereds) { rendereds = new Map(); renderedAttrs.set(element, rendereds); }
+    if (rendereds.has(name) && rendereds.get(name) !== current) originals.set(name, current);
+    if (!originals.has(name)) originals.set(name, current);
+    const original = originals.get(name);
+    const next = language === "en" ? translate(original) : original;
+    if (current !== next) element.setAttribute(name, next);
+    rendereds.set(name, next);
+  };
+  const translateTree = (root = document.body) => {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) processText(node);
+    if (root.nodeType === Node.ELEMENT_NODE) {
+      ["placeholder", "title", "aria-label", "alt"].forEach((name) => processAttribute(root, name));
+    }
+    root.querySelectorAll?.("[placeholder],[title],[aria-label],[alt]").forEach((element) =>
+      ["placeholder", "title", "aria-label", "alt"].forEach((name) => processAttribute(element, name))
+    );
+  };
+  const renderLanguageButton = () => {
+    document.documentElement.lang = language;
+    if (languageButton) {
+      const target = language === "th" ? "English" : "Thai";
+      languageButton.textContent = language.toUpperCase();
+      languageButton.setAttribute("aria-label", `Switch language to ${target}`);
+      languageButton.title = `Switch language to ${target}`;
+    }
+    translateTree();
+  };
+  renderLanguageButton();
+  languageButton?.addEventListener("click", () => {
+    language = language === "th" ? "en" : "th";
+    try { localStorage.setItem("sciportal-language", language); } catch (e) {}
+    renderLanguageButton();
+  });
+  const observer = new MutationObserver((records) => {
+    records.forEach((record) => {
+      if (record.type === "characterData") processText(record.target);
+      if (record.type === "attributes") processAttribute(record.target, record.attributeName);
+      record.addedNodes?.forEach((node) => {
+        if (node.nodeType === Node.TEXT_NODE) processText(node);
+        else if (node.nodeType === Node.ELEMENT_NODE) translateTree(node);
+      });
+    });
+  });
+  observer.observe(document.body, {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ["placeholder", "title", "aria-label", "alt"]
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     // 1. Set up event listeners immediately (instant interactivity, never blocked by network/auth delays)
+    setupSiteUtilityBar();
     setupNavigation();
     setupFormHandlers();
     setupFilterHandlers();
@@ -1620,7 +2385,7 @@ window.renderActivityLogs = function() {
       `;
     } else if (actorLower === 'teacher' || actorLower.includes('อาจารย์') || actorLower.includes('จนท')) {
       actorBadgeHtml = `
-        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #f1f0ff; color: #716de3; border: 1px solid #bfdbfe;">
           <i data-lucide="graduation-cap" style="width: 13px; height: 13px;"></i> Teacher
         </span>
       `;
@@ -1649,7 +2414,7 @@ window.renderActivityLogs = function() {
       `;
     } else if (act.includes('ยืม') || act.includes('คืน') || act.includes('borrow')) {
       actionBadgeHtml = `
-        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 600; background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe;">
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 600; background: #e5e4ff; color: #716de3; border: 1px solid #c7d2fe;">
           <i data-lucide="repeat" style="width: 14px; height: 14px;"></i> ${log.action}
         </span>
       `;
@@ -2895,7 +3660,7 @@ function openReportIssueModal(defaultRoom = "") {
         <!-- Clean & Elegant Header -->
         <div class="report-issue-header">
           <div class="report-issue-icon-circle">
-            <i data-lucide="life-buoy" style="width: 22px; height: 22px; color: var(--primary-purple, #7c3aed);"></i>
+            <i data-lucide="life-buoy" style="width: 22px; height: 22px; color: var(--primary-purple, #8f8cf0);"></i>
           </div>
           <div class="report-issue-title-wrap">
             <h3 class="report-issue-title">แจ้งปัญหาการใช้งาน / ข้อขัดข้อง</h3>
@@ -2909,7 +3674,7 @@ function openReportIssueModal(defaultRoom = "") {
         <!-- Clean Minimal User Info Bar -->
         <div class="report-issue-user-bar">
           <div class="report-issue-user-bar-left">
-            <i data-lucide="user" style="width: 13px; height: 13px; color: var(--primary-purple, #7c3aed);"></i>
+            <i data-lucide="user" style="width: 13px; height: 13px; color: var(--primary-purple, #8f8cf0);"></i>
             <span class="report-issue-user-label">ผู้แจ้ง:</span>
             <span class="report-issue-user-bar-name">${userName}</span>
             <span class="report-issue-user-bar-role">${userBadge.name}</span>
@@ -3186,12 +3951,12 @@ window.showContactAdminModal = function() {
   const fireContact = (typeof emergencyContactsData !== "undefined" && emergencyContactsData.fire) ? emergencyContactsData.fire : "199";
 
   Swal.fire({
-    title: '<div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 18px; font-weight: 700; color: #1e293b;"><i data-lucide="shield-alert" style="color: #7c3aed; width: 22px; height: 22px;"></i> <span>ติดต่อผู้ดูแลระบบ (L3 / L4)</span></div>',
+    title: '<div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 18px; font-weight: 700; color: #1e293b;"><i data-lucide="shield-alert" style="color: #8f8cf0; width: 22px; height: 22px;"></i> <span>ติดต่อผู้ดูแลระบบ (L3 / L4)</span></div>',
     html: `
       <div style="text-align: left; font-size: 13.5px; line-height: 1.6; color: #334155; padding: 4px 2px;">
-        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; color: #1e40af;">
+        <div style="background: #f1f0ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; color: #1e40af;">
           <div style="font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="info" style="width: 16px; height: 16px; color: #3b82f6;"></i>
+            <i data-lucide="info" style="width: 16px; height: 16px; color: #8f8cf0;"></i>
             <span>คำแนะนำการแก้ไขข้อมูล</span>
           </div>
           <div style="font-size: 12.5px;">การเพิ่ม ลบ หรือแก้ไขข้อมูลสารเคมีและครุภัณฑ์ในระบบ เป็นสิทธิ์เฉพาะระดับ <strong>L3 (ผู้ดูแลระบบ)</strong> และ <strong>L4 (ผู้บริหาร)</strong> หากต้องการอัปเดตข้อมูล กรุณาแจ้งผู้ดูแลตามช่องทางด้านล่างนี้</div>
@@ -3199,12 +3964,12 @@ window.showContactAdminModal = function() {
 
         <div style="display: flex; flex-direction: column; gap: 10px;">
           <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
-            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(124, 58, 237, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(143, 140, 240, 0.1); color: #8f8cf0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
               <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
             </div>
             <div style="min-width: 0;">
               <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">ผู้ดูแลระบบ / แอดมินหลัก (L3)</div>
-              <div style="color: #7c3aed; font-weight: 700; font-size: 13.5px;">${adminContact}</div>
+              <div style="color: #8f8cf0; font-weight: 700; font-size: 13.5px;">${adminContact}</div>
             </div>
           </div>
 
@@ -3234,7 +3999,7 @@ window.showContactAdminModal = function() {
       if (window.lucide) lucide.createIcons();
     },
     confirmButtonText: 'รับทราบ',
-    confirmButtonColor: '#7c3aed'
+    confirmButtonColor: '#8f8cf0'
   });
 };
 
@@ -3413,7 +4178,7 @@ async function editFeedback(id) {
     showCancelButton: true,
     confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
     cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#7c3aed',
+    confirmButtonColor: '#8f8cf0',
     preConfirm: () => {
       const title = document.getElementById('swal-fb-title').value.trim();
       const code = document.getElementById('swal-fb-code').value.trim();
@@ -3460,8 +4225,8 @@ window.selectStatusOption = function(labelEl, val) {
     labelEl.style.borderColor = '#f59e0b';
     labelEl.style.backgroundColor = '#fffbeb';
   } else {
-    labelEl.style.borderColor = '#8b5cf6';
-    labelEl.style.backgroundColor = '#faf5ff';
+    labelEl.style.borderColor = '#9996f2';
+    labelEl.style.backgroundColor = '#f7f6ff';
   }
   labelEl.classList.add('selected');
 };
@@ -3481,7 +4246,7 @@ async function changeFeedbackStatus(id) {
         
         <!-- Issue Info Badge Header -->
         <div style="background-color: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 16px; padding: 12px 14px; margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
-          <span style="background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 700; font-family: monospace; flex-shrink: 0;">${issueCode}</span>
+          <span style="background-color: #e5e4ff; color: #716de3; border: 1px solid #d8d6fb; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 700; font-family: monospace; flex-shrink: 0;">${issueCode}</span>
           <span style="font-size: 14px; font-weight: 600; color: #1e293b; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${issueTitle}</span>
         </div>
 
@@ -3505,9 +4270,9 @@ async function changeFeedbackStatus(id) {
           </label>
 
           <!-- Option 2: Pending -->
-          <label class="status-option-card ${currentStatus === 'pending' ? 'selected' : ''}" onclick="selectStatusOption(this, 'pending')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 2px solid ${currentStatus === 'pending' ? '#8b5cf6' : '#e2e8f0'}; background-color: ${currentStatus === 'pending' ? '#faf5ff' : '#ffffff'}; border-radius: 16px; cursor: pointer; transition: all 0.2s ease;">
+          <label class="status-option-card ${currentStatus === 'pending' ? 'selected' : ''}" onclick="selectStatusOption(this, 'pending')" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 2px solid ${currentStatus === 'pending' ? '#9996f2' : '#e2e8f0'}; background-color: ${currentStatus === 'pending' ? '#f7f6ff' : '#ffffff'}; border-radius: 16px; cursor: pointer; transition: all 0.2s ease;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="width: 40px; height: 40px; border-radius: 12px; background-color: #ede9fe; color: #6d28d9; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+              <div style="width: 40px; height: 40px; border-radius: 12px; background-color: #e5e4ff; color: #716de3; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
                 <i data-lucide="clock" style="width: 20px; height: 20px;"></i>
               </div>
               <div>
@@ -3515,7 +4280,7 @@ async function changeFeedbackStatus(id) {
                 <div style="font-size: 12px; color: #64748b; font-weight: 500;">อยู่ระหว่างประสานงาน / รอตรวจเช็ก</div>
               </div>
             </div>
-            <input type="radio" name="swal-status-choice" value="pending" ${currentStatus === 'pending' ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #7c3aed; cursor: pointer;">
+            <input type="radio" name="swal-status-choice" value="pending" ${currentStatus === 'pending' ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #8f8cf0; cursor: pointer;">
           </label>
 
           <!-- Option 3: Resolved -->
@@ -3540,7 +4305,7 @@ async function changeFeedbackStatus(id) {
     scrollbarPadding: false,
     confirmButtonText: 'อัปเดตสถานะ',
     cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#7c3aed',
+    confirmButtonColor: '#8f8cf0',
     focusConfirm: false,
     preConfirm: () => {
       const selected = document.querySelector('input[name="swal-status-choice"]:checked');
@@ -3623,7 +4388,7 @@ async function openCreateFeedbackModal() {
     showCancelButton: true,
     confirmButtonText: 'บันทึกการแจ้งปัญหา',
     cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#7c3aed',
+    confirmButtonColor: '#8f8cf0',
     focusConfirm: false,
     preConfirm: () => {
       const title = document.getElementById("swal-fb-title")?.value?.trim();
@@ -4015,7 +4780,7 @@ function renderItemsTable() {
       const noticeText = document.getElementById("nonL3NoticeText");
       if (noticeText) {
         const assigned = (currentUser && Array.isArray(currentUser.assignedRooms) && currentUser.assignedRooms.length > 0) ? currentUser.assignedRooms.join(", ") : "ห้องที่ได้รับมอบหมาย";
-        noticeText.innerHTML = `<i data-lucide="shield-check" style="width: 16px; height: 16px; margin-right: 6px; color: #7c3aed;"></i> สิทธิ์ <strong>L2 (เจ้าหน้าที่แล็บ)</strong>: สามารถเพิ่ม แก้ไข และลบข้อมูลสารเคมี/พัสดุได้เฉพาะห้องที่ได้รับมอบหมาย (<strong>${assigned}</strong>)`;
+        noticeText.innerHTML = `<i data-lucide="shield-check" style="width: 16px; height: 16px; margin-right: 6px; color: #8f8cf0;"></i> สิทธิ์ <strong>L2 (เจ้าหน้าที่แล็บ)</strong>: สามารถเพิ่ม แก้ไข และลบข้อมูลสารเคมี/พัสดุได้เฉพาะห้องที่ได้รับมอบหมาย (<strong>${assigned}</strong>)`;
       }
     } else if (!isL3Plus) {
       nonL3Banner.style.display = "flex";
@@ -4227,7 +4992,7 @@ function renderItemsTable() {
             <div id="rowDropdown-${originalIndex}" class="row-dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%;">
               ${isL3Plus ? `
               <button class="dropdown-action-btn" onclick="event.stopPropagation(); toggleRowDropdown(${originalIndex}, this); openMasterDetailModal('${item.code}')">
-                <i data-lucide="shield-check" style="color: #6366f1;"></i>
+                <i data-lucide="shield-check" style="color: #8f8cf0;"></i>
                 <span>ข้อมูลและสต็อก (Master Data L3/L4)</span>
               </button>
               ` : ''}
@@ -4758,7 +5523,7 @@ function applyRoleRestrictionsToItemForm(overrideRoom = null) {
       const notice = document.createElement("div");
       notice.id = "l2RoomLockNotice";
       notice.style.fontSize = "11.5px";
-      notice.style.color = "#7c3aed";
+      notice.style.color = "#8f8cf0";
       notice.style.marginTop = "5px";
       notice.style.fontWeight = "500";
       notice.style.display = "flex";
@@ -4779,7 +5544,7 @@ function applyRoleRestrictionsToItemForm(overrideRoom = null) {
       const notice = document.createElement("div");
       notice.id = "l2RoomLockNotice";
       notice.style.fontSize = "11.5px";
-      notice.style.color = "#7c3aed";
+      notice.style.color = "#8f8cf0";
       notice.style.marginTop = "5px";
       notice.style.fontWeight = "500";
       notice.style.display = "flex";
@@ -5062,8 +5827,8 @@ function setupFormHandlers() {
               <div style="font-size: 13.5px; text-align: left; color: #334155; line-height: 1.6;">
                 <p style="margin-bottom: 8px;">มีรายการ <b>"${duplicateInRoom.name}"</b> (รหัส: <code>${duplicateInRoom.code}</code>) อยู่ใน <b>${room}</b> เรียบร้อยแล้ว</p>
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 10px;">
-                  <div><i data-lucide="map-pin" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #6366f1;"></i><b>ตำแหน่งจัดเก็บ:</b> ${duplicateInRoom.cabinet || '-'} / ${duplicateInRoom.shelf || '-'}</div>
-                  <div><i data-lucide="package" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #4f21a1;"></i><b>จำนวนคงเหลือปัจจุบัน:</b> <span style="font-weight: 700; color: #4f21a1;">${duplicateInRoom.qty} ${duplicateInRoom.unit}</span></div>
+                  <div><i data-lucide="map-pin" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #8f8cf0;"></i><b>ตำแหน่งจัดเก็บ:</b> ${duplicateInRoom.cabinet || '-'} / ${duplicateInRoom.shelf || '-'}</div>
+                  <div><i data-lucide="package" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #716de3;"></i><b>จำนวนคงเหลือปัจจุบัน:</b> <span style="font-weight: 700; color: #716de3;">${duplicateInRoom.qty} ${duplicateInRoom.unit}</span></div>
                   <div><i data-lucide="plus-circle" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #16a34a;"></i><b>จำนวนที่ต้องการเพิ่ม:</b> <span style="font-weight: 700; color: #16a34a;">+${qty} ${unit}</span></div>
                   <div style="margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px;"><i data-lucide="bar-chart-2" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #15803d;"></i><b>ยอดรวมใหม่:</b> <span style="font-weight: 700; color: #15803d;">${duplicateInRoom.qty + qty} ${unit}</span></div>
                 </div>
@@ -5072,7 +5837,7 @@ function setupFormHandlers() {
             `,
             showCancelButton: true,
             showDenyButton: true,
-            confirmButtonColor: "#4f21a1",
+            confirmButtonColor: "#716de3",
             denyButtonColor: "#64748b",
             cancelButtonColor: "#dc2626",
             confirmButtonText: `รวมจำนวนสต็อก (${duplicateInRoom.qty + qty} ${unit})`,
@@ -5163,7 +5928,7 @@ function setupFormHandlers() {
                 </div>
               `,
               showCancelButton: true,
-              confirmButtonColor: "#4f21a1",
+              confirmButtonColor: "#716de3",
               cancelButtonColor: "#64748b",
               confirmButtonText: "ยืนยันบันทึกจัดเก็บ",
               cancelButtonText: "ยกเลิก"
@@ -5338,7 +6103,7 @@ window.editItem = function(index) {
           </div>
         `,
         confirmButtonText: 'รับทราบ',
-        confirmButtonColor: '#7c3aed'
+        confirmButtonColor: '#8f8cf0'
       });
       return;
     }
@@ -5356,7 +6121,7 @@ window.editItem = function(index) {
       showCancelButton: true,
       confirmButtonText: 'ติดต่อผู้ดูแลระบบ',
       cancelButtonText: 'ปิด',
-      confirmButtonColor: '#7c3aed'
+      confirmButtonColor: '#8f8cf0'
     }).then((res) => {
       if (res.isConfirmed) {
         showContactAdminModal();
@@ -5450,7 +6215,7 @@ window.deleteItem = async function(index) {
       showCancelButton: true,
       confirmButtonText: 'ติดต่อผู้ดูแลระบบ',
       cancelButtonText: 'ปิด',
-      confirmButtonColor: '#7c3aed'
+      confirmButtonColor: '#8f8cf0'
     }).then((res) => {
       if (res.isConfirmed) {
         showContactAdminModal();
@@ -6167,7 +6932,7 @@ async function processImportRowsMatrix(rows) {
         ${errorCount > 0 ? `<p style="color:#e11d48; margin-top:6px;"><i data-lucide="alert-triangle" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>ข้ามแถวที่ไม่สมบูรณ์: ${errorCount} แถว</p>` : ''}
         <p style="color:#059669; font-size:12.5px; margin-top:8px;"><i data-lucide="check-circle-2" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>อัปเดตตารางและบันทึกลงระบบทันที</p>
       </div>`,
-      confirmButtonColor: '#7c3aed',
+      confirmButtonColor: '#8f8cf0',
       confirmButtonText: 'ตกลง'
     });
   } else {
@@ -6832,7 +7597,7 @@ function setupBorrowForm() {
               <input type="checkbox" class="damage-checkbox" data-tx-id="${tx.id}" style="width: 14px; height: 14px; cursor: pointer;">
               <span>ชำรุด</span>
             </label>
-            <input type="number" class="damage-qty-input" data-tx-id="${tx.id}" value="1" min="1" max="${tx.qty}" style="width: 56px; height: 26px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; display: none; text-align: center; outline: none;">
+            <input type="number" class="damage-qty-input" data-rolling-counter data-tx-id="${tx.id}" value="1" min="1" max="${tx.qty}" style="width: 56px; height: 26px; padding: 2px 4px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 12px; display: none; text-align: center; outline: none;">
           </div>
         </div>
       `;
@@ -7273,7 +8038,7 @@ function renderTransactionsTable() {
           <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
             <div style="font-weight: 700; color: #0f172a; font-size: 14px; line-height: 1.4; word-break: break-word;">${escapeHTML(nameThai)}</div>
             ${roomText ? `
-              <span style="background: rgba(99,102,241,0.08); color: #4f46e5; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; display: inline-block; border: 1px solid rgba(99,102,241,0.18); word-break: break-word; white-space: nowrap;">${roomText}</span>
+              <span style="background: rgba(99,102,241,0.08); color: #716de3; padding: 2px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; display: inline-block; border: 1px solid rgba(99,102,241,0.18); word-break: break-word; white-space: nowrap;">${roomText}</span>
             ` : ''}
           </div>
           <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px; font-size: 12px; color: #64748b;">
@@ -8689,8 +9454,8 @@ function renderBookingsTable() {
         <td data-label="ห้องปฏิบัติการและรายละเอียดกิจกรรม" style="vertical-align: top; padding: 12px 16px;">
           <!-- 1. Room badge prominently featured at top -->
           <div style="margin-bottom: 5px;">
-            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.08); color: #4338ca; border: 1px solid rgba(99,102,241,0.24); padding: 3px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 700; word-break: break-word;">
-              <i data-lucide="flask-conical" style="width: 13px; height: 13px; color: #4f46e5; flex-shrink: 0;"></i>
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.08); color: #716de3; border: 1px solid rgba(99,102,241,0.24); padding: 3px 10px; border-radius: 6px; font-size: 12.5px; font-weight: 700; word-break: break-word;">
+              <i data-lucide="flask-conical" style="width: 13px; height: 13px; color: #716de3; flex-shrink: 0;"></i>
               <span>${escapeHTML(roomName || "ไม่ระบุห้องปฏิบัติการ")}</span>
             </span>
           </div>
@@ -8717,8 +9482,8 @@ function renderBookingsTable() {
         <!-- Room at top -->
         ${roomName ? `
           <div style="margin-bottom: 5px;">
-            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.08); color: #4338ca; border: 1px solid rgba(99,102,241,0.24); padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; word-break: break-word;">
-              <i data-lucide="flask-conical" style="width: 13px; height: 13px; color: #4f46e5; flex-shrink: 0;"></i>
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.08); color: #716de3; border: 1px solid rgba(99,102,241,0.24); padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; word-break: break-word;">
+              <i data-lucide="flask-conical" style="width: 13px; height: 13px; color: #716de3; flex-shrink: 0;"></i>
               <span>${escapeHTML(roomName)}</span>
             </span>
           </div>
@@ -10357,7 +11122,7 @@ window.handleForgotPasswordClick = function() {
       title: "ลืมรหัสผ่าน?",
       html: `
         <div style="font-size: 13.5px; line-height: 1.6; color: #475569; text-align: left;">
-          <p style="margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;"><i data-lucide="info" style="width: 14px; height: 14px; color: #3b82f6; flex-shrink: 0;"></i>หากท่านลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ (Admin) เพื่อขอรีเซ็ตรหัสผ่านใหม่</p>
+          <p style="margin: 0 0 8px 0; display: flex; align-items: center; gap: 6px;"><i data-lucide="info" style="width: 14px; height: 14px; color: #8f8cf0; flex-shrink: 0;"></i>หากท่านลืมรหัสผ่าน โปรดติดต่อผู้ดูแลระบบ (Admin) เพื่อขอรีเซ็ตรหัสผ่านใหม่</p>
           <p style="margin: 0;">การยืนยันตัวตนทั้งหมดจะได้รับการประมวลผลผ่านระบบความปลอดภัยของเซิร์ฟเวอร์เท่านั้น</p>
         </div>
       `,
@@ -10717,7 +11482,7 @@ window.showTransactionDetail = function(txId) {
 
   // Set Title
   title.innerHTML = `
-    <i data-lucide="history" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
+    <i data-lucide="history" style="width: 18px; height: 18px; color: #9996f2;"></i>
     <span>รายละเอียดการยืม-คืนพัสดุ</span>
   `;
 
@@ -10968,7 +11733,7 @@ window.printBookingSlip = function(bkId) {
       </div>
 
       <div class="no-print" style="margin-top: 24px; text-align: center;">
-        <button onclick="window.print()" style="padding: 8px 20px; font-size: 14px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; cursor: pointer;">พิมพ์เอกสารนี้</button>
+        <button onclick="window.print()" style="padding: 8px 20px; font-size: 14px; background: #716de3; color: #fff; border: none; border-radius: 6px; cursor: pointer;">พิมพ์เอกสารนี้</button>
       </div>
       <script>
         window.onload = function() {
@@ -10995,7 +11760,7 @@ window.showBookingDetail = function(bkId) {
 
   // Modern Modal Header
   title.innerHTML = `
-    <i data-lucide="flask-conical" style="width: 20px; height: 20px; color: #6366f1;"></i>
+    <i data-lucide="flask-conical" style="width: 20px; height: 20px; color: #8f8cf0;"></i>
     <span style="font-weight: 700; font-size: 15px; color: #0f172a;">รายละเอียดการจองห้องปฏิบัติการ</span>
   `;
 
@@ -11083,7 +11848,7 @@ window.showBookingDetail = function(bkId) {
       <section class="bdm-grid" aria-label="กำหนดการและผู้จอง">
         <div class="bdm-card">
           <div class="bdm-card-label">
-            <i data-lucide="calendar" style="width: 13px; height: 13px; color: #6366f1;"></i>
+            <i data-lucide="calendar" style="width: 13px; height: 13px; color: #8f8cf0;"></i>
             <span>วันและเวลาที่ใช้งาน</span>
           </div>
           <div class="bdm-schedule-date">${escapeHTML(String(bookingDate))}</div>
@@ -11095,7 +11860,7 @@ window.showBookingDetail = function(bkId) {
 
         <div class="bdm-card">
           <div class="bdm-card-label">
-            <i data-lucide="user-check" style="width: 13px; height: 13px; color: #6366f1;"></i>
+            <i data-lucide="user-check" style="width: 13px; height: 13px; color: #8f8cf0;"></i>
             <span>ผู้จองและกลุ่มผู้เรียน</span>
           </div>
           <div class="bdm-teacher-name">${escapeHTML(String(teacherName))}</div>
@@ -11112,7 +11877,7 @@ window.showBookingDetail = function(bkId) {
       <!-- 3. Purpose & Experiment Activities -->
       <section class="bdm-card bdm-purpose-card" aria-label="กิจกรรมการทดลอง">
         <div class="bdm-card-label">
-          <i data-lucide="clipboard-list" style="width: 13px; height: 13px; color: #6366f1;"></i>
+          <i data-lucide="clipboard-list" style="width: 13px; height: 13px; color: #8f8cf0;"></i>
           <span>กิจกรรม / วัตถุประสงค์การทดลอง</span>
         </div>
         <div class="bdm-purpose-body">${escapeHTML(String(purpose))}</div>
@@ -11424,7 +12189,7 @@ function renderPendingRequests() {
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; cursor: pointer;" onclick="togglePendingRequestDetails(this)">
           <div>
             <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 5px;">
-              <i data-lucide="calendar" style="width: 14px; height: 14px; color: #3b82f6;"></i>
+              <i data-lucide="calendar" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
               <span>จองห้อง: ${getRoomThaiName(bk.room)}</span>
             </div>
             <div style="font-size: 10px; color: var(--text-muted); margin-top: 1px;">
@@ -11432,7 +12197,7 @@ function renderPendingRequests() {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="badge badge-blue" style="font-size: 9px; padding: 1px 5px; background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;">จองห้องแล็บ</span>
+            <span class="badge badge-blue" style="font-size: 9px; padding: 1px 5px; background-color: rgba(59, 130, 246, 0.1); color: #8f8cf0;">จองห้องแล็บ</span>
             <i class="chevron-icon" data-lucide="chevron-down" style="width: 14px; height: 14px; color: var(--text-muted); transition: transform 0.2s;"></i>
           </div>
         </div>
@@ -11462,7 +12227,7 @@ function renderPendingRequests() {
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; cursor: pointer;" onclick="togglePendingRequestDetails(this)">
           <div>
             <div style="font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 5px;">
-              <i data-lucide="flask-conical" style="width: 14px; height: 14px; color: #8b5cf6;"></i>
+              <i data-lucide="flask-conical" style="width: 14px; height: 14px; color: #9996f2;"></i>
               <span>ยืมอุปกรณ์: ${escapeHTML(tx.itemName)}</span>
             </div>
             <div style="font-size: 10px; color: var(--text-muted); margin-top: 1px;">
@@ -11470,7 +12235,7 @@ function renderPendingRequests() {
             </div>
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <span class="badge badge-purple" style="font-size: 9px; padding: 1px 5px; background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6;">ยืมอุปกรณ์</span>
+            <span class="badge badge-purple" style="font-size: 9px; padding: 1px 5px; background-color: rgba(139, 92, 246, 0.1); color: #9996f2;">ยืมอุปกรณ์</span>
             <i class="chevron-icon" data-lucide="chevron-down" style="width: 14px; height: 14px; color: var(--text-muted); transition: transform 0.2s;"></i>
           </div>
         </div>
@@ -11754,7 +12519,7 @@ window.toggleDetailQrFormat = function(code) {
     const localQr = typeof generateItemQrDataUrl === 'function' ? generateItemQrDataUrl(code, 180) : null;
     img.src = localQr || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(code)}`;
     img.alt = `QR Code ${code}`;
-    if (labelQr) { labelQr.style.color = '#4338ca'; labelQr.style.fontWeight = '800'; }
+    if (labelQr) { labelQr.style.color = '#716de3'; labelQr.style.fontWeight = '800'; }
     if (labelDm) { labelDm.style.color = '#94a3b8'; labelDm.style.fontWeight = '500'; }
     if (typeof showToast === 'function') showToast('สลับเป็น QR Code เรียบร้อย', 'info');
   }
@@ -11815,14 +12580,14 @@ window.switchQuickViewFormat = function(code, format) {
     img.src = qrSrc || `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(code)}`;
     if (tag) {
       tag.innerText = 'QR CODE (มาตรฐาน)';
-      tag.style.color = '#4338ca';
+      tag.style.color = '#716de3';
     }
     if (info) {
-      info.innerHTML = '<span style="color: #4338ca; font-weight: 700;">✓ สแกนง่ายด้วยมือถือทั่วไป:</span> เหมาะสำหรับติดเครื่องมือวิทยาศาสตร์ ตู้เก็บ หรือขวดขนาดกลาง-ใหญ่ สแกนได้ทันทีด้วยกล้องมือถือทุกรุ่น (iPhone / Android)';
+      info.innerHTML = '<span style="color: #716de3; font-weight: 700;">✓ สแกนง่ายด้วยมือถือทั่วไป:</span> เหมาะสำหรับติดเครื่องมือวิทยาศาสตร์ ตู้เก็บ หรือขวดขนาดกลาง-ใหญ่ สแกนได้ทันทีด้วยกล้องมือถือทุกรุ่น (iPhone / Android)';
     }
     if (btnQr && btnDm) {
       btnQr.style.background = '#ffffff';
-      btnQr.style.color = '#4338ca';
+      btnQr.style.color = '#716de3';
       btnQr.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
       btnDm.style.background = 'transparent';
       btnDm.style.color = '#64748b';
@@ -11854,7 +12619,7 @@ window.previewOrPrintQr = function(code) {
     <div class="modal-content" style="max-width: 380px; text-align: center; background: #ffffff; border-radius: 16px; padding: 22px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="background: #e0e7ff; color: #4338ca; padding: 6px; border-radius: 8px; display: inline-flex;">
+          <span style="background: #e5e4ff; color: #716de3; padding: 6px; border-radius: 8px; display: inline-flex;">
             <i data-lucide="qr-code" style="width: 17px; height: 17px;"></i>
           </span>
           <span style="font-weight: 700; font-size: 15px; color: #0f172a;">2D Code ประจำพัสดุ</span>
@@ -11866,7 +12631,7 @@ window.previewOrPrintQr = function(code) {
 
       <!-- Format Switcher Segment -->
       <div style="display: flex; gap: 4px; background: #f1f5f9; padding: 3px; border-radius: 999px; margin-bottom: 14px; justify-content: center;">
-        <button type="button" id="btnViewQr" onclick="switchQuickViewFormat('${escapeHtml(item.code)}', 'qrcode')" style="padding: 5px 12px; border: none; border-radius: 999px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: #ffffff; color: #4338ca; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.15s ease;">
+        <button type="button" id="btnViewQr" onclick="switchQuickViewFormat('${escapeHtml(item.code)}', 'qrcode')" style="padding: 5px 12px; border: none; border-radius: 999px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: #ffffff; color: #716de3; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.15s ease;">
           📱 QR Code (ทั่วไป)
         </button>
         <button type="button" id="btnViewDm" onclick="switchQuickViewFormat('${escapeHtml(item.code)}', 'datamatrix')" style="padding: 5px 12px; border: none; border-radius: 999px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: transparent; color: #64748b; transition: all 0.15s ease;">
@@ -11875,15 +12640,15 @@ window.previewOrPrintQr = function(code) {
       </div>
 
       <div style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); position: relative;">
-        <span id="qrQuickViewTag" style="position: absolute; top: 6px; right: 8px; font-size: 9.5px; font-weight: 700; color: #4338ca; letter-spacing: 0.5px;">QR CODE</span>
+        <span id="qrQuickViewTag" style="position: absolute; top: 6px; right: 8px; font-size: 9.5px; font-weight: 700; color: #716de3; letter-spacing: 0.5px;">QR CODE</span>
         <img id="qrQuickViewImg" src="${qrUrlLarge}" alt="Code ${escapeHtml(item.code)}" onerror="handleDetailQrError(this, '${escapeHtml(item.code)}')" style="width: 180px; height: 180px; display: block; border-radius: 6px; image-rendering: pixelated; margin-top: 10px; object-fit: contain;">
       </div>
 
       <div id="qrQuickViewInfo" style="font-size: 11px; line-height: 1.45; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; text-align: left;">
-        <span style="color: #4338ca; font-weight: 700;">✓ สแกนง่ายด้วยมือถือทั่วไป:</span> เหมาะสำหรับติดเครื่องมือวิทยาศาสตร์ ตู้เก็บ หรือขวดขนาดกลาง-ใหญ่ สแกนได้ทันทีด้วยกล้องมือถือทุกรุ่น (iPhone / Android)
+        <span style="color: #716de3; font-weight: 700;">✓ สแกนง่ายด้วยมือถือทั่วไป:</span> เหมาะสำหรับติดเครื่องมือวิทยาศาสตร์ ตู้เก็บ หรือขวดขนาดกลาง-ใหญ่ สแกนได้ทันทีด้วยกล้องมือถือทุกรุ่น (iPhone / Android)
       </div>
 
-      <div style="font-family: monospace; font-size: 13px; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 3px 10px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">
+      <div style="font-family: monospace; font-size: 13px; font-weight: 700; color: #716de3; background: #e5e4ff; padding: 3px 10px; border-radius: 6px; display: inline-block; margin-bottom: 6px;">
         ${escapeHtml(item.code)}
       </div>
       <div style="font-size: 13.5px; font-weight: 600; color: #0f172a; margin-bottom: 2px; line-height: 1.35;">
@@ -11925,7 +12690,7 @@ window.showItemDetail = function(event, itemCode) {
 
   // Title with icon
   title.innerHTML = `
-    <i data-lucide="flask-conical" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
+    <i data-lucide="flask-conical" style="width: 18px; height: 18px; color: #9996f2;"></i>
     <span>รายละเอียดสาร/อุปกรณ์</span>
   `;
 
@@ -12128,7 +12893,7 @@ window.showItemDetail = function(event, itemCode) {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
               <div>
                 <label style="font-size: 11px; font-weight: 600; margin-bottom: 4px; display: block;">จำนวน (ขวด) *</label>
-                <input type="number" id="dilutionQty" value="1" min="1" style="width: 100%; padding: 6px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px;">
+                <input type="number" id="dilutionQty" data-rolling-counter value="1" min="1" style="width: 100%; padding: 6px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px;">
               </div>
               <div>
                 <label style="font-size: 11px; font-weight: 600; margin-bottom: 4px; display: block;">สถานที่จัดเก็บ</label>
@@ -12179,9 +12944,9 @@ window.showItemDetail = function(event, itemCode) {
       <div class="item-detail-qr" onclick="previewOrPrintQr('${escapeHtml(item.code)}')" title="คลิกเพื่อดู 2D Code ขนาดใหญ่ หรือพิมพ์ป้าย" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 5px; background: #ffffff; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 74px; min-width: 74px; max-width: 74px; box-sizing: border-box; flex-shrink: 0; cursor: pointer;">
         <img id="detailItemCodeImg" data-format="qrcode" src="${qrUrl}" alt="Code ${escapeHtml(item.code)}" title="คลิกเพื่อขยายขนาดใหญ่ หรือกดปุ่ม ⇄ เพื่อสลับ QR / Data Matrix" loading="eager" decoding="async" onerror="handleDetailQrError(this, '${escapeHtml(item.code)}')" style="width: 62px; height: 62px; aspect-ratio: 1 / 1; object-fit: contain; border-radius: 4px; display: block; image-rendering: -webkit-optimize-contrast; image-rendering: pixelated; background: #ffffff;">
         <div style="display: flex; flex-direction: column; align-items: stretch; gap: 2.5px; width: 100%;">
-          <span style="font-family: monospace; font-size: 9px; font-weight: 700; color: #4338ca; background: #e0e7ff; padding: 1.5px 3px; border-radius: 3px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">${item.code}</span>
+          <span style="font-family: monospace; font-size: 9px; font-weight: 700; color: #716de3; background: #e5e4ff; padding: 1.5px 3px; border-radius: 3px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">${item.code}</span>
           <button type="button" onclick="event.stopPropagation(); toggleDetailQrFormat('${escapeHtml(item.code)}')" title="สลับการแสดงผลระหว่าง QR Code และ Data Matrix (สำหรับขวด/หลอดทดลอง)" style="border: 1px solid #cbd5e1; background: #f8fafc; color: #475569; font-size: 8px; font-weight: 700; padding: 2px 2px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 3px; width: 100%; line-height: 1.1; transition: all 0.15s ease;">
-            <span id="detailQrFormatLabel" style="color: #4338ca; font-weight: 800;">QR</span>
+            <span id="detailQrFormatLabel" style="color: #716de3; font-weight: 800;">QR</span>
             <span style="color: #94a3b8; font-size: 7px;">⇄</span>
             <span id="detailDmFormatLabel" style="color: #94a3b8; font-weight: 500;">DM</span>
           </button>
@@ -12196,12 +12961,12 @@ window.showItemDetail = function(event, itemCode) {
           ${item.casNo || item.casNumber ? `<span style="font-family: monospace; font-size: 9.5px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0 5px; border-radius: 3px; height: 19px; line-height: 19px; display: inline-flex; align-items: center; box-sizing: border-box;">CAS: ${item.casNo || item.casNumber}</span>` : ''}
         </div>
         <h3 style="font-size: 14.5px; font-weight: 700; color: #0f172a; margin: 0; line-height: 1.3;">${getItemDisplayName(item)}</h3>
-        ${item.formula ? `<div style="font-family: monospace; font-size: 11.5px; color: #6366f1; font-weight: 600;">สูตรเคมี: ${escapeHtml(item.formula)}</div>` : ''}
+        ${item.formula ? `<div style="font-family: monospace; font-size: 11.5px; color: #8f8cf0; font-weight: 600;">สูตรเคมี: ${escapeHtml(item.formula)}</div>` : ''}
         
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 3px; padding-top: 5px; border-top: 1px dashed #e2e8f0;">
           <div style="background: #f8fafc; padding: 4px 6px; border-radius: 6px; border: 1px solid #f1f5f9;">
             <div style="font-size: 9.5px; color: #64748b; font-weight: 500;">คงเหลือ</div>
-            <div style="font-size: 12.5px; font-weight: 700; color: #4338ca; margin-top: 1px;">${item.qty} <span style="font-size: 10px; font-weight: 500; color: #64748b;">${item.unit}</span></div>
+            <div style="font-size: 12.5px; font-weight: 700; color: #716de3; margin-top: 1px;">${item.qty} <span style="font-size: 10px; font-weight: 500; color: #64748b;">${item.unit}</span></div>
           </div>
           <div style="background: #f8fafc; padding: 4px 6px; border-radius: 6px; border: 1px solid #f1f5f9;">
             <div style="font-size: 9.5px; color: #64748b; font-weight: 500;">ที่เก็บ</div>
@@ -12236,7 +13001,7 @@ window.showItemDetail = function(event, itemCode) {
     <div class="modal-footer-right">
       ${isL3Plus ? `
       <button type="button" class="btn btn-secondary modal-footer-btn" onclick="closeDetailModal(); openMasterDetailModal('${item.code}')" title="ดูข้อมูลสต็อกและประวัติพัสดุ (เฉพาะ L3-L4)">
-        <i data-lucide="shield-check" style="width: 13.5px; height: 13.5px; flex-shrink: 0; color: #6366f1;"></i>
+        <i data-lucide="shield-check" style="width: 13.5px; height: 13.5px; flex-shrink: 0; color: #8f8cf0;"></i>
         <span>Master Data</span>
       </button>
       ` : ''}
@@ -12258,7 +13023,7 @@ window.showItemDetail = function(event, itemCode) {
         <span>แก้ไขข้อมูล</span>
       </button>
       ` : `
-      <button type="button" class="btn btn-secondary modal-footer-btn" style="border-color: #93c5fd; color: #1d4ed8; background: #eff6ff;" onclick="closeDetailModal(); showContactAdminModal()">
+      <button type="button" class="btn btn-secondary modal-footer-btn" style="border-color: #93c5fd; color: #716de3; background: #f1f0ff;" onclick="closeDetailModal(); showContactAdminModal()">
         <i data-lucide="phone" style="width: 13.5px; height: 13.5px; flex-shrink: 0;"></i>
         <span>ติดต่อ L3 เพื่อแก้ไข</span>
       </button>
@@ -12815,8 +13580,8 @@ function renderTopBorrowedChart() {
   svgHtml += `
     <defs>
       <linearGradient id="barGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#8b5cf6" />
-        <stop offset="100%" stop-color="#3b82f6" />
+        <stop offset="0%" stop-color="#9996f2" />
+        <stop offset="100%" stop-color="#8f8cf0" />
       </linearGradient>
     </defs>
   `;
@@ -13688,8 +14453,8 @@ function setupGhsSuggestions() {
                   `สารเคมีกลุ่มเบสอนินทรีย์ ทำปฏิกิริยาคายความร้อนสูงและรุนแรงหากทำปฏิกิริยากับกรด<br>` +
                   `• <b>วิธีจัดเก็บ:</b> จัดเก็บในตู้อโลหะทนสารเคมีเฉพาะสำหรับเบส/ด่าง แยกเก็บห่างจากกรด (กลุ่ม D, F, I) และสารออกซิไดเซอร์เด็ดขาด`;
         bgColor = "rgba(59, 130, 246, 0.08)";
-        textColor = "#1d4ed8";
-        borderColor = "#3b82f6";
+        textColor = "#716de3";
+        borderColor = "#8f8cf0";
       } else if (oxidizerPatterns.some(p => nameLower.includes(p))) {
         group = "E";
         groupLabel = "กลุ่ม E - สารออกซิไดเซอร์อนินทรีย์";
@@ -14414,9 +15179,9 @@ function setupHistoryExports() {
                 <td>บาท</td>
               </tr>
               <tr class="grand-total-row" style="border-top: 1px dashed #cbd5e1;">
-                <td colspan="4" style="text-align: right; color: #8b5cf6;">ราคาหลังหักส่วนลด:</td>
-                <td style="text-align: right; color: #8b5cf6;">${grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td style="color: #8b5cf6;">บาท</td>
+                <td colspan="4" style="text-align: right; color: #9996f2;">ราคาหลังหักส่วนลด:</td>
+                <td style="text-align: right; color: #9996f2;">${grandTotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="color: #9996f2;">บาท</td>
               </tr>
             </tbody>
           </table>
@@ -14596,12 +15361,12 @@ function populateBookingPrepList() {
     html += `
       <label style="display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer; padding: 4px 0; border-bottom: 1px solid #f8fafc;">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <input type="checkbox" name="bookingPrepItem" value="${item.code}" style="accent-color: #8b5cf6; width: 15px; height: 15px;">
+          <input type="checkbox" name="bookingPrepItem" value="${item.code}" style="accent-color: #9996f2; width: 15px; height: 15px;">
           <span>${getItemDisplayName(item)} (${item.code})</span>
         </div>
         <div style="display: flex; align-items: center; gap: 4px;">
           <span style="font-size: 11px; color: var(--text-muted);">จำนวน:</span>
-          <input type="number" class="prep-qty-input" data-code="${item.code}" value="1" min="1" max="${item.qty}" style="width: 50px; padding: 2px 4px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px; text-align: center;">
+          <input type="number" class="prep-qty-input" data-rolling-counter data-code="${item.code}" value="1" min="1" max="${item.qty}" style="width: 50px; padding: 2px 4px; font-size: 12px; border: 1px solid var(--border-color); border-radius: 4px; text-align: center;">
         </div>
       </label>
     `;
@@ -15333,7 +16098,7 @@ function generateBotResponse(query) {
 
   // WasteTrack Classification Router
   if (q.includes("ทิ้งสารเคมี") || q.includes("จำแนกสารเคมี") || q.includes("วิธีกำจัดสารเคมี") || q.includes("wastetrack") || q.includes("ทิ้งยา") || q.includes("คลาสของเสีย") || q.includes("จำแนกของเสีย") || q === "waste_start") {
-    return `<i data-lucide="flask-conical" style="width: 16px; height: 16px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ระบบช่วยเหลือจำแนกประเภทของเสียสารเคมี (CU WasteTrack)</b>\n\n` +
+    return `<i data-lucide="flask-conical" style="width: 16px; height: 16px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i><b>ระบบช่วยเหลือจำแนกประเภทของเสียสารเคมี (CU WasteTrack)</b>\n\n` +
            `อ้างอิงตามระบบการจำแนกของเสียห้องปฏิบัติการ 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย\n\n` +
            `<b>คำถามที่ 1:</b> เป็นสารเคมีเสื่อมสภาพหรือหมดอายุ (Deteriorated/Expired) ที่ยังสามารถระบุชื่อและระบุความเป็นอันตรายของสารเคมีนั้นได้ชัดเจนหรือไม่?\n\n` +
            `<div class="chat-choices-container">` +
@@ -15593,7 +16358,7 @@ function generateBotResponse(query) {
       }
     }
 
-    return `<i data-lucide="flask-conical" style="width: 16px; height: 16px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ระบบดุลสมการเคมีอัตโนมัติ (Chemical Equation Balancer)</b>\n\n` +
+    return `<i data-lucide="flask-conical" style="width: 16px; height: 16px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i><b>ระบบดุลสมการเคมีอัตโนมัติ (Chemical Equation Balancer)</b>\n\n` +
            `กรุณาระบุสมการเคมีที่ต้องการดุล โดยใช้เครื่องหมาย <code>-&gt;</code> หรือ <code>=</code> ในการแยกสารตั้งต้นและผลิตภัณฑ์ เช่น:\n` +
            `- <i>"ดุลสมการ H2 + O2 -&gt; H2O"</i>\n` +
            `- <i>"ช่วยดุลสมการ Fe + Cl2 = FeCl3 หน่อย"</i>`;
@@ -15607,7 +16372,7 @@ function generateBotResponse(query) {
       const res = getFormulaWeightBreakdown(rawFormula);
       if (res && !res.error) {
         const { totalMass, breakdown } = res;
-        let html = `<i data-lucide="scale" style="width: 16px; height: 16px; color: #2563eb; vertical-align: middle; margin-right: 4px;"></i><b>ผลการคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n`;
+        let html = `<i data-lucide="scale" style="width: 16px; height: 16px; color: #716de3; vertical-align: middle; margin-right: 4px;"></i><b>ผลการคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n`;
         html += `สูตรเคมี: <b>${formatChemicalFormula(rawFormula)}</b>\n\n`;
         html += `<table style="width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12.5px; background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 6px; overflow: hidden;">`;
         html += `<thead>`;
@@ -15642,7 +16407,7 @@ function generateBotResponse(query) {
       }
     }
 
-    return `<i data-lucide="scale" style="width: 16px; height: 16px; color: #2563eb; vertical-align: middle; margin-right: 4px;"></i><b>ระบบคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n\n` +
+    return `<i data-lucide="scale" style="width: 16px; height: 16px; color: #716de3; vertical-align: middle; margin-right: 4px;"></i><b>ระบบคำนวณมวลโมเลกุล (Molar Mass Calculator)</b>\n\n` +
            `กรุณาระบุสูตรเคมีที่คุณต้องการคำนวณมวลโมเลกุล (สามารถพิมพ์ตัวพิมพ์เล็กหรือตัวพิมพ์ใหญ่ได้) เช่น:\n` +
            `- <i>"มวลโมเลกุล H2O"</i> หรือ <i>"มวลโมเลกุล h2o"</i>\n` +
            `- <i>"คำนวณมวลโมเลกุลของ Ca(OH)2"</i> หรือ <i>"คำนวณมวลโฒเลกุลของ ca(oh)2"</i>\n` +
@@ -15787,7 +16552,7 @@ function generateBotResponse(query) {
         
         if (!isLiquid) {
           const grams = targetConc * mw * volL;
-          return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเตรียมสารละลาย ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
+          return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเตรียมสารละลาย ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
                  `- <b>สูตรคำนวณ:</b> <code>g = M × MW × V (ลิตร)</code>\n` +
                  `- <b>ค่าคำนวณได้:</b> ชั่งสาร <b>${grams.toFixed(4)} กรัม</b> (มวลโมเลกุล MW = <b>${mw.toFixed(3)} g/mol</b>, ปริมาตร = <b>${volL.toFixed(3)} ลิตร</b>)\n\n` +
                  `<i data-lucide="list-ordered" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
@@ -15816,7 +16581,7 @@ function generateBotResponse(query) {
             safetyNote = `\n<i data-lucide="siren" style="width: 15px; height: 15px; color: #dc2626; vertical-align: middle; margin-right: 4px;"></i><b>ข้อควรระวังความปลอดภัยสูง:</b> ปฏิกิริยาระหว่างกรดซัลฟิวริกเข้มข้นกับน้ำคายความร้อนสูงมาก! <b>ห้ามเทน้ำลงในกรดเข้มข้นเด็ดขาด</b> ให้ตวงน้ำใส่ขวดก่อนแล้วค่อยๆ เทกรดเข้มข้นลงในน้ำช้าๆ`;
           }
           
-          return `<i data-lucide="droplet" style="width: 15px; height: 15px; color: #0284c7; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเจือจางเตรียมสารละลายกรด ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากกรดเข้มข้นสต็อก (${c1} M):</b>\n\n` +
+          return `<i data-lucide="droplet" style="width: 15px; height: 15px; color: #68c8e5; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเจือจางเตรียมสารละลายกรด ${key} (${chem.formula}) ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากกรดเข้มข้นสต็อก (${c1} M):</b>\n\n` +
                  `- <b>สูตรคำนวณ:</b> <code>C₁V₁ = C₂V₂</code>\n` +
                  `- <b>ค่าคำนวณได้:</b> ใช้กรดสต็อกปริมาตร <b>${v1.toFixed(2)} mL</b> เจือจางด้วยตัวทำละลาย (น้ำกลั่น) <b>${solvent.toFixed(2)} mL</b>\n\n` +
                  `<i data-lucide="list-ordered" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
@@ -15853,7 +16618,7 @@ function generateBotResponse(query) {
         
         if (!isLiquid) {
           const grams = targetConc * mw * volL;
-          return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
+          return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()}:</b>\n\n` +
                  `- <b>สูตรคำนวณ:</b> <code>g = M × MW × V (ลิตร)</code>\n` +
                  `- <b>ค่าคำนวณได้:</b> ชั่งสาร <b>${grams.toFixed(4)} กรัม</b> (มวลโมเลกุล MW = <b>${mw.toFixed(3)} g/mol</b>, ปริมาตร = <b>${volL.toFixed(3)} ลิตร</b>)\n\n` +
                  `<i data-lucide="list-ordered" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
@@ -15882,7 +16647,7 @@ function generateBotResponse(query) {
             safetyNote = `\n<i data-lucide="siren" style="width: 15px; height: 15px; color: #dc2626; vertical-align: middle; margin-right: 4px;"></i><b>ข้อควรระวังความปลอดภัยสูง:</b> ปฏิกิริยาระหว่างกรดซัลฟิวริกเข้มข้นกับน้ำคายความร้อนสูงมาก! <b>ห้ามเทน้ำลงในกรดเข้มข้นเด็ดขาด</b> ให้ตวงน้ำใส่ขวดก่อนแล้วค่อยๆ เทกรดเข้มข้นลงในน้ำช้าๆ`;
           }
           
-          return `<i data-lucide="droplet" style="width: 15px; height: 15px; color: #0284c7; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเจือจางเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากสต็อก (${c1} M):</b>\n\n` +
+          return `<i data-lucide="droplet" style="width: 15px; height: 15px; color: #68c8e5; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการเจือจางเตรียมสารละลาย ${formatChemicalFormula(rawFormula)} ความเข้มข้น ${targetConc} M ปริมาตร ${volVal} ${volUnit.toUpperCase()} จากสต็อก (${c1} M):</b>\n\n` +
                  `- <b>สูตรคำนวณ:</b> <code>C₁V₁ = C₂V₂</code>\n` +
                  `- <b>ค่าคำนวณได้:</b> ใช้สารละลายสต็อกปริมาตร <b>${v1.toFixed(2)} mL</b> เจือจางด้วยน้ำกลั่น <b>${solvent.toFixed(2)} mL</b>\n\n` +
                  `<i data-lucide="list-ordered" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i><b>ขั้นตอนการเตรียมในแล็บ:</b>\n` +
@@ -15908,7 +16673,7 @@ function generateBotResponse(query) {
     );
 
     if (reaction) {
-      return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ปฏิกิริยาเคมีระหว่าง ${keyA} (${chemA.formula}) กับ ${reaction.partner} (${CHEM_DB[reaction.partner].formula}):</b>\n\n` +
+      return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i><b>ปฏิกิริยาเคมีระหว่าง ${keyA} (${chemA.formula}) กับ ${reaction.partner} (${CHEM_DB[reaction.partner].formula}):</b>\n\n` +
              `- <b>ผลผลิตที่ได้:</b> ${reaction.product}\n` +
              `- <b>สมการเคมี:</b> <code>${reaction.equation}</code>`;
     } else {
@@ -15920,7 +16685,7 @@ function generateBotResponse(query) {
       );
 
       if (revReaction) {
-        return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ปฏิกิริยาเคมีระหว่าง ${keyB} (${chemB.formula}) กับ ${revReaction.partner} (${CHEM_DB[revReaction.partner].formula}):</b>\n\n` +
+        return `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i><b>ปฏิกิริยาเคมีระหว่าง ${keyB} (${chemB.formula}) กับ ${revReaction.partner} (${CHEM_DB[revReaction.partner].formula}):</b>\n\n` +
                `- <b>ผลผลิตที่ได้:</b> ${revReaction.product}\n` +
                `- <b>สมการเคมี:</b> <code>${revReaction.equation}</code>`;
       } else {
@@ -15945,14 +16710,14 @@ function generateBotResponse(query) {
     );
 
     if (isDirectMatch || isPronounce) {
-      return `<i data-lucide="bot" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i>\n` +
+      return `<i data-lucide="bot" style="width: 15px; height: 15px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i>\n` +
              `- สารเคมี ${chem.formula} คือ ${key}\n` +
              `- คำอ่านภาษาไทย "${chem.read}"\n` +
              `- ชื่ออื่นๆ/ชื่อสามัญ ${chem.commonName || "-"}`;
     }
 
     if (isReaction) {
-      let res = `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ข้อมูลปฏิกิริยาเคมีของ ${key} (${chem.formula}):</b>\n\n`;
+      let res = `<i data-lucide="flask-conical" style="width: 15px; height: 15px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i><b>ข้อมูลปฏิกิริยาเคมีของ ${key} (${chem.formula}):</b>\n\n`;
       res += `สารนี้สามารถทำปฏิกิริยากับสารเคมีพื้นฐานอื่นๆ ในคลังได้ดังนี้ครับ:\n\n`;
       chem.reactions.forEach((r, idx) => {
         res += `${idx + 1}. <b>ทำปฏิกิริยากับ ${r.partner}:</b>\n`;
@@ -15975,9 +16740,9 @@ function generateBotResponse(query) {
   // 1. GREETINGS
   if (q === "สวัสดี" || q === "สวัสดีครับ" || q === "สวัสดีค่ะ" || q === "หวัดดี" || q === "hello" || q === "hi") {
     return `สวัสดีครับ! ยินดีที่ได้พูดคุยกับคุณในวันนี้ ผมคือ <b>Stoki-bitol (สต็อกบิทอล)</b> ผู้ช่วยจัดการสต็อกสารเคมีและอุปกรณ์ห้องแล็บส่วนตัวของคุณ ผมมีฟีเจอร์อัจฉริยะช่วยอำนวยความสะดวกในแล็บดังนี้ครับ:
-- <i data-lucide="flask-conical" style="width: 13px; height: 13px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>ดุลสมการเคมีอัตโนมัติ:</b> พิมพ์ <i>"ดุลสมการ C3H8 + O2 -> CO2 + H2O"</i>
-- <i data-lucide="scale" style="width: 13px; height: 13px; color: #2563eb; vertical-align: middle; margin-right: 4px;"></i><b>คำนวณมวลโมเลกุล:</b> พิมพ์ <i>"มวลโมเลกุล Ca(OH)2"</i> หรือสูตรเคมีอื่นๆ
-- <i data-lucide="droplet" style="width: 13px; height: 13px; color: #0284c7; vertical-align: middle; margin-right: 4px;"></i><b>เครื่องช่วยคำนวณเตรียมสารละลาย:</b> พิมพ์ <i>"เตรียมสาร"</i> หรือ <i>"เจือจางจาก 10 M เป็น 2 M ปริมาตร 250 mL"</i>
+- <i data-lucide="flask-conical" style="width: 13px; height: 13px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i><b>ดุลสมการเคมีอัตโนมัติ:</b> พิมพ์ <i>"ดุลสมการ C3H8 + O2 -> CO2 + H2O"</i>
+- <i data-lucide="scale" style="width: 13px; height: 13px; color: #716de3; vertical-align: middle; margin-right: 4px;"></i><b>คำนวณมวลโมเลกุล:</b> พิมพ์ <i>"มวลโมเลกุล Ca(OH)2"</i> หรือสูตรเคมีอื่นๆ
+- <i data-lucide="droplet" style="width: 13px; height: 13px; color: #68c8e5; vertical-align: middle; margin-right: 4px;"></i><b>เครื่องช่วยคำนวณเตรียมสารละลาย:</b> พิมพ์ <i>"เตรียมสาร"</i> หรือ <i>"เจือจางจาก 10 M เป็น 2 M ปริมาตร 250 mL"</i>
 - <i data-lucide="siren" style="width: 13px; height: 13px; color: #dc2626; vertical-align: middle; margin-right: 4px;"></i><b>แนะนำความปลอดภัย/ปฐมพยาบาล:</b> พิมพ์ <i>"ปฐมพยาบาลสารเคมีหก"</i> หรือ <i>"กรดเข้าตา"</i>
 - <i data-lucide="search" style="width: 13px; height: 13px; color: #64748b; vertical-align: middle; margin-right: 4px;"></i><b>ค้นหาพัสดุ/ข้อมูลสารเคมีพื้นฐาน:</b> เช่นพิมพ์ <i>"ค้นหา เอทานอล"</i> หรือเช็คสต็อกต่ำและหมดอายุ
 บอกผมได้เลยครับว่าอยากให้ช่วยตรงจุดไหนครับ`;
@@ -15985,7 +16750,7 @@ function generateBotResponse(query) {
 
   // 2. HELP SYSTEM / SYSTEM USAGE
   if (q.includes("ยืม") || q.includes("คืน") || q.includes("การยืม") || q.includes("วิธีใช้งานระบบ") || q.includes("แนะนำการใช้งาน")) {
-    return `<i data-lucide="book-open" style="width: 15px; height: 15px; color: #2563eb; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการยืม-คืนพัสดุ:</b>
+    return `<i data-lucide="book-open" style="width: 15px; height: 15px; color: #716de3; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการยืม-คืนพัสดุ:</b>
 1. กดเลือกเมนู <b>"ยืม-คืนพัสดุ"</b> ที่แถบเมนูด้านซ้าย
 2. <b>การยืม:</b> กรอกชื่อผู้ยืม ค้นหาชื่อพัสดุและระบุจำนวนที่ต้องการ แล้วกดปุ่ม <b>"ยืนยันการยืมพัสดุ"</b>
 3. <b>การคืน:</b> กรอกชื่อผู้คืน ระบบจะแสดงรายการล่าสุดที่ยืมไป สามารถเลือกจำนวนพัสดุเพื่อระบุของชำรุด (ถ้ามี) แล้วกด <b>"ยืนยันการส่งคืน"</b>
@@ -15993,7 +16758,7 @@ function generateBotResponse(query) {
   }
 
   if (q.includes("จอง") || q.includes("จองห้อง") || q.includes("จองแล็บ") || q.includes("ห้องปฏิบัติการ")) {
-    return `<i data-lucide="calendar" style="width: 15px; height: 15px; color: #7c3aed; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการจองห้องปฏิบัติการ (Lab Booking):</b>
+    return `<i data-lucide="calendar" style="width: 15px; height: 15px; color: #8f8cf0; vertical-align: middle; margin-right: 4px;"></i><b>วิธีการจองห้องปฏิบัติการ (Lab Booking):</b>
 1. ไปที่เมนู <b>"จองห้องปฏิบัติการ"</b>
 2. เลือกห้องปฏิบัติการ วันที่ และคาบเรียนที่ต้องการจอง
 3. กรอกรายละเอียดวิชา/ผู้จอง แล้วกด <b>"ยืนยันการจอง"</b>
@@ -16676,7 +17441,7 @@ const SAFETY_DB = {
     ]
   },
   eye: {
-    title: "<i data-lucide='eye' style='width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; color: #0284c7;'></i><b>ปฐมพยาบาลกรณีสารเคมีเข้าตา (Eye Contact)</b>",
+    title: "<i data-lucide='eye' style='width: 18px; height: 18px; vertical-align: middle; margin-right: 6px; color: #68c8e5;'></i><b>ปฐมพยาบาลกรณีสารเคมีเข้าตา (Eye Contact)</b>",
     steps: [
       "<b>ใช้ที่ล้างตาฉุกเฉิน:</b> รีบพยุงผู้ป่วยไปยังอ่างล้างตาฉุกเฉิน (Emergency Eyewash) ทันที",
       "<b>เปิดตาและล้างน้ำ:</b> ลืมตาในน้ำสะอาดไหลผ่านเบาๆ โดยใช้นิ้วถ่างเปลือกตาให้กว้างและกลอกตาไปมาเพื่อให้ล้างสารเคมีออกได้ทั่วถึง",
@@ -17180,7 +17945,7 @@ function getApparatusMarkup(type, id, opt) {
       <text class="scale-reading" x="70" y="34" fill="#10b981" font-family="monospace" font-weight="bold" font-size="9" text-anchor="end">0.00 g</text>
       <!-- Buttons -->
       <circle cx="15" cy="30" r="2" fill="#ef4444" stroke="#1e293b" stroke-width="0.8"/>
-      <circle cx="85" cy="30" r="2" fill="#3b82f6" stroke="#1e293b" stroke-width="0.8"/>
+      <circle cx="85" cy="30" r="2" fill="#8f8cf0" stroke="#1e293b" stroke-width="0.8"/>
       <text class="apparatus-label" x="50" y="-10" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
     `;
   }
@@ -17190,7 +17955,7 @@ function getApparatusMarkup(type, id, opt) {
         <linearGradient id="outerFlameGrad_${id}" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="#ef4444" stop-opacity="0.8"/>
           <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.9"/>
-          <stop offset="100%" stop-color="#2563eb" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="#716de3" stop-opacity="0.95"/>
         </linearGradient>
         <linearGradient id="innerFlameGrad_${id}" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
@@ -17340,7 +18105,7 @@ function getApparatusMarkup(type, id, opt) {
       <line class="outline" x1="36" y1="100" x2="40" y2="100" stroke="#64748b" stroke-width="0.8"/>
       <path class="outline" d="M 36,0 L 36,115 L 34,120 L 34,125 L 46,125 L 46,120 L 44,115 L 44,0 Z" fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linejoin="round"/>
       <!-- Blue stopcock knob -->
-      <circle class="outline" cx="40" cy="122.5" r="4.5" fill="#3b82f6" stroke="#1e293b" stroke-width="1.8"/>
+      <circle class="outline" cx="40" cy="122.5" r="4.5" fill="#8f8cf0" stroke="#1e293b" stroke-width="1.8"/>
       <path class="outline" d="M 39,125 L 39,145 L 40,148 L 41,145 L 41,125 Z" fill="#1e293b" stroke="#1e293b" stroke-width="1"/>
       <text class="apparatus-label" x="40" y="-12" text-anchor="middle" font-size="12" font-weight="600" font-family="'Prompt', sans-serif" fill="#64748b"></text>
     `;
@@ -17505,7 +18270,7 @@ function addApparatus(type) {
     rotate: 0,
     label: getDefaultLabel(type),
     liquidLevel: 50,
-    liquidColor: '#3b82f6',
+    liquidColor: '#8f8cf0',
     temp: 25,
     weight: 0.00,
     flameOn: true
@@ -17716,7 +18481,7 @@ function selectElement(id) {
     
     // Preset Solution Colors
     const presets = [
-      { color: '#3b82f6', name: 'สารละลายสีฟ้า (Blue)' },
+      { color: '#8f8cf0', name: 'สารละลายสีฟ้า (Blue)' },
       { color: '#ef4444', name: 'สารละลายสีแดง (Red)' },
       { color: '#10b981', name: 'สารละลายสีเขียว (Green)' },
       { color: '#f59e0b', name: 'สารละลายสีเหลือง (Yellow)' },
@@ -18334,15 +19099,15 @@ function initCalendarEventListeners() {
 function getRoomColor(room) {
   room = typeof room === "string" ? room : String(room || "");
   if (!room) return "#94a3b8"; // Slate
-  if (room.includes("Lab 1") || room.includes("เคมี")) return "#3b82f6"; // Blue
+  if (room.includes("Lab 1") || room.includes("เคมี")) return "#8f8cf0"; // Blue
   if (room.includes("Lab 2") || room.includes("ฟิสิกส์")) return "#10b981"; // Green
   if (room.includes("Lab 3") || room.includes("ชีววิทยา")) return "#06b6d4"; // Cyan
   if (room.includes("Lab 4") || room.includes("ราฟาเอล")) return "#f97316"; // Orange
   if (room.includes("Lab 5") || room.includes("สสวท")) return "#eab308"; // Yellow
-  if (room.includes("Lab 6") || room.includes("อัสสัมชัญ")) return "#8b5cf6"; // Purple
+  if (room.includes("Lab 6") || room.includes("อัสสัมชัญ")) return "#9996f2"; // Purple
   if (room.includes("Lab 7") || room.includes("STEM")) return "#ec4899"; // Pink
-  if (room.includes("Lab 8") || room.includes("EP") || room.includes("ยอห์น")) return "#6366f1"; // Indigo
-  return "#8b5cf6";
+  if (room.includes("Lab 8") || room.includes("EP") || room.includes("ยอห์น")) return "#8f8cf0"; // Indigo
+  return "#9996f2";
 }
 
 const thaiMonths = [
@@ -18476,14 +19241,14 @@ function renderBookingCalendar() {
   const legend = document.getElementById("bookingCalendarLegend");
   if (legend) {
     const legendRooms = [
-      { name: "Lab 1 (เคมี)", color: "#3b82f6" },
+      { name: "Lab 1 (เคมี)", color: "#8f8cf0" },
       { name: "Lab 2 (ฟิสิกส์)", color: "#10b981" },
       { name: "Lab 3 (ชีววิทยา)", color: "#06b6d4" },
       { name: "Lab 4 (ราฟาเอล)", color: "#f97316" },
       { name: "Lab 5 (สสวท)", color: "#eab308" },
-      { name: "Lab 6 (อัสสัมชัญ)", color: "#8b5cf6" },
+      { name: "Lab 6 (อัสสัมชัญ)", color: "#9996f2" },
       { name: "Lab 7 (STEM)", color: "#ec4899" },
-      { name: "Lab 8 (EP)", color: "#6366f1" }
+      { name: "Lab 8 (EP)", color: "#8f8cf0" }
     ];
     legend.innerHTML = legendRooms.map(r => `
       <div style="display: inline-flex; align-items: center; gap: 6px;">
@@ -18540,7 +19305,7 @@ function getAllLabRooms() {
         id: r.id,
         name: r.name,
         building: r.building || '',
-        hex: r.hex || '#2563eb'
+        hex: r.hex || '#716de3'
       });
     });
   }
@@ -18553,7 +19318,7 @@ function getAllLabRooms() {
           id: it.room,
           name: getRoomThaiName(it.room),
           building: 'อาคารวิทยาศาสตร์',
-          hex: '#6366f1'
+          hex: '#8f8cf0'
         });
       }
     });
@@ -18567,7 +19332,7 @@ function getAllLabRooms() {
           id: rKey,
           name: getRoomThaiName(rKey),
           building: 'อาคารวิทยาศาสตร์',
-          hex: '#6366f1'
+          hex: '#8f8cf0'
         });
       }
     });
@@ -19627,9 +20392,9 @@ function getUserInitials(name, fallback = "") {
 function getRoleColor(role) {
   const r = (role || "").toUpperCase();
   if (r === "L4" || r.includes("EXECUTIVE") || r.includes("ผู้บริหาร")) return "#be185d";
-  if (r === "L3" || r.includes("ADMIN") || r.includes("ผู้ดูแล") || r.includes("MANAGER")) return "#7c3aed";
+  if (r === "L3" || r.includes("ADMIN") || r.includes("ผู้ดูแล") || r.includes("MANAGER")) return "#8f8cf0";
   if (r === "L2" || r.includes("STAFF") || r.includes("เจ้าหน้าที่")) return "#ea580c";
-  if (r === "L1" || r.includes("TEACHER") || r.includes("ครู")) return "#0284c7";
+  if (r === "L1" || r.includes("TEACHER") || r.includes("ครู")) return "#68c8e5";
   return "#64748b";
 }
 
@@ -19644,7 +20409,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Manager / System Manager",
     assignedRooms: [],
     initials: "AD",
-    color: "#7c3aed"
+    color: "#8f8cf0"
   },
   {
     id: "u_10746",
@@ -19656,7 +20421,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Teacher / User",
     assignedRooms: [],
     initials: "สช",
-    color: "#0284c7"
+    color: "#68c8e5"
   },
   {
     id: "u_10823",
@@ -19668,7 +20433,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Manager / System Manager",
     assignedRooms: [],
     initials: "วด",
-    color: "#7c3aed"
+    color: "#8f8cf0"
   },
   {
     id: "u_10568",
@@ -19716,7 +20481,7 @@ const DEFAULT_RBAC_USERS = [
     roleName: "Manager / System Manager",
     assignedRooms: [],
     initials: "พป",
-    color: "#7c3aed"
+    color: "#8f8cf0"
   }
 ];
 
@@ -20007,7 +20772,7 @@ function renderAdminUsers(filteredList = null) {
     if ((roleLevel === 'L2' || roleLevel === 'staff') && user.assignedRooms && user.assignedRooms.length > 0) {
       roomsHtml = user.assignedRooms.map(r => `<span class="room-badge-tag highlight" style="font-size: 11px; padding: 2px 7px; border-radius: 5px;">${r}</span>`).join(" ");
     } else if (roleLevel === 'L3' || roleLevel === 'admin') {
-      roomsHtml = '<span class="room-badge-tag" style="background:#f5f3ff; color:#7c3aed; border-color:#ddd6fe; font-size: 11px; padding: 2px 7px; border-radius: 5px;">ทุกห้อง (All Labs)</span>';
+      roomsHtml = '<span class="room-badge-tag" style="background:#f1f0ff; color:#8f8cf0; border-color:#d8d6fb; font-size: 11px; padding: 2px 7px; border-radius: 5px;">ทุกห้อง (All Labs)</span>';
     } else if (roleLevel === 'L4' || roleLevel === 'executive') {
       roomsHtml = '<span class="room-badge-tag" style="background:#fdf2f8; color:#be185d; border-color:#fbcfe8; font-size: 11px; padding: 2px 7px; border-radius: 5px;">ภาพรวมทุกห้อง (Read Only)</span>';
     }
@@ -20307,19 +21072,25 @@ window.batchDeleteSelectedUsers = async function() {
 // ==========================================
 
 const LAB_COLOR_PRESETS = [
-  "#0039A6", // 8th Ave Express (A, C, E) - Blue
-  "#FF6319", // 6th Ave (B, D, F, M) - Orange
-  "#EE352E", // 7th Ave (1, 2, 3) - Red
-  "#00933C", // Lexington Ave (4, 5, 6) - Green
-  "#FCCC0A", // Broadway (N, Q, R, W) - Yellow
-  "#B933AD", // Flushing Line (7) - Purple
-  "#6CBE45", // Crosstown (G) - Lime Green
-  "#996633", // Nassau St (J, Z) - Brown
-  "#A7A9AC", // Canarsie (L) - Light Slate
-  "#00ADD0", // 2nd Ave (T/Q) - Turquoise
-  "#2563EB", // Sapphire Transit Blue
-  "#7C3AED"  // Royal Violet
+  "#f39b8d", // Coral
+  "#68c8e5", // Cyan
+  "#9996f2", // Lavender
+  "#5758e8"  // Indigo
 ];
+
+const LAB_THEME_PALETTE = LAB_COLOR_PRESETS;
+
+function getLabThemeColor(hex) {
+  const value = (hex || "").replace("#", "");
+  if (!/^[0-9a-f]{6}$/i.test(value)) return LAB_THEME_PALETTE[2];
+  const rgb = [0, 2, 4].map(offset => parseInt(value.slice(offset, offset + 2), 16));
+  return LAB_THEME_PALETTE.reduce((closest, candidate) => {
+    const color = candidate.slice(1);
+    const candidateRgb = [0, 2, 4].map(offset => parseInt(color.slice(offset, offset + 2), 16));
+    const distance = rgb.reduce((sum, channel, index) => sum + (channel - candidateRgb[index]) ** 2, 0);
+    return distance < closest.distance ? { color: candidate, distance } : closest;
+  }, { color: LAB_THEME_PALETTE[0], distance: Infinity }).color;
+}
 
 window.renderAdminLabRoomsList = function() {
   const container = document.getElementById("adminLabRoomsGrid");
@@ -20365,7 +21136,7 @@ window.renderAdminLabRoomsList = function() {
 
   container.innerHTML = rooms.map((room, index) => {
     const stat = roomStats[room.id] || { items: 0, cabs: 0 };
-    const roomHex = room.hex || '#16a34a';
+    const roomHex = getLabThemeColor(room.hex || '#9996f2');
     const safeRoomId = escapeHTML(room.id);
     const safeRoomName = escapeHTML(room.name || room.id);
     const safeBuilding = escapeHTML(room.building || 'ไม่ระบุอาคารสถานที่');
@@ -20481,7 +21252,7 @@ window.openLabRoomModal = function(roomId = null) {
 
   const rooms = Array.isArray(DASH_LAB_ROOMS) ? DASH_LAB_ROOMS : [];
 
-  let initialHex = "#2563eb";
+  let initialHex = "#9996f2";
 
   if (roomId) {
     const existing = rooms.find(r => r.id === roomId);
@@ -20491,7 +21262,7 @@ window.openLabRoomModal = function(roomId = null) {
       if (idInput) idInput.value = existing.id;
       if (nameInput) nameInput.value = existing.name || '';
       if (buildingInput) buildingInput.value = existing.building || '';
-      initialHex = existing.hex || "#2563eb";
+      initialHex = existing.hex || "#9996f2";
     }
   } else {
     if (titleEl) titleEl.textContent = "เพิ่มห้องปฏิบัติการใหม่";
@@ -20505,7 +21276,7 @@ window.openLabRoomModal = function(roomId = null) {
     if (idInput) idInput.value = `Lab ${nextNum}`;
     if (nameInput) nameInput.value = `ห้องปฏิบัติการใหม่ ${nextNum}`;
     if (buildingInput) buildingInput.value = "อาคารวิทยาศาสตร์";
-    initialHex = LAB_COLOR_PRESETS[(nextNum - 1) % LAB_COLOR_PRESETS.length] || "#7c3aed";
+    initialHex = LAB_COLOR_PRESETS[(nextNum - 1) % LAB_COLOR_PRESETS.length] || "#9996f2";
   }
 
   if (hexInput) hexInput.value = initialHex;
@@ -20523,38 +21294,30 @@ window.closeLabRoomModal = function() {
   if (modal) modal.style.display = "none";
 };
 
-const MTA_SUBWAY_BULLETS = [
-  { code: "1", hex: "#EE352E", line: "Broadway - 7th Ave (Red)" },
-  { code: "4", hex: "#00933C", line: "Lexington Ave (Green)" },
-  { code: "7", hex: "#B933AD", line: "Flushing Line (Purple)" },
-  { code: "A", hex: "#0039A6", line: "8th Ave Express (Blue)" },
-  { code: "B", hex: "#FF6319", line: "6th Ave Express (Orange)" },
-  { code: "N", hex: "#FCCC0A", line: "Broadway Line (Yellow)" },
-  { code: "G", hex: "#6CBE45", line: "Crosstown (Lime Green)" },
-  { code: "L", hex: "#A7A9AC", line: "14th St - Canarsie (Slate)" },
-  { code: "J", hex: "#996633", line: "Nassau St (Brown)" },
-  { code: "S", hex: "#808183", line: "42nd St Shuttle (Charcoal)" },
-  { code: "T", hex: "#00ADD0", line: "Second Ave (Turquoise)" },
-  { code: "E", hex: "#2563EB", line: "Transit Sapphire (Blue)" },
-  { code: "V", hex: "#7C3AED", line: "Electric Violet (Purple)" },
-  { code: "M", hex: "#EA580C", line: "Metro Amber (Orange)" }
+const LAB_THEME_COLOR_OPTIONS = [
+  { code: "C", hex: "#f39b8d", line: "Coral" },
+  { code: "CY", hex: "#68c8e5", line: "Cyan" },
+  { code: "LV", hex: "#9996f2", line: "Lavender" },
+  { code: "I", hex: "#5758e8", line: "Indigo" }
 ];
 
 function renderLabColorPresets(activeHex) {
   const container = document.getElementById("labColorPresetsContainer");
   if (!container) return;
 
-  const currentHex = (activeHex || "#0039A6").toLowerCase();
+  const currentHex = (activeHex || "#9996f2").toLowerCase();
 
-  container.innerHTML = MTA_SUBWAY_BULLETS.map((item) => {
+  container.innerHTML = LAB_THEME_COLOR_OPTIONS.map((item) => {
     const isAct = item.hex.toLowerCase() === currentHex;
-    const isLight = item.hex.toLowerCase() === "#fccc0a" || item.hex.toLowerCase() === "#a7a9ac";
-    const fg = isLight ? "#000000" : "#ffffff";
+    const color = item.hex.slice(1);
+    const channels = [0, 2, 4].map(offset => parseInt(color.slice(offset, offset + 2), 16));
+    const luminance = (channels[0] * 299 + channels[1] * 587 + channels[2] * 114) / 1000;
+    const fg = luminance >= 165 ? "#0f172a" : "#ffffff";
     return `
       <button type="button" 
               class="color-preset-pill nyc-subway-bullet-preset ${isAct ? 'active' : ''}" 
               style="--bullet-bg: ${item.hex}; --bullet-fg: ${fg}; background-color: ${item.hex}; color: ${fg};" 
-              title="MTA Route Line ${item.code}: ${item.line} (${item.hex})" 
+              title="Website palette ${item.line} (${item.hex})"
               onclick="selectLabColorPreset('${item.hex}', '${item.code}')">
         <span>${item.code}</span>
       </button>
@@ -20603,9 +21366,9 @@ window.updateLabRoomLivePreview = function(overrideBullet = null) {
   const roomId = idInput && idInput.value.trim() ? idInput.value.trim() : "Lab 1";
   const roomName = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "ห้องปฏิบัติการเคมี";
   const building = buildingInput && buildingInput.value.trim() ? buildingInput.value.trim() : "อาคารวิทยาศาสตร์";
-  let hex = hexInput && hexInput.value.trim() ? hexInput.value.trim() : "#0039A6";
+  let hex = hexInput && hexInput.value.trim() ? hexInput.value.trim() : "#9996f2";
   if (!hex.startsWith("#")) hex = "#" + hex;
-  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) hex = "#0039A6";
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) hex = "#9996f2";
 
   // Calculate contrast text color (white or black) for the route bullet
   let isLight = false;
@@ -20698,7 +21461,7 @@ window.handleSaveLabRoom = function(e) {
 
   if (!hex.startsWith("#")) hex = "#" + hex;
   if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) {
-    hex = "#2563eb";
+    hex = "#716de3";
   }
 
   let rooms = Array.isArray(DASH_LAB_ROOMS) ? DASH_LAB_ROOMS : [];
@@ -20964,7 +21727,7 @@ document.addEventListener("DOMContentLoaded", () => {
         isActive: true,
         createdAt: new Date().toISOString(),
         initials: getUserInitials(name),
-        color: role === 'L2' ? '#ea580c' : role === 'L3' ? '#7c3aed' : role === 'L4' ? '#be185d' : '#0284c7'
+        color: role === 'L2' ? '#f39b8d' : role === 'L3' ? '#9996f2' : role === 'L4' ? '#5758e8' : '#68c8e5'
       };
 
       let isSaved = false;
@@ -21773,7 +22536,7 @@ async function submitBatchAddUsers() {
           isActive: true,
           createdAt: new Date().toISOString(),
           initials: getUserInitials(u.name),
-          color: u.role === 'L2' ? '#ea580c' : u.role === 'L3' ? '#7c3aed' : u.role === 'L4' ? '#be185d' : '#0284c7'
+          color: u.role === 'L2' ? '#f39b8d' : u.role === 'L3' ? '#9996f2' : u.role === 'L4' ? '#5758e8' : '#68c8e5'
         };
       });
       await supabase.from('users').upsert(formattedForSupabase, { onConflict: 'id' });
@@ -21835,7 +22598,7 @@ async function submitBatchAddUsers() {
         isActive: true,
         createdAt: new Date().toISOString(),
         initials: getUserInitials(u.name),
-        color: u.role === 'L2' ? '#ea580c' : u.role === 'L3' ? '#7c3aed' : u.role === 'L4' ? '#be185d' : '#0284c7'
+        color: u.role === 'L2' ? '#f39b8d' : u.role === 'L3' ? '#9996f2' : u.role === 'L4' ? '#5758e8' : '#68c8e5'
       };
 
       const existingIdx = adminUsers.findIndex(ex => (ex.teacherId || '').toLowerCase() === teacherId.toLowerCase());
@@ -21859,7 +22622,7 @@ async function submitBatchAddUsers() {
       icon: 'success',
       title: 'นำเข้าข้อมูลผู้ใช้สำเร็จ!',
       text: `บันทึกข้อมูลครูและเจ้าหน้าที่เรียบร้อยแล้วทั้งหมด ${savedCount} คน`,
-      confirmButtonColor: '#7c3aed',
+      confirmButtonColor: '#8f8cf0',
       confirmButtonText: 'ตกลง'
     });
   } else {
@@ -21990,7 +22753,7 @@ window.adminResetUserToTeacherId = async function() {
     html: `ต้องการรีเซ็ตรหัสผ่านของ <b>${userName}</b> ให้กลับเป็นรหัสประจำตัวครู (<code>${teacherId}</code>) ใช่หรือไม่?`,
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#4f46e5',
+    confirmButtonColor: '#716de3',
     cancelButtonColor: '#94a3b8',
     confirmButtonText: 'ยืนยันรีเซ็ต',
     cancelButtonText: 'ยกเลิก'
@@ -22024,10 +22787,10 @@ window.adminResetUserToTeacherId = async function() {
       icon: 'success',
       title: 'รีเซ็ตสำเร็จ',
       text: `รหัสผ่านใหม่คือ ${teacherId}`,
-      confirmButtonColor: '#4f46e5'
+      confirmButtonColor: '#716de3'
     });
   } catch (err) {
-    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: err.message, confirmButtonColor: '#4f46e5' });
+    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: err.message, confirmButtonColor: '#716de3' });
   }
 };
 
@@ -22069,10 +22832,10 @@ window.adminApplyCustomPassword = async function() {
       icon: 'success',
       title: 'บันทึกรหัสผ่านใหม่สำเร็จ',
       html: `ตั้งรหัสผ่านใหม่ให้ <b>${userName}</b> เรียบร้อยแล้ว: <code>${newPass}</code>`,
-      confirmButtonColor: '#0284c7'
+      confirmButtonColor: '#68c8e5'
     });
   } catch (err) {
-    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: err.message, confirmButtonColor: '#0284c7' });
+    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: err.message, confirmButtonColor: '#68c8e5' });
   }
 };
 
@@ -22082,7 +22845,7 @@ window.quickResetUserPassword = async function(userId) {
   const tId = user.teacherId || user.id;
 
   const { value: formValues } = await Swal.fire({
-    title: `<div style="display: flex; align-items: center; justify-content: center; gap: 8px;"><i data-lucide="key-round" style="width: 20px; height: 20px; color: #7c3aed;"></i><span>รีเซ็ตรหัสผ่าน: ${escapeHtml(user.name)}</span></div>`,
+    title: `<div style="display: flex; align-items: center; justify-content: center; gap: 8px;"><i data-lucide="key-round" style="width: 20px; height: 20px; color: #8f8cf0;"></i><span>รีเซ็ตรหัสผ่าน: ${escapeHtml(user.name)}</span></div>`,
     html: `
       <div style="text-align: left; font-size: 13px; line-height: 1.6;">
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
@@ -22093,7 +22856,7 @@ window.quickResetUserPassword = async function(userId) {
           <label style="display: block; font-weight: 600; margin-bottom: 5px; color: #1e293b; font-size: 12.5px;">กำหนดรหัสผ่านใหม่:</label>
           <div style="display: flex; gap: 6px;">
             <input id="swal-new-password" class="swal2-input" placeholder="พิมพ์รหัสผ่านใหม่ หรือกดสุ่ม..." style="margin: 0; width: 100%; font-size: 13px; padding: 7px 10px; height: 36px; box-sizing: border-box; font-family: monospace;">
-            <button type="button" class="swal2-confirm swal2-styled" onclick="const r = Math.random().toString(36).slice(-6) + Math.floor(Math.random()*90 + 10); document.getElementById('swal-new-password').value = r;" style="margin: 0; padding: 0 10px; height: 36px; background: #6366f1; font-size: 11.5px; border-radius: 6px; white-space: nowrap; flex-shrink: 0;">
+            <button type="button" class="swal2-confirm swal2-styled" onclick="const r = Math.random().toString(36).slice(-6) + Math.floor(Math.random()*90 + 10); document.getElementById('swal-new-password').value = r;" style="margin: 0; padding: 0 10px; height: 36px; background: #8f8cf0; font-size: 11.5px; border-radius: 6px; white-space: nowrap; flex-shrink: 0;">
               สุ่มรหัส
             </button>
           </div>
@@ -22105,7 +22868,7 @@ window.quickResetUserPassword = async function(userId) {
     showCancelButton: true,
     confirmButtonText: 'บันทึกการรีเซ็ต',
     cancelButtonText: 'ยกเลิก',
-    confirmButtonColor: '#4f46e5',
+    confirmButtonColor: '#716de3',
     didOpen: () => {
       if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
     },
@@ -22140,21 +22903,21 @@ window.quickResetUserPassword = async function(userId) {
       html: `
         <div style="font-size: 13px; color: #334155; line-height: 1.6; text-align: center;">
           รหัสผ่านชั่วคราวใหม่ของ <b>${escapeHtml(user.name)}</b>:
-          <div style="margin: 10px auto; padding: 8px 14px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 17px; font-weight: 700; color: #4338ca; letter-spacing: 1px; display: inline-block;">
+          <div style="margin: 10px auto; padding: 8px 14px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 17px; font-weight: 700; color: #716de3; letter-spacing: 1px; display: inline-block;">
             ${escapeHtml(formValues.newPassword)}
           </div>
           <div style="font-size: 11.5px; color: #64748b;">กรุณาคัดลอกรหัสผ่านนี้ส่งให้ผู้ใช้งานเพื่อเข้าสู่ระบบ</div>
         </div>
       `,
       confirmButtonText: 'คัดลอกรหัสผ่านและปิด',
-      confirmButtonColor: '#4f46e5',
+      confirmButtonColor: '#716de3',
       preConfirm: () => {
         navigator.clipboard.writeText(formValues.newPassword);
         if (typeof showToast === 'function') showToast('คัดลอกรหัสผ่านเรียบร้อยแล้ว', 'success');
       }
     });
   } catch (e) {
-    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: e.message, confirmButtonColor: '#4f46e5' });
+    Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: e.message, confirmButtonColor: '#716de3' });
   }
 };
 
@@ -22894,7 +23657,7 @@ window.loadPushSubscriptionsStatus = async function() {
                   <div>
                     <div style="font-weight: 600; font-size: 13.5px; display: flex; align-items: center; gap: 6px;">
                       <span>${s.deviceName || 'อุปกรณ์ที่ ' + (idx + 1)}</span>
-                      ${isCurrent ? '<span style="background: #e0f2fe; color: #0284c7; font-size: 11px; padding: 1px 6px; border-radius: 4px; font-weight: 600;">อุปกรณ์นี้</span>' : ''}
+                      ${isCurrent ? '<span style="background: #e7f7fb; color: #68c8e5; font-size: 11px; padding: 1px 6px; border-radius: 4px; font-weight: 600;">อุปกรณ์นี้</span>' : ''}
                     </div>
                     <div style="font-size: 12px; color: var(--text-muted);">ลงทะเบียน: ${dateStr}</div>
                   </div>
@@ -24510,7 +25273,7 @@ function getDashRoomInfo(roomId) {
     name: roomId || "ห้องปฏิบัติการ",
     building: "อาคารวิทยาศาสตร์",
     pillClass: "pill-purple",
-    hex: "#7c3aed"
+    hex: "#8f8cf0"
   };
 }
 
@@ -24821,7 +25584,7 @@ function renderDashboardWeekView(year, month, container) {
               const roomInfo = getDashRoomInfo(b.room);
               const timeRange = getDashSlotTimeRange(b.slot);
               return `
-                <div class="dash-cal-week-item" style="border-left: 3px solid ${roomInfo.hex || '#6366f1'};">
+                <div class="dash-cal-week-item" style="border-left: 3px solid ${roomInfo.hex || '#8f8cf0'};">
                   <div class="dash-cal-week-item-top">
                     <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name}</span>
                     <span class="dash-cal-week-time">${timeRange}</span>
@@ -24899,7 +25662,7 @@ function renderDashboardDayView(year, month, container) {
             const roomInfo = getDashRoomInfo(b.room);
             const isPending = b.status === 'pending';
             return `
-              <div class="dash-schedule-card-item dash-cal-day-item" style="border-left: 3.5px solid ${roomInfo.hex || '#6366f1'};">
+              <div class="dash-schedule-card-item dash-cal-day-item" style="border-left: 3.5px solid ${roomInfo.hex || '#8f8cf0'};">
                 <div class="dash-cal-day-item-header">
                   <span class="dash-cal-event-pill ${roomInfo.pillClass}">${roomInfo.name}</span>
                   <span class="dash-schedule-status-badge ${isPending ? 'pending' : 'approved'}">
@@ -25704,7 +26467,7 @@ window.renderAssetLabelCard = function(item, format = 'qrcode') {
   cabinetName = cabinetName.toUpperCase();
 
   // 2. Badge styling & text
-  let badgeBg = '#2563eb';
+  let badgeBg = '#716de3';
   let badgeText = 'GENERAL';
 
   if (item.category === 'สารเคมี' || (item.chemicalType && item.chemicalType !== 'general')) {
@@ -25722,7 +26485,7 @@ window.renderAssetLabelCard = function(item, format = 'qrcode') {
     }
     badgeText = `${hazardType} · ${ghsCode}`;
   } else if (item.category === 'เครื่องแก้ว' || (item.category || '').toLowerCase().includes('glass')) {
-    badgeBg = '#2563eb';
+    badgeBg = '#716de3';
     badgeText = 'GLASSWARE';
   } else if (item.category === 'อุปกรณ์' || item.category === 'เครื่องมือวิทยาศาสตร์' || (item.category || '').toLowerCase().includes('apparatus') || (item.category || '').toLowerCase().includes('equipment')) {
     badgeBg = '#0d9488';
@@ -25862,7 +26625,7 @@ window.openQRCodeModal = function(code) {
     <div class="modal-content">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 9px;">
-          <span style="background: #e0e7ff; color: #4338ca; padding: 6px; border-radius: 8px; display: inline-flex;">
+          <span style="background: #e5e4ff; color: #716de3; padding: 6px; border-radius: 8px; display: inline-flex;">
             <i data-lucide="tag" style="width: 17px; height: 17px;"></i>
           </span>
           <div>
@@ -25882,10 +26645,10 @@ window.openQRCodeModal = function(code) {
         <!-- Label Format Selector (QR Code vs Data Matrix) -->
         <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between; background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 8px; margin-bottom: 12px; flex-wrap: wrap;">
           <span style="font-size: 12px; font-weight: 700; color: #334155; display: inline-flex; align-items: center; gap: 5px;">
-            <i data-lucide="layers" style="width: 14px; height: 14px; color: #6366f1;"></i> รูปแบบ 2D Barcode:
+            <i data-lucide="layers" style="width: 14px; height: 14px; color: #8f8cf0;"></i> รูปแบบ 2D Barcode:
           </span>
           <div style="display: flex; gap: 4px; background: #f1f5f9; padding: 2px; border-radius: 8px;">
-            <button type="button" id="btnLabelFormatQr" onclick="changeAssetLabelFormat('${escapeHtml(item.code)}', 'qrcode')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; font-weight: 700; border: none; cursor: pointer; background: #ffffff; color: #4338ca; box-shadow: 0 1px 2px rgba(0,0,0,0.06); transition: all 0.15s ease;">
+            <button type="button" id="btnLabelFormatQr" onclick="changeAssetLabelFormat('${escapeHtml(item.code)}', 'qrcode')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; font-weight: 700; border: none; cursor: pointer; background: #ffffff; color: #716de3; box-shadow: 0 1px 2px rgba(0,0,0,0.06); transition: all 0.15s ease;">
               📱 QR Code (มาตรฐาน)
             </button>
             <button type="button" id="btnLabelFormatDm" onclick="changeAssetLabelFormat('${escapeHtml(item.code)}', 'datamatrix')" style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px; font-weight: 700; border: none; cursor: pointer; background: transparent; color: #64748b; transition: all 0.15s ease;">
@@ -25896,7 +26659,7 @@ window.openQRCodeModal = function(code) {
 
         <div style="font-size: 12px; font-weight: 600; color: #475569; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
           <span style="display: flex; align-items: center; gap: 5px;">
-            <i data-lucide="eye" style="width: 14px; height: 14px; color: #6366f1;"></i>
+            <i data-lucide="eye" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
             <span>ตัวอย่างป้ายพัสดุ (Print Preview)</span>
           </span>
           <span id="labelSpecNotice" style="font-size: 11px; color: #64748b;">สเกลมาตรฐาน 100 × 50 mm / Sticker Label</span>
@@ -25956,7 +26719,7 @@ window.changeAssetLabelFormat = function(code, format = 'qrcode') {
   } else {
     if (btnQr) {
       btnQr.style.background = "#ffffff";
-      btnQr.style.color = "#4338ca";
+      btnQr.style.color = "#716de3";
       btnQr.style.boxShadow = "0 1px 2px rgba(0,0,0,0.06)";
     }
     if (btnDm) {
@@ -26196,13 +26959,13 @@ window.openStockAdjustmentModal = function(code) {
   modal.innerHTML = `
     <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 540px; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;"><i data-lucide="scale" style="width: 17px; height: 17px; color: #7c3aed;"></i> ขอปรับปรุงยอดคงคลัง (Stock Adjustment)</h3>
+        <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;"><i data-lucide="scale" style="width: 17px; height: 17px; color: #8f8cf0;"></i> ขอปรับปรุงยอดคงคลัง (Stock Adjustment)</h3>
         <button onclick="document.getElementById('stockAdjustmentModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
       </div>
 
       <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 13px;">
         <div><strong>พัสดุ:</strong> ${escapeHtml(item.name)} (${escapeHtml(item.code)})</div>
-        <div style="margin-top: 4px;"><strong>ยอดในระบบปัจจุบัน:</strong> <span style="font-weight: 700; color: #0284c7;">${currentQty} ${escapeHtml(item.unit || 'ขวด')}</span></div>
+        <div style="margin-top: 4px;"><strong>ยอดในระบบปัจจุบัน:</strong> <span style="font-weight: 700; color: #68c8e5;">${currentQty} ${escapeHtml(item.unit || 'ขวด')}</span></div>
       </div>
 
       <form id="stockAdjustmentForm" onsubmit="window.handleStockAdjustmentSubmit(event, '${escapeHtml(item.code)}')">
@@ -26307,16 +27070,16 @@ window.openMasterDetailModal = function(code) {
       <div style="padding: 20px 24px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: flex-start; background: #ffffff;">
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span style="background: #4f46e5; color: #ffffff; padding: 3px 9px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.5px;">
+            <span style="background: #716de3; color: #ffffff; padding: 3px 9px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.5px;">
               <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> MASTER RECORD (L3-L4)
             </span>
-            <span style="font-family: monospace; background: #e0e7ff; color: #4338ca; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>
+            <span style="font-family: monospace; background: #e5e4ff; color: #716de3; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>
             <span class="category-badge" style="font-size: 12px; color: #475569; background: #f1f5f9; padding: 3px 9px; border-radius: 999px; font-weight: 600;">${escapeHtml(item.category || '-')}</span>
           </div>
           <div>
             <h2 style="margin: 0; font-size: 19px; color: #0f172a; font-weight: 700; line-height: 1.35;">
               ${escapeHtml(item.name)}
-              ${item.formula ? `<span style="font-family: monospace; font-size: 14px; color: #6366f1; font-weight: 600; margin-left: 6px;">(${escapeHtml(item.formula)})</span>` : ''}
+              ${item.formula ? `<span style="font-family: monospace; font-size: 14px; color: #8f8cf0; font-weight: 600; margin-left: 6px;">(${escapeHtml(item.formula)})</span>` : ''}
             </h2>
             <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
               ศูนย์ควบคุมข้อมูลสต็อกขั้นสูง การจัดซื้อ ล็อตสินค้า และพิกัดความปลอดภัยห้องปฏิบัติการ
@@ -26336,11 +27099,11 @@ window.openMasterDetailModal = function(code) {
         <!-- 4 KPI Summary Cards -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
           <div class="master-kpi-card highlight">
-            <div style="font-size: 11.5px; color: #0369a1; font-weight: 600;">คงเหลือปัจจุบัน (Stock)</div>
-            <div style="font-size: 20px; font-weight: 800; color: #0284c7; margin-top: 4px;">
-              ${q} <span style="font-size: 13px; font-weight: 600; color: #0369a1;">${escapeHtml(item.unit || 'หน่วย')}</span>
+            <div style="font-size: 11.5px; color: #438fa9; font-weight: 600;">คงเหลือปัจจุบัน (Stock)</div>
+            <div style="font-size: 20px; font-weight: 800; color: #68c8e5; margin-top: 4px;">
+              ${q} <span style="font-size: 13px; font-weight: 600; color: #438fa9;">${escapeHtml(item.unit || 'หน่วย')}</span>
             </div>
-            <div style="font-size: 10.5px; color: #0284c7; margin-top: 2px;">อัปเดตเรียลไทม์ในระบบ</div>
+            <div style="font-size: 10.5px; color: #68c8e5; margin-top: 2px;">อัปเดตเรียลไทม์ในระบบ</div>
           </div>
           <div class="master-kpi-card">
             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">เกณฑ์เตือนขั้นต่ำ (Min)</div>
@@ -26351,7 +27114,7 @@ window.openMasterDetailModal = function(code) {
           </div>
           <div class="master-kpi-card">
             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">จุดสั่งซื้อใหม่ (Reorder)</div>
-            <div style="font-size: 18px; font-weight: 700; color: #4338ca; margin-top: 4px;">
+            <div style="font-size: 18px; font-weight: 700; color: #716de3; margin-top: 4px;">
               ${reorderPt} <span style="font-size: 12px; font-weight: 500; color: #64748b;">${escapeHtml(item.unit || 'หน่วย')}</span>
             </div>
             <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">เกณฑ์เปิดใบขอซื้อ (PR)</div>
@@ -26369,13 +27132,13 @@ window.openMasterDetailModal = function(code) {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
           <!-- Left Column: Procurement & Batch Traceability -->
           <div class="master-info-card">
-            <h4 style="margin: 0; font-size: 13.5px; color: #4338ca; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
-              <i data-lucide="package-check" style="width: 16px; height: 16px; color: #6366f1;"></i>
+            <h4 style="margin: 0; font-size: 13.5px; color: #716de3; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
+              <i data-lucide="package-check" style="width: 16px; height: 16px; color: #8f8cf0;"></i>
               <span>การจัดซื้อและล็อตสินค้า (Procurement & Lot)</span>
             </h4>
             <div class="master-info-row">
               <span class="master-info-label">Lot / Batch Number:</span>
-              <span class="master-info-value" style="font-family: monospace; color: #4338ca;">${escapeHtml(item.lotNumber || item.lot_number || '-')}</span>
+              <span class="master-info-value" style="font-family: monospace; color: #716de3;">${escapeHtml(item.lotNumber || item.lot_number || '-')}</span>
             </div>
             <div class="master-info-row">
               <span class="master-info-label">วันที่รับเข้าคลัง:</span>
@@ -26397,7 +27160,7 @@ window.openMasterDetailModal = function(code) {
 
           <!-- Right Column: Location & Safety Matrix -->
           <div class="master-info-card">
-            <h4 style="margin: 0; font-size: 13.5px; color: #4338ca; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
+            <h4 style="margin: 0; font-size: 13.5px; color: #716de3; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
               <i data-lucide="shield-alert" style="width: 16px; height: 16px; color: #ef4444;"></i>
               <span>ตำแหน่งและความปลอดภัย (Location & Safety)</span>
             </h4>
@@ -26420,7 +27183,7 @@ window.openMasterDetailModal = function(code) {
             <div class="master-info-row">
               <span class="master-info-label">กลุ่มสารเคมี SHECU:</span>
               <span class="master-info-value">
-                <span style="background: #e0e7ff; color: #4338ca; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 700;">
+                <span style="background: #e5e4ff; color: #716de3; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 700;">
                   ${escapeHtml(item.storageGroup || 'Class G - General')}
                 </span>
               </span>
@@ -26432,7 +27195,7 @@ window.openMasterDetailModal = function(code) {
               </span>
             </div>
             <div style="margin-top: 6px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
-              <a href="${escapeHtml(sdsSearchUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #0284c7; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);">
+              <a href="${escapeHtml(sdsSearchUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #68c8e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);">
                 <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> ดูเอกสารความปลอดภัย (SDS Sheet)
               </a>
             </div>
@@ -26496,7 +27259,7 @@ window.openStockMovementsModal = async function(code) {
     <div class="modal-content" style="background: #ffffff; border-radius: 16px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
         <div>
-          <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;"><i data-lucide="history" style="width: 17px; height: 17px; color: #7c3aed;"></i> ประวัติการเคลื่อนไหวสต็อก (Stock Movement History)</h3>
+          <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;"><i data-lucide="history" style="width: 17px; height: 17px; color: #8f8cf0;"></i> ประวัติการเคลื่อนไหวสต็อก (Stock Movement History)</h3>
           <div style="font-size: 13px; color: #64748b; margin-top: 2px;">${escapeHtml(item.name)} (${escapeHtml(item.code)})</div>
         </div>
         <button onclick="document.getElementById('stockMovementsModal').remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8;">&times;</button>
@@ -26523,7 +27286,7 @@ window.openStockMovementsModal = async function(code) {
             <input type="text" name="reason" required placeholder="เช่น การทดลอง ม.5/1" style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; box-sizing: border-box;">
           </div>
           <div style="grid-column: span 3; text-align: right; margin-top: 4px;">
-            <button type="submit" class="btn btn-primary" style="padding: 6px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;">
+            <button type="submit" class="btn btn-primary" style="padding: 6px 16px; background: #68c8e5; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;">
               บันทึกการเคลื่อนไหว
             </button>
           </div>
@@ -26571,7 +27334,7 @@ window.openStockMovementsModal = async function(code) {
             <tr style="border-bottom: 1px solid #f1f5f9;">
               <td style="padding: 8px; color: #64748b; font-size: 12px;">${formatThaiDate(m.created_at || m.createdAt)}</td>
               <td style="padding: 8px;">
-                <span style="font-weight: 600; padding: 2px 6px; border-radius: 4px; font-size: 11px; background: ${m.type === 'IN' ? '#dcfce7; color: #15803d;' : (m.type === 'OUT' ? '#fee2e2; color: #b91c1c;' : '#e0e7ff; color: #4338ca;')}">${escapeHtml(m.type)}</span>
+                <span style="font-weight: 600; padding: 2px 6px; border-radius: 4px; font-size: 11px; background: ${m.type === 'IN' ? '#dcfce7; color: #15803d;' : (m.type === 'OUT' ? '#fee2e2; color: #b91c1c;' : '#e5e4ff; color: #716de3;')}">${escapeHtml(m.type)}</span>
               </td>
               <td style="padding: 8px; font-weight: 600;">${m.quantity} ${escapeHtml(item.unit || '')}</td>
               <td style="padding: 8px; color: #64748b; font-size: 12px;">${m.previous_quantity || m.previousQuantity || 0} -> ${m.new_quantity || m.newQuantity || 0}</td>

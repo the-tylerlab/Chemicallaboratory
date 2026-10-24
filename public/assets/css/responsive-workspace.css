@@ -107,8 +107,8 @@
   height: 38px;
   place-items: center;
   border-radius: 11px;
-  background: #eff6ff;
-  color: #2563eb;
+  background: #f1f0ff;
+  color: #716de3;
 }
 
 #panel-dashboard .dashboard-announcement-banner .astryx-banner-icon[data-status="success"] {
@@ -403,7 +403,7 @@
 }
 
 #panel-purchase-orders #txtAnnualBudget:focus {
-  border-color: #8b5cf6 !important;
+  border-color: #9996f2 !important;
   outline: 3px solid rgba(139, 92, 246, 0.16);
   outline-offset: 1px;
 }
@@ -436,7 +436,7 @@
 
 #panel-purchase-orders #cardAnnualBudget:has(#annualBudgetEditForm[style*="display: flex"]) {
   align-items: flex-start;
-  border-color: #c4b5fd;
+  border-color: #c2c0f7;
   background: #fcfbff;
 }
 
@@ -467,7 +467,7 @@
   min-width: 0;
   padding: 16px;
   border: 1px solid #dbe3ef;
-  border-left: 4px solid #7c3aed;
+  border-left: 4px solid #8f8cf0;
   border-radius: 16px;
   background: #ffffff;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
@@ -512,9 +512,9 @@
 }
 
 #panel-purchase-orders .budget-edit-btn:hover {
-  border-color: #c4b5fd;
-  background: #f5f3ff;
-  color: #6d28d9;
+  border-color: #c2c0f7;
+  background: #f1f0ff;
+  color: #716de3;
 }
 
 #panel-purchase-orders .budget-edit-btn svg {
@@ -1195,7 +1195,7 @@
   height: 34px;
   border-radius: 10px;
   background: #f1ebff;
-  color: #7c3aed;
+  color: #8f8cf0;
   box-sizing: border-box;
 }
 

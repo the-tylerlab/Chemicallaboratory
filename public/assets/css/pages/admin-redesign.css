@@ -1,7 +1,7 @@
 /* Admin workspace refresh: one clear hierarchy across users, labs, announcements and safety. */
 #panel-admin {
-  --admin-accent: #5145cd;
-  --admin-accent-strong: #4338ca;
+  --admin-accent: var(--primary-purple);
+  --admin-accent-strong: var(--primary-purple-hover);
   --admin-border: #dce4ef;
   --admin-surface-muted: #f5f7fb;
   container: admin-panel / inline-size;
@@ -337,6 +337,48 @@
   min-height: 190px;
   border-radius: 17px;
   box-shadow: 0 5px 16px rgba(31, 49, 88, 0.1);
+}
+
+/* Keep each room's selected route color as an accent, with a quiet surface. */
+#panel-admin .nyc-metro-card {
+  background-color: #ffffff;
+  background-color: color-mix(in srgb, var(--metro-bg) 12%, #ffffff);
+  color: var(--text-main);
+  border-color: color-mix(in srgb, var(--metro-bg) 36%, #ffffff);
+}
+
+#panel-admin .nyc-metro-tag-pill,
+#panel-admin .nyc-metro-icon-btn,
+#panel-admin .nyc-metro-metric-chip {
+  background-color: color-mix(in srgb, var(--metro-bg) 14%, #ffffff);
+  color: var(--metro-bg);
+}
+
+#panel-admin .nyc-metro-metric-chip {
+  border-color: color-mix(in srgb, var(--metro-bg) 24%, #ffffff);
+}
+
+#panel-admin .nyc-metro-station-sub,
+#panel-admin .nyc-metro-line-label {
+  color: var(--text-muted);
+}
+
+#panel-admin .nyc-metro-metric-chip:hover {
+  background-color: color-mix(in srgb, var(--metro-bg) 22%, #ffffff);
+}
+
+#panel-admin .nyc-metro-arrow-btn,
+#panel-admin .nyc-metro-big-num {
+  color: color-mix(in srgb, var(--metro-bg) 68%, #26344b);
+}
+
+#panel-admin .bullet-yellow {
+  background-color: #fff0c2;
+}
+
+#panel-admin .bullet-lavender {
+  background-color: #e5e4ff;
+  color: #716de3;
 }
 
 #panel-admin .admin-danger-box {

@@ -88,7 +88,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#4F21A1">
+  <meta name="theme-color" content="#716de3">
 
   <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -114,6 +114,7 @@
   <link rel="stylesheet" href="assets/css/components/sidebar-redesign.css?v=20261024_sidebar_balanced6">
   <link rel="stylesheet" href="assets/css/dashboard-announcement.css?v=astryx_1">
   <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261010_inset">
+  <link rel="stylesheet" href="assets/css/rolling-counter.css?v=20261024_rolling_counter_v3">
 
   <!-- Core Libraries (Local high-performance icon library) -->
   <script src="assets/js/lucide.min.js"></script>
@@ -340,6 +341,10 @@
     <!-- MAIN CONTENT AREA -->
     <!-- Main Content -->
     <main class="main-content pb-24">
+
+      <div class="site-utility-bar">
+        <button class="site-utility-button site-language-button" id="siteLanguageToggle" type="button" aria-label="Switch language to English" title="Change language">EN</button>
+      </div>
 
       <!-- Executive Mode Read-Only Banner (L4) -->
       <div id="executiveReadOnlyBanner" class="executive-banner" style="display: none; margin-bottom: 20px; padding: 14px 20px; background: rgba(190, 24, 93, 0.08); border: 1px solid rgba(190, 24, 93, 0.25); border-radius: 12px; align-items: center; justify-content: space-between; gap: 14px;">
@@ -775,7 +780,7 @@
             </div>
             <div style="flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center;">
               <button type="button" class="booking-action-btn" id="dashboardBtnExportInventory" style="width: 100%;">
-                <i data-lucide="download" style="width: 16px; height: 16px; color: #2563eb; flex-shrink: 0;"></i>
+                <i data-lucide="download" style="width: 16px; height: 16px; color: #716de3; flex-shrink: 0;"></i>
                 <span>ส่งออกรายงานคลังพัสดุ (CSV)</span>
               </button>
               <button type="button" class="booking-action-btn" id="dashboardBtnExportTransactions" style="width: 100%;">
@@ -783,7 +788,7 @@
                 <span>ส่งออกประวัติการยืม-คืน (CSV)</span>
               </button>
               <button type="button" class="booking-action-btn" id="dashboardBtnPrintReport" style="width: 100%;">
-                <i data-lucide="printer" style="width: 16px; height: 16px; color: #6366f1; flex-shrink: 0;"></i>
+                <i data-lucide="printer" style="width: 16px; height: 16px; color: #8f8cf0; flex-shrink: 0;"></i>
                 <span>พิมพ์รายงานสรุปสถานะคลัง (PDF)</span>
               </button>
             </div>
@@ -818,7 +823,7 @@
                   <span>ส่งออก CSV</span>
                 </button>
                 <button type="button" class="booking-action-btn" id="btnExportBookingPDF" style="flex: 1;">
-                  <i data-lucide="printer" style="width: 16px; height: 16px; color: #6366f1; flex-shrink: 0;"></i>
+                  <i data-lucide="printer" style="width: 16px; height: 16px; color: #8f8cf0; flex-shrink: 0;"></i>
                   <span>พิมพ์ PDF</span>
                 </button>
               </div>
@@ -876,7 +881,7 @@
               <span>ส่งออก CSV</span>
             </button>
             <button type="button" class="booking-action-btn" onclick="renderActivityLogs()" title="รีเฟรชประวัติการใช้งาน">
-              <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
+              <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #716de3; flex-shrink: 0;"></i>
               <span>รีเฟรช</span>
             </button>
             <button type="button" class="booking-action-btn admin-clear-btn" onclick="clearActivityLogsPrompt()" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.3);" title="ล้างประวัติกิจกรรม">
@@ -905,7 +910,7 @@
               <span class="stat-value" id="logStatInventory">0</span>
               <span class="stat-sublabel" style="font-size: 12px; opacity: 0.8; margin-top: 4px; display: block;">เพิ่ม / แก้ไข / ลบ</span>
             </div>
-            <div class="stat-icon" style="background: rgba(37, 99, 235, 0.1); color: #2563eb;">
+            <div class="stat-icon" style="background: rgba(37, 99, 235, 0.1); color: #716de3;">
               <i data-lucide="box"></i>
             </div>
           </div>
@@ -1084,7 +1089,7 @@
                 <div class="form-row-multi">
                   <div class="flex flex-col gap-1">
                     <label for="itemQty">จำนวน <span class="required">*</span></label>
-                    <input type="number" id="itemQty" value="0" min="0" oninput="if(this.value < 0) this.value = 0;" required>
+                    <input type="number" id="itemQty" value="0" min="0" data-rolling-counter oninput="if(this.value < 0) this.value = 0;" required>
                   </div>
                   <div class="flex flex-col gap-1">
                     <label for="itemUnit">หน่วย <span class="required">*</span></label>
@@ -1242,11 +1247,11 @@
                 <div class="form-row-2-always">
                   <div class="flex flex-col gap-1">
                     <label for="itemDamagedQty">จำนวนที่ชำรุด</label>
-                    <input type="number" id="itemDamagedQty" value="0" min="0">
+                    <input type="number" id="itemDamagedQty" value="0" min="0" data-rolling-counter>
                   </div>
                   <div class="flex flex-col gap-1">
                     <label for="itemRepairQty">จำนวนส่งซ่อม</label>
-                    <input type="number" id="itemRepairQty" value="0" min="0">
+                    <input type="number" id="itemRepairQty" value="0" min="0" data-rolling-counter>
                   </div>
                 </div>
               </div>
@@ -1324,6 +1329,7 @@
           </div>
         </div>
       </section>
+
 
       <!-- ==========================================
            PANEL: ALL ITEMS LIST
@@ -1537,12 +1543,12 @@
           </div>
 
           <!-- Non-L3 Role Permission Notice Banner (Placed Under Table) -->
-          <div id="nonL3NoticeBanner" style="display: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 16px; margin-top: 14px; font-size: 13px; color: #1e40af; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <div id="nonL3NoticeBanner" style="display: none; background: #f1f0ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 16px; margin-top: 14px; font-size: 13px; color: #1e40af; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <i data-lucide="info" style="width: 17px; height: 17px; color: #2563eb; flex-shrink: 0;"></i>
+              <i data-lucide="info" style="width: 17px; height: 17px; color: #716de3; flex-shrink: 0;"></i>
               <span id="nonL3NoticeText">คุณกำลังใช้งานในระดับสิทธิ์ L2: หากต้องการแก้ไข เพิ่ม หรือลบข้อมูลสารเคมี/ครุภัณฑ์ กรุณาติดต่อผู้ดูแลระบบ (L3) หรือผู้บริหาร (L4)</span>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="showContactAdminModal()" style="font-size: 12px; padding: 4px 12px; background: #ffffff; border-color: #93c5fd; color: #1d4ed8; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="showContactAdminModal()" style="font-size: 12px; padding: 4px 12px; background: #ffffff; border-color: #93c5fd; color: #716de3; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;">
               <i data-lucide="phone" style="width: 13px; height: 13px;"></i> ติดต่อ L3 / L4
             </button>
           </div>
@@ -1706,7 +1712,7 @@
               </div>
 
               <div class="form-actions" style="margin-top: 24px;">
-                <button type="submit" class="btn btn-primary" id="btnSubmitBorrow" style="background: #8b5cf6; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-radius: 10px; padding: 10px 22px; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);">
+                <button type="submit" class="btn btn-primary" id="btnSubmitBorrow" style="background: #9996f2; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; border-radius: 10px; padding: 10px 22px; box-shadow: 0 4px 14px rgba(143, 140, 240, 0.25);">
                   <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
                   <span>บันทึกรายการ</span>
                 </button>
@@ -1749,7 +1755,7 @@
                   <span class="btn-text-mobile">Excel</span>
                 </button>
                 <button type="button" class="booking-action-btn" id="btnExportBorrowPDF" title="พิมพ์รายงานสรุปประวัติ">
-                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
+                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #8f8cf0; flex-shrink: 0;"></i>
                   <span class="btn-text-desktop">พิมพ์รายงาน</span>
                   <span class="btn-text-tablet">พิมพ์</span>
                   <span class="btn-text-mobile">PDF</span>
@@ -1872,8 +1878,8 @@
 
                   <div class="form-group" style="margin-bottom: 0;">
                     <label for="bookingStudentCount" class="form-label">จำนวนนักเรียนที่เข้าใช้งานทั้งหมด <span style="color: var(--accent-red);">*</span></label>
-                    <div style="position: relative; width: 100%; display: flex; align-items: center;">
-                      <input type="number" id="bookingStudentCount" class="form-control" placeholder="เช่น 35" min="1" max="150" required style="padding-right: 48px;">
+                    <div class="booking-count-control" style="position: relative; width: 100%; display: flex; align-items: center;">
+                      <input type="number" id="bookingStudentCount" class="form-control" placeholder="เช่น 35" min="1" max="150" data-rolling-counter required style="padding-right: 48px;">
                       <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); font-weight: 500; pointer-events: none;">คน</span>
                     </div>
                   </div>
@@ -1890,7 +1896,7 @@
                 </div>
 
                 <div class="form-actions" style="margin-top: 20px;">
-                  <button type="submit" class="btn btn-primary" id="btnSubmitBooking" style="background: #8b5cf6; display: inline-flex; align-items: center; gap: 8px; font-weight: 600;">
+                  <button type="submit" class="btn btn-primary" id="btnSubmitBooking" style="background: #9996f2; display: inline-flex; align-items: center; gap: 8px; font-weight: 600;">
                     <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
                     <span>บันทึกการจอง</span>
                   </button>
@@ -1964,13 +1970,13 @@
                   <span class="btn-text-mobile">Excel</span>
                 </button>
                 <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn" title="พิมพ์รายงานการจอง (PDF)" aria-label="พิมพ์รายงาน">
-                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
+                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #8f8cf0; flex-shrink: 0;"></i>
                   <span class="btn-text-desktop">พิมพ์</span>
                   <span class="btn-text-tablet">พิมพ์</span>
                   <span class="btn-text-mobile">PDF</span>
                 </button>
                 <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn icon-only-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที" aria-label="ซิงค์ข้อมูล">
-                  <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
+                  <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #716de3; flex-shrink: 0;"></i>
                 </button>
               </div>
 
@@ -2495,7 +2501,7 @@
                     </div>
                     <div class="form-group">
                       <label for="poQuantity" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
-                      <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" required>
+                      <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" data-rolling-counter required>
                     </div>
                   </div>
 
@@ -2512,7 +2518,7 @@
 
                   <div class="po-net-detail-box">
                     <div style="display: flex; align-items: center; gap: 6px;">
-                      <i data-lucide="calculator" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+                      <i data-lucide="calculator" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
                       <span id="poNetTotalDetail">0.00 - ลด 0.00 = 0.00 บาท</span>
                     </div>
                   </div>
@@ -2562,7 +2568,7 @@
             <!-- Tier 2: Helper Pill Capsule Dock Tray (Full Width Balanced) -->
             <div class="quick-prompt-bottom po-form-bottom">
               <div class="quick-prompt-tag" style="cursor: default;">
-                <i data-lucide="calculator" style="color: #7c3aed;"></i>
+                <i data-lucide="calculator" style="color: #8f8cf0;"></i>
                 <span>คำนวณสุทธิอัตโนมัติ</span>
               </div>
               <button type="button" class="quick-prompt-tag" onclick="const c=document.getElementById('poDraftContainer');if(c){c.style.display=c.style.display==='none'?'block':'none';}">
@@ -2667,7 +2673,7 @@
 
               <div class="po-list-pills-right">
                 <div class="quick-prompt-tag po-fin-pill po-grand-pill" id="poPillGrandTotal">
-                  <i data-lucide="sparkles" style="color: #7c3aed;"></i>
+                  <i data-lucide="sparkles" style="color: #8f8cf0;"></i>
                   <span>ยอดสุทธิ:</span>
                   <strong id="poGrandTotal" class="grand-val">0.00 บาท</strong>
                 </div>
@@ -3366,7 +3372,7 @@
             <!-- Customization Settings Box -->
             <div class="admin-form-box">
               <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="sliders" style="width: 16px; height: 16px; color: #0284c7;"></i>
+                <i data-lucide="sliders" style="width: 16px; height: 16px; color: #68c8e5;"></i>
                 <span>ปรับแต่งการแสดงผลและความเร็ว (Customization & Motion)</span>
               </div>
 
@@ -3384,7 +3390,7 @@
                       <span>ส้ม</span>
                     </button>
                     <button type="button" class="ticker-theme-chip" data-theme="blue" onclick="selectAnnouncementTheme('blue', 'admin')">
-                      <span class="ticker-theme-dot" style="background: #0284c7;"></span>
+                      <span class="ticker-theme-dot" style="background: #68c8e5;"></span>
                       <span>น้ำเงิน</span>
                     </button>
                     <button type="button" class="ticker-theme-chip" data-theme="green" onclick="selectAnnouncementTheme('green', 'admin')">
@@ -3469,7 +3475,7 @@
           <div class="admin-tab-header">
             <div class="admin-tab-header-left">
               <h2 class="admin-tab-title">
-                <i data-lucide="flask-conical" style="color: #2563eb;"></i>
+                <i data-lucide="flask-conical" style="color: #716de3;"></i>
                 <span>จัดการห้องปฏิบัติการ (Laboratory Rooms)</span>
               </h2>
               <p class="admin-tab-desc">กำหนดชื่อห้อง อาคารสถานที่ และเลือกเฉดสีประจำห้องปฏิบัติการ สำหรับผังตู้จัดเก็บ SHECU และปฏิทิน</p>
@@ -3599,7 +3605,7 @@
               <div class="form-group">
                 <label class="form-label" for="inviteUserTeacherId">
                   <span>รหัสประจำตัวครู (ID)</span>
-                  <span style="font-size: 11px; font-weight: 500; color: #7c3aed;">(สร้างอัตโนมัติ/กำหนดเอง)</span>
+                  <span style="font-size: 11px; font-weight: 500; color: #8f8cf0;">(สร้างอัตโนมัติ/กำหนดเอง)</span>
                 </label>
                 <input type="text" class="form-control" id="inviteUserTeacherId" placeholder="เช่น 2003, T005, SC101" style="font-weight: 600;">
               </div>
@@ -3640,7 +3646,7 @@
                   <option value="L4">L4 — Executive / Head of Dept (ผู้บริหาร: ดูภาพรวมทั้งหมด Read-Only)</option>
                 </select>
                 <div style="font-size: 11.5px; color: #64748b; margin-top: 5px; display: flex; align-items: center; gap: 4px;">
-                  <i data-lucide="info" style="width: 12px; height: 12px; color: #7c3aed;"></i>
+                  <i data-lucide="info" style="width: 12px; height: 12px; color: #8f8cf0;"></i>
                   <span>ระบบจะใช้ Teacher ID เป็น Username และ Password เริ่มต้นในการเข้าสู่ระบบครั้งแรก</span>
                 </div>
               </div>
@@ -3688,7 +3694,7 @@
             <div></div>
             <div style="display: flex; gap: 10px;">
               <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #475569;" onclick="closeInviteUserModal()">ยกเลิก</button>
-              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);">
+              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #8f8cf0; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(143, 140, 240, 0.25);">
                 <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                 <span>บันทึกผู้ใช้</span>
               </button>
@@ -3707,13 +3713,13 @@
         <!-- Header -->
         <div class="modal-header" style="padding: 12px 20px; border-bottom: 1px solid var(--border-color); background: #ffffff; display: flex; justify-content: space-between; align-items: center;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 34px; height: 34px; border-radius: 9px; background: rgba(124, 58, 237, 0.15); color: #7c3aed; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.2);">
+            <div style="width: 34px; height: 34px; border-radius: 9px; background: rgba(143, 140, 240, 0.15); color: #8f8cf0; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(143, 140, 240, 0.2);">
               <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
             </div>
             <div>
               <div style="display: flex; align-items: center; gap: 6px;">
                 <h2 class="modal-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">นำเข้าผู้ใช้งานหลายคน (Batch User Import)</h2>
-                <span style="background: #f5f3ff; color: #7c3aed; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 12px; border: 1px solid #ddd6fe;">v2.0</span>
+                <span style="background: #f1f0ff; color: #8f8cf0; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 12px; border: 1px solid #d8d6fb;">v2.0</span>
               </div>
               <p style="margin: 1px 0 0 0; font-size: 11px; color: var(--text-muted);">เลือกวิธีนำเข้าข้อมูล: อัปโหลดไฟล์ Excel / CSV, วางข้อความจากตาราง, หรือกรอกข้อมูลโดยตรง</p>
             </div>
@@ -3735,11 +3741,11 @@
               <span>1. อัปโหลดไฟล์ (Excel/CSV)</span>
             </button>
             <button type="button" id="btnBatchTabPaste" class="btn-batch-tab" onclick="switchBatchImportMode('paste')">
-              <i data-lucide="clipboard-paste" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <i data-lucide="clipboard-paste" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
               <span>2. วางข้อความ (Copy-Paste)</span>
             </button>
             <button type="button" id="btnBatchTabTable" class="btn-batch-tab" onclick="switchBatchImportMode('table')">
-              <i data-lucide="table" style="width: 14px; height: 14px; color: #0284c7;"></i>
+              <i data-lucide="table" style="width: 14px; height: 14px; color: #68c8e5;"></i>
               <span>3. กรอกในตารางตรงๆ</span>
             </button>
           </div>
@@ -3747,7 +3753,7 @@
           <!-- Template & Guidelines Actions -->
           <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
             <button type="button" class="batch-quick-btn" onclick="toggleBatchGuidelines()" style="font-size: 11px; padding: 4px 8px; background: #f1f5f9; border-color: #cbd5e1; color: #475569;">
-              <i data-lucide="help-circle" style="width: 13px; height: 13px; color: #6366f1;"></i>
+              <i data-lucide="help-circle" style="width: 13px; height: 13px; color: #8f8cf0;"></i>
               <span>คู่มือรูปแบบคอลัมน์</span>
             </button>
             <div style="height: 14px; width: 1px; background: #cbd5e1; margin: 0 1px;"></div>
@@ -3757,20 +3763,20 @@
               <span style="color: #15803d; font-weight: 600;">Excel (.xlsx)</span>
             </button>
             <button type="button" class="batch-quick-btn" onclick="downloadUserTemplate('csv')" title="ดาวน์โหลดไฟล์ตัวอย่าง CSV">
-              <i data-lucide="download" style="width: 12px; height: 12px; color: #0284c7;"></i>
-              <span style="color: #0369a1; font-weight: 600;">CSV (.csv)</span>
+              <i data-lucide="download" style="width: 12px; height: 12px; color: #68c8e5;"></i>
+              <span style="color: #438fa9; font-weight: 600;">CSV (.csv)</span>
             </button>
           </div>
         </div>
 
         <!-- Collapsible Column Format Guidelines -->
-        <div id="batchGuidelinesBox" style="display: none; background: #f5f3ff; border-bottom: 1px solid #ddd6fe; padding: 10px 20px; font-size: 11px; color: #4c1d95;">
+        <div id="batchGuidelinesBox" style="display: none; background: #f1f0ff; border-bottom: 1px solid #d8d6fb; padding: 10px 20px; font-size: 11px; color: #4c1d95;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
             <strong style="font-size: 12px; display: flex; align-items: center; gap: 5px;">
-              <i data-lucide="info" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <i data-lucide="info" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
               โครงสร้างหัวตารางที่รองรับ (เรียงตามลำดับ หรือมีชื่อคอลัมน์ตรงกัน):
             </strong>
-            <button type="button" onclick="toggleBatchGuidelines()" style="background: none; border: none; color: #7c3aed; font-size: 11px; cursor: pointer; text-decoration: underline;">ปิดคู่มือ</button>
+            <button type="button" onclick="toggleBatchGuidelines()" style="background: none; border: none; color: #8f8cf0; font-size: 11px; cursor: pointer; text-decoration: underline;">ปิดคู่มือ</button>
           </div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; background: #ffffff; padding: 8px 10px; border-radius: 7px; border: 1px solid #e9d5ff;">
             <div><span style="color: #dc2626; font-weight: 700;">1. Teacher ID *</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น 1001, T045)</span></div>
@@ -3826,10 +3832,10 @@
           <div id="batchModePasteSection" style="display: none; flex-direction: column; gap: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <label for="batchPasteInput" style="font-size: 11.5px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="clipboard-copy" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+                <i data-lucide="clipboard-copy" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
                 <span>วางข้อมูลที่คัดลอกจาก Excel หรือ Google Sheets:</span>
               </label>
-              <button type="button" onclick="fillBatchPasteExample()" style="background: none; border: none; color: #7c3aed; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+              <button type="button" onclick="fillBatchPasteExample()" style="background: none; border: none; color: #8f8cf0; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                 <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> ใส่ตัวอย่างทดสอบ
               </button>
             </div>
@@ -3853,9 +3859,9 @@
                 <i data-lucide="plus" style="width: 12px; height: 12px; color: #16a34a;"></i> +1 แถว
               </button>
               <button type="button" class="batch-quick-btn" onclick="addBatchUserRows(5)" title="เพิ่มแถวว่าง 5 แถว">
-                <i data-lucide="plus-circle" style="width: 12px; height: 12px; color: #0284c7;"></i> +5 แถว
+                <i data-lucide="plus-circle" style="width: 12px; height: 12px; color: #68c8e5;"></i> +5 แถว
               </button>
-              <button type="button" class="batch-quick-btn" onclick="fillBatchUserSampleData()" style="background: #f5f3ff; border-color: #ddd6fe; color: #6d28d9;" title="ทดลองใส่ข้อมูลจำลอง 3 คน">
+              <button type="button" class="batch-quick-btn" onclick="fillBatchUserSampleData()" style="background: #f1f0ff; border-color: #d8d6fb; color: #716de3;" title="ทดลองใส่ข้อมูลจำลอง 3 คน">
                 <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> ใส่ข้อมูลทดสอบ
               </button>
             </div>
@@ -3864,7 +3870,7 @@
             <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
               <span style="font-size: 11px; font-weight: 600; color: #475569; margin-right: 2px;"><i data-lucide="zap" style="width: 12px; height: 12px; color: #f59e0b; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> เครื่องมือด่วน:</span>
               <button type="button" class="batch-quick-btn" onclick="autoFillBatchEmails()" title="เติมอีเมลอัตโนมัติ (เช่น 1001@lab.school.ac.th) สำหรับแถวที่ยังไม่มีอีเมล">
-                <i data-lucide="mail" style="width: 12px; height: 12px; color: #6366f1;"></i> เติมอีเมลอัตโนมัติ
+                <i data-lucide="mail" style="width: 12px; height: 12px; color: #8f8cf0;"></i> เติมอีเมลอัตโนมัติ
               </button>
               <button type="button" class="batch-quick-btn" onclick="autoFillBatchDepartments()" title="เติมกลุ่มสาระมาตรฐานสำหรับแถวที่ยังว่างอยู่">
                 <i data-lucide="building" style="width: 12px; height: 12px; color: #059669;"></i> เติมกลุ่มสาระ
@@ -3881,7 +3887,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
               <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                 <span style="font-weight: 700; font-size: 12px; color: #0f172a; display: flex; align-items: center; gap: 5px;">
-                  <i data-lucide="list-checks" style="width: 15px; height: 15px; color: #7c3aed;"></i>
+                  <i data-lucide="list-checks" style="width: 15px; height: 15px; color: #8f8cf0;"></i>
                   <span>ตารางข้อมูลผู้ใช้งาน</span>
                 </span>
                 
@@ -3972,7 +3978,7 @@
           </button>
           
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button type="button" class="btn btn-primary" id="btnSubmitBatchUsers" onclick="submitBatchAddUsers()" style="height: 34px; border-radius: 7px; padding: 0 18px; font-size: 12px; font-weight: 600; background: #7c3aed; color: #ffffff; border: none; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(124, 58, 237, 0.25); cursor: pointer; transition: all 0.2s;" disabled>
+            <button type="button" class="btn btn-primary" id="btnSubmitBatchUsers" onclick="submitBatchAddUsers()" style="height: 34px; border-radius: 7px; padding: 0 18px; font-size: 12px; font-weight: 600; background: #8f8cf0; color: #ffffff; border: none; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(143, 140, 240, 0.25); cursor: pointer; transition: all 0.2s;" disabled>
               <i data-lucide="check-check" style="width: 15px; height: 15px;"></i>
               <span id="btnSubmitBatchUsersText">บันทึกและนำเข้าข้อมูล</span>
             </button>
@@ -4141,7 +4147,7 @@
             </button>
             <div style="display: flex; gap: 10px;">
               <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #475569;" onclick="closeEditUserModal()">ยกเลิก</button>
-              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);">
+              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #8f8cf0; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(143, 140, 240, 0.25);">
                 <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                 <span>บันทึกการแก้ไข</span>
               </button>
@@ -4212,7 +4218,7 @@
           <!-- Customizer options in Modal -->
           <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px;">
             <div style="font-size: 12.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="sliders" style="width: 14px; height: 14px; color: #0284c7;"></i>
+              <i data-lucide="sliders" style="width: 14px; height: 14px; color: #68c8e5;"></i>
               <span>ปรับแต่งความเร็ว ระยะห่าง และธีมสี</span>
             </div>
 
@@ -4230,7 +4236,7 @@
                     <span>ส้ม</span>
                   </button>
                   <button type="button" class="ticker-theme-chip" data-theme="blue" onclick="selectAnnouncementTheme('blue', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
-                    <span class="ticker-theme-dot" style="background: #0284c7; width: 8px; height: 8px;"></span>
+                    <span class="ticker-theme-dot" style="background: #68c8e5; width: 8px; height: 8px;"></span>
                     <span>น้ำเงิน</span>
                   </button>
                   <button type="button" class="ticker-theme-chip" data-theme="green" onclick="selectAnnouncementTheme('green', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
@@ -4604,7 +4610,7 @@
     <div class="modal-content" style="max-width: 600px; width: 94%; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(226, 232, 240, 0.85); overflow: hidden; background: #ffffff; padding: 0; position: relative;">
       
       <!-- Top Decorative Banner -->
-      <div style="height: 64px; background: #ede9fe; position: relative;">
+      <div style="height: 64px; background: #e5e4ff; position: relative;">
         <!-- Close Button (X) -->
         <button type="button" class="modal-close-btn" id="userProfileModalClose" aria-label="Close" onclick="if(window.closeUserProfileModal){window.closeUserProfileModal();}" title="ปิดหน้าต่าง" style="position: absolute; top: 14px; right: 14px; background: #ffffff; border: 1px solid #cbd5e1; color: #475569; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1); z-index: 2;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -4616,7 +4622,7 @@
 
       <!-- User Profile Header Card (Avatar + Info) -->
       <div style="padding: 0 24px; margin-top: -32px; display: flex; align-items: flex-end; gap: 14px; position: relative;">
-        <div id="modalProfileAvatar" style="width: 60px; height: 60px; border-radius: 50%; background: #7c3aed; color: #ffffff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); border: 3.5px solid #ffffff; flex-shrink: 0;">
+        <div id="modalProfileAvatar" style="width: 60px; height: 60px; border-radius: 50%; background: #8f8cf0; color: #ffffff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(143, 140, 240, 0.25); border: 3.5px solid #ffffff; flex-shrink: 0;">
           วด
         </div>
         <div style="flex: 1; min-width: 0; padding-bottom: 2px;">
@@ -4624,7 +4630,7 @@
             ม.วงศกร ด้วงเกลี้ยง
           </h3>
           <div style="display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap;">
-            <span id="modalProfileRoleBadge" class="badge-role badge-role-l3" style="background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 12px;">L3 ผู้ดูแลระบบ</span>
+            <span id="modalProfileRoleBadge" class="badge-role badge-role-l3" style="background: #e5e4ff; color: #716de3; border: 1px solid #d8d6fb; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 12px;">L3 ผู้ดูแลระบบ</span>
             <span id="modalProfileDept" style="font-size: 11.5px; color: #64748b; font-weight: 500;">กลุ่มสาระการเรียนรู้วิทยาศาสตร์</span>
           </div>
         </div>
@@ -4635,7 +4641,7 @@
         <!-- Account Details Box -->
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 13px 15px; margin-bottom: 16px;">
           <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 9px; display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="user-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+            <i data-lucide="user-check" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
             <span>ข้อมูลบัญชีผู้ใช้งาน</span>
           </div>
           <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; font-size: 12.5px;">
@@ -4665,7 +4671,7 @@
         <div>
           <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 9px; display: flex; align-items: center; justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
               <span>สิทธิ์การใช้งานที่ได้รับ</span>
             </div>
             <span style="font-size: 10.5px; color: #64748b; font-weight: 500;">ตามระดับสิทธิ์</span>
@@ -4853,7 +4859,7 @@
     <div class="modal-content" style="max-width: 480px;">
       <div class="modal-header">
         <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
-          <i data-lucide="scan" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
+          <i data-lucide="scan" style="width: 18px; height: 18px; color: #9996f2;"></i>
           <span>สแกนคิวอาร์โค้ด / บาร์โค้ด</span>
         </h2>
         <button type="button" class="modal-close-btn" id="cameraScanModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
@@ -4930,7 +4936,7 @@
         <!-- Quantity Input -->
         <div class="form-group">
           <label for="repairActionQty" class="form-label">จำนวนที่ต้องการจัดการ <span style="color: var(--accent-red);">*</span></label>
-          <input type="number" id="repairActionQty" class="form-control" value="1" min="1" style="width: 100%;">
+          <input type="number" id="repairActionQty" class="form-control" value="1" min="1" data-rolling-counter style="width: 100%;">
           <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 4px;" id="repairMaxQtyHint">จำนวนสูงสุดที่ทำรายการได้: -</div>
         </div>
 
@@ -5485,8 +5491,8 @@
       <!-- Body -->
       <div class="modal-body confirm-delete-body" style="padding: 20px 24px;">
         <!-- Permission Role Badge -->
-        <div class="confirm-delete-badge" style="display: inline-flex; align-items: center; gap: 6px; background: #f5f3ff; border: 1px solid #ddd6fe; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #6d28d9; margin-bottom: 14px;">
-          <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+        <div class="confirm-delete-badge" style="display: inline-flex; align-items: center; gap: 6px; background: #f1f0ff; border: 1px solid #d8d6fb; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #716de3; margin-bottom: 14px;">
+          <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
           <span>สิทธิ์การใช้งาน: เฉพาะระดับ <strong>L3 (ผู้ดูแลระบบ)</strong> และ <strong>L4 (ผู้บริหาร)</strong></span>
         </div>
 
@@ -5718,12 +5724,12 @@
           <div class="nyc-metro-label-row">
             <label class="nyc-metro-label" style="margin-bottom: 0;">
               <span class="nyc-metro-label-num">04</span>
-              <span>สีประจำสายทาง (MTA ROUTE LINE COLOR)</span>
+              <span>สีประจำห้อง (CORE WEBSITE PALETTE)</span>
             </label>
-            <span class="nyc-metro-sublabel-tag">MTA COLOR SYSTEM</span>
+            <span class="nyc-metro-sublabel-tag">CORE PALETTE</span>
           </div>
           
-          <!-- Palette Presets (Subway Bullets) -->
+          <!-- Palette Presets -->
           <div id="labColorPresetsContainer" class="nyc-metro-bullet-presets">
             <!-- Rendered by JS -->
           </div>
@@ -5737,7 +5743,7 @@
               <span class="nyc-metro-hex-prefix">HEX</span>
               <input type="text" id="labRoomHexInput" class="nyc-metro-hex-input" maxlength="7" placeholder="#EE352E" oninput="onLabRoomHexInputChange(this.value)">
             </div>
-            <span class="nyc-metro-color-guide">เลือกสัญลักษณ์สายทาง หรือระบุโค้ดสี Hex เพื่อใช้บนผังตู้และปฏิทิน</span>
+            <span class="nyc-metro-color-guide">เลือกสีหลักของเว็บไซต์ หรือระบุโค้ดสี Hex เพื่อใช้บนผังตู้และปฏิทิน</span>
           </div>
         </div>
 
@@ -5823,6 +5829,7 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Modal: Asset Audit Record / Inspection -->
+
     <div id="assetAuditModal" class="modal-overlay">
     <div class="modal-content" style="max-width: 520px;">
       <div class="modal-header">
@@ -5855,7 +5862,7 @@
           </div>
           <div class="form-group">
             <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">จำนวนที่นับได้จริง <span class="required">*</span></label>
-            <input type="number" id="auditAssetActualQty" min="0" style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px;">
+            <input type="number" id="auditAssetActualQty" min="0" data-rolling-counter style="width: 100%; height: 38px; border: 1px solid #cbd5e1; border-radius: 6px; padding: 0 10px;">
           </div>
         </div>
 
@@ -5878,6 +5885,7 @@
   </div>
 
   <!-- Confirm Modal -->
+
     <div id="confirmModal" class="modal-overlay">
     <div class="modal" style="max-width: 400px; text-align: center; padding: 32px 24px;">
       <button class="modal-close" onclick="closeConfirmModal()"><i data-lucide="x"></i></button>
@@ -5914,11 +5922,11 @@
         </div>
         <div class="form-group" id="addCabinetShelvesGroup" style="margin-bottom: 16px;">
           <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">จำนวนชั้นวาง (Number of Shelves)</label>
-          <input type="number" id="addCabinetShelves" class="input" style="width: 100%;" placeholder="ระบุจำนวนชั้น (เช่น 4)" min="1" max="12" value="4">
+          <input type="number" id="addCabinetShelves" class="input" style="width: 100%;" placeholder="ระบุจำนวนชั้น (เช่น 4)" min="1" max="12" value="4" data-rolling-counter>
         </div>
         <div class="form-group" id="addCabinetCapacityGroup" style="margin-bottom: 16px;">
           <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ความจุสุทธิ (Total Capacity)</label>
-          <input type="number" id="addCabinetCapacity" class="input" style="width: 100%;" placeholder="ความจุสูงสุด (รายการ)" min="1" value="50">
+          <input type="number" id="addCabinetCapacity" class="input" style="width: 100%;" placeholder="ความจุสูงสุด (รายการ)" min="1" value="50" data-rolling-counter>
         </div>
         <div class="form-group" id="addCabinetVisibilityGroup" style="margin-bottom: 16px; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
           <div>
@@ -6024,7 +6032,7 @@
               <!-- Quick Banner -->
               <div class="help-shecu-banner">
                 <div class="help-shecu-banner-left">
-                  <i data-lucide="shield" style="width: 16px; height: 16px; color: #6366f1; flex-shrink: 0;"></i>
+                  <i data-lucide="shield" style="width: 16px; height: 16px; color: #8f8cf0; flex-shrink: 0;"></i>
                   <span style="font-size: 12px; font-weight: 600; color: #3730a3;">มาตรฐานความปลอดภัยห้องปฏิบัติการ ESPReL & จุฬาลงกรณ์มหาวิทยาลัย (SHECU)</span>
                 </div>
                 <span class="shecu-badge shecu-badge-primary" style="font-size: 10.5px; padding: 2px 7px;">ESPReL Level 3</span>
@@ -6060,7 +6068,7 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #e5e4ff; color: #716de3; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                       <i data-lucide="archive" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การควบคุมความจุตู้จัดเก็บ (Cabinet Storage Capacity)</span>
@@ -6107,7 +6115,7 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #716de3; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                       <i data-lucide="search" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">การค้นหาและตรวจสอบเลข CAS No.</span>
@@ -6128,7 +6136,7 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #1e40af; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #e5e4ff; color: #1e40af; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                       <i data-lucide="file-text" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">โครงสร้างเอกสารข้อมูลความปลอดภัย SDS ครบทั้ง 16 หัวข้อ</span>
@@ -6242,7 +6250,7 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #ede7ff; color: #716de3; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                       <i data-lucide="calendar-check" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">1. การจองห้องปฏิบัติการ (Lab Booking Workflow)</span>
@@ -6267,7 +6275,7 @@
               <details class="help-accordion-item">
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="width: 24px; height: 24px; border-radius: 6px; background: #e5e4ff; color: #716de3; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                       <i data-lucide="clipboard-list" style="width: 14px; height: 14px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">2. การเบิก-ยืมพัสดุและสารเคมี (Borrowing & Return Workflow)</span>
@@ -6324,7 +6332,7 @@
                   <i data-lucide="phone-call" style="width: 14px; height: 14px; color: #dc2626; flex-shrink: 0;"></i>
                   <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">เบอร์ติดต่อฉุกเฉินประจำห้องแล็บ</span>
                 </div>
-                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: #ede7ff; color: #4f21a1; border: 1px solid #ddd6fe; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; flex-shrink: 0;" onclick="toggleEmergencyContactEdit(true)">
+                <button id="btnEditEmergencyContacts" type="button" class="btn-sm" style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: #ede7ff; color: #716de3; border: 1px solid #d8d6fb; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; flex-shrink: 0;" onclick="toggleEmergencyContactEdit(true)">
                   <i data-lucide="edit-3" style="width: 11px; height: 11px;"></i> แก้ไขข้อมูล
                 </button>
               </div>
@@ -6334,7 +6342,7 @@
                 <div class="help-contact-grid">
                   <!-- Card Admin -->
                   <div class="help-contact-card">
-                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="width: 26px; height: 26px; border-radius: 6px; background: #ede7ff; color: #716de3; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                       <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
                     </div>
                     <div style="min-width: 0; flex: 1; overflow: hidden;">
@@ -6368,8 +6376,8 @@
               </div>
 
               <!-- Edit Mode (Inline Admin Edit) -->
-              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c4b5fd; border-radius: 8px; padding: 8px 10px; width: 100%; box-sizing: border-box;">
-                <div style="font-size: 11.5px; font-weight: 600; color: #4f21a1; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;">
+              <div id="emergencyContactsEdit" style="display: none; background: #f8fafc; border: 1px solid #c2c0f7; border-radius: 8px; padding: 8px 10px; width: 100%; box-sizing: border-box;">
+                <div style="font-size: 11.5px; font-weight: 600; color: #716de3; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;">
                   <i data-lucide="shield" style="width: 12px; height: 12px;"></i> แก้ไขเบอร์ติดต่อฉุกเฉิน
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 7px;">
@@ -6387,7 +6395,7 @@
                   </div>
                 </div>
                 <div style="display: flex; gap: 6px;">
-                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; background: #4f21a1;" onclick="saveEmergencyContacts()">
+                  <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; background: #716de3;" onclick="saveEmergencyContacts()">
                     <i data-lucide="check" style="width: 11px; height: 11px;"></i> บันทึก
                   </button>
                   <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;" onclick="toggleEmergencyContactEdit(false)">
@@ -6400,7 +6408,7 @@
               <div style="background: #f8fafc; border: 1px solid var(--border-color, #e2e8f0); border-radius: 9px; padding: 8px 11px; width: 100%; box-sizing: border-box;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; gap: 8px;">
                   <div style="display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 12.5px; color: var(--text-main, #1f2937); min-width: 0;">
-                    <div style="width: 22px; height: 22px; border-radius: 5px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="width: 22px; height: 22px; border-radius: 5px; background: #ede7ff; color: #716de3; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                       <i data-lucide="message-square-plus" style="width: 13px; height: 13px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ส่ง Feedback หรือแจ้งปัญหาการใช้งาน</span>
@@ -6415,7 +6423,7 @@
                 <div style="display: flex; flex-direction: column; gap: 5px; width: 100%; box-sizing: border-box;">
                   <textarea id="feedbackInput" class="form-control" rows="2" style="font-size: 11.5px; border-radius: 6px; padding: 5px 8px; resize: none; min-height: 38px; background: #ffffff; width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1;" placeholder="อธิบายปัญหาที่คุณพบหรือข้อเสนอแนะ..."></textarea>
                   <div style="display: flex; justify-content: flex-end;">
-                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; font-size: 11.5px; border-radius: 6px; background: #4f21a1; color: #ffffff; border: none; cursor: pointer; font-weight: 600;" onclick="submitUserFeedback()">
+                    <button type="button" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; font-size: 11.5px; border-radius: 6px; background: #716de3; color: #ffffff; border: none; cursor: pointer; font-weight: 600;" onclick="submitUserFeedback()">
                       <i data-lucide="send" style="width: 11px; height: 11px;"></i>
                       <span>ส่งข้อความ</span>
                     </button>
@@ -6431,7 +6439,7 @@
               <!-- Profile Card -->
               <div style="background: #f8fafc; border: 1px solid var(--border-color, #e2e8f0); border-radius: 9px; padding: 8px 11px; display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; box-sizing: border-box;">
                 <div style="display: flex; align-items: center; gap: 9px; min-width: 0;">
-                  <div style="width: 32px; height: 32px; border-radius: 50%; background: #4f21a1; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 6px rgba(79, 33, 161, 0.2);">
+                  <div style="width: 32px; height: 32px; border-radius: 50%; background: #716de3; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 6px rgba(79, 33, 161, 0.2);">
                     WD
                   </div>
                   <div style="min-width: 0;">
@@ -6451,7 +6459,7 @@
               <!-- System Specs Grid (2 Column) -->
               <div class="help-specs-grid">
                 <div class="help-spec-card">
-                  <div style="width: 22px; height: 22px; border-radius: 5px; background: #ede7ff; color: #4f21a1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <div style="width: 22px; height: 22px; border-radius: 5px; background: #ede7ff; color: #716de3; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     <i data-lucide="cpu" style="width: 12px; height: 12px;"></i>
                   </div>
                   <div style="min-width: 0; flex: 1; overflow: hidden;">
@@ -6475,7 +6483,7 @@
               <details class="help-accordion-item" open>
                 <summary class="help-accordion-header">
                   <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                    <div style="width: 22px; height: 22px; border-radius: 5px; background: #dbeafe; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="width: 22px; height: 22px; border-radius: 5px; background: #e5e4ff; color: #716de3; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                       <i data-lucide="target" style="width: 13px; height: 13px;"></i>
                     </div>
                     <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600;">วัตถุประสงค์และมาตรฐานระบบ</span>
@@ -6501,8 +6509,9 @@
 
 
   <!-- Application Logic -->
-  <script src="assets/js/main.js?v=20261016_qrcode_fix"></script>
+  <script src="assets/js/main.js?v=20261024_i18n_modal_review2"></script>
   <script defer src="assets/js/dashboard-announcement.js?v=astryx_1"></script>
+  <script defer src="assets/js/rolling-counter.js?v=20261024_rolling_counter_v2"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {

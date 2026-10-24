@@ -88,7 +88,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#4F21A1">
+  <meta name="theme-color" content="#716de3">
 
   <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -114,6 +114,7 @@
   <link rel="stylesheet" href="assets/css/components/sidebar-redesign.css?v=20261024_sidebar_balanced6">
   <link rel="stylesheet" href="assets/css/dashboard-announcement.css?v=astryx_1">
   <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261010_inset">
+  <link rel="stylesheet" href="assets/css/rolling-counter.css?v=20261024_rolling_counter_v3">
 
   <!-- Core Libraries (Local high-performance icon library) -->
   <script src="assets/js/lucide.min.js"></script>
@@ -341,6 +342,10 @@
     <!-- Main Content -->
     <main class="main-content pb-24">
 
+      <div class="site-utility-bar">
+        <button class="site-utility-button site-language-button" id="siteLanguageToggle" type="button" aria-label="Switch language to English" title="Change language">EN</button>
+      </div>
+
       <!-- Executive Mode Read-Only Banner (L4) -->
       <div id="executiveReadOnlyBanner" class="executive-banner" style="display: none; margin-bottom: 20px; padding: 14px 20px; background: rgba(190, 24, 93, 0.08); border: 1px solid rgba(190, 24, 93, 0.25); border-radius: 12px; align-items: center; justify-content: space-between; gap: 14px;">
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -444,8 +449,9 @@
   <!-- @include components/modals/help-safety-modal.html -->
 
   <!-- Application Logic -->
-  <script src="assets/js/main.js?v=20261016_qrcode_fix"></script>
+  <script src="assets/js/main.js?v=20261024_i18n_modal_review2"></script>
   <script defer src="assets/js/dashboard-announcement.js?v=astryx_1"></script>
+  <script defer src="assets/js/rolling-counter.js?v=20261024_rolling_counter_v2"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
     setTimeout(function() {

@@ -53,33 +53,37 @@
 
   /* Brand Primary Palette */
   --brand-white: #ffffff;
-  --brand-blue: #8da9fb;
-  --brand-blue-hover: #7496f7;
-  --brand-blue-light: rgba(141, 169, 251, 0.12);
-  --brand-lime: #ccff00;
-  --brand-lime-hover: #b8e600;
-  --brand-lime-light: rgba(204, 255, 0, 0.18);
+  --brand-blue: #8f8cf0;
+  --brand-blue-hover: #716de3;
+  --brand-blue-light: rgba(143, 140, 240, 0.12);
+  --brand-lime: #8ddbc5;
+  --brand-lime-hover: #66c9ad;
+  --brand-lime-light: rgba(141, 219, 197, 0.18);
   --brand-dark: #0f172a;
+  --chart-coral: #f39b8d;
+  --chart-cyan: #68c8e5;
+  --chart-lavender: #9996f2;
+  --chart-indigo: #5758e8;
   
-  --bg-main: #f1f4f8;
+  --bg-main: #f7f9fa;
   --bg-card: #ffffff;
   
   /* Primary Theme Tokens */
-  --primary-purple: #8da9fb;
+  --primary-purple: #8f8cf0;
   --primary-color: var(--primary-purple);
-  --primary-purple-hover: #7496f7;
-  --primary-purple-light: rgba(141, 169, 251, 0.12);
-  --primary-purple-active: rgba(141, 169, 251, 0.22);
+  --primary-purple-hover: #716de3;
+  --primary-purple-light: rgba(143, 140, 240, 0.12);
+  --primary-purple-active: rgba(143, 140, 240, 0.22);
   
   --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-muted: #78818d;
   --text-light: #ffffff;
   
-  --border-color: #e2e8f0;
+  --border-color: #e8edf0;
   
   /* Status & Safety Accents */
-  --accent-blue: #8da9fb;
-  --accent-blue-light: #f0f4ff;
+  --accent-blue: #8f8cf0;
+  --accent-blue-light: #f1f0ff;
   --accent-red: #dc2626;
   --accent-red-light: #fef2f2;
   --accent-orange: #ea580c;

@@ -38,7 +38,7 @@ export function showToast(message, type = 'info', duration = 3500) {
     border-radius: 10px;
     background: #ffffff;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid ${type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : type === 'error' ? '#ef4444' : '#6366f1'};
+    border-left: 4px solid ${type === 'success' ? '#10b981' : type === 'warning' ? '#f59e0b' : type === 'error' ? '#ef4444' : '#8f8cf0'};
     pointer-events: auto;
     font-size: 13.5px;
     color: #1e293b;
@@ -54,7 +54,7 @@ export function showToast(message, type = 'info', duration = 3500) {
                    type === 'error' ? 'alert-circle' : 'info';
   const iconColor = type === 'success' ? '#10b981' :
                     type === 'warning' ? '#f59e0b' :
-                    type === 'error' ? '#ef4444' : '#6366f1';
+                    type === 'error' ? '#ef4444' : '#8f8cf0';
 
   toast.innerHTML = `
     <div style="flex-shrink: 0; color: ${iconColor}; display: flex; align-items: center;">

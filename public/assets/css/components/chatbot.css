@@ -85,7 +85,7 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: #4f46e5;
+  background: #716de3;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,7 +198,7 @@
   font-weight: 800;
   padding: 1px 5px;
   border-radius: 999px;
-  background: #4f46e5;
+  background: #716de3;
   color: #ffffff;
   letter-spacing: 0.03em;
   line-height: 1.2;
@@ -489,8 +489,8 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: #eef2ff;
-  color: #4f46e5;
+  background: #f1f0ff;
+  color: #716de3;
   border: 1px solid rgba(199, 210, 254, 0.8);
   padding: 3px 9px;
   border-radius: 999px;
@@ -503,7 +503,7 @@
 .welcome-sparkle-icon {
   width: 13px;
   height: 13px;
-  color: #6366f1;
+  color: #8f8cf0;
 }
 
 .welcome-bento-title {
@@ -565,13 +565,13 @@
 }
 
 .cap-inventory {
-  background: #eff6ff;
-  color: #3b82f6;
+  background: #f1f0ff;
+  color: #8f8cf0;
 }
 
 .cap-calc {
-  background: #f5f3ff;
-  color: #7c3aed;
+  background: #f1f0ff;
+  color: #8f8cf0;
 }
 
 .cap-safety {
@@ -625,14 +625,14 @@
 .suggestions-zap-icon {
   width: 13px;
   height: 13px;
-  color: #6366f1;
+  color: #8f8cf0;
 }
 
 .suggestions-count-badge {
   font-size: 10px;
   font-weight: 600;
-  color: #6366f1;
-  background: #eef2ff;
+  color: #8f8cf0;
+  background: #f1f0ff;
   padding: 1.5px 7px;
   border-radius: 999px;
   border: 1px solid rgba(199, 210, 254, 0.6);
@@ -709,15 +709,15 @@
 }
 
 /* Category Color Accents for Chip Icons */
-.chip-icon-search   { background: #eff6ff; color: #3b82f6; }
+.chip-icon-search   { background: #f1f0ff; color: #8f8cf0; }
 .chip-icon-alert    { background: #fffbeb; color: #d97706; }
 .chip-icon-expire   { background: #fef2f2; color: #ef4444; }
-.chip-icon-balance  { background: #f5f3ff; color: #7c3aed; }
-.chip-icon-scale    { background: #e0e7ff; color: #4f46e5; }
+.chip-icon-balance  { background: #f1f0ff; color: #8f8cf0; }
+.chip-icon-scale    { background: #e5e4ff; color: #716de3; }
 .chip-icon-solution { background: #ecfeff; color: #0891b2; }
 .chip-icon-spill    { background: #fef2f2; color: #dc2626; }
 .chip-icon-waste    { background: #ecfdf5; color: #10b981; }
-.chip-icon-guide    { background: #e0f2fe; color: #0284c7; }
+.chip-icon-guide    { background: #e7f7fb; color: #68c8e5; }
 
 .chip-content {
   display: flex;
@@ -761,7 +761,7 @@
 }
 
 .chat-message.user {
-  background: #4f46e5;
+  background: #716de3;
   color: #ffffff;
   border-radius: 18px 18px 4px 18px;
   align-self: flex-end;
@@ -802,7 +802,7 @@
 }
 
 .chatbot-input-wrap:focus-within {
-  border-color: #6366f1;
+  border-color: #8f8cf0;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16);
 }
@@ -822,7 +822,7 @@
 }
 
 .chatbot-input-wrap:focus-within .chatbot-input-prefix-icon {
-  color: #6366f1;
+  color: #8f8cf0;
 }
 
 .chatbot-input-wrap input {
@@ -843,7 +843,7 @@
 }
 
 .chatbot-input-wrap button#chatbotSendBtn {
-  background: #4f46e5 !important;
+  background: #716de3 !important;
   color: #ffffff !important;
   border: none !important;
   width: 28px !important;
@@ -898,7 +898,7 @@
 .caption-sparkle-icon {
   width: 12px;
   height: 12px;
-  color: #6366f1;
+  color: #8f8cf0;
 }
 
 .chatbot-caption-dot {

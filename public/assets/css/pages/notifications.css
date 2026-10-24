@@ -105,10 +105,10 @@
 }
 
 .notif-pill-item.active {
-  background: #f5f3ff;
-  color: #7c3aed;
-  border-color: #ede9fe;
-  box-shadow: 0 1px 2px rgba(124, 58, 237, 0.08);
+  background: #f1f0ff;
+  color: #8f8cf0;
+  border-color: #e5e4ff;
+  box-shadow: 0 1px 2px rgba(143, 140, 240, 0.08);
 }
 
 .notif-pill-item .tab-icon-wrap {
@@ -134,8 +134,8 @@
 }
 
 .notif-pill-badge.purple {
-  background: #f3e8ff;
-  color: #7c3aed;
+  background: #f1f0ff;
+  color: #8f8cf0;
 }
 
 /* Redesigned Notification Header Action Buttons */
@@ -394,7 +394,7 @@
 .notif-header-icon.red { background: #fee2e2; color: #dc2626; }
 .notif-header-icon.yellow { background: #fef3c7; color: #d97706; }
 .notif-header-icon.orange { background: #ffedd5; color: #ea580c; }
-.notif-header-icon.purple { background: #f5f3ff; color: #7c3aed; }
+.notif-header-icon.purple { background: #f1f0ff; color: #8f8cf0; }
 .notif-header-icon.green { background: #dcfce7; color: #16a34a; }
 
 .notif-header-icon svg,
@@ -574,7 +574,7 @@
 }
 
 .notification-item.status-feedback {
-  border-left: 4.5px solid #8b5cf6;
+  border-left: 4.5px solid #9996f2;
 }
 
 .notification-item.status-resolved {
@@ -623,7 +623,7 @@
   border-radius: 12px;
   border: 1.5px solid #e2e8f0;
   background-color: #ffffff;
-  color: #2563eb;
+  color: #716de3;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -635,14 +635,14 @@
 }
 
 .notification-header .action-icon-btn.edit:hover {
-  background-color: #eff6ff;
-  border-color: #3b82f6;
-  color: #1d4ed8;
+  background-color: #f1f0ff;
+  border-color: #8f8cf0;
+  color: #716de3;
 }
 
 .notification-header .action-icon-btn.edit:active {
   transform: scale(0.92);
-  background-color: #dbeafe;
+  background-color: #e5e4ff;
 }
 
 .status-pill-btn {
@@ -666,7 +666,7 @@
 }
 
 .status-pill-btn.feedback:hover {
-  background-color: #faf5ff;
+  background-color: #f7f6ff;
   border-color: #c084fc;
 }
 

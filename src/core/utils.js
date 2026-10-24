@@ -195,11 +195,11 @@ export function debounce(fn, waitMs) {
 // Role color helper
 export function getRoleColor(role) {
   const map = {
-    'Student': '#3b82f6',
+    'Student': '#8f8cf0',
     'Teacher': '#10b981',
     'Staff': '#f59e0b',
     'Admin': '#ef4444',
-    'Executive': '#8b5cf6'
+    'Executive': '#9996f2'
   };
   return map[role] || '#64748b';
 }

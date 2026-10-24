@@ -286,7 +286,7 @@
             <!-- Customization Settings Box -->
             <div class="admin-form-box">
               <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="sliders" style="width: 16px; height: 16px; color: #0284c7;"></i>
+                <i data-lucide="sliders" style="width: 16px; height: 16px; color: #68c8e5;"></i>
                 <span>ปรับแต่งการแสดงผลและความเร็ว (Customization & Motion)</span>
               </div>
 
@@ -304,7 +304,7 @@
                       <span>ส้ม</span>
                     </button>
                     <button type="button" class="ticker-theme-chip" data-theme="blue" onclick="selectAnnouncementTheme('blue', 'admin')">
-                      <span class="ticker-theme-dot" style="background: #0284c7;"></span>
+                      <span class="ticker-theme-dot" style="background: #68c8e5;"></span>
                       <span>น้ำเงิน</span>
                     </button>
                     <button type="button" class="ticker-theme-chip" data-theme="green" onclick="selectAnnouncementTheme('green', 'admin')">
@@ -389,7 +389,7 @@
           <div class="admin-tab-header">
             <div class="admin-tab-header-left">
               <h2 class="admin-tab-title">
-                <i data-lucide="flask-conical" style="color: #2563eb;"></i>
+                <i data-lucide="flask-conical" style="color: #716de3;"></i>
                 <span>จัดการห้องปฏิบัติการ (Laboratory Rooms)</span>
               </h2>
               <p class="admin-tab-desc">กำหนดชื่อห้อง อาคารสถานที่ และเลือกเฉดสีประจำห้องปฏิบัติการ สำหรับผังตู้จัดเก็บ SHECU และปฏิทิน</p>
@@ -519,7 +519,7 @@
               <div class="form-group">
                 <label class="form-label" for="inviteUserTeacherId">
                   <span>รหัสประจำตัวครู (ID)</span>
-                  <span style="font-size: 11px; font-weight: 500; color: #7c3aed;">(สร้างอัตโนมัติ/กำหนดเอง)</span>
+                  <span style="font-size: 11px; font-weight: 500; color: #8f8cf0;">(สร้างอัตโนมัติ/กำหนดเอง)</span>
                 </label>
                 <input type="text" class="form-control" id="inviteUserTeacherId" placeholder="เช่น 2003, T005, SC101" style="font-weight: 600;">
               </div>
@@ -560,7 +560,7 @@
                   <option value="L4">L4 — Executive / Head of Dept (ผู้บริหาร: ดูภาพรวมทั้งหมด Read-Only)</option>
                 </select>
                 <div style="font-size: 11.5px; color: #64748b; margin-top: 5px; display: flex; align-items: center; gap: 4px;">
-                  <i data-lucide="info" style="width: 12px; height: 12px; color: #7c3aed;"></i>
+                  <i data-lucide="info" style="width: 12px; height: 12px; color: #8f8cf0;"></i>
                   <span>ระบบจะใช้ Teacher ID เป็น Username และ Password เริ่มต้นในการเข้าสู่ระบบครั้งแรก</span>
                 </div>
               </div>
@@ -608,7 +608,7 @@
             <div></div>
             <div style="display: flex; gap: 10px;">
               <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #475569;" onclick="closeInviteUserModal()">ยกเลิก</button>
-              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);">
+              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #8f8cf0; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(143, 140, 240, 0.25);">
                 <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                 <span>บันทึกผู้ใช้</span>
               </button>
@@ -627,13 +627,13 @@
         <!-- Header -->
         <div class="modal-header" style="padding: 12px 20px; border-bottom: 1px solid var(--border-color); background: #ffffff; display: flex; justify-content: space-between; align-items: center;">
           <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="width: 34px; height: 34px; border-radius: 9px; background: rgba(124, 58, 237, 0.15); color: #7c3aed; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.2);">
+            <div style="width: 34px; height: 34px; border-radius: 9px; background: rgba(143, 140, 240, 0.15); color: #8f8cf0; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(143, 140, 240, 0.2);">
               <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
             </div>
             <div>
               <div style="display: flex; align-items: center; gap: 6px;">
                 <h2 class="modal-title" style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">นำเข้าผู้ใช้งานหลายคน (Batch User Import)</h2>
-                <span style="background: #f5f3ff; color: #7c3aed; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 12px; border: 1px solid #ddd6fe;">v2.0</span>
+                <span style="background: #f1f0ff; color: #8f8cf0; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 12px; border: 1px solid #d8d6fb;">v2.0</span>
               </div>
               <p style="margin: 1px 0 0 0; font-size: 11px; color: var(--text-muted);">เลือกวิธีนำเข้าข้อมูล: อัปโหลดไฟล์ Excel / CSV, วางข้อความจากตาราง, หรือกรอกข้อมูลโดยตรง</p>
             </div>
@@ -655,11 +655,11 @@
               <span>1. อัปโหลดไฟล์ (Excel/CSV)</span>
             </button>
             <button type="button" id="btnBatchTabPaste" class="btn-batch-tab" onclick="switchBatchImportMode('paste')">
-              <i data-lucide="clipboard-paste" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <i data-lucide="clipboard-paste" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
               <span>2. วางข้อความ (Copy-Paste)</span>
             </button>
             <button type="button" id="btnBatchTabTable" class="btn-batch-tab" onclick="switchBatchImportMode('table')">
-              <i data-lucide="table" style="width: 14px; height: 14px; color: #0284c7;"></i>
+              <i data-lucide="table" style="width: 14px; height: 14px; color: #68c8e5;"></i>
               <span>3. กรอกในตารางตรงๆ</span>
             </button>
           </div>
@@ -667,7 +667,7 @@
           <!-- Template & Guidelines Actions -->
           <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
             <button type="button" class="batch-quick-btn" onclick="toggleBatchGuidelines()" style="font-size: 11px; padding: 4px 8px; background: #f1f5f9; border-color: #cbd5e1; color: #475569;">
-              <i data-lucide="help-circle" style="width: 13px; height: 13px; color: #6366f1;"></i>
+              <i data-lucide="help-circle" style="width: 13px; height: 13px; color: #8f8cf0;"></i>
               <span>คู่มือรูปแบบคอลัมน์</span>
             </button>
             <div style="height: 14px; width: 1px; background: #cbd5e1; margin: 0 1px;"></div>
@@ -677,20 +677,20 @@
               <span style="color: #15803d; font-weight: 600;">Excel (.xlsx)</span>
             </button>
             <button type="button" class="batch-quick-btn" onclick="downloadUserTemplate('csv')" title="ดาวน์โหลดไฟล์ตัวอย่าง CSV">
-              <i data-lucide="download" style="width: 12px; height: 12px; color: #0284c7;"></i>
-              <span style="color: #0369a1; font-weight: 600;">CSV (.csv)</span>
+              <i data-lucide="download" style="width: 12px; height: 12px; color: #68c8e5;"></i>
+              <span style="color: #438fa9; font-weight: 600;">CSV (.csv)</span>
             </button>
           </div>
         </div>
 
         <!-- Collapsible Column Format Guidelines -->
-        <div id="batchGuidelinesBox" style="display: none; background: #f5f3ff; border-bottom: 1px solid #ddd6fe; padding: 10px 20px; font-size: 11px; color: #4c1d95;">
+        <div id="batchGuidelinesBox" style="display: none; background: #f1f0ff; border-bottom: 1px solid #d8d6fb; padding: 10px 20px; font-size: 11px; color: #4c1d95;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
             <strong style="font-size: 12px; display: flex; align-items: center; gap: 5px;">
-              <i data-lucide="info" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <i data-lucide="info" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
               โครงสร้างหัวตารางที่รองรับ (เรียงตามลำดับ หรือมีชื่อคอลัมน์ตรงกัน):
             </strong>
-            <button type="button" onclick="toggleBatchGuidelines()" style="background: none; border: none; color: #7c3aed; font-size: 11px; cursor: pointer; text-decoration: underline;">ปิดคู่มือ</button>
+            <button type="button" onclick="toggleBatchGuidelines()" style="background: none; border: none; color: #8f8cf0; font-size: 11px; cursor: pointer; text-decoration: underline;">ปิดคู่มือ</button>
           </div>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; background: #ffffff; padding: 8px 10px; border-radius: 7px; border: 1px solid #e9d5ff;">
             <div><span style="color: #dc2626; font-weight: 700;">1. Teacher ID *</span> <br><span style="color: #64748b; font-size: 10.5px;">(เช่น 1001, T045)</span></div>
@@ -746,10 +746,10 @@
           <div id="batchModePasteSection" style="display: none; flex-direction: column; gap: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <label for="batchPasteInput" style="font-size: 11.5px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="clipboard-copy" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+                <i data-lucide="clipboard-copy" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
                 <span>วางข้อมูลที่คัดลอกจาก Excel หรือ Google Sheets:</span>
               </label>
-              <button type="button" onclick="fillBatchPasteExample()" style="background: none; border: none; color: #7c3aed; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+              <button type="button" onclick="fillBatchPasteExample()" style="background: none; border: none; color: #8f8cf0; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                 <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> ใส่ตัวอย่างทดสอบ
               </button>
             </div>
@@ -773,9 +773,9 @@
                 <i data-lucide="plus" style="width: 12px; height: 12px; color: #16a34a;"></i> +1 แถว
               </button>
               <button type="button" class="batch-quick-btn" onclick="addBatchUserRows(5)" title="เพิ่มแถวว่าง 5 แถว">
-                <i data-lucide="plus-circle" style="width: 12px; height: 12px; color: #0284c7;"></i> +5 แถว
+                <i data-lucide="plus-circle" style="width: 12px; height: 12px; color: #68c8e5;"></i> +5 แถว
               </button>
-              <button type="button" class="batch-quick-btn" onclick="fillBatchUserSampleData()" style="background: #f5f3ff; border-color: #ddd6fe; color: #6d28d9;" title="ทดลองใส่ข้อมูลจำลอง 3 คน">
+              <button type="button" class="batch-quick-btn" onclick="fillBatchUserSampleData()" style="background: #f1f0ff; border-color: #d8d6fb; color: #716de3;" title="ทดลองใส่ข้อมูลจำลอง 3 คน">
                 <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> ใส่ข้อมูลทดสอบ
               </button>
             </div>
@@ -784,7 +784,7 @@
             <div style="display: flex; align-items: center; gap: 5px; flex-wrap: wrap;">
               <span style="font-size: 11px; font-weight: 600; color: #475569; margin-right: 2px;"><i data-lucide="zap" style="width: 12px; height: 12px; color: #f59e0b; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> เครื่องมือด่วน:</span>
               <button type="button" class="batch-quick-btn" onclick="autoFillBatchEmails()" title="เติมอีเมลอัตโนมัติ (เช่น 1001@lab.school.ac.th) สำหรับแถวที่ยังไม่มีอีเมล">
-                <i data-lucide="mail" style="width: 12px; height: 12px; color: #6366f1;"></i> เติมอีเมลอัตโนมัติ
+                <i data-lucide="mail" style="width: 12px; height: 12px; color: #8f8cf0;"></i> เติมอีเมลอัตโนมัติ
               </button>
               <button type="button" class="batch-quick-btn" onclick="autoFillBatchDepartments()" title="เติมกลุ่มสาระมาตรฐานสำหรับแถวที่ยังว่างอยู่">
                 <i data-lucide="building" style="width: 12px; height: 12px; color: #059669;"></i> เติมกลุ่มสาระ
@@ -801,7 +801,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
               <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                 <span style="font-weight: 700; font-size: 12px; color: #0f172a; display: flex; align-items: center; gap: 5px;">
-                  <i data-lucide="list-checks" style="width: 15px; height: 15px; color: #7c3aed;"></i>
+                  <i data-lucide="list-checks" style="width: 15px; height: 15px; color: #8f8cf0;"></i>
                   <span>ตารางข้อมูลผู้ใช้งาน</span>
                 </span>
                 
@@ -892,7 +892,7 @@
           </button>
           
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button type="button" class="btn btn-primary" id="btnSubmitBatchUsers" onclick="submitBatchAddUsers()" style="height: 34px; border-radius: 7px; padding: 0 18px; font-size: 12px; font-weight: 600; background: #7c3aed; color: #ffffff; border: none; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(124, 58, 237, 0.25); cursor: pointer; transition: all 0.2s;" disabled>
+            <button type="button" class="btn btn-primary" id="btnSubmitBatchUsers" onclick="submitBatchAddUsers()" style="height: 34px; border-radius: 7px; padding: 0 18px; font-size: 12px; font-weight: 600; background: #8f8cf0; color: #ffffff; border: none; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 10px rgba(143, 140, 240, 0.25); cursor: pointer; transition: all 0.2s;" disabled>
               <i data-lucide="check-check" style="width: 15px; height: 15px;"></i>
               <span id="btnSubmitBatchUsersText">บันทึกและนำเข้าข้อมูล</span>
             </button>
@@ -1061,7 +1061,7 @@
             </button>
             <div style="display: flex; gap: 10px;">
               <button type="button" class="btn btn-secondary" style="height: 38px; padding: 0 16px; border: 1px solid #cbd5e1; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #475569;" onclick="closeEditUserModal()">ยกเลิก</button>
-              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #7c3aed; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);">
+              <button type="submit" class="btn btn-primary" style="height: 38px; padding: 0 18px; background: #8f8cf0; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(143, 140, 240, 0.25);">
                 <i data-lucide="check" style="width: 14px; height: 14px;"></i>
                 <span>บันทึกการแก้ไข</span>
               </button>

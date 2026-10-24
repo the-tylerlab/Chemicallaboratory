@@ -157,7 +157,7 @@ export async function openEquipmentModal(code) {
           </div>
 
           <!-- Calibration & Maintenance Tracking -->
-          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+          <div style="background: #f1f0ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
             <h4 style="margin: 0 0 10px 0; font-size: 13px; color: #1e3a8a; display: flex; align-items: center; gap: 6px;">
               <span><i data-lucide="wrench" class="inline-icon"></i> การสอบเทียบและการบำรุงรักษา (Calibration & Service)</span>
             </h4>
@@ -205,7 +205,7 @@ export async function openEquipmentModal(code) {
             <button type="button" class="btn" onclick="window.openRepairModal('${asset.code}', '${escapeHtml(asset.name)}')" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
               <i data-lucide="alert-triangle" class="inline-icon"></i> แจ้งเครื่องมือชำรุด/ส่งซ่อม
             </button>
-            <button type="button" class="btn" onclick="window.openMaintenanceModal('${asset.code}', '${escapeHtml(asset.assetId)}')" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
+            <button type="button" class="btn" onclick="window.openMaintenanceModal('${asset.code}', '${escapeHtml(asset.assetId)}')" style="background: #8f8cf0; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;">
               <i data-lucide="wrench" class="inline-icon"></i> บันทึกการบำรุงรักษา
             </button>
           </div>
@@ -321,7 +321,7 @@ export function openMaintenanceModal(itemCode, assetId) {
     <div class="modal-overlay" onclick="window.closeMaintenanceModal()"></div>
     <div class="modal-dialog" style="max-width: 520px;">
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
-        <div class="modal-header" style="background: #2563eb; color: white; padding: 18px 24px;">
+        <div class="modal-header" style="background: #716de3; color: white; padding: 18px 24px;">
           <h3 style="margin: 0; font-size: 16px; font-weight: 700;"><i data-lucide="wrench" class="inline-icon"></i> บันทึกการบำรุงรักษา / สอบเทียบ (Maintenance & Calibration)</h3>
           <button type="button" class="btn-close-modal" onclick="window.closeMaintenanceModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
@@ -363,7 +363,7 @@ export function openMaintenanceModal(itemCode, assetId) {
           </div>
           <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button type="button" onclick="window.closeMaintenanceModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer;">ยกเลิก</button>
-            <button type="submit" style="padding: 8px 18px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">บันทึกการบำรุงรักษา</button>
+            <button type="submit" style="padding: 8px 18px; background: #716de3; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">บันทึกการบำรุงรักษา</button>
           </div>
         </form>
       </div>
@@ -443,7 +443,7 @@ export async function openEquipmentQRModal(code) {
           <div style="font-size: 13px; font-weight: 600; color: #1e293b; margin-top: 4px;">${escapeHtml(data.summary.name)}</div>
           <div style="font-size: 11px; color: #64748b; margin-top: 4px;">ตำแหน่ง: ${escapeHtml(data.summary.location)}</div>
           <div style="display: flex; gap: 8px; justify-content: center; margin-top: 20px;">
-            <button type="button" onclick="window.print()" style="padding: 8px 16px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"><i data-lucide="printer" class="inline-icon"></i> สั่งพิมพ์ฉลาก</button>
+            <button type="button" onclick="window.print()" style="padding: 8px 16px; background: #716de3; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;"><i data-lucide="printer" class="inline-icon"></i> สั่งพิมพ์ฉลาก</button>
             <button type="button" onclick="window.closeEquipmentQRModal()" style="padding: 8px 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; cursor: pointer;">ปิด</button>
           </div>
         </div>
@@ -508,7 +508,7 @@ export function batchPrintQR() {
         body { font-family: 'IBM Plex Sans Thai', sans-serif; margin: 20px; color: #1e293b; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
         .label-card { border: 1px dashed #cbd5e1; padding: 12px; border-radius: 8px; text-align: center; page-break-inside: avoid; }
-        .code { font-family: monospace; font-size: 13px; font-weight: bold; margin-top: 6px; color: #4338ca; }
+        .code { font-family: monospace; font-size: 13px; font-weight: bold; margin-top: 6px; color: #716de3; }
         .name { font-size: 12px; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .loc { font-size: 10px; color: #64748b; margin-top: 2px; }
         @media print {
@@ -519,7 +519,7 @@ export function batchPrintQR() {
     </head>
     <body>
       <div class="no-print" style="margin-bottom: 20px;">
-        <button onclick="window.print()" style="padding: 8px 16px; background: #6366f1; color: white; border: none; border-radius: 6px; cursor: pointer;">พิมพ์ฉลาก</button>
+        <button onclick="window.print()" style="padding: 8px 16px; background: #8f8cf0; color: white; border: none; border-radius: 6px; cursor: pointer;">พิมพ์ฉลาก</button>
       </div>
       <div class="grid">
         ${itemsToPrint.map((it, idx) => `

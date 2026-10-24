@@ -131,18 +131,18 @@
   font-weight: 600 !important;
   border-radius: 12px !important;
   margin: 0 !important;
-  background: var(--primary-purple, #7c3aed) !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.28) !important;
-  border: 1px solid var(--primary-purple, #7c3aed) !important;
+  background: var(--primary-purple, #8f8cf0) !important;
+  box-shadow: 0 4px 14px rgba(143, 140, 240, 0.28) !important;
+  border: 1px solid var(--primary-purple, #8f8cf0) !important;
   color: #ffffff !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .swal2-popup.report-issue-swal-modal .swal2-confirm:hover {
-  background: #6d28d9 !important;
-  border-color: #6d28d9 !important;
+  background: #716de3 !important;
+  border-color: #716de3 !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.38) !important;
+  box-shadow: 0 6px 18px rgba(143, 140, 240, 0.38) !important;
 }
 
 .swal2-popup.report-issue-swal-modal .swal2-cancel {
@@ -168,13 +168,13 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: #f5f3ff;
-  border: 1px solid #ede9fe;
+  background: #f1f0ff;
+  border: 1px solid #e5e4ff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.08);
+  box-shadow: 0 2px 6px rgba(143, 140, 240, 0.08);
 }
 
 .report-issue-title-wrap {
@@ -219,9 +219,9 @@
 }
 
 .report-issue-header-close-btn:hover {
-  background: #ede9fe;
-  border-color: #ddd6fe;
-  color: #7c3aed;
+  background: #e5e4ff;
+  border-color: #d8d6fb;
+  color: #8f8cf0;
   transform: scale(1.05);
 }
 
@@ -251,8 +251,8 @@
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: #ede9fe;
-  color: #7c3aed;
+  background: #e5e4ff;
+  color: #8f8cf0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,9 +272,9 @@
 }
 
 .report-issue-user-bar-role {
-  color: #7c3aed;
-  background: #f5f3ff;
-  border: 1px solid #ddd6fe;
+  color: #8f8cf0;
+  background: #f1f0ff;
+  border: 1px solid #d8d6fb;
   font-weight: 500;
   font-size: 10.5px;
   padding: 1px 7px;
@@ -349,18 +349,18 @@
 }
 
 .issue-category-chip:hover {
-  background: #f5f3ff;
-  border-color: #c4b5fd;
-  color: #6d28d9;
+  background: #f1f0ff;
+  border-color: #c2c0f7;
+  color: #716de3;
   transform: translateY(-1px);
 }
 
 .issue-category-chip.active {
-  background: var(--primary-purple, #7c3aed) !important;
-  border-color: var(--primary-purple, #7c3aed) !important;
+  background: var(--primary-purple, #8f8cf0) !important;
+  border-color: var(--primary-purple, #8f8cf0) !important;
   color: #ffffff !important;
   font-weight: 600 !important;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25) !important;
+  box-shadow: 0 2px 8px rgba(143, 140, 240, 0.25) !important;
 }
 
 /* Grid 2-Column for Location & Urgency */
@@ -395,7 +395,7 @@
 .report-issue-field-label .field-icon {
   width: 13px;
   height: 13px;
-  color: #7c3aed;
+  color: #8f8cf0;
 }
 
 .report-issue-hint {
@@ -453,8 +453,8 @@
 .report-issue-select:focus,
 .report-issue-textarea:focus {
   background-color: #ffffff !important;
-  border-color: var(--primary-purple, #7c3aed) !important;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+  border-color: var(--primary-purple, #8f8cf0) !important;
+  box-shadow: 0 0 0 3px rgba(143, 140, 240, 0.12) !important;
 }
 
 /* Interactive Urgency 3-Pill Segmented Control */

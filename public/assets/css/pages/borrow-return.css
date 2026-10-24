@@ -76,8 +76,8 @@ select.booking-filter-select:hover {
 
 select.booking-action-select:focus,
 select.booking-filter-select:focus {
-  border-color: var(--primary-purple, #7c3aed) !important;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+  border-color: var(--primary-purple, #8f8cf0) !important;
+  box-shadow: 0 0 0 3px rgba(143, 140, 240, 0.12) !important;
 }
 
 /* Zero-Scroll Booking and Borrow-Return Table Styling */
