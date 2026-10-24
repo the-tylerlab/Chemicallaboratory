@@ -1,0 +1,1903 @@
+/* ==========================================================================
+   LAB DIAGRAM PLANNER SECTION (PLAN LAB)
+   ========================================================================== */
+.lab-planner-wrapper {
+  gap: 16px;
+  align-items: stretch;
+}
+
+.lab-library-panel,
+.lab-canvas-panel,
+.lab-properties-panel {
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  background-color: white;
+}
+
+.btn-apparatus-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+  min-height: 80px;
+}
+
+.btn-apparatus-item:hover {
+  border-color: var(--primary-purple);
+  background-color: rgba(63, 27, 133, 0.03);
+  transform: translateY(-1px);
+}
+
+.btn-apparatus-item svg {
+  transition: transform 0.2s ease;
+}
+
+.btn-apparatus-item:hover svg {
+  transform: scale(1.05);
+}
+
+.btn-apparatus-item span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Apparatus dragging & selection inside SVG */
+.apparatus {
+  cursor: grab;
+}
+
+.apparatus:active {
+  cursor: grabbing;
+}
+
+.apparatus.selected path.outline,
+.apparatus.selected rect,
+.apparatus.selected circle,
+.apparatus.selected line {
+  stroke: var(--primary-purple) !important;
+  stroke-width: 3.5px !important;
+  filter: drop-shadow(0 0 3px rgba(63, 27, 133, 0.4));
+}
+
+.apparatus.selected text.scale-reading {
+  fill: #10b981 !important; /* Keep digital display green */
+}
+
+/* Properties controls */
+.prop-group {
+  margin-bottom: 14px;
+}
+
+.prop-group label {
+  color: var(--text-muted);
+}
+
+.color-preset-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px var(--border-color);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.color-preset-btn:hover {
+  transform: scale(1.15);
+}
+
+.color-preset-btn.active {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 2px var(--primary-purple);
+}
+
+.library-categories-scroll::-webkit-scrollbar,
+#propertiesControls::-webkit-scrollbar {
+  width: 4px;
+}
+
+.library-categories-scroll::-webkit-scrollbar-thumb,
+#propertiesControls::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 2px;
+}
+
+/* Responsive adjustment for lab diagram wrapper */
+@media (max-width: 1024px) {
+  .lab-planner-wrapper {
+    flex-direction: column;
+    height: auto !important;
+  }
+  
+  .lab-library-panel,
+  .lab-properties-panel {
+    width: 100% !important;
+    height: 300px !important;
+  }
+  
+  .lab-canvas-panel {
+    height: 500px !important;
+  }
+}
+
+/* Chatbot interactive choices styling */
+.chat-choices-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  width: 100%;
+}
+
+.chat-choice-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid var(--primary-purple);
+  color: var(--primary-purple);
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.chat-choice-btn:hover {
+  background: var(--primary-purple);
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+#compatibilityRecBadge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  filter: brightness(0.95);
+}
+
+
+/* ==========================================================================
+   CABINET MAP VIEW (SHECU)
+   ========================================== */
+.cabinet-map-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--bg-surface);
+  padding: 16px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.cabinet-map-filter-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.cabinet-map-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.legend-dot.hazard { background-color: var(--accent-red); }
+.legend-dot.safe { background-color: var(--accent-green); border: 1px solid rgba(16,185,129,0.2); background-color: transparent; }
+.legend-dot.safe { border-color: var(--accent-green); background-color: white; } /* Outline box for safe in image */
+
+/* Floor Plan Layout (Absolute Positioning for Drag & Drop) */
+.lab-floor-plan {
+  display: block;
+  background-color: #f8fafc;
+  border: 4px solid var(--border-color);
+  border-radius: 16px;
+  position: relative;
+  min-height: 600px;
+  overflow: hidden;
+}
+
+/* Floor Plan Elements */
+.layout-element {
+  position: absolute;
+  transition: box-shadow 0.2s, outline 0.2s;
+}
+
+.draggable {
+  cursor: grab;
+}
+
+.draggable:active {
+  cursor: grabbing;
+}
+
+.layout-edit-mode .layout-element:hover {
+  outline: 2px dashed var(--primary-purple);
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+}
+
+.layout-edit-mode .layout-element.dragging {
+  opacity: 0.8;
+  z-index: 1000;
+  outline: 2px solid var(--primary-purple);
+}
+
+.lab-door {
+  position: relative;
+  width: 100px;
+  height: 8px;
+  background-color: #f8fafc;
+  border-left: 4px solid var(--border-color);
+  border-right: 4px solid var(--border-color);
+  z-index: 2;
+  margin: 10px;
+}
+.lab-door::after {
+  content: "ประตู";
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.lab-whiteboard {
+  position: relative;
+  width: 200px;
+  height: 8px;
+  background-color: #cbd5e1;
+  border-radius: 4px;
+  margin: 10px;
+}
+.lab-whiteboard::after {
+  content: "กระดานหน้าห้อง";
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.lab-table {
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--text-dark);
+  box-shadow: var(--shadow-sm);
+  padding: 10px;
+  text-align: center;
+}
+
+.delete-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  background: var(--accent-red);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.rotate-btn {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 24px;
+  height: 24px;
+  background: var(--primary-purple);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.scale-up-btn {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 24px;
+  height: 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.scale-down-btn {
+  position: absolute;
+  bottom: -10px;
+  left: -10px;
+  width: 24px;
+  height: 24px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.layout-edit-mode .layout-element:hover .delete-btn,
+.layout-edit-mode .layout-element:hover .rotate-btn,
+.layout-edit-mode .layout-element:hover .scale-up-btn,
+.layout-edit-mode .layout-element:hover .scale-down-btn {
+  display: flex;
+}
+
+@media (max-width: 1024px) {
+  .lab-floor-plan {
+    display: flex !important;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 !important;
+    margin: 0;
+    background-color: transparent;
+    border: none;
+    min-height: auto;
+    min-width: 100%;
+    overflow: visible;
+  }
+  
+  .lab-floor-plan .layout-element {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    margin-bottom: 12px;
+  }
+  
+  .pos-table { margin-top: 0; }
+  .lab-door, .lab-whiteboard, .layout-element[data-type="door"], .layout-element[data-type="whiteboard"], .layout-element[data-type="table"] { 
+    display: none !important; 
+  }
+}
+
+
+/* Legacy cabinet-grid & shelf-row moved to SHECU STORAGE CABINET CARD section */
+
+
+/* Dynamic Column Toggle */
+body.hide-col-qty .col-qty { display: none !important; }
+body.hide-col-expiry .col-expiry { display: none !important; }
+body.hide-col-room .col-room { display: none !important; }
+body.hide-col-status .col-status { display: none !important; }
+body.hide-col-cas .col-cas { display: none !important; }
+
+/* Table Row Dropdown Menu */
+.dropdown-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 5px 6px;
+}
+
+.dropdown-action-btn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.dropdown-action-btn svg,
+.dropdown-action-btn i {
+  width: 15px;
+  height: 15px;
+  color: #64748b;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.dropdown-action-btn:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.dropdown-action-btn:hover svg,
+.dropdown-action-btn:hover i {
+  color: #0284c7;
+}
+
+.dropdown-action-btn.danger {
+  color: #ef4444;
+}
+
+.dropdown-action-btn.danger svg,
+.dropdown-action-btn.danger i {
+  color: #ef4444;
+}
+
+.dropdown-action-btn.danger:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.dropdown-action-btn.danger:hover svg,
+.dropdown-action-btn.danger:hover i {
+  color: #dc2626;
+}
+
+/* Wizard Form */
+.form-wizard-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+  padding: 0 16px;
+}
+
+.wizard-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  z-index: 2;
+}
+
+.step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--bg-hover);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.wizard-step.active .step-circle {
+  background-color: var(--primary-purple);
+  color: white;
+  border-color: var(--primary-purple);
+}
+
+.wizard-step.completed .step-circle {
+  background-color: var(--accent-green);
+  color: white;
+  border-color: var(--accent-green);
+}
+
+.step-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.wizard-step.active .step-label {
+  color: var(--primary-purple);
+  font-weight: 600;
+}
+
+.wizard-step.completed .step-label {
+  color: var(--accent-green);
+}
+
+.wizard-line {
+  flex: 1;
+  height: 2px;
+  background-color: var(--border-color);
+  margin: 0 16px;
+  margin-bottom: 20px; /* Align with circle center */
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.wizard-line.completed {
+  background-color: var(--accent-green);
+}
+
+/* Map Editor Actions Layout */
+.layout-edit-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.layout-edit-actions .add-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.layout-edit-actions .save-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 640px) {
+  .layout-edit-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .layout-edit-actions .save-actions {
+    justify-content: flex-end;
+    margin-top: 8px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .btn, input[type='text'], input[type='number'], input[type='date'], select {
+    min-height: 44px;
+  }
+}
+
+
+/* Sticky Header for Data Tables */
+.table-container {
+  overflow-y: auto;
+  overflow-x: auto;
+  max-height: calc(100vh - 240px);
+  max-height: calc(100dvh - 240px);
+}
+.table-container table thead,
+.table-container table th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: #f8fafc;
+}
+
+/* Right-align numbers */
+.text-right {
+  text-align: end !important;
+}
+.text-left {
+  text-align: start !important;
+}
+.col-qty, .col-price, .col-discount {
+  text-align: right !important;
+}
+
+/* Touch-Friendly Targets on Mobile */
+@media (max-width: 768px) {
+  button.action-icon-btn,
+  button.dropdown-action-btn,
+  button.btn {
+    min-height: 44px;
+  }
+}
+
+/* Visual Time Slot Calendar highlighting */
+.booking-slot-card {
+  transition: all 0.2s ease-in-out;
+  border: 2px solid transparent;
+}
+.booking-slot-card.vacant {
+  background-color: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.booking-slot-card.vacant:hover {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+.booking-slot-card.booked {
+  background-color: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+  opacity: 0.7;
+}
+.booking-slot-card.pending-booked {
+  background-color: rgba(245, 158, 11, 0.05);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+.booking-slot-card.selected {
+  background-color: rgba(139, 92, 246, 0.1);
+  border-color: var(--primary-purple);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.booking-slot-status.vacant {
+  color: var(--accent-green);
+  font-weight: 600;
+}
+.booking-slot-status.booked {
+  color: var(--accent-red);
+  font-weight: 600;
+}
+.booking-slot-status.pending-booked {
+  color: var(--accent-orange);
+  font-weight: 600;
+}
+.booking-slot-status.selected {
+  color: var(--primary-purple);
+  font-weight: 700;
+}
+
+/* ==========================================
+   CABINET & STORAGE GRID (DIRECTORY)
+   ========================================== */
+.cabinet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .cabinet-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .cabinet-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   SHECU STORAGE CABINET CARD (Clean & Friendly Redesign)
+   ========================================================================== */
+.cabinet-card {
+  --cabinet-radius: 22px;
+  --cabinet-sheet-radius: 18px;
+  
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border-radius: var(--cabinet-radius);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  background: rgba(6, 95, 70, 0.88);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  color: #ffffff;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 16px 36px -8px rgba(4, 120, 87, 0.28);
+  overflow: hidden;
+  min-width: 0;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cabinet-card::before {
+  display: none;
+}
+
+.cabinet-card:hover {
+  transform: translateY(-3px);
+  box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.35), 0 22px 42px -10px rgba(15, 23, 42, 0.38), 0 8px 18px rgba(15, 23, 42, 0.1);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.cabinet-card.emergency-type {
+  background: rgba(234, 88, 12, 0.82);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #431407;
+}
+
+.cabinet-card.has-incompatible {
+  background: rgba(153, 27, 27, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+}
+
+.cabinet-card.is-hidden-cabinet {
+  border-style: dashed !important;
+  border-color: #94a3b8 !important;
+  opacity: 0.75 !important;
+}
+
+/* Header */
+.cabinet-card .cabinet-header {
+  padding: 14px 16px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.cabinet-card.emergency-type .cabinet-header {
+  background: #fffdf5;
+}
+
+.cabinet-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.cabinet-title-lockup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cabinet-avatar-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.cabinet-card:hover .cabinet-avatar-icon {
+  transform: scale(1.05);
+}
+
+.cabinet-avatar-icon.chemical {
+  background: #f3e8ff;
+  border: 1px solid #ddd6fe;
+  color: #7c3aed;
+}
+
+.cabinet-avatar-icon.glassware {
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  color: #0284c7;
+}
+
+.cabinet-avatar-icon.emergency {
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  color: #d97706;
+}
+
+.cabinet-avatar-icon svg,
+.cabinet-avatar-icon i {
+  width: 20px;
+  height: 20px;
+}
+
+.cabinet-text-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cabinet-title-text {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cabinet-subtitle-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Status Chips */
+.shecu-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.shecu-status-chip.safe {
+  background: rgba(209, 250, 229, 0.95) !important;
+  border: 1px solid #6ee7b7 !important;
+  color: #047857 !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15) !important;
+}
+
+.shecu-status-chip.warning {
+  background: rgba(254, 226, 226, 0.95) !important;
+  border: 1px solid #fca5a5 !important;
+  color: #b91c1c !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15) !important;
+}
+
+.shecu-status-chip.emergency {
+  background: rgba(254, 243, 199, 0.95) !important;
+  border: 1px solid #fde68a !important;
+  color: #92400e !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15) !important;
+}
+
+.shecu-status-chip.hidden {
+  background: rgba(241, 245, 249, 0.95) !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+.status-dot-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-pulse.safe {
+  background-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+}
+
+.status-dot-pulse.warning {
+  background-color: #f43f5e;
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.35);
+  animation: pulseDot 1.8s infinite ease-in-out;
+}
+
+.status-dot-pulse.emergency {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+}
+
+@keyframes pulseDot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.5); }
+  70% { transform: scale(1.05); box-shadow: 0 0 0 5px rgba(244, 63, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+}
+
+/* Incompatible Callout Banner */
+.cabinet-warning-banner {
+  margin-top: 10px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 10px;
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cabinet-warning-banner:hover {
+  background: #ffe4e6;
+  border-color: #fda4af;
+  transform: translateY(-1px);
+}
+
+.warning-banner-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(225, 29, 72, 0.1);
+  color: #e11d48;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.warning-banner-icon svg,
+.warning-banner-icon i {
+  width: 15px;
+  height: 15px;
+}
+
+.warning-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.warning-banner-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9f1239;
+  line-height: 1.2;
+}
+
+.warning-banner-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: #be123c;
+  line-height: 1.2;
+}
+
+.warning-banner-chevron {
+  width: 14px;
+  height: 14px;
+  color: #fb7185;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.cabinet-warning-banner:hover .warning-banner-chevron {
+  transform: translateX(3px);
+}
+
+/* Physical Shelves Section (ตู้เก็บสารเคมีและชั้นวาง) */
+.cabinet-shelves {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  background: #f8fafc;
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.03);
+}
+
+.cabinet-shelf-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-bottom: 2px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.cabinet-shelf-item:hover {
+  background-color: #ffffff;
+  border-color: #a5b4fc;
+  border-bottom-color: #6366f1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.08);
+}
+
+.shelf-label-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shelf-num-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.cabinet-shelf-item:hover .shelf-num-dot {
+  background-color: #ede9fe;
+  border-color: #c4b5fd;
+  color: #6d28d9;
+}
+
+.shelf-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.shelf-action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shelf-count-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.shelf-count-tag.empty {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #94a3b8;
+}
+
+.shelf-count-tag.has-items {
+  background-color: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  color: #6d28d9;
+  font-weight: 600;
+}
+
+.shelf-chevron-icon {
+  width: 14px;
+  height: 14px;
+  color: #94a3b8;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.cabinet-shelf-item:hover .shelf-chevron-icon {
+  transform: translateX(3px);
+  color: var(--primary-purple);
+}
+
+/* Card Footer */
+.cabinet-footer {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border-color);
+  background-color: #fafbfc;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cabinet-footer-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-chips-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.footer-chip.chem {
+  background-color: #f0f9ff;
+  color: #0369a1;
+  border: 1px solid #e0f2fe;
+}
+
+.footer-chip.equip {
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.footer-total-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.footer-total-label strong {
+  color: #1e293b;
+}
+
+.cabinet-capacity-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.capacity-text-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.capacity-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-cabinet-mini-action {
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.btn-cabinet-mini-action.edit {
+  color: var(--primary-color);
+}
+
+.btn-cabinet-mini-action.edit:hover {
+  background-color: rgba(99, 102, 241, 0.1);
+}
+
+.btn-cabinet-mini-action.toggle {
+  color: #64748b;
+}
+
+.btn-cabinet-mini-action.toggle:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-cabinet-mini-action.toggle.unhide {
+  color: #059669;
+}
+
+.btn-cabinet-mini-action.toggle.unhide:hover {
+  background-color: #ecfdf5;
+}
+
+.capacity-bar-track {
+  width: 100%;
+  background-color: #e2e8f0;
+  border-radius: 999px;
+  height: 5px;
+  overflow: hidden;
+}
+
+.capacity-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.capacity-bar-fill.normal {
+  background: #10b981;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.25);
+}
+
+.capacity-bar-fill.warning {
+  background: #fbbf24;
+}
+
+.capacity-bar-fill.danger {
+  background: #f87171;
+}
+
+/* SHECU Directory Toolbar & Controls */
+.directory-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  background: #ffffff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-sizing: border-box;
+}
+
+.directory-toolbar-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.directory-toolbar .search-box {
+  position: relative;
+  width: 260px;
+  min-width: 200px;
+  flex-shrink: 0;
+}
+
+.shecu-room-tabs-container {
+  margin-top: 12px;
+}
+
+.shecu-room-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px !important;
+  border-radius: 999px !important;
+  font-size: 12.5px !important;
+  font-family: inherit;
+}
+
+.shecu-unified-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 14px;
+}
+
+.cabinet-layout-wrapper {
+  margin-top: 14px;
+}
+
+/* Workstations */
+.station-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.station-card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+  flex: 1;
+}
+
+.station-card i {
+  width: 24px;
+  height: 24px;
+  color: #64748b;
+  padding: 10px;
+  background-color: #f1f5f9;
+  border-radius: 8px;
+}
+
+.station-info h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.station-info p {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.station-special i {
+  color: #0284c7;
+  background-color: #e0f2fe;
+}
+
+/* Responsive refinements for mobile & iPad */
+@media (max-width: 768px) {
+  .cabinet-grid {
+    gap: 16px;
+  }
+  .station-card {
+    min-width: 100%;
+    flex: none;
+  }
+  .cabinet-header {
+    padding: 12px;
+  }
+  .cabinet-shelf-item {
+    padding: 10px 12px;
+  }
+  .cabinet-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .station-card {
+    min-width: calc(50% - 8px);
+  }
+}
+
+/* SHECU Mobile Responsiveness (375px/SE) */
+@media (max-width: 640px) {
+  .shecu-subtitle {
+    display: none !important;
+  }
+  .directory-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+  .directory-toolbar > div:first-child {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .directory-toolbar .shecu-badge {
+    width: 100%;
+    text-align: center;
+    display: block;
+    padding: 6px 12px !important;
+    margin-bottom: 0px;
+  }
+  .category-pills {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+  .category-pills::-webkit-scrollbar {
+    display: none;
+  }
+  .search-box {
+    width: 100% !important;
+  }
+  .shecu-unified-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .cabinet-card {
+    height: auto !important;
+  }
+  #panel-cabinet-layout {
+    padding-bottom: 112px !important; /* pb-28 equivalent */
+  }
+}
+
+/* Header Inline Back Button Refinement */
+.header-back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.header-back-btn svg {
+  stroke-width: 2.5px;
+}
+.header-back-btn:hover {
+  background: #f8fafc;
+  color: #000000;
+  border-color: #cbd5e1;
+}
+.header-back-btn:active {
+  transform: scale(0.96);
+}
+@media (max-width: 640px) {
+  .header-back-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Unified Page Header Styles */
+.unified-page-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.unified-page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+.unified-page-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.header-title-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+.header-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+.header-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0;
+}
+@media (min-width: 640px) {
+  .header-title {
+    font-size: 24px;
+  }
+}
+@media (max-width: 1024px) {
+  .unified-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .unified-page-header-left {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+  }
+  .header-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: 22px;
+    line-height: 1.3;
+  }
+  .header-subtitle {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .unified-page-header-right {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 640px) {
+  .header-subtitle {
+    display: none;
+  }
+  .unified-page-header-right {
+    justify-content: flex-start;
+    gap: 10px;
+  }
+}
+
+/* Mobile optimizations for Alert Tabs to keep text on one line */
+.alert-tab-btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .alert-tab-btn {
+    font-size: 13px !important;
+    padding: 8px 6px !important;
+    gap: 6px !important;
+  }
+  .alert-tab-btn i {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+/* Colors for Feedback Section */
+.alert-section.feedback {
+  border-color: rgba(147, 51, 234, 0.25);
+}
+.alert-section.feedback .alert-section-header {
+  background-color: #f3e8ff; /* purple-100 */
+  color: #581c87; /* purple-900 */
+}
+.alert-section.feedback .alert-count-badge {
+  background-color: #7e22ce; /* purple-700 */
+  color: #ffffff;
+}
+.alert-section.feedback .notification-alert-banner {
+  background-color: #faf5ff; /* purple-50 */
+  border: 1px solid rgba(147, 51, 234, 0.25);
+  color: #6b21a8; /* purple-800 */
+}
+
+/* Resolved Alerts / Issues Section Styling */
+.alert-section.resolved {
+  border-color: rgba(16, 185, 129, 0.25);
+}
+.alert-section.resolved .alert-section-header {
+  background-color: #ecfdf5; /* emerald-50 */
+  color: #065f46; /* emerald-900 */
+}
+.alert-section.resolved .alert-count-badge {
+  background-color: #10b981; /* emerald-500 */
+  color: #ffffff;
+}
+.alert-section.resolved .notification-alert-banner,
+.notification-alert-banner.resolved {
+  background-color: #f0fdf4; /* emerald-50 */
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #166534; /* emerald-800 */
+}
+
+/* SweetAlert2 Popup Refinement */
+.swal2-popup {
+  border-radius: 24px !important;
+  padding: 24px 20px !important;
+  font-family: var(--font-sans, 'IBM Plex Sans Thai', sans-serif) !important;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15) !important;
+}
+
+.swal2-title {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin-bottom: 16px !important;
+}
+
+.swal2-html-container {
+  margin: 0 !important;
+}
+
+.swal2-input,
+.swal2-select {
+  border-radius: 12px !important;
+  border: 1.5px solid #cbd5e1 !important;
+  font-size: 14.5px !important;
+  padding: 10px 14px !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+  outline: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.swal2-input:focus,
+.swal2-select:focus {
+  border-color: var(--primary-purple, #7c3aed) !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+  outline: none !important;
+}
+
+.swal2-actions {
+  gap: 10px !important;
+  margin-top: 20px !important;
+  width: 100% !important;
+}
+
+.swal2-styled.swal2-confirm {
+  border-radius: 12px !important;
+  padding: 11px 22px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background-color: var(--primary-purple, #7c3aed) !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;
+}
+
+.swal2-styled.swal2-cancel {
+  border-radius: 12px !important;
+  padding: 11px 22px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background-color: #64748b !important;
+}
+
+.swal2-radio {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  margin: 16px 0 !important;
+}
+
+.swal2-radio label {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 16px !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background-color: #f8fafc !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal2-radio label:hover {
+  border-color: #c4b5fd !important;
+  background-color: #faf5ff !important;
+}
+
+/* Status Option Interactive Cards */
+.status-option-card {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.status-option-card:hover {
+  border-color: #cbd5e1 !important;
+  transform: translateY(-1px);
+}
+
+.status-option-card.selected {
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.08);
+}
+
+/* Prevent iOS Safari / Mobile browsers from turning phone numbers blue */
+a[href^="tel"],
+a[href^="tel"]:hover,
+a[href^="tel"]:active,
+a[href^="tel"]:visited {
+  color: inherit !important;
+  text-decoration: none !important;
+  font-weight: inherit !important;
+}
+
+/* Help Modal Accordion / Dropdown Styling (SHECU Standards) */
+.help-accordion-item {
+  border: 1px solid #d9dee8;
+  border-radius: 10px;
+  margin-bottom: 9px;
+  background: #ffffff;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.help-accordion-item:last-child {
+  margin-bottom: 0;
+}
+
+.help-accordion-item:hover {
+  border-color: #cbd5e1;
+}
+
+.help-accordion-item[open] {
+  border-color: #d9dee8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.help-accordion-header {
+  min-height: 44px;
+  padding: 10px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #1f2937;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  list-style: none;
+  user-select: none;
+  background: #f8fafc;
+  border-radius: 9px;
+  transition: background-color 0.15s ease;
+}
+
+.help-accordion-header::-webkit-details-marker {
+  display: none;
+}
+
+.help-accordion-header:hover {
+  background: #f1f5f9;
+}
+
+.help-accordion-header:focus-visible {
+  outline: 2px solid #4f21a1;
+  outline-offset: -2px;
+}
+
+.help-accordion-item[open] .help-accordion-header {
+  background: #f8fafc;
+  border-bottom: 1px solid #d9dee8;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.help-accordion-chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.help-accordion-item[open] .help-accordion-chevron {
+  transform: rotate(180deg);
+  color: #4f21a1;
+}
+
+.help-accordion-body {
+  padding: 12px 14px;
+  background: #ffffff;
+  font-size: 12.5px;
+  color: #374151;
+  line-height: 1.6;
+}
+
+/* SHECU Standardized Badges */
+.shecu-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2.5px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.shecu-badge-primary {
+  background: #ede7ff;
+  color: #4f21a1;
+  border: 1px solid #ddd6fe;
+}
+
+.shecu-badge-info {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.shecu-badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.shecu-badge-danger {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.shecu-badge-success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* SDS 16-Section Grid Layout */
+.sds-16-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .sds-16-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sds-16-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #334155;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.sds-16-num {
+  font-weight: 700;
+  color: #4f21a1;
+  background: #ede7ff;
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.help-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.help-modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.help-modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.help-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.help-modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.help-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

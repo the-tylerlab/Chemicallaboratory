@@ -1,0 +1,160 @@
+/* ==========================================================================
+   BORROW / RETURN LAYOUT
+   ========================================================================== */
+.borrow-grid,
+.booking-grid-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.badge-borrowed {
+  background-color: var(--accent-orange-light);
+  color: var(--accent-orange);
+  border: 1px solid rgba(249, 115, 22, 0.15);
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  display: inline-block;
+}
+
+.badge-returned {
+  background-color: var(--accent-green-light);
+  color: var(--accent-green);
+  border: 1px solid rgba(10, 185, 129, 0.15);
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  display: inline-block;
+}
+
+/* Borrow / Return Action Toolbar & Controls (Unified with Lab Booking System) */
+.borrow-action-toolbar {
+  display: flex !important;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.borrow-filter-container {
+  display: flex;
+  align-items: center;
+}
+
+select.booking-action-select,
+select.booking-filter-select {
+  flex: 1.2;
+  height: 42px !important;
+  min-height: 42px !important;
+  max-height: 42px !important;
+  border-radius: var(--border-radius-lg, 12px) !important;
+  background: #ffffff !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #334155 !important;
+  padding: 0 32px 0 34px !important;
+  box-sizing: border-box !important;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+select.booking-action-select:hover,
+select.booking-filter-select:hover {
+  background-color: var(--bg-main) !important;
+  border-color: #cbd5e1 !important;
+}
+
+select.booking-action-select:focus,
+select.booking-filter-select:focus {
+  border-color: var(--primary-purple, #7c3aed) !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+}
+
+/* Zero-Scroll Booking and Borrow-Return Table Styling */
+.booking-table-container,
+#panel-borrow-return .booking-table-container,
+#panel-lab-booking .booking-table-container {
+  border-radius: var(--border-radius-xl, 16px) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  background: #ffffff !important;
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.booking-table-container table,
+#panel-borrow-return .booking-table-container table,
+#panel-lab-booking .booking-table-container table {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  table-layout: fixed !important;
+}
+
+.booking-table-container thead th,
+#panel-borrow-return .booking-table-container thead th,
+#panel-lab-booking .booking-table-container thead th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  white-space: nowrap !important;
+  box-sizing: border-box !important;
+}
+
+.booking-table-container tbody td,
+#panel-borrow-return .booking-table-container tbody td,
+#panel-lab-booking .booking-table-container tbody td {
+  padding: 12px 14px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 13px !important;
+  vertical-align: top !important;
+  box-sizing: border-box !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+.booking-table-container tbody tr:hover td,
+#panel-borrow-return .booking-table-container tbody tr:hover td,
+#panel-lab-booking .booking-table-container tbody tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+.booking-table-container tbody tr:last-child td,
+#panel-borrow-return .booking-table-container tbody tr:last-child td,
+#panel-lab-booking .booking-table-container tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* Desktop / Mobile layout utilities */
+.title-mobile,
+.btn-text-mobile,
+.btn-text-tablet {
+  display: none;
+}
+.title-desktop,
+.btn-text-desktop {
+  display: inline;
+}
+
+#borrowerName[readonly] {
+  background: #f8fafc;
+  color: var(--text-main, #17243b);
+  cursor: default;
+}

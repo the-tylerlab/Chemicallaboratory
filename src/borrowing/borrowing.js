@@ -155,7 +155,7 @@ export function openReturnModal(txId) {
     <div class="modal-overlay" onclick="window.closeReturnModal()"></div>
     <div class="modal-dialog" style="max-width: 520px;">
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
-        <div class="modal-header" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 18px 24px;">
+        <div class="modal-header" style="background: #059669; color: white; padding: 18px 24px;">
           <h3 style="margin: 0; font-size: 16px; font-weight: 700;"><i data-lucide="package-check" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 6px;"></i>ตรวจรับคืนพัสดุ / สารเคมี (Return Inspection)</h3>
           <button type="button" class="btn-close-modal" onclick="window.closeReturnModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>

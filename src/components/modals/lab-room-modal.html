@@ -1,0 +1,208 @@
+       MODAL: ADD / EDIT LAB ROOM (Authentic NYC Metro Subway Signboard)
+       ========================================== -->
+  <div class="modal-overlay" id="labRoomModal" style="display: none; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(10, 15, 26, 0.72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; padding: 16px;">
+    <div class="modal-content nyc-metro-modal nyc-metro-signboard-modal" id="labRoomModalContent">
+      <!-- 4 Corner Industrial Mounting Screws -->
+      <div class="nyc-screw top-left"></div>
+      <div class="nyc-screw top-right"></div>
+      <div class="nyc-screw bottom-left"></div>
+      <div class="nyc-screw bottom-right"></div>
+
+      <!-- Subway Route Color Top Stripe -->
+      <div class="nyc-metro-modal-stripe" id="labRoomModalStripe"></div>
+
+      <!-- Enamel Black Subway Station Signage Header -->
+      <div class="nyc-metro-modal-header">
+        <div class="nyc-metro-modal-header-left">
+          <div class="nyc-metro-modal-bullet" id="labModalHeaderBullet" title="MTA Subway Route Bullet">
+            <span id="labModalHeaderBulletText">1</span>
+          </div>
+          <div class="nyc-metro-modal-title-wrap">
+            <div class="nyc-metro-modal-eyebrow">
+              <span class="mta-bullet-badge">MTA</span>
+              <span class="mta-system-sub">NEW YORK CITY TRANSIT • DIVISION CHEMICAL LABS</span>
+            </div>
+            <h3 id="labRoomModalTitle" class="nyc-metro-modal-title">แก้ไขห้องปฏิบัติการ</h3>
+          </div>
+        </div>
+        <button type="button" onclick="closeLabRoomModal()" class="nyc-metro-modal-close" aria-label="ปิด (Close)" title="EXIT / ปิดหน้าต่าง">
+          <i data-lucide="x" style="width: 17px; height: 17px;"></i>
+        </button>
+      </div>
+
+      <!-- Wayfinding Track Sub-Bar -->
+      <div class="nyc-metro-subbar">
+        <div class="nyc-metro-subbar-item">
+          <span class="nyc-metro-subbar-dot"></span>
+          <span>UPTOWN / DOWNTOWN PLATFORMS</span>
+        </div>
+        <div class="nyc-metro-subbar-item">
+          <span>TRANSFER: SHECU CONCOURSE</span>
+        </div>
+        <div class="nyc-metro-subbar-item code-indicator" id="modalSubbarRoomCode">
+          LINE 1 • LAB 1
+        </div>
+      </div>
+
+      <form id="labRoomForm" onsubmit="handleSaveLabRoom(event)" class="nyc-metro-modal-body">
+        <input type="hidden" id="labRoomOldId" value="">
+
+        <!-- Two-column Grid for Room ID & Building -->
+        <div class="nyc-metro-form-grid">
+          <!-- Room ID -->
+          <div class="nyc-metro-field">
+            <label class="nyc-metro-label" for="labRoomIdInput">
+              <span class="nyc-metro-label-num">01</span>
+              <span>รหัสห้อง (STATION / LINE CODE)</span>
+              <span class="nyc-metro-required">*</span>
+            </label>
+            <div class="nyc-metro-input-wrap">
+              <div class="nyc-metro-input-icon">
+                <i data-lucide="hash" style="width: 15px; height: 15px;"></i>
+              </div>
+              <input type="text" id="labRoomIdInput" required class="nyc-metro-input" placeholder="เช่น Lab 1, Lab 9, STEM" oninput="updateLabRoomLivePreview()">
+            </div>
+            <span class="nyc-metro-hint">รหัสย่อสำหรับใช้เป็นตัวอ้างอิงบนตู้จัดเก็บ SHECU และรายการพัสดุ</span>
+          </div>
+
+          <!-- Building Location -->
+          <div class="nyc-metro-field">
+            <label class="nyc-metro-label" for="labRoomBuildingInput">
+              <span class="nyc-metro-label-num">02</span>
+              <span>อาคาร / สถานที่ตั้ง (CONCOURSE)</span>
+            </label>
+            <div class="nyc-metro-input-wrap">
+              <div class="nyc-metro-input-icon">
+                <i data-lucide="map-pin" style="width: 15px; height: 15px;"></i>
+              </div>
+              <input type="text" id="labRoomBuildingInput" class="nyc-metro-input" placeholder="เช่น อาคารอัสสัมชัญ ชั้น 3" oninput="updateLabRoomLivePreview()">
+            </div>
+            <span class="nyc-metro-hint">สถานที่ตั้งทางกายภาพของห้องปฏิบัติการ</span>
+          </div>
+        </div>
+
+        <!-- Room Full Name -->
+        <div class="nyc-metro-field">
+          <label class="nyc-metro-label" for="labRoomNameInput">
+            <span class="nyc-metro-label-num">03</span>
+            <span>ชื่อห้องปฏิบัติการ (STATION NAME)</span>
+            <span class="nyc-metro-required">*</span>
+          </label>
+          <div class="nyc-metro-input-wrap">
+            <div class="nyc-metro-input-icon">
+              <i data-lucide="flask-conical" style="width: 15px; height: 15px;"></i>
+            </div>
+            <input type="text" id="labRoomNameInput" required class="nyc-metro-input" placeholder="เช่น ห้องปฏิบัติการเคมี, ห้องปฏิบัติการวิเคราะห์" oninput="updateLabRoomLivePreview()">
+          </div>
+        </div>
+
+        <!-- Route Line Theme Color -->
+        <div class="nyc-metro-field">
+          <div class="nyc-metro-label-row">
+            <label class="nyc-metro-label" style="margin-bottom: 0;">
+              <span class="nyc-metro-label-num">04</span>
+              <span>สีประจำสายทาง (MTA ROUTE LINE COLOR)</span>
+            </label>
+            <span class="nyc-metro-sublabel-tag">MTA COLOR SYSTEM</span>
+          </div>
+          
+          <!-- Palette Presets (Subway Bullets) -->
+          <div id="labColorPresetsContainer" class="nyc-metro-bullet-presets">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- Custom Color Picker Strip -->
+          <div class="nyc-metro-custom-color-bar">
+            <div class="nyc-metro-color-swatch-wrap" title="คลิกเพื่อเลือกสีอิสระ">
+              <input type="color" id="labRoomColorPicker" class="nyc-metro-color-picker" onchange="onLabRoomColorPickerChange(this.value)">
+            </div>
+            <div class="nyc-metro-hex-input-wrap">
+              <span class="nyc-metro-hex-prefix">HEX</span>
+              <input type="text" id="labRoomHexInput" class="nyc-metro-hex-input" maxlength="7" placeholder="#EE352E" oninput="onLabRoomHexInputChange(this.value)">
+            </div>
+            <span class="nyc-metro-color-guide">เลือกสัญลักษณ์สายทาง หรือระบุโค้ดสี Hex เพื่อใช้บนผังตู้และปฏิทิน</span>
+          </div>
+        </div>
+
+        <!-- Authentic NYC Subway Station Sign Live Preview -->
+        <div class="nyc-metro-preview-section">
+          <div class="nyc-metro-preview-header">
+            <span class="nyc-metro-preview-title">
+              <i data-lucide="eye" style="width: 13px; height: 13px;"></i>
+              STATION SIGN PREVIEW (ตัวอย่างป้ายสถานีรถไฟใต้ดิน NYC)
+            </span>
+            <span class="nyc-metro-preview-scale">MTA STANDARD ENAMEL</span>
+          </div>
+
+          <!-- NYC Subway Signboard -->
+          <div class="nyc-subway-signboard" id="nycSubwaySignboard">
+            <!-- Signboard Screws -->
+            <div class="nyc-screw top-left" style="top: 8px; left: 8px; width: 8px; height: 8px;"></div>
+            <div class="nyc-screw top-right" style="top: 8px; right: 8px; width: 8px; height: 8px;"></div>
+            <div class="nyc-screw bottom-left" style="bottom: 8px; left: 8px; width: 8px; height: 8px;"></div>
+            <div class="nyc-screw bottom-right" style="bottom: 8px; right: 8px; width: 8px; height: 8px;"></div>
+
+            <!-- Translucent Watermark Numeral -->
+            <div class="nyc-subway-sign-watermark" id="previewSubwayWatermark">1</div>
+
+            <div class="nyc-subway-sign-topline" id="nycSubwaySignTopline"></div>
+            <div class="nyc-subway-sign-body">
+              <div class="nyc-subway-sign-bullet" id="previewSubwayBullet">
+                <span id="previewSubwayBulletText">1</span>
+              </div>
+              <div class="nyc-subway-sign-text-group">
+                <div class="nyc-subway-sign-station-row">
+                  <span class="nyc-subway-sign-station-name" id="previewSubwayStationName">LAB 1 • ห้องปฏิบัติการเคมี</span>
+                </div>
+                <div class="nyc-subway-sign-subtitle-row">
+                  <span id="previewSubwayBuilding">อาคารวิทยาศาสตร์</span>
+                  <span class="nyc-subway-sign-sep">•</span>
+                  <span class="nyc-subway-sign-transfers">ALL TRANSFERS • SHECU READY</span>
+                </div>
+              </div>
+              <div class="nyc-subway-sign-arrow-wrap" title="Next Station Wayfinding">
+                <svg class="nyc-metro-arrow-svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42 5.43 5.43H5v2.44z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Existing previewColorDot & previewRoomText container for tab chip compatibility -->
+          <div id="labRoomLivePreview" class="nyc-metro-tab-preview-chip">
+            <span class="nyc-metro-tab-chip-label">TAB CHIP:</span>
+            <span id="previewColorDot" class="nyc-metro-tab-dot"></span>
+            <span id="previewRoomText" class="nyc-metro-tab-text">Lab 1 (ห้องปฏิบัติการเคมี)</span>
+            <span class="nyc-metro-tab-count">19 รายการ</span>
+          </div>
+        </div>
+
+        <!-- Subway Footer Actions -->
+        <div class="nyc-metro-modal-footer">
+          <div class="nyc-metro-caution-pill" title="MTA Transit Advisory">
+            <span class="caution-dot"></span>
+            <span>STAND CLEAR OF THE CLOSING DOORS</span>
+          </div>
+          <div class="nyc-metro-footer-btns">
+            <button type="button" onclick="closeLabRoomModal()" class="nyc-metro-btn-cancel">
+              ยกเลิก
+            </button>
+            <button type="submit" class="nyc-metro-btn-save" id="labRoomModalSaveBtn">
+              <i data-lucide="check" style="width: 15px; height: 15px;"></i>
+              <span>บันทึกห้องปฏิบัติการ</span>
+              <svg class="nyc-metro-arrow-svg" viewBox="0 0 24 24" fill="currentColor" style="width: 14px; height: 14px; margin-left: 2px;">
+                <path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42 5.43 5.43H5v2.44z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       TOAST NOTIFICATION SYSTEM
+       ========================================== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Modal: Asset Audit Record / Inspection -->

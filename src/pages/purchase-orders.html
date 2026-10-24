@@ -1,0 +1,405 @@
+      <section class="panel" id="panel-purchase-orders">
+        <!-- 1. MODERN 2-TIER PROMPT ASSISTANT HEADER CARD -->
+        <div class="card-container quick-prompt-card po-prompt-header-card" id="poHeaderPromptCard">
+          <div class="quick-prompt-inner">
+            <div class="quick-prompt-top po-header-prompt-top">
+              <div class="po-prompt-main-header">
+                <div class="po-prompt-title-wrap">
+                  <button type="button" onclick="navigateToPanel('dashboard')" aria-label="กลับหน้าแดชบอร์ด" class="po-prompt-back-btn" title="กลับหน้าแดชบอร์ด">
+                    <i data-lucide="arrow-left"></i>
+                  </button>
+                  <div class="po-prompt-title-content">
+                    <h1 class="po-prompt-title">ทำรายการสั่งซื้อและงบประมาณ</h1>
+                    <p class="po-prompt-desc">จองงบประมาณ จัดทำใบสั่งซื้อ และติดตามประวัติการจัดหาวัสดุอุปกรณ์วิทยาศาสตร์</p>
+                  </div>
+                </div>
+
+                <!-- Redesigned Academic Context Capsule -->
+                <div class="po-academic-context-pill" id="poAcademicContextBadge">
+                  <div class="po-ctx-icon-wrap">
+                    <i data-lucide="calendar" class="po-ctx-icon"></i>
+                  </div>
+                  <div class="po-ctx-field">
+                    <span class="po-ctx-label">ปีการศึกษา</span>
+                    <input type="text" id="poAcademicYear" class="po-ctx-input" placeholder="2567" maxlength="4" value="2567" required title="ระบุปีการศึกษา">
+                  </div>
+                  <span class="po-ctx-divider"></span>
+                  <div class="po-ctx-field">
+                    <span class="po-ctx-label">เทอม</span>
+                    <select id="poSemester" class="po-ctx-select" required title="เลือกภาคเรียน">
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Pill Dock: Redesigned Cohesive Action Dock Matching Dashboard Style -->
+          <div class="quick-prompt-bottom">
+            <div class="quick-prompt-actions-left">
+              <button type="button" class="quick-prompt-tag active" id="btnTabPoSplit" onclick="switchPoTab('split')">
+                <i data-lucide="columns-2"></i>
+                <span>ภาพรวม</span>
+              </button>
+              <button type="button" class="quick-prompt-tag" id="btnTabPoCreate" onclick="switchPoTab('create')">
+                <i data-lucide="plus-circle"></i>
+                <span>บันทึกสั่งซื้อใหม่</span>
+                <span class="po-pill-badge orange" id="badgePoDraftCount" style="display: none;">0</span>
+              </button>
+              <button type="button" class="quick-prompt-tag" id="btnTabPoHistory" onclick="switchPoTab('history')">
+                <i data-lucide="receipt"></i>
+                <span>ประวัติการสั่งซื้อ</span>
+                <span class="po-pill-badge blue" id="badgePoOrdersCount">0</span>
+              </button>
+            </div>
+
+            <div class="quick-prompt-actions-right">
+              <button type="button" class="quick-prompt-tag" id="btnExportPoCSV" title="ส่งออกข้อมูลเป็น CSV / Excel">
+                <i data-lucide="file-spreadsheet" style="color: #10b981;"></i>
+                <span>ส่งออก CSV</span>
+              </button>
+              <button type="button" class="quick-prompt-tag" id="btnExportPoPDF" title="ส่งออกรายงานเป็น PDF / พิมพ์">
+                <i data-lucide="file-text" style="color: #e11d48;"></i>
+                <span>พิมพ์ PDF</span>
+              </button>
+              <button type="button" class="quick-prompt-tag admin-clear-btn" id="btnClearPurchaseOrders" style="display: none; color: #dc2626;" title="ล้างรายการสั่งซื้อทั้งหมด (เฉพาะผู้ดูแลระบบ)">
+                <i data-lucide="trash-2" style="color: #dc2626;"></i>
+                <span>ล้างรายการ</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Budget overview cards -->
+        <div class="budget-overview-grid" id="budgetStatGrid">
+          <section class="budget-summary-card" id="cardAnnualBudget" aria-label="สรุปงบประมาณประจำปี">
+            <div class="budget-summary-primary">
+              <div class="budget-summary-heading">
+                <span class="budget-primary-icon"><i data-lucide="wallet-cards" aria-hidden="true"></i></span>
+                <span class="stat-title">งบประมาณประจำปี</span>
+                <button type="button" class="budget-edit-btn" id="btnEditAnnualBudget" title="แก้ไขงบประมาณประจำปี" aria-label="แก้ไขงบประมาณประจำปี">
+                  <i data-lucide="edit-3"></i>
+                </button>
+              </div>
+              <div class="budget-stat-value-container" id="containerAnnualBudget">
+                <span class="stat-value" id="lblAnnualBudget">100,000.00</span>
+                <span class="stat-sublabel">บาท</span>
+              </div>
+              <div class="budget-edit-form" id="annualBudgetEditForm" style="display: none;">
+                <input type="number" id="txtAnnualBudget" class="form-control" aria-label="งบประมาณประจำปี (บาท)" min="0" step="any">
+                <button type="button" class="btn btn-primary" id="btnSaveAnnualBudget" aria-label="บันทึกงบประมาณ">
+                  <i data-lucide="check" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnCancelAnnualBudget" aria-label="ยกเลิกการแก้ไขงบประมาณ">
+                  <i data-lucide="x" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+
+          </section>
+
+          <div class="budget-breakdown-item spent" id="cardTotalSpent">
+            <span class="budget-breakdown-label">
+              <span class="budget-breakdown-icon spent-icon"><i data-lucide="trending-up" aria-hidden="true"></i></span>
+              ยอดใช้จ่ายสะสม
+            </span>
+            <span class="budget-breakdown-value"><span id="lblTotalSpent">0.00</span><span>บาท</span></span>
+          </div>
+          <div class="budget-breakdown-item remaining" id="cardRemainingBudget">
+            <span class="budget-breakdown-label">
+              <span class="budget-breakdown-icon remaining-icon"><i data-lucide="wallet" id="iconRemainingBudget" aria-hidden="true"></i></span>
+              งบประมาณคงเหลือ
+            </span>
+            <span class="budget-breakdown-value"><span id="lblRemainingBudget">100,000.00</span><span>บาท</span></span>
+          </div>
+
+          <div class="budget-cart-card" id="cardDraftCart" role="button" tabindex="0" onclick="switchPoTab('create'); const el = document.getElementById('poDraftContainer'); if(el) el.scrollIntoView({behavior:'smooth'});" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
+            <div class="budget-cart-icon"><i data-lucide="shopping-cart" aria-hidden="true"></i></div>
+            <div class="budget-cart-copy">
+              <span class="stat-title">ตะกร้ารอสั่งซื้อ</span>
+              <span class="budget-cart-count"><span id="lblPoDraftCount">0</span><span>รายการ</span></span>
+              <span class="budget-cart-hint">ดูรายการที่เตรียมไว้</span>
+            </div>
+            <i class="budget-cart-arrow" data-lucide="arrow-up-right" aria-hidden="true"></i>
+          </div>
+        </div>
+
+        <!-- 3. MAIN WORKSPACE GRID (Modern 2-Tier Card Containers) -->
+        <div class="purchase-orders-grid" id="purchaseOrdersGrid">
+          
+          <!-- Left Column: Form & Draft Cart (2-Tier Quick Prompt Style Card) -->
+          <div class="card-container quick-prompt-card po-form-card" id="purchaseOrderFormCol">
+            <!-- Tier 1: Crisp Elevated White Card Surface -->
+            <div class="quick-prompt-inner" style="width: 100%;">
+              <div class="quick-prompt-top po-form-top">
+                <div class="card-header" style="margin-bottom: 0; padding-bottom: 0; border-bottom: none;">
+                  <div class="card-header-left">
+                    <div class="notif-header-icon purple">
+                      <i data-lucide="shopping-bag"></i>
+                    </div>
+                    <div>
+                      <h2 class="card-title">บันทึกรายการสั่งซื้อ</h2>
+                      <p class="card-subtitle">กรอกรายละเอียดพัสดุและสารเคมีที่ต้องการจัดหา</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <form id="purchaseOrderForm" class="po-form-body">
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="poProductCode" class="form-label">รหัสสินค้า <span style="color: var(--accent-red);">*</span></label>
+                      <input type="text" id="poProductCode" class="form-control" placeholder="เช่น CHEM-001" required>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="poProductName" class="form-label">ชื่อสินค้า <span style="color: var(--accent-red);">*</span></label>
+                      <input type="text" id="poProductName" class="form-control" placeholder="ระบุชื่อสารเคมีหรืออุปกรณ์" required>
+                    </div>
+                  </div>
+
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="poUnitPrice" class="form-label">ราคาต่อหน่วย (บาท) <span style="color: var(--accent-red);">*</span></label>
+                      <input type="number" step="any" min="0" id="poUnitPrice" class="form-control" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="poQuantity" class="form-label">จำนวน <span style="color: var(--accent-red);">*</span></label>
+                      <input type="number" min="1" id="poQuantity" class="form-control" placeholder="1" required>
+                    </div>
+                  </div>
+
+                  <div class="form-row-2">
+                    <div class="form-group">
+                      <label for="poDiscount" class="form-label">ส่วนลด (%)</label>
+                      <input type="number" step="any" min="0" max="100" id="poDiscount" class="form-control" placeholder="0" value="0">
+                    </div>
+                    <div class="form-group">
+                      <label for="poTotalPrice" class="form-label">ราคาสุทธิ (บาท)</label>
+                      <input type="text" id="poTotalPrice" class="form-control po-net-total-input" placeholder="0.00" readonly>
+                    </div>
+                  </div>
+
+                  <div class="po-net-detail-box">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <i data-lucide="calculator" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+                      <span id="poNetTotalDetail">0.00 - ลด 0.00 = 0.00 บาท</span>
+                    </div>
+                  </div>
+
+                  <div class="form-actions" style="margin-top: 10px; display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" id="btnSubmitPurchaseOrder" style="flex: 2; height: 38px; border-radius: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                      <i data-lucide="plus-circle" style="width: 15px; height: 15px;"></i>
+                      <span>เพิ่มรายการ</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="btnResetPurchaseOrder" style="flex: 1; height: 38px; border-radius: 12px; font-weight: 600;">
+                      รีเซ็ต
+                    </button>
+                  </div>
+                </form>
+
+                <!-- Draft Items Panel -->
+                <div id="poDraftContainer" class="po-draft-panel" style="display: none;">
+                  <div class="po-draft-header">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <div class="notif-header-icon orange" style="width: 28px; height: 28px; border-radius: 8px;">
+                        <i data-lucide="shopping-cart" style="width: 14px; height: 14px;"></i>
+                      </div>
+                      <h3 style="font-size: 13.5px; font-weight: 700; color: #1e293b; margin: 0;">รายการเตรียมสั่งซื้อชั่วคราว (Cart)</h3>
+                    </div>
+                  </div>
+                  
+                  <!-- Compact Draft Items List -->
+                  <div class="draft-items-list" id="poDraftList">
+                    <!-- Dynamically populated -->
+                  </div>
+                  
+                  <div class="po-draft-total-card">
+                    <span class="po-draft-total-label">ราคารวมทั้งสิ้น:</span>
+                    <span id="poDraftTotal" class="po-draft-total-value">0.00 บาท</span>
+                  </div>
+
+                  <div class="form-actions" style="margin-top: 10px;">
+                    <button type="button" class="btn btn-primary po-commit-btn" id="btnCommitPoDraft">
+                      <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+                      <span id="btnCommitPoDraftText">บันทึกใบสั่งซื้อทั้งหมด (0 รายการ)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tier 2: Helper Pill Capsule Dock Tray (Full Width Balanced) -->
+            <div class="quick-prompt-bottom po-form-bottom">
+              <div class="quick-prompt-tag" style="cursor: default;">
+                <i data-lucide="calculator" style="color: #7c3aed;"></i>
+                <span>คำนวณสุทธิอัตโนมัติ</span>
+              </div>
+              <button type="button" class="quick-prompt-tag" onclick="const c=document.getElementById('poDraftContainer');if(c){c.style.display=c.style.display==='none'?'block':'none';}">
+                <i data-lucide="shopping-cart" style="color: #ea580c;"></i>
+                <span>ตะกร้าเตรียมสั่ง</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Column: Table List (2-Tier Quick Prompt Style Card) -->
+          <div class="card-container quick-prompt-card po-list-card" id="purchaseOrderListCol">
+            <!-- Tier 1: Crisp Elevated White Card Surface -->
+            <div class="quick-prompt-inner" style="width: 100%;">
+              <div class="quick-prompt-top po-list-top">
+                <!-- Card Header Section -->
+                <div class="po-card-header">
+                  <div class="po-card-header-left">
+                    <h2 class="card-title">ประวัติการสั่งซื้อ</h2>
+                    <span class="po-count-pill" id="poListTotalBadge">0 รายการ</span>
+                  </div>
+                  
+                  <!-- Filter Selectors & Search Toolbar (Equal Height & Full Padding) -->
+                  <div class="po-filter-toolbar">
+                    <div class="po-search-input-wrap">
+                      <i data-lucide="search" class="po-search-icon"></i>
+                      <input type="text" id="filterPoSearch" class="po-search-input" placeholder="ค้นหารหัส หรือชื่อสินค้า..." autocomplete="off">
+                      <button type="button" class="po-search-clear" id="btnPoSearchClear" style="display: none;" title="ล้างการค้นหา">
+                        <i data-lucide="x"></i>
+                      </button>
+                    </div>
+                    <div class="po-filter-select-group">
+                      <select id="filterPoYear" class="po-filter-select" title="กรองตามปีการศึกษา">
+                        <option value="all">ทุกปีการศึกษา</option>
+                      </select>
+                      <select id="filterPoSemester" class="po-filter-select" title="กรองตามเทอม">
+                        <option value="all">ทุกเทอม</option>
+                        <option value="1">เทอม 1</option>
+                        <option value="2">เทอม 2</option>
+                      </select>
+                    </div>
+                    <button type="button" class="po-icon-btn" onclick="renderOrdersTable()" title="รีเฟรชตารางข้อมูล">
+                      <i data-lucide="refresh-cw"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Purchase Orders Table Container (Zero Horizontal Scroll at 1440x810) -->
+                <div class="table-container po-table-container">
+                  <table id="purchaseOrdersTable" class="purchase-orders-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 9%;">วันที่สั่ง</th>
+                        <th style="width: 10%;">รหัสสินค้า</th>
+                        <th style="width: 20%;">ชื่อรายการ</th>
+                        <th style="width: 12%;" class="text-right">ราคา/หน่วย</th>
+                        <th style="width: 8%;" class="text-right">จำนวน</th>
+                        <th style="width: 13%;" class="text-right">รวมก่อนลด</th>
+                        <th style="width: 10%;" class="text-right">ส่วนลด</th>
+                        <th style="width: 11%;" class="text-right">สุทธิ</th>
+                        <th class="po-action-header" style="width: 7%; text-align: center;">จัดการ</th>
+                      </tr>
+                    </thead>
+                    <tbody id="purchaseOrdersTableBody">
+                      <!-- Dynamically populated -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Pagination Bar: 10 items per page -->
+                <div class="po-pagination-bar" id="poPaginationBar">
+                  <span id="poPaginationInfo" class="po-pagination-info">แสดงรายการที่ 0-0 จาก 0 รายการ</span>
+                  <div class="po-pagination-controls" id="poPaginationControls">
+                    <button type="button" class="po-page-btn" id="btnPoPrevPage" onclick="changePoPage(-1)" title="หน้าก่อนหน้า">
+                      <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+                      <span>ก่อนหน้า</span>
+                    </button>
+                    <span id="poPageIndicator" class="po-page-indicator">หน้า 1 / 1</span>
+                    <button type="button" class="po-page-btn" id="btnPoNextPage" onclick="changePoPage(1)" title="หน้าถัดไป">
+                      <span>ถัดไป</span>
+                      <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Tier 2: Floating Pill Capsule Dock Tray -->
+            <div class="quick-prompt-bottom po-list-bottom">
+              <div class="po-list-pills-left">
+                <div class="quick-prompt-tag po-fin-pill" id="poPillBeforeDiscount">
+                  <i data-lucide="calculator"></i>
+                  <span>รวมก่อนลด:</span>
+                  <strong id="poTotalBeforeDiscount">0.00 บาท</strong>
+                </div>
+                <div class="quick-prompt-tag po-fin-pill discount" id="poPillDiscount">
+                  <i data-lucide="tag" style="color: #059669;"></i>
+                  <span>ส่วนลดรวม (<span id="poOverallDiscountPercent">0.00</span>%):</span>
+                  <strong id="poTotalDiscountAmount" style="color: #059669;">-0.00 บาท</strong>
+                </div>
+              </div>
+
+              <div class="po-list-pills-right">
+                <div class="quick-prompt-tag po-fin-pill po-grand-pill" id="poPillGrandTotal">
+                  <i data-lucide="sparkles" style="color: #7c3aed;"></i>
+                  <span>ยอดสุทธิ:</span>
+                  <strong id="poGrandTotal" class="grand-val">0.00 บาท</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <script>
+          window.currentPoTab = window.currentPoTab || 'split';
+          window.switchPoTab = function(tabId) {
+            window.currentPoTab = tabId;
+            const btnSplit = document.getElementById('btnTabPoSplit');
+            const btnHistory = document.getElementById('btnTabPoHistory');
+            const btnCreate = document.getElementById('btnTabPoCreate');
+
+            const formCol = document.getElementById('purchaseOrderFormCol');
+            const listCol = document.getElementById('purchaseOrderListCol');
+            const grid = document.getElementById('purchaseOrdersGrid');
+
+            [btnSplit, btnHistory, btnCreate].forEach(btn => {
+              if (btn) btn.classList.remove('active');
+            });
+
+            const isBackoffice = (typeof isUserLoggedIn === 'function') ? isUserLoggedIn() : true;
+            const isMobileOrTablet = window.innerWidth <= 1024;
+
+            if (tabId === 'history') {
+              if (btnHistory) btnHistory.classList.add('active');
+              if (formCol) formCol.style.display = 'none';
+              if (listCol) {
+                listCol.style.display = 'flex';
+                listCol.style.width = '100%';
+              }
+              if (grid) grid.style.gridTemplateColumns = '1fr';
+            } else if (tabId === 'create') {
+              if (btnCreate) btnCreate.classList.add('active');
+              if (listCol) listCol.style.display = 'none';
+              if (formCol) {
+                formCol.style.display = 'flex';
+                formCol.style.width = '100%';
+              }
+              if (grid) grid.style.gridTemplateColumns = '1fr';
+            } else {
+              // Split view
+              if (btnSplit) btnSplit.classList.add('active');
+              if (formCol) {
+                formCol.style.display = isBackoffice ? 'flex' : 'none';
+                formCol.style.width = '';
+              }
+              if (listCol) {
+                listCol.style.display = 'flex';
+                listCol.style.width = '';
+              }
+              if (grid) {
+                grid.style.gridTemplateColumns = isMobileOrTablet ? '1fr' : (isBackoffice ? '330px minmax(0, 1fr)' : '1fr');
+              }
+            }
+
+            if (window.lucide) lucide.createIcons();
+          };
+        </script>
+      </section>

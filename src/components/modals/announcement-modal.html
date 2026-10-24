@@ -1,0 +1,151 @@
+  <!-- ==========================================
+       MODAL: ANNOUNCEMENT EDIT DIALOG (FOR ADMIN)
+       ========================================== -->
+  <div class="modal-overlay" id="modalAnnouncementEdit" style="display: none; z-index: 9999;" onclick="if(event.target === this) closeAnnouncementModal()">
+    <div class="modal-content" style="width: 680px; max-width: 95%;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="megaphone" style="color: #ea580c; width: 18px; height: 18px;"></i>
+          <span>จัดการแถบประกาศหน้าแรก (Announcement Ticker)</span>
+        </h2>
+        <button type="button" class="modal-close-btn" onclick="closeAnnouncementModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <form id="modalAnnouncementForm" onsubmit="saveModalAnnouncement(event)">
+        <div class="modal-body" style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; max-height: 75vh; overflow-y: auto;">
+          <!-- Status Toggle -->
+          <div style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border-color);">
+            <div>
+              <div style="font-weight: 600; font-size: 13px; color: var(--text-main);">แสดงแถบประกาศหน้าแรก</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">เปิดหรือปิดการแสดงแถบประกาศสำหรับผู้ใช้ทุกคน</div>
+            </div>
+            <label class="toggle-switch-wrapper" for="modalAnnouncementEnabled">
+              <div class="toggle-switch">
+                <input type="checkbox" id="modalAnnouncementEnabled" checked onchange="updateAnnouncementToggleLabel(this.checked, 'modalAnnouncementStatusText'); triggerAnnouncementLivePreview('modal');">
+                <span class="toggle-slider"></span>
+              </div>
+              <span id="modalAnnouncementStatusText" style="font-size: 12.5px; font-weight: 600; color: #1e293b; min-width: 55px;">เปิดใช้งาน</span>
+            </label>
+          </div>
+
+          <!-- Announcement Text -->
+          <div class="form-group" style="margin: 0;">
+            <label for="modalAnnouncementText" class="form-label" style="font-weight: 600; font-size: 12.5px; margin-bottom: 4px; display: block;">
+              ข้อความประกาศ (คั่นแต่ละข้อความด้วยเครื่องหมาย <code>|</code> หรือขึ้นบรรทัดใหม่):
+            </label>
+            <textarea id="modalAnnouncementText" class="form-control" rows="3" style="width: 100%; font-size: 12.5px; line-height: 1.5; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border-color); outline: none;" placeholder="สวมใส่อุปกรณ์ PPE ทุกครั้งที่เข้าแล็บ | การทดลองที่มีไอระเหยต้องทำในตู้ดูดควัน Fume Hood" oninput="triggerAnnouncementLivePreview('modal')"></textarea>
+          </div>
+
+          <!-- Template buttons -->
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+            <span style="font-size: 11px; color: var(--text-muted);">เทมเพลต:</span>
+            <button type="button" class="btn btn-secondary" onclick="applyModalAnnouncementPreset('standard')" style="padding: 3px 8px; font-size: 11px; border-radius: 6px;">ชุดมาตรฐาน</button>
+            <button type="button" class="btn btn-secondary" onclick="applyModalAnnouncementPreset('maintenance')" style="padding: 3px 8px; font-size: 11px; border-radius: 6px;">ตรวจสต็อก</button>
+            <button type="button" class="btn btn-secondary" onclick="applyModalAnnouncementPreset('urgent')" style="padding: 3px 8px; font-size: 11px; border-radius: 6px;">ปรับปรุงระบบ</button>
+          </div>
+
+          <!-- Customizer options in Modal -->
+          <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="font-size: 12.5px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="sliders" style="width: 14px; height: 14px; color: #0284c7;"></i>
+              <span>ปรับแต่งความเร็ว ระยะห่าง และธีมสี</span>
+            </div>
+
+            <!-- Badge Text & Theme -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <label for="modalAnnouncementBadgeText" class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px; display: block;">ข้อความหัวข้อป้าย</label>
+                <input type="text" id="modalAnnouncementBadgeText" class="form-control" value="ประกาศ & ความปลอดภัย" style="font-size: 12px; padding: 6px 8px;" oninput="triggerAnnouncementLivePreview('modal')">
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px; display: block;">ธีมสีป้าย</label>
+                <div class="ticker-theme-chips" id="modalTickerThemeChips">
+                  <button type="button" class="ticker-theme-chip active" data-theme="orange" onclick="selectAnnouncementTheme('orange', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
+                    <span class="ticker-theme-dot" style="background: #ea580c; width: 8px; height: 8px;"></span>
+                    <span>ส้ม</span>
+                  </button>
+                  <button type="button" class="ticker-theme-chip" data-theme="blue" onclick="selectAnnouncementTheme('blue', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
+                    <span class="ticker-theme-dot" style="background: #0284c7; width: 8px; height: 8px;"></span>
+                    <span>น้ำเงิน</span>
+                  </button>
+                  <button type="button" class="ticker-theme-chip" data-theme="green" onclick="selectAnnouncementTheme('green', 'modal')" style="padding: 4px 8px; font-size: 11.5px;">
+                    <span class="ticker-theme-dot" style="background: #10b981; width: 8px; height: 8px;"></span>
+                    <span>เขียว</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Speed & Gap Sliders -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <label for="modalAnnouncementSpeed" class="form-label" style="font-size: 11.5px; font-weight: 600; margin: 0;">ความเร็วเลื่อน</label>
+                  <span class="ticker-slider-val" id="modalAnnouncementSpeedVal" style="font-size: 11.5px; padding: 2px 6px;">55 วินาที</span>
+                </div>
+                <div class="ticker-slider-control">
+                  <span style="font-size: 10px; color: var(--text-muted);">เร็ว</span>
+                  <input type="range" id="modalAnnouncementSpeed" min="15" max="100" step="5" value="55" oninput="onAnnouncementSliderChange('speed', this.value, 'modal')">
+                  <span style="font-size: 10px; color: var(--text-muted);">ช้า</span>
+                </div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <label for="modalAnnouncementGap" class="form-label" style="font-size: 11.5px; font-weight: 600; margin: 0;">ระยะเว้นวรรค</label>
+                  <span class="ticker-slider-val" id="modalAnnouncementGapVal" style="font-size: 11.5px; padding: 2px 6px;">36 px</span>
+                </div>
+                <div class="ticker-slider-control">
+                  <span style="font-size: 10px; color: var(--text-muted);">แคบ</span>
+                  <input type="range" id="modalAnnouncementGap" min="20" max="100" step="4" value="36" oninput="onAnnouncementSliderChange('gap', this.value, 'modal')">
+                  <span style="font-size: 10px; color: var(--text-muted);">กว้าง</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pause on Hover Toggle -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 6px; border-top: 1px solid #f1f5f9;">
+              <span style="font-size: 12px; font-weight: 600; color: var(--text-main);">หยุดเลื่อนเมื่อนำเมาส์ชี้ (Pause on Hover)</span>
+              <label class="toggle-switch-wrapper" for="modalAnnouncementPauseHover">
+                <div class="toggle-switch">
+                  <input type="checkbox" id="modalAnnouncementPauseHover" checked onchange="triggerAnnouncementLivePreview('modal')">
+                  <span class="toggle-slider"></span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Modal Live Preview -->
+          <div class="ticker-preview-container" style="padding: 10px 12px;">
+            <div style="font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+              <i data-lucide="eye" style="width: 12px; height: 12px;"></i>
+              <span>ตัวอย่างสด (Live Preview):</span>
+            </div>
+            <div class="ticker-preview-bar ticker-theme-orange ticker-pause-hover" id="modalAnnouncementPreviewBar">
+              <div class="ticker-badge" id="modalAnnouncementPreviewBadge">
+                <i data-lucide="megaphone" style="width: 12px; height: 12px;"></i>
+                <span id="modalAnnouncementPreviewBadgeText">ประกาศ & ความปลอดภัย</span>
+              </div>
+              <div class="ticker-marquee-wrapper">
+                <div class="ticker-marquee-track" id="modalAnnouncementPreviewTrack" style="--ticker-duration: 55s; --ticker-gap: 36px;">
+                  <!-- Live Preview Items -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+          <button type="button" class="btn btn-secondary" style="padding: 7px 14px; border: 1px solid var(--border-color); background: white; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 13px;" onclick="closeAnnouncementModal()">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary" onclick="saveModalAnnouncement(event)" style="padding: 7px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+            <i data-lucide="save" style="width: 14px; height: 14px;"></i>
+            <span>บันทึกประกาศ</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================

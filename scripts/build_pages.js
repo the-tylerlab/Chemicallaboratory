@@ -1,6 +1,6 @@
 /**
  * scripts/build_pages.js
- * Assembles modular HTML pages from `pages/*.html` into `index.html` using `index.template.html`.
+ * Assembles modular HTML pages from `src/pages/*.html` into `public/index.html`.
  * 
  * Usage:
  *   node scripts/build_pages.js          # Single build
@@ -11,9 +11,11 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
-const TEMPLATE_PATH = path.join(ROOT_DIR, 'index.template.html');
-const OUTPUT_PATH = path.join(ROOT_DIR, 'index.html');
-const PAGES_DIR = path.join(ROOT_DIR, 'pages');
+const SOURCE_DIR = path.join(ROOT_DIR, 'src');
+const TEMPLATE_PATH = path.join(SOURCE_DIR, 'index.template.html');
+const OUTPUT_PATH = path.join(ROOT_DIR, 'public', 'index.html');
+const PAGES_DIR = path.join(SOURCE_DIR, 'pages');
+const COMPONENTS_DIR = path.join(SOURCE_DIR, 'components');
 
 function buildPages(verbose = true) {
   const startTime = Date.now();
@@ -26,21 +28,31 @@ function buildPages(verbose = true) {
   // Replace <!-- @include pages/xxx.html --> with contents of the referenced file
   const includeRegex = /<!--\s*@include\s+['"]?([^'"]+?)['"]?\s*-->/g;
   
+  let compiled = template;
   let matchCount = 0;
-  const compiled = template.replace(includeRegex, (match, relPath) => {
-    const fullIncludePath = path.resolve(ROOT_DIR, relPath.trim());
-    if (!fs.existsSync(fullIncludePath)) {
-      console.warn(`[build_pages] Warning: include file not found: ${fullIncludePath}`);
-      return match;
-    }
-    matchCount++;
-    return fs.readFileSync(fullIncludePath, 'utf8');
-  });
+  let iteration = 0;
+  const maxIterations = 5;
+
+  while (iteration < maxIterations) {
+    let replacedInPass = 0;
+    compiled = compiled.replace(includeRegex, (match, relPath) => {
+      const fullIncludePath = path.resolve(SOURCE_DIR, relPath.trim());
+      if (!fs.existsSync(fullIncludePath)) {
+        console.warn(`[build_pages] Warning: include file not found: ${fullIncludePath}`);
+        return match;
+      }
+      matchCount++;
+      replacedInPass++;
+      return fs.readFileSync(fullIncludePath, 'utf8');
+    });
+    if (replacedInPass === 0) break;
+    iteration++;
+  }
 
   fs.writeFileSync(OUTPUT_PATH, compiled, 'utf8');
   const duration = Date.now() - startTime;
   if (verbose) {
-    console.log(`[build_pages] Successfully compiled ${matchCount} page partials into index.html in ${duration}ms`);
+    console.log(`[build_pages] Successfully compiled ${matchCount} partials into index.html in ${duration}ms`);
   }
   return { matchCount, duration };
 }
@@ -48,7 +60,7 @@ function buildPages(verbose = true) {
 // Watch mode support
 function watchPages() {
   buildPages(true);
-  console.log('[build_pages] Watching pages/ and index.template.html for changes...');
+  console.log('[build_pages] Watching src/pages/, src/components/, and src/index.template.html for changes...');
 
   let debounceTimer = null;
   const sourceSignatures = new Map();
@@ -77,17 +89,19 @@ function watchPages() {
     }, 80);
   };
 
-  if (fs.existsSync(PAGES_DIR)) {
-    fs.watch(PAGES_DIR, { recursive: true }, (eventType, filename) => {
-      if (filename && filename.endsWith('.html')) {
-        triggerRebuild(`pages/${filename}`);
-      }
-    });
+  for (const [directory, prefix] of [[PAGES_DIR, 'pages'], [COMPONENTS_DIR, 'components']]) {
+    if (fs.existsSync(directory)) {
+      fs.watch(directory, { recursive: true }, (_eventType, filename) => {
+        if (filename && filename.endsWith('.html')) {
+          triggerRebuild(`src/${prefix}/${filename}`);
+        }
+      });
+    }
   }
 
   if (fs.existsSync(TEMPLATE_PATH)) {
     fs.watch(TEMPLATE_PATH, () => {
-      triggerRebuild('index.template.html');
+      triggerRebuild('src/index.template.html');
     });
   }
 }

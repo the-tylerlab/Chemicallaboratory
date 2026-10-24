@@ -1,0 +1,27 @@
+       MODAL: CAMERA BARCODE / QR SCANNER
+       ========================================== -->
+  <div class="modal-overlay" id="cameraScanModal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h2 class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="scan" style="width: 18px; height: 18px; color: #8b5cf6;"></i>
+          <span>สแกนคิวอาร์โค้ด / บาร์โค้ด</span>
+        </h2>
+        <button type="button" class="modal-close-btn" id="cameraScanModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; align-items: center;">
+        <div id="qr-reader" style="width: 100%; max-width: 400px; background: #000; border-radius: var(--border-radius-md); overflow: hidden; border: 1px solid var(--border-color);"></div>
+        <div id="qr-reader-results" style="font-size: 13px; color: var(--text-muted); text-align: center;">วางคิวอาร์โค้ดหรือบาร์โค้ดให้อยู่ในกรอบของกล้องเพื่อทำการสแกน</div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; display: flex; justify-content: flex-end;">
+        <button class="btn btn-secondary" id="btnCancelCameraScan">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================

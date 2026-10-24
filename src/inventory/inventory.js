@@ -452,10 +452,10 @@ export function viewItemDetails(code) {
   modal.innerHTML = `
     <div class="modal-content">
       <!-- Modal Header -->
-      <div style="padding: 20px 24px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: flex-start; background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);">
+      <div style="padding: 20px 24px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: flex-start; background: #ffffff;">
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span style="background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: #ffffff; padding: 3px 9px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.5px;">
+            <span style="background: #4f46e5; color: #ffffff; padding: 3px 9px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.5px;">
               <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> MASTER RECORD (L3-L4)
             </span>
             <span style="font-family: monospace; background: #e0e7ff; color: #4338ca; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>

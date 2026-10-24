@@ -1,11 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./index.template.html",
-    "./index.html",
-    "./pages/**/*.html",
+    "./src/index.template.html",
+    "./public/index.html",
+    "./src/pages/**/*.html",
+    "./src/components/**/*.tsx",
     "./src/**/*.js",
-    "./app.js"
+    "./public/assets/js/main.js"
   ],
   // preflight: false preserves existing style.css resets and prevent unintended overrides
   corePlugins: {

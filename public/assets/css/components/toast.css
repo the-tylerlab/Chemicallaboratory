@@ -1,0 +1,73 @@
+/* ==========================================================================
+   CUSTOM ADDED TOAST ANIMATION
+   ========================================================================== */
+.added-toast-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.added-toast {
+  background: #171c26;
+  color: #ffffff;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  padding: 14px 28px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.6), 0 0 40px -10px rgba(63, 27, 133, 0.2);
+  animation: toastPopIn 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+@keyframes toastPopIn {
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  15% { opacity: 1; transform: translateY(0) scale(1); }
+  85% { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(-20px) scale(0.95); }
+}
+
+/* Classes from the reference image */
+.acp-scan-Led {
+  position: absolute;
+  top: 7px;
+  left: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffb454;
+  opacity: 0.85;
+}
+
+.acp-blink {
+  position: absolute;
+  top: 7px;
+  right: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #3a4453;
+}
+
+.acp-barcode {
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  width: 11px;
+  height: 7px;
+  border-radius: 1px;
+  background: #e9dfcf;
+  overflow: hidden;
+}

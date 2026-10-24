@@ -57,7 +57,7 @@ function appendChatMessage(sender, text) {
       max-width: 80%;
       padding: 10px 14px;
       border-radius: ${sender === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px'};
-      background: ${sender === 'user' ? 'linear-gradient(135deg, #6366f1, #7c3aed)' : '#f1f5f9'};
+      background: ${sender === 'user' ? '#6366f1' : '#f1f5f9'};
       color: ${sender === 'user' ? '#ffffff' : '#1e293b'};
       font-size: 13.5px;
       line-height: 1.5;

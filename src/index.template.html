@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ</title>
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ">
+  <meta name="description" content="SciPortal แพลตฟอร์มจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ ครอบคลุมการจัดการคลังสารเคมีตามมาตรฐานความปลอดภัย SHECU การจองห้องแล็บ และระบบยืม-คืนอุปกรณ์">
+  <meta name="keywords" content="SciPortal, ระบบจัดการห้องปฏิบัติการ, คลังสารเคมี, SHECU, จองห้องแล็บ, วิทยาศาสตร์, Laboratory Management System">
+  <meta name="author" content="SciPortal Science Laboratory">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://chemicallab.vercel.app/">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://chemicallab.vercel.app/">
+  <meta property="og:title" content="SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ">
+  <meta property="og:description" content="แพลตฟอร์มจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ ผังตู้จัดเก็บสารเคมี SHECU และระบบจองห้องปฏิบัติการแบบเรียลไทม์">
+  <meta property="og:image" content="https://chemicallab.vercel.app/assets/icons/icon-512x512.png">
+  <meta property="og:site_name" content="SciPortal">
+  <meta property="og:locale" content="th_TH">
+
+  <!-- Twitter Card -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://chemicallab.vercel.app/">
+  <meta property="twitter:title" content="SciPortal - ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ">
+  <meta property="twitter:description" content="แพลตฟอร์มจัดการห้องปฏิบัติการวิทยาศาสตร์อัจฉริยะ ผังตู้จัดเก็บสารเคมี SHECU และระบบจองห้องปฏิบัติการแบบเรียลไทม์">
+  <meta property="twitter:image" content="https://chemicallab.vercel.app/assets/icons/icon-512x512.png">
+
+  <!-- Geotagging & Local SEO (GEO Optimization) -->
+  <meta name="geo.region" content="TH">
+  <meta name="geo.placename" content="Bangkok, Thailand">
+  <meta name="geo.position" content="13.7563;100.5018">
+  <meta name="ICBM" content="13.7563, 100.5018">
+
+  <!-- JSON-LD Structured Data Schema (GEO / AI & Search Engine Rich Results) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "SciPortal",
+    "url": "https://chemicallab.vercel.app/",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "All",
+    "description": "ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์และคลังสารเคมีอัจฉริยะ มาตรฐาน SHECU จุฬาฯ และระบบจองห้องแล็บ",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "THB"
+    },
+    "featureList": [
+      "ระบบจัดการคลังสารเคมีและเครื่องแก้ว",
+      "ผังตู้จัดเก็บสารเคมีมาตรฐานความปลอดภัย SHECU",
+      "ระบบจองห้องปฏิบัติการเรียลไทม์",
+      "ระบบยืม-คืนพัสดุและเคมีภัณฑ์",
+      "ระบบสแกน QR Code และบาร์โค้ด"
+    ]
+  }
+  </script>
+
+  <!-- Hard reset helper -->
+  <script>
+    if (window.location.search.includes('hardreset=1')) {
+      localStorage.clear();
+      sessionStorage.clear();
+      if (window.caches) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
+      alert('ล้างแคชและข้อมูลเก่าทั้งหมดเรียบร้อยแล้ว! กำลังรีโหลดระบบ...');
+      window.location.href = window.location.pathname;
+    }
+  </script>
+
+  <!-- Disable automatic telephone link detection on iOS Safari -->
+  <meta name="format-detection" content="telephone=no">
+  
+  <!-- Favicon & PWA Icons -->
+  <link rel="icon" type="image/svg+xml" href="assets/logos/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="assets/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="assets/icons/icon-512x512.png">
+  <meta name="apple-mobile-web-app-title" content="SciPortal">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#4F21A1">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fonts: IBM Plex Sans Thai (Self-hosted in /fonts/ with Google Fonts fallback) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap">
+
+  <!-- Preconnect to external CDNs for low-latency network handshake -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://unpkg.com">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+
+  <!-- Global Design Tokens & Tailwind CSS -->
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=20261011_tw">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="assets/css/style.css?v=20261016_qrcode_fix">
+  <link rel="stylesheet" href="assets/css/components/sidebar-redesign.css?v=20261024_sidebar_balanced6">
+  <link rel="stylesheet" href="assets/css/dashboard-announcement.css?v=astryx_1">
+  <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261010_inset">
+
+  <!-- Core Libraries (Local high-performance icon library) -->
+  <script src="assets/js/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+  <script src="assets/js/qrcode.min.js"></script>
+  <script src="assets/js/bwip-js.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+</head>
+<body>
+
+  <!-- ==========================================
+       APP SKELETON LOADER
+       ========================================== -->
+  <script>
+    if (window.location.search && window.location.search.indexOf('capture=true') !== -1) {
+      document.write('<style>#app-skeleton-loader { display: none !important; }</style>');
+    }
+  </script>
+  <div id="app-skeleton-loader">
+    <div class="skeleton-sidebar">
+      <div class="skeleton-logo animate-pulse"></div>
+      <div class="skeleton-welcome animate-pulse"></div>
+      <div class="skeleton-menu">
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+        <div class="skeleton-menu-item animate-pulse"></div>
+      </div>
+      <div class="skeleton-footer animate-pulse"></div>
+    </div>
+    
+    <div class="skeleton-main">
+      <div class="skeleton-header">
+        <div class="skeleton-title animate-pulse"></div>
+        <div class="skeleton-subtitle animate-pulse"></div>
+      </div>
+      
+      <div class="skeleton-grid">
+        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card animate-pulse"></div>
+      </div>
+      
+      <div class="skeleton-content-grid">
+        <div class="skeleton-card animate-pulse" style="height: 380px;"></div>
+        <div class="skeleton-card animate-pulse" style="height: 380px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="mobile-overlay" class="mobile-overlay"></div>
+
+  <div class="app-container">
+    
+    <!-- MOBILE HEADER -->
+    <header class="mobile-header">
+      <div class="mobile-header-left" style="display: flex; align-items: center; gap: 12px;">
+        <button class="menu-toggle-btn" id="menuToggle" aria-label="Toggle Menu">
+          <i data-lucide="menu"></i>
+        </button>
+        <div class="mobile-title" style="display: flex; align-items: center; gap: 8px;">
+          <img src="assets/logos/favicon.svg" alt="Logo" style="width: 24px; height: 24px;">
+          <span style="font-weight: 700;">SciPortal</span>
+        </div>
+      </div>
+      <button class="btn btn-icon" onclick="alert('ฟีเจอร์สแกน QR Code/Barcode กำลังอยู่ในช่วงพัฒนา')" aria-label="Scan QR Code" style="padding: 8px; color: var(--text-main); background: none; border: none; cursor: pointer;">
+        <i data-lucide="scan-line"></i>
+      </button>
+    </header>
+
+
+    <aside class="sidebar" id="sidebar">
+      <!-- Sidebar Header (Logo) -->
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo-icon-container">
+            <img src="assets/logos/favicon.svg" alt="Logo">
+          </div>
+          <div class="logo-text">
+            <span class="logo-title">SciPortal</span>
+          </div>
+        </div>
+        <button class="btn-sidebar-collapse" id="btnToggleSidebar" aria-label="ปักหมุดแถบเมนู" aria-pressed="true" title="ยกเลิกการปักหมุดและย่อแถบเมนู">
+          <i data-lucide="pin" id="sidebarPinIcon"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav" style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; margin-bottom: 6px;">
+        <ul class="sidebar-menu">
+          <li>
+            <a href="#/dashboard" class="menu-item-link active" data-target="dashboard">
+              <i data-lucide="home"></i>
+              <span>หน้าแรก</span>
+            </a>
+          </li>
+          
+          <div class="sidebar-section-title">คลังสารเคมีและพัสดุ</div>
+          
+          <li>
+            <a href="#/all-items" class="menu-item-link" data-target="all-items">
+              <i data-lucide="box"></i>
+              <span>รายการทั้งหมด</span>
+            </a>
+          </li>
+          <li>
+            <a href="#/cabinet-layout" class="menu-item-link" data-target="cabinet-layout" id="menuItemShecuMap">
+              <i data-lucide="layout-grid"></i>
+              <span>ผังตู้ SHECU</span>
+            </a>
+          </li>
+
+          <li id="menuItemAddItem" style="display: none;">
+            <a href="#/add-item" class="menu-item-link" data-target="add-item">
+              <i data-lucide="plus-circle"></i>
+              <span>เพิ่มรายการ</span>
+            </a>
+          </li>
+          <li id="menuItemImport" style="display: none;">
+            <a href="#" class="menu-item-link" id="btnSidebarImport">
+              <i data-lucide="file-up"></i>
+              <span>นำเข้าข้อมูล</span>
+            </a>
+          </li>
+          
+          <div class="sidebar-section-title">งานปฏิบัติการ</div>
+          
+          <li>
+            <a href="#/lab-booking" class="menu-item-link" data-target="lab-booking">
+              <i data-lucide="calendar"></i>
+              <span>จองห้องปฏิบัติการ</span>
+            </a>
+          </li>
+          <li>
+            <a href="#/borrow-return" class="menu-item-link" data-target="borrow-return">
+              <i data-lucide="arrow-left-right"></i>
+              <span>ยืม-คืนพัสดุ</span>
+            </a>
+          </li>
+          <li id="menuItemReports" style="display: none;">
+            <a href="#/reports" class="menu-item-link" data-target="reports">
+              <i data-lucide="pie-chart"></i>
+              <span>รายงานและสถิติ</span>
+            </a>
+          </li>
+          <li id="menuItemActivityLogs" style="display: none;">
+            <a href="#/activity-logs" class="menu-item-link" data-target="activity-logs">
+              <i data-lucide="activity"></i>
+              <span>ประวัติการใช้งาน</span>
+            </a>
+          </li>
+          <li id="menuItemAdmin" style="display: none;">
+            <a href="#/admin" class="menu-item-link" data-target="admin" title="แผงควบคุมระบบ (Admin Panel)">
+              <i data-lucide="shield-check"></i>
+              <span>แผงควบคุมระบบ (Admin)</span>
+            </a>
+          </li>
+          <li id="menuItemNotifications" style="display: none;">
+            <a href="#/notifications" class="menu-item-link" data-target="notifications">
+              <i data-lucide="bell"></i>
+              <span>การแจ้งเตือน</span>
+              <span class="badge badge-red" id="alertSidebarCount" style="margin-left: auto; width: 22px; height: 22px; min-width: 22px; max-width: 22px; border-radius: 50%; aspect-ratio: 1 / 1; padding: 0; display: none; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; line-height: 1; flex: 0 0 22px; flex-shrink: 0;">0</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Sidebar Bottom Menu (Help & Report Issue) -->
+      <div class="sidebar-bottom-menu">
+        <ul class="sidebar-menu-bottom">
+          <li id="menuItemReportIssue">
+            <button type="button" id="btnSidebarReportIssue" class="menu-item-link">
+              <i data-lucide="message-square"></i> <span>แจ้งปัญหาการใช้งาน</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" id="btnHelpSafetyModal" class="menu-item-link">
+              <i data-lucide="book-open"></i> <span>ศูนย์ข้อมูล และความปลอดภัย</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Sidebar Footer (User Profile, Role Status & Login/Logout) -->
+      <div class="sidebar-footer" id="sidebarUserProfileArea">
+        <!-- Logged In User Card -->
+        <div class="user-session-card" id="userSessionCard" style="display: none;" title="คลิกเพื่อดูโปรไฟล์ของคุณ">
+          <div class="user-session-profile">
+            <div id="sidebarUserAvatar" class="sidebar-user-avatar">AD</div>
+            <div class="user-session-info">
+              <div id="sidebarUserName" class="sidebar-user-name">ผู้ดูแลระบบ</div>
+              <div class="sidebar-user-role-line">
+                <span id="sidebarUserRoleBadge" class="badge-role badge-role-l3">L3 ผู้ดูแลระบบ</span>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-sidebar-logout-icon" id="btnSidebarLogoutQuick" title="ออกจากระบบ" aria-label="ออกจากระบบ" onclick="event.stopPropagation();">
+            <i data-lucide="log-out" style="width: 15px; height: 15px;"></i>
+          </button>
+        </div>
+
+        <!-- Logged Out Login Button -->
+        <a href="#" class="menu-item-link" id="btnSidebarLogin" style="display: flex; margin-bottom: 2px;">
+          <i id="sidebarLoginIcon" data-lucide="log-in"></i>
+          <span id="sidebarLoginText">เข้าสู่ระบบ</span>
+        </a>
+
+        <div class="footer-bottom-compact" title="Database Connected • v2.7.0 (RBAC)">
+          <span class="status-dot"></span>
+          <span class="version-text" id="footerVersionText">Database Connected &bull; v2.7.0 (RBAC)</span>
+        </div>
+      </div>
+
+
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <!-- Main Content -->
+    <main class="main-content pb-24">
+
+      <!-- Executive Mode Read-Only Banner (L4) -->
+      <div id="executiveReadOnlyBanner" class="executive-banner" style="display: none; margin-bottom: 20px; padding: 14px 20px; background: rgba(190, 24, 93, 0.08); border: 1px solid rgba(190, 24, 93, 0.25); border-radius: 12px; align-items: center; justify-content: space-between; gap: 14px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: #be185d; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(190, 24, 93, 0.3);">
+            <i data-lucide="shield-alert" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div>
+            <div style="font-weight: 700; font-size: 14px; color: #9d174d; display: flex; align-items: center; gap: 8px;">
+              <span>โหมดผู้บริหาร (Executive Overview — Read Only)</span>
+              <span class="badge-role badge-role-l4">L4 ผู้บริหาร</span>
+            </div>
+            <div style="font-size: 12.5px; color: #831843; margin-top: 2px;">
+              ท่านกำลังดูภาพรวมระบบและรายงานทั้งหมดในโหมดอ่านอย่างเดียว (ฟังก์ชันบันทึก แก้ไข อนุมัติ หรือลบข้อมูลจะถูกล็อกเพื่อความปลอดภัย)
+            </div>
+          </div>
+        </div>
+        <span style="font-size: 11.5px; background: rgba(190, 24, 93, 0.15); color: #9d174d; padding: 4px 10px; border-radius: 20px; font-weight: 600; white-space: nowrap;">
+          <i data-lucide="eye" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle;"></i> สิทธิ์เข้าชมภาพรวม
+        </span>
+      </div>
+
+<!-- ==========================================
+           PANEL: DASHBOARD
+           ========================================== -->
+      <!-- @include pages/dashboard.html -->
+
+      <!-- ==========================================
+           PANEL: REPORTS & STATISTICS
+           ========================================== -->
+      <!-- @include pages/reports.html -->
+
+      <!-- ==========================================
+           PANEL: ACTIVITY LOGS
+           ========================================== -->
+      <!-- @include pages/activity-logs.html -->
+
+      <!-- ==========================================
+           PANEL: ADD/EDIT CHEMICAL/EQUIPMENT
+           ========================================== -->
+      <!-- @include pages/add-item.html -->
+
+      <!-- ==========================================
+           PANEL: ALL ITEMS LIST
+           ========================================== -->
+      <!-- @include pages/all-items.html -->
+
+      <!-- ==========================================
+           PANEL: BORROW / RETURN
+           ========================================== -->
+      <!-- @include pages/borrow-return.html -->
+
+      <!-- ==========================================
+           PANEL: LAB BOOKING
+           ========================================== -->
+      <!-- @include pages/lab-booking.html -->
+
+      <!-- ==========================================
+           PANEL: NOTIFICATIONS / ALERTS
+           ========================================== -->
+      <!-- @include pages/notifications.html -->
+
+      <!-- ==========================================
+           PANEL: PURCHASE ORDERS
+           ========================================== -->
+      <!-- @include pages/purchase-orders.html -->
+
+      <!-- ==========================================
+           PANEL: CABINET & STORAGE GRID (DIRECTORY)
+           ========================================== -->
+      <!-- @include pages/cabinet-layout.html -->
+
+      <!-- ==========================================
+           PANEL: ADMIN SETTINGS
+           ========================================== -->
+      <!-- @include pages/admin.html -->
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       MODALS & DIALOGS (Modularized in components/modals/)
+       ========================================== -->
+  <!-- @include components/modals/announcement-modal.html -->
+  <!-- @include components/modals/import-modal.html -->
+  <!-- @include components/modals/purchase-order-modals.html -->
+  <!-- @include components/modals/auth-modals.html -->
+  <!-- @include components/modals/detail-modal.html -->
+  <!-- @include components/modals/booking-success-modal.html -->
+  <!-- @include components/modals/scanner-modal.html -->
+  <!-- @include components/modals/repair-modal.html -->
+  <!-- @include components/modals/danger-zone-modal.html -->
+  <!-- @include components/modals/version-modal.html -->
+  <!-- @include components/modals/storage-modal.html -->
+  <!-- @include components/modals/label-printer-modal.html -->
+  <!-- @include components/modals/delete-confirm-modal.html -->
+  <!-- @include components/modals/cabinet-detail-modal.html -->
+  <!-- @include components/modals/lab-room-modal.html -->
+  <!-- @include components/modals/asset-audit-modal.html -->
+  <!-- @include components/modals/confirm-modal.html -->
+  <!-- @include components/modals/cabinet-manage-modals.html -->
+  <!-- @include components/modals/help-safety-modal.html -->
+
+  <!-- Application Logic -->
+  <script src="assets/js/main.js?v=20261016_qrcode_fix"></script>
+  <script defer src="assets/js/dashboard-announcement.js?v=astryx_1"></script>
+  <script>
+    // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
+    setTimeout(function() {
+      var sk = document.getElementById("app-skeleton-loader");
+      if (sk) {
+        sk.classList.add("fade-out");
+        setTimeout(function() { if (sk && sk.parentNode) sk.remove(); }, 350);
+      }
+    }, 1200);
+
+    // Dynamic Lucide Icons Auto-Renderer for newly inserted DOM nodes (safe against infinite re-render loops)
+    (function() {
+      function patchLucide() {
+        if (!window.lucide || typeof window.lucide.createIcons !== 'function' || window.lucide._isSafePatched) return;
+        var originalCreate = window.lucide.createIcons;
+        window.lucide.createIcons = function(options) {
+          // If no unrendered icon placeholders exist, skip immediately to prevent screen flickering & loops
+          var unrendered = document.querySelectorAll('i[data-lucide], span[data-lucide], :not(svg)[data-lucide]');
+          if (unrendered.length === 0) return;
+          try {
+            originalCreate.call(window.lucide, options);
+          } catch(e) {}
+          // Mark rendered SVGs so they are never targeted again
+          document.querySelectorAll('svg.lucide[data-lucide]').forEach(function(svg) {
+            svg.setAttribute('data-lucide-rendered', svg.getAttribute('data-lucide'));
+            svg.removeAttribute('data-lucide');
+          });
+        };
+        window.lucide._isSafePatched = true;
+      }
+
+      var lucideDebounce = null;
+      function triggerLucide() {
+        if (!window.lucide || typeof window.lucide.createIcons !== 'function') {
+          var attempts = 0;
+          var poll = setInterval(function() {
+            attempts++;
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+              clearInterval(poll);
+              patchLucide();
+              try { window.lucide.createIcons(); } catch(e) {}
+            } else if (attempts > 30) {
+              clearInterval(poll);
+            }
+          }, 100);
+          return;
+        }
+        patchLucide();
+        clearTimeout(lucideDebounce);
+        lucideDebounce = setTimeout(function() {
+          try { window.lucide.createIcons(); } catch(e) {}
+        }, 40);
+      }
+
+      if (typeof MutationObserver !== 'undefined') {
+        var observer = new MutationObserver(function(mutations) {
+          var hasUnrenderedIcons = false;
+          for (var i = 0; i < mutations.length; i++) {
+            var m = mutations[i];
+            if (m.addedNodes && m.addedNodes.length > 0) {
+              for (var j = 0; j < m.addedNodes.length; j++) {
+                var node = m.addedNodes[j];
+                if (node.nodeType === 1) {
+                  // Skip already rendered SVG elements to completely prevent mutation recursion
+                  if (node.tagName === 'svg' || node.tagName === 'SVG' || node.classList?.contains('lucide')) {
+                    continue;
+                  }
+                  if ((node.hasAttribute('data-lucide') && node.tagName !== 'svg' && node.tagName !== 'SVG') ||
+                      (node.querySelector && node.querySelector('i[data-lucide], span[data-lucide], :not(svg)[data-lucide]'))) {
+                    hasUnrenderedIcons = true;
+                    break;
+                  }
+                }
+              }
+            }
+            if (hasUnrenderedIcons) break;
+          }
+          if (hasUnrenderedIcons) {
+            triggerLucide();
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+
+      // Initial trigger on load
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', triggerLucide);
+      } else {
+        triggerLucide();
+      }
+    })();
+  </script>
+  <!-- Agentation: Visual Feedback Toolbar for AI Coding Agents -->
+  <script src="assets/js/agentation.bundle.js"></script>
+</body>
+</html>
