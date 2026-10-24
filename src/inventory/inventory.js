@@ -275,11 +275,11 @@ export function renderInventoryAlertsBar() {
       <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #eab308;"></span>
       สต็อกต่ำกว่าเกณฑ์: ${counts.lowStock} รายการ
     </button>
-    <button class="alert-chip ${state.activeStatusFilter === 'reorder_needed' ? 'active' : ''}" onclick="filterByInventoryStatus('${state.activeStatusFilter === 'reorder_needed' ? 'all' : 'reorder_needed'}')" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #bae6fd; background: #e0f2fe; color: #0369a1;">
-      <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #0284c7;"></span>
+    <button class="alert-chip ${state.activeStatusFilter === 'reorder_needed' ? 'active' : ''}" onclick="filterByInventoryStatus('${state.activeStatusFilter === 'reorder_needed' ? 'all' : 'reorder_needed'}')" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #b8e8f5; background: #e7f7fb; color: #438fa9;">
+      <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #68c8e5;"></span>
       ถึงจุดสั่งซื้อใหม่ (Reorder): ${counts.reorderNeeded} รายการ
     </button>
-    <button class="alert-chip" onclick="openCompatibilityCheckerModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #c7d2fe; background: #e0e7ff; color: #4338ca;">
+    <button class="alert-chip" onclick="openCompatibilityCheckerModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #c7d2fe; background: #e5e4ff; color: #716de3;">
       <i data-lucide="shield-alert" style="width: 13px; height: 13px;"></i>
       ตรวจสอบความเข้ากันได้ของสารเคมี (Safety Matrix)
     </button>
@@ -340,7 +340,7 @@ export function renderItemsTable() {
     } else if (isLow) {
       stockBadge = `<span class="badge badge-warning" style="font-weight: 600;">${q} ${escapeHtml(item.unit || 'ชิ้น')} (ใกล้หมด)</span>`;
     } else if (isReorder) {
-      stockBadge = `<span class="badge" style="background: #e0f2fe; color: #0284c7; font-weight: 600;">${q} ${escapeHtml(item.unit || 'ชิ้น')} (จุดสั่งซื้อ)</span>`;
+      stockBadge = `<span class="badge" style="background: #e7f7fb; color: #68c8e5; font-weight: 600;">${q} ${escapeHtml(item.unit || 'ชิ้น')} (จุดสั่งซื้อ)</span>`;
     }
 
     // Expiry check
@@ -366,7 +366,7 @@ export function renderItemsTable() {
         <td style="text-align: center;">
           <input type="checkbox" class="item-batch-checkbox" value="${escapeHtml(item.code)}" ${state.selectedBatchItems.has(item.code) ? 'checked' : ''} onchange="toggleBatchItem('${escapeHtml(item.code)}', this)">
         </td>
-        <td style="font-family: monospace; font-size: 12px; font-weight: 600; color: #6366f1;">
+        <td style="font-family: monospace; font-size: 12px; font-weight: 600; color: #8f8cf0;">
           ${escapeHtml(item.code)}
           ${item.lotNumber || item.lot_number ? `<div style="font-size: 10px; color: #94a3b8;">Lot: ${escapeHtml(item.lotNumber || item.lot_number)}</div>` : ''}
         </td>
@@ -455,16 +455,16 @@ export function viewItemDetails(code) {
       <div style="padding: 20px 24px; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: flex-start; background: #ffffff;">
         <div style="display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span style="background: #4f46e5; color: #ffffff; padding: 3px 9px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.5px;">
+            <span style="background: #716de3; color: #ffffff; padding: 3px 9px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; letter-spacing: 0.5px;">
               <i data-lucide="shield-check" style="width: 12px; height: 12px;"></i> MASTER RECORD (L3-L4)
             </span>
-            <span style="font-family: monospace; background: #e0e7ff; color: #4338ca; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>
+            <span style="font-family: monospace; background: #e5e4ff; color: #716de3; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 13px;">${escapeHtml(item.code)}</span>
             <span class="category-badge" style="font-size: 12px; color: #475569; background: #f1f5f9; padding: 3px 9px; border-radius: 999px; font-weight: 600;">${escapeHtml(item.category || '-')}</span>
           </div>
           <div>
             <h2 style="margin: 0; font-size: 19px; color: #0f172a; font-weight: 700; line-height: 1.35;">
               ${escapeHtml(item.name)}
-              ${item.formula ? `<span style="font-family: monospace; font-size: 14px; color: #6366f1; font-weight: 600; margin-left: 6px;">(${escapeHtml(item.formula)})</span>` : ''}
+              ${item.formula ? `<span style="font-family: monospace; font-size: 14px; color: #8f8cf0; font-weight: 600; margin-left: 6px;">(${escapeHtml(item.formula)})</span>` : ''}
             </h2>
             <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
               ศูนย์ควบคุมข้อมูลสต็อกขั้นสูง การจัดซื้อ ล็อตสินค้า และพิกัดความปลอดภัยห้องปฏิบัติการ
@@ -484,11 +484,11 @@ export function viewItemDetails(code) {
         <!-- 4 KPI Summary Cards -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
           <div class="master-kpi-card highlight">
-            <div style="font-size: 11.5px; color: #0369a1; font-weight: 600;">คงเหลือปัจจุบัน (Stock)</div>
-            <div style="font-size: 20px; font-weight: 800; color: #0284c7; margin-top: 4px;">
-              ${q} <span style="font-size: 13px; font-weight: 600; color: #0369a1;">${escapeHtml(item.unit || 'ชิ้น')}</span>
+            <div style="font-size: 11.5px; color: #438fa9; font-weight: 600;">คงเหลือปัจจุบัน (Stock)</div>
+            <div style="font-size: 20px; font-weight: 800; color: #68c8e5; margin-top: 4px;">
+              ${q} <span style="font-size: 13px; font-weight: 600; color: #438fa9;">${escapeHtml(item.unit || 'ชิ้น')}</span>
             </div>
-            <div style="font-size: 10.5px; color: #0284c7; margin-top: 2px;">อัปเดตเรียลไทม์ในระบบ</div>
+            <div style="font-size: 10.5px; color: #68c8e5; margin-top: 2px;">อัปเดตเรียลไทม์ในระบบ</div>
           </div>
           <div class="master-kpi-card">
             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">เกณฑ์เตือนขั้นต่ำ (Min)</div>
@@ -499,7 +499,7 @@ export function viewItemDetails(code) {
           </div>
           <div class="master-kpi-card">
             <div style="font-size: 11.5px; color: #64748b; font-weight: 600;">จุดสั่งซื้อใหม่ (Reorder)</div>
-            <div style="font-size: 18px; font-weight: 700; color: #4338ca; margin-top: 4px;">
+            <div style="font-size: 18px; font-weight: 700; color: #716de3; margin-top: 4px;">
               ${reorderPt} <span style="font-size: 12px; font-weight: 500; color: #64748b;">${escapeHtml(item.unit || 'ชิ้น')}</span>
             </div>
             <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">เกณฑ์เปิดใบขอซื้อ (PR)</div>
@@ -517,13 +517,13 @@ export function viewItemDetails(code) {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
           <!-- Left Column: Procurement & Batch Traceability -->
           <div class="master-info-card">
-            <h4 style="margin: 0; font-size: 13.5px; color: #4338ca; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
-              <i data-lucide="package-check" style="width: 16px; height: 16px; color: #6366f1;"></i>
+            <h4 style="margin: 0; font-size: 13.5px; color: #716de3; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
+              <i data-lucide="package-check" style="width: 16px; height: 16px; color: #8f8cf0;"></i>
               <span>การจัดซื้อและล็อตสินค้า (Procurement & Lot)</span>
             </h4>
             <div class="master-info-row">
               <span class="master-info-label">Lot / Batch Number:</span>
-              <span class="master-info-value" style="font-family: monospace; color: #4338ca;">${escapeHtml(item.lotNumber || item.lot_number || '-')}</span>
+              <span class="master-info-value" style="font-family: monospace; color: #716de3;">${escapeHtml(item.lotNumber || item.lot_number || '-')}</span>
             </div>
             <div class="master-info-row">
               <span class="master-info-label">วันที่รับเข้าคลัง:</span>
@@ -545,7 +545,7 @@ export function viewItemDetails(code) {
 
           <!-- Right Column: Location & Safety Matrix -->
           <div class="master-info-card">
-            <h4 style="margin: 0; font-size: 13.5px; color: #4338ca; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
+            <h4 style="margin: 0; font-size: 13.5px; color: #716de3; display: flex; align-items: center; gap: 7px; font-weight: 700; border-bottom: 1.5px solid #eef2f6; padding-bottom: 10px;">
               <i data-lucide="shield-alert" style="width: 16px; height: 16px; color: #ef4444;"></i>
               <span>ตำแหน่งและความปลอดภัย (Location & Safety)</span>
             </h4>
@@ -568,7 +568,7 @@ export function viewItemDetails(code) {
             <div class="master-info-row">
               <span class="master-info-label">กลุ่มสารเคมี SHECU:</span>
               <span class="master-info-value">
-                <span style="background: #e0e7ff; color: #4338ca; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 700;">
+                <span style="background: #e5e4ff; color: #716de3; padding: 2px 7px; border-radius: 4px; font-size: 11.5px; font-weight: 700;">
                   ${escapeHtml(item.storageGroup || item.chemicalType || 'General')}
                 </span>
               </span>
@@ -580,7 +580,7 @@ export function viewItemDetails(code) {
               </span>
             </div>
             <div style="margin-top: 6px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
-              <a href="${escapeHtml(sdsSearchUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #0284c7; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);">
+              <a href="${escapeHtml(sdsSearchUrl)}" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; background: #68c8e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);">
                 <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> ดูเอกสารความปลอดภัย (SDS Sheet)
               </a>
             </div>
@@ -655,7 +655,7 @@ export async function openStockMovementsModal(code) {
             <input type="text" name="reason" required placeholder="เช่น การทดลอง ม.5/1" style="width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
           </div>
           <div style="grid-column: span 3; text-align: right; margin-top: 4px;">
-            <button type="submit" class="btn btn-primary" style="padding: 6px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;">
+            <button type="submit" class="btn btn-primary" style="padding: 6px 16px; background: #68c8e5; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;">
               บันทึกการเคลื่อนไหว
             </button>
           </div>
@@ -701,7 +701,7 @@ export async function openStockMovementsModal(code) {
             <tr style="border-bottom: 1px solid #f1f5f9;">
               <td style="padding: 8px; color: #64748b; font-size: 12px;">${formatDate(m.created_at || m.createdAt)}</td>
               <td style="padding: 8px;">
-                <span style="font-weight: 600; padding: 2px 6px; border-radius: 4px; font-size: 11px; background: ${m.type === 'IN' ? '#dcfce7; color: #15803d;' : (m.type === 'OUT' ? '#fee2e2; color: #b91c1c;' : '#e0e7ff; color: #4338ca;')}">${escapeHtml(m.type)}</span>
+                <span style="font-weight: 600; padding: 2px 6px; border-radius: 4px; font-size: 11px; background: ${m.type === 'IN' ? '#dcfce7; color: #15803d;' : (m.type === 'OUT' ? '#fee2e2; color: #b91c1c;' : '#e5e4ff; color: #716de3;')}">${escapeHtml(m.type)}</span>
               </td>
               <td style="padding: 8px; font-weight: 600;">${m.quantity} ${escapeHtml(m.unit || '')}</td>
               <td style="padding: 8px; color: #64748b; font-size: 12px;">${m.previous_quantity || m.previousQuantity || 0} -> ${m.new_quantity || m.newQuantity || 0}</td>
@@ -790,7 +790,7 @@ export function openStockAdjustmentModal(code) {
 
       <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 13px;">
         <div><strong>พัสดุ:</strong> ${escapeHtml(item.name)} (${escapeHtml(item.code)})</div>
-        <div><strong>ยอดในระบบปัจจุบัน:</strong> <span style="font-weight: 700; color: #0284c7;">${currentQty} ${escapeHtml(item.unit || 'ชิ้น')}</span></div>
+        <div><strong>ยอดในระบบปัจจุบัน:</strong> <span style="font-weight: 700; color: #68c8e5;">${currentQty} ${escapeHtml(item.unit || 'ชิ้น')}</span></div>
       </div>
 
       <form id="stockAdjustmentForm" onsubmit="handleAdjustmentSubmit(event, '${escapeHtml(item.code)}')">
@@ -874,7 +874,7 @@ export function renderAssetLabelCard(item) {
   cabinetName = cabinetName.toUpperCase();
 
   // 2. Badge styling & text
-  let badgeBg = '#2563eb';
+  let badgeBg = '#716de3';
   let badgeText = 'GENERAL';
 
   if (item.category === 'สารเคมี' || (item.chemicalType && item.chemicalType !== 'general')) {
@@ -892,7 +892,7 @@ export function renderAssetLabelCard(item) {
     }
     badgeText = `${hazardType} · ${ghsCode}`;
   } else if (item.category === 'เครื่องแก้ว' || (item.category || '').toLowerCase().includes('glass')) {
-    badgeBg = '#2563eb';
+    badgeBg = '#716de3';
     badgeText = 'GLASSWARE';
   } else if (item.category === 'อุปกรณ์' || item.category === 'เครื่องมือวิทยาศาสตร์' || (item.category || '').toLowerCase().includes('apparatus') || (item.category || '').toLowerCase().includes('equipment')) {
     badgeBg = '#0d9488';
@@ -1031,7 +1031,7 @@ export async function openQRCodeModal(code) {
     <div class="modal-content">
       <div class="modal-header">
         <div style="display: flex; align-items: center; gap: 9px;">
-          <span style="background: #e0e7ff; color: #4338ca; padding: 6px; border-radius: 8px; display: inline-flex;">
+          <span style="background: #e5e4ff; color: #716de3; padding: 6px; border-radius: 8px; display: inline-flex;">
             <i data-lucide="tag" style="width: 17px; height: 17px;"></i>
           </span>
           <div>
@@ -1050,7 +1050,7 @@ export async function openQRCodeModal(code) {
       <div class="modal-body">
         <div style="font-size: 12px; font-weight: 600; color: #475569; display: flex; align-items: center; justify-content: space-between;">
           <span style="display: flex; align-items: center; gap: 5px;">
-            <i data-lucide="eye" style="width: 14px; height: 14px; color: #6366f1;"></i>
+            <i data-lucide="eye" style="width: 14px; height: 14px; color: #8f8cf0;"></i>
             <span>ตัวอย่างป้ายพัสดุ (Print Preview)</span>
           </span>
           <span style="font-size: 11px; color: #64748b;">สเกลมาตรฐาน 100 × 50 mm / Sticker Label</span>

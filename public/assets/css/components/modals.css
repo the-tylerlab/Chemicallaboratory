@@ -355,11 +355,11 @@
 
 /* 1. Hero Card: Lab Room Spotlight */
 .bdm-hero-card {
-  background: #f5f3ff;
+  background: #f1f0ff;
   border: 1px solid rgba(139, 92, 246, 0.28);
   border-radius: 16px;
   padding: 14px 16px;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.05);
+  box-shadow: 0 4px 14px rgba(143, 140, 240, 0.05);
 }
 
 .bdm-hero-top {
@@ -381,7 +381,7 @@
   height: 40px;
   min-width: 40px;
   border-radius: 12px;
-  background: #8b5cf6;
+  background: #9996f2;
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -486,7 +486,7 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   font-weight: 700;
-  color: #4338ca;
+  color: #716de3;
   background: #ffffff;
   padding: 2px 8px;
   border-radius: 6px;
@@ -509,7 +509,7 @@
 }
 
 .bdm-copy-id-btn:hover {
-  background: #f3e8ff;
+  background: #f1f0ff;
   color: #4c1d95;
   border-color: #c084fc;
 }
@@ -548,7 +548,7 @@
 .bdm-schedule-time {
   font-size: 12.5px;
   font-weight: 600;
-  color: #4338ca;
+  color: #716de3;
   margin-top: 3px;
   display: flex;
   align-items: center;
@@ -590,7 +590,7 @@
 
 /* 3. Purpose Card */
 .bdm-purpose-card {
-  border-left: 4px solid #6366f1 !important;
+  border-left: 4px solid #8f8cf0 !important;
 }
 
 .bdm-purpose-body {
@@ -810,7 +810,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--color-primary, #6366f1);
+  background: var(--color-primary, #8f8cf0);
   z-index: 10;
 }
 
@@ -841,7 +841,7 @@
   border-radius: 9px;
   background: rgba(99, 102, 241, 0.12);
   border: 1px solid rgba(99, 102, 241, 0.24);
-  color: #6366f1;
+  color: #8f8cf0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -966,15 +966,15 @@
 
 .help-tab.active {
   background: rgba(99, 102, 241, 0.1);
-  color: #4f46e5;
+  color: #716de3;
   font-weight: 700;
-  border-left: 3px solid #6366f1;
+  border-left: 3px solid #8f8cf0;
   box-shadow: 0 1px 3px rgba(99, 102, 241, 0.08);
 }
 
 .help-tab.active .help-tab-icon {
   opacity: 1;
-  color: #4f46e5;
+  color: #716de3;
 }
 
 .help-sidebar-footer {
@@ -1114,7 +1114,7 @@
 
 .help-accordion-item[open] .help-accordion-chevron {
   transform: rotate(180deg);
-  color: #4f46e5;
+  color: #716de3;
 }
 
 .help-accordion-body {
@@ -1159,8 +1159,8 @@
   width: 18px;
   height: 18px;
   border-radius: 5px;
-  background: #e0e7ff;
-  color: #4338ca;
+  background: #e5e4ff;
+  color: #716de3;
   font-size: 10px;
   font-weight: 700;
   display: flex;
@@ -1200,7 +1200,7 @@
 }
 
 .waste-bin-card.blue {
-  background: #eff6ff;
+  background: #f1f0ff;
   border: 1px solid #bfdbfe;
 }
 
@@ -1221,7 +1221,7 @@
 }
 
 .waste-bin-card.red .waste-bin-title { color: #dc2626; }
-.waste-bin-card.blue .waste-bin-title { color: #2563eb; }
+.waste-bin-card.blue .waste-bin-title { color: #716de3; }
 .waste-bin-card.yellow .waste-bin-title { color: #ca8a04; }
 
 .waste-bin-desc {
@@ -1551,7 +1551,7 @@ body.dark-mode .help-spec-card {
   height: 40px;
   border-radius: 10px;
   background: #ede7ff;
-  color: #4f21a1;
+  color: #716de3;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1647,7 +1647,7 @@ body.dark-mode .help-spec-card {
 .modal-close-btn:focus-visible,
 .modal-close:focus-visible,
 .close-modal:focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #8f8cf0;
   outline-offset: 2px;
 }
 
@@ -1750,7 +1750,7 @@ body.dark-mode .help-spec-card {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #4f21a1;
+  color: #716de3;
   font-size: 12.5px;
   font-weight: 600;
   text-decoration: none;
@@ -1784,9 +1784,9 @@ body.dark-mode .help-spec-card {
   align-items: center;
   gap: 8px;
   padding: 8px 18px;
-  background-color: #f5f3ff;
+  background-color: #f1f0ff;
   color: #0f172a;
-  border: 1px solid #c4b5fd;
+  border: 1px solid #c2c0f7;
   border-radius: 999px;
   cursor: pointer;
   font-size: 13px;
@@ -1796,7 +1796,7 @@ body.dark-mode .help-spec-card {
 }
 
 .file-upload-label:hover {
-  background-color: #ede9fe;
+  background-color: #e5e4ff;
   border-color: #a78bfa;
   transform: translateY(-1px);
 }
@@ -1872,16 +1872,16 @@ body.dark-mode .help-spec-card {
 }
 
 #detailModalFooter .modal-btn-primary {
-  background: #7c3aed !important;
+  background: #8f8cf0 !important;
   color: #ffffff !important;
   border: none !important;
   font-weight: 600 !important;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.28) !important;
+  box-shadow: 0 2px 8px rgba(143, 140, 240, 0.28) !important;
 }
 
 #detailModalFooter .modal-btn-primary:hover {
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.38) !important;
+  box-shadow: 0 4px 14px rgba(143, 140, 240, 0.38) !important;
 }
 
 /* Toast Notifications */
@@ -2314,7 +2314,7 @@ body.dark-mode .help-spec-card {
 }
 
 .login-modal-close-corner:focus-visible {
-  outline: 2px solid #0284c7;
+  outline: 2px solid #68c8e5;
   outline-offset: 2px;
 }
 
@@ -2334,7 +2334,7 @@ body.dark-mode .help-spec-card {
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
-  background: #f0f9ff;
+  background: #f0fbfd;
   border-right: 1px solid #e2e8f0;
   color: #0f172a;
   transition: background 0.3s ease, border-color 0.3s ease;
@@ -2394,8 +2394,8 @@ body.dark-mode .help-spec-card {
 /* Essential Ambient Themes: Blue (SciPortal), Green (SHECU), Purple (Modern), Dark (Midnight) */
 .login-hero-theme-blue,
 .login-hero-theme-light {
-  background: #f0f9ff;
-  border-right: 1px solid #bae6fd;
+  background: #f0fbfd;
+  border-right: 1px solid #b8e8f5;
   color: #0f172a;
 }
 .login-hero-theme-blue .login-hero-ambient-glow,
@@ -2416,15 +2416,15 @@ body.dark-mode .help-spec-card {
 }
 
 .login-hero-theme-purple {
-  background: #faf5ff;
-  border-right: 1px solid #ddd6fe;
+  background: #f7f6ff;
+  border-right: 1px solid #d8d6fb;
   color: #0f172a;
 }
 .login-hero-theme-purple .login-hero-ambient-glow {
   background: rgba(99, 102, 241, 0.18);
 }
 .login-hero-theme-purple .badge-dot {
-  background: #7c3aed;
+  background: #8f8cf0;
 }
 
 /* Amber / Warm Alert Theme (Notice & Stock Maintenance - High Contrast & Easy to Read) */
@@ -2528,7 +2528,7 @@ body.dark-mode .help-spec-card {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #0284c7;
+  background: #68c8e5;
   display: inline-block;
   box-shadow: 0 0 5px rgba(2, 132, 199, 0.4);
 }
@@ -2620,12 +2620,12 @@ body.dark-mode .help-spec-card {
   color: #059669;
 }
 .login-feature-item.feature-stock .login-feature-icon-wrap {
-  background: #f0f9ff;
-  color: #0284c7;
+  background: #f0fbfd;
+  color: #68c8e5;
 }
 .login-feature-item.feature-calendar .login-feature-icon-wrap {
-  background: #eef2ff;
-  color: #6366f1;
+  background: #f1f0ff;
+  color: #8f8cf0;
 }
 
 .login-feature-text {
@@ -2735,7 +2735,7 @@ body.dark-mode .help-spec-card {
 }
 
 .login-input-group:focus-within .login-input-icon {
-  color: #0284c7;
+  color: #68c8e5;
 }
 
 .login-field {
@@ -2752,7 +2752,7 @@ body.dark-mode .help-spec-card {
 }
 
 .login-field:focus {
-  border-color: #0284c7 !important;
+  border-color: #68c8e5 !important;
   box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.12) !important;
   outline: none !important;
 }
@@ -2817,14 +2817,14 @@ body.dark-mode .help-spec-card {
 
 .login-forgot-link {
   font-size: 12.5px;
-  color: #0284c7;
+  color: #68c8e5;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.15s ease;
 }
 
 .login-forgot-link:hover {
-  color: #0369a1;
+  color: #438fa9;
   text-decoration: underline;
 }
 
@@ -2961,9 +2961,9 @@ body.dark-mode .help-spec-card {
 }
 
 .banner-template-chip:hover {
-  background: #f0f9ff;
-  border-color: #0284c7;
-  color: #0284c7;
+  background: #f0fbfd;
+  border-color: #68c8e5;
+  color: #68c8e5;
   transform: translateY(-1px);
 }
 
@@ -2982,8 +2982,8 @@ body.dark-mode .help-spec-card {
 }
 
 .login-banner-upload-box:hover {
-  background: #f0f9ff;
-  border-color: #0284c7;
+  background: #f0fbfd;
+  border-color: #68c8e5;
 }
 
 .login-banner-upload-preview {
@@ -3060,8 +3060,8 @@ body.dark-mode .help-spec-card {
 
 .btn-batch-tab.active {
   background: #ffffff;
-  color: #6d28d9;
-  border-color: rgba(124, 58, 237, 0.15);
+  color: #716de3;
+  border-color: rgba(143, 140, 240, 0.15);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
@@ -3079,10 +3079,10 @@ body.dark-mode .help-spec-card {
 
 .batch-upload-dropzone:hover,
 .batch-upload-dropzone.dragover {
-  border-color: #7c3aed !important;
-  background: #f5f3ff !important;
+  border-color: #8f8cf0 !important;
+  background: #f1f0ff !important;
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px -4px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 6px 16px -4px rgba(143, 140, 240, 0.1);
 }
 
 .batch-active-file-card {
@@ -3114,9 +3114,9 @@ body.dark-mode .help-spec-card {
 
 .batch-paste-box:focus {
   outline: none;
-  border-color: #7c3aed;
+  border-color: #8f8cf0;
   background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12);
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.12);
 }
 
 .batch-quick-btn {
@@ -3142,14 +3142,14 @@ body.dark-mode .help-spec-card {
 }
 
 .batch-quick-btn-primary {
-  background: #7c3aed;
+  background: #8f8cf0;
   color: #ffffff;
-  border-color: #7c3aed;
+  border-color: #8f8cf0;
 }
 
 .batch-quick-btn-primary:hover {
-  background: #6d28d9;
-  border-color: #6d28d9;
+  background: #716de3;
+  border-color: #716de3;
   color: #ffffff;
 }
 
@@ -3229,8 +3229,8 @@ body.dark-mode .help-spec-card {
 
 .batch-input-cell:focus {
   outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+  border-color: #8f8cf0;
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.15);
 }
 
 .batch-input-cell.input-error {
@@ -3254,8 +3254,8 @@ body.dark-mode .help-spec-card {
 
 .batch-role-select:focus {
   outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+  border-color: #8f8cf0;
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.15);
 }
 
 .btn-remove-batch-row {
@@ -3318,9 +3318,9 @@ body.dark-mode .help-spec-card {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  background: #f5f3ff;
-  border: 1px solid #ede9fe;
-  color: #7c3aed;
+  background: #f1f0ff;
+  border: 1px solid #e5e4ff;
+  color: #8f8cf0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3385,8 +3385,8 @@ body.dark-mode .help-spec-card {
 }
 
 .admin-user-form-grid .form-control:focus {
-  border-color: #7c3aed !important;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+  border-color: #8f8cf0 !important;
+  box-shadow: 0 0 0 3px rgba(143, 140, 240, 0.12) !important;
   outline: none !important;
 }
 
@@ -3417,11 +3417,11 @@ body.dark-mode .help-spec-card {
 .admin-user-pass-badge {
   font-size: 11px;
   font-weight: 600;
-  color: #6d28d9;
-  background: #ede9fe;
+  color: #716de3;
+  background: #e5e4ff;
   padding: 2px 8px;
   border-radius: 9999px;
-  border: 1px solid #ddd6fe;
+  border: 1px solid #d8d6fb;
 }
 
 .admin-user-pass-body {
@@ -3459,8 +3459,8 @@ body.dark-mode .help-spec-card {
 }
 
 .admin-pass-input-box:focus-within {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+  border-color: #8f8cf0;
+  box-shadow: 0 0 0 3px rgba(143, 140, 240, 0.12);
 }
 
 .admin-pass-input {
@@ -3532,16 +3532,16 @@ body.dark-mode .help-spec-card {
 }
 
 .btn-pass-reset {
-  background: #eef2ff;
-  color: #4f46e5;
+  background: #f1f0ff;
+  color: #716de3;
   border: 1px solid #c7d2fe;
   width: 100%;
 }
 
 .btn-pass-reset:hover {
-  background: #e0e7ff;
+  background: #e5e4ff;
   border-color: #a5b4fc;
-  color: #4338ca;
+  color: #716de3;
   transform: translateY(-1px);
 }
 
@@ -3558,7 +3558,7 @@ body.dark-mode .help-spec-card {
 }
 
 .admin-pass-custom-wrap:focus-within {
-  border-color: #0284c7;
+  border-color: #68c8e5;
   box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
 }
 
@@ -3576,7 +3576,7 @@ body.dark-mode .help-spec-card {
 .btn-pass-save {
   height: 36px;
   border: none;
-  background: #0284c7;
+  background: #68c8e5;
   color: #ffffff;
   padding: 0 12px;
   border-radius: 0;
@@ -3584,7 +3584,7 @@ body.dark-mode .help-spec-card {
 }
 
 .btn-pass-save:hover {
-  background: #0369a1;
+  background: #438fa9;
 }
 
 @media (max-width: 600px) {
@@ -3825,7 +3825,7 @@ body.dark-mode .help-spec-card {
 
 @media (hover: hover) {
   #todayLabStatusCard .btn-mini-book:hover {
-    border-color: #ddd6fe;
+    border-color: #d8d6fb;
     background: #f6f4ff;
     color: #4c3b85;
     box-shadow: 0 3px 8px rgba(15, 23, 42, 0.075);
@@ -3849,7 +3849,7 @@ body.dark-mode .help-spec-card {
   width: 13px;
   height: 13px;
   flex: 0 0 auto;
-  color: #7c3aed;
+  color: #8f8cf0;
 }
 
 @media (max-width: 640px) {
@@ -5034,7 +5034,7 @@ button.menu-item-link:hover {
   overflow: hidden;
   border: 1px solid #e7e3ff;
   border-radius: 999px;
-  background: #f5f3ff;
+  background: #f1f0ff;
   color: #6d4bdd;
   font-size: 9px;
   font-weight: 650;

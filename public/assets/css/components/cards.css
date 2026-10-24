@@ -123,11 +123,11 @@ table tbody tr > td[colspan]:only-child {
 }
 
 .empty-state-reset-btn:hover {
-  background: #ede9fe !important;
-  border-color: #c4b5fd !important;
-  color: var(--primary-purple, #7c3aed) !important;
+  background: #e5e4ff !important;
+  border-color: #c2c0f7 !important;
+  color: var(--primary-purple, #8f8cf0) !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15) !important;
+  box-shadow: 0 2px 6px rgba(143, 140, 240, 0.15) !important;
 }
 
 .empty-state-reset-btn:active {

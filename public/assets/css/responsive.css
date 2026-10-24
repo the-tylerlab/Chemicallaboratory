@@ -465,8 +465,8 @@
     transition: all 0.2s ease !important;
   }
   .empty-state-reset-btn:active {
-    background: #ede9fe !important;
-    border-color: #c4b5fd !important;
+    background: #e5e4ff !important;
+    border-color: #c2c0f7 !important;
     color: var(--primary-purple) !important;
   }
 
@@ -538,8 +538,8 @@
 
   #itemsTableBody .product-cat {
     font-size: 9px !important;
-    color: var(--primary-purple, #7c3aed) !important;
-    background: rgba(124, 58, 237, 0.08) !important;
+    color: var(--primary-purple, #8f8cf0) !important;
+    background: rgba(143, 140, 240, 0.08) !important;
     padding: 1px 5px !important;
     border-radius: 4px !important;
     display: inline-block !important;

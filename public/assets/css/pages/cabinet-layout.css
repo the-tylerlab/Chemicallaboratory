@@ -345,7 +345,7 @@
   right: -10px;
   width: 24px;
   height: 24px;
-  background: #3b82f6;
+  background: #8f8cf0;
   color: white;
   border: none;
   border-radius: 50%;
@@ -362,7 +362,7 @@
   left: -10px;
   width: 24px;
   height: 24px;
-  background: #3b82f6;
+  background: #8f8cf0;
   color: white;
   border: none;
   border-radius: 50%;
@@ -461,7 +461,7 @@ body.hide-col-cas .col-cas { display: none !important; }
 
 .dropdown-action-btn:hover svg,
 .dropdown-action-btn:hover i {
-  color: #0284c7;
+  color: #68c8e5;
 }
 
 .dropdown-action-btn.danger {
@@ -795,15 +795,15 @@ body.hide-col-cas .col-cas { display: none !important; }
 }
 
 .cabinet-avatar-icon.chemical {
-  background: #f3e8ff;
-  border: 1px solid #ddd6fe;
-  color: #7c3aed;
+  background: #f1f0ff;
+  border: 1px solid #d8d6fb;
+  color: #8f8cf0;
 }
 
 .cabinet-avatar-icon.glassware {
-  background: #e0f2fe;
-  border: 1px solid #bae6fd;
-  color: #0284c7;
+  background: #e7f7fb;
+  border: 1px solid #b8e8f5;
+  color: #68c8e5;
 }
 
 .cabinet-avatar-icon.emergency {
@@ -1015,7 +1015,7 @@ body.hide-col-cas .col-cas { display: none !important; }
 .cabinet-shelf-item:hover {
   background-color: #ffffff;
   border-color: #a5b4fc;
-  border-bottom-color: #6366f1;
+  border-bottom-color: #8f8cf0;
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(99, 102, 241, 0.08);
 }
@@ -1043,9 +1043,9 @@ body.hide-col-cas .col-cas { display: none !important; }
 }
 
 .cabinet-shelf-item:hover .shelf-num-dot {
-  background-color: #ede9fe;
-  border-color: #c4b5fd;
-  color: #6d28d9;
+  background-color: #e5e4ff;
+  border-color: #c2c0f7;
+  color: #716de3;
 }
 
 .shelf-title {
@@ -1076,9 +1076,9 @@ body.hide-col-cas .col-cas { display: none !important; }
 }
 
 .shelf-count-tag.has-items {
-  background-color: #f5f3ff;
-  border: 1px solid #ddd6fe;
-  color: #6d28d9;
+  background-color: #f1f0ff;
+  border: 1px solid #d8d6fb;
+  color: #716de3;
   font-weight: 600;
 }
 
@@ -1129,9 +1129,9 @@ body.hide-col-cas .col-cas { display: none !important; }
 }
 
 .footer-chip.chem {
-  background-color: #f0f9ff;
-  color: #0369a1;
-  border: 1px solid #e0f2fe;
+  background-color: #f0fbfd;
+  color: #438fa9;
+  border: 1px solid #e7f7fb;
 }
 
 .footer-chip.equip {
@@ -1338,8 +1338,8 @@ body.hide-col-cas .col-cas { display: none !important; }
 }
 
 .station-special i {
-  color: #0284c7;
-  background-color: #e0f2fe;
+  color: #68c8e5;
+  background-color: #e7f7fb;
 }
 
 /* Responsive refinements for mobile & iPad */
@@ -1569,7 +1569,7 @@ body.hide-col-cas .col-cas { display: none !important; }
   border-color: rgba(147, 51, 234, 0.25);
 }
 .alert-section.feedback .alert-section-header {
-  background-color: #f3e8ff; /* purple-100 */
+  background-color: #f1f0ff; /* purple-100 */
   color: #581c87; /* purple-900 */
 }
 .alert-section.feedback .alert-count-badge {
@@ -1577,7 +1577,7 @@ body.hide-col-cas .col-cas { display: none !important; }
   color: #ffffff;
 }
 .alert-section.feedback .notification-alert-banner {
-  background-color: #faf5ff; /* purple-50 */
+  background-color: #f7f6ff; /* purple-50 */
   border: 1px solid rgba(147, 51, 234, 0.25);
   color: #6b21a8; /* purple-800 */
 }
@@ -1634,8 +1634,8 @@ body.hide-col-cas .col-cas { display: none !important; }
 
 .swal2-input:focus,
 .swal2-select:focus {
-  border-color: var(--primary-purple, #7c3aed) !important;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+  border-color: var(--primary-purple, #8f8cf0) !important;
+  box-shadow: 0 0 0 3px rgba(143, 140, 240, 0.12) !important;
   outline: none !important;
 }
 
@@ -1650,8 +1650,8 @@ body.hide-col-cas .col-cas { display: none !important; }
   padding: 11px 22px !important;
   font-size: 14px !important;
   font-weight: 600 !important;
-  background-color: var(--primary-purple, #7c3aed) !important;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;
+  background-color: var(--primary-purple, #8f8cf0) !important;
+  box-shadow: 0 4px 12px rgba(143, 140, 240, 0.25) !important;
 }
 
 .swal2-styled.swal2-cancel {
@@ -1685,8 +1685,8 @@ body.hide-col-cas .col-cas { display: none !important; }
 }
 
 .swal2-radio label:hover {
-  border-color: #c4b5fd !important;
-  background-color: #faf5ff !important;
+  border-color: #c2c0f7 !important;
+  background-color: #f7f6ff !important;
 }
 
 /* Status Option Interactive Cards */
@@ -1701,7 +1701,7 @@ body.hide-col-cas .col-cas { display: none !important; }
 }
 
 .status-option-card.selected {
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.08);
+  box-shadow: 0 4px 14px rgba(143, 140, 240, 0.08);
 }
 
 /* Prevent iOS Safari / Mobile browsers from turning phone numbers blue */
@@ -1764,7 +1764,7 @@ a[href^="tel"]:visited {
 }
 
 .help-accordion-header:focus-visible {
-  outline: 2px solid #4f21a1;
+  outline: 2px solid #716de3;
   outline-offset: -2px;
 }
 
@@ -1785,7 +1785,7 @@ a[href^="tel"]:visited {
 
 .help-accordion-item[open] .help-accordion-chevron {
   transform: rotate(180deg);
-  color: #4f21a1;
+  color: #716de3;
 }
 
 .help-accordion-body {
@@ -1811,12 +1811,12 @@ a[href^="tel"]:visited {
 
 .shecu-badge-primary {
   background: #ede7ff;
-  color: #4f21a1;
-  border: 1px solid #ddd6fe;
+  color: #716de3;
+  border: 1px solid #d8d6fb;
 }
 
 .shecu-badge-info {
-  background: #dbeafe;
+  background: #e5e4ff;
   color: #1e40af;
   border: 1px solid #bfdbfe;
 }
@@ -1868,7 +1868,7 @@ a[href^="tel"]:visited {
 
 .sds-16-num {
   font-weight: 700;
-  color: #4f21a1;
+  color: #716de3;
   background: #ede7ff;
   border-radius: 4px;
   padding: 1px 4px;

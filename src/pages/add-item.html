@@ -86,7 +86,7 @@
                 <div class="form-row-multi">
                   <div class="flex flex-col gap-1">
                     <label for="itemQty">จำนวน <span class="required">*</span></label>
-                    <input type="number" id="itemQty" value="0" min="0" oninput="if(this.value < 0) this.value = 0;" required>
+                    <input type="number" id="itemQty" value="0" min="0" data-rolling-counter oninput="if(this.value < 0) this.value = 0;" required>
                   </div>
                   <div class="flex flex-col gap-1">
                     <label for="itemUnit">หน่วย <span class="required">*</span></label>
@@ -244,11 +244,11 @@
                 <div class="form-row-2-always">
                   <div class="flex flex-col gap-1">
                     <label for="itemDamagedQty">จำนวนที่ชำรุด</label>
-                    <input type="number" id="itemDamagedQty" value="0" min="0">
+                    <input type="number" id="itemDamagedQty" value="0" min="0" data-rolling-counter>
                   </div>
                   <div class="flex flex-col gap-1">
                     <label for="itemRepairQty">จำนวนส่งซ่อม</label>
-                    <input type="number" id="itemRepairQty" value="0" min="0">
+                    <input type="number" id="itemRepairQty" value="0" min="0" data-rolling-counter>
                   </div>
                 </div>
               </div>

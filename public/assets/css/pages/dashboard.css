@@ -141,10 +141,10 @@
   color: #10b981;
 }
 
-.stat-card.purple:hover { border-color: #7c3aed; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1); }
+.stat-card.purple:hover { border-color: #8f8cf0; box-shadow: 0 4px 12px rgba(143, 140, 240, 0.1); }
 .stat-card.purple .stat-icon {
-  background-color: rgba(124, 58, 237, 0.1);
-  color: #7c3aed;
+  background-color: rgba(143, 140, 240, 0.1);
+  color: #8f8cf0;
 }
 
 /* Dashboard Bottom Grid */
@@ -333,34 +333,34 @@
 /* Quick Button Colors - Soft Neo-Minimalist Bento Distinct Palettes */
 /* 1. Lab Booking (Ocean Blue Theme) */
 .quick-btn.blue {
-  background-color: #eff6ff !important;
+  background-color: #f1f0ff !important;
   border: 1px solid #bfdbfe !important;
 }
 .quick-btn.blue:hover {
-  background-color: #dbeafe !important;
+  background-color: #e5e4ff !important;
   border-color: #93c5fd !important;
   box-shadow: 0 4px 14px rgba(37, 99, 235, 0.12);
 }
 .quick-btn.blue .quick-btn-icon {
-  background: #2563eb !important;
+  background: #716de3 !important;
   color: #ffffff !important;
   box-shadow: 0 3px 8px rgba(37, 99, 235, 0.3);
 }
 
 /* 2. Borrow & Return (Electric Violet / Lavender Theme) */
 .quick-btn.purple {
-  background-color: #f5f3ff !important;
-  border: 1px solid #ddd6fe !important;
+  background-color: #f1f0ff !important;
+  border: 1px solid #d8d6fb !important;
 }
 .quick-btn.purple:hover {
-  background-color: #ede9fe !important;
-  border-color: #c4b5fd !important;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.12);
+  background-color: #e5e4ff !important;
+  border-color: #c2c0f7 !important;
+  box-shadow: 0 4px 14px rgba(143, 140, 240, 0.12);
 }
 .quick-btn.purple .quick-btn-icon {
-  background: #7c3aed !important;
+  background: #8f8cf0 !important;
   color: #ffffff !important;
-  box-shadow: 0 3px 8px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 3px 8px rgba(143, 140, 240, 0.3);
 }
 
 /* 3. Add Item (Emerald Mint Theme) */
@@ -461,9 +461,9 @@
 
 .announcement-ticker-bar.ticker-theme-blue .ticker-badge,
 .ticker-preview-bar.ticker-theme-blue .ticker-badge {
-  background: #e0f2fe;
-  color: #0369a1;
-  border-color: #bae6fd;
+  background: #e7f7fb;
+  color: #438fa9;
+  border-color: #b8e8f5;
 }
 
 .announcement-ticker-bar.ticker-theme-green .ticker-badge,
@@ -475,7 +475,7 @@
 
 .announcement-ticker-bar.ticker-theme-purple .ticker-badge,
 .ticker-preview-bar.ticker-theme-purple .ticker-badge {
-  background: #f3e8ff;
+  background: #f1f0ff;
   color: #7e22ce;
   border-color: #e9d5ff;
 }
@@ -631,11 +631,11 @@ body.admin-logged-in .btn-ticker-admin-edit,
 }
 
 .ticker-theme-chip.active {
-  border-color: #0284c7;
-  background: #f0f9ff;
-  color: #0369a1;
+  border-color: #68c8e5;
+  background: #f0fbfd;
+  color: #438fa9;
   font-weight: 600;
-  box-shadow: 0 0 0 1px #0284c7;
+  box-shadow: 0 0 0 1px #68c8e5;
 }
 
 .ticker-theme-dot {
@@ -655,7 +655,7 @@ body.admin-logged-in .btn-ticker-admin-edit,
 .ticker-slider-control input[type="range"] {
   flex: 1;
   cursor: pointer;
-  accent-color: #0284c7;
+  accent-color: #68c8e5;
   height: 6px;
 }
 
@@ -987,7 +987,7 @@ body.admin-logged-in .public-only-section {
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background-color: #2563eb;
+  background-color: #716de3;
 }
 
 .toggle-switch input:focus-visible + .toggle-slider {
@@ -1023,9 +1023,9 @@ body.admin-logged-in .public-only-section {
 }
 
 .badge-role-l1 {
-  background: #e0f2fe;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
+  background: #e7f7fb;
+  color: #438fa9;
+  border: 1px solid #b8e8f5;
 }
 
 .badge-role-l2 {
@@ -1035,7 +1035,7 @@ body.admin-logged-in .public-only-section {
 }
 
 .badge-role-l3 {
-  background: #f3e8ff;
+  background: #f1f0ff;
   color: #7e22ce;
   border: 1px solid #e9d5ff;
 }
@@ -1195,7 +1195,7 @@ body.admin-logged-in .public-only-section {
 
 .lab-summary-icon.blue {
   background: rgba(59, 130, 246, 0.12);
-  color: #3b82f6;
+  color: #8f8cf0;
 }
 
 .lab-summary-content {
@@ -1336,7 +1336,7 @@ body.admin-logged-in .public-only-section {
 }
 
 .btn-view-tab.active {
-  background: var(--accent-blue, #2563eb);
+  background: var(--accent-blue, #716de3);
   color: #ffffff;
   box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
 }
@@ -1418,19 +1418,19 @@ body.admin-logged-in .public-only-section {
 }
 
 .dash-cal-day-cell.today {
-  border: 1.5px solid var(--accent-blue, #3b82f6);
+  border: 1.5px solid var(--accent-blue, #8f8cf0);
   background: rgba(59, 130, 246, 0.02);
 }
 
 .dash-cal-day-cell.today .dash-cal-day-num {
-  color: var(--accent-blue, #3b82f6);
+  color: var(--accent-blue, #8f8cf0);
   font-weight: 700;
 }
 
 .dash-cal-day-cell.selected {
   background: rgba(99, 102, 241, 0.06);
-  border-color: var(--primary-purple, #7c3aed);
-  box-shadow: inset 0 0 0 1px var(--primary-purple, #7c3aed);
+  border-color: var(--primary-purple, #8f8cf0);
+  box-shadow: inset 0 0 0 1px var(--primary-purple, #8f8cf0);
 }
 
 .dash-cal-day-header {
@@ -1484,15 +1484,15 @@ body.admin-logged-in .public-only-section {
 
 /* Pill Room Colors */
 .dash-cal-event-pill.pill-blue {
-  background: #e0f2fe;
-  color: #0284c7;
-  border-left: 3px solid #0284c7;
+  background: #e7f7fb;
+  color: #68c8e5;
+  border-left: 3px solid #68c8e5;
 }
 
 .dash-cal-event-pill.pill-darkblue {
-  background: #dbeafe;
-  color: #1d4ed8;
-  border-left: 3px solid #2563eb;
+  background: #e5e4ff;
+  color: #716de3;
+  border-left: 3px solid #716de3;
 }
 
 .dash-cal-event-pill.pill-green {
@@ -1520,7 +1520,7 @@ body.admin-logged-in .public-only-section {
 }
 
 .dash-cal-event-pill.pill-purple {
-  background: #f3e8ff;
+  background: #f1f0ff;
   color: #7e22ce;
   border-left: 3px solid #9333ea;
 }
@@ -1532,15 +1532,15 @@ body.admin-logged-in .public-only-section {
 }
 
 .dash-cal-event-pill.pill-indigo {
-  background: #e0e7ff;
-  color: #4338ca;
-  border-left: 3px solid #4f46e5;
+  background: #e5e4ff;
+  color: #716de3;
+  border-left: 3px solid #716de3;
 }
 
 .dash-cal-more-btn {
   font-size: 10px;
   font-weight: 700;
-  color: var(--accent-blue, #2563eb);
+  color: var(--accent-blue, #716de3);
   cursor: pointer;
   background: transparent;
   border: none;
@@ -1556,7 +1556,7 @@ body.admin-logged-in .public-only-section {
 }
 
 .dash-cal-more-btn:hover {
-  color: #1d4ed8;
+  color: #716de3;
 }
 
 /* Week View */
@@ -1595,14 +1595,14 @@ body.admin-logged-in .public-only-section {
 }
 
 .dash-cal-week-col.today {
-  border-color: var(--primary-purple, #7c3aed);
-  background: rgba(124, 58, 237, 0.02);
+  border-color: var(--primary-purple, #8f8cf0);
+  background: rgba(143, 140, 240, 0.02);
 }
 
 .dash-cal-week-col.selected {
-  border-color: var(--primary-purple, #7c3aed);
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
-  background: rgba(124, 58, 237, 0.03);
+  border-color: var(--primary-purple, #8f8cf0);
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.2);
+  background: rgba(143, 140, 240, 0.03);
 }
 
 .dash-cal-week-header {
@@ -1656,15 +1656,15 @@ body.admin-logged-in .public-only-section {
 }
 
 .dash-cal-week-badge.today {
-  background: #f3e8ff;
+  background: #f1f0ff;
   color: #7e22ce;
   border: 1px solid #e9d5ff;
 }
 
 .dash-cal-week-badge.count {
-  background: #e0f2fe;
-  color: #0284c7;
-  border: 1px solid #bae6fd;
+  background: #e7f7fb;
+  color: #68c8e5;
+  border: 1px solid #b8e8f5;
 }
 
 .dash-cal-week-badge.free {
@@ -1720,7 +1720,7 @@ body.admin-logged-in .public-only-section {
 .dash-cal-week-time {
   font-size: 10px;
   font-weight: 700;
-  color: var(--accent-blue, #2563eb);
+  color: var(--accent-blue, #716de3);
   white-space: nowrap;
 }
 
@@ -1972,7 +1972,7 @@ body.admin-logged-in .public-only-section {
 .quick-prompt-badge svg {
   width: 11px;
   height: 11px;
-  color: #8b5cf6;
+  color: #9996f2;
 }
 
 .quick-prompt-desc {
@@ -2070,7 +2070,7 @@ body.admin-logged-in .public-only-section {
 #quickMenuCard #quickBtnAddItem:focus-visible,
 #quickMenuCard #quickBtnAdmin:focus-visible {
   color: var(--color-gray-1200, #171923);
-  outline: 2px solid var(--color-focus, #3b82f6);
+  outline: 2px solid var(--color-focus, #8f8cf0);
   outline-offset: 2px;
   transform: scale(1.02);
   z-index: 1;
@@ -2079,14 +2079,14 @@ body.admin-logged-in .public-only-section {
 /* Thematic icon accents */
 #quickMenuCard #quickBtnBorrowReturn i,
 #quickMenuCard #quickBtnBorrowReturn svg {
-  color: #2563eb !important;
-  stroke: #2563eb !important;
+  color: #716de3 !important;
+  stroke: #716de3 !important;
 }
 
 #quickMenuCard #quickBtnLabBooking i,
 #quickMenuCard #quickBtnLabBooking svg {
-  color: #7c3aed !important;
-  stroke: #7c3aed !important;
+  color: #8f8cf0 !important;
+  stroke: #8f8cf0 !important;
 }
 
 #quickMenuCard #quickBtnAddItem i,
@@ -2104,17 +2104,17 @@ body.admin-logged-in .public-only-section {
 /* Refined contextual hover styles */
 @media (hover: hover) {
   #quickMenuCard #quickBtnBorrowReturn:hover {
-    background: #eff6ff !important;
+    background: #f1f0ff !important;
     border-color: #bfdbfe !important;
-    color: #1d4ed8 !important;
+    color: #716de3 !important;
     box-shadow: 0 2px 6px rgba(37, 99, 235, 0.08) !important;
   }
 
   #quickMenuCard #quickBtnLabBooking:hover {
     background: #f6f4ff !important;
-    border-color: #ddd6fe !important;
+    border-color: #d8d6fb !important;
     color: #4c3b85 !important;
-    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.08) !important;
+    box-shadow: 0 2px 6px rgba(143, 140, 240, 0.08) !important;
   }
 
   #quickMenuCard #quickBtnAddItem:hover {
@@ -2228,7 +2228,7 @@ body.admin-logged-in .public-only-section {
   #quickMenuCard .quick-prompt-tag:hover,
   #quickMenuCard .quick-prompt-model-btn:hover {
     background: #f6f4ff !important;
-    border-color: #ddd6fe !important;
+    border-color: #d8d6fb !important;
     color: #4c3b85 !important;
     transform: none !important;
     box-shadow: 0 2px 5px rgba(15, 23, 42, 0.045) !important;
@@ -2244,7 +2244,7 @@ body.admin-logged-in .public-only-section {
 
 #quickMenuCard .quick-prompt-tag:focus-visible,
 #quickMenuCard .quick-prompt-model-btn:focus-visible {
-  outline: 3px solid rgba(124, 58, 237, 0.28);
+  outline: 3px solid rgba(143, 140, 240, 0.28);
   outline-offset: 2px;
 }
 
@@ -2262,7 +2262,7 @@ body.admin-logged-in .public-only-section {
   #quickMenuCard .quick-prompt-tag:hover svg,
   #quickMenuCard .quick-prompt-model-btn:hover i,
   #quickMenuCard .quick-prompt-model-btn:hover svg {
-    color: #7c3aed !important;
+    color: #8f8cf0 !important;
     transform: none;
   }
 }
@@ -2295,8 +2295,8 @@ body.admin-logged-in .public-only-section {
 #quickBtnLabBooking svg {
   width: 14px !important;
   height: 14px !important;
-  color: #7c3aed !important;
-  stroke: #7c3aed !important;
+  color: #8f8cf0 !important;
+  stroke: #8f8cf0 !important;
   flex: 0 0 auto;
 }
 
@@ -2338,9 +2338,9 @@ body.admin-logged-in .public-only-section {
 }
 
 .quick-prompt-send-btn:hover {
-  background: #7c3aed;
+  background: #8f8cf0;
   transform: scale(1.06) rotate(5deg);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 4px 12px rgba(143, 140, 240, 0.35);
 }
 
 .quick-prompt-send-btn i,
@@ -2608,9 +2608,9 @@ body.admin-logged-in .public-only-section {
 
 .dash-schedule-date-btn:hover {
   background: #ffffff;
-  border-color: var(--primary-purple, #7c3aed);
-  color: var(--primary-purple, #7c3aed);
-  box-shadow: 0 2px 4px rgba(124, 58, 237, 0.08);
+  border-color: var(--primary-purple, #8f8cf0);
+  color: var(--primary-purple, #8f8cf0);
+  box-shadow: 0 2px 4px rgba(143, 140, 240, 0.08);
 }
 
 .dash-schedule-date-btn:active {
@@ -2740,8 +2740,8 @@ input[type="date"].dash-schedule-date-input-hidden,
   gap: 5px;
   font-size: 11px;
   font-weight: 700;
-  color: #4f46e5;
-  background: #eef2ff;
+  color: #716de3;
+  background: #f1f0ff;
   padding: 2.5px 8px;
   border-radius: 6px;
 }
@@ -2750,7 +2750,7 @@ input[type="date"].dash-schedule-date-input-hidden,
 .dash-schedule-item-time i {
   width: 12px;
   height: 12px;
-  color: #4f46e5;
+  color: #716de3;
 }
 
 .dash-schedule-status-badge {
@@ -2835,7 +2835,7 @@ input[type="date"].dash-schedule-date-input-hidden,
   font-size: 12px;
   font-weight: 600;
   border-radius: 8px;
-  background: var(--primary-purple, #7c3aed);
+  background: var(--primary-purple, #8f8cf0);
   color: #ffffff;
   border: none;
   cursor: pointer;
@@ -2844,7 +2844,7 @@ input[type="date"].dash-schedule-date-input-hidden,
 }
 
 .btn-dash-quick-book:hover {
-  background: #6d28d9;
+  background: #716de3;
 }
 
 /* Popover Modal */
@@ -3113,13 +3113,13 @@ input[type="date"].dash-schedule-date-input-hidden,
   }
 
   .dash-cal-day-cell.today {
-    border-color: var(--primary-purple, #4f21a1) !important;
+    border-color: var(--primary-purple, #716de3) !important;
     border-width: 1.5px !important;
-    background-color: rgba(124, 58, 237, 0.03) !important;
+    background-color: rgba(143, 140, 240, 0.03) !important;
   }
 
   .dash-cal-day-cell.selected {
-    border-color: var(--primary-purple, #4f21a1) !important;
+    border-color: var(--primary-purple, #716de3) !important;
     background-color: rgba(79, 33, 161, 0.08) !important;
   }
 
@@ -3135,7 +3135,7 @@ input[type="date"].dash-schedule-date-input-hidden,
   }
 
   .dash-cal-day-cell.today .dash-cal-day-num {
-    background-color: var(--primary-purple, #4f21a1) !important;
+    background-color: var(--primary-purple, #716de3) !important;
     color: #ffffff !important;
     border-radius: 50% !important;
     width: 16px !important;
@@ -3259,16 +3259,16 @@ input[type="date"].dash-schedule-date-input-hidden,
   }
 
   .dash-cal-week-col.today .dash-cal-week-day-name {
-    color: var(--primary-purple, #7c3aed) !important;
+    color: var(--primary-purple, #8f8cf0) !important;
   }
 
   .dash-cal-week-col.today {
-    border-color: var(--primary-purple, #7c3aed) !important;
-    background: #faf5ff !important;
+    border-color: var(--primary-purple, #8f8cf0) !important;
+    background: #f7f6ff !important;
   }
 
   .dash-cal-week-col.selected {
-    box-shadow: 0 0 0 1.5px var(--primary-purple, #7c3aed) !important;
+    box-shadow: 0 0 0 1.5px var(--primary-purple, #8f8cf0) !important;
   }
 
   .dash-cal-week-item {

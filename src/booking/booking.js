@@ -342,13 +342,13 @@ export function renderBookings() {
           <div>
             <span style="font-weight: 800; color: #1e1b4b; font-size: 16px;"><i data-lucide="flask-conical" class="inline-icon"></i> ${escapeHtml(b.room)}</span>
             <span style="margin-left: 10px;">${statusBadge}</span>
-            <div style="font-size: 13px; font-weight: 600; color: #4338ca; margin-top: 4px;">
+            <div style="font-size: 13px; font-weight: 600; color: #716de3; margin-top: 4px;">
               <i data-lucide="test-tube" class="inline-icon"></i> การทดลอง: ${escapeHtml(b.experimentName || b.purpose || '-')} | ระดับชั้น: ${escapeHtml(b.className || '-')} (${b.studentCount || 0} คน)
             </div>
           </div>
           <div style="text-align: right; font-size: 12px; color: #64748b;">
             <div style="font-weight: 700; color: #1e293b;"><i data-lucide="calendar" class="inline-icon"></i> ${formatDate(b.date)}</div>
-            <div style="font-family: monospace; color: #4f46e5; margin-top: 2px;"><i data-lucide="clock" class="inline-icon"></i> ${escapeHtml(b.timeSlot || b.slot)}</div>
+            <div style="font-family: monospace; color: #716de3; margin-top: 2px;"><i data-lucide="clock" class="inline-icon"></i> ${escapeHtml(b.timeSlot || b.slot)}</div>
           </div>
         </div>
 
@@ -371,10 +371,10 @@ export function renderBookings() {
           </div>
 
           <!-- Cleanup Checklist -->
-          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px;">
+          <div style="background: #f1f0ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 12px;">
             <strong style="color: #1e40af; display: block; margin-bottom: 6px;"><i data-lucide="sparkles" class="inline-icon"></i> ตรวจความเรียบร้อยหลังแล็บ (Cleanup)</strong>
             ${cleanupChecklist.map((item, idx) => `
-              <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; cursor: pointer; color: #1d4ed8;">
+              <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; cursor: pointer; color: #716de3;">
                 <input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleChecklistItem('${b.id}', 'cleanup', ${idx}, this.checked)">
                 <span style="${item.done ? 'text-decoration: line-through; opacity: 0.7;' : ''}">${escapeHtml(item.task)}</span>
               </label>

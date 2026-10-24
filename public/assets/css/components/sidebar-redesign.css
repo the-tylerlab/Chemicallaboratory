@@ -244,3 +244,49 @@ button.menu-item-link:active {
     transition-duration: .01ms !important;
   }
 }
+
+/* Global dark theme surfaces; kept last so page styles cannot restore light surfaces. */
+body.dark-mode .main-content {
+  background: #111827 !important;
+  color: #f8fafc;
+}
+
+body.dark-mode .sidebar,
+body.dark-mode .mobile-header {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc;
+}
+
+body.dark-mode .card,
+body.dark-mode .card-container,
+body.dark-mode .stat-card,
+body.dark-mode .dashboard-card,
+body.dark-mode .admin-content-card,
+body.dark-mode .unified-page-header {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc;
+}
+
+body.dark-mode .stat-value,
+body.dark-mode .content-header h1,
+body.dark-mode .content-header h2,
+body.dark-mode .content-header h3 {
+  color: #f8fafc !important;
+}
+
+body.dark-mode .stat-title,
+body.dark-mode .stat-sublabel,
+body.dark-mode .content-header p,
+body.dark-mode .text-muted {
+  color: #a7b2c2 !important;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background-color: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}

@@ -47,7 +47,7 @@
 
 /* Status: Selected (กำลังเลือก) */
 .booking-slot-card.selected {
-  border: 1px solid #8b5cf6;
+  border: 1px solid #9996f2;
   background-color: rgba(139, 92, 246, 0.08);
   box-shadow: 0 0 0 2.5px rgba(139, 92, 246, 0.2);
 }
@@ -84,7 +84,7 @@
 
 .booking-slot-status.selected {
   background-color: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
+  color: #9996f2;
 }
 
 /* Status: Pending Booked (รออนุมัติจอง) */
@@ -524,7 +524,7 @@
 }
 
 .booking-meta-val.slots-val {
-  color: #4f46e5;
+  color: #716de3;
 }
 
 .booking-card-footer {
@@ -661,7 +661,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: #6366f1;
+  background: #8f8cf0;
   border-radius: 20px 20px 0 0;
 }
 
@@ -690,7 +690,7 @@
   border-radius: 12px;
   background: rgba(99, 102, 241, 0.14);
   border: 1px solid rgba(99, 102, 241, 0.24);
-  color: #6366f1;
+  color: #8f8cf0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -738,7 +738,7 @@
   border-radius: 999px;
   background: rgba(99, 102, 241, 0.08);
   border: 1px solid rgba(99, 102, 241, 0.2);
-  color: #4f46e5;
+  color: #716de3;
   font-size: 12.5px;
   font-weight: 600;
   white-space: nowrap;
@@ -785,7 +785,7 @@
 
 .booking-kpi-icon.purple {
   background: rgba(99, 102, 241, 0.12);
-  color: #6366f1;
+  color: #8f8cf0;
 }
 
 .booking-kpi-icon.amber {
@@ -800,7 +800,7 @@
 
 .booking-kpi-icon.blue {
   background: rgba(37, 99, 235, 0.12);
-  color: #2563eb;
+  color: #716de3;
 }
 
 .booking-kpi-info {
@@ -834,7 +834,7 @@
 
 .booking-kpi-value.highlight {
   font-size: 13.5px;
-  color: #4338ca;
+  color: #716de3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -963,8 +963,8 @@
 }
 
 .booking-chart-col:hover .booking-chart-bar-badge {
-  background: #4f46e5;
-  border-color: #4338ca;
+  background: #716de3;
+  border-color: #716de3;
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
@@ -981,7 +981,7 @@
 }
 
 .booking-chart-col.is-top-booked:hover .booking-chart-bar-badge {
-  background: #4f46e5;
+  background: #716de3;
   color: #ffffff;
 }
 
@@ -1048,7 +1048,7 @@
   border-radius: 6px;
   background: rgba(99, 102, 241, 0.08);
   border: 1px solid rgba(99, 102, 241, 0.16);
-  color: #6366f1;
+  color: #8f8cf0;
   letter-spacing: 0.2px;
 }
 
@@ -1065,7 +1065,7 @@
 }
 
 .booking-chart-col:hover .booking-chart-bar-label {
-  color: #4f46e5;
+  color: #716de3;
 }
 
 .booking-chart-bar-pct {
@@ -1135,7 +1135,7 @@
 .booking-chart-pct {
   font-size: 11.5px;
   font-weight: 600;
-  color: #6366f1;
+  color: #8f8cf0;
 }
 
 .booking-chart-row .booking-chart-track-container {

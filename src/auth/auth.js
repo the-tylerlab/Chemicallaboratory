@@ -31,7 +31,7 @@ export const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "AD",
-    color: "#7c3aed"
+    color: "#8f8cf0"
   },
   {
     id: "u_10823",
@@ -42,7 +42,7 @@ export const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "วด",
-    color: "#7c3aed"
+    color: "#8f8cf0"
   },
   {
     id: "u_10572",
@@ -53,7 +53,7 @@ export const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "พป",
-    color: "#7c3aed"
+    color: "#8f8cf0"
   },
   {
     id: "u_4001",
@@ -130,7 +130,7 @@ export const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาเคมี)",
     assignedRooms: [],
     initials: "สร",
-    color: "#0284c7"
+    color: "#68c8e5"
   },
   {
     id: "u_1002",
@@ -141,7 +141,7 @@ export const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี (สาขาฟิสิกส์)",
     assignedRooms: [],
     initials: "วฝ",
-    color: "#0284c7"
+    color: "#68c8e5"
   },
   {
     id: "u_10746",
@@ -152,7 +152,7 @@ export const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "สช",
-    color: "#0284c7"
+    color: "#68c8e5"
   },
   {
     id: "u_10797",
@@ -163,7 +163,7 @@ export const SYSTEM_USERS_REGISTRY = [
     department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
     assignedRooms: [],
     initials: "ธพ",
-    color: "#0284c7"
+    color: "#68c8e5"
   }
 ];
 

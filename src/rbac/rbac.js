@@ -64,13 +64,13 @@ export function getRoleBadgeInfo(role) {
   const norm = normalizeRole(role);
   switch (norm) {
     case 'L4':
-      return { level: 'L4', name: 'Executive', full: 'ผู้บริหาร / หัวหน้ากลุ่มสาระฯ (L4)', bg: '#fdf2f8', text: '#9d174d', border: '#fbcfe8' };
+      return { level: 'L4', name: 'Executive', full: 'ผู้บริหาร / หัวหน้ากลุ่มสาระฯ (L4)', bg: '#e5e4ff', text: '#5758e8', border: '#c2c0f7' };
     case 'L3':
-      return { level: 'L3', name: 'Manager / Admin', full: 'อาจารย์ผู้ดูแลระบบ (L3)', bg: '#f5f3ff', text: '#6d28d9', border: '#ddd6fe' };
+      return { level: 'L3', name: 'Manager / Admin', full: 'อาจารย์ผู้ดูแลระบบ (L3)', bg: '#f1f0ff', text: '#716de3', border: '#d8d6fb' };
     case 'L2':
-      return { level: 'L2', name: 'Staff', full: 'เจ้าหน้าที่ห้องแล็บ (L2)', bg: '#fff7ed', text: '#c2410c', border: '#fed7aa' };
+      return { level: 'L2', name: 'Staff', full: 'เจ้าหน้าที่ห้องแล็บ (L2)', bg: '#fff3f1', text: '#b85e50', border: '#f6c5bc' };
     case 'L1':
-      return { level: 'L1', name: 'Teacher', full: 'ครูผู้สอน (L1)', bg: '#f0f9ff', text: '#0369a1', border: '#bae6fd' };
+      return { level: 'L1', name: 'Teacher', full: 'ครูผู้สอน (L1)', bg: '#f0fbfd', text: '#438fa9', border: '#b8e8f5' };
     default:
       return { level: 'L0', name: 'Guest', full: 'ผู้เข้าชมทั่วไป (L0)', bg: '#f8fafc', text: '#475569', border: '#e2e8f0' };
   }
@@ -80,10 +80,10 @@ export function getRoleBadgeInfo(role) {
 export function getRoleColor(role) {
   const norm = normalizeRole(role);
   switch (norm) {
-    case 'L4': return '#be185d';
-    case 'L3': return '#7c3aed';
-    case 'L2': return '#ea580c';
-    case 'L1': return '#0284c7';
+    case 'L4': return '#5758e8';
+    case 'L3': return '#9996f2';
+    case 'L2': return '#f39b8d';
+    case 'L1': return '#68c8e5';
     default:   return '#64748b';
   }
 }

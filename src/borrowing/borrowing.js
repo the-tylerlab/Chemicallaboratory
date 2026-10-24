@@ -306,7 +306,7 @@ export function renderTransactions() {
 
     return `
       <tr>
-        <td style="font-family: monospace; font-size: 12px; color: #6366f1; font-weight: 700;">${isL3L4 ? escapeHtml(t.id) : '-'}</td>
+        <td style="font-family: monospace; font-size: 12px; color: #8f8cf0; font-weight: 700;">${isL3L4 ? escapeHtml(t.id) : '-'}</td>
         <td style="font-weight: 600; color: #1e293b;">
           ${escapeHtml(t.itemName)}
           <span style="display: block; font-size: 11px; color: #64748b; font-family: monospace;">${escapeHtml(t.itemCode)}</span>

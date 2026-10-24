@@ -102,42 +102,42 @@
 
 /* Tab 1: Users (Purple / Violet) */
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-users"] .tab-icon-wrap {
-  color: #8b5cf6;
+  color: #9996f2;
 }
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-users"]:hover:not(.active) {
-  color: #6d28d9;
+  color: #716de3;
 }
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-users"]:hover:not(.active) .tab-icon-wrap {
-  background: #f5f3ff;
-  color: #7c3aed;
+  background: #f1f0ff;
+  color: #8f8cf0;
 }
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-users"].active {
-  color: #6d28d9 !important;
-  border-color: #ddd6fe !important;
+  color: #716de3 !important;
+  border-color: #d8d6fb !important;
 }
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-users"].active .tab-icon-wrap {
-  background: #f5f3ff !important;
-  color: #7c3aed !important;
+  background: #f1f0ff !important;
+  color: #8f8cf0 !important;
 }
 
 /* Tab 2: Lab Rooms (Sky Blue / Ocean) */
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-labs"] .tab-icon-wrap {
-  color: #0284c7;
+  color: #68c8e5;
 }
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-labs"]:hover:not(.active) {
-  color: #0369a1;
+  color: #438fa9;
 }
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-labs"]:hover:not(.active) .tab-icon-wrap {
-  background: #f0f9ff;
-  color: #0284c7;
+  background: #f0fbfd;
+  color: #68c8e5;
 }
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-labs"].active {
-  color: #0369a1 !important;
-  border-color: #bae6fd !important;
+  color: #438fa9 !important;
+  border-color: #b8e8f5 !important;
 }
 .admin-horizontal-menu .admin-menu-item[data-tab="admin-labs"].active .tab-icon-wrap {
-  background: #f0f9ff !important;
-  color: #0284c7 !important;
+  background: #f0fbfd !important;
+  color: #68c8e5 !important;
 }
 
 
@@ -360,7 +360,7 @@
   background: #ffffff;
 }
 .admin-kpi-card.kpi-card-users::before {
-  background: #7c3aed;
+  background: #8f8cf0;
 }
 
 .admin-kpi-card.kpi-card-staff {
@@ -374,7 +374,7 @@
   background: #ffffff;
 }
 .admin-kpi-card.kpi-card-labs::before {
-  background: #0284c7;
+  background: #68c8e5;
 }
 
 .admin-kpi-card.kpi-card-security {
@@ -407,9 +407,9 @@
 }
 
 .kpi-card-users .admin-kpi-icon-badge {
-  background: #7c3aed;
+  background: #8f8cf0;
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(124, 58, 237, 0.28);
+  box-shadow: 0 3px 8px rgba(143, 140, 240, 0.28);
 }
 .kpi-card-staff .admin-kpi-icon-badge {
   background: #059669;
@@ -417,7 +417,7 @@
   box-shadow: 0 3px 8px rgba(5, 150, 105, 0.28);
 }
 .kpi-card-labs .admin-kpi-icon-badge {
-  background: #0284c7;
+  background: #68c8e5;
   color: #ffffff;
   box-shadow: 0 3px 8px rgba(2, 132, 199, 0.28);
 }
@@ -522,16 +522,16 @@
 }
 
 .pill-purple {
-  background: #f3e8ff;
-  color: #7c3aed;
+  background: #f1f0ff;
+  color: #8f8cf0;
 }
 .pill-emerald {
   background: #dcfce7;
   color: #15803d;
 }
 .pill-blue {
-  background: #e0f2fe;
-  color: #0369a1;
+  background: #e7f7fb;
+  color: #438fa9;
 }
 .pill-teal {
   background: #ccfbf1;
@@ -643,12 +643,12 @@ input[type="text"].admin-search-input::placeholder {
 input.admin-search-input:focus,
 input[type="text"].admin-search-input:focus {
   background: #ffffff;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+  border-color: #8f8cf0;
+  box-shadow: 0 0 0 3px rgba(143, 140, 240, 0.12);
 }
 
 .admin-search-wrap:focus-within .admin-search-icon {
-  color: #7c3aed !important;
+  color: #8f8cf0 !important;
 }
 
 /* Filter Group & Select Wrapper */
@@ -715,8 +715,8 @@ select.admin-filter-select:hover {
 }
 
 select.admin-filter-select:focus {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+  border-color: #8f8cf0;
+  box-shadow: 0 0 0 3px rgba(143, 140, 240, 0.12);
 }
 
 /* Right Wing: Data Utilities & Action CTA */
@@ -766,18 +766,18 @@ select.admin-filter-select:focus {
 /* Sync Sheets Utility */
 .btn-admin-action.btn-sync-sheets {
   background: #ffffff;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
+  color: #438fa9;
+  border: 1px solid #b8e8f5;
   box-shadow: 0 1px 2px rgba(2, 132, 199, 0.06);
 }
 .btn-admin-action.btn-sync-sheets i,
 .btn-admin-action.btn-sync-sheets svg {
-  color: #0284c7;
+  color: #68c8e5;
 }
 .btn-admin-action.btn-sync-sheets:hover {
-  background: #f0f9ff;
+  background: #f0fbfd;
   border-color: #7dd3fc;
-  color: #0284c7;
+  color: #68c8e5;
   transform: translateY(-1px);
   box-shadow: 0 3px 8px rgba(2, 132, 199, 0.15);
 }
@@ -803,16 +803,16 @@ select.admin-filter-select:focus {
 
 /* Primary Add User CTA */
 .btn-admin-action.btn-add-user {
-  background: #7c3aed;
+  background: #8f8cf0;
   color: #ffffff;
-  border: 1px solid #6d28d9;
-  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+  border: 1px solid #716de3;
+  box-shadow: 0 2px 8px rgba(143, 140, 240, 0.3);
   padding: 0 18px;
 }
 .btn-admin-action.btn-add-user:hover {
-  background: #6d28d9;
+  background: #716de3;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 4px 14px rgba(143, 140, 240, 0.4);
 }
 
 /* Batch Delete User Button */
@@ -939,10 +939,10 @@ select.admin-filter-select:focus {
 }
 
 .page-number-btn.active {
-  background: #7c3aed !important;
+  background: #8f8cf0 !important;
   color: #ffffff !important;
-  border-color: #7c3aed !important;
-  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.25);
+  border-color: #8f8cf0 !important;
+  box-shadow: 0 2px 6px rgba(143, 140, 240, 0.25);
 }
 
 .admin-mobile-pagination {
@@ -985,9 +985,9 @@ select.admin-filter-select:focus {
 }
 
 .btn-admin-reset-pw {
-  background: #f5f3ff !important;
-  color: #6d28d9 !important;
-  border: 1px solid #ddd6fe !important;
+  background: #f1f0ff !important;
+  color: #716de3 !important;
+  border: 1px solid #d8d6fb !important;
   padding: 4px 10px !important;
   border-radius: 8px !important;
   font-size: 12px !important;
@@ -999,9 +999,9 @@ select.admin-filter-select:focus {
   box-shadow: 0 1px 2px rgba(109, 40, 217, 0.05);
 }
 .btn-admin-reset-pw:hover {
-  background: #6d28d9 !important;
+  background: #716de3 !important;
   color: #ffffff !important;
-  border-color: #6d28d9 !important;
+  border-color: #716de3 !important;
   box-shadow: 0 2px 6px rgba(109, 40, 217, 0.25) !important;
   transform: translateY(-1px);
 }
@@ -1096,7 +1096,7 @@ select.admin-filter-select:focus {
   font-size: 13.5px;
   font-weight: 600;
   border-radius: 10px;
-  background: var(--primary-purple, #4f21a1) !important;
+  background: var(--primary-purple, #716de3) !important;
   color: #ffffff !important;
   border: none !important;
   cursor: pointer;
@@ -1371,14 +1371,14 @@ select.admin-filter-select:focus {
 
   .admin-horizontal-menu .admin-menu-item.active {
     background: #ffffff !important;
-    color: var(--primary-purple, #7c3aed) !important;
+    color: var(--primary-purple, #8f8cf0) !important;
     font-weight: 700 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
   }
 
   .admin-horizontal-menu .admin-menu-item.active i,
   .admin-horizontal-menu .admin-menu-item.active svg {
-    color: var(--primary-purple, #7c3aed) !important;
+    color: var(--primary-purple, #8f8cf0) !important;
   }
 
   /* FlowAI KPI Cards Responsive Layout on iPad (2x2 grid on iPad portrait < 920px) */
@@ -1635,13 +1635,13 @@ select.admin-filter-select:focus {
   }
   .admin-horizontal-menu .admin-menu-item.active {
     background: #ffffff !important;
-    color: var(--primary-purple, #7c3aed) !important;
+    color: var(--primary-purple, #8f8cf0) !important;
     font-weight: 700 !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
   }
   .admin-horizontal-menu .admin-menu-item.active i,
   .admin-horizontal-menu .admin-menu-item.active svg {
-    color: var(--primary-purple, #7c3aed) !important;
+    color: var(--primary-purple, #8f8cf0) !important;
   }
   .admin-horizontal-menu .admin-menu-item.danger.active {
     color: #ef4444 !important;

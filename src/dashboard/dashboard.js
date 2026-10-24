@@ -144,7 +144,7 @@ export async function updateDashboardMetrics() {
       <div class="category-breakdown-list">
         ${catCounts.map(({ cat, count }) => {
           const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
-          const color = catColors[cat] || '#6366f1';
+          const color = catColors[cat] || '#8f8cf0';
           return `
             <div class="category-breakdown-row">
               <div class="category-breakdown-meta">
@@ -292,7 +292,7 @@ export async function updateDashboardMetrics() {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px;">
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
             <span style="font-size: 12px; color: #64748b; font-weight: 600;">ห้องแล็บที่ฉันจองไว้</span>
-            <div style="font-size: 28px; font-weight: 800; color: #4f46e5; margin-top: 4px;">${myBookings.length}</div>
+            <div style="font-size: 28px; font-weight: 800; color: #716de3; margin-top: 4px;">${myBookings.length}</div>
             <span style="font-size: 11px; color: #10b981;">รวมรายการที่รออนุมัติ</span>
           </div>
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
@@ -333,7 +333,7 @@ export async function updateDashboardMetrics() {
               <div style="border-bottom: 1px solid #f1f5f9; padding: 10px 0;">
                 <div style="display: flex; justify-content: space-between;">
                   <strong>${escapeHtml(t.itemName)}</strong>
-                  <span style="font-size: 12px; color: #4338ca;">${t.quantity} ${escapeHtml(t.unit || 'ชิ้น')}</span>
+                  <span style="font-size: 12px; color: #716de3;">${t.quantity} ${escapeHtml(t.unit || 'ชิ้น')}</span>
                 </div>
                 <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
                   กำหนดคืน: ${formatDate(t.dueDate || t.expectedReturnDate)}
@@ -364,13 +364,13 @@ export async function updateDashboardMetrics() {
           </div>
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #cbd5e1;">
             <span style="font-size: 12px; color: #475569; font-weight: 600;">เตรียมการทดลองวันนี้</span>
-            <div style="font-size: 28px; font-weight: 800; color: #0284c7; margin-top: 4px;">${todayPreps.length}</div>
-            <span style="font-size: 11px; color: #0284c7;">รายการจองที่อนุมัติวันนี้</span>
+            <div style="font-size: 28px; font-weight: 800; color: #68c8e5; margin-top: 4px;">${todayPreps.length}</div>
+            <span style="font-size: 11px; color: #68c8e5;">รายการจองที่อนุมัติวันนี้</span>
           </div>
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #cbd5e1;">
             <span style="font-size: 12px; color: #475569; font-weight: 600;">คำขอจองห้องรออนุมัติ</span>
-            <div style="font-size: 28px; font-weight: 800; color: #7c3aed; margin-top: 4px;">${bookings.filter(b => b.status === 'pending').length}</div>
-            <span style="font-size: 11px; color: #7c3aed;">รายการที่รออนุมัติ</span>
+            <div style="font-size: 28px; font-weight: 800; color: #8f8cf0; margin-top: 4px;">${bookings.filter(b => b.status === 'pending').length}</div>
+            <span style="font-size: 11px; color: #8f8cf0;">รายการที่รออนุมัติ</span>
           </div>
         </div>
 
@@ -409,8 +409,8 @@ export async function updateDashboardMetrics() {
           </div>
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">
             <span style="font-size: 12px; color: #64748b; font-weight: 600;">ผู้ใช้งานในระบบ</span>
-            <div style="font-size: 26px; font-weight: 800; color: #3b82f6; margin-top: 4px;">14 คน</div>
-            <span style="font-size: 11px; color: #3b82f6;">ครู, จนท. และแอดมิน</span>
+            <div style="font-size: 26px; font-weight: 800; color: #8f8cf0; margin-top: 4px;">14 คน</div>
+            <span style="font-size: 11px; color: #8f8cf0;">ครู, จนท. และแอดมิน</span>
           </div>
           <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">
             <span style="font-size: 12px; color: #64748b; font-weight: 600;">คำขอจองห้องปฏิบัติการ</span>
@@ -433,8 +433,8 @@ export async function updateDashboardMetrics() {
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px;">
         <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">
           <span style="font-size: 12px; color: #64748b; font-weight: 600;">อัตราการใช้ห้องปฏิบัติการ</span>
-          <div style="font-size: 28px; font-weight: 800; color: #4338ca; margin-top: 4px;">78%</div>
-          <span style="font-size: 11px; color: #4338ca;">จากห้องปฏิบัติการ 8 ห้อง</span>
+          <div style="font-size: 28px; font-weight: 800; color: #716de3; margin-top: 4px;">78%</div>
+          <span style="font-size: 11px; color: #716de3;">จากห้องปฏิบัติการ 8 ห้อง</span>
         </div>
         <div style="background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;">
           <span style="font-size: 12px; color: #64748b; font-weight: 600;">มูลค่าสินทรัพย์และเคมีภัณฑ์</span>

@@ -170,7 +170,7 @@ export function renderUsersTable() {
           <button class="action-btn" title="แก้ไขสิทธิ์" onclick="openEditUserModal('${tId}')">
             <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
           </button>
-          <button class="action-btn" style="color: #6d28d9;" title="รีเซ็ตรหัสผ่าน" onclick="if(window.quickResetUserPassword) quickResetUserPassword('${u.id || tId}');">
+          <button class="action-btn" style="color: #716de3;" title="รีเซ็ตรหัสผ่าน" onclick="if(window.quickResetUserPassword) quickResetUserPassword('${u.id || tId}');">
             <i data-lucide="key-round" style="width: 14px; height: 14px;"></i>
           </button>
           <button class="action-btn" style="color: #ef4444;" title="ลบผู้ใช้" onclick="confirmDeleteUser('${tId}', '${name}')">

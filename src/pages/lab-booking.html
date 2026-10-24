@@ -78,8 +78,8 @@
 
                   <div class="form-group" style="margin-bottom: 0;">
                     <label for="bookingStudentCount" class="form-label">จำนวนนักเรียนที่เข้าใช้งานทั้งหมด <span style="color: var(--accent-red);">*</span></label>
-                    <div style="position: relative; width: 100%; display: flex; align-items: center;">
-                      <input type="number" id="bookingStudentCount" class="form-control" placeholder="เช่น 35" min="1" max="150" required style="padding-right: 48px;">
+                    <div class="booking-count-control" style="position: relative; width: 100%; display: flex; align-items: center;">
+                      <input type="number" id="bookingStudentCount" class="form-control" placeholder="เช่น 35" min="1" max="150" data-rolling-counter required style="padding-right: 48px;">
                       <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); font-weight: 500; pointer-events: none;">คน</span>
                     </div>
                   </div>
@@ -96,7 +96,7 @@
                 </div>
 
                 <div class="form-actions" style="margin-top: 20px;">
-                  <button type="submit" class="btn btn-primary" id="btnSubmitBooking" style="background: #8b5cf6; display: inline-flex; align-items: center; gap: 8px; font-weight: 600;">
+                  <button type="submit" class="btn btn-primary" id="btnSubmitBooking" style="background: #9996f2; display: inline-flex; align-items: center; gap: 8px; font-weight: 600;">
                     <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
                     <span>บันทึกการจอง</span>
                   </button>
@@ -170,13 +170,13 @@
                   <span class="btn-text-mobile">Excel</span>
                 </button>
                 <button type="button" id="btnQuickExportBookingPDF" class="booking-action-btn" title="พิมพ์รายงานการจอง (PDF)" aria-label="พิมพ์รายงาน">
-                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #6366f1; flex-shrink: 0;"></i>
+                  <i data-lucide="printer" style="width: 15px; height: 15px; color: #8f8cf0; flex-shrink: 0;"></i>
                   <span class="btn-text-desktop">พิมพ์</span>
                   <span class="btn-text-tablet">พิมพ์</span>
                   <span class="btn-text-mobile">PDF</span>
                 </button>
                 <button type="button" id="btnSyncBookings" onclick="syncAllToGoogleSheets()" class="booking-action-btn icon-only-btn" title="ซิงค์ข้อมูลกับ Google Sheets ทันที" aria-label="ซิงค์ข้อมูล">
-                  <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #2563eb; flex-shrink: 0;"></i>
+                  <i data-lucide="refresh-cw" style="width: 15px; height: 15px; color: #716de3; flex-shrink: 0;"></i>
                 </button>
               </div>
 

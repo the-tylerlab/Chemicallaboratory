@@ -117,8 +117,8 @@
 
 .po-pill-input:focus {
   background-color: #ffffff;
-  border-color: var(--primary-purple, #7c3aed);
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+  border-color: var(--primary-purple, #8f8cf0);
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.15);
 }
 
 .po-pill-divider {
@@ -153,8 +153,8 @@
 
 .po-pill-select:focus {
   background-color: #ffffff;
-  border-color: var(--primary-purple, #7c3aed);
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+  border-color: var(--primary-purple, #8f8cf0);
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.15);
 }
 
 #purchaseOrderForm .form-actions {
@@ -231,12 +231,12 @@
   border-color: #cbd5e1;
 }
 
-.po-stat-grid .stat-card.purple { border-left: 4.5px solid #7c3aed; }
+.po-stat-grid .stat-card.purple { border-left: 4.5px solid #8f8cf0; }
 .po-stat-grid .stat-card.red { border-left: 4.5px solid #ef4444; }
 .po-stat-grid .stat-card.green { border-left: 4.5px solid #10b981; }
 .po-stat-grid .stat-card.orange { border-left: 4.5px solid #ea580c; }
 
-.po-stat-grid .stat-card.purple .stat-icon { background: #f5f3ff; color: #7c3aed; }
+.po-stat-grid .stat-card.purple .stat-icon { background: #f1f0ff; color: #8f8cf0; }
 .po-stat-grid .stat-card.red .stat-icon { background: #fee2e2; color: #ef4444; }
 .po-stat-grid .stat-card.green .stat-icon { background: #dcfce7; color: #10b981; }
 .po-stat-grid .stat-card.orange .stat-icon { background: #ffedd5; color: #ea580c; }
@@ -279,9 +279,9 @@
 }
 
 .budget-edit-btn:hover {
-  background: #ede9fe;
-  color: #7c3aed;
-  border-color: #ddd6fe;
+  background: #e5e4ff;
+  color: #8f8cf0;
+  border-color: #d8d6fb;
 }
 
 /* Pill Navigation Dock */
@@ -327,10 +327,10 @@
 }
 
 .po-pill-item.active {
-  background: #f5f3ff;
-  color: #7c3aed;
-  border-color: #ede9fe;
-  box-shadow: 0 1px 2px rgba(124, 58, 237, 0.08);
+  background: #f1f0ff;
+  color: #8f8cf0;
+  border-color: #e5e4ff;
+  box-shadow: 0 1px 2px rgba(143, 140, 240, 0.08);
 }
 
 .po-pill-badge {
@@ -342,8 +342,8 @@
 }
 
 .po-pill-badge.blue {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #e5e4ff;
+  color: #716de3;
 }
 
 .po-pill-badge.orange {
@@ -507,7 +507,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #7c3aed;
+  color: #8f8cf0;
   flex-shrink: 0;
 }
 
@@ -538,7 +538,7 @@
   text-align: center;
   font-size: 12px !important;
   font-weight: 700 !important;
-  color: #6d28d9 !important;
+  color: #716de3 !important;
   border: 1px solid #cbd5e1 !important;
   border-radius: 9999px !important;
   background: #ffffff !important;
@@ -550,8 +550,8 @@
 }
 
 .po-ctx-input:focus {
-  border-color: #7c3aed !important;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15) !important;
+  border-color: #8f8cf0 !important;
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.15) !important;
   background: #ffffff !important;
 }
 
@@ -571,7 +571,7 @@
   padding: 0 20px 0 8px !important;
   font-size: 12px !important;
   font-weight: 700 !important;
-  color: #6d28d9 !important;
+  color: #716de3 !important;
   border: 1px solid #cbd5e1 !important;
   border-radius: 9999px !important;
   background-color: #ffffff !important;
@@ -589,8 +589,8 @@
 }
 
 .po-ctx-select:focus {
-  border-color: #7c3aed !important;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15) !important;
+  border-color: #8f8cf0 !important;
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.15) !important;
 }
 
 /* Tier 2: Redesigned Quick Prompt Bottom Pill Dock */
@@ -638,16 +638,16 @@
 }
 
 #poHeaderPromptCard .quick-prompt-tag.active {
-  background: #ede9fe !important;
-  border-color: #c4b5fd !important;
-  color: #6d28d9 !important;
+  background: #e5e4ff !important;
+  border-color: #c2c0f7 !important;
+  color: #716de3 !important;
   font-weight: 700 !important;
   box-shadow: 0 2px 6px rgba(109, 40, 217, 0.14) !important;
 }
 
 #poHeaderPromptCard .quick-prompt-tag.active i,
 #poHeaderPromptCard .quick-prompt-tag.active svg {
-  color: #6d28d9 !important;
+  color: #716de3 !important;
 }
 
 /* Form Bottom Dock (Full Width Balanced) */
@@ -723,22 +723,22 @@
 }
 
 .quick-prompt-tag:active {
-  background: #ede9fe;
+  background: #e5e4ff;
   transform: translateY(0);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 .quick-prompt-tag.active {
-  background: #ede9fe !important;
-  border-color: #c4b5fd !important;
-  color: #6d28d9 !important;
+  background: #e5e4ff !important;
+  border-color: #c2c0f7 !important;
+  color: #716de3 !important;
   box-shadow: 0 2px 6px rgba(109, 40, 217, 0.16) !important;
   font-weight: 700 !important;
 }
 
 .quick-prompt-tag.active i,
 .quick-prompt-tag.active svg {
-  color: #6d28d9 !important;
+  color: #716de3 !important;
 }
 
 .quick-prompt-tag i,
@@ -752,7 +752,7 @@
 
 .quick-prompt-tag:hover i,
 .quick-prompt-tag:hover svg {
-  color: #7c3aed;
+  color: #8f8cf0;
 }
 
 /* Executive Financial Summary Pills in Order List Dock */
@@ -772,14 +772,14 @@
 }
 
 .po-fin-pill.po-grand-pill {
-  background: #faf5ff;
-  border-color: #ddd6fe;
+  background: #f7f6ff;
+  border-color: #d8d6fb;
   color: #581c87;
-  box-shadow: 0 2px 6px rgba(124, 58, 237, 0.08);
+  box-shadow: 0 2px 6px rgba(143, 140, 240, 0.08);
 }
 
 .po-fin-pill.po-grand-pill strong {
-  color: #7c3aed;
+  color: #8f8cf0;
   font-size: 13px;
   font-weight: 800;
 }
@@ -826,8 +826,8 @@
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 9999px;
-  background: #eff6ff;
-  color: #2563eb;
+  background: #f1f0ff;
+  color: #716de3;
   border: 1px solid #bfdbfe;
   line-height: 1;
   white-space: nowrap;
@@ -841,10 +841,10 @@
 
 .po-net-total-input {
   background-color: #f8fafc !important;
-  color: #7c3aed !important;
+  color: #8f8cf0 !important;
   font-weight: 700 !important;
   font-size: 15px !important;
-  border-color: #ede9fe !important;
+  border-color: #e5e4ff !important;
   cursor: default !important;
 }
 
@@ -992,8 +992,8 @@
 
 .po-search-input:focus {
   background: #ffffff !important;
-  border-color: var(--primary-purple, #7c3aed) !important;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12) !important;
+  border-color: var(--primary-purple, #8f8cf0) !important;
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.12) !important;
 }
 
 .po-search-clear {
@@ -1064,8 +1064,8 @@
 
 .po-filter-select:focus {
   background-color: #ffffff !important;
-  border-color: var(--primary-purple, #7c3aed) !important;
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.12) !important;
+  border-color: var(--primary-purple, #8f8cf0) !important;
+  box-shadow: 0 0 0 2px rgba(143, 140, 240, 0.12) !important;
   outline: none !important;
 }
 
@@ -1238,7 +1238,7 @@
 
 .po-action-btn.edit:hover {
   background: #f1f5f9;
-  color: #7c3aed;
+  color: #8f8cf0;
 }
 
 .po-action-btn.delete:hover {
@@ -1390,7 +1390,7 @@
 
 #poHeaderPromptCard .quick-prompt-tag.active {
   background: #f3f0ff !important;
-  border-color: #c4b5fd !important;
+  border-color: #c2c0f7 !important;
 }
 
 #panel-purchase-orders .po-stat-grid {
@@ -1783,7 +1783,7 @@
 
 .forecast-cat-icon.chemical {
   background: rgba(139, 92, 246, 0.12);
-  color: #7c3aed;
+  color: #8f8cf0;
 }
 
 .forecast-cat-icon.glassware {
@@ -1793,7 +1793,7 @@
 
 .forecast-cat-icon.equipment {
   background: rgba(59, 130, 246, 0.12);
-  color: #2563eb;
+  color: #716de3;
 }
 
 .forecast-cat-icon.general {
@@ -1931,9 +1931,9 @@
 }
 
 .btn-auto-po {
-  background-color: rgba(124, 58, 237, 0.08);
-  color: #7c3aed;
-  border: 1px solid rgba(124, 58, 237, 0.22);
+  background-color: rgba(143, 140, 240, 0.08);
+  color: #8f8cf0;
+  border: 1px solid rgba(143, 140, 240, 0.22);
   padding: 7px 14px;
   border-radius: 999px;
   font-size: 12px;
@@ -1947,10 +1947,10 @@
 }
 
 .btn-auto-po:hover {
-  background-color: #7c3aed;
+  background-color: #8f8cf0;
   color: #ffffff;
-  border-color: #7c3aed;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  border-color: #8f8cf0;
+  box-shadow: 0 4px 12px rgba(143, 140, 240, 0.25);
   transform: translateY(-1px);
 }
 
@@ -2576,7 +2576,7 @@ body.dark-mode .forecast-loc-line {
   }
 
   .calendar-day-cell.today {
-    border-color: var(--primary-purple, #4f21a1) !important;
+    border-color: var(--primary-purple, #716de3) !important;
     border-width: 1.5px !important;
     background-color: rgba(79, 33, 161, 0.03) !important;
   }
@@ -2588,7 +2588,7 @@ body.dark-mode .forecast-loc-line {
   }
 
   .calendar-day-cell.today .day-number {
-    background-color: var(--primary-purple, #4f21a1) !important;
+    background-color: var(--primary-purple, #716de3) !important;
     color: #ffffff !important;
     border-radius: 50% !important;
     width: 16px !important;

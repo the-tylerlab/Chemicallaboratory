@@ -22,9 +22,10 @@
     "watch:pages": "node scripts/build_pages.js --watch",
     "build:styles": "node scripts/build_styles.js",
     "build:dashboard-announcement": "node scripts/build_dashboard_announcement.js",
+    "build:rolling-counter": "node scripts/build_rolling_counter.js",
     "build:css": "tailwindcss -c tailwind.config.js -i src/styles/global.css -o public/assets/css/tailwind.css --minify",
     "watch:css": "tailwindcss -c tailwind.config.js -i src/styles/global.css -o public/assets/css/tailwind.css --watch",
-    "build": "npm run build:pages && npm run build:styles && npm run build:css && npm run build:dashboard-announcement && npm run build:agentation",
+    "build": "npm run build:pages && npm run build:styles && npm run build:css && npm run build:dashboard-announcement && npm run build:rolling-counter && npm run build:agentation",
     "build:agentation": "esbuild src/agentation-entry.js --bundle --minify --outfile=public/assets/js/agentation.bundle.js --format=iife --define:process.env.NODE_ENV='\"production\"'",
     "sync:label-sheet": "node scripts/sync/sync_to_label_sheet.js"
   },

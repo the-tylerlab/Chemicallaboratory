@@ -290,7 +290,7 @@ export function updateLoginUI() {
     if (sidebarUserRole) sidebarUserRole.innerText = user.roleName || user.role || 'Teacher';
     if (sidebarUserAvatar) {
       sidebarUserAvatar.innerText = user.initials || "U";
-      sidebarUserAvatar.style.backgroundColor = user.color || "#0284c7";
+      sidebarUserAvatar.style.backgroundColor = user.color || "#68c8e5";
     }
   } else {
     if (btnSidebarLogin) btnSidebarLogin.style.display = "inline-flex";

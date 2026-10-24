@@ -125,7 +125,7 @@ export function openReceivingModal(poId) {
     <div class="modal-overlay" onclick="window.closeReceivingModal()"></div>
     <div class="modal-dialog" style="max-width: 600px;">
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
-        <div class="modal-header" style="background: #4338ca; color: white; padding: 18px 24px;">
+        <div class="modal-header" style="background: #716de3; color: white; padding: 18px 24px;">
           <h3 style="margin: 0; font-size: 16px; font-weight: 700;"><i data-lucide="package-plus" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 6px;"></i>ตรวจรับพัสดุเข้าคลัง (Goods Receiving & Stock In)</h3>
           <button type="button" class="btn-close-modal" onclick="window.closeReceivingModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
@@ -164,7 +164,7 @@ export function openReceivingModal(poId) {
                     </td>
                     <td style="padding: 8px; text-align: center;">${it.qty || 1}</td>
                     <td style="padding: 8px; text-align: center;">
-                      <input type="number" name="receivedQty_${idx}" value="${it.qty || 1}" min="0" style="width: 70px; padding: 4px 6px; text-align: center; border-radius: 6px; border: 1px solid #cbd5e1;">
+                      <input type="number" name="receivedQty_${idx}" data-rolling-counter value="${it.qty || 1}" min="0" style="width: 70px; padding: 4px 6px; text-align: center; border-radius: 6px; border: 1px solid #cbd5e1;">
                     </td>
                   </tr>
                 `).join('')}
@@ -179,7 +179,7 @@ export function openReceivingModal(poId) {
 
           <div style="display: flex; justify-content: flex-end; gap: 8px;">
             <button type="button" onclick="window.closeReceivingModal()" style="padding: 8px 16px; border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; cursor: pointer;">ยกเลิก</button>
-            <button type="submit" style="padding: 8px 18px; background: #4338ca; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">ยืนยันรับเข้าคลัง</button>
+            <button type="submit" style="padding: 8px 18px; background: #716de3; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">ยืนยันรับเข้าคลัง</button>
           </div>
         </form>
       </div>
@@ -265,7 +265,7 @@ export function renderPurchaseOrders() {
       <div class="po-card" style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
           <div>
-            <span style="font-family: monospace; font-size: 12px; color: #4338ca; font-weight: 700;">${escapeHtml(po.id)}</span>
+            <span style="font-family: monospace; font-size: 12px; color: #716de3; font-weight: 700;">${escapeHtml(po.id)}</span>
             <h4 style="margin: 4px 0; font-size: 16px; font-weight: 700; color: #1e293b;">${escapeHtml(po.title)}</h4>
             <div style="font-size: 12px; color: #64748b;">ผู้จัดจำหน่าย: <strong>${escapeHtml(po.supplierName || 'N/A')}</strong></div>
           </div>
@@ -288,7 +288,7 @@ export function renderPurchaseOrders() {
           ` : ''}
 
           ${canReceive && (po.status === 'approved' || po.status === 'ordered') ? `
-            <button class="btn btn-sm" onclick="window.openReceivingModal('${escapeHtml(po.id)}')" style="padding: 6px 14px; background: #4338ca; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+            <button class="btn btn-sm" onclick="window.openReceivingModal('${escapeHtml(po.id)}')" style="padding: 6px 14px; background: #716de3; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
               <i data-lucide="package-plus" class="inline-icon"></i> ตรวจรับพัสดุเข้าคลัง
             </button>
           ` : ''}
