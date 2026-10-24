@@ -1,0 +1,26 @@
+       MODAL: STORAGE RECOMMENDATION
+       ========================================== -->
+  <div class="modal-overlay" id="storageRecModal">
+    <div class="modal-content" style="max-width: 500px; border-radius: var(--border-radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; overflow: hidden; background: #ffffff;">
+      <div class="modal-header" id="storageRecModalHeader" style="background: var(--accent-red); color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="shield-alert" id="storageRecModalIcon" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
+          <span id="storageRecModalTitle" style="color: #ffffff !important;">คำแนะนำการจัดเก็บสารเคมี</span>
+        </h2>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="storageRecModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="storageRecModalBody" style="padding: 24px; font-size: 14px; line-height: 1.6; color: var(--text-main); overflow-y: auto; max-height: 350px;">
+        <!-- Dynamic content -->
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; background: var(--bg-main); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="storageRecModalCloseBtn" style="padding: 8px 16px; border-radius: var(--border-radius-sm); font-weight: 600; cursor: pointer;">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================

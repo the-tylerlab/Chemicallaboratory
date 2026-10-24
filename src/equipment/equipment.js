@@ -126,7 +126,7 @@ export async function openEquipmentModal(code) {
     <div class="modal-overlay" onclick="window.closeEquipmentModal()"></div>
     <div class="modal-dialog modal-lg" style="max-width: 780px;">
       <div class="modal-content" style="border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
-        <div class="modal-header" style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color: #fff; padding: 20px 24px;">
+        <div class="modal-header" style="background: #1e1b4b; color: #fff; padding: 20px 24px;">
           <div>
             <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.8;">Equipment Master Card</span>
             <h3 style="margin: 4px 0 0 0; font-size: 18px; font-weight: 700; color: #fff;">${escapeHtml(asset.name)}</h3>

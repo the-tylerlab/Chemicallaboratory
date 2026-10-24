@@ -1,0 +1,61 @@
+       MODAL: QR CODE LABEL PRINTER ANIMATION
+       ========================================== -->
+  <div id="labelPrinterModal" class="modal-overlay">
+    <div class="modal-content label-printer-modal-content" style="position: relative;">
+      <button type="button" class="modal-close" onclick="closeLabelPrinterModal()" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+        <i data-lucide="printer" style="width: 20px; height: 20px; color: var(--primary-purple);"></i>
+        <span>เครื่องพิมพ์สติกเกอร์ QR Code</span>
+      </h3>
+      
+      <div class="label-printer-grid">
+        <!-- Left column: Control & print state -->
+        <div class="label-printer-controls">
+          <div style="background: rgba(139, 92, 246, 0.05); padding: 16px; border-radius: var(--border-radius-md); border: 1px solid rgba(139, 92, 246, 0.1);">
+            <div style="font-weight: 600; font-size: 14.5px; color: var(--primary-purple); margin-bottom: 4px;" id="lpItemName">-</div>
+            <div style="font-family: monospace; font-size: 13px; color: var(--text-muted); font-weight: 600;" id="lpItemCode">CODE: -</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;" id="lpItemLocation">จัดเก็บ: -</div>
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button type="button" class="btn btn-primary" id="lpPrintRealBtn" style="background-color: var(--primary-purple); border-color: var(--primary-purple); display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 42px;">
+              <i data-lucide="printer" style="width: 18px; height: 18px;"></i>
+              <span>พิมพ์สติกเกอร์ (Print Label)</span>
+            </button>
+            <button type="button" class="btn btn-secondary" style="width: 100%; height: 42px;" onclick="closeLabelPrinterModal()">ปิดหน้าต่าง</button>
+          </div>
+        </div>
+        
+        <!-- Right column: 3D Printer and Sticker animation -->
+        <div class="label-printer-animation-container">
+          <!-- 3D Printer Body -->
+          <div class="label-printer-device">
+            <div class="label-printer-slot"></div>
+          </div>
+          
+          <!-- Sticker Roll out paper container -->
+          <div class="label-sticker-paper-wrapper">
+            <div class="label-sticker-paper">
+              <!-- Tear line & notches -->
+              <div class="label-sticker-tear-line"></div>
+              <div style="display: flex; gap: 12px; align-items: center; width: 100%;">
+                <div id="lpQrCode" style="width: 70px; height: 70px; border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; background: white; flex-shrink: 0;"></div>
+                <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; text-align: left;">
+                  <span id="lpStickerName" style="font-size: 11px; font-weight: bold; line-height: 1.2; max-height: 2.4em; overflow: hidden; color: #000; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;">-</span>
+                  <span id="lpStickerCode" style="font-family: monospace; font-size: 9.5px; font-weight: bold; color: #333;">CODE: -</span>
+                  <span id="lpStickerLoc" style="font-size: 8.5px; color: #555;">จัดเก็บ: -</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================

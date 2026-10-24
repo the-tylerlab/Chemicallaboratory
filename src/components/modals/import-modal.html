@@ -1,0 +1,73 @@
+       MODAL: EXCEL / CSV IMPORT DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal-content" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-header-icon-badge">
+            <i data-lucide="file-spreadsheet" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div class="modal-title-wrap">
+            <h3 class="modal-title">นำเข้าไฟล์พัสดุและสารเคมี (Excel / CSV)</h3>
+            <div class="modal-subtitle">ดาวน์โหลดไฟล์เทมเพลตและอัปโหลดเข้าสู่ฐานข้อมูลคลัง</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="modalClose" aria-label="ปิดหน้าต่าง">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Step 1: Download Template -->
+        <div class="modal-step">
+          <div class="modal-step-title" style="display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #0f172a; color: #ffffff; font-size: 11px; font-weight: 800;">1</span>
+            <span>ดาวน์โหลดไฟล์ต้นแบบเทมเพลต</span>
+          </div>
+          <div class="template-download-box" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+            <span class="template-download-text">
+              ดาวน์โหลดไฟล์เทมเพลตเพื่อกรอกข้อมูล <strong>ชีตแรกเป็นคู่มือการใช้งาน</strong> และ <strong>ชีตถัดไปเป็นตารางกรอกข้อมูล</strong>
+            </span>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; width: 100%;">
+              <a href="#" class="template-download-btn" id="btnDownloadExcelTemplate" style="background: #059669; color: #ffffff; border: 1px solid #047857; font-weight: 700; padding: 8px 16px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; transition: all 0.2s;">
+                <i data-lucide="file-spreadsheet" style="width: 15px; height: 15px;"></i>
+                Excel (.xlsx) แนะนำ (2 ชีต)
+              </a>
+              <a href="#" class="template-download-btn" id="btnDownloadTemplate" style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; font-weight: 700; padding: 8px 16px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; transition: all 0.2s;">
+                <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+                CSV (.csv)
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Select File -->
+        <div class="modal-step" style="margin-top: 16px;">
+          <div class="modal-step-title" style="display: flex; align-items: center; gap: 6px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #0f172a; color: #ffffff; font-size: 11px; font-weight: 800;">2</span>
+            <span>เลือกไฟล์ที่กรอกข้อมูลแล้ว</span>
+          </div>
+          <div class="file-upload-container">
+            <input type="file" id="csvFileInput" class="file-upload-input" accept=".xlsx, .xls, .csv">
+            <label for="csvFileInput" class="file-upload-label" style="cursor: pointer;">
+              <i data-lucide="upload-cloud" style="width: 16px; height: 16px;"></i>
+              เลือกไฟล์ Excel / CSV
+            </label>
+            <span class="file-upload-filename" id="csvFileName">ยังไม่ได้เลือกไฟล์</span>
+          </div>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; margin-top: 10px; font-size: 11.5px; color: #64748b; line-height: 1.6;">
+            <div>• รองรับไฟล์นามสกุล <strong>.xlsx, .xls, .csv</strong> (ระบบจะอ่านข้อมูลจากชีตกรอกข้อมูลอัตโนมัติ)</div>
+            <div>• คอลัมน์จำเป็น: <strong>รหัส*, ชื่อ*, หมวดหมู่*, จำนวน*, หน่วย*</strong></div>
+            <div>• ข้อมูลจะถูกนำเข้าและซิงค์ไปยัง Supabase Cloud และ Google Sheets แบบเรียลไทม์</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelImport" style="padding: 8px 20px;">ยกเลิก</button>
+        <button class="btn btn-primary" id="btnConfirmImport" style="padding: 8px 22px;" disabled>ยืนยันการนำเข้า</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================

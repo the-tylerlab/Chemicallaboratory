@@ -17,6 +17,7 @@ yarn-error.log*
 data/*.json
 !data/users.example.json
 data/users.json
+data/backups/
 
 .gemini/
 .cursor/

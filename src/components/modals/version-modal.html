@@ -1,0 +1,105 @@
+       MODAL: VERSION HISTORY DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="versionModal">
+    <div class="modal-content" style="max-width: 550px; border-radius: var(--border-radius-md); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; overflow: hidden; background: #ffffff;">
+      <div class="modal-header" style="background: var(--primary-purple); color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <i data-lucide="history" style="width: 18px; height: 18px; color: #ffffff !important;"></i>
+          <span style="color: #ffffff !important;">ประวัติการอัปเดตระบบ (Version History)</span>
+        </h2>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="versionModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="modal-body" style="padding: 24px; max-height: 400px; overflow-y: auto;">
+        <!-- v1.9.8 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px;">v1.9.8</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">25 สิงหาคม 2569 (ล่าสุด)</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>แก้ไขการแสดงผลบนอุปกรณ์เคลื่อนที่ (Mobile Responsiveness UI Fix):</b> แก้ไขปัญหาการแสดงผลกล่องค้นหา, ปุ่มต่างๆ, และหน้าจองห้องปฏิบัติการเมื่อแสดงบนหน้าจอมือถือและแท็บเล็ต</li>
+            <li><b>ปรับปรุงประสิทธิภาพไวยากรณ์ (CSS Code Quality):</b> แก้ไขปัญหารูปแบบไวยากรณ์ Transition ที่ไม่ถูกต้องและปิดท้ายแท็กที่สูญหายทั้งหมด</li>
+          </ul>
+        </div>
+
+        <!-- v1.9.7 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.9.7</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">24 สิงหาคม 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ปิดระบบ PWA และ Offline Cache:</b> ยกเลิกการใช้งาน Service Worker และ Manifest เพื่อลดปัญหาแคชสะสม และบังคับให้เบราว์เซอร์ดึงข้อมูลใหม่เสมอ (Cache-Control)</li>
+            <li><b>แก้ไขการแสดงผลแถบเมนู (Sidebar Active UI):</b> แก้ไขปัญหาการชนกันของคลาส CSS ที่ทำให้แถบเมนูด้านซ้ายแสดงสีเข้ม/อ่อนไม่สม่ำเสมอกัน</li>
+          </ul>
+        </div>
+
+        <!-- v1.9.1 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.9.1</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">1 กรกฎาคม 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบพิมพ์สติกเกอร์บาร์โค้ด QR Code แบบแอนิเมชันพร้อมเสียง (Animated QR Code Label Printer):</b> เพิ่มป๊อปอัพและเสียงจำลองเครื่องพิมพ์สติกเกอร์ฉลากติดขวดสารเคมีและอุปกรณ์เมื่อกดสั่งพิมพ์</li>
+          </ul>
+        </div>
+
+        <!-- v1.9.0 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.9.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">26 มิถุนายน 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบล้างข้อมูล Admin (Admin Data Clearing):</b> เพิ่มระบบล้างฐานข้อมูลแยกตามแต่ละโมดูลพร้อมช่องกรอกรหัสยืนยันความปลอดภัยเพื่อป้องกันข้อมูลสูญหาย</li>
+            <li><b>สรุปข้อมูลยอดราคารวมตารางสั่งซื้อสะสม (Committed PO Summary):</b> เพิ่มแถบรายละเอียดราคารวม, ส่วนลดสะสม, และราคาสุทธิหลังหักส่วนลดอย่างสมบูรณ์แบบ</li>
+            <li><b>คู่มือเตรียมสารเคมีในระบบ Catalyst:</b> แชทบอทวิเคราะห์คำนวณสูตรเตรียมสารละลายและความเข้มข้นอัตโนมัติ</li>
+          </ul>
+        </div>
+
+        <!-- v1.8.0 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.8.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">25 มิถุนายน 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ป๊อปอัพใบยืนยันการจองหลังจองห้องแล็บสำเร็จ (Booking Confirmation Modal):</b> เพิ่มระบบหน้าต่างยืนยันความสำเร็จ (Booking Confirmation Modal) ทันทีหลังส่งคำขอจอง พร้อมข้อมูลสรุปและคำแนะนำเตือนใจความสำคัญให้ผู้ใช้<b>บันทึกภาพหน้าจอ (Capture)</b> ไว้เป็นหลักฐานเพื่อแสดงต่อเจ้าหน้าที่ห้องปฏิบัติการอย่างชัดเจน</li>
+          </ul>
+        </div>
+
+        <!-- v1.7.0 -->
+        <div class="version-block" style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--border-color);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--primary-purple); background: rgba(109, 40, 217, 0.1); padding: 2px 10px; border-radius: 12px;">v1.7.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">23 มิถุนายน 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบจำแนกของเสียและคู่มือการจัดเก็บเคมีร่วมกัน (CU WasteTrack & Storage Guide):</b> เพิ่มแถบช่วยจำแนกของเสียห้องปฏิบัติการ 17 ประเภทของจุฬาลงกรณ์มหาวิทยาลัย และระบบแนะนำจัดเก็บสารเคมีร่วมตามความเข้ากันได้ 11 กลุ่มความเข้ากันได้ (SHECU)</li>
+            <li><b>ผู้ช่วย AI แชทบอท Catalyst และเครื่องคำนวณสูตรเคมี:</b> ติดตั้งแชทบอทให้คำปรึกษาเคมี/ปฐมพยาบาลเบื้องต้น พร้อมเครื่องดุลสมการและคำนวณมวลโมเลกุลอัตโนมัติ</li>
+          </ul>
+        </div>
+
+        <!-- v1.6.0 -->
+        <div class="version-block" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-size: 14px; font-weight: 700; color: var(--text-main); background: #f1f5f9; padding: 2px 10px; border-radius: 12px;">v1.6.0</span>
+            <span style="font-size: 12px; color: var(--text-muted); font-weight: 500;">10 พฤษภาคม 2569</span>
+          </div>
+          <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: var(--text-main); line-height: 1.6;">
+            <li><b>ระบบจองห้องปฏิบัติการ (Lab Booking Suite):</b> เปิดใช้งานระบบตารางจองคาบเวลาเข้าใช้ห้องแล็บ คัดกรองและแบ่งสิทธิ์ครูและเจ้าหน้าที่</li>
+            <li><b>การจัดการคลังสารเคมีแจ้งเตือนหมดอายุ:</b> ติดตั้งระบบแจ้งเตือนสต็อกขั้นต่ำ (Min Stock) และแจ้งรายการสารเคมีใกล้และหมดอายุอัตโนมัติ</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================

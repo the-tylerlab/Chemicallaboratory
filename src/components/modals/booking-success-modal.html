@@ -1,0 +1,143 @@
+       MODAL: BOOKING SUCCESS DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="bookingSuccessModal">
+    <div class="modal-content" style="max-width: 500px; border-radius: var(--border-radius-md); overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); border: none; background: #ffffff;">
+      <div class="modal-header" id="bookingSuccessModalHeader" style="background: var(--accent-green); color: #ffffff; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="modal-title" style="margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; color: #ffffff !important;">
+          <span id="bookingSuccessModalIconWrapper"><i data-lucide="check-circle" style="width: 20px; height: 20px;"></i></span>
+          <span id="bookingSuccessModalTitle">บันทึกการจองห้องแล็บสำเร็จ</span>
+        </h2>
+        <button type="button" class="modal-close-btn modal-close-btn-light" id="bookingSuccessModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- Screen Capture Note Warning Box -->
+        <div style="background: rgba(239, 68, 68, 0.08); border-left: 4px solid var(--accent-red); padding: 14px 16px; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
+          <i data-lucide="camera" style="width: 22px; height: 22px; color: var(--accent-red); flex-shrink: 0; margin-top: 2px;"></i>
+          <div>
+            <h4 style="margin: 0 0 4px 0; color: var(--accent-red); font-size: 14px; font-weight: 600;">โปรดบันทึกภาพหน้าจอ!</h4>
+            <p style="margin: 0; color: var(--text-main); font-size: 13px; line-height: 1.5;" id="bookingSuccessModalWarnText">กรุณา<b>แคปภาพหน้าจอนี้ไว้</b> เพื่อใช้เป็นหลักฐานยืนยันการจองกับเจ้าหน้าที่เมื่อเข้าใช้งานห้องปฏิบัติการ</p>
+          </div>
+        </div>
+
+        <!-- Receipt / Info Sheet (Standard Static View) -->
+        <div style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: #fafafa;">
+          <div style="background: rgba(0,0,0,0.02); padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13.5px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;">
+            <span>รายละเอียดการจอง</span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+              <span id="bsReceiptId" style="font-family: monospace; font-size: 12px; color: var(--text-main); font-weight: 600;">#ID</span>
+              <span style="font-size: 10px; color: var(--text-muted); font-weight: normal; line-height: 1;">หมายเลขการจอง</span>
+            </div>
+          </div>
+          
+          <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px;">
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">ห้องปฏิบัติการ:</span>
+              <span id="bsRoom" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">วันที่ใช้งาน:</span>
+              <span id="bsDate" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">คาบเวลา:</span>
+              <span id="bsSlots" style="color: var(--primary-purple); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">ระดับชั้นเรียน:</span>
+              <span id="bsGradeLevel" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">จำนวนนักเรียน:</span>
+              <span id="bsStudentCount" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">คุณครูผู้สอน:</span>
+              <span id="bsBooker" style="color: var(--text-main); font-weight: 600;">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">กิจกรรมที่ใช้:</span>
+              <span id="bsPurpose" style="color: var(--text-main);">-</span>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+              <span style="color: var(--text-muted); font-weight: 500;">สถานะ:</span>
+              <span id="bsStatus" style="font-weight: 600;">-</span>
+            </div>
+            
+            <div id="bsPrepBlock" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 4px; flex-direction: column; gap: 6px;">
+              <span style="color: var(--text-muted); font-weight: 500; font-size: 13px;">รายการอุปกรณ์เตรียมแล็บ:</span>
+              <ul id="bsPrepList" style="margin: 0; padding-left: 20px; color: var(--text-main); font-size: 12.5px; line-height: 1.5;">
+                <!-- items -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- FUTURE USE: Animated Receipt Printer Structure (Commented out)
+        <div class="receipt-printer-slot"></div>
+        <div class="receipt-paper-wrapper">
+          <div class="receipt-paper">
+            <div style="background: rgba(0,0,0,0.02); padding: 12px 16px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13.5px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center;">
+              <span>รายละเอียดการจอง</span>
+              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                <span id="bsReceiptId" style="font-family: monospace; font-size: 12px; color: var(--text-main); font-weight: 600;">#ID</span>
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: normal; line-height: 1;">หมายเลขการจอง</span>
+              </div>
+            </div>
+            
+            <div style="padding: 16px; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px;">
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">ห้องปฏิบัติการ:</span>
+                <span id="bsRoom" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">วันที่ใช้งาน:</span>
+                <span id="bsDate" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">คาบเวลา:</span>
+                <span id="bsSlots" style="color: var(--primary-purple); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">ผู้จอง:</span>
+                <span id="bsBooker" style="color: var(--text-main); font-weight: 600;">-</span>
+              </div>
+              
+              <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; align-items: flex-start;">
+                <span style="color: var(--text-muted); font-weight: 500;">วัตถุประสงค์:</span>
+                <span id="bsPurpose" style="color: var(--text-main);">-</span>
+              </div>
+              
+              <div id="bsPrepBlock" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 10px; margin-top: 4px; flex-direction: column; gap: 6px;">
+                <span style="color: var(--text-muted); font-weight: 500; font-size: 13px;">รายการอุปกรณ์เตรียมแล็บ:</span>
+                <ul id="bsPrepList" style="margin: 0; padding-left: 20px; color: var(--text-main); font-size: 12.5px; line-height: 1.5;">
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        -->
+
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; display: flex; justify-content: center; border-top: 1px solid var(--border-color); background: #fafafa;">
+        <button id="bookingSuccessModalBtn" class="btn" style="background: var(--accent-green); color: #ffffff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#15803d';" onmouseout="this.style.background='var(--accent-green)';">รับทราบและปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================

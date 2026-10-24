@@ -15,6 +15,7 @@ const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_PRODUCTION = NODE_ENV === 'production';
 const devReloadClients = new Set();
+const PUBLIC_DIR = path.join(__dirname, 'public');
 
 // ─── JWT SECRET ENFORCEMENT ──────────────────────────────────────────────────
 // Strictly require JWT_SECRET from environment. NO fallback, NO default hardcoded secret.
@@ -162,7 +163,7 @@ if (!IS_PRODUCTION) {
     if (req.method !== 'GET' || !req.accepts('html')) return next();
     if (!['/', '/index.html', '/dashboard', '/all-items', '/cabinet-layout', '/add-item', '/lab-booking', '/borrow-return', '/purchase-orders', '/reports', '/activity-logs', '/admin', '/notifications'].includes(req.path)) return next();
 
-    fs.readFile(path.join(__dirname, 'index.html'), 'utf8', (err, html) => {
+    fs.readFile(path.join(PUBLIC_DIR, 'index.html'), 'utf8', (err, html) => {
       if (err) return next(err);
       const reloadClient = `<script>(function(){const events=new EventSource('/__dev/reload-events');events.addEventListener('reload',function(){window.location.reload()})})()</script>`;
       res.type('html').set('Cache-Control', 'no-store').send(html.replace('</body>', `${reloadClient}</body>`));
@@ -171,7 +172,7 @@ if (!IS_PRODUCTION) {
 }
 
 // High-performance static serving with ETag validation & asset-optimized caching
-app.use(express.static(path.join(__dirname), {
+app.use(express.static(PUBLIC_DIR, {
   etag: true,
   lastModified: true,
   setHeaders: (res, filePath) => {
@@ -212,7 +213,7 @@ const SPA_ROUTES = [
 ];
 
 app.get(SPA_ROUTES, (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
 const DB_DIR = path.join(__dirname, 'data');
@@ -400,7 +401,40 @@ function readDatabase() {
 }
 
 // Helper: Safe JSON File Writer (prevents touching file timestamp if content is unchanged, avoiding infinite reload loops)
+function createDailyDataSnapshot() {
+  const backupRoot = path.join(DB_DIR, 'backups');
+  const date = new Date().toISOString().slice(0, 10);
+  const snapshotDir = path.join(backupRoot, `auto-${date}`);
+  if (fs.existsSync(snapshotDir)) return;
+
+  const stagingDir = `${snapshotDir}.tmp-${process.pid}`;
+  fs.mkdirSync(stagingDir, { recursive: true });
+  const copyJsonFiles = (sourceDir, targetDir) => {
+    for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+      if (entry.name === 'backups') continue;
+      const sourcePath = path.join(sourceDir, entry.name);
+      const targetPath = path.join(targetDir, entry.name);
+      if (entry.isDirectory()) {
+        fs.mkdirSync(targetPath, { recursive: true });
+        copyJsonFiles(sourcePath, targetPath);
+      } else if (entry.isFile() && entry.name.endsWith('.json')) {
+        fs.copyFileSync(sourcePath, targetPath, fs.constants.COPYFILE_EXCL);
+      }
+    }
+  };
+
+  try {
+    copyJsonFiles(DB_DIR, stagingDir);
+    fs.renameSync(stagingDir, snapshotDir);
+    console.info(`[data-safety] Created pre-write snapshot: ${path.relative(__dirname, snapshotDir)}`);
+  } catch (error) {
+    fs.rmSync(stagingDir, { recursive: true, force: true });
+    if (!fs.existsSync(snapshotDir)) throw error;
+  }
+}
+
 function safeWriteJson(filePath, data) {
+  let temporaryPath;
   try {
     const jsonStr = JSON.stringify(data, null, 2);
     if (fs.existsSync(filePath)) {
@@ -410,13 +444,17 @@ function safeWriteJson(filePath, data) {
           return true; // Content unchanged, do not touch file!
         }
       } catch (readErr) {}
+      createDailyDataSnapshot();
     } else {
       const dir = path.dirname(filePath);
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     }
-    fs.writeFileSync(filePath, jsonStr, 'utf-8');
+    temporaryPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
+    fs.writeFileSync(temporaryPath, jsonStr, { encoding: 'utf-8', flag: 'wx' });
+    fs.renameSync(temporaryPath, filePath);
     return true;
   } catch (err) {
+    if (temporaryPath) fs.rmSync(temporaryPath, { force: true });
     console.error("Error writing " + filePath + ":", err.message);
     return false;
   }
@@ -5014,8 +5052,8 @@ app.post('/api/test-push', authenticateToken, requireRole('L3'), async (req, res
   const payload = {
     title: "🔔 ทดสอบการแจ้งเตือนแอดมิน (Web Push)",
     body: "ระบบพร้อมส่งแจ้งเตือนคำขอและรองรับการกดอนุมัติแล้ว!",
-    icon: "/favicon.svg",
-    badge: "/favicon.svg",
+    icon: "/assets/logos/favicon.svg",
+    badge: "/assets/logos/favicon.svg",
     data: { type: "test", time: Date.now() },
     actions: [
       { action: "view", title: "🔍 เปิดหน้าระบบ" }
@@ -5044,8 +5082,8 @@ app.post('/api/notify-admins', authenticateToken, async (req, res) => {
   const payload = {
     title: pushTitle,
     body: pushBody,
-    icon: "/favicon.svg",
-    badge: "/favicon.svg",
+    icon: "/assets/logos/favicon.svg",
+    badge: "/assets/logos/favicon.svg",
     tag: `request-${type}-${id || Date.now()}`,
     data: {
       id: id,
@@ -5155,6 +5193,7 @@ app.post('/api/quick-approve', authenticateToken, requireRole('L2', 'L3'), (req,
 // DANGER ZONE (Clear Workspace) — Strictly L3 Admin
 app.delete('/api/workspace', authenticateToken, requireRole('L3'), (req, res) => {
   try {
+    createDailyDataSnapshot();
     // Clear the core arrays but keep the files
     fs.writeFileSync(DB_FILE, JSON.stringify([], null, 2), 'utf-8');
     fs.writeFileSync(BOOKINGS_FILE, JSON.stringify([], null, 2), 'utf-8');
@@ -5179,7 +5218,7 @@ app.delete('/api/workspace', authenticateToken, requireRole('L3'), (req, res) =>
 
 // Start Express Web Server
 if (require.main === module) {
-  // Automatically compile modular pages/ into index.html
+  // Automatically compile src/pages/ into public/index.html
   try {
     const { buildPages, watchPages } = require('./scripts/build_pages');
     buildPages(false);

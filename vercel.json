@@ -6,14 +6,22 @@
       "use": "@vercel/node"
     },
     {
-      "src": "**/*",
+      "src": "public/**",
       "use": "@vercel/static",
       "config": {
-        "excludeFiles": "{dist/**,migrations/**,scripts/**,*.sql,**/*.sql,data/users*,data/vapid*,data/temporary*,server.js,*.py,*.log,test_*,package*.json}"
+        "excludeFiles": "{**/*.map,**/*.log}"
       }
     }
   ],
   "routes": [
+    {
+      "src": "/",
+      "dest": "/public/index.html"
+    },
+    {
+      "src": "/index.html",
+      "dest": "/public/index.html"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/index.js"
@@ -36,11 +44,11 @@
     },
     {
       "src": "/(dashboard|all-items|cabinet-layout|add-item|lab-booking|borrow-return|purchase-orders|reports|activity-logs|admin|notifications)",
-      "dest": "/index.html"
+      "dest": "/public/index.html"
     },
     {
       "src": "/(.*)",
-      "dest": "/$1",
+      "dest": "/public/$1",
       "headers": {
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",

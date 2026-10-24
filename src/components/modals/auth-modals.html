@@ -1,0 +1,215 @@
+       MODAL: ACCESS DENIED DIALOG (LOCK SCREEN)
+       ========================================== -->
+  <div class="modal-overlay" id="accessDeniedModal">
+    <div class="modal-content access-denied-content" style="max-width: 380px; border-radius: 28px; padding: 32px; text-align: center; border: none; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); position: relative; background: #ffffff;">
+      <button type="button" class="modal-close-btn login-modal-close-corner" id="accessDeniedModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      
+      <div class="access-denied-lock-icon" style="margin: 12px auto 20px; width: 64px; height: 64px; background-color: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+        <i data-lucide="lock" style="width: 28px; height: 28px; color: #111827;"></i>
+      </div>
+      
+      <h2 style="font-size: 20px; font-weight: 700; color: #111827; margin-bottom: 8px; font-family: inherit;">ไม่สามารถเข้าถึงโปรเจกต์นี้ได้</h2>
+      <p style="font-size: 14px; color: #6b7280; line-height: 1.5; margin-bottom: 24px; padding: 0 10px;">
+        คุณไม่มีสิทธิ์เข้าถึงโปรเจกต์นี้ กรุณาขอสิทธิ์จากผู้ดูแล
+      </p>
+      
+      <button class="btn-access-request" id="btnAccessDeniedRequest">
+        ขอสิทธิ์เข้าถึง
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: TEACHER ID & RBAC LOGIN DIALOG
+       ========================================== -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal-content modern-login-modal">
+      <button type="button" class="modal-close-btn modern-login-close" id="loginModalClose" aria-label="ปิดหน้าต่าง" title="ปิดหน้าต่าง">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="modern-login-card">
+        <!-- Top App Icon with Radial Aura -->
+        <div class="modern-login-aura-wrap">
+          <div class="modern-login-aura"></div>
+          <div class="modern-login-icon-badge">
+            <img src="assets/logos/favicon.svg" alt="SciPortal Logo" style="width: 26px; height: 26px; object-fit: contain;">
+          </div>
+        </div>
+
+        <!-- Headings -->
+        <div class="modern-login-header">
+          <h2 class="modern-login-title">Sign in to continue</h2>
+          <p class="modern-login-subtitle">Please sign in to access SciPortal Laboratory</p>
+        </div>
+
+        <!-- Error Message Banner -->
+        <div id="loginErrorMsg" class="modern-login-error" style="display: none;">
+          <i data-lucide="alert-circle" style="width: 15px; height: 15px; flex-shrink: 0;"></i>
+          <span id="loginErrorText">รหัสประจำตัวครูหรือรหัสผ่านไม่ถูกต้อง</span>
+        </div>
+
+        <!-- Authentication Form -->
+        <form id="adminLoginForm" class="modern-login-form">
+          <!-- Username / Teacher ID -->
+          <div class="modern-login-input-wrap">
+            <span class="modern-login-input-icon">
+              <i data-lucide="user" style="width: 16px; height: 16px;"></i>
+            </span>
+            <input type="text" id="loginUsername" name="username" class="modern-login-input" placeholder="Teacher ID" required autocomplete="username">
+          </div>
+
+          <!-- Password -->
+          <div class="modern-login-input-wrap">
+            <span class="modern-login-input-icon">
+              <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
+            </span>
+            <input type="password" id="loginPassword" name="password" class="modern-login-input" placeholder="Password" required autocomplete="current-password">
+            <button type="button" id="btnTogglePassword" class="modern-login-pwd-toggle" aria-label="Toggle Password Visibility">
+              <i data-lucide="eye" id="eyeIcon" style="width: 16px; height: 16px;"></i>
+            </button>
+          </div>
+
+          <!-- Remember Me & Forgot Password -->
+          <div class="modern-login-options">
+            <label class="modern-login-remember" for="loginRememberMe">
+              <input type="checkbox" id="loginRememberMe">
+              <span>จดจำการเข้าสู่ระบบ</span>
+            </label>
+            <a href="#" id="linkForgotPassword" class="modern-login-forgot">Forgot Password?</a>
+          </div>
+
+          <!-- Hidden cancel button for JS compatibility -->
+          <button type="button" id="btnCancelLogin" style="display: none;"></button>
+
+          <!-- Submit Button -->
+          <button type="submit" class="modern-login-submit-btn" id="btnSubmitLogin">
+            <span>Sign In</span>
+          </button>
+        </form>
+
+        <!-- Divider (Hidden for future use) -->
+        <div class="modern-login-divider" style="display: none;">
+          <span>Or continue with</span>
+        </div>
+
+        <!-- Social / Quick Sign-In Buttons (Google, Facebook, Apple) (Hidden for future use) -->
+        <div class="modern-login-social-grid" style="display: none;">
+          <button type="button" class="modern-social-btn" onclick="handleGoogleOrQuickLogin()" title="เข้าสู่ระบบด้วย Google" aria-label="Sign in with Google">
+            <svg width="18" height="18" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+          </button>
+          <button type="button" class="modern-social-btn" onclick="quickFillRole('T101', 'T101')" title="ครูผู้สอน (Demo Teacher T101)" aria-label="Sign in with Facebook / Teacher">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+          </button>
+          <button type="button" class="modern-social-btn" onclick="quickFillRole('admin', 'admin')" title="ผู้ดูแลระบบ (Demo Admin)" aria-label="Sign in with Apple / Admin">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="#000000">
+              <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.89c.65-.8 1.1-1.92.98-3.04-.95.04-2.09.64-2.76 1.43-.59.68-1.11 1.79-.97 2.87 1.05.08 2.12-.55 2.75-1.26z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card Footer Bar (Hidden for future use) -->
+      <div class="modern-login-card-footer" style="display: none;">
+        <span>Don't have an account? <a href="#" onclick="handleForgotPasswordClick(); return false;"><strong>Sign Up</strong></a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: USER PROFILE & PERMISSIONS (CLEAN & FRIENDLY UX)
+       ========================================== -->
+  <div class="modal-overlay" id="userProfileModal" style="display: none; align-items: center; justify-content: center; z-index: 10000; background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(6px);">
+    <div class="modal-content" style="max-width: 600px; width: 94%; border-radius: 20px; box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(226, 232, 240, 0.85); overflow: hidden; background: #ffffff; padding: 0; position: relative;">
+      
+      <!-- Top Decorative Banner -->
+      <div style="height: 64px; background: #ede9fe; position: relative;">
+        <!-- Close Button (X) -->
+        <button type="button" class="modal-close-btn" id="userProfileModalClose" aria-label="Close" onclick="if(window.closeUserProfileModal){window.closeUserProfileModal();}" title="ปิดหน้าต่าง" style="position: absolute; top: 14px; right: 14px; background: #ffffff; border: 1px solid #cbd5e1; color: #475569; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1); z-index: 2;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- User Profile Header Card (Avatar + Info) -->
+      <div style="padding: 0 24px; margin-top: -32px; display: flex; align-items: flex-end; gap: 14px; position: relative;">
+        <div id="modalProfileAvatar" style="width: 60px; height: 60px; border-radius: 50%; background: #7c3aed; color: #ffffff; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25); border: 3.5px solid #ffffff; flex-shrink: 0;">
+          วด
+        </div>
+        <div style="flex: 1; min-width: 0; padding-bottom: 2px;">
+          <h3 id="modalProfileName" style="margin: 0; font-size: 17px; font-weight: 700; color: #0f172a; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ม.วงศกร ด้วงเกลี้ยง
+          </h3>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap;">
+            <span id="modalProfileRoleBadge" class="badge-role badge-role-l3" style="background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 12px;">L3 ผู้ดูแลระบบ</span>
+            <span id="modalProfileDept" style="font-size: 11.5px; color: #64748b; font-weight: 500;">กลุ่มสาระการเรียนรู้วิทยาศาสตร์</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Body: Information Grid & Role Permissions -->
+      <div class="modal-body" style="padding: 18px 26px 26px 26px; max-height: 65vh; overflow-y: auto;">
+        <!-- Account Details Box -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 13px 15px; margin-bottom: 16px;">
+          <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 9px; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="user-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+            <span>ข้อมูลบัญชีผู้ใช้งาน</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; font-size: 12.5px;">
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">รหัสผู้ใช้</span>
+              <span id="modalProfileId" style="font-weight: 600; color: #1e293b;">-</span>
+            </div>
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">อีเมลติดต่อ</span>
+              <span id="modalProfileEmail" style="font-weight: 600; color: #1e293b; word-break: break-all;">-</span>
+            </div>
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">ห้องปฏิบัติการที่รับผิดชอบ</span>
+              <span id="modalProfileRooms" style="font-weight: 600; color: #1e293b;">ทุกห้องปฏิบัติการ</span>
+            </div>
+            <div>
+              <span style="color: #64748b; font-size: 11px; display: block; margin-bottom: 2px;">สถานะการใช้งาน</span>
+              <span id="modalProfileStatus" style="font-weight: 600; color: #059669; display: inline-flex; align-items: center; gap: 5px;">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+                เข้าสู่ระบบอยู่ (Active)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role Permissions & Privileges -->
+        <div>
+          <div style="font-size: 11.5px; font-weight: 700; color: #334155; margin-bottom: 9px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #7c3aed;"></i>
+              <span>สิทธิ์การใช้งานที่ได้รับ</span>
+            </div>
+            <span style="font-size: 10.5px; color: #64748b; font-weight: 500;">ตามระดับสิทธิ์</span>
+          </div>
+          <div id="modalProfilePermissionsList" style="display: flex; flex-direction: column; gap: 5px;">
+            <!-- Generated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================

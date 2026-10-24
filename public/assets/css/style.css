@@ -1,0 +1,36 @@
+/* ==========================================================================
+   SCIPORTAL CHEMICAL LABORATORY - MASTER STYLESHEET
+   Modularized Architecture for Safe & Clean UI/UX Development
+   
+   To edit styles safely without risking data integrity:
+   - Tokens & Colors:      styles/variables.css
+   - Layout & Navigation:  styles/layout.css
+   - UI Components:        styles/components/*.css
+   - Page Views:           styles/pages/*.css
+   - Mobile & Responsive:  styles/responsive.css
+   ========================================================================== */
+
+@import url("./fonts.css");
+@import url("./variables.css");
+@import url("./base.css");
+@import url("./layout.css");
+@import url("./components/buttons.css");
+@import url("./components/forms.css");
+@import url("./components/tables.css");
+@import url("./components/cards.css");
+@import url("./components/modals.css");
+@import url("./components/help-safety-redesign.css");
+@import url("./components/toast.css");
+@import url("./components/chatbot.css");
+@import url("./pages/dashboard.css");
+@import url("./pages/inventory.css");
+@import url("./pages/lab-booking.css");
+@import url("./pages/cabinet-layout.css");
+@import url("./pages/borrow-return.css");
+@import url("./pages/purchase-orders.css");
+@import url("./pages/notifications.css");
+@import url("./pages/admin.css");
+@import url("./pages/admin-redesign.css");
+@import url("./responsive.css");
+@import url("./responsive-workspace.css");
+@import url("./print.css");

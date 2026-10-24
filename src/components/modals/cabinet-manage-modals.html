@@ -1,0 +1,56 @@
+  <div id="addCabinetModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="addCabinetModalTitle">เพิ่มตู้จัดเก็บ</h3>
+        <button class="modal-close" onclick="closeAddCabinetModal()"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ประเภท (Type)</label>
+          <select id="addCabinetType" class="input" style="width: 100%;" onchange="onCabinetTypeChange()">
+            <option value="chemical_cabinet">ตู้สารเคมี (Chemical Cabinet)</option>
+            <option value="glassware_cabinet">ตู้เครื่องแก้ว (Glassware Cabinet)</option>
+            <option value="emergency_cabinet">ตู้ฉุกเฉิน / ตู้พักของรอจัดเก็บ (Emergency / Temporary Cabinet)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ชื่อ / รหัส (Name / ID)</label>
+          <input type="text" id="addCabinetName" class="input" style="width: 100%;" placeholder="เช่น ตู้ A, ตู้สารเคมี 1">
+        </div>
+        <div class="form-group" id="addCabinetShelvesGroup" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">จำนวนชั้นวาง (Number of Shelves)</label>
+          <input type="number" id="addCabinetShelves" class="input" style="width: 100%;" placeholder="ระบุจำนวนชั้น (เช่น 4)" min="1" max="12" value="4">
+        </div>
+        <div class="form-group" id="addCabinetCapacityGroup" style="margin-bottom: 16px;">
+          <label class="form-label" style="display: block; margin-bottom: 8px; font-weight: 500;">ความจุสุทธิ (Total Capacity)</label>
+          <input type="number" id="addCabinetCapacity" class="input" style="width: 100%;" placeholder="ความจุสูงสุด (รายการ)" min="1" value="50">
+        </div>
+        <div class="form-group" id="addCabinetVisibilityGroup" style="margin-bottom: 16px; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <label for="addCabinetIsHidden" style="font-weight: 600; font-size: 13px; color: #1e293b; display: block; cursor: pointer;">สถานะการแสดงผล (Visibility)</label>
+            <span style="font-size: 11.5px; color: #64748b;">ซ่อนตู้นี้จากผู้ใช้งานทั่วไป (เฉพาะแอดมินที่มองเห็น)</span>
+          </div>
+          <input type="checkbox" id="addCabinetIsHidden" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-purple);">
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+        <button class="btn btn-outline" onclick="closeAddCabinetModal()">ยกเลิก</button>
+        <button class="btn btn-primary" style="background: var(--primary-color);" onclick="saveCabinetData()">บันทึกข้อมูล</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Cabinet Confirmation Modal -->
+  <div id="deleteCabinetModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+      <div style="margin-bottom: 16px; color: var(--accent-red);">
+        <i data-lucide="alert-triangle" style="width: 48px; height: 48px; margin: 0 auto;"></i>
+      </div>
+      <h3 style="margin-bottom: 12px; font-size: 18px;">ยืนยันการลบตู้จัดเก็บ</h3>
+      <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 14px;">คุณต้องการลบ "<span id="deleteCabinetNameDisplay" style="font-weight: 600; color: var(--text-dark);"></span>" ออกจากระบบใช่หรือไม่? ข้อมูลทั้งหมดที่เกี่ยวข้องจะถูกลบอย่างถาวร</p>
+      <div style="display: flex; justify-content: center; gap: 12px;">
+        <button class="btn btn-outline" onclick="closeDeleteCabinetModal()">ยกเลิก</button>
+        <button class="btn btn-danger" onclick="confirmDeleteCabinet()">ลบตู้จัดเก็บ</button>
+      </div>
+    </div>
+  </div>
