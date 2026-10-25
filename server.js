@@ -3965,14 +3965,11 @@ async function fetchLiveUsers(forceRefresh = false) {
 
         const cleanUsers = activeUsers.map(su => {
           const tId = String(su.teacherId || su.teacher_id || su.id || '').trim();
-          const isAdmin = (tId === 'admin' || tId === '10823' || su.id === 'u_admin' || su.id === 'u_10823');
-          const defaultPlain = isAdmin ? 'SciAdmin@2026' : tId;
           let userPass = su.password;
           const hasValidHash = userPass && (userPass.startsWith('$2a$') || userPass.startsWith('$2b$'));
           if (!hasValidHash) {
-            userPass = IS_PRODUCTION ? null : bcrypt.hashSync(defaultPlain, 10);
+            userPass = null;
           }
-          const plainPass = IS_PRODUCTION ? null : (su.plain_password || defaultPlain);
           const mustChange = Boolean(su.must_change_password || su.mustChangePassword);
 
           return {
@@ -3988,8 +3985,6 @@ async function fetchLiveUsers(forceRefresh = false) {
             initials: su.initials || calculateUserInitials(su.name) || 'U',
             color: su.color || getRoleColor(su.role),
             password: userPass,
-            plain_password: plainPass,
-            display_password: plainPass,
             must_change_password: mustChange,
             mustChangePassword: mustChange,
             password_changed_at: su.password_changed_at || null,
@@ -4020,14 +4015,10 @@ async function fetchLiveUsers(forceRefresh = false) {
 
   // 3. Standby Offline Mock (Development Only)
   const localUsers = readUsers().filter(u => !u.is_deleted).map(u => {
-    const tId = String(u.teacherId || u.teacher_id || u.id || '').trim();
-    const isAdmin = (tId === 'admin' || tId === '10823' || u.id === 'u_admin' || u.id === 'u_10823');
-    const defaultPlain = isAdmin ? 'SciAdmin@2026' : tId;
-    return {
-      ...u,
-      plain_password: u.plain_password || defaultPlain,
-      display_password: u.display_password || u.plain_password || defaultPlain
-    };
+    const copy = { ...u };
+    delete copy.plain_password;
+    delete copy.display_password;
+    return copy;
   });
   usersCache = localUsers;
   lastUsersFetch = Date.now();
@@ -4267,17 +4258,17 @@ app.put('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res)
       updated.assignedRooms = Array.isArray(req.body.assignedRooms) ? req.body.assignedRooms : [];
     }
 
-    // If password is being changed, hash it with bcrypt and save plain_password
+    // If password is being changed, hash it with bcrypt
     if (req.body.password && typeof req.body.password === 'string') {
       const p = req.body.password.trim();
       if (p) {
         if (!p.startsWith('$2a$') && !p.startsWith('$2b$')) {
           updated.password = bcrypt.hashSync(p, 10);
-          updated.plain_password = p;
-          updated.display_password = p;
         } else {
           updated.password = p;
         }
+        delete updated.plain_password;
+        delete updated.display_password;
       }
     }
 
@@ -4335,8 +4326,8 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
 
   const newHash = bcrypt.hashSync(chosenPassword, 10);
   user.password = newHash;
-  user.plain_password = chosenPassword;
-  user.display_password = chosenPassword;
+  delete user.plain_password;
+  delete user.display_password;
   user.must_change_password = false;
   user.mustChangePassword = false;
   user.password_changed_at = new Date().toISOString();
@@ -4349,8 +4340,8 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
     const lIdx = localUsers.findIndex(u => u.id === user.id || u.teacherId === user.teacherId);
     if (lIdx !== -1) {
       localUsers[lIdx].password = newHash;
-      localUsers[lIdx].plain_password = chosenPassword;
-      localUsers[lIdx].display_password = chosenPassword;
+      delete localUsers[lIdx].plain_password;
+      delete localUsers[lIdx].display_password;
       localUsers[lIdx].must_change_password = false;
       localUsers[lIdx].mustChangePassword = false;
       localUsers[lIdx].password_changed_at = user.password_changed_at;
@@ -4365,17 +4356,12 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
     try {
       const updateData = {
         password: newHash,
-        plain_password: chosenPassword,
         must_change_password: false,
         password_changed_at: user.password_changed_at,
         updated_at: user.updatedAt,
         updated_by: user.updatedBy
       };
-      const { error } = await supabase.from('users').update(updateData).eq('id', user.id);
-      if (error && error.message.includes('plain_password')) {
-        delete updateData.plain_password;
-        await supabase.from('users').update(updateData).eq('id', user.id);
-      }
+      await supabase.from('users').update(updateData).eq('id', user.id);
     } catch(err) {
       console.warn("[Admin:ResetPassword] Supabase update warning:", err.message);
     }
@@ -4396,8 +4382,7 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
   return res.json({
     success: true,
     message: `รีเซ็ตรหัสผ่านให้ ${user.name} สำเร็จแล้ว`,
-    teacherId: user.teacherId,
-    newPassword: chosenPassword
+    teacherId: user.teacherId
   });
 });
 
@@ -4768,8 +4753,8 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
   // Hash new password with bcrypt (10 rounds)
   const newHash = bcrypt.hashSync(cleanNew, 10);
   user.password = newHash;
-  user.plain_password = cleanNew;
-  user.display_password = cleanNew;
+  delete user.plain_password;
+  delete user.display_password;
   user.must_change_password = false;
   user.mustChangePassword = false;
   user.password_changed_at = new Date().toISOString();
@@ -4782,8 +4767,8 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
     const lIdx = localUsers.findIndex(u => u.id === user.id || u.teacherId === user.teacherId);
     if (lIdx !== -1) {
       localUsers[lIdx].password = newHash;
-      localUsers[lIdx].plain_password = cleanNew;
-      localUsers[lIdx].display_password = cleanNew;
+      delete localUsers[lIdx].plain_password;
+      delete localUsers[lIdx].display_password;
       localUsers[lIdx].must_change_password = false;
       localUsers[lIdx].mustChangePassword = false;
       localUsers[lIdx].password_changed_at = user.password_changed_at;
@@ -4796,17 +4781,12 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
     try {
       const updatePayload = {
         password: newHash,
-        plain_password: cleanNew,
         must_change_password: false,
         password_changed_at: user.password_changed_at,
         updated_at: user.updatedAt,
         updated_by: user.updatedBy
       };
-      const { error } = await supabase.from('users').update(updatePayload).eq('id', user.id);
-      if (error && error.message.includes('plain_password')) {
-        delete updatePayload.plain_password;
-        await supabase.from('users').update(updatePayload).eq('id', user.id);
-      }
+      await supabase.from('users').update(updatePayload).eq('id', user.id);
     } catch(err) {
       console.warn("[Auth:ChangePassword] Supabase update notice:", err.message);
     }

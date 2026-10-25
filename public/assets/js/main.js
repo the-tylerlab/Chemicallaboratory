@@ -22776,17 +22776,16 @@ window.adminResetUserToTeacherId = async function() {
     // Update local state
     const user = adminUsers.find(u => u.id === userId);
     if (user) {
-      user.display_password = teacherId;
-      user.plain_password = teacherId;
+      user.hasPassword = true;
     }
     const elCurrentPass = document.getElementById("editUserCurrentPass");
-    if (elCurrentPass) elCurrentPass.value = teacherId;
+    if (elCurrentPass) elCurrentPass.value = "••••••••";
     renderAdminUsers();
 
     Swal.fire({
       icon: 'success',
       title: 'รีเซ็ตสำเร็จ',
-      text: `รหัสผ่านใหม่คือ ${teacherId}`,
+      text: 'ระบบได้รีเซ็ตรหัสผ่านเรียบร้อยแล้ว',
       confirmButtonColor: '#716de3'
     });
   } catch (err) {
@@ -22819,11 +22818,10 @@ window.adminApplyCustomPassword = async function() {
     // Update local state
     const user = adminUsers.find(u => u.id === userId);
     if (user) {
-      user.display_password = newPass;
-      user.plain_password = newPass;
+      user.hasPassword = true;
     }
     const elCurrentPass = document.getElementById("editUserCurrentPass");
-    if (elCurrentPass) elCurrentPass.value = newPass;
+    if (elCurrentPass) elCurrentPass.value = "••••••••";
     const elNewCustomPass = document.getElementById("editUserNewCustomPass");
     if (elNewCustomPass) elNewCustomPass.value = "";
     renderAdminUsers();
