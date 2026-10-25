@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SciPortal Consolidated Database Migration Bundle
--- Generated at: 2026-09-29T06:27:00.011Z
+-- Generated at: 2026-10-25T07:29:14.178Z
 -- Target: Supabase (PostgreSQL)
 -- ============================================================================
 
@@ -832,4 +832,93 @@ END $$;
 
 
 -- >>> END MIGRATION: 005_p2_modules.sql <<<
+
+-- >>> START MIGRATION: 006_user_password_security.sql <<<
+-- ============================================================================
+-- Migration: 006_user_password_security.sql
+-- Description: Mandatory Password Change Flag & Password Lifecycle Timestamps
+-- Author: SciPortal Security & Audit
+-- ============================================================================
+
+-- 1. Add password security columns to public.users
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT false;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS "mustChangePassword" BOOLEAN DEFAULT false;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ;
+
+-- 2. Enforce must_change_password on all active users
+UPDATE public.users 
+SET must_change_password = true,
+    "mustChangePassword" = true,
+    updated_at = NOW(),
+    updated_by = 'migration_006_security'
+WHERE is_deleted = false;
+
+-- 3. Update view definition for safe user directory (ensuring password columns remain masked)
+CREATE OR REPLACE VIEW public.user_directory AS
+SELECT 
+  id,
+  COALESCE(teacher_id, "teacherId") as "teacherId",
+  name,
+  department,
+  email,
+  role,
+  COALESCE(role_name, "roleName") as "roleName",
+  COALESCE(assigned_rooms, "assignedRooms") as "assignedRooms",
+  initials,
+  color,
+  COALESCE(is_active, "isActive") as "isActive",
+  must_change_password,
+  created_at
+FROM public.users
+WHERE is_deleted = false;
+
+-- 4. Record migration version
+INSERT INTO public.schema_migrations (version, name, applied_at)
+VALUES ('006', 'user_password_security', NOW())
+ON CONFLICT (version) DO UPDATE SET applied_at = NOW();
+
+
+-- >>> END MIGRATION: 006_user_password_security.sql <<<
+
+-- >>> START MIGRATION: 007_revoked_tokens.sql <<<
+-- ============================================================================
+-- Migration: 007_revoked_tokens.sql
+-- Description: Shared Token Revocation Store for Multi-Instance / Serverless Architectures
+-- Author: SciPortal Security & Infrastructure
+-- ============================================================================
+
+-- 1. Create revoked_tokens table
+CREATE TABLE IF NOT EXISTS public.revoked_tokens (
+  token_hash VARCHAR(64) PRIMARY KEY,
+  user_id VARCHAR(64),
+  expires_at TIMESTAMPTZ NOT NULL,
+  revoked_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  reason VARCHAR(128) DEFAULT 'LOGOUT'
+);
+
+-- 2. Index on expires_at for efficient cleanup and lookup
+CREATE INDEX IF NOT EXISTS idx_revoked_tokens_expires_at ON public.revoked_tokens(expires_at);
+CREATE INDEX IF NOT EXISTS idx_revoked_tokens_user_id ON public.revoked_tokens(user_id);
+
+-- 3. Add token_revoked_before timestamp to users if not exists (for whole-account revocation on password reset)
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS token_revoked_before TIMESTAMPTZ;
+
+-- 4. Enable Row Level Security (RLS)
+ALTER TABLE public.revoked_tokens ENABLE ROW LEVEL SECURITY;
+
+-- 5. Revocation table policy: Service role full access, anon cannot read/write directly
+DROP POLICY IF EXISTS revoked_tokens_service_role ON public.revoked_tokens;
+CREATE POLICY revoked_tokens_service_role ON public.revoked_tokens
+  FOR ALL
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
+
+-- 6. Record migration in schema_migrations
+INSERT INTO public.schema_migrations (version, name, applied_at)
+VALUES ('007', 'revoked_tokens', NOW())
+ON CONFLICT (version) DO UPDATE SET applied_at = NOW();
+
+
+-- >>> END MIGRATION: 007_revoked_tokens.sql <<<
 

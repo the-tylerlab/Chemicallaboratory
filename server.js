@@ -38,16 +38,291 @@ if (!JWT_SECRET) {
 }
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 
-// In-memory blacklist for revoked tokens (logout)
-const revokedTokens = new Set();
+// ─── DUAL-LAYER TOKEN REVOCATION STORE (MULTI-INSTANCE / SERVERLESS COMPATIBLE) ──
+// Fast-path in-memory Map<tokenHash: string, expiresAtTimestampMs: number>
+const revokedTokensCache = new Map();
 
-// Clean up expired tokens periodically (every 1 hour)
-setInterval(() => {
-  // If memory grows large, clear old invalid tokens
-  if (revokedTokens.size > 10000) {
-    revokedTokens.clear();
+function hashToken(token) {
+  if (!token) return '';
+  return crypto.createHash('sha256').update(String(token)).digest('hex');
+}
+
+function isTokenRevokedLocally(token) {
+  if (!token) return false;
+  const hash = hashToken(token);
+  const expiresAtMs = revokedTokensCache.get(hash);
+  if (!expiresAtMs) return false;
+  if (expiresAtMs > Date.now()) {
+    return true;
   }
-}, 3600000).unref();
+  // Expired naturally, remove from memory
+  revokedTokensCache.delete(hash);
+  return false;
+}
+
+async function isTokenRevoked(token, user = null) {
+  if (!token) return true;
+
+  // 1. Check local fast-path in-memory cache
+  if (isTokenRevokedLocally(token)) {
+    return true;
+  }
+
+  const hash = hashToken(token);
+
+  // 2. Check Supabase shared revocation store if connected
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('revoked_tokens')
+        .select('token_hash, expires_at')
+        .eq('token_hash', hash)
+        .maybeSingle();
+
+      if (!error && data && data.token_hash) {
+        const expiresAtMs = new Date(data.expires_at).getTime() || (Date.now() + 8 * 3600 * 1000);
+        if (expiresAtMs > Date.now()) {
+          revokedTokensCache.set(hash, expiresAtMs);
+          return true;
+        } else {
+          // Token record in DB is past expiry, clean it asynchronously
+          supabase.from('revoked_tokens').delete().eq('token_hash', hash).then(null, () => {});
+        }
+      }
+    } catch (err) {
+      // Graceful fallback to in-memory check
+    }
+  }
+
+  // 3. Check user-level revocation timestamp (e.g. password changed or admin reset)
+  if (user && user.iat) {
+    const issuedAtMs = Number(user.iat) * 1000;
+    if (user.token_revoked_before) {
+      const revokedBeforeMs = new Date(user.token_revoked_before).getTime();
+      if (!isNaN(revokedBeforeMs) && issuedAtMs < revokedBeforeMs) {
+        return true;
+      }
+    }
+    if (user.password_changed_at) {
+      const pwdChangedMs = new Date(user.password_changed_at).getTime();
+      // Allow 2-second grace period for server clock drift
+      if (!isNaN(pwdChangedMs) && issuedAtMs < (pwdChangedMs - 2000)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+async function revokeToken(token, user = null, expiresAtMs = null) {
+  if (!token) return;
+  const hash = hashToken(token);
+  const ttlMs = expiresAtMs || (Date.now() + 8 * 3600 * 1000); // default 8 hours
+
+  // 1. Update in-memory cache
+  revokedTokensCache.set(hash, ttlMs);
+
+  // 2. Persist to Supabase shared store if connected
+  if (supabase) {
+    try {
+      const record = {
+        token_hash: hash,
+        user_id: user?.teacherId || user?.id || 'unknown',
+        expires_at: new Date(ttlMs).toISOString(),
+        revoked_at: new Date().toISOString()
+      };
+      await supabase.from('revoked_tokens').upsert([record]);
+    } catch (err) {
+      // Graceful notice
+    }
+  }
+}
+
+// Periodic cleanup: NEVER clear all revoked tokens!
+// Prune only truly expired records to prevent memory leak safely.
+function cleanExpiredRevokedTokens() {
+  const now = Date.now();
+  for (const [hash, expMs] of revokedTokensCache.entries()) {
+    if (expMs <= now) {
+      revokedTokensCache.delete(hash);
+    }
+  }
+
+  // If memory still grows large (e.g. > 50,000 entries), evict ONLY oldest expired or earliest-expiring entries
+  if (revokedTokensCache.size > 50000) {
+    const sorted = Array.from(revokedTokensCache.entries()).sort((a, b) => a[1] - b[1]);
+    const toRemove = sorted.slice(0, revokedTokensCache.size - 25000);
+    for (const [h] of toRemove) {
+      revokedTokensCache.delete(h);
+    }
+  }
+
+  // Asynchronously clean expired records in Supabase
+  if (supabase) {
+    supabase
+      .from('revoked_tokens')
+      .delete()
+      .lt('expires_at', new Date().toISOString())
+      .then(null, () => {});
+  }
+}
+
+// Run cleanup every 15 minutes
+setInterval(cleanExpiredRevokedTokens, 15 * 60 * 1000).unref();
+
+// Backwards-compatibility proxy for legacy revokedTokens.has / add
+const revokedTokens = {
+  has: (token) => isTokenRevokedLocally(token),
+  add: (token) => { revokeToken(token); return revokedTokens; },
+  clear: () => cleanExpiredRevokedTokens(),
+  get size() { return revokedTokensCache.size; }
+};
+
+// ─── AUTHENTICATION RATE LIMITER & PROGRESSIVE COOLDOWN ───────────────────────
+function getClientIp(req) {
+  if (!req) return '127.0.0.1';
+  const forwarded = req.headers && req.headers['x-forwarded-for'];
+  if (forwarded) {
+    return String(forwarded).split(',')[0].trim();
+  }
+  return req.socket?.remoteAddress || req.ip || '127.0.0.1';
+}
+
+class AuthRateLimiter {
+  constructor({ windowMs = 15 * 60 * 1000, maxAttempts = 5, progressiveDelayMs = 500, name = 'auth' }) {
+    this.windowMs = windowMs;
+    this.maxAttempts = maxAttempts;
+    this.progressiveDelayMs = progressiveDelayMs;
+    this.name = name;
+    this.records = new Map(); // key -> { count, firstAttempt, lastAttempt, blockedUntil }
+
+    // Cleanup expired records every 5 minutes
+    setInterval(() => this.cleanup(), 5 * 60 * 1000).unref();
+  }
+
+  _getKey(req, identifier = '') {
+    const ip = getClientIp(req);
+    const cleanIdent = String(identifier || '').toLowerCase().trim();
+    return cleanIdent ? `${ip}::${cleanIdent}` : ip;
+  }
+
+  check(req, identifier = '') {
+    const now = Date.now();
+    const key = this._getKey(req, identifier);
+    const ip = getClientIp(req);
+    const ipRecord = this.records.get(ip);
+    const keyRecord = this.records.get(key);
+
+    const record = (keyRecord && keyRecord.count >= (ipRecord?.count || 0)) ? keyRecord : ipRecord;
+
+    if (!record) {
+      return { allowed: true, remaining: this.maxAttempts, retryAfter: 0, delayMs: 0 };
+    }
+
+    // Check if blocked
+    if (record.blockedUntil && record.blockedUntil > now) {
+      const retryAfter = Math.ceil((record.blockedUntil - now) / 1000);
+      return {
+        allowed: false,
+        remaining: 0,
+        retryAfter,
+        delayMs: 0,
+        count: record.count
+      };
+    }
+
+    // Check window expiration
+    if (now - record.firstAttempt > this.windowMs) {
+      this.records.delete(key);
+      return { allowed: true, remaining: this.maxAttempts, retryAfter: 0, delayMs: 0 };
+    }
+
+    if (record.count >= this.maxAttempts) {
+      const retryAfter = Math.ceil((record.firstAttempt + this.windowMs - now) / 1000);
+      record.blockedUntil = now + (retryAfter * 1000);
+      return {
+        allowed: false,
+        remaining: 0,
+        retryAfter,
+        delayMs: 0,
+        count: record.count
+      };
+    }
+
+    // Progressive delay after repeated failures (throttles brute-force)
+    let delayMs = 0;
+    if (record.count >= 2 && this.progressiveDelayMs > 0) {
+      delayMs = Math.min((record.count - 1) * this.progressiveDelayMs, 3000);
+    }
+
+    return {
+      allowed: true,
+      remaining: Math.max(0, this.maxAttempts - record.count),
+      retryAfter: 0,
+      delayMs,
+      count: record.count
+    };
+  }
+
+  recordFailure(req, identifier = '') {
+    const now = Date.now();
+    const ip = getClientIp(req);
+    const key = this._getKey(req, identifier);
+
+    [ip, key].forEach(k => {
+      let rec = this.records.get(k);
+      if (!rec || (now - rec.firstAttempt > this.windowMs)) {
+        rec = { count: 1, firstAttempt: now, lastAttempt: now, blockedUntil: 0 };
+      } else {
+        rec.count += 1;
+        rec.lastAttempt = now;
+        if (rec.count >= this.maxAttempts) {
+          rec.blockedUntil = now + this.windowMs;
+        }
+      }
+      this.records.set(k, rec);
+    });
+  }
+
+  recordSuccess(req, identifier = '') {
+    const ip = getClientIp(req);
+    const key = this._getKey(req, identifier);
+    this.records.delete(key);
+    this.records.delete(ip);
+  }
+
+  cleanup() {
+    const now = Date.now();
+    for (const [k, rec] of this.records.entries()) {
+      if (now - rec.lastAttempt > this.windowMs && (!rec.blockedUntil || rec.blockedUntil < now)) {
+        this.records.delete(k);
+      }
+    }
+  }
+}
+
+const loginRateLimiter = new AuthRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 5,
+  progressiveDelayMs: 500,
+  name: 'login'
+});
+
+const resetPasswordRateLimiter = new AuthRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 10,
+  progressiveDelayMs: 0,
+  name: 'reset-password'
+});
+
+const changePasswordRateLimiter = new AuthRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  maxAttempts: 5,
+  progressiveDelayMs: 500,
+  name: 'change-password'
+});
+
 
 // ─── SUPABASE CONFIGURATION ───────────────────────────────────────────────────
 // Values MUST come from environment variables. No hardcoded fallbacks.
@@ -434,6 +709,12 @@ function createDailyDataSnapshot() {
 }
 
 function safeWriteJson(filePath, data) {
+  if (IS_PRODUCTION) {
+    // Single Source of Truth Enforcement:
+    // In production, Supabase cloud database is the sole canonical persistence layer.
+    // Local JSON files within repository are strictly read-only and never modified.
+    return true;
+  }
   let temporaryPath;
   try {
     const jsonStr = JSON.stringify(data, null, 2);
@@ -806,7 +1087,7 @@ function sanitizeItemForSupabase(it) {
 }
 
 // Middleware: Authenticate JWT Token
-function authenticateToken(req, res, next) {
+async function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
 
@@ -818,7 +1099,8 @@ function authenticateToken(req, res, next) {
     });
   }
 
-  if (revokedTokens.has(token)) {
+  // Fast-path in-memory check
+  if (isTokenRevokedLocally(token)) {
     return res.status(401).json({
       success: false,
       code: 'TOKEN_REVOKED',
@@ -834,7 +1116,7 @@ function authenticateToken(req, res, next) {
     });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+  jwt.verify(token, JWT_SECRET, async (err, decoded) => {
     if (err) {
       if (err.name === 'TokenExpiredError') {
         return res.status(401).json({
@@ -849,6 +1131,21 @@ function authenticateToken(req, res, next) {
         message: 'โทเค็นยืนยันตัวตนไม่ถูกต้อง (Invalid token)'
       });
     }
+
+    // Shared cross-instance & account-level revocation check
+    try {
+      const revoked = await isTokenRevoked(token, decoded);
+      if (revoked) {
+        return res.status(401).json({
+          success: false,
+          code: 'TOKEN_REVOKED',
+          message: 'เซสชันนี้ได้ออกจากระบบแล้ว กรุณาเข้าสู่ระบบใหม่'
+        });
+      }
+    } catch (e) {
+      // Graceful fallback to local check
+    }
+
     req.user = decoded;
     req.token = token;
     next();
@@ -856,15 +1153,28 @@ function authenticateToken(req, res, next) {
 }
 
 // Middleware: Optional Authentication (attaches req.user if token is present and valid)
-function optionalAuth(req, res, next) {
+async function optionalAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-  if (!token || revokedTokens.has(token)) {
+  if (!token || isTokenRevokedLocally(token)) {
     req.user = null;
     return next();
   }
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    req.user = err ? null : decoded;
+  jwt.verify(token, JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      req.user = null;
+      return next();
+    }
+    try {
+      const revoked = await isTokenRevoked(token, decoded);
+      if (revoked) {
+        req.user = null;
+        return next();
+      }
+    } catch (e) {
+      // ignore
+    }
+    req.user = decoded;
     req.token = token;
     next();
   });
@@ -4306,6 +4616,18 @@ app.put('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res)
 app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), async (req, res) => {
   const { id } = req.params;
   const { newPassword, resetToTeacherId } = req.body;
+
+  // Rate Limiting Guard
+  const rateLimitStatus = resetPasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
+  if (!rateLimitStatus.allowed) {
+    res.setHeader('Retry-After', String(rateLimitStatus.retryAfter));
+    return res.status(429).json({
+      success: false,
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'มีการร้องขอรีเซ็ตรหัสผ่านบ่อยเกินกำหนด กรุณารอ 15 นาทีก่อนลองใหม่อีกครั้ง',
+      retryAfter: rateLimitStatus.retryAfter
+    });
+  }
   
   const users = await fetchLiveUsers(true);
   const user = users.find(u => u.id === id || u.teacherId === id);
@@ -4324,14 +4646,16 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
     return res.status(400).json({ success: false, message: 'รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร' });
   }
 
+  const nowIso = new Date().toISOString();
   const newHash = bcrypt.hashSync(chosenPassword, 10);
   user.password = newHash;
   delete user.plain_password;
   delete user.display_password;
   user.must_change_password = false;
   user.mustChangePassword = false;
-  user.password_changed_at = new Date().toISOString();
-  user.updatedAt = new Date().toISOString();
+  user.password_changed_at = nowIso;
+  user.token_revoked_before = nowIso;
+  user.updatedAt = nowIso;
   user.updatedBy = req.user.teacherId || req.user.id;
 
   // Persist locally
@@ -4345,6 +4669,7 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
       localUsers[lIdx].must_change_password = false;
       localUsers[lIdx].mustChangePassword = false;
       localUsers[lIdx].password_changed_at = user.password_changed_at;
+      localUsers[lIdx].token_revoked_before = user.token_revoked_before;
       localUsers[lIdx].updatedAt = user.updatedAt;
       localUsers[lIdx].updatedBy = user.updatedBy;
       writeUsers(localUsers);
@@ -4358,6 +4683,7 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
         password: newHash,
         must_change_password: false,
         password_changed_at: user.password_changed_at,
+        token_revoked_before: user.token_revoked_before,
         updated_at: user.updatedAt,
         updated_by: user.updatedBy
       };
@@ -4366,6 +4692,8 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
       console.warn("[Admin:ResetPassword] Supabase update warning:", err.message);
     }
   }
+
+  resetPasswordRateLimiter.recordSuccess(req, req.user?.teacherId || req.user?.id);
 
   // Audit Log
   recordAuditLog({
@@ -4535,6 +4863,36 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(400).json({ success: false, message: "กรุณาระบุรหัสประจำตัวครูหรือชื่อผู้ใช้งาน" });
   }
 
+  // Rate Limiting Guard: Prevent brute-force & credential stuffing
+  const rateLimitStatus = loginRateLimiter.check(req, cleanUser);
+  if (!rateLimitStatus.allowed) {
+    recordAuditLog({
+      actorId: cleanUser,
+      actorName: cleanUser,
+      actorRole: 'L0',
+      action: 'LOGIN_RATE_LIMIT_EXCEEDED',
+      resource: 'auth',
+      resourceId: cleanUser,
+      details: `ระงับคำขอเข้าสู่ระบบชั่วคราว: พยายามเข้าสู่ระบบผิดพลาดเกินกำหนด (${rateLimitStatus.count} ครั้ง)`,
+      req
+    });
+    res.setHeader('Retry-After', String(rateLimitStatus.retryAfter));
+    res.setHeader('X-RateLimit-Limit', '5');
+    res.setHeader('X-RateLimit-Remaining', '0');
+    res.setHeader('X-RateLimit-Reset', String(Math.floor((Date.now() + rateLimitStatus.retryAfter * 1000) / 1000)));
+    return res.status(429).json({
+      success: false,
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: `มีการพยายามเข้าสู่ระบบผิดพลาดเกินกำหนด กรุณารอ ${Math.ceil(rateLimitStatus.retryAfter / 60)} นาทีก่อนลองใหม่อีกครั้ง`,
+      retryAfter: rateLimitStatus.retryAfter
+    });
+  }
+
+  // Progressive cooldown delay to throttle automated brute-force attacks
+  if (rateLimitStatus.delayMs > 0) {
+    await new Promise(resolve => setTimeout(resolve, rateLimitStatus.delayMs));
+  }
+
   const findUserInList = (list) => {
     return list.find(u => {
       const tId = normalizeThaiDigits(String(u.teacherId || '')).trim().toLowerCase();
@@ -4576,6 +4934,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Production Security Guard: Accounts without a valid bcrypt hash are strictly rejected in production
     if (IS_PRODUCTION && !hasValidHash) {
+      loginRateLimiter.recordFailure(req, cleanUser);
       recordAuditLog({
         actorId: user.teacherId || user.id,
         actorName: user.name,
@@ -4595,6 +4954,7 @@ app.post('/api/auth/login', async (req, res) => {
     
     // Guard against Breached Passwords from known leak list
     if (LEAKED_HISTORICAL_PASSWORDS.has(cleanPass)) {
+      loginRateLimiter.recordFailure(req, cleanUser);
       recordAuditLog({
         actorId: user.teacherId || user.id,
         actorName: user.name,
@@ -4616,6 +4976,7 @@ app.post('/api/auth/login', async (req, res) => {
     const isPasswordCorrect = verifyPassword(cleanPass, userPass, user, IS_PRODUCTION);
 
     if (isPasswordCorrect) {
+      loginRateLimiter.recordSuccess(req, cleanUser);
       const mustChange = Boolean(user.must_change_password || user.mustChangePassword);
 
       // Generate JWT Token with secure claims & expiration
@@ -4664,6 +5025,7 @@ app.post('/api/auth/login', async (req, res) => {
         }
       });
     } else {
+      loginRateLimiter.recordFailure(req, cleanUser);
       recordAuditLog({
         actorId: user.teacherId || user.id,
         actorName: user.name,
@@ -4682,6 +5044,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
   }
 
+  loginRateLimiter.recordFailure(req, cleanUser);
   return res.status(401).json({ 
     success: false, 
     message: "ไม่พบบัญชีผู้ใช้นี้ในระบบ กรุณาติดต่อผู้ดูแลระบบ (Admin) เพื่อเพิ่มรายชื่อในหน้าจัดการสิทธิ์ผู้ใช้งาน" 
@@ -4689,9 +5052,10 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // AUTH LOGOUT ENDPOINT (Server-side Session Revocation)
-app.post('/api/auth/logout', authenticateToken, (req, res) => {
+app.post('/api/auth/logout', authenticateToken, async (req, res) => {
   if (req.token) {
-    revokedTokens.add(req.token);
+    const expMs = req.user && req.user.exp ? req.user.exp * 1000 : null;
+    await revokeToken(req.token, req.user, expMs);
   }
   recordAuditLog({
     actorId: req.user.teacherId || req.user.id,
@@ -4709,6 +5073,18 @@ app.post('/api/auth/logout', authenticateToken, (req, res) => {
 // AUTH CHANGE PASSWORD ENDPOINT (Enforces strong passwords, prohibits leaked/teacherId passwords)
 app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
   const { currentPassword, newPassword, confirmPassword } = req.body;
+
+  // Rate Limiting Guard
+  const rateLimitStatus = changePasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
+  if (!rateLimitStatus.allowed) {
+    res.setHeader('Retry-After', String(rateLimitStatus.retryAfter));
+    return res.status(429).json({
+      success: false,
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'มีการพยายามเปลี่ยนรหัสผ่านบ่อยเกินกำหนด กรุณารอ 15 นาทีก่อนลองใหม่อีกครั้ง',
+      retryAfter: rateLimitStatus.retryAfter
+    });
+  }
   
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ success: false, message: "กรุณาระบุรหัสผ่านปัจจุบันและรหัสผ่านใหม่" });
@@ -4747,8 +5123,11 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
   // Verify current password
   const isCurrentValid = verifyPassword(currentPassword, user.password, user);
   if (!isCurrentValid) {
+    changePasswordRateLimiter.recordFailure(req, req.user?.teacherId || req.user?.id);
     return res.status(401).json({ success: false, message: "รหัสผ่านปัจจุบันไม่ถูกต้อง" });
   }
+
+  changePasswordRateLimiter.recordSuccess(req, req.user?.teacherId || req.user?.id);
 
   // Hash new password with bcrypt (10 rounds)
   const newHash = bcrypt.hashSync(cleanNew, 10);
@@ -4790,6 +5169,11 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
     } catch(err) {
       console.warn("[Auth:ChangePassword] Supabase update notice:", err.message);
     }
+  }
+
+  // Revoke current session token immediately to prevent reuse
+  if (req.token) {
+    await revokeToken(req.token, req.user);
   }
 
   // Issue fresh JWT without mustChangePassword restriction
@@ -5205,6 +5589,13 @@ app.post('/api/quick-approve', authenticateToken, requireRole('L2', 'L3'), (req,
 
 // DANGER ZONE (Clear Workspace) — Strictly L3 Admin
 app.delete('/api/workspace', authenticateToken, requireRole('L3'), (req, res) => {
+  if (IS_PRODUCTION) {
+    return res.status(403).json({
+      success: false,
+      code: 'FORBIDDEN_IN_PRODUCTION',
+      message: 'ไม่อนุญาตให้ล้างข้อมูล Workspace ในสภาพแวดล้อม Production'
+    });
+  }
   try {
     createDailyDataSnapshot();
     // Clear the core arrays but keep the files
@@ -5284,6 +5675,17 @@ if (require.main === module) {
 app.verifyPassword = verifyPassword;
 app.sanitizeUser = sanitizeUser;
 app.LEAKED_HISTORICAL_PASSWORDS = LEAKED_HISTORICAL_PASSWORDS;
+app.hashToken = hashToken;
+app.isTokenRevoked = isTokenRevoked;
+app.isTokenRevokedLocally = isTokenRevokedLocally;
+app.revokeToken = revokeToken;
+app.cleanExpiredRevokedTokens = cleanExpiredRevokedTokens;
+app.revokedTokensCache = revokedTokensCache;
+app.loginRateLimiter = loginRateLimiter;
+app.resetPasswordRateLimiter = resetPasswordRateLimiter;
+app.changePasswordRateLimiter = changePasswordRateLimiter;
+app.AuthRateLimiter = AuthRateLimiter;
 
 module.exports = app;
+
 
