@@ -736,8 +736,8 @@ const LEAKED_HISTORICAL_PASSWORDS = new Set([
   '12345678'
 ]);
 
-// Helper: Verify password with bcrypt (supports Teacher ID default and custom updated passwords)
-function verifyPassword(inputPassword, storedPasswordOrHash, user = null) {
+// Helper: Verify password with bcrypt (supports Teacher ID default only in local non-production)
+function verifyPassword(inputPassword, storedPasswordOrHash, user = null, isProd = IS_PRODUCTION) {
   if (!inputPassword || !storedPasswordOrHash) return false;
   const cleanInput = String(inputPassword).trim();
   
@@ -745,10 +745,20 @@ function verifyPassword(inputPassword, storedPasswordOrHash, user = null) {
   if (LEAKED_HISTORICAL_PASSWORDS.has(cleanInput)) return false;
   
   const strHash = String(storedPasswordOrHash).trim();
-  if (strHash.startsWith('$2a$') || strHash.startsWith('$2b$')) {
+  const isValidBcryptHash = strHash.startsWith('$2a$') || strHash.startsWith('$2b$');
+
+  if (isValidBcryptHash) {
     if (bcrypt.compareSync(cleanInput, strHash)) return true;
   }
   
+  // Guard 2: Production Security Hardening
+  // In production, strictly reject accounts without valid bcrypt hash,
+  // reject plaintext password comparisons, and reject default teacherId fallbacks.
+  if (isProd) {
+    return false;
+  }
+
+  // Non-production fallback only (development/offline demo):
   // Plaintext match fallback
   if (cleanInput === strHash) return true;
 
@@ -762,12 +772,14 @@ function verifyPassword(inputPassword, storedPasswordOrHash, user = null) {
   return false;
 }
 
-// Helper: Sanitize user object (never leak password / password hash)
+// Helper: Sanitize user object (never leak password, hash, or plaintext passwords)
 function sanitizeUser(u) {
   if (!u) return null;
   const copy = { ...u };
   delete copy.password;
   delete copy.password_hash;
+  delete copy.plain_password;
+  delete copy.display_password;
   return copy;
 }
 
@@ -3956,10 +3968,11 @@ async function fetchLiveUsers(forceRefresh = false) {
           const isAdmin = (tId === 'admin' || tId === '10823' || su.id === 'u_admin' || su.id === 'u_10823');
           const defaultPlain = isAdmin ? 'SciAdmin@2026' : tId;
           let userPass = su.password;
-          if (!userPass || (!userPass.startsWith('$2a$') && !userPass.startsWith('$2b$'))) {
-            userPass = bcrypt.hashSync(defaultPlain, 10);
+          const hasValidHash = userPass && (userPass.startsWith('$2a$') || userPass.startsWith('$2b$'));
+          if (!hasValidHash) {
+            userPass = IS_PRODUCTION ? null : bcrypt.hashSync(defaultPlain, 10);
           }
-          const plainPass = su.plain_password || defaultPlain;
+          const plainPass = IS_PRODUCTION ? null : (su.plain_password || defaultPlain);
           const mustChange = Boolean(su.must_change_password || su.mustChangePassword);
 
           return {
@@ -4376,7 +4389,7 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
     action: 'ADMIN_RESET_USER_PASSWORD',
     resource: 'users',
     resourceId: user.id,
-    details: `ผู้ดูแลระบบ ${req.user.name} ได้รีเซ็ตรหัสผ่านใหม่ให้กับ ${user.name} (${user.teacherId}): ${chosenPassword}`,
+    details: `ผู้ดูแลระบบ ${req.user.name} ได้รีเซ็ตรหัสผ่านใหม่ให้กับ ${user.name} (${user.teacherId})`,
     req
   });
 
@@ -4574,6 +4587,26 @@ app.post('/api/auth/login', async (req, res) => {
 
   if (user) {
     const userPass = String(user.password || '').trim();
+    const hasValidHash = userPass.startsWith('$2a$') || userPass.startsWith('$2b$');
+
+    // Production Security Guard: Accounts without a valid bcrypt hash are strictly rejected in production
+    if (IS_PRODUCTION && !hasValidHash) {
+      recordAuditLog({
+        actorId: user.teacherId || user.id,
+        actorName: user.name,
+        actorRole: user.role || 'L0',
+        action: 'LOGIN_REJECTED_NO_VALID_HASH',
+        resource: 'auth',
+        resourceId: user.id,
+        details: `ปฏิเสธการเข้าสู่ระบบ: บัญชีผู้ใช้ไม่มีรหัสผ่านที่เข้ารหัสแบบปลอดภัยในระบบ Production (${cleanUser})`,
+        req
+      });
+      return res.status(401).json({
+        success: false,
+        code: 'ACCOUNT_PASSWORD_HASH_INVALID',
+        message: 'บัญชีนี้ยังไม่มีการตั้งรหัสผ่านที่ปลอดภัยตามมาตรฐานความปลอดภัย (Valid Hash Required) กรุณาติดต่อผู้ดูแลระบบเพื่อตั้งรหัสผ่าน'
+      });
+    }
     
     // Guard against Breached Passwords from known leak list
     if (LEAKED_HISTORICAL_PASSWORDS.has(cleanPass)) {
@@ -4595,7 +4628,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Check password match securely with bcrypt
-    const isPasswordCorrect = verifyPassword(cleanPass, userPass, user);
+    const isPasswordCorrect = verifyPassword(cleanPass, userPass, user, IS_PRODUCTION);
 
     if (isPasswordCorrect) {
       const mustChange = Boolean(user.must_change_password || user.mustChangePassword);
@@ -5266,6 +5299,11 @@ if (require.main === module) {
     console.log(`=======================================================`);
   });
 }
+
+// Expose security helpers for unit & regression testing
+app.verifyPassword = verifyPassword;
+app.sanitizeUser = sanitizeUser;
+app.LEAKED_HISTORICAL_PASSWORDS = LEAKED_HISTORICAL_PASSWORDS;
 
 module.exports = app;
 
