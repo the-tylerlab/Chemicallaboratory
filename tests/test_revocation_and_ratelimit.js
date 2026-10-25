@@ -101,8 +101,8 @@ function createControllableSupabaseMock() {
     getRateLimitsStore() { return rateLimitsStore; },
     async rpc(fn, args) {
       if (fn === 'increment_rate_limit') {
-        if (simulateError === 'RATE_LIMIT_ERROR') {
-          return { data: null, error: { message: 'Rate limit RPC unreachable' } };
+        if (simulateError === 'RATE_LIMIT_ERROR' || simulateError === 'RPC_FAILURE_ONLY') {
+          return { data: null, error: { message: 'Rate limit RPC function missing or unreachable' } };
         }
         const key = args.p_key;
         const windowMs = args.p_window_ms;
@@ -574,6 +574,49 @@ async function runTests() {
     expect(bundleSql.includes('001_central_schema.sql'), 'Bundle contains migration 001');
     expect(bundleSql.includes('006_user_password_security.sql'), 'Bundle contains migration 006');
     expect(bundleSql.includes('007_revoked_tokens.sql'), 'Bundle contains migration 007');
+
+    // ── TEST 14: Concurrent Rate Limiter Invocations ──
+    console.log('\n--- 14. Concurrent Invocations & Race Condition Resilience ---');
+    const concurrentIp = '198.51.100.222';
+    const concReq = { ip: concurrentIp, headers: {}, socket: { remoteAddress: concurrentIp } };
+    const concLimiter = new app.AuthRateLimiter({
+      windowMs: 60 * 1000,
+      maxAttempts: 5,
+      name: 'conc-test'
+    });
+
+    // Fire 5 concurrent failure records in parallel
+    await Promise.all([
+      concLimiter.recordFailure(concReq, 'conc_user'),
+      concLimiter.recordFailure(concReq, 'conc_user'),
+      concLimiter.recordFailure(concReq, 'conc_user'),
+      concLimiter.recordFailure(concReq, 'conc_user'),
+      concLimiter.recordFailure(concReq, 'conc_user')
+    ]);
+
+    const concStatus = await concLimiter.check(concReq, 'conc_user');
+    expect(concStatus.allowed === false, 'Concurrent bursts reaching limit correctly enforce block');
+    expect(concStatus.count >= 5, 'Failure count is accurately tracked across concurrent attempts');
+
+    // ── TEST 15: RPC Failure Fallback Resiliency ──
+    console.log('\n--- 15. RPC Failure Fallback Resiliency ---');
+    mockSupabase.setErrorMode('RPC_FAILURE_ONLY');
+    const fallbackLimiter = new app.AuthRateLimiter({
+      windowMs: 60 * 1000,
+      maxAttempts: 3,
+      name: 'rpc-fallback-test'
+    });
+    const fallbackReq = { ip: '198.51.100.233', headers: {}, socket: { remoteAddress: '198.51.100.233' } };
+
+    // Should not throw even when RPC fails; falls back to synchronized upsert
+    let fallbackThrown = false;
+    try {
+      await fallbackLimiter.recordFailure(fallbackReq, 'fallback_user');
+    } catch (e) {
+      fallbackThrown = true;
+    }
+    expect(!fallbackThrown, 'RPC failure falls back gracefully to synchronized upsert without crashing');
+    mockSupabase.setErrorMode(null);
 
     console.log(`\n====================================================`);
     console.log(`🎉 All ${passed}/${total} Security & Architecture Tests Passed!`);
