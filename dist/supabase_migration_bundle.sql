@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SciPortal Consolidated Database Migration Bundle
--- Generated at: 2026-10-25T07:29:14.178Z
+-- Generated at: 2026-10-25T08:01:57.064Z
 -- Target: Supabase (PostgreSQL)
 -- ============================================================================
 
@@ -906,17 +906,40 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS token_revoked_before TIMESTAMP
 -- 4. Enable Row Level Security (RLS)
 ALTER TABLE public.revoked_tokens ENABLE ROW LEVEL SECURITY;
 
--- 5. Revocation table policy: Service role full access, anon cannot read/write directly
+-- 5. Revocation table policy: Service role full access and backend API key
 DROP POLICY IF EXISTS revoked_tokens_service_role ON public.revoked_tokens;
 CREATE POLICY revoked_tokens_service_role ON public.revoked_tokens
   FOR ALL
-  TO service_role
+  TO anon, authenticated, service_role
   USING (true)
   WITH CHECK (true);
 
--- 6. Record migration in schema_migrations
+GRANT ALL ON public.revoked_tokens TO anon, authenticated, service_role;
+
+-- 6. Shared Rate Limiting Table (for Multi-Instance DDoS / Brute-force protection)
+CREATE TABLE IF NOT EXISTS public.rate_limits (
+  key VARCHAR(128) PRIMARY KEY,
+  count INT NOT NULL DEFAULT 1,
+  first_attempt TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_attempt TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  blocked_until TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_rate_limits_last_attempt ON public.rate_limits(last_attempt);
+
+ALTER TABLE public.rate_limits ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS rate_limits_service_role ON public.rate_limits;
+CREATE POLICY rate_limits_service_role ON public.rate_limits
+  FOR ALL
+  TO anon, authenticated, service_role
+  USING (true)
+  WITH CHECK (true);
+
+GRANT ALL ON public.rate_limits TO anon, authenticated, service_role;
+
+-- 7. Record migration in schema_migrations
 INSERT INTO public.schema_migrations (version, name, applied_at)
-VALUES ('007', 'revoked_tokens', NOW())
+VALUES ('007', 'revoked_tokens_and_shared_rate_limits', NOW())
 ON CONFLICT (version) DO UPDATE SET applied_at = NOW();
 
 

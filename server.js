@@ -11,6 +11,11 @@ const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
+// Enable trusted proxy so Express securely extracts verified client IP behind Vercel/reverse proxies
+app.set('trust proxy', 1);
+// Disable Express server technology disclosure
+app.disable('x-powered-by');
+
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const IS_PRODUCTION = NODE_ENV === 'production';
@@ -38,7 +43,24 @@ if (!JWT_SECRET) {
 }
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 
-// ─── DUAL-LAYER TOKEN REVOCATION STORE (MULTI-INSTANCE / SERVERLESS COMPATIBLE) ──
+// ─── SUPABASE CONFIGURATION ───────────────────────────────────────────────────
+// Values MUST come from environment variables. No hardcoded fallbacks.
+// Supabase is optional (graceful degradation in local dev); missing vars disable cloud sync.
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+let supabase = null;
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.warn('⚠️  SUPABASE_URL or SUPABASE_KEY not set — Supabase cloud sync disabled. Set these in .env to enable.');
+} else {
+  try {
+    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('🚀 Supabase connected in server backend');
+  } catch(e) {
+    console.warn('Supabase init failed in server:', e.message);
+  }
+}
+
+// ─── DUAL-LAYER TOKEN REVOCATION STORE (FAIL-CLOSED & MULTI-INSTANCE COMPATIBLE) ──
 // Fast-path in-memory Map<tokenHash: string, expiresAtTimestampMs: number>
 const revokedTokensCache = new Map();
 
@@ -60,37 +82,59 @@ function isTokenRevokedLocally(token) {
   return false;
 }
 
+/**
+ * Fail-Closed Token Revocation Verifier
+ * Returns: { revoked: boolean, reason?: string }
+ * Throws: Error with code 'REVOCATION_CHECK_FAILED' if the shared store cannot be verified.
+ */
 async function isTokenRevoked(token, user = null) {
-  if (!token) return true;
+  if (!token) return { revoked: true, reason: 'TOKEN_EMPTY' };
 
   // 1. Check local fast-path in-memory cache
   if (isTokenRevokedLocally(token)) {
-    return true;
+    return { revoked: true, reason: 'LOCAL_CACHE' };
   }
 
   const hash = hashToken(token);
 
   // 2. Check Supabase shared revocation store if connected
   if (supabase) {
+    let data, error;
     try {
-      const { data, error } = await supabase
+      const res = await supabase
         .from('revoked_tokens')
         .select('token_hash, expires_at')
         .eq('token_hash', hash)
         .maybeSingle();
+      data = res.data;
+      error = res.error;
+    } catch (queryErr) {
+      console.error('[TokenRevocation:Supabase] Revocation query network/timeout exception:', queryErr.message);
+      const err = new Error(`Revocation store query failure: ${queryErr.message}`);
+      err.code = 'REVOCATION_CHECK_FAILED';
+      throw err;
+    }
 
-      if (!error && data && data.token_hash) {
-        const expiresAtMs = new Date(data.expires_at).getTime() || (Date.now() + 8 * 3600 * 1000);
-        if (expiresAtMs > Date.now()) {
-          revokedTokensCache.set(hash, expiresAtMs);
-          return true;
-        } else {
-          // Token record in DB is past expiry, clean it asynchronously
-          supabase.from('revoked_tokens').delete().eq('token_hash', hash).then(null, () => {});
-        }
+    if (error) {
+      if (!IS_PRODUCTION && error.message && error.message.includes("Could not find the table 'public.revoked_tokens'")) {
+        console.warn('[TokenRevocation:LocalDev] Notice: Table public.revoked_tokens not yet migrated in Supabase. Using local in-memory store in dev.');
+      } else {
+        console.error('[TokenRevocation:Supabase] Revocation verification database error:', error.message);
+        const err = new Error(`Revocation store unavailable: ${error.message}`);
+        err.code = 'REVOCATION_CHECK_FAILED';
+        throw err;
       }
-    } catch (err) {
-      // Graceful fallback to in-memory check
+    }
+
+    if (data && data.token_hash) {
+      const expiresAtMs = new Date(data.expires_at).getTime() || (Date.now() + 8 * 3600 * 1000);
+      if (expiresAtMs > Date.now()) {
+        revokedTokensCache.set(hash, expiresAtMs);
+        return { revoked: true, reason: 'SHARED_STORE' };
+      } else {
+        // Token record in DB is past expiry, clean it asynchronously
+        supabase.from('revoked_tokens').delete().eq('token_hash', hash).then(null, () => {});
+      }
     }
   }
 
@@ -100,21 +144,25 @@ async function isTokenRevoked(token, user = null) {
     if (user.token_revoked_before) {
       const revokedBeforeMs = new Date(user.token_revoked_before).getTime();
       if (!isNaN(revokedBeforeMs) && issuedAtMs < revokedBeforeMs) {
-        return true;
+        return { revoked: true, reason: 'ACCOUNT_TOKENS_REVOKED' };
       }
     }
     if (user.password_changed_at) {
       const pwdChangedMs = new Date(user.password_changed_at).getTime();
       // Allow 2-second grace period for server clock drift
       if (!isNaN(pwdChangedMs) && issuedAtMs < (pwdChangedMs - 2000)) {
-        return true;
+        return { revoked: true, reason: 'PASSWORD_CHANGED' };
       }
     }
   }
 
-  return false;
+  return { revoked: false };
 }
 
+/**
+ * Persist Token Revocation
+ * Throws: Error with code 'REVOCATION_PERSIST_FAILED' if persistence to shared database fails.
+ */
 async function revokeToken(token, user = null, expiresAtMs = null) {
   if (!token) return;
   const hash = hashToken(token);
@@ -125,22 +173,36 @@ async function revokeToken(token, user = null, expiresAtMs = null) {
 
   // 2. Persist to Supabase shared store if connected
   if (supabase) {
+    const record = {
+      token_hash: hash,
+      user_id: user?.teacherId || user?.id || 'unknown',
+      expires_at: new Date(ttlMs).toISOString(),
+      revoked_at: new Date().toISOString()
+    };
     try {
-      const record = {
-        token_hash: hash,
-        user_id: user?.teacherId || user?.id || 'unknown',
-        expires_at: new Date(ttlMs).toISOString(),
-        revoked_at: new Date().toISOString()
-      };
-      await supabase.from('revoked_tokens').upsert([record]);
-    } catch (err) {
-      // Graceful notice
+      const { error } = await supabase.from('revoked_tokens').upsert([record]);
+      if (error) {
+        if (!IS_PRODUCTION && error.message && error.message.includes("Could not find the table 'public.revoked_tokens'")) {
+          console.warn('[TokenRevocation:LocalDev] Notice: Table public.revoked_tokens not yet migrated in Supabase. Revocation recorded in local store in dev.');
+        } else {
+          console.error('[TokenRevocation:Supabase] Persist failed:', error.message);
+          const persistErr = new Error(`Failed to persist token revocation: ${error.message}`);
+          persistErr.code = 'REVOCATION_PERSIST_FAILED';
+          throw persistErr;
+        }
+      }
+    } catch (upsertErr) {
+      revokedTokensCache.delete(hash);
+      if (upsertErr.code === 'REVOCATION_PERSIST_FAILED') throw upsertErr;
+      const netErr = new Error(`Failed to reach shared revocation store: ${upsertErr.message}`);
+      netErr.code = 'REVOCATION_PERSIST_FAILED';
+      throw netErr;
     }
   }
 }
 
-// Periodic cleanup: NEVER clear all revoked tokens!
-// Prune only truly expired records to prevent memory leak safely.
+// Periodic cleanup: NEVER clear unexpired revoked tokens!
+// Prune ONLY truly expired records to prevent memory leak safely.
 function cleanExpiredRevokedTokens() {
   const now = Date.now();
   for (const [hash, expMs] of revokedTokensCache.entries()) {
@@ -149,16 +211,7 @@ function cleanExpiredRevokedTokens() {
     }
   }
 
-  // If memory still grows large (e.g. > 50,000 entries), evict ONLY oldest expired or earliest-expiring entries
-  if (revokedTokensCache.size > 50000) {
-    const sorted = Array.from(revokedTokensCache.entries()).sort((a, b) => a[1] - b[1]);
-    const toRemove = sorted.slice(0, revokedTokensCache.size - 25000);
-    for (const [h] of toRemove) {
-      revokedTokensCache.delete(h);
-    }
-  }
-
-  // Asynchronously clean expired records in Supabase
+  // Asynchronously clean expired records in Supabase shared store
   if (supabase) {
     supabase
       .from('revoked_tokens')
@@ -179,14 +232,13 @@ const revokedTokens = {
   get size() { return revokedTokensCache.size; }
 };
 
-// ─── AUTHENTICATION RATE LIMITER & PROGRESSIVE COOLDOWN ───────────────────────
+// ─── AUTHENTICATION RATE LIMITER & PROGRESSIVE COOLDOWN (SHARED STORE) ────────
 function getClientIp(req) {
   if (!req) return '127.0.0.1';
-  const forwarded = req.headers && req.headers['x-forwarded-for'];
-  if (forwarded) {
-    return String(forwarded).split(',')[0].trim();
-  }
-  return req.socket?.remoteAddress || req.ip || '127.0.0.1';
+  // When 'trust proxy' is configured, req.ip is securely parsed by Express from trusted reverse proxy
+  if (req.ip) return req.ip;
+  if (req.socket?.remoteAddress) return req.socket.remoteAddress;
+  return '127.0.0.1';
 }
 
 class AuthRateLimiter {
@@ -204,15 +256,65 @@ class AuthRateLimiter {
   _getKey(req, identifier = '') {
     const ip = getClientIp(req);
     const cleanIdent = String(identifier || '').toLowerCase().trim();
-    return cleanIdent ? `${ip}::${cleanIdent}` : ip;
+    return cleanIdent ? `${this.name}:${ip}::${cleanIdent}` : `${this.name}:${ip}`;
   }
 
-  check(req, identifier = '') {
+  _getIpKey(req) {
+    const ip = getClientIp(req);
+    return `${this.name}:${ip}`;
+  }
+
+  async check(req, identifier = '') {
     const now = Date.now();
     const key = this._getKey(req, identifier);
-    const ip = getClientIp(req);
-    const ipRecord = this.records.get(ip);
-    const keyRecord = this.records.get(key);
+    const ipKey = this._getIpKey(req);
+
+    // 1. Fast-path local memory check
+    let ipRecord = this.records.get(ipKey);
+    let keyRecord = this.records.get(key);
+
+    // 2. Multi-instance shared check via Supabase if connected
+    if (supabase) {
+      try {
+        const { data: sharedRows } = await supabase
+          .from('rate_limits')
+          .select('key, count, first_attempt, last_attempt, blocked_until')
+          .in('key', [key, ipKey]);
+
+        if (Array.isArray(sharedRows)) {
+          const foundKeys = new Set(sharedRows.map(r => r.key));
+          for (const k of [key, ipKey]) {
+            if (!foundKeys.has(k)) {
+              this.records.delete(k);
+              if (k === ipKey) ipRecord = null;
+              if (k === key) keyRecord = null;
+            }
+          }
+
+          for (const row of sharedRows) {
+            const blockedUntilMs = row.blocked_until ? new Date(row.blocked_until).getTime() : 0;
+            const firstAttemptMs = new Date(row.first_attempt).getTime();
+            const lastAttemptMs = new Date(row.last_attempt).getTime();
+
+            const existing = this.records.get(row.key);
+            const mergedCount = Math.max(row.count || 0, existing?.count || 0);
+            const mergedBlocked = Math.max(blockedUntilMs, existing?.blockedUntil || 0);
+            const rec = {
+              count: mergedCount,
+              firstAttempt: firstAttemptMs || existing?.firstAttempt || now,
+              lastAttempt: Math.max(lastAttemptMs, existing?.lastAttempt || now),
+              blockedUntil: mergedBlocked
+            };
+            this.records.set(row.key, rec);
+
+            if (row.key === ipKey) ipRecord = rec;
+            if (row.key === key) keyRecord = rec;
+          }
+        }
+      } catch (err) {
+        // Fallback to local memory tracking gracefully
+      }
+    }
 
     const record = (keyRecord && keyRecord.count >= (ipRecord?.count || 0)) ? keyRecord : ipRecord;
 
@@ -265,12 +367,50 @@ class AuthRateLimiter {
     };
   }
 
-  recordFailure(req, identifier = '') {
+  async recordFailure(req, identifier = '') {
     const now = Date.now();
-    const ip = getClientIp(req);
     const key = this._getKey(req, identifier);
+    const ipKey = this._getIpKey(req);
 
-    [ip, key].forEach(k => {
+    // Sync latest from shared store first to ensure cross-instance accuracy
+    if (supabase) {
+      try {
+        const { data: sharedRows } = await supabase
+          .from('rate_limits')
+          .select('key, count, first_attempt, last_attempt, blocked_until')
+          .in('key', [key, ipKey]);
+
+        if (Array.isArray(sharedRows)) {
+          const foundKeys = new Set(sharedRows.map(r => r.key));
+          for (const k of [key, ipKey]) {
+            if (!foundKeys.has(k)) {
+              this.records.delete(k);
+            }
+          }
+
+          for (const row of sharedRows) {
+            const blockedUntilMs = row.blocked_until ? new Date(row.blocked_until).getTime() : 0;
+            const firstAttemptMs = new Date(row.first_attempt).getTime();
+            const lastAttemptMs = new Date(row.last_attempt).getTime();
+            const existing = this.records.get(row.key);
+            const mergedCount = Math.max(row.count || 0, existing?.count || 0);
+            this.records.set(row.key, {
+              count: mergedCount,
+              firstAttempt: firstAttemptMs || existing?.firstAttempt || now,
+              lastAttempt: Math.max(lastAttemptMs, existing?.lastAttempt || now),
+              blockedUntil: Math.max(blockedUntilMs, existing?.blockedUntil || 0)
+            });
+          }
+        }
+      } catch (err) {
+        // Fallback to local memory tracking
+      }
+    }
+
+    const keysToUpdate = [ipKey, key];
+    const recordsToSync = [];
+
+    keysToUpdate.forEach(k => {
       let rec = this.records.get(k);
       if (!rec || (now - rec.firstAttempt > this.windowMs)) {
         rec = { count: 1, firstAttempt: now, lastAttempt: now, blockedUntil: 0 };
@@ -282,14 +422,39 @@ class AuthRateLimiter {
         }
       }
       this.records.set(k, rec);
+      recordsToSync.push({
+        key: k,
+        count: rec.count,
+        first_attempt: new Date(rec.firstAttempt).toISOString(),
+        last_attempt: new Date(rec.lastAttempt).toISOString(),
+        blocked_until: rec.blockedUntil ? new Date(rec.blockedUntil).toISOString() : null
+      });
     });
+
+    // Multi-instance shared sync via Supabase
+    if (supabase) {
+      try {
+        await supabase.from('rate_limits').upsert(recordsToSync);
+      } catch (err) {
+        // Fallback to local memory tracking gracefully
+      }
+    }
   }
 
-  recordSuccess(req, identifier = '') {
-    const ip = getClientIp(req);
+  async recordSuccess(req, identifier = '') {
     const key = this._getKey(req, identifier);
+    const ipKey = this._getIpKey(req);
     this.records.delete(key);
-    this.records.delete(ip);
+    this.records.delete(ipKey);
+
+    // Clear shared rate limit records in Supabase
+    if (supabase) {
+      try {
+        await supabase.from('rate_limits').delete().in('key', [key, ipKey]);
+      } catch (err) {
+        // Graceful fallback
+      }
+    }
   }
 
   cleanup() {
@@ -298,6 +463,15 @@ class AuthRateLimiter {
       if (now - rec.lastAttempt > this.windowMs && (!rec.blockedUntil || rec.blockedUntil < now)) {
         this.records.delete(k);
       }
+    }
+
+    // Prune expired rate limit rows from Supabase
+    if (supabase) {
+      supabase
+        .from('rate_limits')
+        .delete()
+        .lt('last_attempt', new Date(now - this.windowMs).toISOString())
+        .then(null, () => {});
     }
   }
 }
@@ -322,27 +496,6 @@ const changePasswordRateLimiter = new AuthRateLimiter({
   progressiveDelayMs: 500,
   name: 'change-password'
 });
-
-
-// ─── SUPABASE CONFIGURATION ───────────────────────────────────────────────────
-// Values MUST come from environment variables. No hardcoded fallbacks.
-// Supabase is optional (graceful degradation); missing vars disable cloud sync.
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
-let supabase = null;
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.warn('⚠️  SUPABASE_URL or SUPABASE_KEY not set — Supabase cloud sync disabled. Set these in .env to enable.');
-} else {
-  try {
-    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log('🚀 Supabase connected in server backend');
-  } catch(e) {
-    console.warn('Supabase init failed in server:', e.message);
-  }
-}
-
-// Disable Express server technology disclosure
-app.disable('x-powered-by');
 
 // Security Headers Middleware
 app.use((req, res, next) => {
@@ -1134,8 +1287,9 @@ async function authenticateToken(req, res, next) {
 
     // Shared cross-instance & account-level revocation check
     try {
-      const revoked = await isTokenRevoked(token, decoded);
-      if (revoked) {
+      const status = await isTokenRevoked(token, decoded);
+      const isRev = (typeof status === 'object' && status !== null) ? status.revoked : Boolean(status);
+      if (isRev) {
         return res.status(401).json({
           success: false,
           code: 'TOKEN_REVOKED',
@@ -1143,7 +1297,13 @@ async function authenticateToken(req, res, next) {
         });
       }
     } catch (e) {
-      // Graceful fallback to local check
+      // Fail-closed security policy: If the shared store is unreachable, do not assume token is valid
+      console.error('[Auth:Security] Fail-closed revocation verification error:', e.message);
+      return res.status(503).json({
+        success: false,
+        code: 'REVOCATION_CHECK_UNAVAILABLE',
+        message: 'ไม่สามารถตรวจสอบสถานะเซสชันได้เนื่องจากระบบความปลอดภัยขัดข้อง กรุณาลองใหม่อีกครั้ง'
+      });
     }
 
     req.user = decoded;
@@ -1166,13 +1326,15 @@ async function optionalAuth(req, res, next) {
       return next();
     }
     try {
-      const revoked = await isTokenRevoked(token, decoded);
-      if (revoked) {
+      const status = await isTokenRevoked(token, decoded);
+      const isRev = (typeof status === 'object' && status !== null) ? status.revoked : Boolean(status);
+      if (isRev) {
         req.user = null;
         return next();
       }
     } catch (e) {
-      // ignore
+      req.user = null;
+      return next();
     }
     req.user = decoded;
     req.token = token;
@@ -4618,7 +4780,7 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
   const { newPassword, resetToTeacherId } = req.body;
 
   // Rate Limiting Guard
-  const rateLimitStatus = resetPasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
+  const rateLimitStatus = await resetPasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
   if (!rateLimitStatus.allowed) {
     res.setHeader('Retry-After', String(rateLimitStatus.retryAfter));
     return res.status(429).json({
@@ -4693,7 +4855,7 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
     }
   }
 
-  resetPasswordRateLimiter.recordSuccess(req, req.user?.teacherId || req.user?.id);
+  await resetPasswordRateLimiter.recordSuccess(req, req.user?.teacherId || req.user?.id);
 
   // Audit Log
   recordAuditLog({
@@ -4864,7 +5026,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   // Rate Limiting Guard: Prevent brute-force & credential stuffing
-  const rateLimitStatus = loginRateLimiter.check(req, cleanUser);
+  const rateLimitStatus = await loginRateLimiter.check(req, cleanUser);
   if (!rateLimitStatus.allowed) {
     recordAuditLog({
       actorId: cleanUser,
@@ -4934,7 +5096,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     // Production Security Guard: Accounts without a valid bcrypt hash are strictly rejected in production
     if (IS_PRODUCTION && !hasValidHash) {
-      loginRateLimiter.recordFailure(req, cleanUser);
+      await loginRateLimiter.recordFailure(req, cleanUser);
       recordAuditLog({
         actorId: user.teacherId || user.id,
         actorName: user.name,
@@ -4954,7 +5116,7 @@ app.post('/api/auth/login', async (req, res) => {
     
     // Guard against Breached Passwords from known leak list
     if (LEAKED_HISTORICAL_PASSWORDS.has(cleanPass)) {
-      loginRateLimiter.recordFailure(req, cleanUser);
+      await loginRateLimiter.recordFailure(req, cleanUser);
       recordAuditLog({
         actorId: user.teacherId || user.id,
         actorName: user.name,
@@ -4976,7 +5138,7 @@ app.post('/api/auth/login', async (req, res) => {
     const isPasswordCorrect = verifyPassword(cleanPass, userPass, user, IS_PRODUCTION);
 
     if (isPasswordCorrect) {
-      loginRateLimiter.recordSuccess(req, cleanUser);
+      await loginRateLimiter.recordSuccess(req, cleanUser);
       const mustChange = Boolean(user.must_change_password || user.mustChangePassword);
 
       // Generate JWT Token with secure claims & expiration
@@ -5025,7 +5187,7 @@ app.post('/api/auth/login', async (req, res) => {
         }
       });
     } else {
-      loginRateLimiter.recordFailure(req, cleanUser);
+      await loginRateLimiter.recordFailure(req, cleanUser);
       recordAuditLog({
         actorId: user.teacherId || user.id,
         actorName: user.name,
@@ -5044,7 +5206,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
   }
 
-  loginRateLimiter.recordFailure(req, cleanUser);
+  await loginRateLimiter.recordFailure(req, cleanUser);
   return res.status(401).json({ 
     success: false, 
     message: "ไม่พบบัญชีผู้ใช้นี้ในระบบ กรุณาติดต่อผู้ดูแลระบบ (Admin) เพื่อเพิ่มรายชื่อในหน้าจัดการสิทธิ์ผู้ใช้งาน" 
@@ -5053,10 +5215,29 @@ app.post('/api/auth/login', async (req, res) => {
 
 // AUTH LOGOUT ENDPOINT (Server-side Session Revocation)
 app.post('/api/auth/logout', authenticateToken, async (req, res) => {
-  if (req.token) {
-    const expMs = req.user && req.user.exp ? req.user.exp * 1000 : null;
-    await revokeToken(req.token, req.user, expMs);
+  try {
+    if (req.token) {
+      const expMs = req.user && req.user.exp ? req.user.exp * 1000 : null;
+      await revokeToken(req.token, req.user, expMs);
+    }
+  } catch (err) {
+    recordAuditLog({
+      actorId: req.user.teacherId || req.user.id,
+      actorName: req.user.name,
+      actorRole: req.user.role,
+      action: 'LOGOUT_PERSISTENCE_FAILED',
+      resource: 'auth',
+      resourceId: req.user.id,
+      details: `ไม่สามารถบันทึกสถานะการเพิกถอน Token ลงฐานข้อมูลได้: ${err.message}`,
+      req
+    });
+    return res.status(503).json({
+      success: false,
+      code: 'LOGOUT_PERSISTENCE_FAILED',
+      message: 'ไม่สามารถบันทึกการออกจากระบบลงฐานข้อมูลกลางได้ กรุณาลองใหม่อีกครั้ง'
+    });
   }
+
   recordAuditLog({
     actorId: req.user.teacherId || req.user.id,
     actorName: req.user.name,
@@ -5075,7 +5256,7 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
   const { currentPassword, newPassword, confirmPassword } = req.body;
 
   // Rate Limiting Guard
-  const rateLimitStatus = changePasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
+  const rateLimitStatus = await changePasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
   if (!rateLimitStatus.allowed) {
     res.setHeader('Retry-After', String(rateLimitStatus.retryAfter));
     return res.status(429).json({
@@ -5123,11 +5304,11 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
   // Verify current password
   const isCurrentValid = verifyPassword(currentPassword, user.password, user);
   if (!isCurrentValid) {
-    changePasswordRateLimiter.recordFailure(req, req.user?.teacherId || req.user?.id);
+    await changePasswordRateLimiter.recordFailure(req, req.user?.teacherId || req.user?.id);
     return res.status(401).json({ success: false, message: "รหัสผ่านปัจจุบันไม่ถูกต้อง" });
   }
 
-  changePasswordRateLimiter.recordSuccess(req, req.user?.teacherId || req.user?.id);
+  await changePasswordRateLimiter.recordSuccess(req, req.user?.teacherId || req.user?.id);
 
   // Hash new password with bcrypt (10 rounds)
   const newHash = bcrypt.hashSync(cleanNew, 10);
@@ -5685,6 +5866,8 @@ app.loginRateLimiter = loginRateLimiter;
 app.resetPasswordRateLimiter = resetPasswordRateLimiter;
 app.changePasswordRateLimiter = changePasswordRateLimiter;
 app.AuthRateLimiter = AuthRateLimiter;
+app.getSupabaseClient = () => supabase;
+app.setSupabaseClient = (client) => { supabase = client; };
 
 module.exports = app;
 
