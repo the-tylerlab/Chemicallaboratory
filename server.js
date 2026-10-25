@@ -276,10 +276,26 @@ class AuthRateLimiter {
     // 2. Multi-instance shared check via Supabase if connected
     if (supabase) {
       try {
-        const { data: sharedRows } = await supabase
+        const { data: sharedRows, error } = await supabase
           .from('rate_limits')
           .select('key, count, first_attempt, last_attempt, blocked_until')
           .in('key', [key, ipKey]);
+
+        if (error) {
+          if (IS_PRODUCTION) {
+            console.error('[RateLimiter:Supabase] Fail-closed rate limit error in production:', error.message);
+            const err = new Error(`Rate limit store unavailable: ${error.message}`);
+            err.code = 'RATE_LIMIT_CHECK_FAILED';
+            throw err;
+          }
+          if (error.message && error.message.includes("Could not find the table 'public.rate_limits'")) {
+            console.warn('[RateLimiter:LocalDev] Table public.rate_limits not yet migrated. Using local tracking.');
+          } else {
+            const err = new Error(`Rate limit check failed: ${error.message}`);
+            err.code = 'RATE_LIMIT_CHECK_FAILED';
+            throw err;
+          }
+        }
 
         if (Array.isArray(sharedRows)) {
           const foundKeys = new Set(sharedRows.map(r => r.key));
@@ -312,7 +328,9 @@ class AuthRateLimiter {
           }
         }
       } catch (err) {
-        // Fallback to local memory tracking gracefully
+        if (err.code === 'RATE_LIMIT_CHECK_FAILED' || IS_PRODUCTION) {
+          throw err;
+        }
       }
     }
 
@@ -372,13 +390,49 @@ class AuthRateLimiter {
     const key = this._getKey(req, identifier);
     const ipKey = this._getIpKey(req);
 
-    // Sync latest from shared store first to ensure cross-instance accuracy
+    // 1. Try atomic PostgreSQL RPC increment first if Supabase is connected
     if (supabase) {
       try {
-        const { data: sharedRows } = await supabase
+        const { data: rpcData, error: rpcErr } = await supabase.rpc('increment_rate_limit', {
+          p_key: key,
+          p_window_ms: this.windowMs,
+          p_max_attempts: this.maxAttempts
+        });
+        await supabase.rpc('increment_rate_limit', {
+          p_key: ipKey,
+          p_window_ms: this.windowMs,
+          p_max_attempts: this.maxAttempts
+        });
+
+        if (!rpcErr && Array.isArray(rpcData) && rpcData.length > 0) {
+          const row = rpcData[0];
+          this.records.set(key, {
+            count: row.count,
+            firstAttempt: new Date(row.first_attempt).getTime(),
+            lastAttempt: new Date(row.last_attempt).getTime(),
+            blockedUntil: row.blocked_until ? new Date(row.blocked_until).getTime() : 0
+          });
+          return;
+        }
+      } catch (rpcEx) {
+        // Fall back to multi-instance upsert if RPC not present in database
+      }
+    }
+
+    // 2. Multi-instance synchronized fallback
+    if (supabase) {
+      try {
+        const { data: sharedRows, error: selectErr } = await supabase
           .from('rate_limits')
           .select('key, count, first_attempt, last_attempt, blocked_until')
           .in('key', [key, ipKey]);
+
+        if (selectErr && IS_PRODUCTION) {
+          console.error('[RateLimiter:Supabase] Fail-closed failure on sync in production:', selectErr.message);
+          const err = new Error(`Rate limit sync failed: ${selectErr.message}`);
+          err.code = 'RATE_LIMIT_CHECK_FAILED';
+          throw err;
+        }
 
         if (Array.isArray(sharedRows)) {
           const foundKeys = new Set(sharedRows.map(r => r.key));
@@ -403,7 +457,9 @@ class AuthRateLimiter {
           }
         }
       } catch (err) {
-        // Fallback to local memory tracking
+        if (err.code === 'RATE_LIMIT_CHECK_FAILED' || IS_PRODUCTION) {
+          throw err;
+        }
       }
     }
 
@@ -431,28 +487,36 @@ class AuthRateLimiter {
       });
     });
 
-    // Multi-instance shared sync via Supabase
     if (supabase) {
       try {
-        await supabase.from('rate_limits').upsert(recordsToSync);
+        const { error: upsertErr } = await supabase.from('rate_limits').upsert(recordsToSync);
+        if (upsertErr && IS_PRODUCTION) {
+          console.error('[RateLimiter:Supabase] Fail-closed failure on upsert in production:', upsertErr.message);
+          const err = new Error(`Rate limit persistence failed: ${upsertErr.message}`);
+          err.code = 'RATE_LIMIT_CHECK_FAILED';
+          throw err;
+        }
       } catch (err) {
-        // Fallback to local memory tracking gracefully
+        if (err.code === 'RATE_LIMIT_CHECK_FAILED' || IS_PRODUCTION) {
+          throw err;
+        }
       }
     }
   }
 
   async recordSuccess(req, identifier = '') {
     const key = this._getKey(req, identifier);
-    const ipKey = this._getIpKey(req);
+    // Delete ONLY the specific user key, NEVER the ipKey!
+    // Legitimate login of one user must not wipe IP-based rate limiting for other accounts.
     this.records.delete(key);
-    this.records.delete(ipKey);
 
-    // Clear shared rate limit records in Supabase
     if (supabase) {
       try {
-        await supabase.from('rate_limits').delete().in('key', [key, ipKey]);
+        await supabase.from('rate_limits').delete().eq('key', key);
       } catch (err) {
-        // Graceful fallback
+        if (IS_PRODUCTION) {
+          console.warn('[RateLimiter:Supabase] Failed to clear user rate limit key in production:', err.message);
+        }
       }
     }
   }
@@ -460,17 +524,21 @@ class AuthRateLimiter {
   cleanup() {
     const now = Date.now();
     for (const [k, rec] of this.records.entries()) {
-      if (now - rec.lastAttempt > this.windowMs && (!rec.blockedUntil || rec.blockedUntil < now)) {
+      // Never delete if block is still active
+      if (now - rec.lastAttempt > this.windowMs && (!rec.blockedUntil || rec.blockedUntil <= now)) {
         this.records.delete(k);
       }
     }
 
-    // Prune expired rate limit rows from Supabase
+    // Prune expired rate limit rows from Supabase (preserving active blocks)
     if (supabase) {
+      const nowIso = new Date(now).toISOString();
+      const windowExpiryIso = new Date(now - this.windowMs).toISOString();
       supabase
         .from('rate_limits')
         .delete()
-        .lt('last_attempt', new Date(now - this.windowMs).toISOString())
+        .lt('last_attempt', windowExpiryIso)
+        .or(`blocked_until.is.null,blocked_until.lt.${nowIso}`)
         .then(null, () => {});
     }
   }
@@ -1316,7 +1384,11 @@ async function authenticateToken(req, res, next) {
 async function optionalAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-  if (!token || isTokenRevokedLocally(token)) {
+  if (!token) {
+    req.user = null;
+    return next();
+  }
+  if (isTokenRevokedLocally(token)) {
     req.user = null;
     return next();
   }
@@ -1333,6 +1405,16 @@ async function optionalAuth(req, res, next) {
         return next();
       }
     } catch (e) {
+      // Fail-closed guarantee: If client explicitly presents token but revocation store fails,
+      // never silently bypass or downgrade into unauthenticated state if revocation store is broken
+      if (e.code === 'REVOCATION_CHECK_FAILED') {
+        console.error('[OptionalAuth:Security] Fail-closed revocation verification error:', e.message);
+        return res.status(503).json({
+          success: false,
+          code: 'REVOCATION_CHECK_UNAVAILABLE',
+          message: 'ไม่สามารถตรวจสอบสถานะเซสชันได้เนื่องจากระบบความปลอดภัยขัดข้อง กรุณาลองใหม่อีกครั้ง'
+        });
+      }
       req.user = null;
       return next();
     }
@@ -3779,7 +3861,7 @@ app.post('/api/borrow/:id/return', authenticateToken, requireRole('L1', 'L2', 'L
 });
 
 // GET /api/borrow/overdue — List overdue loans
-app.get('/api/borrow/overdue', optionalAuth, async (req, res) => {
+app.get('/api/borrow/overdue', authenticateToken, async (req, res) => {
   try {
     const txs = await fetchLiveTransactions();
     const role = normalizeRole(req.user.role || req.user.roleLevel);
@@ -3900,7 +3982,7 @@ app.get('/api/budget/summary', authenticateToken, requireRole('L1', 'L2', 'L3', 
 });
 
 // GET /api/purchase-orders — Role-based data access control
-app.get('/api/purchase-orders', optionalAuth, async (req, res) => {
+app.get('/api/purchase-orders', authenticateToken, async (req, res) => {
   const orders = await fetchLivePurchaseOrders();
   if (!req.user) {
     return res.status(401).json({ error: "Authentication required to view purchase orders" });
@@ -4780,7 +4862,17 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
   const { newPassword, resetToTeacherId } = req.body;
 
   // Rate Limiting Guard
-  const rateLimitStatus = await resetPasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
+  let rateLimitStatus;
+  try {
+    rateLimitStatus = await resetPasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
+  } catch (rlErr) {
+    console.error('[ResetPassword:RateLimit] Rate limit store error:', rlErr.message);
+    return res.status(503).json({
+      success: false,
+      code: 'RATE_LIMIT_UNAVAILABLE',
+      message: 'ระบบรักษาความปลอดภัยของอัตราการร้องขอขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้ง'
+    });
+  }
   if (!rateLimitStatus.allowed) {
     res.setHeader('Retry-After', String(rateLimitStatus.retryAfter));
     return res.status(429).json({
@@ -5026,7 +5118,17 @@ app.post('/api/auth/login', async (req, res) => {
   }
 
   // Rate Limiting Guard: Prevent brute-force & credential stuffing
-  const rateLimitStatus = await loginRateLimiter.check(req, cleanUser);
+  let rateLimitStatus;
+  try {
+    rateLimitStatus = await loginRateLimiter.check(req, cleanUser);
+  } catch (rlErr) {
+    console.error('[Login:RateLimit] Rate limit store error:', rlErr.message);
+    return res.status(503).json({
+      success: false,
+      code: 'RATE_LIMIT_UNAVAILABLE',
+      message: 'ระบบตรวจสอบความปลอดภัยของอัตราการเข้าสู่ระบบขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้ง'
+    });
+  }
   if (!rateLimitStatus.allowed) {
     recordAuditLog({
       actorId: cleanUser,
@@ -5256,7 +5358,17 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
   const { currentPassword, newPassword, confirmPassword } = req.body;
 
   // Rate Limiting Guard
-  const rateLimitStatus = await changePasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
+  let rateLimitStatus;
+  try {
+    rateLimitStatus = await changePasswordRateLimiter.check(req, req.user?.teacherId || req.user?.id);
+  } catch (rlErr) {
+    console.error('[ChangePassword:RateLimit] Rate limit store error:', rlErr.message);
+    return res.status(503).json({
+      success: false,
+      code: 'RATE_LIMIT_UNAVAILABLE',
+      message: 'ระบบตรวจสอบความปลอดภัยของอัตราการเข้าถึงขัดข้องชั่วคราว กรุณาลองใหม่อีกครั้ง'
+    });
+  }
   if (!rateLimitStatus.allowed) {
     res.setHeader('Retry-After', String(rateLimitStatus.retryAfter));
     return res.status(429).json({

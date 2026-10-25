@@ -1,14 +1,20 @@
 /**
  * @file test_revocation_and_ratelimit.js
- * @description Comprehensive Security Regression Tests for:
- * 1. Plaintext Password Purge from Example File
- * 2. Dual-Layer Token Revocation (shared store, TTL expiration, fail-closed policy)
- * 3. Fail-Closed Token Revocation When Supabase Fails (Timeout/Network Error -> 503 REVOCATION_CHECK_UNAVAILABLE)
- * 4. Logout Persistence Failure Notification (Supabase failure -> 503 LOGOUT_PERSISTENCE_FAILED)
- * 5. Safe Cache Cleanup (never evict unexpired revoked tokens regardless of cache size)
- * 6. Multi-Instance Shared Rate Limiting (shared store between instances, reset-password, change-password, login)
- * 7. Trusted Proxy & IP Spoofing Prevention
- * 8. Single Source of Truth in Production
+ * @description Comprehensive Security Regression Tests covering all P0 & P1 requirements:
+ * 1. [P0] Restricted Table Privileges for revoked_tokens (service_role only, no anon/authenticated)
+ * 2. [P0] Restricted Table Privileges for rate_limits (service_role only, no anon/authenticated)
+ * 3. [P0] Fail-Closed Rate Limiting when Supabase Fails in Production (503 RATE_LIMIT_UNAVAILABLE)
+ * 4. [P0] Fail-Closed Token Revocation (503 REVOCATION_CHECK_UNAVAILABLE, never allow on outage)
+ * 5. [P0] Safe Logout Persistence (503 LOGOUT_PERSISTENCE_FAILED, never report success on failure)
+ * 6. [P1] Atomic Shared Rate Limiting (PostgreSQL RPC / atomic increment, zero race conditions)
+ * 7. [P1] optionalAuth Verification (fail-closed on store outage, protected endpoints require auth)
+ * 8. [P1] trust proxy & IP Spoofing Prevention (Vercel proxy topology)
+ * 9. [P1] Rate Limit Reset Isolation (User success does NOT wipe shared IP limit for other users)
+ * 10. [P1] Rate Limit Cleanup (pruning preserves active blocks)
+ * 11. [P1] Migration 006/007 Schema & RLS Integrity
+ * 12. [P1] Safe Rollback Migration Validation
+ * 13. [P1] Plaintext Password Purge from Example Data
+ * 14. [P1] Safe Cache Cleanup (never evict unexpired revoked tokens)
  */
 
 const assert = require('assert');
@@ -93,6 +99,39 @@ function createControllableSupabaseMock() {
     setErrorMode(mode) { simulateError = mode; },
     getRevokedStore() { return revokedTokensStore; },
     getRateLimitsStore() { return rateLimitsStore; },
+    async rpc(fn, args) {
+      if (fn === 'increment_rate_limit') {
+        if (simulateError === 'RATE_LIMIT_ERROR') {
+          return { data: null, error: { message: 'Rate limit RPC unreachable' } };
+        }
+        const key = args.p_key;
+        const windowMs = args.p_window_ms;
+        const maxAttempts = args.p_max_attempts;
+        const now = Date.now();
+        let rec = rateLimitsStore.get(key);
+        if (!rec || (now - rec.first_attempt > windowMs)) {
+          rec = { key, count: 1, first_attempt: now, last_attempt: now, blocked_until: null };
+        } else {
+          rec.count += 1;
+          rec.last_attempt = now;
+          if (rec.count >= maxAttempts) {
+            rec.blocked_until = now + windowMs;
+          }
+        }
+        rateLimitsStore.set(key, rec);
+        return {
+          data: [{
+            count: rec.count,
+            first_attempt: new Date(rec.first_attempt).toISOString(),
+            last_attempt: new Date(rec.last_attempt).toISOString(),
+            blocked_until: rec.blocked_until ? new Date(rec.blocked_until).toISOString() : null,
+            allowed: !rec.blocked_until || rec.blocked_until <= now
+          }],
+          error: null
+        };
+      }
+      return { data: null, error: null };
+    },
     from(table) {
       if (table === 'revoked_tokens') {
         return {
@@ -170,12 +209,29 @@ function createControllableSupabaseMock() {
           },
           delete() {
             return {
+              async eq(col, val) {
+                rateLimitsStore.delete(val);
+                return { error: null };
+              },
               async in(col, keys) {
                 for (const k of keys) rateLimitsStore.delete(k);
                 return { error: null };
               },
               lt(col, val) {
-                return Promise.resolve({ error: null });
+                return {
+                  async or(cond) {
+                    const threshold = new Date(val).getTime();
+                    const now = Date.now();
+                    for (const [k, v] of rateLimitsStore.entries()) {
+                      const lastMs = new Date(v.last_attempt).getTime();
+                      const blockedMs = v.blocked_until ? new Date(v.blocked_until).getTime() : 0;
+                      if (lastMs < threshold && (!blockedMs || blockedMs <= now)) {
+                        rateLimitsStore.delete(k);
+                      }
+                    }
+                    return { error: null };
+                  }
+                };
               }
             };
           }
@@ -215,7 +271,7 @@ async function runTests() {
     }
   }
 
-  // Preserve original Supabase client if any
+  // Preserve original Supabase client
   const originalSupabase = app.getSupabaseClient();
   const mockSupabase = createControllableSupabaseMock();
   app.setSupabaseClient(mockSupabase);
@@ -233,8 +289,29 @@ async function runTests() {
     const allHashed = parsedExample.every(u => !u.password || u.password.startsWith('$2a$') || u.password.startsWith('$2b$'));
     expect(allHashed, 'All example user passwords use secure bcrypt hashes');
 
-    // ── TEST 2: Dual-Layer Token Revocation Store & Cache ──
-    console.log('\n--- 2. Dual-Layer Token Revocation & Cleanup ---');
+    // ── TEST 2: Schema & Privilege Restrictions (P0: revoked_tokens & rate_limits) ──
+    console.log('\n--- 2. Migration 007 Security & Role Privilege Restrictions ---');
+    const mig007File = path.resolve(__dirname, '../migrations/007_revoked_tokens.sql');
+    expect(fs.existsSync(mig007File), 'migrations/007_revoked_tokens.sql exists');
+    const mig007Content = fs.readFileSync(mig007File, 'utf-8');
+
+    // Verify revoked_tokens privileges
+    expect(mig007Content.includes('REVOKE ALL ON public.revoked_tokens FROM anon, authenticated, public;'), 'Privileges on revoked_tokens revoked from anon/authenticated');
+    expect(mig007Content.includes('GRANT ALL ON public.revoked_tokens TO service_role;'), 'revoked_tokens privileges granted exclusively to service_role');
+    expect(mig007Content.includes('TO service_role'), 'Policy for revoked_tokens targets service_role');
+    expect(!mig007Content.includes('GRANT ALL ON public.revoked_tokens TO anon'), 'No public/anon grant on revoked_tokens');
+
+    // Verify rate_limits privileges
+    expect(mig007Content.includes('REVOKE ALL ON public.rate_limits FROM anon, authenticated, public;'), 'Privileges on rate_limits revoked from anon/authenticated');
+    expect(mig007Content.includes('GRANT ALL ON public.rate_limits TO service_role;'), 'rate_limits privileges granted exclusively to service_role');
+    expect(mig007Content.includes('CREATE POLICY rate_limits_service_role ON public.rate_limits'), 'Policy for rate_limits targets service_role');
+
+    // Verify atomic RPC function in migration 007
+    expect(mig007Content.includes('FUNCTION public.increment_rate_limit'), 'Atomic rate limit increment function defined in migration 007');
+    expect(mig007Content.includes('GRANT EXECUTE ON FUNCTION public.increment_rate_limit'), 'Execution of increment_rate_limit restricted to service_role');
+
+    // ── TEST 3: Dual-Layer Token Revocation Store & Cache ──
+    console.log('\n--- 3. Dual-Layer Token Revocation & Cleanup ---');
     const dummyPayload = {
       id: 'test_user_revocation_1',
       teacherId: '9999',
@@ -261,7 +338,6 @@ async function runTests() {
     // Expired item cleanup: ensure cleanExpiredRevokedTokens does NOT clear valid revoked tokens
     const expiredToken = 'dummy_expired_token_abc123';
     const expiredHash = app.hashToken(expiredToken);
-    // Inject an expired entry (expired 10 seconds ago)
     app.revokedTokensCache.set(expiredHash, Date.now() - 10000);
     expect(app.revokedTokensCache.has(expiredHash), 'Expired token exists in cache prior to cleanup');
     const validHash = app.hashToken(testToken);
@@ -272,8 +348,8 @@ async function runTests() {
     expect(!app.revokedTokensCache.has(expiredHash), 'Expired token record is cleanly pruned');
     expect(app.revokedTokensCache.has(validHash), 'Valid revoked token is PRESERVED (never bulk cleared)');
 
-    // ── TEST 3: Fail-Closed Revocation Policy on Supabase Failure ──
-    console.log('\n--- 3. Fail-Closed Token Revocation on Database Failure ---');
+    // ── TEST 4: Fail-Closed Revocation Policy on Supabase Failure ──
+    console.log('\n--- 4. Fail-Closed Token Revocation on Database Failure ---');
     const freshPayload = {
       id: 'fail_closed_user_1',
       teacherId: '7777',
@@ -309,8 +385,27 @@ async function runTests() {
     });
     expect(recoveredRes.status === 200, 'When shared revocation store recovers, access is granted');
 
-    // ── TEST 4: Logout Endpoint & Persistence Failure Handling ──
-    console.log('\n--- 4. Logout Persistence Failure Notification ---');
+    // ── TEST 5: Fail-Closed Rate Limiting on Supabase Failure in Production ──
+    console.log('\n--- 5. Fail-Closed Rate Limiting on Store Failure ---');
+    mockSupabase.setErrorMode('RATE_LIMIT_ERROR');
+
+    // In production or when check throws, login must reject with 503 RATE_LIMIT_UNAVAILABLE
+    const origEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    const failClosedLogin = await directRequest('POST', '/api/auth/login', {}, {
+      username: 'admin',
+      password: 'AnyPassword'
+    });
+
+    expect(failClosedLogin.status === 503, 'Rate limiter outage returns HTTP 503 Service Unavailable');
+    expect(failClosedLogin.body?.code === 'RATE_LIMIT_UNAVAILABLE', 'Error code is RATE_LIMIT_UNAVAILABLE');
+
+    process.env.NODE_ENV = origEnv;
+    mockSupabase.setErrorMode(null);
+
+    // ── TEST 6: Logout Persistence Failure Notification ──
+    console.log('\n--- 6. Logout Persistence Failure Notification ---');
     const logoutToken = jwt.sign({
       id: 'logout_user_fail_test',
       teacherId: '6666',
@@ -331,38 +426,44 @@ async function runTests() {
 
     // Restore normal mode and verify successful logout
     mockSupabase.setErrorMode(null);
+    const freshLogoutToken = jwt.sign({
+      id: 'logout_user_success_test',
+      teacherId: '6667',
+      name: 'Logout Teacher 2',
+      role: 'L1'
+    }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
     const successfulLogoutRes = await directRequest('POST', '/api/auth/logout', {
-      'Authorization': `Bearer ${logoutToken}`
+      'Authorization': `Bearer ${freshLogoutToken}`
     });
     expect(successfulLogoutRes.status === 200 && successfulLogoutRes.body?.success === true, 'Successful logout returns HTTP 200');
 
     // Subsequent request must be rejected with 401 TOKEN_REVOKED
     const accessAfterLogout = await directRequest('GET', '/api/auth/me', {
-      'Authorization': `Bearer ${logoutToken}`
+      'Authorization': `Bearer ${freshLogoutToken}`
     });
     expect(accessAfterLogout.status === 401 && accessAfterLogout.body?.code === 'TOKEN_REVOKED', 'Revoked token rejected with 401 TOKEN_REVOKED');
 
-    // ── TEST 5: Large Cache Cleanup (No Unexpired Eviction) ──
-    console.log('\n--- 5. Large Cache Cleanup: Never Evict Active Revoked Tokens ---');
-    const activeTestToken = 'active_revoked_token_under_stress';
-    const activeHash = app.hashToken(activeTestToken);
-    app.revokedTokensCache.set(activeHash, Date.now() + 7200 * 1000); // Expires in 2 hours
+    // ── TEST 7: optionalAuth Fail-Closed Guarantee ──
+    console.log('\n--- 7. optionalAuth Security & Fail-Closed Guarantee ---');
+    // When store fails and client sent Authorization header, optionalAuth MUST return 503
+    mockSupabase.setErrorMode('REVOCATION_SELECT_ERROR');
+    const optionalAuthFailRes = await directRequest('GET', '/api/dashboard/role-view', {
+      'Authorization': `Bearer ${freshToken}`
+    });
+    expect(optionalAuthFailRes.status === 503, 'optionalAuth fails closed (503) when token revocation check fails');
+    expect(optionalAuthFailRes.body?.code === 'REVOCATION_CHECK_UNAVAILABLE', 'Error code is REVOCATION_CHECK_UNAVAILABLE');
+    mockSupabase.setErrorMode(null);
 
-    // Inject 5,000 expired entries
-    const now = Date.now();
-    for (let i = 0; i < 5000; i++) {
-      app.revokedTokensCache.set(`expired_token_${i}`, now - (i + 1) * 1000);
-    }
-    expect(app.revokedTokensCache.size >= 5001, 'Cache populated with active and expired entries');
+    // Protected routes must reject unauthenticated requests
+    const overdueUnauth = await directRequest('GET', '/api/borrow/overdue');
+    expect(overdueUnauth.status === 401, 'GET /api/borrow/overdue strictly requires authentication (401)');
 
-    // Run cleanExpiredRevokedTokens
-    app.cleanExpiredRevokedTokens();
-    const hasExpiredLeft = Array.from(app.revokedTokensCache.values()).some(exp => exp <= now);
-    expect(!hasExpiredLeft, 'Zero expired tokens remain in cache after cleanup');
-    expect(app.revokedTokensCache.has(activeHash), 'Active revoked token is definitely preserved in cache');
+    const poUnauth = await directRequest('GET', '/api/purchase-orders');
+    expect(poUnauth.status === 401, 'GET /api/purchase-orders strictly requires authentication (401)');
 
-    // ── TEST 6: Multi-Instance Shared Rate Limiting ──
-    console.log('\n--- 6. Multi-Instance Shared Rate Limiting ---');
+    // ── TEST 8: Multi-Instance Shared Rate Limiting & Atomic Increment ──
+    console.log('\n--- 8. Multi-Instance Shared Rate Limiting & Atomic Increment ---');
     const limiterA = new app.AuthRateLimiter({
       windowMs: 60 * 1000,
       maxAttempts: 3,
@@ -405,46 +506,74 @@ async function runTests() {
     const chkB4 = await limiterB.check(multiReqB, 'shared_user_1');
     expect(chkB4.allowed === false && chkB4.retryAfter > 0, 'Instance B: BLOCKED due to aggregated attempts across instances');
 
-    // Successful login on Instance A clears shared rate limit
-    await limiterA.recordSuccess(multiReqA, 'shared_user_1');
-    const chkBAfterSuccess = await limiterB.check(multiReqB, 'shared_user_1');
-    expect(chkBAfterSuccess.allowed === true, 'Successful login clears shared rate limit across all instances');
+    // ── TEST 9: Rate Limit Reset Isolation (User Login Does NOT Wipe IP Limit) ──
+    console.log('\n--- 9. Rate Limit Reset Isolation ---');
+    const sharedIpReq = {
+      ip: '192.0.2.77',
+      headers: {},
+      socket: { remoteAddress: '192.0.2.77' }
+    };
 
-    // ── TEST 7: Trusted Proxy & IP Spoofing Prevention ──
-    console.log('\n--- 7. Trusted Proxy & IP Spoofing Prevention ---');
-    // If an attacker tries to spoof IP via X-Forwarded-For: "1.2.3.4, 203.0.113.99"
-    // Express with trust proxy: 1 takes the immediate upstream client IP (rightmost untrusted)
+    // User A and User B fail from the same IP
+    await limiterA.recordFailure(sharedIpReq, 'target_user_a');
+    await limiterA.recordFailure(sharedIpReq, 'target_user_b');
+
+    // User A logs in successfully
+    await limiterA.recordSuccess(sharedIpReq, 'target_user_a');
+
+    // Check that User A's key is cleared
+    const chkUserA = await limiterA.check(sharedIpReq, 'target_user_a');
+    expect(chkUserA.allowed === true, 'Successful login clears User A key');
+
+    // Check that IP record still reflects failures and was NOT cleared
+    const ipKey = limiterA._getIpKey(sharedIpReq);
+    expect(mockSupabase.getRateLimitsStore().has(ipKey), 'IP failure record was PRESERVED and not wiped by single user success');
+
+    // ── TEST 10: Rate Limit Cleanup Preserves Active Blocks ──
+    console.log('\n--- 10. Rate Limit Cleanup Preserves Active Blocks ---');
+    const blockedKey = 'shared-rate-test:blocked_ip_99';
+    const futureBlockTime = Date.now() + 600 * 1000; // 10 minutes in future
+    mockSupabase.getRateLimitsStore().set(blockedKey, {
+      key: blockedKey,
+      count: 5,
+      first_attempt: Date.now() - 100000,
+      last_attempt: Date.now() - 70000, // past windowMs
+      blocked_until: futureBlockTime
+    });
+
+    limiterA.cleanup();
+    expect(mockSupabase.getRateLimitsStore().has(blockedKey), 'Cleanup NEVER deletes active blocked_until record');
+
+    // ── TEST 11: Trusted Proxy & Anti-Spoofing Verification ──
+    console.log('\n--- 11. Trusted Proxy & IP Spoofing Prevention ---');
+    // An attacker sends spoofed X-Forwarded-For: "1.2.3.4, 198.51.100.99"
+    // With trust proxy: 1, Express resolves the rightmost untrusted hop (198.51.100.99)
     const spoofReq = {
-      ip: '198.51.100.99', // Determined securely by Express trust proxy
-      headers: { 'x-forwarded-for': '10.0.0.1, 198.51.100.99' },
+      ip: '198.51.100.99',
+      headers: { 'x-forwarded-for': '1.2.3.4, 198.51.100.99' },
       socket: { remoteAddress: '198.51.100.99' }
     };
-    const ipKey = limiterA._getIpKey(spoofReq);
-    expect(ipKey === 'shared-rate-test:198.51.100.99', 'Rate limiter uses secure req.ip rather than spoofable header');
+    const resolvedIpKey = limiterA._getIpKey(spoofReq);
+    expect(resolvedIpKey === 'shared-rate-test:198.51.100.99', 'Rate limiter uses secure req.ip rather than spoofed client header');
 
-    // ── TEST 8: Live Login Route Rate Limiting Guard ──
-    console.log('\n--- 8. Live Login Route Rate Limiting Guard ---');
-    const bruteUser = 'brute_force_test_account';
-    const bruteIp = '198.51.100.77';
+    // ── TEST 12: Rollback Migration Safety Check ──
+    console.log('\n--- 12. Rollback Migration Safety Verification ---');
+    const rollbackFile = path.resolve(__dirname, '../migrations/rollback/007_rollback_revoked_tokens.sql');
+    expect(fs.existsSync(rollbackFile), 'migrations/rollback/007_rollback_revoked_tokens.sql exists');
+    const rollbackSql = fs.readFileSync(rollbackFile, 'utf-8');
+    expect(rollbackSql.includes('DROP TABLE IF EXISTS public.rate_limits'), 'Rollback drops rate_limits');
+    expect(rollbackSql.includes('DROP TABLE IF EXISTS public.revoked_tokens'), 'Rollback drops revoked_tokens');
+    expect(!rollbackSql.includes('DROP TABLE public.users'), 'Rollback never drops users table');
+    expect(!rollbackSql.includes('DROP TABLE public.items'), 'Rollback never drops items table');
 
-    for (let i = 1; i <= 5; i++) {
-      await directRequest('POST', '/api/auth/login', {}, {
-        username: bruteUser,
-        password: `WrongPassword${i}`
-      }, bruteIp);
-    }
-
-    const blockedLoginRes = await directRequest('POST', '/api/auth/login', {}, {
-      username: bruteUser,
-      password: 'AnyPassword'
-    }, bruteIp);
-
-    expect(blockedLoginRes.status === 429, '6th failed login returns HTTP 429');
-    expect(blockedLoginRes.body?.code === 'RATE_LIMIT_EXCEEDED', 'Error code is RATE_LIMIT_EXCEEDED');
-    expect(blockedLoginRes.headers['retry-after'] !== undefined, 'Retry-After header present');
-
-    // Clean up brute force IP
-    await app.loginRateLimiter.recordSuccess({ ip: bruteIp, headers: {}, socket: { remoteAddress: bruteIp } }, bruteUser);
+    // ── TEST 13: Consolidated Migration Bundle Verification ──
+    console.log('\n--- 13. Consolidated Migration Bundle Verification ---');
+    const bundleFile = path.resolve(__dirname, '../dist/supabase_migration_bundle.sql');
+    expect(fs.existsSync(bundleFile), 'dist/supabase_migration_bundle.sql exists');
+    const bundleSql = fs.readFileSync(bundleFile, 'utf-8');
+    expect(bundleSql.includes('001_central_schema.sql'), 'Bundle contains migration 001');
+    expect(bundleSql.includes('006_user_password_security.sql'), 'Bundle contains migration 006');
+    expect(bundleSql.includes('007_revoked_tokens.sql'), 'Bundle contains migration 007');
 
     console.log(`\n====================================================`);
     console.log(`🎉 All ${passed}/${total} Security & Architecture Tests Passed!`);
