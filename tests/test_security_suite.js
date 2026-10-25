@@ -123,13 +123,14 @@ async function runTestSuite() {
     const adminLogin = await directRequest('POST', '/api/auth/login', {}, { username: 'admin', password: adminPass });
     const adminToken = adminLogin.body?.token;
 
-    let teacherLogin = await directRequest('POST', '/api/auth/login', {}, { username: teacherUser, password: teacherPass });
-    if (!teacherLogin.body?.token) {
-      for (const cand of ['1002', '10797']) {
-        const c = credsList.find(item => item.teacherId === cand);
-        const p = c ? c.temporaryPassword : cand;
-        const res = await directRequest('POST', '/api/auth/login', {}, { username: cand, password: p });
-        if (res.body?.token) {
+    let teacherLogin = null;
+    for (const cand of ['10797', '10746', '1001', '1002']) {
+      const c = credsList.find(item => item.teacherId === cand);
+      const p = c ? c.temporaryPassword : cand;
+      const res = await directRequest('POST', '/api/auth/login', {}, { username: cand, password: p });
+      if (res.body?.token) {
+        const decoded = jwt.decode(res.body.token);
+        if (decoded && (decoded.role === 'L1' || decoded.roleLevel === 'L1')) {
           teacherLogin = res;
           teacherUser = cand;
           teacherPass = p;
@@ -137,7 +138,7 @@ async function runTestSuite() {
         }
       }
     }
-    const teacherToken = teacherLogin.body?.token;
+    const teacherToken = teacherLogin ? teacherLogin.body.token : null;
 
     const staffLogin = await directRequest('POST', '/api/auth/login', {}, { username: staffUser, password: staffPass });
     const staffToken = staffLogin.body?.token;
