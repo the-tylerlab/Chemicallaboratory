@@ -1,15 +1,11 @@
 /**
- * Staging Environment Permission & Role-Based Security Verification
+ * Mock RBAC Specification Test (In-Memory Simulation)
  * 
- * Tests complete RBAC, RLS policies, and RPC execution across all 3 Supabase roles:
- * 1. 'anon' (unauthenticated external callers)
- * 2. 'authenticated' (standard logged-in users / JWT bearers)
- * 3. 'service_role' (trusted backend Express server only)
- * 
- * Verifies that:
- * - anon & authenticated are STRICTLY DENIED access to revoked_tokens, rate_limits, and increment_rate_limit RPC.
- * - service_role is granted full execution privileges.
- * - ZERO real/production business data is modified.
+ * ⚠️  IMPORTANT NOTICE:
+ * This test validates application logic against simulated RBAC rules.
+ * It is an IN-MEMORY UNIT-LEVEL SPECIFICATION TEST and DOES NOT verify
+ * actual deployed PostgreSQL policies or grants in a live Supabase instance.
+ * For live database policy verification, use tests/test_supabase_staging_integration.js
  */
 
 const assert = require('assert');
@@ -146,7 +142,8 @@ function createStagingSupabaseClient(role = 'anon') {
 
 async function runStagingRoleTests() {
   console.log('================================================================');
-  console.log('🧪 STAGING MULTI-ROLE SECURITY & RPC EXECUTION AUDIT');
+  console.log('🧪 MOCK RBAC SPECIFICATION AUDIT (IN-MEMORY SIMULATION)');
+  console.log('⚠️  Notice: Validates application logic; does not verify live Supabase');
   console.log('================================================================\n');
 
   let passed = 0;
