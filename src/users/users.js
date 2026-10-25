@@ -140,8 +140,6 @@ export function renderUsersTable() {
     const color = getRoleColor(r);
     const rooms = Array.isArray(u.assignedRooms) ? u.assignedRooms.join(', ') : (u.assignedRooms || '-');
 
-    const pass = escapeHtml(u.display_password || u.plain_password || u.teacherId || '');
-
     return `
       <tr>
         <td style="font-family: monospace; font-size: 13px; font-weight: 600;">${tId}</td>
