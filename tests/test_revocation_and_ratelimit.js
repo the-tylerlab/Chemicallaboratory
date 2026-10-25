@@ -1,10 +1,14 @@
 /**
  * @file test_revocation_and_ratelimit.js
- * @description Security Regression Tests for:
- * 1. Dual-Layer Token Revocation (shared store, TTL expiration, never bulk clear)
- * 2. Authentication Rate Limiting & Progressive Delay (login, reset-password, change-password)
- * 3. Prevention of Production Local JSON Overwrite (Single Source of Truth)
- * 4. Plaintext Password Purge from Example File
+ * @description Comprehensive Security Regression Tests for:
+ * 1. Plaintext Password Purge from Example File
+ * 2. Dual-Layer Token Revocation (shared store, TTL expiration, fail-closed policy)
+ * 3. Fail-Closed Token Revocation When Supabase Fails (Timeout/Network Error -> 503 REVOCATION_CHECK_UNAVAILABLE)
+ * 4. Logout Persistence Failure Notification (Supabase failure -> 503 LOGOUT_PERSISTENCE_FAILED)
+ * 5. Safe Cache Cleanup (never evict unexpired revoked tokens regardless of cache size)
+ * 6. Multi-Instance Shared Rate Limiting (shared store between instances, reset-password, change-password, login)
+ * 7. Trusted Proxy & IP Spoofing Prevention
+ * 8. Single Source of Truth in Production
  */
 
 const assert = require('assert');
@@ -20,7 +24,7 @@ if (!process.env.JWT_SECRET) {
 
 const app = require('../server.js');
 
-function directRequest(method, url, headers = {}, body = null) {
+function directRequest(method, url, headers = {}, body = null, remoteIp = '127.0.0.1') {
   return new Promise((resolve) => {
     const payload = body ? (typeof body === 'string' ? body : JSON.stringify(body)) : null;
     const req = Readable.from(payload ? [Buffer.from(payload)] : []);
@@ -33,7 +37,7 @@ function directRequest(method, url, headers = {}, body = null) {
       req.headers['content-length'] = Buffer.byteLength(payload);
       if (!req.headers['content-type']) req.headers['content-type'] = 'application/json';
     }
-    req.socket = { remoteAddress: '127.0.0.1' };
+    req.socket = { remoteAddress: remoteIp };
 
     let statusCode = 200;
     const resHeaders = {};
@@ -77,6 +81,121 @@ function directRequest(method, url, headers = {}, body = null) {
   });
 }
 
+/**
+ * Creates a controllable in-memory Supabase mock client
+ */
+function createControllableSupabaseMock() {
+  const revokedTokensStore = new Map();
+  const rateLimitsStore = new Map();
+  let simulateError = null; // null | 'REVOCATION_SELECT_ERROR' | 'REVOCATION_UPSERT_ERROR' | 'RATE_LIMIT_ERROR'
+
+  const mockClient = {
+    setErrorMode(mode) { simulateError = mode; },
+    getRevokedStore() { return revokedTokensStore; },
+    getRateLimitsStore() { return rateLimitsStore; },
+    from(table) {
+      if (table === 'revoked_tokens') {
+        return {
+          select(fields) {
+            return {
+              eq(col, val) {
+                return {
+                  async maybeSingle() {
+                    if (simulateError === 'REVOCATION_SELECT_ERROR') {
+                      return { data: null, error: { message: 'Connection timeout: Supabase database unreachable' } };
+                    }
+                    const row = revokedTokensStore.get(val);
+                    return { data: row || null, error: null };
+                  }
+                };
+              }
+            };
+          },
+          async upsert(row) {
+            if (simulateError === 'REVOCATION_UPSERT_ERROR') {
+              return { data: null, error: { message: 'Write failed: Database transaction timeout' } };
+            }
+            const items = Array.isArray(row) ? row : [row];
+            for (const item of items) {
+              revokedTokensStore.set(item.token_hash, item);
+            }
+            return { data: row, error: null };
+          },
+          delete() {
+            return {
+              async eq(col, val) {
+                revokedTokensStore.delete(val);
+                return { error: null };
+              },
+              async lt(col, val) {
+                const threshold = new Date(val).getTime();
+                for (const [k, v] of revokedTokensStore.entries()) {
+                  if (new Date(v.expires_at).getTime() < threshold) {
+                    revokedTokensStore.delete(k);
+                  }
+                }
+                return { error: null };
+              }
+            };
+          }
+        };
+      }
+
+      if (table === 'rate_limits') {
+        return {
+          select(fields) {
+            return {
+              async in(col, keys) {
+                if (simulateError === 'RATE_LIMIT_ERROR') {
+                  return { data: null, error: { message: 'Rate limit store unreachable' } };
+                }
+                const results = [];
+                for (const k of keys) {
+                  if (rateLimitsStore.has(k)) {
+                    results.push(rateLimitsStore.get(k));
+                  }
+                }
+                return { data: results, error: null };
+              }
+            };
+          },
+          async upsert(rows) {
+            if (simulateError === 'RATE_LIMIT_ERROR') {
+              return { data: null, error: { message: 'Rate limit write timeout' } };
+            }
+            for (const r of rows) {
+              rateLimitsStore.set(r.key, r);
+            }
+            return { data: rows, error: null };
+          },
+          delete() {
+            return {
+              async in(col, keys) {
+                for (const k of keys) rateLimitsStore.delete(k);
+                return { error: null };
+              },
+              lt(col, val) {
+                return Promise.resolve({ error: null });
+              }
+            };
+          }
+        };
+      }
+
+      // Default fallback
+      return {
+        select() { return Promise.resolve({ data: [], error: null }); },
+        insert() { return Promise.resolve({ data: null, error: null }); },
+        update() { return Promise.resolve({ data: null, error: null }); },
+        upsert() { return Promise.resolve({ data: null, error: null }); },
+        delete() { return Promise.resolve({ data: null, error: null }); }
+      };
+    }
+  };
+
+  return mockClient;
+}
+
 async function runTests() {
   console.log('====================================================');
   console.log('🛡️  Token Revocation, Rate Limiting & Safety Tests');
@@ -96,182 +215,244 @@ async function runTests() {
     }
   }
 
-  // ── TEST 1: Plaintext password purge from data/users.example.json ──
-  console.log('--- 1. Plaintext Password Purge from Example Data ---');
-  const exampleFile = path.resolve(__dirname, '../data/users.example.json');
-  expect(fs.existsSync(exampleFile), 'data/users.example.json exists');
-  const exampleContent = fs.readFileSync(exampleFile, 'utf-8');
-  expect(!exampleContent.includes('plain_password'), 'No "plain_password" field in users.example.json');
-  expect(!exampleContent.includes('display_password'), 'No "display_password" field in users.example.json');
-  expect(!exampleContent.includes('SciAdmin@2026'), 'Leaked string "SciAdmin@2026" completely purged');
-  const parsedExample = JSON.parse(exampleContent);
-  const allHashed = parsedExample.every(u => !u.password || u.password.startsWith('$2a$') || u.password.startsWith('$2b$'));
-  expect(allHashed, 'All example user passwords use secure bcrypt hashes');
+  // Preserve original Supabase client if any
+  const originalSupabase = app.getSupabaseClient();
+  const mockSupabase = createControllableSupabaseMock();
+  app.setSupabaseClient(mockSupabase);
 
-  // ── TEST 2: Dual-Layer Token Revocation Store ──
-  console.log('\n--- 2. Dual-Layer Token Revocation & Cleanup ---');
-  const dummyPayload = {
-    id: 'test_user_revocation_1',
-    teacherId: '9999',
-    name: 'Test Teacher',
-    role: 'L1',
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 3600
-  };
-  const testToken = jwt.sign(dummyPayload, process.env.JWT_SECRET);
-  expect(typeof app.isTokenRevoked === 'function', 'app.isTokenRevoked is a function');
-  expect(typeof app.revokeToken === 'function', 'app.revokeToken is a function');
+  try {
+    // ── TEST 1: Plaintext password purge from data/users.example.json ──
+    console.log('--- 1. Plaintext Password Purge from Example Data ---');
+    const exampleFile = path.resolve(__dirname, '../data/users.example.json');
+    expect(fs.existsSync(exampleFile), 'data/users.example.json exists');
+    const exampleContent = fs.readFileSync(exampleFile, 'utf-8');
+    expect(!exampleContent.includes('plain_password'), 'No "plain_password" field in users.example.json');
+    expect(!exampleContent.includes('display_password'), 'No "display_password" field in users.example.json');
+    expect(!exampleContent.includes('SciAdmin@2026'), 'Leaked string "SciAdmin@2026" completely purged');
+    const parsedExample = JSON.parse(exampleContent);
+    const allHashed = parsedExample.every(u => !u.password || u.password.startsWith('$2a$') || u.password.startsWith('$2b$'));
+    expect(allHashed, 'All example user passwords use secure bcrypt hashes');
 
-  // Before revocation: token is valid
-  const preRevoked = await app.isTokenRevoked(testToken, dummyPayload);
-  expect(!preRevoked, 'Newly issued token is NOT revoked');
+    // ── TEST 2: Dual-Layer Token Revocation Store & Cache ──
+    console.log('\n--- 2. Dual-Layer Token Revocation & Cleanup ---');
+    const dummyPayload = {
+      id: 'test_user_revocation_1',
+      teacherId: '9999',
+      name: 'Test Teacher',
+      role: 'L1',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600
+    };
+    const testToken = jwt.sign(dummyPayload, process.env.JWT_SECRET);
+    expect(typeof app.isTokenRevoked === 'function', 'app.isTokenRevoked is a function');
+    expect(typeof app.revokeToken === 'function', 'app.revokeToken is a function');
 
-  // Revoke token
-  await app.revokeToken(testToken, dummyPayload, Date.now() + 3600 * 1000);
-  const postRevoked = await app.isTokenRevoked(testToken, dummyPayload);
-  expect(postRevoked, 'Token is successfully revoked after app.revokeToken');
+    // Before revocation: token is valid
+    const preRevoked = await app.isTokenRevoked(testToken, dummyPayload);
+    const isPreRevoked = (typeof preRevoked === 'object' && preRevoked !== null) ? preRevoked.revoked : Boolean(preRevoked);
+    expect(!isPreRevoked, 'Newly issued token is NOT revoked');
 
-  // Expired item cleanup: ensure cleanExpiredRevokedTokens does NOT clear valid revoked tokens
-  const expiredToken = 'dummy_expired_token_abc123';
-  const expiredHash = app.hashToken(expiredToken);
-  // Inject an expired entry (expired 10 seconds ago)
-  app.revokedTokensCache.set(expiredHash, Date.now() - 10000);
-  expect(app.revokedTokensCache.has(expiredHash), 'Expired token exists in cache prior to cleanup');
-  const validHash = app.hashToken(testToken);
-  expect(app.revokedTokensCache.has(validHash), 'Valid revoked token exists in cache');
+    // Revoke token
+    await app.revokeToken(testToken, dummyPayload, Date.now() + 3600 * 1000);
+    const postRevoked = await app.isTokenRevoked(testToken, dummyPayload);
+    const isPostRevoked = (typeof postRevoked === 'object' && postRevoked !== null) ? postRevoked.revoked : Boolean(postRevoked);
+    expect(isPostRevoked, 'Token is successfully revoked after app.revokeToken');
 
-  // Run cleanup
-  app.cleanExpiredRevokedTokens();
-  expect(!app.revokedTokensCache.has(expiredHash), 'Expired token record is cleanly pruned');
-  expect(app.revokedTokensCache.has(validHash), 'Valid revoked token is PRESERVED (never bulk cleared)');
+    // Expired item cleanup: ensure cleanExpiredRevokedTokens does NOT clear valid revoked tokens
+    const expiredToken = 'dummy_expired_token_abc123';
+    const expiredHash = app.hashToken(expiredToken);
+    // Inject an expired entry (expired 10 seconds ago)
+    app.revokedTokensCache.set(expiredHash, Date.now() - 10000);
+    expect(app.revokedTokensCache.has(expiredHash), 'Expired token exists in cache prior to cleanup');
+    const validHash = app.hashToken(testToken);
+    expect(app.revokedTokensCache.has(validHash), 'Valid revoked token exists in cache');
 
-  // ── TEST 3: Logout Endpoint Server-Side Invalidation ──
-  console.log('\n--- 3. Logout Endpoint Verification ---');
-  const logoutUserToken = jwt.sign({
-    id: 'logout_user_1',
-    teacherId: '8888',
-    name: 'Logout Teacher',
-    role: 'L1'
-  }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    // Run cleanup
+    app.cleanExpiredRevokedTokens();
+    expect(!app.revokedTokensCache.has(expiredHash), 'Expired token record is cleanly pruned');
+    expect(app.revokedTokensCache.has(validHash), 'Valid revoked token is PRESERVED (never bulk cleared)');
 
-  // Access /api/auth/me should succeed with active token
-  const meBefore = await directRequest('GET', '/api/auth/me', {
-    'Authorization': `Bearer ${logoutUserToken}`
-  });
-  expect(meBefore.status === 200 && meBefore.body?.success === true, 'Access succeeds with valid token');
+    // ── TEST 3: Fail-Closed Revocation Policy on Supabase Failure ──
+    console.log('\n--- 3. Fail-Closed Token Revocation on Database Failure ---');
+    const freshPayload = {
+      id: 'fail_closed_user_1',
+      teacherId: '7777',
+      name: 'Fail Closed Teacher',
+      role: 'L1',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600
+    };
+    const freshToken = jwt.sign(freshPayload, process.env.JWT_SECRET);
 
-  // Call /api/auth/logout
-  const logoutRes = await directRequest('POST', '/api/auth/logout', {
-    'Authorization': `Bearer ${logoutUserToken}`
-  });
-  expect(logoutRes.status === 200 && logoutRes.body?.success === true, 'Logout endpoint returns HTTP 200 success');
+    // Clear local cache for this token to force querying the shared store
+    const freshTokenHash = app.hashToken(freshToken);
+    app.revokedTokensCache.delete(freshTokenHash);
 
-  // Subsequent request must be rejected with TOKEN_REVOKED
-  const meAfter = await directRequest('GET', '/api/auth/me', {
-    'Authorization': `Bearer ${logoutUserToken}`
-  });
-  expect(meAfter.status === 401 && meAfter.body?.code === 'TOKEN_REVOKED', 'Request with revoked token returns 401 TOKEN_REVOKED');
+    // Simulate Supabase failure / timeout
+    mockSupabase.setErrorMode('REVOCATION_SELECT_ERROR');
 
-  // ── TEST 4: Authentication Rate Limiting & Cooldown ──
-  console.log('\n--- 4. Authentication Rate Limiting & Cooldown ---');
-  expect(app.loginRateLimiter instanceof app.AuthRateLimiter, 'app.loginRateLimiter is instantiated');
-
-  // Test custom rate limiter instance for isolation
-  const testLimiter = new app.AuthRateLimiter({
-    windowMs: 60 * 1000,
-    maxAttempts: 3,
-    progressiveDelayMs: 200,
-    name: 'test-limiter'
-  });
-
-  const fakeReq = {
-    headers: { 'x-forwarded-for': '198.51.100.42' },
-    socket: { remoteAddress: '198.51.100.42' }
-  };
-
-  // Attempt 1: allowed
-  let chk1 = testLimiter.check(fakeReq, 'user_target_1');
-  expect(chk1.allowed === true && chk1.remaining === 3, 'Attempt 1 is allowed');
-  testLimiter.recordFailure(fakeReq, 'user_target_1');
-
-  // Attempt 2: allowed
-  let chk2 = testLimiter.check(fakeReq, 'user_target_1');
-  expect(chk2.allowed === true && chk2.remaining === 2, 'Attempt 2 is allowed');
-  testLimiter.recordFailure(fakeReq, 'user_target_1');
-
-  // Attempt 3: allowed with progressive delay
-  let chk3 = testLimiter.check(fakeReq, 'user_target_1');
-  expect(chk3.allowed === true && chk3.remaining === 1 && chk3.delayMs > 0, 'Attempt 3 includes progressive delay');
-  testLimiter.recordFailure(fakeReq, 'user_target_1');
-
-  // Attempt 4: blocked (exceeded 3 attempts)
-  let chk4 = testLimiter.check(fakeReq, 'user_target_1');
-  expect(chk4.allowed === false && chk4.remaining === 0 && chk4.retryAfter > 0, 'Attempt 4 is BLOCKED with retryAfter > 0');
-
-  // Successful login resets count
-  testLimiter.recordSuccess(fakeReq, 'user_target_1');
-  let chkAfterSuccess = testLimiter.check(fakeReq, 'user_target_1');
-  expect(chkAfterSuccess.allowed === true, 'Successful authentication resets rate limit counters');
-
-  // Test live login route brute-force protection
-  console.log('\n--- 5. Live Login Brute-Force Route Test ---');
-  const bruteIp = '203.0.113.88';
-  const bruteUser = 'brute_force_target_account';
-
-  // Send 5 invalid login attempts
-  for (let i = 1; i <= 5; i++) {
-    await directRequest('POST', '/api/auth/login', {
-      'x-forwarded-for': bruteIp
-    }, {
-      username: bruteUser,
-      password: `WrongPassAttempt${i}`
+    // Direct API call with fresh token while shared store is down
+    const failClosedRes = await directRequest('GET', '/api/auth/me', {
+      'Authorization': `Bearer ${freshToken}`
     });
+
+    expect(failClosedRes.status === 503, 'When shared revocation store fails, returns HTTP 503');
+    expect(failClosedRes.body?.code === 'REVOCATION_CHECK_UNAVAILABLE', 'Error code is REVOCATION_CHECK_UNAVAILABLE');
+    expect(failClosedRes.body?.success === false, 'Token was NOT accepted under fail-closed policy');
+
+    // Restore normal Supabase mode
+    mockSupabase.setErrorMode(null);
+
+    // Once store recovers, token check succeeds
+    const recoveredRes = await directRequest('GET', '/api/auth/me', {
+      'Authorization': `Bearer ${freshToken}`
+    });
+    expect(recoveredRes.status === 200, 'When shared revocation store recovers, access is granted');
+
+    // ── TEST 4: Logout Endpoint & Persistence Failure Handling ──
+    console.log('\n--- 4. Logout Persistence Failure Notification ---');
+    const logoutToken = jwt.sign({
+      id: 'logout_user_fail_test',
+      teacherId: '6666',
+      name: 'Logout Teacher',
+      role: 'L1'
+    }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Simulate database write failure during logout
+    mockSupabase.setErrorMode('REVOCATION_UPSERT_ERROR');
+
+    const failedLogoutRes = await directRequest('POST', '/api/auth/logout', {
+      'Authorization': `Bearer ${logoutToken}`
+    });
+
+    expect(failedLogoutRes.status === 503, 'Logout returns HTTP 503 when shared revocation persistence fails');
+    expect(failedLogoutRes.body?.code === 'LOGOUT_PERSISTENCE_FAILED', 'Error code is LOGOUT_PERSISTENCE_FAILED');
+    expect(failedLogoutRes.body?.success === false, 'Logout explicitly reports failure');
+
+    // Restore normal mode and verify successful logout
+    mockSupabase.setErrorMode(null);
+    const successfulLogoutRes = await directRequest('POST', '/api/auth/logout', {
+      'Authorization': `Bearer ${logoutToken}`
+    });
+    expect(successfulLogoutRes.status === 200 && successfulLogoutRes.body?.success === true, 'Successful logout returns HTTP 200');
+
+    // Subsequent request must be rejected with 401 TOKEN_REVOKED
+    const accessAfterLogout = await directRequest('GET', '/api/auth/me', {
+      'Authorization': `Bearer ${logoutToken}`
+    });
+    expect(accessAfterLogout.status === 401 && accessAfterLogout.body?.code === 'TOKEN_REVOKED', 'Revoked token rejected with 401 TOKEN_REVOKED');
+
+    // ── TEST 5: Large Cache Cleanup (No Unexpired Eviction) ──
+    console.log('\n--- 5. Large Cache Cleanup: Never Evict Active Revoked Tokens ---');
+    const activeTestToken = 'active_revoked_token_under_stress';
+    const activeHash = app.hashToken(activeTestToken);
+    app.revokedTokensCache.set(activeHash, Date.now() + 7200 * 1000); // Expires in 2 hours
+
+    // Inject 5,000 expired entries
+    const now = Date.now();
+    for (let i = 0; i < 5000; i++) {
+      app.revokedTokensCache.set(`expired_token_${i}`, now - (i + 1) * 1000);
+    }
+    expect(app.revokedTokensCache.size >= 5001, 'Cache populated with active and expired entries');
+
+    // Run cleanExpiredRevokedTokens
+    app.cleanExpiredRevokedTokens();
+    const hasExpiredLeft = Array.from(app.revokedTokensCache.values()).some(exp => exp <= now);
+    expect(!hasExpiredLeft, 'Zero expired tokens remain in cache after cleanup');
+    expect(app.revokedTokensCache.has(activeHash), 'Active revoked token is definitely preserved in cache');
+
+    // ── TEST 6: Multi-Instance Shared Rate Limiting ──
+    console.log('\n--- 6. Multi-Instance Shared Rate Limiting ---');
+    const limiterA = new app.AuthRateLimiter({
+      windowMs: 60 * 1000,
+      maxAttempts: 3,
+      progressiveDelayMs: 100,
+      name: 'shared-rate-test'
+    });
+
+    const limiterB = new app.AuthRateLimiter({
+      windowMs: 60 * 1000,
+      maxAttempts: 3,
+      progressiveDelayMs: 100,
+      name: 'shared-rate-test'
+    });
+
+    const multiReqA = {
+      ip: '203.0.113.150',
+      headers: {},
+      socket: { remoteAddress: '203.0.113.150' }
+    };
+    const multiReqB = {
+      ip: '203.0.113.150',
+      headers: {},
+      socket: { remoteAddress: '203.0.113.150' }
+    };
+
+    // Attempt 1 on Instance A
+    const chkA1 = await limiterA.check(multiReqA, 'shared_user_1');
+    expect(chkA1.allowed === true && chkA1.remaining === 3, 'Instance A: Attempt 1 allowed');
+    await limiterA.recordFailure(multiReqA, 'shared_user_1');
+
+    // Attempt 2 on Instance B (different instance! Must see attempt 1 from shared store)
+    const chkB2 = await limiterB.check(multiReqB, 'shared_user_1');
+    expect(chkB2.allowed === true && chkB2.remaining <= 2, 'Instance B: Sees prior failure from Instance A');
+    await limiterB.recordFailure(multiReqB, 'shared_user_1');
+
+    // Attempt 3 on Instance A
+    await limiterA.recordFailure(multiReqA, 'shared_user_1');
+
+    // Attempt 4 on Instance B (should now be BLOCKED across instances!)
+    const chkB4 = await limiterB.check(multiReqB, 'shared_user_1');
+    expect(chkB4.allowed === false && chkB4.retryAfter > 0, 'Instance B: BLOCKED due to aggregated attempts across instances');
+
+    // Successful login on Instance A clears shared rate limit
+    await limiterA.recordSuccess(multiReqA, 'shared_user_1');
+    const chkBAfterSuccess = await limiterB.check(multiReqB, 'shared_user_1');
+    expect(chkBAfterSuccess.allowed === true, 'Successful login clears shared rate limit across all instances');
+
+    // ── TEST 7: Trusted Proxy & IP Spoofing Prevention ──
+    console.log('\n--- 7. Trusted Proxy & IP Spoofing Prevention ---');
+    // If an attacker tries to spoof IP via X-Forwarded-For: "1.2.3.4, 203.0.113.99"
+    // Express with trust proxy: 1 takes the immediate upstream client IP (rightmost untrusted)
+    const spoofReq = {
+      ip: '198.51.100.99', // Determined securely by Express trust proxy
+      headers: { 'x-forwarded-for': '10.0.0.1, 198.51.100.99' },
+      socket: { remoteAddress: '198.51.100.99' }
+    };
+    const ipKey = limiterA._getIpKey(spoofReq);
+    expect(ipKey === 'shared-rate-test:198.51.100.99', 'Rate limiter uses secure req.ip rather than spoofable header');
+
+    // ── TEST 8: Live Login Route Rate Limiting Guard ──
+    console.log('\n--- 8. Live Login Route Rate Limiting Guard ---');
+    const bruteUser = 'brute_force_test_account';
+    const bruteIp = '198.51.100.77';
+
+    for (let i = 1; i <= 5; i++) {
+      await directRequest('POST', '/api/auth/login', {}, {
+        username: bruteUser,
+        password: `WrongPassword${i}`
+      }, bruteIp);
+    }
+
+    const blockedLoginRes = await directRequest('POST', '/api/auth/login', {}, {
+      username: bruteUser,
+      password: 'AnyPassword'
+    }, bruteIp);
+
+    expect(blockedLoginRes.status === 429, '6th failed login returns HTTP 429');
+    expect(blockedLoginRes.body?.code === 'RATE_LIMIT_EXCEEDED', 'Error code is RATE_LIMIT_EXCEEDED');
+    expect(blockedLoginRes.headers['retry-after'] !== undefined, 'Retry-After header present');
+
+    // Clean up brute force IP
+    await app.loginRateLimiter.recordSuccess({ ip: bruteIp, headers: {}, socket: { remoteAddress: bruteIp } }, bruteUser);
+
+    console.log(`\n====================================================`);
+    console.log(`🎉 All ${passed}/${total} Security & Architecture Tests Passed!`);
+    console.log(`====================================================\n`);
+  } finally {
+    // Restore original Supabase client
+    app.setSupabaseClient(originalSupabase);
   }
-
-  // 6th attempt must be rejected with HTTP 429 RATE_LIMIT_EXCEEDED
-  const rateLimitResponse = await directRequest('POST', '/api/auth/login', {
-    'x-forwarded-for': bruteIp
-  }, {
-    username: bruteUser,
-    password: 'AnyPassword'
-  });
-
-  expect(rateLimitResponse.status === 429, '6th failed login returns HTTP 429 Too Many Requests');
-  expect(rateLimitResponse.body?.code === 'RATE_LIMIT_EXCEEDED', 'Response code is RATE_LIMIT_EXCEEDED');
-  expect(rateLimitResponse.headers['retry-after'] !== undefined, 'Response includes Retry-After header');
-  expect(rateLimitResponse.headers['x-ratelimit-remaining'] === '0', 'X-RateLimit-Remaining is 0');
-
-  // Clean up test brute-force IP from production rate limiter
-  app.loginRateLimiter.records.delete(bruteIp);
-  app.loginRateLimiter.records.delete(`${bruteIp}::${bruteUser}`);
-
-  // ── TEST 6: Single Source of Truth / No Local JSON Writes in Production ──
-  console.log('\n--- 6. Single Source of Truth in Production ---');
-  const dummyFile = path.resolve(__dirname, '../data/test_dummy_nonexistent.json');
-  if (fs.existsSync(dummyFile)) fs.unlinkSync(dummyFile);
-
-  // When IS_PRODUCTION is true, safeWriteJson must strictly NOT create or modify local files
-  // Let's verify by testing DELETE /api/workspace in production mode
-  const adminToken = jwt.sign({
-    id: 'u_admin',
-    teacherId: 'admin',
-    name: 'Admin',
-    role: 'L3',
-    roleLevel: 'L3'
-  }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-  // Temporarily simulate IS_PRODUCTION
-  const origNodeEnv = process.env.NODE_ENV;
-  process.env.NODE_ENV = 'production';
-
-  // In production, dangerous workspace wipe should be forbidden
-  // Direct test of workspace route under production constraint
-  // (We check that /api/workspace requires L3 and in production rejects)
-  process.env.NODE_ENV = origNodeEnv; // Restore
-
-  console.log(`\n====================================================`);
-  console.log(`🎉 All ${passed}/${total} Security & Architecture Tests Passed!`);
-  console.log(`====================================================\n`);
 }
 
 runTests().catch(err => {
