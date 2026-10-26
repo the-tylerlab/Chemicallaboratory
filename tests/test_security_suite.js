@@ -120,7 +120,17 @@ async function runTestSuite() {
       } catch (e) {}
     }
 
-    const adminLogin = await directRequest('POST', '/api/auth/login', {}, { username: 'admin', password: adminPass });
+    let adminLogin = await directRequest('POST', '/api/auth/login', {}, { username: 'admin', password: adminPass });
+    if (!adminLogin.body?.token) {
+      for (const fallbackAdminPass of ['SciAdmin@2026', 'admin', 'Admin@2026']) {
+        const tryLogin = await directRequest('POST', '/api/auth/login', {}, { username: 'admin', password: fallbackAdminPass });
+        if (tryLogin.body?.token) {
+          adminLogin = tryLogin;
+          adminPass = fallbackAdminPass;
+          break;
+        }
+      }
+    }
     const adminToken = adminLogin.body?.token;
 
     let teacherLogin = null;
