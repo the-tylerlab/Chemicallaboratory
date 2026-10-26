@@ -1,0 +1,150 @@
+name: Security & Test Quality Gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit & Mock Specification Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run In-Memory Unit & Fail-Closed Scenarios
+        run: npm run test:unit
+
+  security-tests:
+    name: Core Security, RBAC & Headers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Security Suite, RBAC & HTTP Headers
+        run: |
+          npm run test:security
+          npm run test:rbac
+          npm run test:headers
+          npm run test:auth
+
+  data-integrity:
+    name: Data Integrity & Backup Readiness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Verify Unique Constraints & Key Invariants
+        run: npm run verify:data
+
+      - name: Verify Backup & Non-Destructive Restore Drill
+        run: node scripts/data/verify_backup_and_restore.js
+
+  build-check:
+    name: Build & Asset Compilation Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Pages & Bundles
+        run: npm run build
+
+  staging-integration:
+    name: Supabase Staging Live Integration
+    runs-on: ubuntu-latest
+    # Run when staging credentials are provided via GitHub environment
+    environment: staging
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Live Staging Integration Test
+        env:
+          STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+          STAGING_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+          STAGING_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.STAGING_SUPABASE_SERVICE_ROLE_KEY }}
+          STAGING_JWT_SECRET: ${{ secrets.STAGING_JWT_SECRET }}
+          # Enforce failure in CI if secrets are not supplied in this required job
+          REQUIRE_STAGING: "true"
+        # Only run this step if staging secrets are present, or fail clearly
+        run: node tests/test_supabase_staging_integration.js
+        continue-on-error: ${{ github.event_name == 'pull_request' && secrets.STAGING_SUPABASE_URL == '' }}
+
+  test-summary:
+    name: Quality Gate Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, security-tests, data-integrity, build-check]
+    if: always()
+    steps:
+      - name: Evaluate Results
+        run: |
+          echo "=================================================="
+          echo "🛡️  QUALITY GATE EXECUTION SUMMARY"
+          echo "=================================================="
+          echo "Unit Tests:        ${{ needs.unit-tests.result }}"
+          echo "Security Tests:    ${{ needs.security-tests.result }}"
+          echo "Data Integrity:    ${{ needs.data-integrity.result }}"
+          echo "Build Compilation: ${{ needs.build-check.result }}"
+          echo "=================================================="
+          
+          if [[ "${{ needs.unit-tests.result }}" != "success" || \
+                "${{ needs.security-tests.result }}" != "success" || \
+                "${{ needs.data-integrity.result }}" != "success" || \
+                "${{ needs.build-check.result }}" != "success" ]]; then
+            echo "❌ Quality Gate Failed."
+            exit 1
+          fi
+          echo "✨ Quality Gate Passed Successfully."
