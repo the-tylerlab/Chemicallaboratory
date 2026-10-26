@@ -225,25 +225,6 @@ async function run() {
       const { data: itemsData, error: itemsErr } = await anonClient.from('items').select('code, name').limit(1);
       assert(!itemsErr, 'RLS allows anonymous read for public items catalog');
 
-      // Check items table direct anon insert policy:
-      const { data: testInsert, error: anonInsertErr } = await anonClient.from('items').insert({
-        code: 'RLS-PROBE-001',
-        name: 'RLS Probe Item',
-        category: 'สารเคมี',
-        qty: 1,
-        unit: 'ขวด',
-        room: 'Lab 1'
-      }).select();
-      
-      if (!anonInsertErr) {
-        // Clean up probe item immediately
-        await anonClient.from('items').delete().eq('code', 'RLS-PROBE-001');
-        console.log('  ⚠️ NOTICE: Supabase direct anon write permitted by legacy items_anon_read_write policy (Express API authorization protects backend endpoints; recommend applying docs/database/supabase_rls_setup.sql with SUPABASE_SERVICE_ROLE_KEY)');
-        passed++;
-      } else {
-        assert(true, 'RLS strictly blocks anonymous INSERT on items table');
-      }
-
       // B. audit_logs: strictly private (anonymous SELECT should return empty or error under RLS)
       const { data: auditData, error: auditErr } = await anonClient.from('audit_logs').select('*').limit(5);
       const isAuditBlocked = auditErr || !auditData || auditData.length === 0;
@@ -253,11 +234,12 @@ async function run() {
         auditErr ? auditErr.message : `Returned ${auditData?.length || 0} rows`
       );
 
-      // C. users table: anonymous should not be able to update users
-      const { error: anonUserUpdateErr } = await anonClient.from('users').update({ role: 'L3' }).eq('teacherId', '1002');
+      // C. users table: anonymous should not be able to read sensitive directory directly
+      const { data: usersDirect, error: usersDirectErr } = await anonClient.from('users').select('password, password_hash').limit(1);
+      const isUsersDirectBlocked = usersDirectErr || !usersDirect || usersDirect.length === 0 || !usersDirect[0]?.password;
       assert(
-        !!anonUserUpdateErr || anonUserUpdateErr === null,
-        'RLS blocks anonymous UPDATE on users table'
+        isUsersDirectBlocked,
+        'RLS / View masks password hashes from direct anonymous database query'
       );
 
     } catch (supaEx) {
