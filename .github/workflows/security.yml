@@ -1,3 +1,4 @@
+
 name: Security & Test Quality Gate
 
 on:
@@ -45,17 +46,12 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run Core Security Test Suite
-        run: npm run test:security
-
-      - name: Run RBAC Authorization Test Suite
-        run: npm run test:rbac
-
-      - name: Run HTTP Security Headers & CORS Test Suite
-        run: npm run test:headers
-
-      - name: Run Auth Domain Unit & Regression Test Suite
-        run: npm run test:auth
+      - name: Run Security Suite, RBAC & HTTP Headers
+        run: |
+          npm run test:security
+          npm run test:rbac
+          npm run test:headers
+          npm run test:auth
 
   data-integrity:
     name: Data Integrity & Backup Readiness
@@ -131,7 +127,7 @@ jobs:
   test-summary:
     name: Quality Gate Summary
     runs-on: ubuntu-latest
-    needs: [unit-tests, security-tests, data-integrity, build-check]
+    needs: [unit-tests, security-tests, data-integrity, build-check, staging-integration]
     if: always()
     steps:
       - name: Evaluate Results
@@ -139,17 +135,19 @@ jobs:
           echo "=================================================="
           echo "🛡️  QUALITY GATE EXECUTION SUMMARY"
           echo "=================================================="
-          echo "Unit Tests:        ${{ needs.unit-tests.result }}"
-          echo "Security Tests:    ${{ needs.security-tests.result }}"
-          echo "Data Integrity:    ${{ needs.data-integrity.result }}"
-          echo "Build Compilation: ${{ needs.build-check.result }}"
+          echo "Unit Tests:          ${{ needs.unit-tests.result }}"
+          echo "Security Tests:      ${{ needs.security-tests.result }}"
+          echo "Data Integrity:      ${{ needs.data-integrity.result }}"
+          echo "Build Compilation:   ${{ needs.build-check.result }}"
+          echo "Staging Integration: ${{ needs.staging-integration.result }}"
           echo "=================================================="
           
           if [[ "${{ needs.unit-tests.result }}" != "success" || \
                 "${{ needs.security-tests.result }}" != "success" || \
                 "${{ needs.data-integrity.result }}" != "success" || \
-                "${{ needs.build-check.result }}" != "success" ]]; then
-            echo "❌ Quality Gate Failed."
+                "${{ needs.build-check.result }}" != "success" || \
+                "${{ needs.staging-integration.result }}" != "success" ]]; then
+            echo "❌ Quality Gate Failed. One or more required checks did not succeed."
             exit 1
           fi
           echo "✨ Quality Gate Passed Successfully."

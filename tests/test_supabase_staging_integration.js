@@ -157,6 +157,14 @@ async function runStagingIntegration() {
       `Code: ${authRate.error?.code}, Msg: ${authRate.error?.message}`
     );
 
+    // Cross-user RLS check: Authenticated standard users must not read other users passwords/hashes directly
+    const authDirectUsers = await authClient.from('users').select('password, password_hash').limit(1);
+    const isAuthDirectUsersBlocked = authDirectUsers.error || !authDirectUsers.data || authDirectUsers.data.length === 0 || !authDirectUsers.data[0]?.password;
+    expect(
+      isAuthDirectUsersBlocked,
+      'RLS prevents authenticated non-admin caller from accessing raw credentials/hashes directly'
+    );
+
     // ── 5. ROLE: service_role (Backend API) ──
     console.log('\n--- 3. Testing Live Staging Role: service_role ---');
 

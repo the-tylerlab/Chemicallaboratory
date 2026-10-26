@@ -83,11 +83,28 @@ function runBackupAndRestoreVerification() {
     }
   }
 
+  // 3. Application Model Hydration Verification
+  // Verify that core application entity collections can be parsed and validated as valid domain entities
+  const restoredItems = JSON.parse(fs.readFileSync(path.join(SCRATCH_RESTORE_DIR, 'database.json'), 'utf8'));
+  const restoredUsers = fs.existsSync(path.join(SCRATCH_RESTORE_DIR, 'users.json'))
+    ? JSON.parse(fs.readFileSync(path.join(SCRATCH_RESTORE_DIR, 'users.json'), 'utf8'))
+    : [];
+  const restoredBookings = JSON.parse(fs.readFileSync(path.join(SCRATCH_RESTORE_DIR, 'bookings.json'), 'utf8'));
+
+  const itemsValid = Array.isArray(restoredItems) && restoredItems.every(i => i.code && i.name);
+  const usersValid = Array.isArray(restoredUsers) && restoredUsers.every(u => u.teacherId && u.role);
+  const bookingsValid = Array.isArray(restoredBookings) && restoredBookings.every(b => b.id);
+
+  if (!itemsValid || !usersValid || !bookingsValid) {
+    throw new Error('Application model hydration failed: restored records contain corrupt domain fields.');
+  }
+
   // Clean up scratch restore directory
   fs.rmSync(SCRATCH_RESTORE_DIR, { recursive: true, force: true });
 
   console.log(`  ✅ PASS: Restore drill restored ${restoredCount}/${backupFiles.length} files cleanly into scratch container.`);
   console.log(`  ✅ PASS: Verified ${parityMatches} file parity matches against active database.`);
+  console.log(`  ✅ PASS: Verified application model hydration: restored items, users, and bookings are 100% readable.`);
 
   console.log('\n================================================================');
   console.log('✨ Backup & Recovery Readiness Confirmed (Zero Production Impact).');
