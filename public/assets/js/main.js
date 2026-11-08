@@ -5529,7 +5529,7 @@ window.generateNextItemCode = generateNextItemCode;
 window.autoGenerateCurrentCode = autoGenerateCurrentCode;
 
 // Helper to find existing duplicate item/chemical in the exact same lab room
-function findDuplicateItemInRoom(name, room, casNo = "", excludeCode = null) {
+function findDuplicateItemInRoom(name, room, casNo = "", excludeCode = null, category = "") {
   if (!name || !room) return null;
   const cleanName = name.trim().toLowerCase().replace(/\s+/g, " ");
   const cleanRoom = room.trim().toLowerCase();
@@ -5543,12 +5543,17 @@ function findDuplicateItemInRoom(name, room, casNo = "", excludeCode = null) {
     }
     const itRoom = (it.room || "").trim().toLowerCase();
     if (itRoom !== cleanRoom) return false;
+    if (category && String(it.category || "").trim().toLowerCase() !== String(category).trim().toLowerCase()) return false;
 
     const itName = (it.name || "").trim().toLowerCase().replace(/\s+/g, " ");
     const itCas = (it.casNo || "").trim().toLowerCase();
 
-    // Match by name or CAS No
-    if (cleanName === itName) return true;
+    // Names must agree when both records have CAS numbers; differing CAS
+    // identifiers indicate different chemicals even if their display names match.
+    if (cleanName === itName) {
+      if (cleanCas && itCas && cleanCas !== itCas) return false;
+      return true;
+    }
     if (cleanCas && itCas && cleanCas === itCas) return true;
 
     return false;
@@ -5578,10 +5583,10 @@ function setupFormHandlers() {
     const currentExcludeCode = editIndex !== "" && items[editIndex] ? items[editIndex].code : null;
 
     if (name.length >= 2 && room) {
-      const dup = findDuplicateItemInRoom(name, room, casNo, currentExcludeCode);
+      const dup = findDuplicateItemInRoom(name, room, casNo, currentExcludeCode, document.getElementById("itemCategory")?.value || "");
       if (dup) {
         dupWarningEl.style.display = "block";
-        dupWarningEl.innerHTML = `<i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #ea580c; vertical-align: middle; margin-right: 4px;"></i><b>พบรายการนี้ใน ${dup.room} แล้ว:</b> "${dup.name}" (รหัส: <code>${dup.code}</code>, คงเหลือ: <b>${dup.qty} ${dup.unit}</b>) จัดเก็บที่: ${dup.cabinet || '-'}/${dup.shelf || '-'}<br><span style="color:#c2410c; font-size:11px;">* หากบันทึก ระบบจะมีตัวเลือกรวมยอดสต็อกเข้ากับรายการเดิมให้อัตโนมัติ</span>`;
+        dupWarningEl.innerHTML = `<i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: #ea580c; vertical-align: middle; margin-right: 4px;"></i><b>พบรายการนี้ใน ${dup.room} แล้ว:</b> "${dup.name}" (รหัส: <code>${dup.code}</code>, คงเหลือ: <b>${dup.qty} ${dup.unit}</b>) จัดเก็บที่: ${dup.cabinet || '-'}/${dup.shelf || '-'}<br><span style="color:#c2410c; font-size:11px;">* เมื่อบันทึก ระบบจะรวมจำนวนเข้ากับรายการเดิมให้อัตโนมัติ (หน่วยต้องตรงกัน)</span>`;
         return;
       }
     }
@@ -5680,67 +5685,47 @@ function setupFormHandlers() {
 
       // DUPLICATE IN SAME ROOM PREVENTION SYSTEM
       const currentExcludeCode = editIndex !== "" && items[editIndex] ? items[editIndex].code : null;
-      const duplicateInRoom = findDuplicateItemInRoom(name, room, casNo, currentExcludeCode);
+      const duplicateInRoom = findDuplicateItemInRoom(name, room, casNo, currentExcludeCode, category);
 
       if (duplicateInRoom) {
-        if (typeof Swal !== "undefined") {
-          const result = await Swal.fire({
-            icon: "warning",
-            title: "พบสารเคมี/พัสดุนี้ในห้องปฏิบัติการแล้ว!",
-            html: `
-              <div style="font-size: 13.5px; text-align: left; color: #334155; line-height: 1.6;">
-                <p style="margin-bottom: 8px;">มีรายการ <b>"${duplicateInRoom.name}"</b> (รหัส: <code>${duplicateInRoom.code}</code>) อยู่ใน <b>${room}</b> เรียบร้อยแล้ว</p>
-                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 12.5px; margin-bottom: 10px;">
-                  <div><i data-lucide="map-pin" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #8f8cf0;"></i><b>ตำแหน่งจัดเก็บ:</b> ${duplicateInRoom.cabinet || '-'} / ${duplicateInRoom.shelf || '-'}</div>
-                  <div><i data-lucide="package" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #716de3;"></i><b>จำนวนคงเหลือปัจจุบัน:</b> <span style="font-weight: 700; color: #716de3;">${duplicateInRoom.qty} ${duplicateInRoom.unit}</span></div>
-                  <div><i data-lucide="plus-circle" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #16a34a;"></i><b>จำนวนที่ต้องการเพิ่ม:</b> <span style="font-weight: 700; color: #16a34a;">+${qty} ${unit}</span></div>
-                  <div style="margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 4px;"><i data-lucide="bar-chart-2" style="width: 13px; height: 13px; vertical-align: middle; margin-right: 4px; color: #15803d;"></i><b>ยอดรวมใหม่:</b> <span style="font-weight: 700; color: #15803d;">${duplicateInRoom.qty + qty} ${unit}</span></div>
-                </div>
-                <p style="color: #64748b; font-size: 12px; margin: 0;">ระบบป้องกันการเพิ่มสารซ้ำในห้องแล็บเดียวกัน คุณต้องการรวมจำนวนสต็อกเข้ากับรายการเดิม หรือกลับไปแก้ไข?</p>
-              </div>
-            `,
-            showCancelButton: true,
-            showDenyButton: true,
-            confirmButtonColor: "#716de3",
-            denyButtonColor: "#64748b",
-            cancelButtonColor: "#dc2626",
-            confirmButtonText: `รวมจำนวนสต็อก (${duplicateInRoom.qty + qty} ${unit})`,
-            denyButtonText: "กลับไปแก้ไขข้อมูล",
-            cancelButtonText: "ยกเลิก"
-          });
-
-          if (result.isConfirmed) {
-            // Merge quantity to existing item
-            const updatedItem = {
-              ...duplicateInRoom,
-              qty: Number(duplicateInRoom.qty || 0) + qty,
-              minAlert: minAlert ? Number(minAlert) : duplicateInRoom.minAlert,
-              expiry: expiry || duplicateInRoom.expiry,
-              cabinet: cabinet || duplicateInRoom.cabinet,
-              shelf: shelf || duplicateInRoom.shelf,
-              chemicalType: chemicalType || duplicateInRoom.chemicalType,
-              sdsUrl: sdsUrl || duplicateInRoom.sdsUrl,
-              damagedQty: Number(duplicateInRoom.damagedQty || 0) + damagedQty,
-              repairQty: Number(duplicateInRoom.repairQty || 0) + repairQty
-            };
-            const existingIdx = items.findIndex(it => it.code === duplicateInRoom.code);
-            const success = await updateItemBackend(duplicateInRoom.code, updatedItem, existingIdx >= 0 ? existingIdx : null);
-            if (success) {
-              showToast(`รวมจำนวนสต็อก "${name}" ใน ${room} เป็น ${duplicateInRoom.qty + qty} ${unit} เรียบร้อยแล้ว!`, "success");
-              logActivity(userRole === "admin" ? "Admin" : "Teacher", "เพิ่มสต็อกสารเคมี", `รวมจำนวน: ${name} (+${qty} ${unit}) ใน ${room}`);
-              form.reset();
-              document.getElementById("editItemIndex").value = "";
-              if (dupWarningEl) dupWarningEl.style.display = "none";
-              navigateToPanel("all-items");
-            }
-            return;
-          } else {
-            return; // User clicked Deny (edit) or Cancel
-          }
-        } else {
-          alert(`พบ "${name}" อยู่ใน "${room}" เรียบร้อยแล้ว (รหัส: ${duplicateInRoom.code}, คงเหลือ: ${duplicateInRoom.qty} ${duplicateInRoom.unit})\nระบบป้องกันการเพิ่มรายการซ้ำในห้องแล็บเดียวกัน`);
+        if (String(duplicateInRoom.unit || "").trim().toLowerCase() !== String(unit || "").trim().toLowerCase()) {
+          showToast(`พบรายการชื่อเดียวกันใน ${room} แต่หน่วยไม่ตรงกัน (${duplicateInRoom.unit} / ${unit}) จึงยังรวมจำนวนให้ไม่ได้`, "warning");
           return;
         }
+
+        if (editIndex !== "") {
+          showToast(`พบรายการชื่อเดียวกันในห้อง ${room} (รหัส ${duplicateInRoom.code}) กรุณาแก้ไขรายการเดิมแทนการสร้างรายการซ้ำ`, "warning");
+          return;
+        }
+
+        const existingIdx = items.findIndex(it => it.code === duplicateInRoom.code);
+        if (existingIdx < 0) {
+          showToast("ไม่พบรายการเดิมในข้อมูลล่าสุด กรุณาโหลดหน้าใหม่แล้วลองอีกครั้ง", "error");
+          return;
+        }
+
+        const updatedItem = {
+          ...duplicateInRoom,
+          qty: Number(duplicateInRoom.qty || 0) + qty,
+          minAlert: minAlert ? Number(minAlert) : duplicateInRoom.minAlert,
+          expiry: expiry || duplicateInRoom.expiry,
+          cabinet: cabinet || duplicateInRoom.cabinet,
+          shelf: shelf || duplicateInRoom.shelf,
+          chemicalType: chemicalType || duplicateInRoom.chemicalType,
+          sdsUrl: sdsUrl || duplicateInRoom.sdsUrl,
+          damagedQty: Number(duplicateInRoom.damagedQty || 0) + damagedQty,
+          repairQty: Number(duplicateInRoom.repairQty || 0) + repairQty
+        };
+        const success = await updateItemBackend(duplicateInRoom.code, updatedItem, existingIdx);
+        if (success) {
+          showToast(`รวมจำนวน "${name}" ใน ${room} เป็น ${updatedItem.qty} ${unit} แล้ว`, "success");
+          logActivity(userRole === "admin" ? "Admin" : "Teacher", "เพิ่มสต็อกสารเคมี", `รวมจำนวน: ${name} (+${qty} ${unit}) ใน ${room}`);
+          form.reset();
+          document.getElementById("editItemIndex").value = "";
+          if (dupWarningEl) dupWarningEl.style.display = "none";
+          navigateToPanel("all-items");
+        }
+        return;
       }
 
       // Chemical Incompatibility Check

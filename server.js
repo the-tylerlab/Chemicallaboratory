@@ -49,7 +49,9 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 // connect to production Supabase through a copied .env file.
 const SUPABASE_URL = IS_PRODUCTION ? process.env.SUPABASE_URL : process.env.SUPABASE_DEV_URL;
 const SUPABASE_KEY = IS_PRODUCTION
-  ? (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY)
+  // Production must use a backend-only key. A generic SUPABASE_KEY often
+  // contains the publishable/anon key, which cannot access service-only tables.
+  ? process.env.SUPABASE_SERVICE_ROLE_KEY
   : (process.env.SUPABASE_DEV_SERVICE_ROLE_KEY || process.env.SUPABASE_DEV_KEY);
 let supabase = null;
 if (!SUPABASE_URL || !SUPABASE_KEY) {
