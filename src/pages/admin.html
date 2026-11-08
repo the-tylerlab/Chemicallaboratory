@@ -141,6 +141,14 @@
                   </select>
                 </div>
 
+                <div class="admin-select-wrapper admin-sort-wrapper">
+                  <i data-lucide="arrow-down-wide-narrow" class="admin-select-icon"></i>
+                  <select id="adminUserSortOrder" class="admin-filter-select" aria-label="เรียงผู้ใช้งานตามระดับสิทธิ์" onchange="filterAdminUsersTable()">
+                    <option value="role-asc">เรียงสิทธิ์: L1 → L4</option>
+                    <option value="role-desc">เรียงสิทธิ์: L4 → L1</option>
+                  </select>
+                </div>
+
                 <div class="admin-select-wrapper">
                   <i data-lucide="layers" class="admin-select-icon"></i>
                   <select id="adminUserDeptFilter" class="admin-filter-select" onchange="filterAdminUsersTable()">

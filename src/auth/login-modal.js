@@ -199,9 +199,11 @@ export function setupLoginHandlers() {
       if (loginPasswordInput.type === "password") {
         loginPasswordInput.type = "text";
         eyeIcon.setAttribute("data-lucide", "eye-off");
+        btnTogglePassword.setAttribute("aria-label", "ซ่อนรหัสผ่าน");
       } else {
         loginPasswordInput.type = "password";
         eyeIcon.setAttribute("data-lucide", "eye");
+        btnTogglePassword.setAttribute("aria-label", "แสดงรหัสผ่าน");
       }
       if (window.lucide) window.lucide.createIcons();
     });

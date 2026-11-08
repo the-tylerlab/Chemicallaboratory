@@ -15,6 +15,7 @@ yarn-error.log*
 
 # Local Database & Mock Data
 data/*.json
+data/development/
 !data/users.example.json
 data/users.json
 data/backups/

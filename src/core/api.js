@@ -127,25 +127,10 @@ if (typeof window !== "undefined" && window.fetch && !window.__FETCH_INTERCEPTOR
  * window.GOOGLE_SCRIPT_WEBAPP_URL. This function reads it at call-time.
  */
 export async function syncToGoogleSheetsDirect(sheetName, action, payload, keyField = 'code') {
-  const url = (typeof window !== 'undefined') ? window.GOOGLE_SCRIPT_WEBAPP_URL : null;
-  if (!url) return;
-  try {
-    const body = {
-      sheetName,
-      action,
-      data: payload,
-      keyField,
-      timestamp: new Date().toISOString()
-    };
-    await fetch(url, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-  } catch (err) {
-    console.warn(`[Sync Sheets Direct] Error syncing ${sheetName}:`, err.message);
-  }
+  // Browser no-cors writes can race Supabase persistence and hide failures.
+  // Server API handlers own the ordered primary-write then backup-write flow.
+  console.warn(`[Sync Sheets Direct] Ignored browser-side ${action} for ${sheetName}; use the API write-through path.`);
+  return false;
 }
 
 // Mount to window for global backwards compatibility

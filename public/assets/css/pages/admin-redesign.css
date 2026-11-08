@@ -982,15 +982,52 @@
     grid-template-columns: minmax(0, 1fr);
     justify-content: stretch;
     gap: 8px;
+    border-radius: 14px;
   }
 
   #panel-admin .admin-toolbar-left {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr);
+    align-items: center;
     min-width: 0;
+    width: 100%;
   }
 
   #panel-admin .admin-toolbar-right {
-    justify-content: flex-end;
+    justify-content: flex-start;
+    flex-wrap: wrap;
     margin-left: 0;
+    width: 100%;
+  }
+
+  #panel-admin .admin-filter-group {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 0;
+    width: 100%;
+  }
+
+  #panel-admin .admin-select-wrapper,
+  #panel-admin .admin-filter-select {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  #panel-admin .admin-toolbar-col3,
+  #panel-admin .admin-toolbar-col4 {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  #panel-admin .admin-toolbar-col4 {
+    margin-left: auto;
+  }
+
+  #panel-admin .admin-toolbar-grid .btn-admin-action,
+  #panel-admin .admin-toolbar-grid #btnBatchDeleteUsers {
+    min-width: 0;
+    max-width: 100%;
   }
 
   #panel-admin #adminUsersDesktopTable {
@@ -1087,6 +1124,55 @@
   #panel-admin .admin-toolbar-left {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #panel-admin .admin-toolbar-grid {
+    border-radius: 12px;
+  }
+
+  #panel-admin .admin-toolbar-left,
+  #panel-admin .admin-filter-group,
+  #panel-admin .admin-toolbar-right {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    width: 100%;
+  }
+
+  #panel-admin .admin-filter-group {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  #panel-admin .admin-select-wrapper,
+  #panel-admin .admin-filter-select,
+  #panel-admin .admin-search-wrap {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  #panel-admin .admin-toolbar-right {
+    gap: 8px;
+  }
+
+  #panel-admin .admin-toolbar-col3,
+  #panel-admin .admin-toolbar-col4 {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 7px;
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  #panel-admin .admin-toolbar-col3 .btn-admin-action,
+  #panel-admin .admin-toolbar-col4 .btn-admin-action,
+  #panel-admin .admin-toolbar-col4 #btnBatchDeleteUsers {
+    flex: 1 1 0;
+    justify-content: center;
+    min-width: 0;
   }
 
   #panel-admin .admin-search-wrap {

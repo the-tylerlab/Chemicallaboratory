@@ -1920,109 +1920,86 @@ body.dark-mode .help-spec-card {
    ========================================================================== */
 
 #loginModal .modal-content.modern-login-modal {
-  width: min(410px, calc(100vw - 32px)) !important;
-  max-width: 410px !important;
+  width: min(440px, calc(100vw - 32px)) !important;
+  max-width: 440px !important;
   padding: 0 !important;
-  border-radius: 28px !important;
+  border-radius: 14px !important;
   background: #ffffff !important;
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
-  box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid #d8e0e8 !important;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.16) !important;
   overflow: hidden !important;
   position: relative !important;
   display: flex !important;
   flex-direction: column !important;
 }
 
+#loginModal.modal-overlay {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 .modern-login-close {
   position: absolute !important;
-  top: 14px !important;
-  right: 14px !important;
-  width: 30px !important;
-  height: 30px !important;
-  min-width: 30px !important;
-  min-height: 30px !important;
-  border-radius: 50% !important;
-  background: #f1f5f9 !important;
+  top: 16px !important;
+  right: 16px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
   border: none !important;
   color: #94a3b8 !important;
   cursor: pointer !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transition: all 0.15s ease !important;
+  transition: background-color 0.15s ease, color 0.15s ease !important;
   z-index: 20 !important;
 }
 
 .modern-login-close:hover {
-  background: #e2e8f0 !important;
+  background: #edf2f6 !important;
   color: #0f172a !important;
-  transform: rotate(90deg) !important;
 }
 
 .modern-login-card {
-  padding: 32px 30px 24px 30px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Aura and Icon Badge */
-.modern-login-aura-wrap {
-  position: relative;
-  width: 80px;
-  height: 80px;
+.modern-login-brand {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 14px;
-}
-
-.modern-login-aura {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: rgba(148, 163, 184, 0.2);
-  background-image: #cbd5e1;
-  background-size: 8px 8px;
-  background-position: center;
-  mask-image: none;
-  -webkit-mask-image: none;
-  pointer-events: none;
-}
-
-.modern-login-icon-badge {
-  position: relative;
-  z-index: 2;
-  width: 44px;
-  height: 44px;
-  border-radius: 13px;
-  background: #1e293b;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  gap: 8px;
+  margin-bottom: 24px;
+  color: #526273;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .modern-login-header {
-  text-align: center;
-  margin-bottom: 20px;
+  text-align: left;
+  margin-bottom: 24px;
   width: 100%;
 }
 
 .modern-login-title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 600;
   color: #0f172a;
-  margin: 0 0 5px 0;
-  letter-spacing: -0.3px;
+  margin: 0 0 4px;
+  letter-spacing: 0;
 }
 
 .modern-login-subtitle {
-  font-size: 12.5px;
-  color: #94a3b8;
+  font-size: 14px;
+  color: #64748b;
   margin: 0;
   line-height: 1.45;
   font-weight: 400;
@@ -2031,12 +2008,12 @@ body.dark-mode .help-spec-card {
 .modern-login-error {
   width: 100%;
   box-sizing: border-box;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 12px;
-  padding: 8px 12px;
-  color: #b91c1c;
-  font-size: 12px;
+  background: #fff5f4;
+  border: 1px solid #f2c8c4;
+  border-radius: 6px;
+  padding: 12px;
+  color: #9f3028;
+  font-size: 13px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2046,7 +2023,7 @@ body.dark-mode .help-spec-card {
 .modern-login-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
 }
 
@@ -2054,19 +2031,19 @@ body.dark-mode .help-spec-card {
   position: relative;
   display: flex;
   align-items: center;
-  background: #f1f5f9;
-  border: 1.5px solid transparent;
-  border-radius: 13px;
-  height: 46px;
-  padding: 0 14px;
-  transition: all 0.18s ease;
+  background: #ffffff;
+  border: 1px solid #cbd5df;
+  border-radius: 6px;
+  height: 48px;
+  padding: 0 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   box-sizing: border-box;
 }
 
 .modern-login-input-wrap:focus-within {
   background: #ffffff;
-  border-color: #cbd5e1;
-  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.05);
+  border-color: #16818a;
+  box-shadow: 0 0 0 2px rgba(22, 129, 138, 0.14);
 }
 
 .modern-login-input-icon {
@@ -2081,7 +2058,7 @@ body.dark-mode .help-spec-card {
   flex: 1;
   border: none !important;
   background: transparent !important;
-  font-size: 13.5px !important;
+  font-size: 15px !important;
   color: #0f172a !important;
   padding: 0 !important;
   outline: none !important;
@@ -2090,14 +2067,14 @@ body.dark-mode .help-spec-card {
 }
 
 .modern-login-input::placeholder {
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .modern-login-input:-webkit-autofill,
 .modern-login-input:-webkit-autofill:hover,
 .modern-login-input:-webkit-autofill:focus,
 .modern-login-input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px #f1f5f9 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
   -webkit-text-fill-color: #0f172a !important;
   transition: background-color 5000s ease-in-out 0s !important;
 }
@@ -2119,11 +2096,19 @@ body.dark-mode .help-spec-card {
   color: #475569;
 }
 
+.modern-login-close:focus-visible,
+.modern-login-pwd-toggle:focus-visible,
+.modern-login-forgot:focus-visible,
+.modern-login-submit-btn:focus-visible {
+  outline: 2px solid #16818a;
+  outline-offset: 2px;
+}
+
 .modern-login-options {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11.5px;
+  font-size: 13px;
   padding: 0 2px;
   margin-top: -2px;
   margin-bottom: 2px;
@@ -2157,30 +2142,27 @@ body.dark-mode .help-spec-card {
 
 .modern-login-submit-btn {
   width: 100%;
-  height: 46px;
-  background: #111827;
+  height: 48px;
+  background: #152638;
   color: #ffffff;
   border: none;
-  border-radius: 13px;
-  font-size: 14px;
+  border-radius: 6px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 4px;
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.15);
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.15s ease;
 }
 
 .modern-login-submit-btn:hover {
-  background: #1f2937;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(17, 24, 39, 0.22);
+  background: #20394d;
 }
 
 .modern-login-submit-btn:active {
-  transform: scale(0.99);
+  background: #0e1b28;
 }
 
 .modern-login-divider {

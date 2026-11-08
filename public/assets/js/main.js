@@ -699,18 +699,14 @@ supabase = null;
 isSupabaseOnline = false;
 
 async function initSupabaseFromConfig() {
-  let supabaseUrl = null;
-  let supabaseKey = null;
-
+  // Database access stays on the server. Do not create a browser Supabase
+  // client: even an anon key would bypass the application's API authorization.
   try {
     const apiBase = typeof resolveApiBase === 'function' ? resolveApiBase() : '/api';
     const configUrl = apiBase.endsWith('/api') ? `${apiBase}/config` : `${apiBase}/api/config`;
     const res = await fetch(configUrl);
     if (res.ok) {
       const cfg = await res.json();
-      supabaseUrl = cfg.supabaseUrl;
-      supabaseKey = cfg.supabaseKey;
-
       if (cfg.googleScriptUrl) {
         GOOGLE_SCRIPT_WEBAPP_URL = cfg.googleScriptUrl;
         window.GOOGLE_SCRIPT_WEBAPP_URL = cfg.googleScriptUrl;
@@ -725,36 +721,11 @@ async function initSupabaseFromConfig() {
       };
     }
   } catch (err) {
-    console.log('[Backend] Backend /api/config unavailable, connecting directly to Supabase Cloud...');
+    console.log('[Backend] Backend /api/config unavailable; using local cache mode.');
   }
-
-  // Fallback to Supabase Cloud if server config endpoint is not available (e.g., Vercel static deployment)
-  if (!supabaseUrl || !supabaseKey) {
-    supabaseUrl = 'https://avzneyaalenbyawfvykp.supabase.co';
-    supabaseKey = 'REDACTED_SUPABASE_KEY';
-  }
-
-  try {
-    if (typeof window.supabase === 'undefined' || !window.supabase.createClient) {
-      console.log('[Supabase] Supabase CDN script missing. Operating in LocalStorage Cache / Local API mode.');
-      return;
-    }
-    supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    window.__supabaseClient = supabase;
-    isSupabaseOnline = true;
-    console.log('[Supabase] Supabase initialized as Production Source of Truth. LocalStorage acts as Cache.');
-
-    // Crucial: Set up realtime subscriptions and immediately load cloud items to overwrite stale local cache
-    setupRealtimeSubscriptions();
-    if (typeof loadAllItems === 'function') await loadAllItems();
-    if (typeof loadAllTransactions === 'function') await loadAllTransactions();
-    if (typeof updateUI === 'function') updateUI();
-    if (typeof renderItemsTable === 'function') renderItemsTable();
-    if (typeof renderCabinetMap === 'function') renderCabinetMap();
-  } catch (err) {
-    console.warn('[Supabase] Supabase initialization failed — running in offline cache mode:', err.message);
-    isSupabaseOnline = false;
-  }
+  supabase = null;
+  window.__supabaseClient = null;
+  isSupabaseOnline = false;
 }
 
 // Bootstrap Supabase — called at startup; all code that depends on `supabase`
@@ -808,45 +779,16 @@ window.switchDashboardAlertTab = switchDashboardAlertTab;
 GOOGLE_SCRIPT_WEBAPP_URL = GOOGLE_SCRIPT_WEBAPP_URL || null;
 
 async function syncToGoogleSheetsDirect(table, action, data, keyField = 'id') {
-  if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) return;
-  try {
-    const payload = {
-      table: table,
-      action: action, // 'UPSERT' or 'DELETE'
-      keyField: keyField,
-      data: data
-    };
-    await fetch(GOOGLE_SCRIPT_WEBAPP_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    }).catch(err => {
-      console.warn(`[GoogleSheetsDirectSync] ${table} notice:`, err.message);
-    });
-    console.log(`[GoogleSheetsDirectSync] Dispatched ${action} on table ${table}`);
-  } catch (e) {
-    console.warn(`[GoogleSheetsDirectSync] Error on ${table}:`, e);
-  }
+  // Browser writes can race primary persistence and no-cors hides failures.
+  // All authoritative writes and their ordered backup now belong to the API.
+  console.warn(`[GoogleSheetsDirectSync] Ignored browser-side ${action} for ${table}; use the API write-through path.`);
+  return false;
 }
 
 async function fetchTableFromGoogleSheets(table) {
-  if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) return [];
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
-    const url = `${GOOGLE_SCRIPT_WEBAPP_URL}?table=${encodeURIComponent(table)}`;
-    const response = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (!response.ok) return [];
-    const json = await response.json();
-    if (json && json.status === "success" && Array.isArray(json.data)) {
-      return json.data;
-    }
-  } catch (err) {
-    console.warn(`[GoogleSheetsFetch] Fetch error on ${table}:`, err.message);
-    return [];
-  }
+  // Google Sheets is a backup/reporting sink, never a source for live records.
+  console.warn(`[GoogleSheetsFetch] Ignored read for ${table}; load live data from the API.`);
+  return [];
 }
 window.fetchTableFromGoogleSheets = fetchTableFromGoogleSheets;
 
@@ -875,8 +817,8 @@ window.sanitizeItemForSupabase = sanitizeItemForSupabase;
 // Outbound Export / Backup Integration: Push Authoritative State to Google Sheets
 // ARCHITECTURE NOTE: Google Sheets is an Export/Reporting/Backup integration, NEVER a primary database.
 async function syncAllToGoogleSheets(silent = false) {
-  if (!GOOGLE_SCRIPT_WEBAPP_URL || !navigator.onLine) {
-    if (!silent) showToast("ไม่สามารถเชื่อมต่อ Google Sheets Webhook ได้ หรืออุปกรณ์ออฟไลน์", "warning");
+  if (!navigator.onLine) {
+    if (!silent) showToast("ไม่สามารถสำรองข้อมูลขณะออฟไลน์ได้", "warning");
     return;
   }
 
@@ -884,51 +826,16 @@ async function syncAllToGoogleSheets(silent = false) {
     if (!silent && typeof Swal !== 'undefined') {
       Swal.fire({
         title: 'กำลังสำรองข้อมูลไปยัง Google Sheets...',
-        html: '<div style="font-size:13px; color:#64748b; line-height: 1.6;">กำลังส่งออกข้อมูลตามสถาปัตยกรรม (Supabase -> Google Sheets Backup): 1.Items, 2.Transactions, 3.Bookings, 4.Purchase_Orders, และ 5.Users...</div>',
+        html: '<div style="font-size:13px; color:#64748b; line-height: 1.6;">อ่านข้อมูลหลักจาก Supabase ก่อน แล้วส่ง snapshot ไป Google Sheets...</div>',
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
       });
     }
 
-    // 1. Export active Users to Google Sheets (5.Users)
-    const activeUsers = (typeof adminUsers !== 'undefined' && Array.isArray(adminUsers) && adminUsers.length > 0) ? adminUsers : (typeof DEFAULT_RBAC_USERS !== 'undefined' ? DEFAULT_RBAC_USERS : []);
-    for (const u of activeUsers) {
-      const sheetUser = { ...u };
-      delete sheetUser.password;
-      await syncToGoogleSheetsDirect('Users', 'UPSERT', sheetUser, 'teacherId');
-      await new Promise(r => setTimeout(r, 40));
-    }
-
-    // 2. Export Items to Google Sheets (1.Items)
-    if (typeof items !== 'undefined' && Array.isArray(items) && items.length > 0) {
-      for (const it of items) {
-        await syncToGoogleSheetsDirect('Items', 'UPSERT', it, 'code');
-        await new Promise(r => setTimeout(r, 20));
-      }
-    }
-
-    // 3. Export Transactions to Google Sheets (2.Transactions)
-    if (typeof transactions !== 'undefined' && Array.isArray(transactions) && transactions.length > 0) {
-      for (const tx of transactions) {
-        await syncToGoogleSheetsDirect('Transactions', 'UPSERT', tx, 'id');
-        await new Promise(r => setTimeout(r, 30));
-      }
-    }
-
-    // 4. Export Bookings to Google Sheets (3.Bookings)
-    if (typeof bookings !== 'undefined' && Array.isArray(bookings) && bookings.length > 0) {
-      for (const bk of bookings) {
-        await syncToGoogleSheetsDirect('Bookings', 'UPSERT', bk, 'id');
-        await new Promise(r => setTimeout(r, 40));
-      }
-    }
-
-    // 5. Export Purchase Orders to Google Sheets (4.Purchase_Orders)
-    if (typeof purchaseOrders !== 'undefined' && Array.isArray(purchaseOrders) && purchaseOrders.length > 0) {
-      for (const po of purchaseOrders) {
-        await syncToGoogleSheetsDirect('Purchase_Orders', 'UPSERT', po, 'id');
-        await new Promise(r => setTimeout(r, 30));
-      }
+    const response = await fetch(`${API_BASE}/sync-google-sheets`, { method: 'POST' });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || 'ไม่สามารถสำรอง snapshot ไป Google Sheets ได้');
     }
 
     if (!silent) {
@@ -938,18 +845,13 @@ async function syncAllToGoogleSheets(silent = false) {
         }
         Swal.fire({
           icon: 'success',
-          title: 'สำรองข้อมูลไปยัง Google Sheets สำเร็จ!',
-          html: `<div style="font-size:13.5px; color:#334155; line-height:1.7; text-align:left;">
-            <p><i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #16a34a; vertical-align: middle; margin-right: 6px;"></i>ส่งออกรายชื่อผู้ใช้งาน <b>${activeUsers.length} ท่าน</b> (ชีท <b>5.Users</b>)</p>
-            <p><i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #16a34a; vertical-align: middle; margin-right: 6px;"></i>ส่งออกรายการจองห้องปฏิบัติการ <b>${(typeof bookings !== 'undefined' ? bookings.length : 0)} รายการ</b> (ชีท <b>3.Bookings</b>)</p>
-            <p><i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #16a34a; vertical-align: middle; margin-right: 6px;"></i>ส่งออกรายการพัสดุและสารเคมี <b>${(typeof items !== 'undefined' ? items.length : 0)} รายการ</b> (ชีท <b>1.Items</b>)</p>
-            <p><i data-lucide="check-circle-2" style="width: 14px; height: 14px; color: #16a34a; vertical-align: middle; margin-right: 6px;"></i>ส่งออกประวัติธุรกรรมและการสั่งซื้อเพื่อเป็นสมุดทะเบียนและรายงานวิชาการเรียบร้อยแล้ว</p>
-          </div>`,
+          title: 'สำรองข้อมูลจาก Supabase ไป Google Sheets สำเร็จ',
+          html: `<div style="font-size:13.5px; color:#334155; line-height:1.7; text-align:left;">ส่ง snapshot แล้ว: ${Object.values(result.counts || {}).reduce((sum, count) => sum + count, 0)} รายการ</div>`,
           showConfirmButton: true,
           confirmButtonColor: '#716de3'
         });
       } else {
-        showToast('สำรองข้อมูลไปยัง Google Sheets เรียบร้อยแล้ว', 'success');
+        showToast('สำรอง snapshot จาก Supabase ไป Google Sheets เรียบร้อยแล้ว', 'success');
       }
     }
   } catch (err) {
@@ -2132,47 +2034,9 @@ async function loadAllItems() {
     }
   }
   
-  // 4. Fallback: LocalStorage
-  const localData = localStorage.getItem("lab_items");
-  if (localData) {
-    try {
-      const parsed = JSON.parse(localData);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        items = parsed;
-        triggerItemRender();
-        return;
-      }
-    } catch (e) {}
-  }
-
-  // 5. Fallback: Static database.json (for LAN / other devices accessing via web server)
-  if (typeof window !== "undefined" && window.location && window.location.protocol.startsWith('http')) {
-    try {
-      const res = await fetch('data/database.json');
-      if (res.ok) {
-        const dbJson = await res.json();
-        const staticItems = dbJson.items || (Array.isArray(dbJson) ? dbJson : []);
-        if (Array.isArray(staticItems) && staticItems.length > 0) {
-          items = staticItems;
-          saveItemsToLocal();
-          console.log("[Database] Loaded " + items.length + " items from local static database.json.");
-          localStorage.setItem("has_seeded_items", "true");
-          triggerItemRender();
-          return;
-        }
-      }
-    } catch (e) {
-      console.warn("Could not fetch data/database.json fallback:", e);
-    }
-  }
-
-  // 6. Fresh install without internet
-  if (!localStorage.getItem("has_seeded_items")) {
-    items = [...DEMO_DATA];
-    saveItemsToLocal();
-  } else {
-    items = [];
-  }
+  // Never restore records from browser/static caches: they may contain stale
+  // pre-delete copies. Offline dev runs should use the API's isolated mock DB.
+  items = [...DEMO_DATA];
   triggerItemRender();
 }
 
@@ -7069,22 +6933,8 @@ async function loadAllTransactions() {
     }
   }
 
-  // LocalStorage Fallback
-  const localTrans = localStorage.getItem("lab_transactions");
-  if (localTrans) {
-    try {
-      const parsed = JSON.parse(localTrans);
-      if (Array.isArray(parsed)) {
-        transactions = parsed.filter(t => t && t.id && !t.id.startsWith("tx-mock"));
-      } else {
-        transactions = [];
-      }
-    } catch (e) {
-      transactions = [];
-    }
-  } else {
-    transactions = [];
-  }
+  // Do not restore stale cached rows after an API failure.
+  transactions = [];
   localStorage.setItem("lab_transactions", JSON.stringify(transactions));
   triggerTransRender();
 }
@@ -8489,7 +8339,7 @@ async function loadAllBookings() {
     console.warn("Failed to load bookings from Google Sheets:", e);
   }
 
-  if (remoteBookings.length === 0 && isBackendOnline) {
+  if (remoteBookings.length === 0) {
     try {
       const response = await fetch(`${API_BASE}/bookings`);
       if (response.ok) {
@@ -8503,17 +8353,9 @@ async function loadAllBookings() {
     }
   }
 
-  // 2. LocalStorage check & filter
-  let localList = [];
-  try {
-    const localBookings = localStorage.getItem("lab_bookings");
-    if (localBookings) {
-      const parsed = JSON.parse(localBookings);
-      if (Array.isArray(parsed)) {
-        localList = parsed.filter(b => b && b.id && !b.id.startsWith("book_mock") && !b.id.startsWith("test_booking") && !b.id.startsWith("book_20260711") && !b.id.startsWith("book_20260713"));
-      }
-    }
-  } catch (e) {}
+  // Only the API is authoritative. Old browser cache rows must not be merged
+  // back after a delete.
+  const localList = [];
 
   // 3. Merge all valid clean sources
   const mergedMap = new Map();
@@ -11418,9 +11260,11 @@ function setupLoginHandlers() {
       if (loginPasswordInput.type === "password") {
         loginPasswordInput.type = "text";
         eyeIcon.setAttribute("data-lucide", "eye-off");
+        btnTogglePassword.setAttribute("aria-label", "ซ่อนรหัสผ่าน");
       } else {
         loginPasswordInput.type = "password";
         eyeIcon.setAttribute("data-lucide", "eye");
+        btnTogglePassword.setAttribute("aria-label", "แสดงรหัสผ่าน");
       }
       if (window.lucide) lucide.createIcons();
     });
@@ -20873,10 +20717,12 @@ window.filterAdminUsersTable = function() {
   if (!Array.isArray(adminUsers)) return;
   const searchInput = document.getElementById("adminUserSearchInput");
   const roleSelect = document.getElementById("adminUserRoleFilter");
+  const sortSelect = document.getElementById("adminUserSortOrder");
   const deptSelect = document.getElementById("adminUserDeptFilter");
 
   const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
   const roleFilter = roleSelect ? roleSelect.value : "";
+  const sortOrder = sortSelect ? sortSelect.value : "role-asc";
   const deptFilter = deptSelect ? deptSelect.value : "";
 
   const filtered = adminUsers.filter(user => {
@@ -20907,6 +20753,14 @@ window.filterAdminUsersTable = function() {
     }
 
     return true;
+  });
+
+  const roleRank = { L1: 1, TEACHER: 1, L2: 2, STAFF: 2, L3: 3, ADMIN: 3, L4: 4, EXECUTIVE: 4 };
+  filtered.sort((a, b) => {
+    const aRole = String(a.role || "L1").toUpperCase();
+    const bRole = String(b.role || "L1").toUpperCase();
+    const rankDiff = (roleRank[aRole] || 0) - (roleRank[bRole] || 0);
+    return sortOrder === "role-desc" ? -rankDiff : rankDiff;
   });
 
   renderAdminUsers(filtered);

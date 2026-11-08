@@ -10,6 +10,7 @@
     "seed:demo": "node scripts/seed_demo.js",
     "seed:clean": "node scripts/seed_demo.js --clean",
     "test:security": "node tests/test_security_suite.js",
+    "test:security-contract": "node tests/test_security_contract.js",
     "test:password-hash": "node tests/test_password_hash_enforcement.js",
     "test:rbac": "node tests/test_rbac_and_rls_authorization.js",
     "test:headers": "node tests/test_live_http_headers_and_cors.js",

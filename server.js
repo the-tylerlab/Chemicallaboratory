@@ -45,12 +45,17 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 
 // ─── SUPABASE CONFIGURATION ───────────────────────────────────────────────────
 // Values MUST come from environment variables. No hardcoded fallbacks.
-// Supabase is optional (graceful degradation in local dev); missing vars disable cloud sync.
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+// Development is isolated by default. Never let a local code change silently
+// connect to production Supabase through a copied .env file.
+const SUPABASE_URL = IS_PRODUCTION ? process.env.SUPABASE_URL : process.env.SUPABASE_DEV_URL;
+const SUPABASE_KEY = IS_PRODUCTION
+  ? (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY)
+  : (process.env.SUPABASE_DEV_SERVICE_ROLE_KEY || process.env.SUPABASE_DEV_KEY);
 let supabase = null;
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.warn('⚠️  SUPABASE_URL or SUPABASE_KEY not set — Supabase cloud sync disabled. Set these in .env to enable.');
+  console.warn(IS_PRODUCTION
+    ? '⚠️ Production Supabase config missing — cloud writes are disabled.'
+    : 'ℹ️ Development Supabase config missing — using isolated local mock data. Set SUPABASE_DEV_URL and SUPABASE_DEV_KEY for a dedicated dev project.');
 } else {
   try {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -719,14 +724,19 @@ app.get(SPA_ROUTES, (req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
 });
 
-const DB_DIR = path.join(__dirname, 'data');
+// Production keeps its established durable path. Development writes to an
+// ignored, separate mock-data directory so local code work cannot mix with the
+// production JSON cache or the development-only Supabase project.
+const DB_DIR = IS_PRODUCTION
+  ? path.join(__dirname, 'data')
+  : path.resolve(process.env.DEV_DATA_DIR || path.join(__dirname, 'data', 'development'));
 const DB_FILE = path.join(DB_DIR, 'database.json');
 const BUDGET_FILE = path.join(DB_DIR, 'budget.json');
 const PURCHASE_ORDERS_FILE = path.join(DB_DIR, 'purchase_orders.json');
 const BOOKINGS_FILE = path.join(DB_DIR, 'bookings.json');
 const TRANSACTIONS_FILE = path.join(DB_DIR, 'transactions.json');
 const USERS_FILE = path.join(DB_DIR, 'users.json');
-const USERS_EXAMPLE_FILE = path.join(DB_DIR, 'users.example.json');
+const USERS_EXAMPLE_FILE = path.join(__dirname, 'data', 'users.example.json');
 const AUDIT_LOGS_FILE = path.join(DB_DIR, 'audit_logs.json');
 const LAYOUTS_FILE = path.join(DB_DIR, 'layouts.json');
 const FEEDBACKS_FILE = path.join(DB_DIR, 'feedbacks.json');
@@ -1642,7 +1652,7 @@ const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL || null;
 const GOOGLE_LABEL_SHEET_ID = process.env.GOOGLE_LABEL_SHEET_ID || '1nyZPEmhXYukJjAYIeBYvH4cO98n_Dsz5AdQKT4PdzsE';
 
 async function syncToGoogleSheets(table, action, data, keyField = 'id') {
-  if (!GOOGLE_SCRIPT_URL) return;
+  if (!GOOGLE_SCRIPT_URL) throw new Error('GOOGLE_SCRIPT_URL is not configured');
   try {
     const payload = {
       table,
@@ -1650,15 +1660,21 @@ async function syncToGoogleSheets(table, action, data, keyField = 'id') {
       keyField,
       data
     };
-    fetch(GOOGLE_SCRIPT_URL, {
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).catch(err => {
-      console.warn(`[GoogleSheetsSync] Sync notice for ${table}:`, err.message);
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(20000)
     });
+    if (!response.ok) throw new Error(`Google Apps Script returned HTTP ${response.status}`);
+    const result = await response.json();
+    if (result?.status !== 'success') {
+      throw new Error(result?.message || `Google Sheets rejected ${action} for ${table}`);
+    }
+    return result;
   } catch (e) {
-    console.warn(`[GoogleSheetsSync] Dispatch failed:`, e.message);
+    console.warn(`[GoogleSheetsSync] ${action} ${table} failed:`, e.message);
+    return { status: 'error', message: e.message };
   }
 }
 
@@ -2006,6 +2022,12 @@ app.get('/api/sync/all-cloud-data', authenticateToken, requireRole('L3'), async 
 // Manual / Full Trigger: Sync All Tables to Google Sheets — Strictly L3 Admin
 app.post('/api/sync-google-sheets', authenticateToken, requireRole('L3'), async (req, res) => {
   try {
+    if (!supabase && IS_PRODUCTION) {
+      return res.status(503).json({ success: false, error: 'Supabase is unavailable; refusing to export an unverified local snapshot.' });
+    }
+    if (!GOOGLE_SCRIPT_URL) {
+      return res.status(503).json({ success: false, error: 'Google Sheets backup is not configured.' });
+    }
     const items = await fetchLiveItems(false);
     const transactions = await fetchLiveTransactions(false);
     const bookings = await fetchLiveBookings(false);
@@ -2014,23 +2036,29 @@ app.post('/api/sync-google-sheets', authenticateToken, requireRole('L3'), async 
     const auditLogs = readAuditLogs();
     const announcements = await fetchLiveAnnouncements();
 
-    items.forEach(item => syncToGoogleSheets('Items', 'UPSERT', item, 'code'));
-    transactions.forEach(tx => syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id'));
-    bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(b), 'id'));
-    purchaseOrders.forEach(po => syncToGoogleSheets('Purchase_Orders', 'UPSERT', po, 'id'));
-    users.forEach(u => {
+    const safeUsers = users.map(u => {
       const copy = { ...u };
       delete copy.password;
-      syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
+      return copy;
     });
-    auditLogs.forEach(log => syncToGoogleSheets('Audit_Logs', 'UPSERT', log, 'id'));
-    if (announcements) {
-      syncToGoogleSheets('Announcements', 'UPSERT', announcements, 'badgeText');
-    }
+    const syncSnapshotRow = async (...args) => {
+      const result = await syncToGoogleSheets(...args);
+      if (result?.status !== 'success') throw new Error(result?.message || `Backup failed for ${args[0]}`);
+    };
+    // Read the primary store first, then await every backup write. Do not
+    // replace entire sheets here; existing backup-only rows need reconciliation
+    // before any destructive snapshot operation is enabled.
+    for (const item of items) await syncSnapshotRow('Items', 'UPSERT', item, 'code');
+    for (const tx of transactions) await syncSnapshotRow('Transactions', 'UPSERT', tx, 'id');
+    for (const booking of bookings) await syncSnapshotRow('Bookings', 'UPSERT', formatBookingForSync(booking), 'id');
+    for (const po of purchaseOrders) await syncSnapshotRow('Purchase_Orders', 'UPSERT', po, 'id');
+    for (const user of safeUsers) await syncSnapshotRow('Users', 'UPSERT', user, 'teacherId');
+    for (const log of auditLogs) await syncSnapshotRow('Audit_Logs', 'UPSERT', log, 'id');
+    if (announcements) await syncSnapshotRow('Announcements', 'UPSERT', announcements, 'badgeText');
 
     // Also trigger label sheet sync
     if (GOOGLE_SCRIPT_URL && items && items.length > 0) {
-      fetch(GOOGLE_SCRIPT_URL, {
+      await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -2038,10 +2066,10 @@ app.post('/api/sync-google-sheets', authenticateToken, requireRole('L3'), async 
           targetSheetId: GOOGLE_LABEL_SHEET_ID,
           data: items
         })
-      }).catch(err => console.warn('[LabelSheetSync] Batch notice:', err.message));
+      });
     }
 
-    res.json({ success: true, message: 'Google Sheets sync dispatched for all records and label sheet.' });
+    res.json({ success: true, message: 'Supabase snapshot exported to Google Sheets.', counts: { items: items.length, transactions: transactions.length, bookings: bookings.length, purchaseOrders: purchaseOrders.length, users: safeUsers.length, auditLogs: auditLogs.length } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -2117,13 +2145,10 @@ app.get('/api/barcode', async (req, res) => {
 });
 
 // ─── PUBLIC CLIENT CONFIG ENDPOINT ───────────────────────────────────────────
-// Serves Supabase anon/publishable key + URL to the frontend.
-// The anon key is RLS-scoped and designed for client use, but must NOT be
-// hardcoded in source — it is loaded from .env and served at runtime only.
+// Supabase credentials are server-only. The browser uses the application API,
+// so never serialize SUPABASE_KEY here (it may be the service-role key).
 app.get('/api/config', (req, res) => {
   res.json({
-    supabaseUrl: SUPABASE_URL || null,
-    supabaseKey: SUPABASE_KEY || null,
     googleScriptUrl: GOOGLE_SCRIPT_URL || null,
     nodeEnv: NODE_ENV,
     isProduction: IS_PRODUCTION,
@@ -2182,19 +2207,20 @@ app.post('/api/items', authenticateToken, requireRole('L2', 'L3'), async (req, r
   newItem.updated_by = actor;
   newItem.is_deleted = false;
   
+  // 1. Sync to Supabase (Primary Source of Truth)
+  if (supabase) {
+    const { error } = await supabase.from('items').upsert(sanitizeItemForSupabase(newItem), { onConflict: 'code' });
+    if (error) return res.status(503).json({ error: 'Supabase save failed; item was not saved.', details: error.message });
+  } else if (IS_PRODUCTION) {
+    return res.status(503).json({ error: 'Supabase is unavailable; production write refused.' });
+  }
+
   items.push(newItem);
   writeDatabase(items);
   itemsCache = items;
 
-  // 1. Sync to Supabase (Primary Source of Truth)
-  if (supabase) {
-    supabase.from('items').upsert(sanitizeItemForSupabase(newItem), { onConflict: 'code' }).then(null, err => {
-      console.warn("[SourceOfTruth:Supabase] upsert item err:", err.message);
-    });
-  }
-
   // 2. Export / Backup to Google Sheets (Asynchronous Outbound Sink)
-  syncToGoogleSheets('Items', 'UPSERT', newItem, 'code');
+  const sheetSync = await syncToGoogleSheets('Items', 'UPSERT', newItem, 'code');
 
   // Audit Log
   recordAuditLog({
@@ -2205,7 +2231,7 @@ app.post('/api/items', authenticateToken, requireRole('L2', 'L3'), async (req, r
     req
   });
   
-  res.status(201).json(newItem);
+  res.status(201).json({ ...newItem, backupStatus: sheetSync?.status || 'skipped' });
 });
 
 // 3. PUT /api/items/:code — Update an existing item (L2 Staff or L3 Admin)
@@ -2237,19 +2263,22 @@ app.put('/api/items/:code', authenticateToken, requireRole('L2', 'L3'), async (r
   updatedData.updatedBy = actor;
   updatedData.updated_by = actor;
   
-  items[index] = { ...items[index], ...updatedData };
-  writeDatabase(items);
-  itemsCache = items;
+  const updatedItem = { ...items[index], ...updatedData };
 
   // 1. Sync to Supabase (Primary Source of Truth)
   if (supabase) {
-    supabase.from('items').upsert(sanitizeItemForSupabase(items[index]), { onConflict: 'code' }).then(null, err => {
-      console.warn("[SourceOfTruth:Supabase] update item err:", err.message);
-    });
+    const { error } = await supabase.from('items').upsert(sanitizeItemForSupabase(updatedItem), { onConflict: 'code' });
+    if (error) return res.status(503).json({ error: 'Supabase update failed; item was not updated.', details: error.message });
+  } else if (IS_PRODUCTION) {
+    return res.status(503).json({ error: 'Supabase is unavailable; production write refused.' });
   }
 
+  items[index] = updatedItem;
+  writeDatabase(items);
+  itemsCache = items;
+
   // 2. Export / Backup to Google Sheets (Asynchronous Outbound Sink)
-  syncToGoogleSheets('Items', 'UPSERT', items[index], 'code');
+  const sheetSync = await syncToGoogleSheets('Items', 'UPSERT', items[index], 'code');
 
   // Audit Log
   recordAuditLog({
@@ -2260,7 +2289,7 @@ app.put('/api/items/:code', authenticateToken, requireRole('L2', 'L3'), async (r
     req
   });
   
-  res.json(items[index]);
+  res.json({ ...items[index], backupStatus: sheetSync?.status || 'skipped' });
 });
 
 // 4. DELETE /api/items/:code — Soft Delete an item (Strictly L3 Admin)
@@ -2279,14 +2308,17 @@ app.delete('/api/items/:code', authenticateToken, requireRole('L3'), async (req,
   // 1. Soft Delete in Supabase (Primary Source of Truth)
   if (supabase) {
     try {
-      await supabase.from('items').update({
+      const { error } = await supabase.from('items').update({
         is_deleted: true,
         deleted_at: now,
         deleted_by: actor
       }).eq('code', itemToDelete.code);
+      if (error) return res.status(503).json({ error: 'Supabase delete failed; item was not deleted.', details: error.message });
     } catch(err) {
-      console.warn("[SourceOfTruth:Supabase] Soft delete item err:", err.message);
+      return res.status(503).json({ error: 'Supabase delete failed; item was not deleted.', details: err.message });
     }
+  } else if (IS_PRODUCTION) {
+    return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
   }
 
   // 2. Update local backup cache
@@ -2295,7 +2327,7 @@ app.delete('/api/items/:code', authenticateToken, requireRole('L3'), async (req,
   itemsCache = filteredItems;
 
   // 3. Export / Backup to Google Sheets
-  syncToGoogleSheets('Items', 'DELETE', { code: itemToDelete.code }, 'code');
+  const sheetSync = await syncToGoogleSheets('Items', 'DELETE', { code: itemToDelete.code }, 'code');
 
   // Audit Log
   recordAuditLog({
@@ -2306,7 +2338,7 @@ app.delete('/api/items/:code', authenticateToken, requireRole('L3'), async (req,
     req
   });
 
-  res.json({ success: true, message: `Item ${codeToDelete} removed successfully (soft deleted)` });
+  res.json({ success: true, message: `Item ${codeToDelete} removed successfully (soft deleted)`, backupStatus: sheetSync?.status || 'skipped' });
 });
 
 // 5. POST /api/items/import — Batch Import (Strictly L3 Admin)
@@ -2339,18 +2371,26 @@ app.post('/api/items/import', authenticateToken, requireRole('L3'), async (req, 
     newItemsToSync.push(newItem);
     successCount++;
 
-    // Sync to Google Sheets
-    syncToGoogleSheets('Items', 'UPSERT', newItem, 'code');
   });
 
   if (successCount > 0) {
+    if (supabase && newItemsToSync.length > 0) {
+      const { error } = await supabase.from('items').upsert(newItemsToSync.map(sanitizeItemForSupabase), { onConflict: 'code' });
+      if (error) return res.status(503).json({ success: false, error: 'Supabase import failed; no imported items were committed.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ success: false, error: 'Supabase is unavailable; production import refused.' });
+    }
     writeDatabase(items);
     itemsCache = items;
-    if (supabase && newItemsToSync.length > 0) {
-      supabase.from('items').upsert(newItemsToSync.map(sanitizeItemForSupabase), { onConflict: 'code' }).then(null, err => {
-        console.warn("Supabase batch import items err:", err.message);
-      });
+    let backupFailures = 0;
+    for (const item of newItemsToSync) {
+      const backup = await syncToGoogleSheets('Items', 'UPSERT', item, 'code');
+      if (backup?.status !== 'success') {
+        backupFailures++;
+        console.warn(`[Items] Primary saved; Sheets backup pending for ${item.code}`);
+      }
     }
+    req.backupFailures = backupFailures;
   }
 
   // Audit Log
@@ -2365,7 +2405,8 @@ app.post('/api/items/import', authenticateToken, requireRole('L3'), async (req, 
   res.json({ 
     success: true, 
     imported: successCount, 
-    errors: errorCount 
+    errors: errorCount,
+    backupFailures: req.backupFailures || 0
   });
 });
 
@@ -3415,12 +3456,8 @@ app.post('/api/bookings', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4')
         });
       }
 
-      bookings.unshift(newBooking);
-      writeBookings(bookings);
-      bookingsCache = bookings;
-
       if (supabase) {
-        supabase.from('bookings').insert([{
+        const { error } = await supabase.from('bookings').insert([{
           id: newBooking.id,
           room: newBooking.room,
           date: newBooking.date,
@@ -3430,10 +3467,16 @@ app.post('/api/bookings', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4')
           prepItems: newBooking.requiredChemicals || newBooking.requiredEquipment || [],
           status: newBooking.status || 'pending',
           createdAt: newBooking.createdAt || new Date().toISOString()
-        }]).then(null, (err) => console.error("Supabase booking insert error:", err));
+        }]);
+        if (error) return res.status(503).json({ error: 'Supabase save failed; booking was not saved.', details: error.message });
+      } else if (IS_PRODUCTION) {
+        return res.status(503).json({ error: 'Supabase is unavailable; production write refused.' });
       }
 
-      syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(newBooking), 'id');
+      bookings.unshift(newBooking);
+      writeBookings(bookings);
+      bookingsCache = bookings;
+      const sheetSync = await syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(newBooking), 'id');
 
       recordAuditLog({
         action: 'BOOKING_CREATE',
@@ -3443,7 +3486,7 @@ app.post('/api/bookings', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4')
         req
       });
 
-      return res.status(201).json({ success: true, booking: newBooking });
+      return res.status(201).json({ success: true, booking: newBooking, backupStatus: sheetSync?.status || 'skipped' });
     }
 
     // Array batch submission (backward compatibility)
@@ -3457,13 +3500,18 @@ app.post('/api/bookings', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4')
         });
       }
     }
-    writeBookings(bookings);
-    bookingsCache = bookings;
     if (Array.isArray(bookings)) {
       if (supabase) {
-        supabase.from('bookings').upsert(bookings, { onConflict: 'id' }).then(null, () => {});
+        const { error } = await supabase.from('bookings').upsert(bookings, { onConflict: 'id' });
+        if (error) return res.status(503).json({ success: false, error: 'Supabase update failed; bookings were not updated.', details: error.message });
+      } else if (IS_PRODUCTION) {
+        return res.status(503).json({ success: false, error: 'Supabase is unavailable; production write refused.' });
       }
-      bookings.forEach(b => syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(b), 'id'));
+      writeBookings(bookings);
+      bookingsCache = bookings;
+      for (const booking of bookings) await syncToGoogleSheets('Bookings', 'UPSERT', formatBookingForSync(booking), 'id');
+    } else {
+      return res.status(400).json({ success: false, error: 'Expected a bookings array.' });
     }
 
     recordAuditLog({
@@ -3663,13 +3711,18 @@ app.post('/api/transactions', authenticateToken, requireRole('L2', 'L3', 'L4'), 
       });
     }
   }
-  writeTransactions(transactions);
-  transactionsCache = transactions;
   if (Array.isArray(transactions)) {
     if (supabase) {
-      supabase.from('transactions').upsert(transactions, { onConflict: 'id' }).then(null, () => {});
+      const { error } = await supabase.from('transactions').upsert(transactions, { onConflict: 'id' });
+      if (error) return res.status(503).json({ success: false, error: 'Supabase save failed; transactions were not saved.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ success: false, error: 'Supabase is unavailable; production write refused.' });
     }
-    transactions.forEach(tx => syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id'));
+    writeTransactions(transactions);
+    transactionsCache = transactions;
+    for (const tx of transactions) await syncToGoogleSheets('Transactions', 'UPSERT', tx, 'id');
+  } else {
+    return res.status(400).json({ success: false, error: 'Expected a transaction array.' });
   }
 
   recordAuditLog({
@@ -4012,13 +4065,18 @@ app.get('/api/purchase-orders', authenticateToken, async (req, res) => {
 // POST /api/purchase-orders — Authenticated (L1 Teachers, L2 Staff, L3 Admin, L4 Executive)
 app.post('/api/purchase-orders', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
   const orders = req.body;
-  writePurchaseOrders(orders);
-  poCache = orders;
   if (Array.isArray(orders)) {
     if (supabase) {
-      supabase.from('purchase_orders').upsert(orders, { onConflict: 'id' }).then(null, () => {});
+      const { error } = await supabase.from('purchase_orders').upsert(orders, { onConflict: 'id' });
+      if (error) return res.status(503).json({ success: false, error: 'Supabase save failed; purchase orders were not saved.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ success: false, error: 'Supabase is unavailable; production write refused.' });
     }
-    orders.forEach(po => syncToGoogleSheets('Purchase_Orders', 'UPSERT', po, 'id'));
+    writePurchaseOrders(orders);
+    poCache = orders;
+    for (const po of orders) await syncToGoogleSheets('Purchase_Orders', 'UPSERT', po, 'id');
+  } else {
+    return res.status(400).json({ success: false, error: 'Expected a purchase order array.' });
   }
 
   recordAuditLog({
@@ -4625,7 +4683,7 @@ app.get('/api/users', optionalAuth, async (req, res) => {
 
 // CREATE USER — Strictly L3 Admin
 app.post('/api/users', authenticateToken, requireRole('L3'), async (req, res) => {
-  const users = readUsers();
+  const users = await fetchLiveUsers(true);
   const newUser = req.body;
   newUser.id = "u_" + (newUser.teacherId || Date.now());
   
@@ -4663,22 +4721,21 @@ app.post('/api/users', authenticateToken, requireRole('L3'), async (req, res) =>
   newUser.color = getRoleColor(newUser.role);
   newUser.initials = calculateUserInitials(newUser.name);
   
+  // 1. Sync to Supabase (Primary Source of Truth)
+  if (supabase) {
+    const { error } = await supabase.from('users').upsert(newUser, { onConflict: 'id' });
+    if (error) return res.status(503).json({ error: 'Supabase save failed; user was not saved.', details: error.message });
+  } else if (IS_PRODUCTION) {
+    return res.status(503).json({ error: 'Supabase is unavailable; production write refused.' });
+  }
+
   users.push(newUser);
   writeUsers(users);
   usersCache = users;
 
-  // 1. Sync to Supabase (Primary Source of Truth)
-  if (supabase) {
-    try {
-      await supabase.from('users').upsert(newUser, { onConflict: 'id' });
-    } catch(err) {
-      console.warn("[SourceOfTruth:Supabase] user sync error:", err.message);
-    }
-  }
-
-  // 2. Export / Backup to Google Sheets (Asynchronous Outbound Sink)
+  // 2. Export / Backup to Google Sheets only after the primary write succeeds.
   const copy = sanitizeUser(newUser);
-  syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
+  const sheetSync = await syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
 
   // Audit Log
   recordAuditLog({
@@ -4689,12 +4746,12 @@ app.post('/api/users', authenticateToken, requireRole('L3'), async (req, res) =>
     req
   });
 
-  res.json({ success: true, user: sanitizeUser(newUser) });
+  res.json({ success: true, user: sanitizeUser(newUser), backupStatus: sheetSync?.status || 'skipped' });
 });
 
 // BATCH CREATE USERS — Strictly L3 Admin
 app.post('/api/users/batch', authenticateToken, requireRole('L3'), async (req, res) => {
-  const users = readUsers();
+  const users = await fetchLiveUsers(true);
   const incomingList = req.body;
   if (!Array.isArray(incomingList) || incomingList.length === 0) {
     return res.status(400).json({ success: false, error: 'Expected a non-empty array of users' });
@@ -4764,19 +4821,21 @@ app.post('/api/users/batch', authenticateToken, requireRole('L3'), async (req, r
       processedUsers.push(formattedUser);
     }
 
-    const copy = sanitizeUser(formattedUser);
-    syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
   });
-
-  writeUsers(users);
 
   // Sync to Supabase
   if (supabase && processedUsers.length > 0) {
-    try {
-      await supabase.from('users').upsert(processedUsers, { onConflict: 'id' });
-    } catch(err) {
-      console.warn("Supabase batch user sync error:", err.message);
-    }
+    const { error } = await supabase.from('users').upsert(processedUsers, { onConflict: 'id' });
+    if (error) return res.status(503).json({ success: false, error: 'Supabase import failed; batch was not saved.', details: error.message });
+  } else if (IS_PRODUCTION && processedUsers.length > 0) {
+    return res.status(503).json({ success: false, error: 'Supabase is unavailable; production import refused.' });
+  }
+
+  writeUsers(users);
+  usersCache = users;
+  for (const user of processedUsers) {
+    const backupResult = await syncToGoogleSheets('Users', 'UPSERT', sanitizeUser(user), 'teacherId');
+    if (backupResult?.status !== 'success') console.warn(`[Users] Primary saved; Sheets backup pending for ${user.teacherId}`);
   }
 
   // Audit Log
@@ -4799,7 +4858,7 @@ app.post('/api/users/batch', authenticateToken, requireRole('L3'), async (req, r
 
 // UPDATE USER — Strictly L3 Admin
 app.put('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res) => {
-  const users = readUsers();
+  const users = await fetchLiveUsers(true);
   const index = users.findIndex(u => u.id === req.params.id);
   if (index !== -1) {
     const roleNames = {
@@ -4833,20 +4892,19 @@ app.put('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res)
       }
     }
 
-    users[index] = updated;
-    writeUsers(users);
-
-    const copy = sanitizeUser(users[index]);
-    syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
-
     // Sync to Supabase
     if (supabase) {
-      try {
-        await supabase.from('users').upsert(users[index], { onConflict: 'id' });
-      } catch(err) {
-        console.warn("Supabase update user sync error:", err.message);
-      }
+      const { error } = await supabase.from('users').upsert(updated, { onConflict: 'id' });
+      if (error) return res.status(503).json({ error: 'Supabase update failed; user was not updated.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ error: 'Supabase is unavailable; production write refused.' });
     }
+
+    users[index] = updated;
+    writeUsers(users);
+    usersCache = users;
+    const copy = sanitizeUser(updated);
+    const sheetSync = await syncToGoogleSheets('Users', 'UPSERT', copy, 'teacherId');
 
     // Audit Log
     recordAuditLog({
@@ -4857,7 +4915,7 @@ app.put('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res)
       req
     });
 
-    res.json({ success: true, user: sanitizeUser(users[index]) });
+    res.json({ success: true, user: sanitizeUser(users[index]), backupStatus: sheetSync?.status || 'skipped' });
   } else {
     res.status(404).json({ error: "User not found" });
   }
@@ -4978,14 +5036,8 @@ app.post('/api/users/:id/reset-password', authenticateToken, requireRole('L3'), 
 // DELETE USER — Strictly L3 Admin
 app.delete('/api/users/:id', authenticateToken, requireRole('L3'), async (req, res) => {
   const targetId = req.params.id;
-  let users = readUsers();
+  let users = await fetchLiveUsers(true);
   const userToDelete = users.find(u => u.id === targetId || u.teacherId === targetId || u.teacher_id === targetId);
-  users = users.filter(u => u.id !== targetId && u.teacherId !== targetId && u.teacher_id !== targetId);
-  writeUsers(users);
-
-  // Invalidate in-memory cache so subsequent fetches reload fresh state
-  usersCache = null;
-  lastUsersFetch = 0;
 
   const actor = req.user?.teacherId || req.user?.name || 'admin';
   const teacherId = userToDelete?.teacherId || userToDelete?.teacher_id || targetId;
@@ -5009,15 +5061,25 @@ app.delete('/api/users/:id', authenticateToken, requireRole('L3'), async (req, r
           `teacherId.eq.${cleanTeacherId}`
         );
       }
-      await supabase.from('users').delete().or([...new Set(orClauses)].join(','));
+      const { error } = await supabase.from('users').delete().or([...new Set(orClauses)].join(','));
+      if (error) return res.status(503).json({ error: 'Supabase delete failed; user was not deleted.', details: error.message });
     } catch(err) {
-      console.warn("[SourceOfTruth:Supabase] Delete user notice:", err.message);
+      return res.status(503).json({ error: 'Supabase delete failed; user was not deleted.', details: err.message });
     }
+  } else if (IS_PRODUCTION) {
+    return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
   }
 
+  users = users.filter(u => u.id !== targetId && u.teacherId !== targetId && u.teacher_id !== targetId);
+  writeUsers(users);
+  usersCache = users;
+  lastUsersFetch = Date.now();
+
   // 2. Export / Backup to Google Sheets
+  let backupStatus = 'skipped';
   if (teacherId) {
-    syncToGoogleSheets('Users', 'DELETE', { teacherId: teacherId }, 'teacherId');
+    const syncResult = await syncToGoogleSheets('Users', 'DELETE', { teacherId: teacherId }, 'teacherId');
+    backupStatus = syncResult?.status || 'error';
   }
 
   // Audit Log
@@ -5029,7 +5091,7 @@ app.delete('/api/users/:id', authenticateToken, requireRole('L3'), async (req, r
     req
   });
 
-  res.json({ success: true, message: "User deleted successfully" });
+  res.json({ success: true, message: "User deleted successfully", backupStatus });
 });
 
 // BATCH DELETE USERS ENDPOINT — Strictly L3 Admin
@@ -5041,14 +5103,8 @@ app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async 
 
   const allIds = Array.isArray(teacherIds) ? [...new Set([...ids, ...teacherIds])] : ids;
 
-  let users = readUsers();
+  let users = await fetchLiveUsers(true);
   const deletedUsers = users.filter(u => allIds.includes(u.id) || (u.teacherId && allIds.includes(u.teacherId)));
-  users = users.filter(u => !allIds.includes(u.id) && (!u.teacherId || !allIds.includes(u.teacherId)));
-  writeUsers(users);
-
-  // Invalidate in-memory cache
-  usersCache = null;
-  lastUsersFetch = 0;
 
   // 1. Delete in Supabase (Primary Source of Truth)
   if (supabase) {
@@ -5059,21 +5115,32 @@ app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async 
       const allTargetTids = [...new Set([...(teacherIds || []), ...cleanTids])].filter(Boolean);
 
       if (allTargetIds.length > 0) {
-        await supabase.from('users').delete().in('id', allTargetIds);
+        const { error } = await supabase.from('users').delete().in('id', allTargetIds);
+        if (error) return res.status(503).json({ error: 'Supabase batch delete failed; users were not deleted.', details: error.message });
       }
       if (allTargetTids.length > 0) {
-        await supabase.from('users').delete().in('teacherId', allTargetTids);
+        const { error } = await supabase.from('users').delete().in('teacherId', allTargetTids);
+        if (error) return res.status(503).json({ error: 'Supabase batch delete failed; users were not deleted.', details: error.message });
       }
     } catch(err) {
-      console.warn("[SourceOfTruth:Supabase] Batch delete users notice:", err.message);
+      return res.status(503).json({ error: 'Supabase batch delete failed; users were not deleted.', details: err.message });
     }
+  } else if (IS_PRODUCTION) {
+    return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
   }
+
+  users = users.filter(u => !allIds.includes(u.id) && (!u.teacherId || !allIds.includes(u.teacherId)));
+  writeUsers(users);
+  usersCache = users;
+  lastUsersFetch = Date.now();
 
   // 2. Export / Backup to Google Sheets
   const sheetsTargets = [...new Set([...deletedUsers.map(u => u.teacherId), ...(teacherIds || [])])].filter(Boolean);
-  sheetsTargets.forEach(tId => {
-    syncToGoogleSheets('Users', 'DELETE', { teacherId: tId }, 'teacherId');
-  });
+  let backupFailures = 0;
+  for (const tId of sheetsTargets) {
+    const backup = await syncToGoogleSheets('Users', 'DELETE', { teacherId: tId }, 'teacherId');
+    if (backup?.status !== 'success') backupFailures++;
+  }
 
   // Audit Log
   recordAuditLog({
@@ -5084,7 +5151,7 @@ app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async 
     req
   });
 
-  res.json({ success: true, deletedCount: ids.length });
+  res.json({ success: true, deletedCount: ids.length, backupFailures });
 });
 
 // Helper: Normalize Thai numbers (e.g. ๑๒๓ -> 123)

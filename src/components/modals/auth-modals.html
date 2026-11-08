@@ -37,18 +37,14 @@
       </button>
 
       <div class="modern-login-card">
-        <!-- Top App Icon with Radial Aura -->
-        <div class="modern-login-aura-wrap">
-          <div class="modern-login-aura"></div>
-          <div class="modern-login-icon-badge">
-            <img src="assets/logos/favicon.svg" alt="SciPortal Logo" style="width: 26px; height: 26px; object-fit: contain;">
-          </div>
+        <div class="modern-login-brand">
+          <img src="assets/logos/favicon.svg" alt="" width="24" height="24">
+          <span>SciPortal</span>
         </div>
 
-        <!-- Headings -->
         <div class="modern-login-header">
-          <h2 class="modern-login-title">Sign in to continue</h2>
-          <p class="modern-login-subtitle">Please sign in to access SciPortal Laboratory</p>
+          <h2 class="modern-login-title">เข้าสู่ระบบ</h2>
+          <p class="modern-login-subtitle">ระบบจัดการห้องปฏิบัติการวิทยาศาสตร์</p>
         </div>
 
         <!-- Error Message Banner -->
@@ -64,7 +60,7 @@
             <span class="modern-login-input-icon">
               <i data-lucide="user" style="width: 16px; height: 16px;"></i>
             </span>
-            <input type="text" id="loginUsername" name="username" class="modern-login-input" placeholder="Teacher ID" required autocomplete="username">
+            <input type="text" id="loginUsername" name="username" class="modern-login-input" placeholder="รหัสประจำตัวครู" required autocomplete="username">
           </div>
 
           <!-- Password -->
@@ -72,8 +68,8 @@
             <span class="modern-login-input-icon">
               <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
             </span>
-            <input type="password" id="loginPassword" name="password" class="modern-login-input" placeholder="Password" required autocomplete="current-password">
-            <button type="button" id="btnTogglePassword" class="modern-login-pwd-toggle" aria-label="Toggle Password Visibility">
+            <input type="password" id="loginPassword" name="password" class="modern-login-input" placeholder="รหัสผ่าน" required autocomplete="current-password">
+            <button type="button" id="btnTogglePassword" class="modern-login-pwd-toggle" aria-label="แสดงรหัสผ่าน">
               <i data-lucide="eye" id="eyeIcon" style="width: 16px; height: 16px;"></i>
             </button>
           </div>
@@ -82,9 +78,9 @@
           <div class="modern-login-options">
             <label class="modern-login-remember" for="loginRememberMe">
               <input type="checkbox" id="loginRememberMe">
-              <span>จดจำการเข้าสู่ระบบ</span>
+              <span>จำรหัสผู้ใช้</span>
             </label>
-            <a href="#" id="linkForgotPassword" class="modern-login-forgot">Forgot Password?</a>
+            <a href="#" id="linkForgotPassword" class="modern-login-forgot">ลืมรหัสผ่าน?</a>
           </div>
 
           <!-- Hidden cancel button for JS compatibility -->
@@ -92,7 +88,7 @@
 
           <!-- Submit Button -->
           <button type="submit" class="modern-login-submit-btn" id="btnSubmitLogin">
-            <span>Sign In</span>
+            <span>เข้าสู่ระบบ</span>
           </button>
         </form>
 
