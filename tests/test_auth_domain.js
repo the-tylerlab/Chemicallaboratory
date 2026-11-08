@@ -48,6 +48,22 @@ assert(typeof indexModule.login === 'function', 'indexModule must re-export logi
 assert(typeof indexModule.openLoginModal === 'function', 'indexModule must re-export openLoginModal');
 console.log('   ✅ All functions properly exported from src/auth/ and barrel index!\n');
 
+// Passwords must retain whitespace; only Thai numerals are normalized.
+console.log('1a. Verifying login credential normalization:');
+let loginPayload;
+global.fetch = async (url, options) => {
+  assert.strictEqual(url, '/api/auth/login', 'Login must use the backend authentication endpoint');
+  loginPayload = JSON.parse(options.body);
+  return {
+    ok: true,
+    json: async () => ({ success: true, token: 'login_token', user: { id: 1, name: 'Test', role: 'L1' } })
+  };
+};
+await authModule.login('  ๑๐๐๑  ', '  รหัส  ๑๒๓  ');
+assert.strictEqual(loginPayload.username, '1001', 'Username is trimmed and Thai digits are normalized');
+assert.strictEqual(loginPayload.password, '  รหัส  123  ', 'Password whitespace is preserved while Thai digits are normalized');
+console.log('   ✅ Login normalizes account identifiers without mutating password whitespace\n');
+
 // 3. Test Initial Guest State (L0)
 console.log('2. Testing Initial Guest State (L0):');
 setCurrentUser(null);

@@ -170,7 +170,11 @@ export const SYSTEM_USERS_REGISTRY = [
 // Perform login strictly with backend API (Strict Zero Trust & Cryptographic Enforcement)
 export async function login(username, password) {
   const normUser = normalizeInput(username);
-  const normPass = normalizeInput(password);
+  // Passwords are opaque secrets: normalize Thai numerals, but preserve every
+  // other character (including leading/trailing spaces) exactly as entered.
+  const normPass = password == null ? '' : String(password).replace(/[๐-๙]/g, (digit) =>
+    String('๐๑๒๓๔๕๖๗๘๙'.indexOf(digit))
+  );
 
   if (!normUser || !normPass) {
     throw new Error('กรุณากรอกรหัสประจำตัวครูและรหัสผ่าน');

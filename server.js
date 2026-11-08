@@ -288,16 +288,23 @@ class AuthRateLimiter {
             err.code = 'RATE_LIMIT_CHECK_FAILED';
             throw err;
           }
-          if (error.message && error.message.includes("Could not find the table 'public.rate_limits'")) {
-            console.warn('[RateLimiter:LocalDev] Table public.rate_limits not yet migrated. Using local tracking.');
-          } else {
+          // In local development, an anon/publishable key cannot access this
+          // service-role-only table. Fall back for known configuration or
+          // network errors in local development; production fails closed above.
+          const isLocalStoreConfigurationError =
+            error.code === '42501' || error.code === 'PGRST205' ||
+            /permission denied|could not find the table ['\"]?public\.rate_limits/i.test(error.message || '');
+          const isLocalNetworkError =
+            /fetch failed|network error|timed? ?out|econnrefused|enotfound/i.test(error.message || '');
+          if (!isLocalStoreConfigurationError && !isLocalNetworkError) {
             const err = new Error(`Rate limit check failed: ${error.message}`);
             err.code = 'RATE_LIMIT_CHECK_FAILED';
             throw err;
           }
+          console.warn(`[RateLimiter:LocalDev] Shared rate-limit store unavailable; using local tracking: ${error.message}`);
         }
 
-        if (Array.isArray(sharedRows)) {
+        if (!error && Array.isArray(sharedRows)) {
           const foundKeys = new Set(sharedRows.map(r => r.key));
           for (const k of [key, ipKey]) {
             if (!foundKeys.has(k)) {
