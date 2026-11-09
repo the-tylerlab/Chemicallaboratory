@@ -9,6 +9,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
+const { getPublicSupabaseKey } = require('./src/security/public_supabase_key');
 
 const app = express();
 // Enable trusted proxy so Express securely extracts verified client IP behind Vercel/reverse proxies
@@ -48,6 +49,8 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 // Supabase is optional (graceful degradation in local dev); missing vars disable cloud sync.
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+// Only anon/publishable keys are safe to expose to browser clients.
+const SUPABASE_PUBLIC_KEY = getPublicSupabaseKey(process.env);
 let supabase = null;
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.warn('⚠️  SUPABASE_URL or SUPABASE_KEY not set — Supabase cloud sync disabled. Set these in .env to enable.');
@@ -2116,7 +2119,7 @@ app.get('/api/barcode', async (req, res) => {
 app.get('/api/config', (req, res) => {
   res.json({
     supabaseUrl: SUPABASE_URL || null,
-    supabaseKey: SUPABASE_KEY || null,
+    supabaseKey: SUPABASE_PUBLIC_KEY || null,
     googleScriptUrl: GOOGLE_SCRIPT_URL || null,
     nodeEnv: NODE_ENV,
     isProduction: IS_PRODUCTION,

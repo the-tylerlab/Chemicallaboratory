@@ -4,18 +4,21 @@
  * Does NOT pollute production environments.
  */
 
-require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
-
-const NODE_ENV = process.env.NODE_ENV || 'development';
+const NODE_ENV = process.env.NODE_ENV || 'production';
 const isClean = process.argv.includes('--clean');
-const isForce = process.argv.includes('--force');
 
-if (NODE_ENV === 'production' && !isForce) {
-  console.error("❌ Refusing to seed demo data in PRODUCTION environment!");
-  console.error("   If you really want to seed demo data in production, provide the --force flag.");
+if (NODE_ENV === 'production') {
+  console.error("❌ Refusing to seed or clean demo data in PRODUCTION environment!");
   process.exit(1);
 }
+
+if (NODE_ENV !== 'development' && NODE_ENV !== 'test') {
+  console.error("❌ Demo seeding is allowed only in development or test environments.");
+  process.exit(1);
+}
+
+require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
