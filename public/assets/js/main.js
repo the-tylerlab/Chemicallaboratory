@@ -15974,7 +15974,6 @@ function setupAskPageView() {
     });
   }
 }
-}
 
 const WASTE_CLASSES = {
   "1": {
