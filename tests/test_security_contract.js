@@ -20,6 +20,9 @@ assert.ok(configHandler, 'API config handler exists');
 assert.doesNotMatch(configHandler, /supabaseKey|SUPABASE_KEY|SUPABASE_SERVICE_ROLE_KEY/);
 assert.match(frontend, /supabase = null;[\s\S]*?isSupabaseOnline = false;/);
 assert.doesNotMatch(frontend, /sb_publishable_[A-Za-z0-9_-]+/);
+assert.doesNotMatch(frontend, /AIza[0-9A-Za-z_-]{35}/);
+assert.ok(!fs.existsSync(path.join(root, 'app.js')), 'Legacy monolithic app.js must not exist in repository root');
+assert.ok(!fs.existsSync(path.join(root, 'public', 'app.js')), 'app.js must not exist in public directory');
 
 assert.match(workflow, /actions\/checkout@[0-9a-f]{40}/g);
 assert.match(workflow, /actions\/setup-node@[0-9a-f]{40}/g);
