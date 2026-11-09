@@ -50,7 +50,13 @@ jobs:
       - name: Install Dependencies
         run: npm ci
       - name: Run Security Suite
-        run: npm run test:security
+        run: |
+          node tests/test_security_suite.js 2>&1 | tee test.log || {
+            while IFS= read -r line; do
+              echo "::error title=SecuritySuite::$line"
+            done < test.log
+            exit 1
+          }
       - name: Run RBAC Authorization Tests
         run: npm run test:rbac
       - name: Run HTTP Headers & CORS Tests
