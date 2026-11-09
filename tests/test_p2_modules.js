@@ -74,13 +74,21 @@ async function run() {
     assert.ok(adminToken, "Admin token must be present");
     pass("Admin authenticated successfully with JWT");
 
-    // Login Teacher (10746)
-    const teacherLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+    // Login Teacher (1001 canonical demo teacher)
+    let teacherLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: '10746', password: '10746' })
+      body: JSON.stringify({ username: '1001', password: '1001' })
     });
-    const teacherData = await teacherLoginRes.json();
+    let teacherData = await teacherLoginRes.json();
+    if (!teacherData.token) {
+      teacherLoginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: '10746', password: '10746' })
+      });
+      teacherData = await teacherLoginRes.json();
+    }
     teacherToken = teacherData.token;
     assert.ok(teacherToken, "Teacher token must be present");
     pass("Teacher authenticated successfully with JWT");
