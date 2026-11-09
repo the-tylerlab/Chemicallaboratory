@@ -15,7 +15,7 @@
     "test:rbac": "node tests/test_rbac_and_rls_authorization.js",
     "test:headers": "node tests/test_live_http_headers_and_cors.js",
     "test:date": "node tests/test_system_date.js",
-    "test:auth": "node tests/test_auth_domain.js",
+    "test:auth": "node tests/test_auth_domain.mjs",
     "test:p1-database": "node tests/test_p1_database.js",
     "test:p2-inventory": "node tests/test_p2_inventory.js",
     "test:p2-modules": "node tests/test_p2_modules.js",
