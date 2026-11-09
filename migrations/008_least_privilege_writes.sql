@@ -24,10 +24,14 @@ GRANT ALL ON public.users TO service_role;
 -- Client roles retain existing read access where the application requires it,
 -- but only the trusted backend may mutate these records.
 REVOKE INSERT, UPDATE, DELETE ON public.items, public.bookings, public.transactions,
-  public.purchase_orders, public.audit_logs, public.system, public.schema_migrations
+  public.purchase_orders, public.audit_logs, public.system, public.schema_migrations,
+  public.stock_movements, public.stock_adjustments,
+  public.equipment_maintenance_logs, public.equipment_repairs
   FROM anon, authenticated, PUBLIC;
 GRANT INSERT, UPDATE, DELETE ON public.items, public.bookings, public.transactions,
-  public.purchase_orders, public.audit_logs, public.system, public.schema_migrations
+  public.purchase_orders, public.audit_logs, public.system, public.schema_migrations,
+  public.stock_movements, public.stock_adjustments,
+  public.equipment_maintenance_logs, public.equipment_repairs
   TO service_role;
 
 -- Ensure the audited service-role path is represented explicitly in RLS too.
@@ -47,6 +51,22 @@ DROP POLICY IF EXISTS "system_service_all" ON public.system;
 CREATE POLICY "system_service_all" ON public.system FOR ALL TO service_role USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "schema_migrations_service_all" ON public.schema_migrations;
 CREATE POLICY "schema_migrations_service_all" ON public.schema_migrations FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+-- P2 inventory and maintenance tables also had permissive authenticated/anon
+-- write policies in migrations 004 and 005. These routes write via service_role.
+DROP POLICY IF EXISTS "stock_movements_insert" ON public.stock_movements;
+DROP POLICY IF EXISTS "stock_adjustments_all" ON public.stock_adjustments;
+DROP POLICY IF EXISTS "maint_write_staff" ON public.equipment_maintenance_logs;
+DROP POLICY IF EXISTS "repairs_write_authenticated" ON public.equipment_repairs;
+
+DROP POLICY IF EXISTS "stock_movements_service_all" ON public.stock_movements;
+CREATE POLICY "stock_movements_service_all" ON public.stock_movements FOR ALL TO service_role USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "stock_adjustments_service_all" ON public.stock_adjustments;
+CREATE POLICY "stock_adjustments_service_all" ON public.stock_adjustments FOR ALL TO service_role USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "equipment_maintenance_service_all" ON public.equipment_maintenance_logs;
+CREATE POLICY "equipment_maintenance_service_all" ON public.equipment_maintenance_logs FOR ALL TO service_role USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "equipment_repairs_service_all" ON public.equipment_repairs;
+CREATE POLICY "equipment_repairs_service_all" ON public.equipment_repairs FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 INSERT INTO public.schema_migrations (version, name, applied_at)
 VALUES ('008', 'least_privilege_writes', NOW())
