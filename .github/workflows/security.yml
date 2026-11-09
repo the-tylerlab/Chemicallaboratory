@@ -49,13 +49,16 @@ jobs:
           cache: npm
       - name: Install Dependencies
         run: npm ci
-      - name: Run Security Suite, RBAC, HTTP Headers & Local Contracts
-        run: |
-          npm run test:security
-          npm run test:rbac
-          npm run test:headers
-          npm run test:auth
-          npm run test:security-contract
+      - name: Run Security Suite
+        run: npm run test:security
+      - name: Run RBAC Authorization Tests
+        run: npm run test:rbac
+      - name: Run HTTP Headers & CORS Tests
+        run: npm run test:headers
+      - name: Run Auth Domain Tests
+        run: npm run test:auth
+      - name: Run Security Contract Checks
+        run: npm run test:security-contract
 
   data-integrity:
     name: Data Integrity & Backup Readiness
