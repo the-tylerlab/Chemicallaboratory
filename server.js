@@ -2165,7 +2165,9 @@ app.get('/api/config', (req, res) => {
 
 // 1. GET /api/items — Fetch all items from cloud & local
 app.get('/api/items', async (req, res) => {
-  res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   const items = await fetchLiveItems();
   const sanitized = items.map(({ createdBy, updatedBy, is_deleted, ...rest }) => rest);
   res.json(sanitized);
@@ -2341,6 +2343,41 @@ app.delete('/api/items/:code', authenticateToken, requireRole('L3'), async (req,
   });
 
   res.json({ success: true, message: `Item ${codeToDelete} removed successfully (soft deleted)`, backupStatus: sheetSync?.status || 'skipped' });
+});
+
+// DELETE /api/items — Bulk clear all items (Strictly L3 Admin)
+app.delete('/api/items', authenticateToken, requireRole('L3'), async (req, res) => {
+  try {
+    const actor = req.user.name || req.user.teacherId || 'admin';
+    const now = new Date().toISOString();
+
+    if (supabase) {
+      const { error } = await supabase.from('items').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).eq('is_deleted', false);
+      if (error) return res.status(503).json({ error: 'Supabase bulk delete failed.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
+    }
+
+    writeDatabase([]);
+    itemsCache = [];
+    lastItemsFetch = Date.now();
+
+    recordAuditLog({
+      action: 'ITEM_BULK_DELETE',
+      resource: 'items',
+      resourceId: 'all',
+      details: 'ล้างข้อมูลคลังพัสดุทั้งหมด (Bulk Delete)',
+      req
+    });
+
+    res.json({ success: true, message: 'All items have been cleared.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // 5. POST /api/items/import — Batch Import (Strictly L3 Admin)
@@ -3388,6 +3425,9 @@ app.post('/api/bookings/check-conflict', async (req, res) => {
 
 // GET /api/bookings (Public can view to check room availability calendar)
 app.get('/api/bookings', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   const bookings = await fetchLiveBookings();
   res.json(bookings);
 });
@@ -3679,12 +3719,108 @@ app.post('/api/bookings/:id/cancel', authenticateToken, requireRole('L1', 'L2', 
   }
 });
 
+// DELETE /api/bookings/:id — Cancel/Delete a booking (L1 Owner, L2 Staff, L3 Admin, L4 Executive)
+app.delete('/api/bookings/:id', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const bookings = await fetchLiveBookings();
+    const bkIndex = bookings.findIndex(b => String(b.id) === String(id));
+    if (bkIndex === -1) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    const bk = bookings[bkIndex];
+    const callerRole = normalizeRole(req.user.role || req.user.roleLevel);
+    const myId = String(req.user.teacherId || req.user.id || '').toLowerCase();
+    const myName = String(req.user.name || '').toLowerCase();
+    const isOwner = String(bk.teacherId || bk.bookerName || '').toLowerCase() === myId || String(bk.teacherName || bk.bookerName || '').toLowerCase() === myName;
+
+    if (callerRole === 'L1' && !isOwner) {
+      return res.status(403).json({ error: "Teachers can only delete their own bookings." });
+    }
+    if (callerRole === 'L2' && !canUserAccessRoom(req.user, bk.room)) {
+      return res.status(403).json({ error: `เจ้าหน้าที่ไม่มีสิทธิ์จัดการการจองในห้อง ${bk.room}` });
+    }
+
+    const actor = req.user.name || req.user.teacherId || 'admin';
+    const now = new Date().toISOString();
+
+    if (supabase) {
+      const { error } = await supabase.from('bookings').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).eq('id', id);
+      if (error) return res.status(503).json({ error: 'Supabase delete failed; booking was not deleted.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
+    }
+
+    const filtered = bookings.filter(b => String(b.id) !== String(id));
+    writeBookings(filtered);
+    bookingsCache = filtered;
+    lastBookingsFetch = Date.now();
+
+    await syncToGoogleSheets('Bookings', 'DELETE', { id }, 'id');
+
+    recordAuditLog({
+      action: 'BOOKING_DELETE',
+      resource: 'bookings',
+      resourceId: id,
+      details: `ลบ/ยกเลิกรายการจองห้อง ${bk.room} วันที่ ${bk.date} (${bk.slot})`,
+      req
+    });
+
+    res.json({ success: true, message: `Booking ${id} deleted successfully.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/bookings — Bulk clear all bookings (Strictly L3 Admin)
+app.delete('/api/bookings', authenticateToken, requireRole('L3'), async (req, res) => {
+  try {
+    const actor = req.user.name || req.user.teacherId || 'admin';
+    const now = new Date().toISOString();
+
+    if (supabase) {
+      const { error } = await supabase.from('bookings').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).eq('is_deleted', false);
+      if (error) return res.status(503).json({ error: 'Supabase bulk delete failed.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
+    }
+
+    writeBookings([]);
+    bookingsCache = [];
+    lastBookingsFetch = Date.now();
+
+    recordAuditLog({
+      action: 'BOOKING_BULK_DELETE',
+      resource: 'bookings',
+      resourceId: 'all',
+      details: 'ล้างข้อมูลรายการจองห้องปฏิบัติการทั้งหมด (Bulk Delete)',
+      req
+    });
+
+    res.json({ success: true, message: 'All bookings have been cleared.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ==========================================
 // 🟡 P2 — BORROW / RETURN WORKFLOW & DUE DATES
 // ==========================================
 
 // GET /api/transactions — Role-based data access (Authenticated)
 app.get('/api/transactions', authenticateToken, async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   const transactions = await fetchLiveTransactions();
   const role = normalizeRole(req.user.role || req.user.roleLevel);
 
@@ -3736,6 +3872,92 @@ app.post('/api/transactions', authenticateToken, requireRole('L2', 'L3', 'L4'), 
   });
 
   res.json({ success: true });
+});
+
+// DELETE /api/transactions/:id — Delete a transaction (L2 Staff, L3 Admin, L4 Executive)
+app.delete('/api/transactions/:id', authenticateToken, requireRole('L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const transactions = await fetchLiveTransactions();
+    const txIndex = transactions.findIndex(t => String(t.id) === String(id));
+    if (txIndex === -1) {
+      return res.status(404).json({ error: "Transaction not found" });
+    }
+
+    const tx = transactions[txIndex];
+    const callerRole = normalizeRole(req.user.role || req.user.roleLevel);
+    if (callerRole === 'L2' && tx.room && !canUserAccessRoom(req.user, tx.room)) {
+      return res.status(403).json({ error: `เจ้าหน้าที่ไม่มีสิทธิ์จัดการข้อมูลธุรกรรมในห้อง ${tx.room}` });
+    }
+
+    const actor = req.user.name || req.user.teacherId || 'admin';
+    const now = new Date().toISOString();
+
+    if (supabase) {
+      const { error } = await supabase.from('transactions').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).eq('id', id);
+      if (error) return res.status(503).json({ error: 'Supabase delete failed; transaction was not deleted.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
+    }
+
+    const filtered = transactions.filter(t => String(t.id) !== String(id));
+    writeTransactions(filtered);
+    transactionsCache = filtered;
+    lastTransactionsFetch = Date.now();
+
+    await syncToGoogleSheets('Transactions', 'DELETE', { id }, 'id');
+
+    recordAuditLog({
+      action: 'TRANSACTION_DELETE',
+      resource: 'transactions',
+      resourceId: id,
+      details: `ลบรายการธุรกรรม: ${tx.itemName || tx.itemCode || id}`,
+      req
+    });
+
+    res.json({ success: true, message: `Transaction ${id} deleted successfully.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/transactions — Bulk clear all transactions (Strictly L3 Admin)
+app.delete('/api/transactions', authenticateToken, requireRole('L3'), async (req, res) => {
+  try {
+    const actor = req.user.name || req.user.teacherId || 'admin';
+    const now = new Date().toISOString();
+
+    if (supabase) {
+      const { error } = await supabase.from('transactions').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).eq('is_deleted', false);
+      if (error) return res.status(503).json({ error: 'Supabase bulk delete failed.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
+    }
+
+    writeTransactions([]);
+    transactionsCache = [];
+    lastTransactionsFetch = Date.now();
+
+    recordAuditLog({
+      action: 'TRANSACTION_BULK_DELETE',
+      resource: 'transactions',
+      resourceId: 'all',
+      details: 'ล้างข้อมูลรายการธุรกรรมทั้งหมด (Bulk Delete)',
+      req
+    });
+
+    res.json({ success: true, message: 'All transactions have been cleared.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/borrow/request — Digital Borrow Request with Stock Check
@@ -4045,6 +4267,9 @@ app.get('/api/budget/summary', authenticateToken, requireRole('L1', 'L2', 'L3', 
 
 // GET /api/purchase-orders — Role-based data access control
 app.get('/api/purchase-orders', authenticateToken, async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   const orders = await fetchLivePurchaseOrders();
   if (!req.user) {
     return res.status(401).json({ error: "Authentication required to view purchase orders" });
@@ -4090,6 +4315,94 @@ app.post('/api/purchase-orders', authenticateToken, requireRole('L1', 'L2', 'L3'
   });
 
   res.json({ success: true });
+});
+
+// DELETE /api/purchase-orders/:id — Delete a purchase order (L3 Admin or Creator)
+app.delete('/api/purchase-orders/:id', authenticateToken, requireRole('L1', 'L2', 'L3', 'L4'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const poList = await fetchLivePurchaseOrders();
+    const orderIndex = poList.findIndex(o => String(o.id) === String(id));
+    if (orderIndex === -1) {
+      return res.status(404).json({ error: "Purchase order not found" });
+    }
+
+    const orderToDelete = poList[orderIndex];
+    const callerRole = normalizeRole(req.user.role || req.user.roleLevel);
+    const myId = String(req.user.teacherId || req.user.id || '').toLowerCase();
+    const isOwner = String(orderToDelete.teacherId || orderToDelete.requester || '').toLowerCase() === myId;
+    if (callerRole !== 'L3' && callerRole !== 'L4' && !isOwner) {
+      return res.status(403).json({ error: "You do not have permission to delete this purchase order." });
+    }
+
+    const actor = req.user.name || req.user.teacherId || 'admin';
+    const now = new Date().toISOString();
+
+    if (supabase) {
+      const { error } = await supabase.from('purchase_orders').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).eq('id', id);
+      if (error) return res.status(503).json({ error: 'Supabase delete failed; purchase order was not deleted.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
+    }
+
+    const filtered = poList.filter(o => String(o.id) !== String(id));
+    writePurchaseOrders(filtered);
+    poCache = filtered;
+    lastPoFetch = Date.now();
+
+    await syncToGoogleSheets('Purchase_Orders', 'DELETE', { id }, 'id');
+
+    recordAuditLog({
+      action: 'PURCHASE_ORDER_DELETE',
+      resource: 'purchase_orders',
+      resourceId: id,
+      details: `ลบรายการสั่งซื้อ: ${orderToDelete.title || orderToDelete.name || id}`,
+      req
+    });
+
+    res.json({ success: true, message: `Purchase order ${id} deleted successfully.` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /api/purchase-orders — Bulk clear purchase orders (Strictly L3 Admin)
+app.delete('/api/purchase-orders', authenticateToken, requireRole('L3'), async (req, res) => {
+  try {
+    const actor = req.user.name || req.user.teacherId || 'admin';
+    const now = new Date().toISOString();
+
+    if (supabase) {
+      const { error } = await supabase.from('purchase_orders').update({
+        is_deleted: true,
+        deleted_at: now,
+        deleted_by: actor
+      }).eq('is_deleted', false);
+      if (error) return res.status(503).json({ error: 'Supabase bulk delete failed.', details: error.message });
+    } else if (IS_PRODUCTION) {
+      return res.status(503).json({ error: 'Supabase is unavailable; production delete refused.' });
+    }
+
+    writePurchaseOrders([]);
+    poCache = [];
+    lastPoFetch = Date.now();
+
+    recordAuditLog({
+      action: 'PURCHASE_ORDER_BULK_DELETE',
+      resource: 'purchase_orders',
+      resourceId: 'all',
+      details: 'ล้างข้อมูลรายการสั่งซื้อทั้งหมด (Bulk Delete)',
+      req
+    });
+
+    res.json({ success: true, message: 'All purchase orders have been cleared.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/procurement/orders — Submit Purchase Request with Approval Chain

@@ -6122,43 +6122,29 @@ window.deleteItem = async function(index) {
     cancelButtonText: 'ยกเลิก'
   });
   if (result.isConfirmed) {
-    // 1. Google Sheets Direct Sync
-    syncToGoogleSheetsDirect('Items', 'DELETE', { code: item.code }, 'code');
-
-    if (isSupabaseOnline) {
-      try {
-        await supabase.from("items").delete().eq("code", item.code);
-        items.splice(index, 1);
-        showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
-      } catch (err) {
-        console.error("[Supabase] Supabase delete failed:", err);
-        showToast("เกิดข้อผิดพลาดในการลบข้อมูลบน Supabase", "error");
-        return;
-      }
-    } else if (isBackendOnline) {
-      try {
-        const response = await fetch(`${API_BASE}/items/${encodeURIComponent(item.code)}`, {
-          method: "DELETE"
-        });
-        if (response.ok) {
-          items.splice(index, 1);
-          showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
-        } else {
-          const errData = await response.json();
-          showToast(errData.error || "เกิดข้อผิดพลาดในการลบข้อมูลหลังบ้าน", "error");
-          return;
-        }
-      } catch (err) {
-        console.error("Backend delete failed, falling back:", err);
+    // 1. Primary: Server API Delete
+    try {
+      const response = await fetch(`${API_BASE}/items/${encodeURIComponent(item.code)}`, {
+        method: "DELETE"
+      });
+      if (response.ok) {
         items.splice(index, 1);
         saveItemsToLocal();
-        showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ! (Offline)`, "warning");
+        showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        showToast(errData.error || errData.message || "เกิดข้อผิดพลาดในการลบข้อมูลบนเซิร์ฟเวอร์", "error");
+        return;
       }
-    } else {
+    } catch (err) {
+      console.warn("Backend delete network error, operating offline:", err);
       items.splice(index, 1);
       saveItemsToLocal();
-      showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ!`, "warning");
+      showToast(`ลบรายการ "${getItemDisplayName(item)}" สำเร็จ! (Offline)`, "warning");
     }
+
+    // 2. Outbound Google Sheets Sync
+    syncToGoogleSheetsDirect('Items', 'DELETE', { code: item.code }, 'code');
     logActivity(userRole === "admin" ? "Admin" : "Teacher", "ลบข้อมูลพัสดุ", `ลบรายการ: ${getItemDisplayName(item)}`);
     updateUI();
   }
@@ -8670,6 +8656,15 @@ async function updateBookingStatus(bookingId, status) {
   localStorage.setItem("lab_bookings", JSON.stringify(bookings));
   
   if (navigator.onLine) {
+    if (status === 'cancelled') {
+      try {
+        await fetch(`${API_BASE}/bookings/${encodeURIComponent(bookingId)}/cancel`, {
+          method: 'POST'
+        });
+      } catch (e) {
+        console.warn("Backend cancel booking failed:", e);
+      }
+    }
     syncBookingToGoogleSheetsDirect(updatedBooking);
     if (isBackendOnline) {
       syncBookingsToBackend();
@@ -10513,29 +10508,27 @@ window.deletePurchaseOrder = function(orderId) {
   showConfirmModal(
     "ยืนยันการลบข้อมูล",
     "คุณแน่ใจหรือไม่ว่าต้องการลบรายการสั่งซื้อนี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
-    () => {
-      // 1. Google Sheets Direct Sync
+    async () => {
+      // 1. Primary: Server API Delete
+      try {
+        const response = await fetch(`${API_BASE}/purchase-orders/${encodeURIComponent(orderId)}`, {
+          method: "DELETE"
+        });
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          showToast(errData.error || errData.message || "เกิดข้อผิดพลาดในการลบรายการสั่งซื้อบนเซิร์ฟเวอร์", "error");
+          return;
+        }
+      } catch (e) {
+        console.warn("Backend delete purchase-order network error:", e);
+      }
+
+      // 2. Outbound Google Sheets Sync
       syncToGoogleSheetsDirect('Purchase_Orders', 'DELETE', { id: orderId }, 'id');
 
-      window.isSavingPurchaseOrders = true;
-      if (isSupabaseOnline) {
-        supabase.from("purchase_orders").delete().eq("id", orderId)
-          .then(({error}) => {
-            if (error) {
-              showToast("ไม่สามารถลบข้อมูลบนเซิร์ฟเวอร์: " + error.message, "error");
-            }
-          })
-          .catch(e => console.error("Failed to delete purchase order from Supabase:", e))
-          .finally(() => {
-            setTimeout(() => { window.isSavingPurchaseOrders = false; }, 2000);
-          });
-      } else {
-        setTimeout(() => { window.isSavingPurchaseOrders = false; }, 2000);
-      }
-      
+      // 3. Update local state & storage
       purchaseOrders = purchaseOrders.filter(o => o.id !== orderId);
       localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
-      syncPurchaseOrdersToBackend();
       showToast("ลบรายการสั่งซื้อสำเร็จ", "success");
       updateUI();
     }
@@ -18903,6 +18896,12 @@ function setupAdminClearHandlers() {
       purchaseOrders = [];
       localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
       
+      try {
+        await fetch(`${API_BASE}/purchase-orders`, { method: "DELETE" });
+      } catch (e) {
+        console.warn("Backend clear purchase-orders failed:", e);
+      }
+
       for (const po of poToDelete) {
         syncToGoogleSheetsDirect('Purchase_Orders', 'DELETE', { id: po.id }, 'id');
       }
@@ -18972,6 +18971,12 @@ function setupAdminClearHandlers() {
             saveItemsToLocal();
             localStorage.setItem("has_seeded_items", "true");
             
+            try {
+              await fetch(`${API_BASE}/items`, { method: "DELETE" });
+            } catch (e) {
+              console.warn("Backend clear items failed:", e);
+            }
+
             if (isSupabaseOnline && typeof supabase !== "undefined") {
               try {
                 await supabase.from("items").delete().neq("code", "___NON_EXISTENT_CODE___");
@@ -18984,13 +18989,6 @@ function setupAdminClearHandlers() {
               syncToGoogleSheetsDirect('Items', 'DELETE', { code: item.code }, 'code');
             }
 
-            if (isBackendOnline) {
-              for (const item of itemsToDelete) {
-                try {
-                  await fetch(`${API_BASE}/items/${encodeURIComponent(item.code)}`, { method: "DELETE" });
-                } catch (e) {}
-              }
-            }
             showToast("ล้างข้อมูลคลังพัสดุทั้งหมดเรียบร้อยแล้ว", "success");
           } 
           else if (pendingClearAction === "transactions") {
@@ -18998,6 +18996,12 @@ function setupAdminClearHandlers() {
             transactions = [];
             localStorage.setItem("lab_transactions", JSON.stringify(transactions));
             
+            try {
+              await fetch(`${API_BASE}/transactions`, { method: "DELETE" });
+            } catch (e) {
+              console.warn("Backend clear transactions failed:", e);
+            }
+
             if (isSupabaseOnline && typeof supabase !== "undefined") {
               try {
                 await supabase.from("transactions").delete().neq("id", "___NON_EXISTENT_TX___");
@@ -19017,6 +19021,12 @@ function setupAdminClearHandlers() {
             bookings = [];
             localStorage.setItem("lab_bookings", JSON.stringify(bookings));
             
+            try {
+              await fetch(`${API_BASE}/bookings`, { method: "DELETE" });
+            } catch (e) {
+              console.warn("Backend clear bookings failed:", e);
+            }
+
             if (isSupabaseOnline && typeof supabase !== "undefined") {
               try {
                 await supabase.from("bookings").delete().neq("id", "___NON_EXISTENT_BK___");
