@@ -43,7 +43,7 @@
       "status": 404
     },
     {
-      "src": "/(dashboard|all-items|cabinet-layout|add-item|lab-booking|borrow-return|purchase-orders|reports|activity-logs|admin|notifications)",
+      "src": "/(dashboard|all-items|cabinet-layout|add-item|lab-booking|borrow-return|purchase-orders|reports|activity-logs|admin|notifications|ask)",
       "dest": "/public/index.html"
     },
     {

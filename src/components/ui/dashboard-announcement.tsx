@@ -33,7 +33,24 @@ function getAnnouncementState(): AnnouncementState | null {
     .filter(Boolean)[0] ?? '';
   const configuredMessages = (window as Window & { announcementTickerFlipState?: { messages?: string[] } })
     .announcementTickerFlipState?.messages;
-  const setKey = JSON.stringify(configuredMessages?.length ? configuredMessages : [currentMessage]);
+  
+  let description = currentMessage || (configuredMessages && configuredMessages[0]) || '';
+  if (!description) {
+    try {
+      const stored = localStorage.getItem('lab_announcement_settings');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.text) {
+          description = parsed.text.split(/\||\n/)[0]?.trim() || '';
+        }
+      }
+    } catch (_) {}
+  }
+  if (!description) {
+    description = 'การใช้อุปกรณ์คุ้มครองความปลอดภัย (PPE) ต้องสวมเสื้อกาวน์ แว่นตานิรภัย และรองเท้าหุ้มส้นตลอดเวลาที่ปฏิบัติการ';
+  }
+
+  const setKey = JSON.stringify(configuredMessages?.length ? configuredMessages : [description]);
   const theme = Array.from(bar.classList)
     .find(className => className.startsWith('ticker-theme-'))
     ?.replace('ticker-theme-', '');
@@ -43,8 +60,8 @@ function getAnnouncementState(): AnnouncementState | null {
       ? 'warning'
       : 'info';
   return {
-    title: badge.textContent?.trim() || 'ประกาศสำคัญ',
-    description: currentMessage || 'ยังไม่มีข้อความประกาศ',
+    title: badge.textContent?.trim() || 'ประกาศ & ความปลอดภัย',
+    description,
     setKey,
     status,
     visible: bar.style.display !== 'none',

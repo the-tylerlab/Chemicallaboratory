@@ -1902,6 +1902,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       updateUI();
       if (typeof renderItemsTable === "function") renderItemsTable();
       if (typeof renderCabinetMap === "function") renderCabinetMap();
+      if (typeof renderDashboardCalendar === "function") renderDashboardCalendar();
+      if (typeof updateDashboardCalendarStats === "function") updateDashboardCalendarStats();
       if (window.lucide) lucide.createIcons();
     }).catch(err => {
       console.warn("Parallel cloud sync warning:", err);
@@ -2025,23 +2027,43 @@ async function loadAllItems() {
     }
   }
 
-  // 3. Tertiary: Try Backend Server API
-  if (isBackendOnline) {
-    try {
-      const response = await fetch(`${API_BASE}/items`);
-      if (response.ok) {
-        items = await response.json();
+  // 3. Tertiary: Try Backend Server API (Always attempt fetch, do not wait on isBackendOnline race)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const response = await fetch(`${API_BASE}/items`, {
+      signal: controller.signal,
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    clearTimeout(timeoutId);
+    if (response.ok) {
+      const fetchedItems = await response.json();
+      if (Array.isArray(fetchedItems) && fetchedItems.length > 0) {
+        items = fetchedItems;
+        isBackendOnline = true;
         saveItemsToLocal();
         triggerItemRender();
         return;
       }
-    } catch (err) {
-      console.warn("Failed to load from backend API:", err);
     }
+  } catch (err) {
+    console.warn("Failed to load from backend API:", err);
   }
   
-  // Never restore records from browser/static caches: they may contain stale
-  // pre-delete copies. Offline dev runs should use the API's isolated mock DB.
+  // 4. LocalStorage Fallback on network disconnect
+  try {
+    const cached = localStorage.getItem("lab_items");
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        items = parsed;
+        triggerItemRender();
+        return;
+      }
+    }
+  } catch (_) {}
+
+  // 5. Offline dev runs fallback
   items = [...DEMO_DATA];
   triggerItemRender();
 }
@@ -6917,24 +6939,42 @@ async function loadAllTransactions() {
     }
   } catch (e) {}
 
-  if (isBackendOnline) {
-    try {
-      const response = await fetch(`${API_BASE}/transactions`);
-      if (response.ok) {
-        const json = await response.json();
-        if (Array.isArray(json)) {
-          transactions = json.filter(t => t && t.id && !t.id.startsWith("tx-mock"));
-          localStorage.setItem("lab_transactions", JSON.stringify(transactions));
-          triggerTransRender();
-          return;
-        }
+  // Primary: Backend API (Always attempt fetch, do not wait on isBackendOnline race)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+    const response = await fetch(`${API_BASE}/transactions`, {
+      signal: controller.signal,
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    clearTimeout(timeoutId);
+    if (response.ok) {
+      const json = await response.json();
+      if (Array.isArray(json)) {
+        transactions = json.filter(t => t && t.id && !t.id.startsWith("tx-mock"));
+        isBackendOnline = true;
+        localStorage.setItem("lab_transactions", JSON.stringify(transactions));
+        triggerTransRender();
+        return;
       }
-    } catch (e) {
-      console.error("Failed to load transactions from backend:", e);
     }
+  } catch (e) {
+    console.error("Failed to load transactions from backend:", e);
   }
 
-  // Do not restore stale cached rows after an API failure.
+  // LocalStorage Fallback on network disconnect
+  try {
+    const local = localStorage.getItem("lab_transactions");
+    if (local) {
+      const parsed = JSON.parse(local);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        transactions = parsed;
+        triggerTransRender();
+        return;
+      }
+    }
+  } catch (_) {}
+
   transactions = [];
   localStorage.setItem("lab_transactions", JSON.stringify(transactions));
   triggerTransRender();
@@ -8003,22 +8043,27 @@ async function loadLabLayouts() {
       const { data, error } = await supabase.from("system").select("value").eq("key", "labLayouts").maybeSingle();
       if (data && data.value) {
         labLayouts = data.value;
+        return;
       }
     } catch (err) {
       console.error("Failed to load lab layouts from Supabase", err);
     }
-  } else if (isBackendOnline) {
-    try {
-      const response = await fetch(`${API_BASE}/layouts`);
-      if (response.ok) {
-        labLayouts = await response.json();
-      }
-    } catch (err) {
-      console.error("Failed to load lab layouts", err);
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/layouts`);
+    if (response.ok) {
+      labLayouts = await response.json();
+      localStorage.setItem("labLayouts", JSON.stringify(labLayouts));
+      return;
     }
-  } else {
-    const local = localStorage.getItem("labLayouts");
-    if (local) labLayouts = JSON.parse(local);
+  } catch (err) {
+    console.error("Failed to load lab layouts", err);
+  }
+
+  const local = localStorage.getItem("labLayouts");
+  if (local) {
+    try { labLayouts = JSON.parse(local); } catch (_) {}
   }
 }
 
@@ -8277,8 +8322,8 @@ async function loadAllBookings() {
     try {
       const { data, error } = await supabase.from("bookings").select('*');
       if (!error && Array.isArray(data) && data.length > 0) {
-        // Filter out any mock booking IDs
-        remoteBookings = data.filter(b => b && b.id && !b.id.startsWith("book_mock") && !b.id.startsWith("test_booking") && !b.id.startsWith("book_20260711") && !b.id.startsWith("book_20260713"));
+        // Filter out any temporary test booking IDs
+        remoteBookings = data.filter(b => b && b.id && !b.id.startsWith("test_booking") && !b.id.startsWith("book_20260711") && !b.id.startsWith("book_20260713"));
         console.log("[Supabase] Loaded " + remoteBookings.length + " bookings from Supabase Cloud.");
       }
     } catch (err) {
@@ -8295,7 +8340,7 @@ async function loadAllBookings() {
         .filter(b => {
           if (!b || !b.id) return false;
           // Discard mock seed IDs
-          if (b.id.startsWith("book_mock") || b.id.startsWith("test_booking") || b.id.startsWith("book_20260711") || b.id.startsWith("book_20260713")) return false;
+          if (b.id.startsWith("test_booking") || b.id.startsWith("book_20260711") || b.id.startsWith("book_20260713")) return false;
           const hasDate = b.date && String(b.date).trim() !== "" && String(b.date).trim() !== "-";
           const hasBooker = (b.bookerName && String(b.bookerName).trim() !== "" && String(b.bookerName).trim() !== "-") ||
                             (b.teacherName && String(b.teacherName).trim() !== "" && String(b.teacherName).trim() !== "-");
@@ -8346,7 +8391,7 @@ async function loadAllBookings() {
       if (response.ok) {
         const backendBookings = await response.json();
         if (Array.isArray(backendBookings)) {
-          remoteBookings = backendBookings.filter(b => b && b.id && !b.id.startsWith("book_mock") && !b.id.startsWith("test_booking") && !b.id.startsWith("book_20260711") && !b.id.startsWith("book_20260713"));
+          remoteBookings = backendBookings.filter(b => b && b.id && !b.id.startsWith("test_booking") && !b.id.startsWith("book_20260711") && !b.id.startsWith("book_20260713"));
         }
       }
     } catch (e) {
@@ -8354,9 +8399,19 @@ async function loadAllBookings() {
     }
   }
 
-  // Only the API is authoritative. Old browser cache rows must not be merged
-  // back after a delete.
-  const localList = [];
+  // LocalStorage fallback on offline/network error
+  let localList = [];
+  if (remoteBookings.length === 0 && sheetBookings.length === 0) {
+    try {
+      const cached = localStorage.getItem("lab_bookings");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          localList = parsed;
+        }
+      }
+    } catch (_) {}
+  }
 
   // 3. Merge all valid clean sources
   const mergedMap = new Map();
@@ -9522,18 +9577,16 @@ async function loadAnnualBudget() {
     }
   }
 
-  if (isBackendOnline) {
-    try {
-      const response = await fetch(`${API_BASE}/budget`);
-      if (response.ok) {
-        const data = await response.json();
-        annualBudget = parseFloat(data.budget) || 100000;
-        localStorage.setItem("lab_annual_budget", annualBudget.toString());
-        return;
-      }
-    } catch (e) {
-      console.error("Failed to load budget from backend:", e);
+  try {
+    const response = await fetch(`${API_BASE}/budget`);
+    if (response.ok) {
+      const data = await response.json();
+      annualBudget = parseFloat(data.budget) || 100000;
+      localStorage.setItem("lab_annual_budget", annualBudget.toString());
+      return;
     }
+  } catch (e) {
+    console.error("Failed to load budget from backend:", e);
   }
 
   const localBudget = localStorage.getItem("lab_annual_budget");
@@ -9613,17 +9666,15 @@ async function loadPurchaseOrders() {
     }
   }
 
-  if (isBackendOnline) {
-    try {
-      const response = await fetch(`${API_BASE}/purchase-orders`);
-      if (response.ok) {
-        purchaseOrders = await response.json();
-        localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
-        return;
-      }
-    } catch (e) {
-      console.error("Failed to load purchase orders from backend:", e);
+  try {
+    const response = await fetch(`${API_BASE}/purchase-orders`);
+    if (response.ok) {
+      purchaseOrders = await response.json();
+      localStorage.setItem("lab_purchase_orders", JSON.stringify(purchaseOrders));
+      return;
     }
+  } catch (e) {
+    console.error("Failed to load purchase orders from backend:", e);
   }
 
   const localOrders = localStorage.getItem("lab_purchase_orders");
