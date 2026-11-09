@@ -1,0 +1,349 @@
+/* ==========================================================================
+   ASK / CHATBOT PAGE VIEW (Matching Reference Screenshot)
+   Minimalist, distraction-free conversational canvas with floating pill input
+   ========================================================================== */
+
+#panel-ask {
+  background-color: transparent;
+  min-height: calc(100vh - 120px);
+  position: relative;
+}
+
+.ask-view-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px 40px 16px;
+  box-sizing: border-box;
+}
+
+.ask-view-container {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: calc(100vh - 180px);
+}
+
+/* ── Header ── */
+.ask-header-block {
+  margin-bottom: 24px;
+}
+
+.ask-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ask-main-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ask-subtitle-text {
+  font-size: 14.5px;
+  color: #64748b;
+  margin: 6px 0 0 0;
+  line-height: 1.5;
+}
+
+.ask-action-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ask-action-clear-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+/* ── Quick Pills Shelf ── */
+.ask-pills-shelf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+
+.ask-pill-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 450;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.ask-pill-chip:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.ask-pill-chip:active {
+  transform: translateY(0);
+}
+
+/* ── Stream of Messages ── */
+.ask-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  flex: 1;
+  padding-bottom: 90px;
+}
+
+/* User Message: Pill on the right */
+.ask-row-user {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.ask-bubble-user {
+  background: #f1f5f9;
+  color: #0f172a;
+  padding: 10px 20px;
+  border-radius: 9999px;
+  font-size: 14.5px;
+  font-weight: 450;
+  line-height: 1.5;
+  max-width: 82%;
+  word-break: break-word;
+  box-shadow: none;
+  border: none;
+}
+
+/* Assistant Message: Borderless typography on the left */
+.ask-row-assistant {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.ask-content-assistant {
+  background: transparent;
+  color: #334155;
+  font-size: 14.5px;
+  line-height: 1.7;
+  max-width: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  word-break: break-word;
+}
+
+.ask-content-assistant strong,
+.ask-content-assistant b {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.ask-content-assistant a {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+/* Interactive Choices inside Bot response */
+.ask-content-assistant .chat-choices-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ask-content-assistant .chat-choice-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.ask-content-assistant .chat-choice-btn:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+/* Typing Indicator (Dots) */
+.ask-typing-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.ask-typing-dots {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.ask-typing-dots .dot {
+  width: 6px;
+  height: 6px;
+  background-color: #94a3b8;
+  border-radius: 50%;
+  animation: askDotBounce 1s infinite alternate;
+}
+
+.ask-typing-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ask-typing-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes askDotBounce {
+  from { transform: translateY(0); opacity: 0.35; }
+  to { transform: translateY(-4px); opacity: 0.95; }
+}
+
+/* ── Floating Pill Input Bar (Matching screenshot) ── */
+.ask-floating-input-bar {
+  position: sticky;
+  bottom: 24px;
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 50;
+  padding: 12px 0 6px 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.92) 50%, #ffffff 100%);
+}
+
+.ask-pill-form {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  padding: 7px 8px 7px 22px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.ask-pill-form:focus-within {
+  border-color: #94a3b8;
+  box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.1), 0 2px 8px -1px rgba(0, 0, 0, 0.06);
+}
+
+.ask-input-element {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14.5px;
+  color: #0f172a;
+  line-height: 1.5;
+  padding: 4px 0;
+  margin: 0;
+}
+
+.ask-input-element::placeholder {
+  color: #94a3b8;
+}
+
+.ask-circle-send-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  color: #ffffff;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  outline: none;
+}
+
+.ask-circle-send-btn.has-input,
+.ask-input-element:not(:placeholder-shown) + .ask-circle-send-btn {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.ask-circle-send-btn:hover {
+  transform: scale(1.06);
+}
+
+.ask-circle-send-btn:active {
+  transform: scale(0.94);
+}
+
+/* ── Hide Floating Chatbot FAB when on Ask Panel ── */
+#panel-ask.active ~ .chatbot-fab,
+#panel-ask.active ~ .chatbot-overlay,
+#panel-ask.active ~ .chatbot-panel,
+body.ask-panel-active .chatbot-fab {
+  display: none !important;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+  .ask-view-wrapper {
+    padding: 20px 12px 32px 12px;
+  }
+  .ask-main-title {
+    font-size: 22px;
+  }
+  .ask-subtitle-text {
+    font-size: 13.5px;
+  }
+  .ask-bubble-user {
+    max-width: 90%;
+    padding: 8px 16px;
+    font-size: 13.5px;
+  }
+  .ask-content-assistant {
+    font-size: 13.5px;
+  }
+  .ask-pill-form {
+    padding: 6px 6px 6px 16px;
+  }
+  .ask-floating-input-bar {
+    bottom: 16px;
+  }
+}

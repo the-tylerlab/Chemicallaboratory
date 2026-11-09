@@ -1077,7 +1077,7 @@ function setupSiteUtilityBar() {
     "ศูนย์รวมข้อมูล": "Information center", "ระบบจัดการห้องปฏิบัติการ": "Laboratory management system", "ห้องปฏิบัติการฟิสิกส์": "Physics laboratory",
     "คลังสารเคมีและอุปกรณ์": "Chemicals and equipment", "คลังสารเคมีและพัสดุ": "Chemicals and equipment", "ผัง SHECU": "SHECU storage map", "ผังตู้ SHECU": "SHECU cabinet map", "นำเข้าข้อมูล": "Import data",
     "รายงานและสถิติ": "Reports and analytics", "ยืม-คืนอุปกรณ์": "Borrow / return equipment", "คำขออนุมัติ": "Approval requests",
-    "ยืม-คืนพัสดุ": "Borrow / return equipment", "งานปฏิบัติการ": "Operations", "แผงควบคุมระบบ (Admin)": "Admin panel",
+    "ยืม-คืนพัสดุ": "Borrow / return equipment", "งานปฏิบัติการ": "Operations", "แผงควบคุมระบบ (Admin)": "Admin panel", "ถาม AI (Ask)": "Ask AI",
     "แจ้งการตรวจนับสต็อกสารเคมีและพัสดุประจำสัปดาห์ ในวันศุกร์นี้ เวลา 16:00 - 18:00 น.": "Weekly chemical and equipment inventory check: Friday, 16:00–18:00.",
     "ไม่มีคำขอยืมหรือจองห้องแล็บรอดำเนินการในขณะนี้": "There are no pending borrowing or laboratory booking requests.",
     "คลังพัสดุพร้อมใช้งาน! ไม่มีรายการหมดอายุหรือใกล้หมดสต็อกในขณะนี้": "Inventory is ready to use. No items are expired or low in stock.",
@@ -1838,6 +1838,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupAccessDeniedModal();
     setupRepairModalHandlers();
     setupChatbot();
+    setupAskPageView();
     setupPurchaseOrders();
     setupLabPlanner();
     setupAdminClearHandlers();
@@ -1874,7 +1875,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pathSegment = (window.location.pathname || "").replace(/^\//, '').split('/')[0].trim();
     const initialHash = (window.location.hash || "").replace(/^#\/?/, '').trim().split('?')[0];
     const urlParams = new URLSearchParams(window.location.search);
-    const validPanels = ["dashboard", "all-items", "cabinet-layout", "add-item", "lab-booking", "borrow-return", "purchase-orders", "reports", "activity-logs", "admin", "notifications"];
+    const validPanels = ["dashboard", "all-items", "cabinet-layout", "add-item", "lab-booking", "borrow-return", "purchase-orders", "reports", "activity-logs", "admin", "notifications", "ask"];
     const targetPanel = (validPanels.includes(pathSegment) ? pathSegment : null) || initialHash || urlParams.get("panel") || "dashboard";
     if (typeof navigateToPanel === "function") {
       navigateToPanel(targetPanel, "all", "all", true);
@@ -2643,7 +2644,7 @@ function setupNavigation() {
   const handleRouteSync = () => {
     const pathSegment = (window.location.pathname || "").replace(/^\//, '').split('/')[0].trim();
     const hash = (window.location.hash || "").replace(/^#\/?/, '').trim().split('?')[0];
-    const validPanels = ["dashboard", "all-items", "cabinet-layout", "add-item", "lab-booking", "borrow-return", "purchase-orders", "reports", "activity-logs", "admin", "notifications"];
+    const validPanels = ["dashboard", "all-items", "cabinet-layout", "add-item", "lab-booking", "borrow-return", "purchase-orders", "reports", "activity-logs", "admin", "notifications", "ask"];
     let target = (validPanels.includes(pathSegment) ? pathSegment : "") || hash || "dashboard";
     if (target === "shecu") target = "cabinet-layout";
     if (target === "procurement") target = "purchase-orders";
@@ -2914,6 +2915,16 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updat
     if (typeof renderAdminPanel === "function") renderAdminPanel();
     if (typeof renderAdminUsers === "function") renderAdminUsers();
     if (typeof renderAdminLabRoomsList === "function") renderAdminLabRoomsList();
+  }
+
+  if (cleanPanelId === "ask") {
+    document.body.classList.add("ask-panel-active");
+    const askInput = document.getElementById("askInputField");
+    if (askInput) {
+      setTimeout(() => askInput.focus(), 150);
+    }
+  } else {
+    document.body.classList.remove("ask-panel-active");
   }
 
   if (cleanPanelId === "assets") {
@@ -15565,6 +15576,8 @@ function setupRepairModalHandlers() {
 // CHATBOT: LOCAL SMART ASSISTANT SYSTEM
 // ==========================================
 function setupChatbot() {
+  setupAskPageView();
+
   const fab = document.getElementById("chatbotFab");
   const panel = document.getElementById("chatbotPanel");
   const overlay = document.getElementById("chatbotOverlay");
@@ -15620,12 +15633,16 @@ function setupChatbot() {
     if (overlay) overlay.classList.remove("active");
   };
 
-  // Toggle chatbot panel visibility
+  // Toggle chatbot panel visibility or navigate to Ask view
   fab.addEventListener("click", () => {
-    if (panel.classList.contains("active")) {
-      closeChatbot();
+    if (typeof navigateToPanel === "function") {
+      navigateToPanel("ask");
     } else {
-      openChatbot();
+      if (panel.classList.contains("active")) {
+        closeChatbot();
+      } else {
+        openChatbot();
+      }
     }
   });
 
@@ -15776,6 +15793,131 @@ function setupChatbot() {
     body.scrollTop = body.scrollHeight;
     return typingDiv;
   }
+}
+
+// ==========================================
+// ASK FULL PAGE VIEW INTERACTIVITY (INITSTUDIO STYLE)
+// ==========================================
+function setupAskPageView() {
+  const askInput = document.getElementById("askInputField");
+  const askSendBtn = document.getElementById("askSendButton");
+  const askStream = document.getElementById("askStream");
+  const askSuggestions = document.getElementById("askSuggestions");
+  const askClearBtn = document.getElementById("askClearChatBtn");
+
+  if (!askInput || !askSendBtn || !askStream) return;
+
+  const handleSendAskMessage = (textOverride) => {
+    const text = (typeof textOverride === "string" ? textOverride : askInput.value).trim();
+    if (!text) return;
+
+    // 1. Append User Message
+    const userRow = document.createElement("div");
+    userRow.className = "ask-row ask-row-user";
+    const userBubble = document.createElement("div");
+    userBubble.className = "ask-bubble-user";
+    userBubble.textContent = text;
+    userRow.appendChild(userBubble);
+    askStream.appendChild(userRow);
+
+    if (!textOverride) {
+      askInput.value = "";
+      askSendBtn.classList.remove("has-input");
+    }
+
+    // 2. Append Typing Indicator
+    const typingRow = document.createElement("div");
+    typingRow.className = "ask-row ask-row-assistant ask-typing-row";
+    typingRow.innerHTML = `
+      <div class="ask-typing-dots">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    `;
+    askStream.appendChild(typingRow);
+    
+    const scrollAskToBottom = () => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    };
+    scrollAskToBottom();
+
+    // 3. Response Generation via local AI bot engine
+    setTimeout(() => {
+      typingRow.remove();
+      const botResponse = generateBotResponse(text);
+
+      const botRow = document.createElement("div");
+      botRow.className = "ask-row ask-row-assistant";
+      const botContent = document.createElement("div");
+      botContent.className = "ask-content-assistant";
+      botContent.innerHTML = botResponse.replace(/\n/g, "<br>");
+      botRow.appendChild(botContent);
+      askStream.appendChild(botRow);
+
+      if (window.lucide) {
+        try { lucide.createIcons({ root: botContent }); } catch (e) {}
+      }
+
+      scrollAskToBottom();
+    }, 500);
+  };
+
+  askSendBtn.addEventListener("click", () => handleSendAskMessage());
+  askInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSendAskMessage();
+    }
+  });
+
+  askInput.addEventListener("input", () => {
+    if (askInput.value.trim().length > 0) {
+      askSendBtn.classList.add("has-input");
+    } else {
+      askSendBtn.classList.remove("has-input");
+    }
+  });
+
+  // Choices inside bot response
+  askStream.addEventListener("click", (e) => {
+    const choiceBtn = e.target.closest(".chat-choice-btn");
+    if (!choiceBtn) return;
+    const choiceText = choiceBtn.innerText;
+    const choiceVal = choiceBtn.getAttribute("data-choice");
+
+    const container = choiceBtn.closest(".chat-choices-container");
+    if (container) {
+      container.style.pointerEvents = "none";
+      container.style.opacity = "0.6";
+    }
+
+    handleSendAskMessage(choiceVal || choiceText);
+  });
+
+  // Quick suggestion chips
+  if (askSuggestions) {
+    askSuggestions.addEventListener("click", (e) => {
+      const chip = e.target.closest(".ask-pill-chip");
+      if (!chip) return;
+      const query = chip.getAttribute("data-query");
+      if (query) {
+        handleSendAskMessage(query);
+      }
+    });
+  }
+
+  // Reset Chat
+  if (askClearBtn) {
+    const initialAskStreamHtml = askStream.innerHTML;
+    askClearBtn.addEventListener("click", () => {
+      askStream.innerHTML = initialAskStreamHtml;
+      if (window.lucide) {
+        try { lucide.createIcons({ root: askStream }); } catch (e) {}
+      }
+    });
+  }
+}
 }
 
 const WASTE_CLASSES = {

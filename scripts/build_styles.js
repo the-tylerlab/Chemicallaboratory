@@ -48,6 +48,7 @@ const CSS_MODULES = [
   'public/assets/css/pages/notifications.css',
   'public/assets/css/pages/admin.css',
   'public/assets/css/pages/admin-redesign.css',
+  'public/assets/css/pages/ask.css',
 
   // 4. Responsive & Media Styles
   'public/assets/css/responsive.css',

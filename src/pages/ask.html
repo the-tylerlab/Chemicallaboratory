@@ -1,0 +1,100 @@
+      <section class="panel" id="panel-ask">
+        <div class="ask-view-wrapper">
+          <div class="ask-view-container">
+
+            <!-- Title & Subtitle Header -->
+            <div class="ask-header-block">
+              <div class="ask-title-row">
+                <h1 class="ask-main-title">Ask</h1>
+                <button type="button" class="ask-action-clear-btn" id="askClearChatBtn" title="รีเซ็ตการสนทนา" aria-label="รีเซ็ตการสนทนา">
+                  <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+                  <span>รีเซ็ต</span>
+                </button>
+              </div>
+              <p class="ask-subtitle-text">ถามคำถามเกี่ยวกับสารเคมี อุปกรณ์ ความปลอดภัย หรือการใช้งานห้องแล็บ</p>
+            </div>
+
+            <!-- Quick Suggestion Pills -->
+            <div class="ask-pills-shelf" id="askSuggestions">
+              <button type="button" class="ask-pill-chip" data-query="ค้นหาสารเคมี">
+                <i data-lucide="search" style="width: 13px; height: 13px;"></i>
+                <span>ค้นหาพัสดุ/สารเคมี</span>
+              </button>
+              <button type="button" class="ask-pill-chip" data-query="เช็คของใกล้หมดคลัง">
+                <i data-lucide="alert-triangle" style="width: 13px; height: 13px;"></i>
+                <span>เช็คของใกล้หมด</span>
+              </button>
+              <button type="button" class="ask-pill-chip" data-query="เช็คสารเคมีหมดอายุ">
+                <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+                <span>สารหมดอายุ</span>
+              </button>
+              <button type="button" class="ask-pill-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O">
+                <i data-lucide="flask-conical" style="width: 13px; height: 13px;"></i>
+                <span>ดุลสมการเคมี</span>
+              </button>
+              <button type="button" class="ask-pill-chip" data-query="คำนวณมวลโมเลกุล">
+                <i data-lucide="scale" style="width: 13px; height: 13px;"></i>
+                <span>คำนวณมวลโมเลกุล</span>
+              </button>
+              <button type="button" class="ask-pill-chip" data-query="เตรียมสารละลาย">
+                <i data-lucide="droplet" style="width: 13px; height: 13px;"></i>
+                <span>วิธีเตรียมสารละลาย</span>
+              </button>
+              <button type="button" class="ask-pill-chip" data-query="ปฐมพยาบาลสารเคมีหก">
+                <i data-lucide="siren" style="width: 13px; height: 13px;"></i>
+                <span>ปฐมพยาบาลสารหก</span>
+              </button>
+              <button type="button" class="ask-pill-chip" data-query="จำแนกของเสีย">
+                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                <span>จำแนกของเสีย 17 Class</span>
+              </button>
+              <button type="button" class="ask-pill-chip" data-query="วิธีใช้งานระบบ">
+                <i data-lucide="book-open" style="width: 13px; height: 13px;"></i>
+                <span>คู่มือใช้งานระบบ</span>
+              </button>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="ask-stream" id="askStream">
+              <!-- Initial example demonstrating clean typography matching reference screenshot -->
+              <div class="ask-row ask-row-user">
+                <div class="ask-bubble-user">
+                  How do I balance C3H8 + O2 -> CO2 + H2O?
+                </div>
+              </div>
+              <div class="ask-row ask-row-assistant">
+                <div class="ask-content-assistant">
+                  สมการที่ดุลเรียบร้อยแล้วคือ:<br>
+                  <strong>C₃H₈ + 5O₂ → 3CO₂ + 4H₂O</strong><br><br>
+                  • อัตราส่วนโมลสัมประสิทธิ์คือ <strong>1 : 5 : 3 : 4</strong><br>
+                  • ปฏิกิริยาการเผาไหม้สมบูรณ์ของแก๊สโพรเพน (Propane Combustion) ในสภาวะที่มีออกซิเจนเพียงพอ จะได้แก๊สคาร์บอนไดออกไซด์และไอน้ำ
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Floating Pill Input Bar (Matching reference screenshot) -->
+            <div class="ask-floating-input-bar">
+              <div class="ask-pill-form">
+                <input 
+                  type="text" 
+                  id="askInputField" 
+                  class="ask-input-element" 
+                  placeholder="Ask a question..." 
+                  autocomplete="off"
+                  aria-label="Ask a question"
+                >
+                <button 
+                  type="button" 
+                  id="askSendButton" 
+                  class="ask-circle-send-btn" 
+                  title="ส่งข้อความ (Enter)" 
+                  aria-label="ส่งข้อความ"
+                >
+                  <i data-lucide="arrow-up" style="width: 16px; height: 16px; stroke-width: 2.2;"></i>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
