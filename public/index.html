@@ -93,18 +93,18 @@
   <!-- Web App Manifest -->
   <link rel="manifest" href="manifest.json">
 
-  <!-- Fonts: IBM Plex Sans Thai (Self-hosted in /fonts/ with Google Fonts fallback) -->
+  <!-- Fonts: IBM Plex Sans Thai (Self-hosted in /assets/fonts/ with Google Fonts fallback) -->
+  <link rel="preload" href="assets/fonts/ibm-plex-sans-thai-400-thai.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap"></noscript>
 
   <!-- Preconnect to external CDNs for low-latency network handshake -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://unpkg.com" crossorigin>
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="dns-prefetch" href="https://unpkg.com">
-  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 
   <!-- Global Design Tokens & Tailwind CSS -->
   <link rel="stylesheet" href="assets/css/tailwind.css?v=20261011_tw">
@@ -116,15 +116,13 @@
   <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261010_inset">
   <link rel="stylesheet" href="assets/css/rolling-counter.css?v=20261024_rolling_counter_v3">
 
-  <!-- Core Libraries (Local high-performance icon library) -->
-  <script src="assets/js/lucide.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
-  <script src="assets/js/qrcode.min.js"></script>
-  <script src="assets/js/bwip-js.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
+  <!-- Core Libraries (Deferred to unblock initial HTML parsing & First Contentful Paint) -->
+  <script defer src="assets/js/lucide.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script defer src="assets/js/qrcode.min.js"></script>
+  <script defer src="assets/js/bwip-js.min.js"></script>
+  <script defer src="https://unpkg.com/html5-qrcode"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -6629,14 +6627,14 @@
   <script defer src="assets/js/dashboard-announcement.js?v=astryx_1"></script>
   <script defer src="assets/js/rolling-counter.js?v=20261024_rolling_counter_v2"></script>
   <script>
-    // Safeguard: Ensure skeleton loader is dismissed after max 1.2s regardless of network state
+    // Safeguard: Ensure skeleton loader is dismissed after max 500ms regardless of network state
     setTimeout(function() {
       var sk = document.getElementById("app-skeleton-loader");
       if (sk) {
         sk.classList.add("fade-out");
-        setTimeout(function() { if (sk && sk.parentNode) sk.remove(); }, 350);
+        setTimeout(function() { if (sk && sk.parentNode) sk.remove(); }, 250);
       }
-    }, 1200);
+    }, 500);
 
     // Dynamic Lucide Icons Auto-Renderer for newly inserted DOM nodes (safe against infinite re-render loops)
     (function() {
@@ -6721,6 +6719,6 @@
     })();
   </script>
   <!-- Agentation: Visual Feedback Toolbar for AI Coding Agents -->
-  <script src="assets/js/agentation.bundle.js"></script>
+  <script defer src="assets/js/agentation.bundle.js"></script>
 </body>
 </html>

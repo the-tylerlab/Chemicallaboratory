@@ -299,9 +299,13 @@ async function restoreAndVerifySession() {
     // Strictly require server-verified JWT token (No mock or client-side tokens allowed)
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
       const res = await fetch((typeof API_BASE !== 'undefined' ? API_BASE : resolveApiBase()) + '/auth/me', {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${token}` },
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       if (res.ok) {
         const data = await res.json();
         if (data && data.success && data.user) {
@@ -1018,7 +1022,10 @@ const APP_SYSTEM_VERSION = "2.7.0";
 async function fetchAppVersion() {
   let version = APP_SYSTEM_VERSION;
   try {
-    const res = await fetch('/api/version');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const res = await fetch('/api/version', { signal: controller.signal });
+    clearTimeout(timeoutId);
     if (res.ok) {
       const data = await res.json();
       if (data && data.version) {
@@ -1848,7 +1855,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadFeedbacksFromStorage();
     loadEmergencyContacts();
 
-    // 3. Render local cached state instantly (0ms perceived latency)
+    // 3. Support clean URL Path routing & display target panel IMMEDIATELY (0ms perceived latency)
+    const pathSegment = (window.location.pathname || "").replace(/^\//, '').split('/')[0].trim();
+    const initialHash = (window.location.hash || "").replace(/^#\/?/, '').trim().split('?')[0];
+    const urlParams = new URLSearchParams(window.location.search);
+    const validPanels = ["dashboard", "all-items", "cabinet-layout", "add-item", "lab-booking", "borrow-return", "purchase-orders", "reports", "activity-logs", "admin", "notifications", "ask"];
+    const targetPanel = (validPanels.includes(pathSegment) ? pathSegment : null) || initialHash || urlParams.get("panel") || "dashboard";
+    if (typeof navigateToPanel === "function") {
+      navigateToPanel(targetPanel, "all", "all", false);
+    }
+
     updateLoginUI();
     updateUI();
     if (typeof renderItemsTable === "function") renderItemsTable();
@@ -1857,29 +1873,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Dismiss skeleton screen immediately so user can interact with the app without waiting
     dismissSkeletonLoader();
 
-    // 4. Update system version dynamically
+    // 4. Update system version dynamically (non-blocking)
     fetchAppVersion();
 
     // 5. Setup Realtime Subscriptions if Supabase is already connected
     setupRealtimeSubscriptions();
 
     // 6. Verify JWT session with backend in parallel without blocking UI responsiveness
-    try {
-      await (window.__sessionVerificationPromise || restoreAndVerifySession());
+    (window.__sessionVerificationPromise || restoreAndVerifySession()).then(() => {
       updateLoginUI();
-    } catch (e) {
+    }).catch(e => {
       console.warn("Session verification notice:", e);
-    }
-
-    // Support clean URL Path routing, query parameters & legacy Hash routing for direct navigation
-    const pathSegment = (window.location.pathname || "").replace(/^\//, '').split('/')[0].trim();
-    const initialHash = (window.location.hash || "").replace(/^#\/?/, '').trim().split('?')[0];
-    const urlParams = new URLSearchParams(window.location.search);
-    const validPanels = ["dashboard", "all-items", "cabinet-layout", "add-item", "lab-booking", "borrow-return", "purchase-orders", "reports", "activity-logs", "admin", "notifications", "ask"];
-    const targetPanel = (validPanels.includes(pathSegment) ? pathSegment : null) || initialHash || urlParams.get("panel") || "dashboard";
-    if (typeof navigateToPanel === "function") {
-      navigateToPanel(targetPanel, "all", "all", true);
-    }
+    });
 
     // Parallel Background Cloud Synchronization (Non-blocking Stale-While-Revalidate)
     Promise.allSettled([
