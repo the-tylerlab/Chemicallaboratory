@@ -745,6 +745,7 @@ const FEEDBACKS_FILE = path.join(DB_DIR, 'feedbacks.json');
 const PUSH_SUBSCRIPTIONS_FILE = path.join(DB_DIR, 'push_subscriptions.json');
 const VAPID_KEYS_FILE = path.join(DB_DIR, 'vapid_keys.json');
 const ANNOUNCEMENTS_FILE = path.join(DB_DIR, 'announcements.json');
+const ACADEMIC_CLASSES_FILE = path.join(DB_DIR, 'academic_classes.json');
 const EMERGENCY_CONTACTS_FILE = path.join(DB_DIR, 'emergency_contacts.json');
 const STOCK_MOVEMENTS_FILE = path.join(DB_DIR, 'stock_movements.json');
 const STOCK_ADJUSTMENTS_FILE = path.join(DB_DIR, 'stock_adjustments.json');
@@ -1645,6 +1646,73 @@ function writeEmergencyContacts(contacts) {
   }
 }
 
+// Academic Classes & Programs Helpers
+const DEFAULT_ACADEMIC_CLASSES = {
+  levels: [
+    { id: "m1", name: "ม.1", category: "มัธยมศึกษาตอนต้น", roomCount: 4 },
+    { id: "m2", name: "ม.2", category: "มัธยมศึกษาตอนต้น", roomCount: 4 },
+    { id: "m3", name: "ม.3", category: "มัธยมศึกษาตอนต้น", roomCount: 4 },
+    { id: "m4", name: "ม.4", category: "มัธยมศึกษาตอนปลาย", roomCount: 4 },
+    { id: "m5", name: "ม.5", category: "มัธยมศึกษาตอนปลาย", roomCount: 4 },
+    { id: "m6", name: "ม.6", category: "มัธยมศึกษาตอนปลาย", roomCount: 4 }
+  ],
+  programs: [
+    {
+      id: "ep",
+      name: "English Program (EP)",
+      prefix: "EP-M.",
+      levels: ["1", "2", "3", "4", "5", "6"],
+      enabled: true
+    }
+  ],
+  groups: [
+    { id: "grp1", name: "ม.ต้น (รวมทุกห้อง)" },
+    { id: "grp2", name: "ม.ปลาย (รวมทุกห้อง)" },
+    { id: "grp3", name: "ชมรมวิทยาศาสตร์" }
+  ],
+  updatedAt: new Date().toISOString()
+};
+
+function readAcademicClasses() {
+  try {
+    if (!fs.existsSync(ACADEMIC_CLASSES_FILE)) {
+      fs.writeFileSync(ACADEMIC_CLASSES_FILE, JSON.stringify(DEFAULT_ACADEMIC_CLASSES, null, 2), 'utf-8');
+      return DEFAULT_ACADEMIC_CLASSES;
+    }
+    const data = fs.readFileSync(ACADEMIC_CLASSES_FILE, 'utf-8');
+    const parsed = JSON.parse(data);
+    return {
+      levels: Array.isArray(parsed.levels) ? parsed.levels : DEFAULT_ACADEMIC_CLASSES.levels,
+      programs: Array.isArray(parsed.programs) ? parsed.programs : DEFAULT_ACADEMIC_CLASSES.programs,
+      groups: Array.isArray(parsed.groups) ? parsed.groups : DEFAULT_ACADEMIC_CLASSES.groups,
+      updatedAt: parsed.updatedAt || new Date().toISOString()
+    };
+  } catch (err) {
+    return DEFAULT_ACADEMIC_CLASSES;
+  }
+}
+
+function writeAcademicClasses(settings) {
+  try {
+    const dataToSave = {
+      levels: Array.isArray(settings.levels) ? settings.levels : DEFAULT_ACADEMIC_CLASSES.levels,
+      programs: Array.isArray(settings.programs) ? settings.programs : DEFAULT_ACADEMIC_CLASSES.programs,
+      groups: Array.isArray(settings.groups) ? settings.groups : DEFAULT_ACADEMIC_CLASSES.groups,
+      updatedAt: new Date().toISOString()
+    };
+    fs.writeFileSync(ACADEMIC_CLASSES_FILE, JSON.stringify(dataToSave, null, 2), 'utf-8');
+    if (supabase) {
+      supabase.from('system').upsert({
+        key: 'academic_classes_settings',
+        value: dataToSave
+      }).catch(err => console.log('Supabase academic classes write note:', err.message));
+    }
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 // ==========================================================================
 // GOOGLE SHEETS REAL-TIME BACKUP SYNC DISPATCHER
 // ==========================================================================
@@ -1951,6 +2019,20 @@ async function fetchLiveAnnouncements() {
     } catch(e) {}
   }
   return ann;
+}
+
+async function fetchLiveAcademicClasses() {
+  let classes = readAcademicClasses();
+  if (supabase) {
+    try {
+      const { data } = await supabase.from('system').select('value').eq('key', 'academic_classes_settings').maybeSingle();
+      if (data && data.value) {
+        classes = { ...classes, ...data.value };
+        if (!fs.existsSync(ACADEMIC_CLASSES_FILE)) writeAcademicClasses(classes);
+      }
+    } catch(e) {}
+  }
+  return classes;
 }
 
 // ==========================================================================
@@ -6012,6 +6094,33 @@ app.post('/api/emergency-contacts', authenticateToken, requireRole('L3'), (req, 
     res.json({ success: true, contacts: req.body });
   } else {
     res.status(500).json({ error: "Failed to save emergency contacts" });
+  }
+});
+
+// ACADEMIC CLASSES & PROGRAMS SETTINGS
+app.get('/api/academic-classes', async (req, res) => {
+  try {
+    const data = await fetchLiveAcademicClasses();
+    res.json(data);
+  } catch (err) {
+    res.json(readAcademicClasses());
+  }
+});
+
+// POST /api/academic-classes — Strictly L3 Admin
+app.post('/api/academic-classes', authenticateToken, requireRole('L3'), (req, res) => {
+  const success = writeAcademicClasses(req.body);
+  if (success) {
+    recordAuditLog({
+      action: 'ACADEMIC_CLASSES_UPDATE',
+      resource: 'academic_classes',
+      resourceId: 'settings',
+      details: 'อัปเดตการตั้งค่าระดับชั้น จำนวนห้อง และโปรแกรมการศึกษา',
+      req
+    });
+    res.json({ success: true, settings: req.body });
+  } else {
+    res.status(500).json({ error: "Failed to save academic classes settings" });
   }
 });
 

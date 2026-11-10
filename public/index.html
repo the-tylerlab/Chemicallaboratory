@@ -3164,6 +3164,12 @@
           <span class="btn-text-tablet">ห้องปฏิบัติการ</span>
           <span class="btn-text-mobile">ห้องแล็บ</span>
         </button></li>
+        <li role="presentation"><button type="button" class="admin-menu-item" id="admin-tab-classes" role="tab" aria-selected="false" aria-controls="admin-classes" tabindex="-1" data-tab="admin-classes">
+          <span class="tab-icon-wrap"><i data-lucide="graduation-cap"></i></span>
+          <span class="btn-text-desktop">ระดับชั้นและห้องเรียน</span>
+          <span class="btn-text-tablet">ระดับชั้นและห้อง</span>
+          <span class="btn-text-mobile">ระดับชั้น</span>
+        </button></li>
         <li role="presentation"><button type="button" class="admin-menu-item" id="admin-tab-announcement" role="tab" aria-selected="false" aria-controls="admin-announcement" tabindex="-1" data-tab="admin-announcement">
           <span class="tab-icon-wrap"><i data-lucide="megaphone"></i></span>
           <span class="btn-text-desktop">จัดการประกาศหน้าแรก</span>
@@ -3594,6 +3600,169 @@
           <!-- Grid of Lab Cards -->
           <div id="adminLabRoomsGrid" class="admin-lab-rooms-grid">
             <!-- Dynamically populated by renderAdminLabRoomsList() -->
+          </div>
+        </div>
+
+        <!-- Academic Classes & Programs Tab -->
+        <div class="admin-tab" id="admin-classes" role="tabpanel" aria-labelledby="admin-tab-classes" aria-hidden="true" tabindex="0" style="display: none;">
+          <div class="admin-tab-header">
+            <div class="admin-tab-header-left">
+              <h2 class="admin-tab-title">
+                <i data-lucide="graduation-cap" style="color: #10b981;"></i>
+                <span>จัดการระดับชั้น ห้องเรียน และโปรแกรม (Academic Classes & Programs)</span>
+              </h2>
+              <p class="admin-tab-desc">กำหนดระดับชั้น จำนวนห้องเรียนปกติ และโปรแกรมพิเศษ (เช่น EP, Gifted) เพื่อสร้างตัวเลือกในฟอร์มจองห้องปฏิบัติการโดยอัตโนมัติ</p>
+            </div>
+            <div class="admin-tab-header-right" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="resetAcademicClassesToDefault()" title="คืนค่าเริ่มต้น ม.1 - ม.6 ละ 4 ห้อง + EP" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px;">
+                <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+                <span>คืนค่าเริ่มต้น</span>
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openProgramModal()" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600;">
+                <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #f59e0b;"></i>
+                <span>เพิ่มโปรแกรม (EP/อื่นๆ)</span>
+              </button>
+              <button type="button" class="btn btn-primary btn-sm" onclick="openGradeLevelModal()" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600;">
+                <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
+                <span>เพิ่มระดับชั้น</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Summary Grid -->
+          <div class="stat-grid admin-stat-grid" id="adminClassesStatGrid" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+            <div class="stat-card blue">
+              <div class="stat-info">
+                <span class="stat-title nobrk">ระดับชั้นทั้งหมด</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiTotalLevels">6</span>
+                  <span class="stat-sublabel">ระดับชั้น</span>
+                </div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="layers" style="width: 17px; height: 17px;"></i>
+              </div>
+            </div>
+
+            <div class="stat-card green">
+              <div class="stat-info">
+                <span class="stat-title nobrk">ห้องเรียนปกติรวม</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiTotalRooms">24</span>
+                  <span class="stat-sublabel">ห้องเรียน</span>
+                </div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="school" style="width: 17px; height: 17px;"></i>
+              </div>
+            </div>
+
+            <div class="stat-card orange">
+              <div class="stat-info">
+                <span class="stat-title nobrk">โปรแกรมพิเศษ</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiTotalPrograms">1</span>
+                  <span class="stat-sublabel">โปรแกรม</span>
+                </div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="sparkles" style="width: 17px; height: 17px;"></i>
+              </div>
+            </div>
+
+            <div class="stat-card yellow">
+              <div class="stat-info">
+                <span class="stat-title nobrk">ตัวเลือกในระบบจอง</span>
+                <div class="stat-value-group">
+                  <span class="stat-value" id="kpiTotalBookingOptions">33</span>
+                  <span class="stat-sublabel">ตัวเลือก</span>
+                </div>
+              </div>
+              <div class="stat-icon">
+                <i data-lucide="list-checks" style="width: 17px; height: 17px;"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 1: ระดับชั้นและจำนวนห้องเรียนปกติ -->
+          <div class="admin-section-block" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="layers" style="width: 18px; height: 18px; color: #10b981;"></i>
+                  <span>1. ระดับชั้นและจำนวนห้องเรียนปกติ (Grade Levels & Room Counts)</span>
+                </h3>
+                <p style="margin: 4px 0 0; font-size: 12px; color: #64748b;">สามารถกดปุ่ม + หรือ - เพื่อปรับจำนวนห้องของแต่ละระดับชั้นได้ทันที หรือกดแก้ไขชื่อระดับชั้น</p>
+              </div>
+            </div>
+            
+            <div id="adminGradeLevelsGrid" class="admin-grade-levels-grid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Section 2: โปรแกรมการเรียนพิเศษ (เช่น EP, Gifted, MEP) -->
+          <div class="admin-section-block" style="margin-top: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="sparkles" style="width: 18px; height: 18px; color: #f59e0b;"></i>
+                  <span>2. โปรแกรมและแผนการเรียนพิเศษ (Special Programs เช่น EP, Gifted, MEP)</span>
+                </h3>
+                <p style="margin: 4px 0 0; font-size: 12px; color: #64748b;">กำหนดคำนำหน้าห้องและระดับชั้นที่เปิดสอน สามารถเปิด-ปิดโปรแกรมเพื่อแสดงหรือซ่อนในฟอร์มจองได้</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openProgramModal()" style="border-radius: 8px; font-size: 12px;">
+                <i data-lucide="plus" style="width: 13px; height: 13px;"></i>
+                <span>เพิ่มโปรแกรมใหม่</span>
+              </button>
+            </div>
+
+            <div id="adminProgramsGrid" class="admin-programs-grid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Section 3: กลุ่มระดับชั้นภาพรวม / อื่นๆ -->
+          <div class="admin-section-block" style="margin-top: 28px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+                  <i data-lucide="users-round" style="width: 18px; height: 18px; color: #6366f1;"></i>
+                  <span>3. ตัวเลือกกลุ่มภาพรวม / อื่นๆ (Overview & Group Options)</span>
+                </h3>
+                <p style="margin: 4px 0 0; font-size: 12px; color: #64748b;">ตัวเลือกเสริมสำหรับกิจกรรมรวมระดับชั้นหรือชมรม</p>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="promptAddGroupOption()" style="border-radius: 8px; font-size: 12px;">
+                <i data-lucide="plus" style="width: 13px; height: 13px;"></i>
+                <span>เพิ่มกลุ่มตัวเลือก</span>
+              </button>
+            </div>
+
+            <div id="adminGroupsGrid" class="admin-groups-grid" style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Live Booking Form Preview -->
+          <div class="admin-section-block" style="margin-top: 28px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="eye" style="width: 16px; height: 16px; color: #64748b;"></i>
+                  <span>ตัวอย่าง Dropdown ที่จะแสดงผลในหน้าจองห้องแล็บ (Live Booking Preview)</span>
+                </h4>
+                <p style="margin: 2px 0 0; font-size: 12px; color: #64748b;">ผลลัพธ์ที่จะแสดงต่อคุณครูเมื่อเข้ามาทำการจองห้องปฏิบัติการ</p>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" onclick="saveAllAcademicClasses()" id="btnSaveAllClasses" style="border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <i data-lucide="save" style="width: 14px; height: 14px;"></i>
+                <span>บันทึกการตั้งค่าทั้งหมด</span>
+              </button>
+            </div>
+            <div style="max-width: 480px;">
+              <select id="adminClassesLivePreview" class="form-control" style="background: #ffffff; font-weight: 500;">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
           </div>
         </div>
         
@@ -4209,6 +4378,109 @@
                 <span>บันทึกการแก้ไข</span>
               </button>
             </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Add/Edit Grade Level -->
+    <div class="modal-overlay" id="modalGradeLevel" style="display: none; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(10, 15, 26, 0.6); backdrop-filter: blur(8px); z-index: 9999; padding: 16px;">
+      <div class="modal-content" style="width: 480px; max-width: 95vw; background: #ffffff; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; border: 1px solid #e2e8f0;">
+        <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fafafa;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="graduation-cap" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+              <h3 id="gradeLevelModalTitle" style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">เพิ่มระดับชั้นเรียน</h3>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #64748b;">ระบุชื่อระดับชั้น หมวดหมู่ และจำนวนห้องเรียน</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" onclick="closeGradeLevelModal()" aria-label="ปิดหน้าต่าง">
+            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+          </button>
+        </div>
+        <form id="formGradeLevel" onsubmit="handleGradeLevelSubmit(event)">
+          <input type="hidden" id="gradeLevelEditId" value="">
+          <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" for="gradeLevelNameInput">ชื่อระดับชั้น <span style="color: var(--accent-red);">*</span></label>
+              <input type="text" id="gradeLevelNameInput" class="form-control" placeholder="เช่น ม.1, ม.4, ป.6" required oninput="updateGradeLevelModalPreview()">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" for="gradeLevelCategoryInput">หมวดหมู่ระดับชั้น <span style="color: var(--accent-red);">*</span></label>
+              <input type="text" id="gradeLevelCategoryInput" class="form-control" list="gradeCategoryDatalist" placeholder="เช่น มัธยมศึกษาตอนต้น, มัธยมศึกษาตอนปลาย" required>
+              <datalist id="gradeCategoryDatalist">
+                <option value="มัธยมศึกษาตอนต้น">
+                <option value="มัธยมศึกษาตอนปลาย">
+                <option value="ประถมศึกษา">
+                <option value="ระดับชั้นอื่นๆ">
+              </datalist>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" for="gradeLevelRoomCountInput">จำนวนห้องเรียนปกติ (ห้อง) <span style="color: var(--accent-red);">*</span></label>
+              <input type="number" id="gradeLevelRoomCountInput" class="form-control" min="1" max="25" value="4" required oninput="updateGradeLevelModalPreview()">
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;">
+              <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px;">ตัวอย่างห้องที่จะสร้าง:</div>
+              <div id="gradeLevelModalPreview" style="font-size: 13px; font-weight: 600; color: #10b981;">ม.1/1, ม.1/2, ม.1/3, ม.1/4</div>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid #f1f5f9; background: #fafafa; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeGradeLevelModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="background: #10b981; border-color: #10b981;">บันทึกระดับชั้น</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Add/Edit Special Program -->
+    <div class="modal-overlay" id="modalProgram" style="display: none; align-items: center; justify-content: center; position: fixed; inset: 0; background: rgba(10, 15, 26, 0.6); backdrop-filter: blur(8px); z-index: 9999; padding: 16px;">
+      <div class="modal-content" style="width: 500px; max-width: 95vw; background: #ffffff; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; border: 1px solid #e2e8f0;">
+        <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fafafa;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 10px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="sparkles" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+              <h3 id="programModalTitle" style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">เพิ่มโปรแกรมพิเศษ</h3>
+              <p style="margin: 2px 0 0; font-size: 12px; color: #64748b;">กำหนดโปรแกรม เช่น English Program (EP), Gifted หรือ MEP</p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" onclick="closeProgramModal()" aria-label="ปิดหน้าต่าง">
+            <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+          </button>
+        </div>
+        <form id="formProgram" onsubmit="handleProgramSubmit(event)">
+          <input type="hidden" id="programEditId" value="">
+          <div class="modal-body" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" for="programNameInput">ชื่อโปรแกรม <span style="color: var(--accent-red);">*</span></label>
+              <input type="text" id="programNameInput" class="form-control" placeholder="เช่น English Program (EP), Gifted Program" required oninput="updateProgramModalPreview()">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label" for="programPrefixInput">คำนำหน้าห้อง (Prefix) <span style="color: var(--accent-red);">*</span></label>
+              <input type="text" id="programPrefixInput" class="form-control" placeholder="เช่น EP-M., Gifted-M., MEP-M." required oninput="updateProgramModalPreview()">
+              <span style="font-size: 11px; color: #64748b; margin-top: 3px; display: block;">ตัวอย่างผลลัพธ์: ใส่ "EP-M." จะได้ EP-M.1, EP-M.2 ...</span>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label">ระดับชั้นที่เปิดสอนโปรแกรมนี้ <span style="color: var(--accent-red);">*</span></label>
+              <div id="programLevelsCheckboxes" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;">
+                <!-- Dynamically populated checkboxes from available levels -->
+              </div>
+            </div>
+            <div class="form-group" style="margin: 0; display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="programEnabledInput" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
+              <label for="programEnabledInput" style="margin: 0; font-size: 13px; font-weight: 500; cursor: pointer;">เปิดใช้งานโปรแกรมนี้ในฟอร์มจองห้องแล็บ</label>
+            </div>
+            <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px;">
+              <div style="font-size: 11px; font-weight: 600; color: #92400e; margin-bottom: 4px;">ตัวอย่างตัวเลือกที่จะสร้าง:</div>
+              <div id="programModalPreview" style="font-size: 13px; font-weight: 600; color: #b45309;">EP-M.1, EP-M.2, EP-M.3, EP-M.4, EP-M.5, EP-M.6</div>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 12px 20px; border-top: 1px solid #f1f5f9; background: #fafafa; display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn btn-secondary" onclick="closeProgramModal()">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" style="background: #f59e0b; border-color: #f59e0b;">บันทึกโปรแกรม</button>
           </div>
         </form>
       </div>

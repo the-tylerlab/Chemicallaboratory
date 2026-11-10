@@ -2931,6 +2931,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updat
   }
 
   if (cleanPanelId === "lab-booking") {
+    if (typeof populateBookingGradeOptions === "function") populateBookingGradeOptions();
     if (typeof renderBookingCalendar === "function") renderBookingCalendar();
   }
 
@@ -2942,6 +2943,7 @@ function navigateToPanel(panelId, catFilter = "all", statusFilter = "all", updat
     if (typeof renderAdminPanel === "function") renderAdminPanel();
     if (typeof renderAdminUsers === "function") renderAdminUsers();
     if (typeof renderAdminLabRoomsList === "function") renderAdminLabRoomsList();
+    if (typeof renderAdminClassesList === "function") renderAdminClassesList();
   }
 
   if (cleanPanelId === "ask") {
@@ -8819,6 +8821,9 @@ window.selectBookingSlot = function(slot, isBooked) {
 };
 
 function setupGradePicker() {
+  if (typeof populateBookingGradeOptions === "function") {
+    populateBookingGradeOptions();
+  }
   const gradeSelect = document.getElementById("bookingGradeLevel");
   const customInput = document.getElementById("bookingGradeLevelCustom");
   const studentCountInput = document.getElementById("bookingStudentCount");
@@ -20361,6 +20366,8 @@ document.addEventListener("DOMContentLoaded", () => {
           initAdminAnnouncementForm();
         } else if (targetTabId === "admin-labs" && typeof renderAdminLabRoomsList === "function") {
           renderAdminLabRoomsList();
+        } else if (targetTabId === "admin-classes" && typeof renderAdminClassesList === "function") {
+          renderAdminClassesList();
         }
       }
     });
@@ -21691,6 +21698,640 @@ window.resetLabRoomsToDefault = function() {
 
   if (typeof showToast === 'function') {
     showToast("คืนค่าห้องปฏิบัติการเริ่มต้นเรียบร้อยแล้ว", "success");
+  }
+};
+
+/* ==========================================================================
+   ACADEMIC CLASSES, GRADE LEVELS & SPECIAL PROGRAMS (EP/GIFTED) SUBSYSTEM
+   ========================================================================== */
+
+const DEFAULT_ACADEMIC_CLASSES_CONFIG = {
+  levels: [
+    { id: "m1", name: "ม.1", category: "มัธยมศึกษาตอนต้น", roomCount: 4 },
+    { id: "m2", name: "ม.2", category: "มัธยมศึกษาตอนต้น", roomCount: 4 },
+    { id: "m3", name: "ม.3", category: "มัธยมศึกษาตอนต้น", roomCount: 4 },
+    { id: "m4", name: "ม.4", category: "มัธยมศึกษาตอนปลาย", roomCount: 4 },
+    { id: "m5", name: "ม.5", category: "มัธยมศึกษาตอนปลาย", roomCount: 4 },
+    { id: "m6", name: "ม.6", category: "มัธยมศึกษาตอนปลาย", roomCount: 4 }
+  ],
+  programs: [
+    {
+      id: "ep",
+      name: "English Program (EP)",
+      prefix: "EP-M.",
+      levels: ["1", "2", "3", "4", "5", "6"],
+      enabled: true
+    }
+  ],
+  groups: [
+    { id: "grp1", name: "ม.ต้น (รวมทุกห้อง)" },
+    { id: "grp2", name: "ม.ปลาย (รวมทุกห้อง)" },
+    { id: "grp3", name: "ชมรมวิทยาศาสตร์" }
+  ]
+};
+
+let CURRENT_ACADEMIC_CLASSES_CONFIG = null;
+
+function getStoredGradeLevelConfig() {
+  if (CURRENT_ACADEMIC_CLASSES_CONFIG) return CURRENT_ACADEMIC_CLASSES_CONFIG;
+  try {
+    const raw = localStorage.getItem("scip_grade_level_config");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.levels) && parsed.levels.length > 0) {
+        CURRENT_ACADEMIC_CLASSES_CONFIG = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.error("Error reading scip_grade_level_config:", e);
+  }
+  CURRENT_ACADEMIC_CLASSES_CONFIG = JSON.parse(JSON.stringify(DEFAULT_ACADEMIC_CLASSES_CONFIG));
+  return CURRENT_ACADEMIC_CLASSES_CONFIG;
+}
+
+async function fetchAcademicClassesConfig() {
+  try {
+    const res = await fetch("/api/academic-classes");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && Array.isArray(data.levels) && data.levels.length > 0) {
+        CURRENT_ACADEMIC_CLASSES_CONFIG = data;
+        localStorage.setItem("scip_grade_level_config", JSON.stringify(data));
+        if (typeof populateBookingGradeOptions === "function") {
+          populateBookingGradeOptions();
+        }
+        const tabEl = document.getElementById("admin-classes");
+        if (tabEl && tabEl.style.display !== "none" && typeof renderAdminClassesList === "function") {
+          renderAdminClassesList();
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Could not fetch /api/academic-classes:", err);
+  }
+}
+
+function buildGradeOptionsHTML(config, includeCustom = true) {
+  let html = `<option value="">-- เลือกระดับชั้น / ห้องเรียน --</option>`;
+
+  // 1. Group levels by category
+  const categories = {};
+  (config.levels || []).forEach(lvl => {
+    const cat = lvl.category || "ระดับชั้นอื่นๆ";
+    if (!categories[cat]) categories[cat] = [];
+    categories[cat].push(lvl);
+  });
+
+  const catKeys = Object.keys(categories);
+  catKeys.sort((a, b) => {
+    if (a.includes("ปลาย") && !b.includes("ปลาย")) return -1;
+    if (!a.includes("ปลาย") && b.includes("ปลาย")) return 1;
+    if (a.includes("ต้น") && !b.includes("ต้น")) return -1;
+    if (!a.includes("ต้น") && b.includes("ต้น")) return 1;
+    return a.localeCompare(b, "th");
+  });
+
+  catKeys.forEach(catName => {
+    html += `<optgroup label="${escapeHTML(catName)}">`;
+    categories[catName].forEach(lvl => {
+      const count = Math.max(1, parseInt(lvl.roomCount, 10) || 1);
+      for (let i = 1; i <= count; i++) {
+        const roomName = `${lvl.name}/${i}`;
+        html += `<option value="${escapeHTML(roomName)}">${escapeHTML(roomName)}</option>`;
+      }
+    });
+    html += `</optgroup>`;
+  });
+
+  // 2. Special Programs (e.g. EP, Gifted)
+  (config.programs || []).forEach(prog => {
+    if (prog.enabled === false) return;
+    html += `<optgroup label="${escapeHTML(prog.name)}">`;
+    const prefix = prog.prefix || `${prog.name} `;
+    (prog.levels || []).forEach(lvlStr => {
+      const matchingLevel = (config.levels || []).find(l => l.id === lvlStr || l.name === lvlStr || l.name === `ม.${lvlStr}`);
+      const lvlLabel = matchingLevel ? matchingLevel.name.replace("ม.", "") : lvlStr;
+      const optVal = `${prefix}${lvlLabel}`;
+      html += `<option value="${escapeHTML(optVal)}">${escapeHTML(optVal)}</option>`;
+    });
+    html += `</optgroup>`;
+  });
+
+  // 3. Overview groups
+  if (config.groups && config.groups.length > 0) {
+    html += `<optgroup label="ระดับชั้นภาพรวม / อื่นๆ">`;
+    config.groups.forEach(grp => {
+      html += `<option value="${escapeHTML(grp.name)}">${escapeHTML(grp.name)}</option>`;
+    });
+    if (includeCustom) {
+      html += `<option value="custom">ระบุอื่นๆ (พิมพ์เอง)...</option>`;
+    }
+    html += `</optgroup>`;
+  } else if (includeCustom) {
+    html += `<optgroup label="ระดับชั้นภาพรวม / อื่นๆ"><option value="custom">ระบุอื่นๆ (พิมพ์เอง)...</option></optgroup>`;
+  }
+
+  return html;
+}
+
+window.populateBookingGradeOptions = function() {
+  const gradeSelect = document.getElementById("bookingGradeLevel");
+  if (!gradeSelect) return;
+
+  const currentVal = gradeSelect.value;
+  const config = getStoredGradeLevelConfig();
+  gradeSelect.innerHTML = buildGradeOptionsHTML(config, true);
+
+  if (currentVal) {
+    gradeSelect.value = currentVal;
+    if (gradeSelect.value !== currentVal) {
+      const customInput = document.getElementById("bookingGradeLevelCustom");
+      if (customInput && customInput.style.display !== "none") {
+        gradeSelect.value = "custom";
+      }
+    }
+  }
+};
+
+window.renderAdminClassesList = function() {
+  const config = getStoredGradeLevelConfig();
+
+  // 1. Calculate KPIs
+  const totalLevels = (config.levels || []).length;
+  let totalRooms = 0;
+  (config.levels || []).forEach(lvl => {
+    totalRooms += Math.max(1, parseInt(lvl.roomCount, 10) || 1);
+  });
+  const activePrograms = (config.programs || []).filter(p => p.enabled !== false).length;
+  
+  let totalOptions = totalRooms;
+  (config.programs || []).forEach(p => {
+    if (p.enabled !== false) totalOptions += (p.levels || []).length;
+  });
+  totalOptions += (config.groups || []).length;
+
+  const kpiLevelsEl = document.getElementById("kpiTotalLevels");
+  if (kpiLevelsEl) kpiLevelsEl.textContent = totalLevels;
+  const kpiRoomsEl = document.getElementById("kpiTotalRooms");
+  if (kpiRoomsEl) kpiRoomsEl.textContent = totalRooms;
+  const kpiProgEl = document.getElementById("kpiTotalPrograms");
+  if (kpiProgEl) kpiProgEl.textContent = activePrograms;
+  const kpiOptEl = document.getElementById("kpiTotalBookingOptions");
+  if (kpiOptEl) kpiOptEl.textContent = totalOptions;
+
+  // 2. Render Section 1: Grade Levels Grid
+  const levelsGrid = document.getElementById("adminGradeLevelsGrid");
+  if (levelsGrid) {
+    if (!config.levels || config.levels.length === 0) {
+      levelsGrid.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">ยังไม่มีระดับชั้นในระบบ กรุณากดปุ่ม "เพิ่มระดับชั้น" ด้านบน</div>`;
+    } else {
+      levelsGrid.innerHTML = config.levels.map(lvl => {
+        const count = Math.max(1, parseInt(lvl.roomCount, 10) || 1);
+        const roomTags = [];
+        for (let i = 1; i <= count; i++) {
+          roomTags.push(`<span class="grade-room-tag">${escapeHTML(lvl.name)}/${i}</span>`);
+        }
+        return `
+          <div class="grade-level-card" id="cardLevel-${escapeHTML(lvl.id)}">
+            <div class="grade-level-card-header">
+              <div class="grade-level-badge">
+                <i data-lucide="graduation-cap" style="width: 18px; height: 18px; color: #10b981;"></i>
+                <span>${escapeHTML(lvl.name)}</span>
+              </div>
+              <span class="grade-level-category">${escapeHTML(lvl.category || 'ทั่วไป')}</span>
+            </div>
+
+            <div class="room-stepper-control">
+              <span class="room-stepper-label">จำนวนห้อง:</span>
+              <div class="room-stepper-btns">
+                <button type="button" class="room-stepper-btn" onclick="quickAdjustLevelRoomCount('${escapeHTML(lvl.id)}', -1)" title="ลดจำนวนห้อง" ${count <= 1 ? 'disabled' : ''}>-</button>
+                <span class="room-stepper-val">${count}</span>
+                <button type="button" class="room-stepper-btn" onclick="quickAdjustLevelRoomCount('${escapeHTML(lvl.id)}', 1)" title="เพิ่มจำนวนห้อง" ${count >= 25 ? 'disabled' : ''}>+</button>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 5px;">ห้องที่จะสร้าง (${count} ห้อง):</div>
+              <div class="grade-rooms-preview">
+                ${roomTags.join('')}
+              </div>
+            </div>
+
+            <div class="grade-card-actions">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openGradeLevelModal('${escapeHTML(lvl.id)}')" style="border-radius: 6px; padding: 4px 8px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;">
+                <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i>
+                <span>แก้ไข</span>
+              </button>
+              <button type="button" class="btn btn-sm" onclick="deleteGradeLevel('${escapeHTML(lvl.id)}')" style="border-radius: 6px; padding: 4px 8px; font-size: 11.5px; background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; display: inline-flex; align-items: center; gap: 4px;">
+                <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                <span>ลบ</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 3. Render Section 2: Special Programs Grid
+  const programsGrid = document.getElementById("adminProgramsGrid");
+  if (programsGrid) {
+    if (!config.programs || config.programs.length === 0) {
+      programsGrid.innerHTML = `<div style="padding: 24px; text-align: center; color: var(--text-muted); grid-column: 1 / -1;">ยังไม่มีโปรแกรมพิเศษ (เช่น EP, Gifted) ในระบบ กรุณากดปุ่ม "เพิ่มโปรแกรมใหม่"</div>`;
+    } else {
+      programsGrid.innerHTML = config.programs.map(prog => {
+        const isEnabled = prog.enabled !== false;
+        const prefix = prog.prefix || `${prog.name} `;
+        const levelPills = (prog.levels || []).map(l => {
+          const matchingLevel = (config.levels || []).find(lvl => lvl.id === l || lvl.name === l || lvl.name === `ม.${l}`);
+          const lvlLabel = matchingLevel ? matchingLevel.name.replace("ม.", "") : l;
+          return `<span class="grade-room-tag" style="color: #b45309; background: #fef3c7; border-color: #fde68a;">${escapeHTML(prefix)}${escapeHTML(lvlLabel)}</span>`;
+        });
+
+        return `
+          <div class="program-card ${isEnabled ? '' : 'disabled'}" id="cardProg-${escapeHTML(prog.id)}">
+            <div class="grade-level-card-header">
+              <div>
+                <div style="font-size: 15px; font-weight: 700; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+                  <i data-lucide="sparkles" style="width: 16px; height: 16px; color: #f59e0b;"></i>
+                  <span>${escapeHTML(prog.name)}</span>
+                </div>
+                <div style="margin-top: 4px;">
+                  <span class="program-prefix-badge">คำนำหน้า: ${escapeHTML(prog.prefix || '-')}</span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <label style="display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; cursor: pointer; color: ${isEnabled ? '#10b981' : '#94a3b8'};">
+                  <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="toggleProgramEnabled('${escapeHTML(prog.id)}')" style="accent-color: #10b981; cursor: pointer;">
+                  <span>${isEnabled ? 'เปิดใช้งาน' : 'ปิดอยู่'}</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <div style="font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 5px;">ระดับชั้นที่เปิดสอน (${(prog.levels || []).length} ชั้น):</div>
+              <div class="grade-rooms-preview">
+                ${levelPills.length > 0 ? levelPills.join('') : '<span style="font-size: 11px; color: #94a3b8;">ยังไม่ได้เลือกระดับชั้น</span>'}
+              </div>
+            </div>
+
+            <div class="grade-card-actions">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="openProgramModal('${escapeHTML(prog.id)}')" style="border-radius: 6px; padding: 4px 8px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px;">
+                <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i>
+                <span>แก้ไข</span>
+              </button>
+              <button type="button" class="btn btn-sm" onclick="deleteProgram('${escapeHTML(prog.id)}')" style="border-radius: 6px; padding: 4px 8px; font-size: 11.5px; background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; display: inline-flex; align-items: center; gap: 4px;">
+                <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                <span>ลบ</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  // 4. Render Section 3: Groups
+  const groupsGrid = document.getElementById("adminGroupsGrid");
+  if (groupsGrid) {
+    if (!config.groups || config.groups.length === 0) {
+      groupsGrid.innerHTML = `<span style="font-size: 12px; color: var(--text-muted);">ไม่มีตัวเลือกกลุ่มภาพรวม</span>`;
+    } else {
+      groupsGrid.innerHTML = config.groups.map(grp => `
+        <span class="group-option-chip">
+          <i data-lucide="tag" style="width: 12px; height: 12px; color: #6366f1;"></i>
+          <span>${escapeHTML(grp.name)}</span>
+          <button type="button" onclick="deleteGroupOption('${escapeHTML(grp.id)}')" title="ลบตัวเลือกนี้" aria-label="ลบ">
+            <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+          </button>
+        </span>
+      `).join('');
+    }
+  }
+
+  // 5. Update Live Preview Dropdown
+  const livePreview = document.getElementById("adminClassesLivePreview");
+  if (livePreview) {
+    livePreview.innerHTML = buildGradeOptionsHTML(config, true);
+  }
+
+  if (window.lucide && typeof lucide.createIcons === 'function') {
+    lucide.createIcons();
+  }
+};
+
+window.quickAdjustLevelRoomCount = function(levelId, delta) {
+  const config = getStoredGradeLevelConfig();
+  const lvl = (config.levels || []).find(l => l.id === levelId);
+  if (!lvl) return;
+
+  let count = Math.max(1, parseInt(lvl.roomCount, 10) || 1);
+  count += delta;
+  if (count < 1) count = 1;
+  if (count > 25) count = 25;
+  lvl.roomCount = count;
+
+  saveAllAcademicClasses(false);
+};
+
+window.openGradeLevelModal = function(levelId = null) {
+  const modal = document.getElementById("modalGradeLevel");
+  if (!modal) return;
+
+  const titleEl = document.getElementById("gradeLevelModalTitle");
+  const editIdInput = document.getElementById("gradeLevelEditId");
+  const nameInput = document.getElementById("gradeLevelNameInput");
+  const catInput = document.getElementById("gradeLevelCategoryInput");
+  const countInput = document.getElementById("gradeLevelRoomCountInput");
+
+  const config = getStoredGradeLevelConfig();
+
+  if (levelId) {
+    const existing = (config.levels || []).find(l => l.id === levelId);
+    if (existing) {
+      if (titleEl) titleEl.textContent = `แก้ไขระดับชั้น: ${existing.name}`;
+      if (editIdInput) editIdInput.value = existing.id;
+      if (nameInput) nameInput.value = existing.name || '';
+      if (catInput) catInput.value = existing.category || 'มัธยมศึกษาตอนต้น';
+      if (countInput) countInput.value = existing.roomCount || 4;
+    }
+  } else {
+    if (titleEl) titleEl.textContent = "เพิ่มระดับชั้นเรียนใหม่";
+    if (editIdInput) editIdInput.value = "";
+    if (nameInput) nameInput.value = "";
+    if (catInput) catInput.value = "มัธยมศึกษาตอนต้น";
+    if (countInput) countInput.value = "4";
+  }
+
+  updateGradeLevelModalPreview();
+  modal.style.display = "flex";
+  if (nameInput) nameInput.focus();
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+};
+
+window.closeGradeLevelModal = function() {
+  const modal = document.getElementById("modalGradeLevel");
+  if (modal) modal.style.display = "none";
+};
+
+window.updateGradeLevelModalPreview = function() {
+  const nameInput = document.getElementById("gradeLevelNameInput");
+  const countInput = document.getElementById("gradeLevelRoomCountInput");
+  const previewEl = document.getElementById("gradeLevelModalPreview");
+  if (!previewEl) return;
+
+  const name = (nameInput?.value || "ม.X").trim();
+  const count = Math.max(1, Math.min(25, parseInt(countInput?.value, 10) || 1));
+  const rooms = [];
+  for (let i = 1; i <= count; i++) {
+    rooms.push(`${name}/${i}`);
+  }
+  previewEl.textContent = rooms.join(', ');
+};
+
+window.handleGradeLevelSubmit = function(e) {
+  e.preventDefault();
+  const editId = (document.getElementById("gradeLevelEditId")?.value || "").trim();
+  const name = (document.getElementById("gradeLevelNameInput")?.value || "").trim();
+  const category = (document.getElementById("gradeLevelCategoryInput")?.value || "").trim() || "มัธยมศึกษาตอนต้น";
+  const roomCount = Math.max(1, Math.min(25, parseInt(document.getElementById("gradeLevelRoomCountInput")?.value, 10) || 1));
+
+  if (!name) {
+    if (typeof showToast === 'function') showToast("กรุณาระบุชื่อระดับชั้น", "error");
+    return;
+  }
+
+  const config = getStoredGradeLevelConfig();
+  if (!Array.isArray(config.levels)) config.levels = [];
+
+  if (editId) {
+    const idx = config.levels.findIndex(l => l.id === editId);
+    if (idx !== -1) {
+      config.levels[idx] = { ...config.levels[idx], name, category, roomCount };
+    }
+  } else {
+    const newId = "lvl_" + Date.now();
+    config.levels.push({ id: newId, name, category, roomCount });
+  }
+
+  closeGradeLevelModal();
+  saveAllAcademicClasses(true);
+};
+
+window.deleteGradeLevel = function(levelId) {
+  if (!levelId) return;
+  const config = getStoredGradeLevelConfig();
+  const lvl = (config.levels || []).find(l => l.id === levelId);
+  if (!lvl) return;
+
+  if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบระดับชั้น "${lvl.name}" ออกจากระบบ?`)) return;
+
+  config.levels = config.levels.filter(l => l.id !== levelId);
+  saveAllAcademicClasses(true);
+};
+
+window.openProgramModal = function(programId = null) {
+  const modal = document.getElementById("modalProgram");
+  if (!modal) return;
+
+  const titleEl = document.getElementById("programModalTitle");
+  const editIdInput = document.getElementById("programEditId");
+  const nameInput = document.getElementById("programNameInput");
+  const prefixInput = document.getElementById("programPrefixInput");
+  const enabledInput = document.getElementById("programEnabledInput");
+  const checkboxesWrap = document.getElementById("programLevelsCheckboxes");
+
+  const config = getStoredGradeLevelConfig();
+
+  // Populate level checkboxes
+  if (checkboxesWrap) {
+    checkboxesWrap.innerHTML = (config.levels || []).map(lvl => {
+      const shortNum = lvl.name.replace("ม.", "").replace("ป.", "");
+      return `
+        <label style="display: inline-flex; align-items: center; gap: 4px; background: #f8fafc; border: 1px solid #cbd5e1; padding: 4px 10px; border-radius: 8px; font-size: 12px; cursor: pointer;">
+          <input type="checkbox" name="programLevelCheck" value="${escapeHTML(shortNum)}" data-levelname="${escapeHTML(lvl.name)}" style="accent-color: #f59e0b;" onchange="updateProgramModalPreview()">
+          <span>${escapeHTML(lvl.name)}</span>
+        </label>
+      `;
+    }).join('');
+  }
+
+  if (programId) {
+    const existing = (config.programs || []).find(p => p.id === programId);
+    if (existing) {
+      if (titleEl) titleEl.textContent = `แก้ไขโปรแกรม: ${existing.name}`;
+      if (editIdInput) editIdInput.value = existing.id;
+      if (nameInput) nameInput.value = existing.name || '';
+      if (prefixInput) prefixInput.value = existing.prefix || '';
+      if (enabledInput) enabledInput.checked = existing.enabled !== false;
+
+      // Check the checkboxes
+      const selected = existing.levels || [];
+      document.querySelectorAll('input[name="programLevelCheck"]').forEach(cb => {
+        cb.checked = selected.includes(cb.value);
+      });
+    }
+  } else {
+    if (titleEl) titleEl.textContent = "เพิ่มโปรแกรมและแผนการเรียนพิเศษ";
+    if (editIdInput) editIdInput.value = "";
+    if (nameInput) nameInput.value = "";
+    if (prefixInput) prefixInput.value = "EP-M.";
+    if (enabledInput) enabledInput.checked = true;
+
+    // Check all by default
+    document.querySelectorAll('input[name="programLevelCheck"]').forEach(cb => {
+      cb.checked = true;
+    });
+  }
+
+  updateProgramModalPreview();
+  modal.style.display = "flex";
+  if (nameInput) nameInput.focus();
+  if (window.lucide && typeof lucide.createIcons === 'function') lucide.createIcons();
+};
+
+window.closeProgramModal = function() {
+  const modal = document.getElementById("modalProgram");
+  if (modal) modal.style.display = "none";
+};
+
+window.updateProgramModalPreview = function() {
+  const prefixInput = document.getElementById("programPrefixInput");
+  const previewEl = document.getElementById("programModalPreview");
+  if (!previewEl) return;
+
+  const prefix = (prefixInput?.value || "EP-M.").trim();
+  const checked = [];
+  document.querySelectorAll('input[name="programLevelCheck"]:checked').forEach(cb => {
+    checked.push(`${prefix}${cb.value}`);
+  });
+
+  previewEl.textContent = checked.length > 0 ? checked.join(', ') : "(ยังไม่ได้เลือกระดับชั้น)";
+};
+
+window.handleProgramSubmit = function(e) {
+  e.preventDefault();
+  const editId = (document.getElementById("programEditId")?.value || "").trim();
+  const name = (document.getElementById("programNameInput")?.value || "").trim();
+  const prefix = (document.getElementById("programPrefixInput")?.value || "").trim();
+  const enabled = document.getElementById("programEnabledInput")?.checked !== false;
+
+  const selectedLevels = [];
+  document.querySelectorAll('input[name="programLevelCheck"]:checked').forEach(cb => {
+    selectedLevels.push(cb.value);
+  });
+
+  if (!name || !prefix) {
+    if (typeof showToast === 'function') showToast("กรุณาระบุชื่อโปรแกรมและคำนำหน้าห้อง", "error");
+    return;
+  }
+
+  if (selectedLevels.length === 0) {
+    if (typeof showToast === 'function') showToast("กรุณาเลือกระดับชั้นที่เปิดสอนโปรแกรมนี้อย่างน้อย 1 ระดับชั้น", "warning");
+    return;
+  }
+
+  const config = getStoredGradeLevelConfig();
+  if (!Array.isArray(config.programs)) config.programs = [];
+
+  if (editId) {
+    const idx = config.programs.findIndex(p => p.id === editId);
+    if (idx !== -1) {
+      config.programs[idx] = { ...config.programs[idx], name, prefix, enabled, levels: selectedLevels };
+    }
+  } else {
+    const newId = "prog_" + Date.now();
+    config.programs.push({ id: newId, name, prefix, enabled, levels: selectedLevels });
+  }
+
+  closeProgramModal();
+  saveAllAcademicClasses(true);
+};
+
+window.deleteProgram = function(programId) {
+  if (!programId) return;
+  const config = getStoredGradeLevelConfig();
+  const prog = (config.programs || []).find(p => p.id === programId);
+  if (!prog) return;
+
+  if (!confirm(`คุณแน่ใจหรือไม่ว่าต้องการลบโปรแกรม "${prog.name}" ออกจากระบบ?`)) return;
+
+  config.programs = config.programs.filter(p => p.id !== programId);
+  saveAllAcademicClasses(true);
+};
+
+window.toggleProgramEnabled = function(programId) {
+  if (!programId) return;
+  const config = getStoredGradeLevelConfig();
+  const prog = (config.programs || []).find(p => p.id === programId);
+  if (!prog) return;
+
+  prog.enabled = !prog.enabled;
+  saveAllAcademicClasses(false);
+
+  if (typeof showToast === 'function') {
+    showToast(`${prog.enabled ? 'เปิดใช้งาน' : 'ปิดการใช้งาน'} โปรแกรม "${prog.name}" แล้ว`, "info");
+  }
+};
+
+window.promptAddGroupOption = function() {
+  const name = prompt("กรุณาระบุชื่อกลุ่มภาพรวมหรือตัวเลือกเพิ่มเติม (เช่น ชมรมหุ่นยนต์, ม.ต้น รวม):");
+  if (!name || !name.trim()) return;
+
+  const config = getStoredGradeLevelConfig();
+  if (!Array.isArray(config.groups)) config.groups = [];
+
+  config.groups.push({
+    id: "grp_" + Date.now(),
+    name: name.trim()
+  });
+
+  saveAllAcademicClasses(true);
+};
+
+window.deleteGroupOption = function(groupId) {
+  if (!groupId) return;
+  const config = getStoredGradeLevelConfig();
+  config.groups = (config.groups || []).filter(g => g.id !== groupId);
+  saveAllAcademicClasses(true);
+};
+
+window.resetAcademicClassesToDefault = function() {
+  if (!confirm("คุณต้องการคืนค่าระดับชั้น ห้องเรียน และโปรแกรมเริ่มต้นใช่หรือไม่?\n(ม.1 - ม.6 ละ 4 ห้อง + English Program + กลุ่มรวม)")) return;
+
+  try {
+    localStorage.removeItem("scip_grade_level_config");
+  } catch (e) {}
+
+  CURRENT_ACADEMIC_CLASSES_CONFIG = JSON.parse(JSON.stringify(DEFAULT_ACADEMIC_CLASSES_CONFIG));
+  saveAllAcademicClasses(true);
+};
+
+window.saveAllAcademicClasses = function(showNotification = true) {
+  const config = getStoredGradeLevelConfig();
+  config.updatedAt = new Date().toISOString();
+  CURRENT_ACADEMIC_CLASSES_CONFIG = config;
+
+  try {
+    localStorage.setItem("scip_grade_level_config", JSON.stringify(config));
+  } catch (e) {}
+
+  const token = typeof getAuthToken === 'function' ? getAuthToken() : (localStorage.getItem('token') || '');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  fetch("/api/academic-classes", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(config)
+  }).catch(err => console.warn("Failed to sync classes with backend:", err));
+
+  populateBookingGradeOptions();
+  renderAdminClassesList();
+
+  if (showNotification && typeof showToast === 'function') {
+    showToast("บันทึกการตั้งค่าระดับชั้นและโปรแกรมเรียบร้อยแล้ว", "success");
   }
 };
 
