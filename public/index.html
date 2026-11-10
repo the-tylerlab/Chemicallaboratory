@@ -676,7 +676,7 @@
 
           <!-- Unified Alerts Panel with Tabs -->
           <div class="card-container" id="unifiedAlertsCard">
-            <div class="card-header" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+            <div class="card-header" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px;">
               <h2 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="bell" style="width: 18px; height: 18px; color: var(--accent-blue);"></i>
                 <span>แจ้งเตือนและสถานะเครื่องมือ</span>
@@ -696,20 +696,20 @@
               </div>
             </div>
             
-            <div class="alert-tab-content active" id="tab-urgent" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
-              <div id="dashboardUrgentContainer" style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="alert-tab-content active" id="tab-urgent" style="display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 0; max-height: 320px; overflow-y: auto;">
+              <div id="dashboardUrgentContainer" style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
                 <!-- Dynamically populated -->
               </div>
             </div>
             
-            <div class="alert-tab-content" id="tab-overdue" style="display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
-              <div id="dashboardOverdueContainer" style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="alert-tab-content" id="tab-overdue" style="display: none; flex-direction: column; gap: 8px; flex: 1; min-height: 0; max-height: 320px; overflow-y: auto;">
+              <div id="dashboardOverdueContainer" style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
                 <!-- Dynamically populated -->
               </div>
             </div>
             
-            <div class="alert-tab-content" id="tab-damaged" style="display: none; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
-              <div id="dashboardDamagedContainer" style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="alert-tab-content" id="tab-damaged" style="display: none; flex-direction: column; gap: 8px; flex: 1; min-height: 0; max-height: 320px; overflow-y: auto;">
+              <div id="dashboardDamagedContainer" style="display: flex; flex-direction: column; gap: 8px; flex: 1;">
                 <!-- Dynamically populated -->
               </div>
             </div>

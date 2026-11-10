@@ -4592,7 +4592,7 @@ function renderDashboardUrgentAlerts() {
 
   // Select top 3 urgent alerts or all if expanded
   const displayItems = isUrgentAlertsExpanded ? urgentItems : urgentItems.slice(0, 3);
-  let html = `<div style="display: flex; flex-direction: column; gap: 12px; height: 100%;">`;
+  let html = `<div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">`;
   displayItems.forEach(item => {
     const status = getItemStatus(item);
     const isExpired = status === "expired";
@@ -4608,8 +4608,8 @@ function renderDashboardUrgentAlerts() {
     const originalIndex = items.findIndex(i => i.code === item.code);
 
     html += `
-      <div style="display: flex; gap: 12px; padding: 16px; background-color: ${bg}; border: 1px solid ${border}; border-radius: var(--border-radius-md); transition: var(--transition-fast); flex: 1; align-items: center;">
-        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; justify-content: center;">
+      <div style="display: flex; gap: 10px; padding: 10px 14px; background-color: ${bg}; border: 1px solid ${border}; border-radius: var(--border-radius-md); transition: var(--transition-fast); align-items: center;">
+        <div style="display: flex; flex-direction: column; gap: 3px; flex: 1; justify-content: center;">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <span style="font-size: 11px; font-weight: 700; color: ${textColor}; background: ${isExpired ? 'rgba(239, 68, 68, 0.1)' : 'rgba(249, 115, 22, 0.1)'}; padding: 2px 6px; border-radius: 4px;">${alertLabel}</span>
             <span style="font-size: 13px; font-weight: 600; color: #0f172a;">${getItemDisplayName(item)}</span>
@@ -4619,7 +4619,7 @@ function renderDashboardUrgentAlerts() {
           </div>
         </div>
         ${isAdminLoggedIn ? `
-        <button class="action-icon-btn edit" onclick="editItem(${originalIndex})" title="แก้ไข/สั่งซื้อเพิ่ม" style="align-self: center; background: #fff; border: 1px solid var(--border-color); color: var(--primary); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: var(--border-radius-sm);">
+        <button class="action-icon-btn edit" onclick="editItem(${originalIndex})" title="แก้ไข/สั่งซื้อเพิ่ม" style="align-self: center; background: #fff; border: 1px solid var(--border-color); color: var(--primary); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: var(--border-radius-sm);">
           <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
         </button>
         ` : ""}

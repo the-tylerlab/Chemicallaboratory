@@ -638,9 +638,12 @@
 }
 
 .dashboard-grid.admin-mode #unifiedAlertsCard .alert-tab-content {
-  max-height: 200px !important;
+  max-height: 310px !important;
   overflow-y: auto;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* Collapsible Pending Request Item styles */
@@ -679,14 +682,18 @@
   .dashboard-grid.student-mode #quickMenuCard,
   .dashboard-grid.student-mode #unifiedAlertsCard,
   .dashboard-grid.student-mode #categoryBreakdownCard,
-  .dashboard-grid.student-mode #recentItemsCard {
+  .dashboard-grid.student-mode #recentItemsCard,
+  .dashboard-grid.admin-mode #quickMenuCard,
+  .dashboard-grid.admin-mode #unifiedAlertsCard,
+  .dashboard-grid.admin-mode #categoryBreakdownCard {
     height: auto !important;
     max-height: none !important;
   }
   
   .dashboard-grid.student-mode #unifiedAlertsCard .alert-tab-content,
   .dashboard-grid.student-mode #recentItemsContainer,
-  .dashboard-grid.student-mode #categoryBreakdownContainer {
+  .dashboard-grid.student-mode #categoryBreakdownContainer,
+  .dashboard-grid.admin-mode #unifiedAlertsCard .alert-tab-content {
     max-height: none !important;
   }
 }
