@@ -6838,6 +6838,124 @@ function normalizeExpiryDateStr(val) {
   return str;
 }
 
+// ==========================================================================
+// ANIMATED BATCH DATA IMPORT PROGRESS BAR MODAL CONTROLLER
+// ==========================================================================
+function showBatchProgressModal({ title, subtitle, total }) {
+  const totalCount = Number(total) || 1;
+  let currentPercent = 0;
+
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      title: '',
+      html: `
+        <div class="batch-progress-wrapper">
+          <div class="batch-progress-header">
+            <div class="batch-progress-stage-wrap">
+              <div class="batch-progress-icon-badge" id="batchProgressIconWrap">
+                <svg class="batch-progress-icon-spin" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+              </div>
+              <div style="min-width: 0;">
+                <h4 class="batch-progress-title">${escapeHtml(title || 'กำลังประมวลผลข้อมูล')}</h4>
+                <div class="batch-progress-subtitle" id="batchProgressStage">${escapeHtml(subtitle || 'กำลังเริ่มต้น...')}</div>
+              </div>
+            </div>
+            <div class="batch-progress-percent-badge" id="batchProgressPercent">0%</div>
+          </div>
+
+          <div class="batch-progress-track">
+            <div id="batchProgressBar" class="batch-progress-bar" style="width: 0%;"></div>
+          </div>
+
+          <div class="batch-progress-footer">
+            <span class="batch-progress-detail" id="batchProgressDetail">
+              <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#6366f1;"></span>
+              กำลังเตรียมข้อมูล...
+            </span>
+            <span class="batch-progress-count" id="batchProgressCount">0 / ${totalCount} รายการ</span>
+          </div>
+        </div>
+      `,
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      customClass: {
+        popup: 'batch-progress-modal-popup'
+      }
+    });
+  }
+
+  return {
+    update({ percent, stage, detail, current, total }) {
+      currentPercent = Math.min(100, Math.max(currentPercent, Math.round(percent || 0)));
+      const curr = current !== undefined ? current : Math.round((currentPercent / 100) * totalCount);
+      const tot = total !== undefined ? total : totalCount;
+
+      const barEl = document.getElementById("batchProgressBar");
+      const percentEl = document.getElementById("batchProgressPercent");
+      const stageEl = document.getElementById("batchProgressStage");
+      const detailEl = document.getElementById("batchProgressDetail");
+      const countEl = document.getElementById("batchProgressCount");
+      const iconWrapEl = document.getElementById("batchProgressIconWrap");
+
+      if (barEl) barEl.style.width = `${currentPercent}%`;
+      if (percentEl) {
+        percentEl.textContent = `${currentPercent}%`;
+        if (currentPercent >= 100) {
+          percentEl.style.background = '#ecfdf5';
+          percentEl.style.borderColor = '#a7f3d0';
+          percentEl.style.color = '#059669';
+        }
+      }
+      if (stageEl && stage) stageEl.textContent = stage;
+      if (detailEl && detail) {
+        const dotColor = currentPercent >= 100 ? '#10b981' : '#6366f1';
+        detailEl.innerHTML = `<span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:${dotColor};"></span> ${escapeHtml(detail)}`;
+      }
+      if (countEl) countEl.textContent = `${curr} / ${tot} รายการ`;
+
+      if (currentPercent >= 100 && iconWrapEl) {
+        iconWrapEl.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        `;
+        iconWrapEl.style.background = 'linear-gradient(135deg, #d1fae5 0%, #ecfdf5 100%)';
+      }
+    },
+
+    complete({ title: finishTitle, summaryHtml }) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: finishTitle || 'นำเข้าข้อมูลสำเร็จ!',
+          html: summaryHtml || '<p style="color:#64748b; font-size:13.5px;">ประมวลผลและบันทึกข้อมูลเรียบร้อยแล้ว</p>',
+          confirmButtonColor: '#6366f1',
+          confirmButtonText: 'ตกลง',
+          customClass: {
+            popup: 'batch-progress-modal-popup'
+          }
+        });
+      }
+    },
+
+    error({ title: errTitle, message }) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'error',
+          title: errTitle || 'เกิดข้อผิดพลาดในการนำเข้า',
+          text: message || 'ไม่สามารถประมวลผลข้อมูลได้ กรุณาลองใหม่อีกครั้ง',
+          confirmButtonColor: '#e11d48',
+          confirmButtonText: 'ปิด'
+        });
+      }
+    }
+  };
+}
+window.showBatchProgressModal = showBatchProgressModal;
+
 // Master processor for 2D matrix rows (from Excel or CSV)
 async function processImportRowsMatrix(rows) {
   if (!rows || rows.length < 2) {
@@ -6863,6 +6981,16 @@ async function processImportRowsMatrix(rows) {
   if (headerIndex === -1) {
     headerIndex = 0;
   }
+
+  const dataRowsCount = Math.max(1, rows.length - (headerIndex + 1));
+  const progressModal = showBatchProgressModal({
+    title: "กำลังนำเข้าข้อมูลพัสดุและสารเคมี",
+    subtitle: `ตรวจพบข้อมูลทั้งหมด ${dataRowsCount} แถว`,
+    total: dataRowsCount
+  });
+  await new Promise(r => setTimeout(r, 120));
+
+  const CHUNK_SIZE = 20;
 
   for (let i = headerIndex + 1; i < rows.length; i++) {
     const cols = (rows[i] || []).map(c => (c !== null && c !== undefined) ? String(c).trim() : '');
@@ -6954,12 +7082,37 @@ async function processImportRowsMatrix(rows) {
       ghs,
       createdAt: new Date().toISOString()
     });
+
+    if ((i - headerIndex) % CHUNK_SIZE === 0 || i === rows.length - 1) {
+      const processed = i - headerIndex;
+      const parsePct = Math.min(65, Math.round((processed / dataRowsCount) * 65));
+      progressModal.update({
+        percent: parsePct,
+        stage: `กำลังตรวจสอบข้อมูล (${processed}/${dataRowsCount})...`,
+        detail: `ตรวจสอบและจำแนกหมวดหมู่แถวที่ ${processed}`,
+        current: processed,
+        total: dataRowsCount
+      });
+      await new Promise(r => setTimeout(r, 12));
+    }
   }
 
   if (importList.length === 0) {
-    showToast("ไม่พบข้อมูลที่ถูกต้องสำหรับนำเข้า (กรุณาตรวจสอบว่ามี รหัส, ชื่อ, หมวดหมู่, จำนวน, หน่วย ครบถ้วน)", "warning");
+    progressModal.error({
+      title: "ไม่พบข้อมูลที่ถูกต้อง",
+      message: "ไม่พบข้อมูลที่ถูกต้องสำหรับนำเข้า (กรุณาตรวจสอบว่ามี รหัส, ชื่อ, หมวดหมู่, จำนวน, หน่วย ครบถ้วน)"
+    });
     return;
   }
+
+  progressModal.update({
+    percent: 72,
+    stage: "กำลังตรวจสอบรายการซ้ำและจัดสรรสต็อก...",
+    detail: `พบข้อมูลที่พร้อมบันทึก ${importList.length} รายการ`,
+    current: importList.length,
+    total: dataRowsCount
+  });
+  await new Promise(r => setTimeout(r, 80));
 
   // 1. Immediately merge into local items array & local storage with duplicate room prevention
   let addedCount = 0;
@@ -7015,6 +7168,23 @@ async function processImportRowsMatrix(rows) {
     renderItemsTable();
   }
 
+  progressModal.update({
+    percent: 85,
+    stage: "บันทึกลงหน่วยความจำและอัปเดตตารางหน้าเว็บ...",
+    detail: `เพิ่มใหม่ ${addedCount} รายการ, อัปเดต ${updatedCount} รายการ`,
+    current: importList.length,
+    total: dataRowsCount
+  });
+  await new Promise(r => setTimeout(r, 80));
+
+  progressModal.update({
+    percent: 92,
+    stage: "กำลังซิงค์ขึ้น Supabase Cloud & Google Sheets...",
+    detail: "ส่งข้อมูลแบบเรียลไทม์ไปยังคลาวด์",
+    current: importList.length,
+    total: dataRowsCount
+  });
+
   // 4. Background Sync: Google Sheets Direct Sync
   try {
     importList.forEach(item => syncToGoogleSheetsDirect('Items', 'UPSERT', item, 'code'));
@@ -7056,22 +7226,33 @@ async function processImportRowsMatrix(rows) {
     logActivity("IMPORT_ITEMS", `นำเข้าพัสดุและสารเคมีจำนวน ${importList.length} รายการ (เพิ่มใหม่ ${addedCount}, อัปเดต ${updatedCount})`, { count: importList.length });
   }
 
-  // 7. Show success SweetAlert / Toast
-  if (typeof Swal !== 'undefined') {
-    Swal.fire({
-      icon: 'success',
-      title: 'นำเข้าข้อมูลสำเร็จ!',
-      html: `<div style="font-size:14px; color:#334155; text-align:left; line-height:1.6;">
-        <p>บันทึกพัสดุและสารเคมีลงระบบเรียบร้อยแล้ว <b>${importList.length} รายการ</b></p>
-        ${errorCount > 0 ? `<p style="color:#e11d48; margin-top:6px;"><i data-lucide="alert-triangle" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>ข้ามแถวที่ไม่สมบูรณ์: ${errorCount} แถว</p>` : ''}
-        <p style="color:#059669; font-size:12.5px; margin-top:8px;"><i data-lucide="check-circle-2" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>อัปเดตตารางและบันทึกลงระบบทันที</p>
-      </div>`,
-      confirmButtonColor: '#8f8cf0',
-      confirmButtonText: 'ตกลง'
-    });
-  } else {
-    showToast(`นำเข้าสำเร็จ ${importList.length} รายการ! ${errorCount > 0 ? `(ข้ามรายการผิดพลาด ${errorCount} รายการ)` : ''}`, "success");
-  }
+  progressModal.update({
+    percent: 100,
+    stage: "เสร็จสมบูรณ์ 100%!",
+    detail: "นำเข้าและบันทึกพัสดุและสารเคมีเรียบร้อยครบถ้วน",
+    current: dataRowsCount,
+    total: dataRowsCount
+  });
+  await new Promise(r => setTimeout(r, 350));
+
+  // 7. Show success SweetAlert with modern breakdown
+  progressModal.complete({
+    title: 'นำเข้าข้อมูลสำเร็จ!',
+    summaryHtml: `
+      <div style="font-size:13.5px; color:#334155; text-align:left; line-height:1.65; padding: 4px 0;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:700; color:#0f172a;">
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:#ecfdf5; color:#059669; font-size:12px;">✓</span>
+          <span>บันทึกพัสดุและสารเคมีลงระบบแล้ว <b>${importList.length} รายการ</b></span>
+        </div>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px 14px; margin-bottom:8px;">
+          <div style="color:#059669; font-weight:600;">• เพิ่มรายการใหม่: <b>${addedCount}</b> รายการ</div>
+          <div style="color:#6366f1; font-weight:600;">• อัปเดตสต็อกเดิม: <b>${updatedCount}</b> รายการ</div>
+          ${errorCount > 0 ? `<div style="color:#e11d48; font-weight:600;">• ข้ามแถวที่ไม่สมบูรณ์: <b>${errorCount}</b> แถว</div>` : ''}
+        </div>
+        <div style="font-size:12px; color:#64748b;">ซิงค์ขึ้น Supabase Cloud และ Google Sheets แบบเรียลไทม์เรียบร้อยแล้ว</div>
+      </div>
+    `
+  });
 }
 
 // Local storage fallback helper
@@ -23537,12 +23718,40 @@ async function submitBatchAddUsers() {
   if (btnSubmit) btnSubmit.disabled = true;
   if (btnSubmitText) btnSubmitText.textContent = "กำลังบันทึกข้อมูล...";
 
+  closeBatchAddUsersModal();
+
+  const totalUsers = validUsersToSave.length;
+  const progressModal = showBatchProgressModal({
+    title: "กำลังนำเข้าข้อมูลผู้ใช้งาน",
+    subtitle: `ตรวจพบข้อมูลผู้ใช้ทั้งหมด ${totalUsers} ท่าน`,
+    total: totalUsers
+  });
+  await new Promise(r => setTimeout(r, 120));
+
+  progressModal.update({
+    percent: 25,
+    stage: "กำลังตรวจสอบสิทธิ์และจัดกลุ่มห้องแล็บ...",
+    detail: `จัดโครงสร้างบัญชีผู้ใช้ ${totalUsers} รายการ`,
+    current: Math.max(1, Math.round(totalUsers * 0.25)),
+    total: totalUsers
+  });
+  await new Promise(r => setTimeout(r, 60));
+
   let isSuccess = false;
   let savedCount = 0;
 
   // 1. Direct Supabase Batch Upsert
   if (typeof supabase !== 'undefined' && supabase && isSupabaseOnline) {
     try {
+      progressModal.update({
+        percent: 50,
+        stage: "กำลังบันทึกบัญชีลง Supabase Cloud...",
+        detail: "ซิงค์สิทธิ์และข้อมูลบัญชีผู้ใช้งาน",
+        current: Math.max(1, Math.round(totalUsers * 0.5)),
+        total: totalUsers
+      });
+      await new Promise(r => setTimeout(r, 40));
+
       const roleNames = {
         'L1': 'Teacher / User',
         'L2': 'Staff / Operator',
@@ -23586,6 +23795,15 @@ async function submitBatchAddUsers() {
 
   // 2. Server API Batch Dispatch
   try {
+    progressModal.update({
+      percent: 80,
+      stage: "กำลังซิงค์ไปยัง Google Sheets และเซิร์ฟเวอร์...",
+      detail: "บันทึกข้อมูลสำรองและอัปเดตสิทธิ์",
+      current: Math.max(1, Math.round(totalUsers * 0.8)),
+      total: totalUsers
+    });
+    await new Promise(r => setTimeout(r, 40));
+
     const res = await fetch('/api/users/batch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -23647,19 +23865,28 @@ async function submitBatchAddUsers() {
   }
 
   await loadAdminData();
-  closeBatchAddUsersModal();
 
-  if (typeof Swal !== 'undefined') {
-    Swal.fire({
-      icon: 'success',
-      title: 'นำเข้าข้อมูลผู้ใช้สำเร็จ!',
-      text: `บันทึกข้อมูลครูและเจ้าหน้าที่เรียบร้อยแล้วทั้งหมด ${savedCount} คน`,
-      confirmButtonColor: '#8f8cf0',
-      confirmButtonText: 'ตกลง'
-    });
-  } else {
-    showToast(`นำเข้าข้อมูลสำเร็จ ${savedCount} คน`, "success");
-  }
+  progressModal.update({
+    percent: 100,
+    stage: "เสร็จสมบูรณ์ 100%!",
+    detail: `บันทึกข้อมูลผู้ใช้งานครบทั้ง ${savedCount || totalUsers} ท่านแล้ว`,
+    current: savedCount || totalUsers,
+    total: totalUsers
+  });
+  await new Promise(r => setTimeout(r, 350));
+
+  progressModal.complete({
+    title: 'นำเข้าข้อมูลผู้ใช้สำเร็จ!',
+    summaryHtml: `
+      <div style="font-size:13.5px; color:#334155; text-align:left; line-height:1.65; padding: 4px 0;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:700; color:#0f172a;">
+          <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:#ecfdf5; color:#059669; font-size:12px;">✓</span>
+          <span>บันทึกข้อมูลครูและเจ้าหน้าที่เรียบร้อยแล้วทั้งหมด <b>${savedCount || totalUsers} ท่าน</b></span>
+        </div>
+        <div style="font-size:12px; color:#64748b;">อัปเดตสิทธิ์การใช้งานและซิงค์ข้อมูลกับคลาวด์เรียบร้อยแล้ว</div>
+      </div>
+    `
+  });
 
   if (btnSubmit) btnSubmit.disabled = false;
   if (btnSubmitText) btnSubmitText.textContent = "บันทึกและนำเข้าข้อมูล";
