@@ -16257,7 +16257,7 @@ function setupChatbot() {
   // Handle send message
   const handleSendMessage = () => {
     if (typeof showToast === "function") {
-      showToast("ระบบผู้ช่วย AI Stoki อยู่ระหว่างการพัฒนา (เร็วๆ นี้)", "info");
+      showToast("ระบบผู้ช่วย AI Stoki กำลังอยู่ระหว่างการพัฒนา (Coming Soon)", "info");
     }
   };
 
@@ -16275,7 +16275,7 @@ function setupChatbot() {
       const chip = e.target.closest(".chat-suggestion-chip");
       if (!chip) return;
       if (typeof showToast === "function") {
-        showToast("ระบบผู้ช่วย AI Stoki อยู่ระหว่างการพัฒนา (เร็วๆ นี้)", "info");
+        showToast("ระบบผู้ช่วย AI Stoki กำลังอยู่ระหว่างการพัฒนา (Coming Soon)", "info");
       }
     });
   }

@@ -50,7 +50,7 @@
 /* Expand smoothly on Hover or when .expanded class is active */
 .chatbot-fab:hover,
 .chatbot-fab.expanded {
-  width: 250px;
+  width: 256px;
   padding: 0 16px 0 6px;
   justify-content: flex-start;
   gap: 10px;
@@ -175,7 +175,7 @@
 .chatbot-fab:hover .chatbot-fab-content,
 .chatbot-fab.expanded .chatbot-fab-content {
   opacity: 1;
-  max-width: 185px;
+  max-width: 190px;
   pointer-events: auto;
 }
 
