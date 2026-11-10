@@ -16256,29 +16256,15 @@ function setupChatbot() {
 
   // Handle send message
   const handleSendMessage = () => {
-    const text = input.value.trim();
-    if (!text) return;
-
-    // Append user message
-    appendChatMessage("user", text);
-    input.value = "";
-
-    // Show bot thinking/typing indicator
-    const typingIndicator = appendChatTypingIndicator();
-    setChatbotIconState("thinking");
-
-    setTimeout(() => {
-      // Remove typing indicator and append bot response
-      typingIndicator.remove();
-      const botResponse = generateBotResponse(text);
-      appendChatMessage("bot", botResponse);
-      setChatbotIconState("notification");
-    }, 600);
+    if (typeof showToast === "function") {
+      showToast("ระบบแชทบอท Stoki AI อยู่ระหว่างการพัฒนาและระงับการใช้งานชั่วคราว (Coming Soon)", "info");
+    }
   };
 
   sendBtn.addEventListener("click", handleSendMessage);
   input.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
+      e.preventDefault();
       handleSendMessage();
     }
   });
@@ -16288,19 +16274,9 @@ function setupChatbot() {
     suggestionsContainer.addEventListener("click", (e) => {
       const chip = e.target.closest(".chat-suggestion-chip");
       if (!chip) return;
-      const query = chip.getAttribute("data-query");
-      
-      // Simulate user clicking / typing query
-      appendChatMessage("user", query);
-      const typingIndicator = appendChatTypingIndicator();
-      setChatbotIconState("thinking");
-
-      setTimeout(() => {
-        typingIndicator.remove();
-        const botResponse = generateBotResponse(query);
-        appendChatMessage("bot", botResponse);
-        setChatbotIconState("notification");
-      }, 500);
+      if (typeof showToast === "function") {
+        showToast("ระบบแชทบอท Stoki AI อยู่ระหว่างการพัฒนาและระงับการใช้งานชั่วคราว (Coming Soon)", "info");
+      }
     });
   }
 

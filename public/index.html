@@ -459,9 +459,10 @@
             </a>
           </li>
           <li>
-            <a href="#/ask" class="menu-item-link" data-target="ask" id="menuItemAsk">
+            <a href="#/ask" class="menu-item-link" data-target="ask" id="menuItemAsk" title="ถาม AI (Coming Soon)">
               <i data-lucide="sparkles"></i>
               <span>ถาม AI (Ask)</span>
+              <span class="badge" style="font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 9999px; background: rgba(99, 102, 241, 0.12); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.22); letter-spacing: 0.02em;">Coming Soon</span>
             </a>
           </li>
           <li id="menuItemReports" style="display: none;">
@@ -4736,97 +4737,105 @@
            ========================================== -->
             <section class="panel" id="panel-ask">
         <div class="ask-view-wrapper">
-          <div class="ask-view-container">
+          <div class="ask-coming-soon-container" style="max-width: 720px; width: 100%; margin: 0 auto; padding: 24px 16px 64px 16px;">
+            
+            <!-- Top Avatar & Title Header -->
+            <div style="text-align: center; margin-bottom: 32px;">
+              <div style="display: inline-flex; align-items: center; justify-content: center; width: 92px; height: 92px; border-radius: 28px; background: linear-gradient(135deg, #f8fafc, #ede9fe); border: 1.5px solid rgba(99, 102, 241, 0.25); box-shadow: 0 12px 32px -4px rgba(99, 102, 241, 0.2); margin-bottom: 20px; position: relative;">
+                <img src="assets/images/stock-bitol-bot.png" alt="Stoki AI" style="width: 60px; height: 60px; object-fit: contain;">
+                <span style="position: absolute; bottom: -6px; right: -6px; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: #6366f1; color: #ffffff; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4); border: 2.5px solid #ffffff;">
+                  <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
+                </span>
+              </div>
 
-            <!-- Title & Subtitle Header -->
-            <div class="ask-header-block">
-              <div class="ask-title-row">
-                <h1 class="ask-main-title">Ask</h1>
-                <button type="button" class="ask-action-clear-btn" id="askClearChatBtn" title="รีเซ็ตการสนทนา" aria-label="รีเซ็ตการสนทนา">
-                  <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
-                  <span>รีเซ็ต</span>
+              <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                <h1 style="font-size: 28px; font-weight: 700; color: #0f172a; margin: 0; letter-spacing: -0.02em;">Stoki AI Assistant</h1>
+                <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 9999px; background: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-size: 12px; font-weight: 700; letter-spacing: 0.02em;">
+                  <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
+                  Coming Soon
+                </span>
+              </div>
+
+              <p style="font-size: 15px; color: #64748b; max-width: 540px; margin: 0 auto; line-height: 1.6;">
+                ระบบผู้ช่วย AI ประจำห้องปฏิบัติการวิทยาศาสตร์ (SciPortal) อยู่ระหว่างการระงับการใช้งานชั่วคราว เพื่ออัปเกรดฐานข้อมูลสารเคมีและเพิ่มประสิทธิภาพในการให้บริการ
+              </p>
+            </div>
+
+            <!-- Notice Card -->
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px 24px; box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04); margin-bottom: 24px;">
+              <div style="display: flex; align-items: flex-start; gap: 16px; margin-bottom: 20px;">
+                <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(99, 102, 241, 0.1); color: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                  <i data-lucide="info" style="width: 22px; height: 22px;"></i>
+                </div>
+                <div style="flex: 1;">
+                  <h2 style="font-size: 16.5px; font-weight: 600; color: #0f172a; margin: 0 0 6px 0;">การระงับการใช้งานระบบแชทบอทชั่วคราว</h2>
+                  <p style="font-size: 14px; color: #475569; margin: 0; line-height: 1.65;">
+                    ระบบกำลังอยู่ในขั้นตอนการเชื่อมต่อโมเดลภาษาและการตรวจสอบความถูกต้องของข้อมูลความปลอดภัยทางเคมี (SDS & GHS) รวมถึงขั้นตอนการปฐมพยาบาลเบื้องต้น เพื่อให้มั่นใจได้ว่าคำแนะนำทุกข้อถูกต้อง ปลอดภัย และเป็นไปตามมาตรฐานห้องปฏิบัติการสากล
+                  </p>
+                </div>
+              </div>
+
+              <div style="border-top: 1px solid #f1f5f9; padding-top: 20px;">
+                <h3 style="font-size: 13px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 14px 0;">
+                  ฟังก์ชันที่เตรียมพร้อมเปิดให้บริการเร็วๆ นี้
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+                  <div style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: #f8fafc; border: 1px solid #edf2f7; border-radius: 14px;">
+                    <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="search" style="width: 17px; height: 17px;"></i>
+                    </div>
+                    <div>
+                      <div style="font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 2px;">ค้นหาสารเคมีและพัสดุด่วน</div>
+                      <div style="font-size: 12.5px; color: #64748b; line-height: 1.45;">สอบถามตำแหน่งจัดเก็บในตู้ SHECU และสต็อกคงเหลือแบบทันที</div>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: #f8fafc; border: 1px solid #edf2f7; border-radius: 14px;">
+                    <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="scale" style="width: 17px; height: 17px;"></i>
+                    </div>
+                    <div>
+                      <div style="font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 2px;">คำนวณและดุลสมการเคมี</div>
+                      <div style="font-size: 12.5px; color: #64748b; line-height: 1.45;">ผู้ช่วยเตรียมสารละลาย คำนวณความเข้มข้น โมลาร์ และมวลสาร</div>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: #f8fafc; border: 1px solid #edf2f7; border-radius: 14px;">
+                    <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(245, 158, 11, 0.1); color: #d97706; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="shield-alert" style="width: 17px; height: 17px;"></i>
+                    </div>
+                    <div>
+                      <div style="font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 2px;">ความปลอดภัย & เอกสาร SDS</div>
+                      <div style="font-size: 12.5px; color: #64748b; line-height: 1.45;">สรุปอันตราย สัญลักษณ์เตือน GHS และคำแนะนำกรณีสารเคมีหก</div>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: #f8fafc; border: 1px solid #edf2f7; border-radius: 14px;">
+                    <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(139, 92, 246, 0.1); color: #7c3aed; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                      <i data-lucide="trash-2" style="width: 17px; height: 17px;"></i>
+                    </div>
+                    <div>
+                      <div style="font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 2px;">จำแนกของเสีย 17 Class</div>
+                      <div style="font-size: 12.5px; color: #64748b; line-height: 1.45;">แนะนำถังทิ้งของเสียอันตรายและแนวทางบำบัดสารเคมีตามมาตรฐาน</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact & Action Buttons -->
+            <div style="text-align: center;">
+              <p style="font-size: 13.5px; color: #94a3b8; margin: 0 0 16px 0;">
+                หากมีข้อสงสัยเกี่ยวกับการใช้งานห้องแล็บหรือต้องการความช่วยเหลือด่วน สามารถติดต่อเจ้าหน้าที่ประจำห้องปฏิบัติการได้โดยตรง
+              </p>
+              <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px;">
+                <button type="button" class="btn btn-primary" onclick="if(typeof navigateToPanel==='function') navigateToPanel('dashboard');" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer;">
+                  <i data-lucide="layout-dashboard" style="width: 16px; height: 16px;"></i>
+                  <span>กลับสู่หน้าแรก (แดชบอร์ด)</span>
                 </button>
-              </div>
-              <p class="ask-subtitle-text">ถามคำถามเกี่ยวกับสารเคมี อุปกรณ์ ความปลอดภัย หรือการใช้งานห้องแล็บ</p>
-            </div>
-
-            <!-- Quick Suggestion Pills -->
-            <div class="ask-pills-shelf" id="askSuggestions">
-              <button type="button" class="ask-pill-chip" data-query="ค้นหาสารเคมี">
-                <i data-lucide="search" style="width: 13px; height: 13px;"></i>
-                <span>ค้นหาพัสดุ/สารเคมี</span>
-              </button>
-              <button type="button" class="ask-pill-chip" data-query="เช็คของใกล้หมดคลัง">
-                <i data-lucide="alert-triangle" style="width: 13px; height: 13px;"></i>
-                <span>เช็คของใกล้หมด</span>
-              </button>
-              <button type="button" class="ask-pill-chip" data-query="เช็คสารเคมีหมดอายุ">
-                <i data-lucide="clock" style="width: 13px; height: 13px;"></i>
-                <span>สารหมดอายุ</span>
-              </button>
-              <button type="button" class="ask-pill-chip" data-query="ดุลสมการ C3H8 + O2 -> CO2 + H2O">
-                <i data-lucide="flask-conical" style="width: 13px; height: 13px;"></i>
-                <span>ดุลสมการเคมี</span>
-              </button>
-              <button type="button" class="ask-pill-chip" data-query="คำนวณมวลโมเลกุล">
-                <i data-lucide="scale" style="width: 13px; height: 13px;"></i>
-                <span>คำนวณมวลโมเลกุล</span>
-              </button>
-              <button type="button" class="ask-pill-chip" data-query="เตรียมสารละลาย">
-                <i data-lucide="droplet" style="width: 13px; height: 13px;"></i>
-                <span>วิธีเตรียมสารละลาย</span>
-              </button>
-              <button type="button" class="ask-pill-chip" data-query="ปฐมพยาบาลสารเคมีหก">
-                <i data-lucide="siren" style="width: 13px; height: 13px;"></i>
-                <span>ปฐมพยาบาลสารหก</span>
-              </button>
-              <button type="button" class="ask-pill-chip" data-query="จำแนกของเสีย">
-                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
-                <span>จำแนกของเสีย 17 Class</span>
-              </button>
-              <button type="button" class="ask-pill-chip" data-query="วิธีใช้งานระบบ">
-                <i data-lucide="book-open" style="width: 13px; height: 13px;"></i>
-                <span>คู่มือใช้งานระบบ</span>
-              </button>
-            </div>
-
-            <!-- Messages Stream -->
-            <div class="ask-stream" id="askStream">
-              <!-- Initial example demonstrating clean typography matching reference screenshot -->
-              <div class="ask-row ask-row-user">
-                <div class="ask-bubble-user">
-                  How do I balance C3H8 + O2 -> CO2 + H2O?
-                </div>
-              </div>
-              <div class="ask-row ask-row-assistant">
-                <div class="ask-content-assistant">
-                  สมการที่ดุลเรียบร้อยแล้วคือ:<br>
-                  <strong>C₃H₈ + 5O₂ → 3CO₂ + 4H₂O</strong><br><br>
-                  • อัตราส่วนโมลสัมประสิทธิ์คือ <strong>1 : 5 : 3 : 4</strong><br>
-                  • ปฏิกิริยาการเผาไหม้สมบูรณ์ของแก๊สโพรเพน (Propane Combustion) ในสภาวะที่มีออกซิเจนเพียงพอ จะได้แก๊สคาร์บอนไดออกไซด์และไอน้ำ
-                </div>
-              </div>
-            </div>
-
-            <!-- Bottom Floating Pill Input Bar (Matching reference screenshot) -->
-            <div class="ask-floating-input-bar">
-              <div class="ask-pill-form">
-                <input 
-                  type="text" 
-                  id="askInputField" 
-                  class="ask-input-element" 
-                  placeholder="Ask a question..." 
-                  autocomplete="off"
-                  aria-label="Ask a question"
-                >
-                <button 
-                  type="button" 
-                  id="askSendButton" 
-                  class="ask-circle-send-btn" 
-                  title="ส่งข้อความ (Enter)" 
-                  aria-label="ส่งข้อความ"
-                >
-                  <i data-lucide="arrow-up" style="width: 16px; height: 16px; stroke-width: 2.2;"></i>
+                <button type="button" class="btn btn-secondary" onclick="if(typeof navigateToPanel==='function') navigateToPanel('all-items');" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; background: #ffffff; border: 1px solid #cbd5e1; color: #334155; cursor: pointer;">
+                  <i data-lucide="boxes" style="width: 16px; height: 16px;"></i>
+                  <span>ดูรายการสารเคมีและพัสดุ</span>
                 </button>
               </div>
             </div>
@@ -4834,7 +4843,6 @@
           </div>
         </div>
       </section>
-
 
     </main>
   </div>
@@ -5737,7 +5745,7 @@
        CHATBOT: LAB AI ASSISTANT WIDGET (Redesigned)
        ========================================== -->
   <!-- Floating Action Pill Widget: Chat with Stoki AI (Animated Eyes Restored) -->
-  <button class="chatbot-fab" id="chatbotFab" title="เปิดแชทกับผู้ช่วย AI Stoki" aria-label="เปิดแชทกับผู้ช่วย AI Stoki" type="button">
+  <button class="chatbot-fab" id="chatbotFab" title="ผู้ช่วย AI Stoki (Coming Soon)" aria-label="ผู้ช่วย AI Stoki (Coming Soon)" type="button">
     <div class="chatbot-fab-glow-ring"></div>
     <div class="chatbot-fab-avatar-wrapper">
       <div class="chatbot-fab-avatar">
@@ -5746,14 +5754,14 @@
           <div class="stoki-bot-eye right-eye"></div>
         </div>
       </div>
-      <span class="chatbot-pulse-dot" title="ระบบพร้อมให้บริการ"></span>
+      <span class="chatbot-pulse-dot coming-soon" title="Coming Soon" style="background: #f59e0b; box-shadow: 0 0 0 2px #fff, 0 0 6px rgba(245, 158, 11, 0.6);"></span>
     </div>
     <div class="chatbot-fab-content">
       <div class="chatbot-fab-headline">
         <span class="chatbot-fab-title">ถาม Stoki AI</span>
-        <span class="chatbot-fab-badge">PRO</span>
+        <span class="chatbot-fab-badge" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 9999px;">Coming Soon</span>
       </div>
-      <span class="chatbot-fab-subtitle">ผู้ช่วยแล็บอัจฉริยะ</span>
+      <span class="chatbot-fab-subtitle">เร็วๆ นี้ (Coming Soon)</span>
     </div>
   </button>
 
@@ -5769,16 +5777,16 @@
           <div class="chatbot-avatar">
             <img src="assets/images/stock-bitol-bot.png" id="chatbotHeaderIcon" alt="Stoki">
           </div>
-          <span class="status-live-beacon"></span>
+          <span class="status-live-beacon" style="background: #f59e0b;"></span>
         </div>
         <div class="chatbot-meta">
           <div class="chatbot-name-row">
             <span class="chatbot-title">Stoki AI Assistant</span>
-            <span class="chatbot-version-pill">Lab Intelligence</span>
+            <span class="chatbot-version-pill" style="background: rgba(245, 158, 11, 0.15); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.3);">Coming Soon</span>
           </div>
           <div class="chatbot-status-row">
-            <span class="status-live-dot"></span>
-            <span class="chatbot-status-text">ออนไลน์ • พร้อมช่วยเหลือตลอด 24 ชม.</span>
+            <span class="status-live-dot" style="background: #f59e0b;"></span>
+            <span class="chatbot-status-text">ระงับการใช้งานชั่วคราว • Coming Soon</span>
           </div>
         </div>
       </div>
@@ -5794,6 +5802,22 @@
 
     <!-- Redesigned Chat Messages Body -->
     <div class="chatbot-body" id="chatbotBody">
+      <!-- Coming Soon Notice Banner -->
+      <div style="margin: 12px 14px 16px 14px; padding: 16px 18px; border-radius: 16px; background: #fffbeb; border: 1.5px solid #fde68a; display: flex; align-items: flex-start; gap: 12px;">
+        <div style="width: 36px; height: 36px; border-radius: 10px; background: #fef3c7; color: #b45309; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
+        </div>
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <strong style="font-size: 14px; color: #92400e;">ระบบผู้ช่วย AI อยู่ระหว่างการพัฒนา</strong>
+            <span style="font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 9999px; background: #f59e0b; color: white;">Coming Soon</span>
+          </div>
+          <p style="font-size: 12.5px; color: #78350f; margin: 0; line-height: 1.5;">
+            ฟังก์ชันแชทบอทระงับการใช้งานชั่วคราวเพื่ออัปเกรดฐานข้อมูลและความปลอดภัยในการให้คำปรึกษาทางห้องแล็บ
+          </p>
+        </div>
+      </div>
+
       <!-- Bento Hero Welcome Card -->
       <div class="chat-welcome-bento">
         <div class="welcome-bento-header">
@@ -5918,27 +5942,23 @@
     <!-- Redesigned Chat Input Footer -->
     <div class="chatbot-footer">
       <div class="chatbot-input-container">
-        <div class="chatbot-input-wrap">
+        <div class="chatbot-input-wrap" style="opacity: 0.85; background: #f8fafc; border: 1.5px solid #e2e8f0;">
           <span class="chatbot-input-prefix-icon">
-            <i data-lucide="message-square" style="width: 15px; height: 15px;"></i>
+            <i data-lucide="lock" style="width: 15px; height: 15px; color: #94a3b8;"></i>
           </span>
-          <input type="text" id="chatbotInput" placeholder="พิมพ์คำถาม เช่น โซเดียมไฮดรอกไซด์, ดุลสมการ..." autocomplete="off">
-          <button type="button" id="chatbotSendBtn" aria-label="ส่งข้อความ" title="ส่งข้อความ (Enter)">
-            <i data-lucide="arrow-up" class="chatbot-send-icon"></i>
+          <input type="text" id="chatbotInput" placeholder="ฟังก์ชันนี้ระงับการใช้งานชั่วคราว (Coming Soon)" disabled style="background: transparent; cursor: not-allowed; color: #64748b;">
+          <button type="button" id="chatbotSendBtn" aria-label="Coming Soon" disabled style="opacity: 0.4; cursor: not-allowed; background: #94a3b8;">
+            <i data-lucide="clock" class="chatbot-send-icon"></i>
           </button>
         </div>
         <div class="chatbot-footer-caption">
           <div class="chatbot-caption-item">
-            <i data-lucide="sparkles" class="caption-sparkle-icon"></i>
-            <span>SciPortal AI</span>
+            <i data-lucide="clock" class="caption-sparkle-icon" style="color: #d97706;"></i>
+            <span style="color: #b45309; font-weight: 600;">Coming Soon</span>
           </div>
           <span class="chatbot-caption-dot">•</span>
           <div class="chatbot-caption-item">
-            <span>กด <kbd>Enter ↵</kbd> เพื่อส่ง</span>
-          </div>
-          <span class="chatbot-caption-dot">•</span>
-          <div class="chatbot-caption-item">
-            <span>มาตรฐาน SHECU</span>
+            <span>ระงับการใช้งานชั่วคราวเพื่ออัปเกรด</span>
           </div>
         </div>
       </div>
