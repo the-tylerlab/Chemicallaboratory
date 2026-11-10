@@ -71,6 +71,49 @@
             </div>
           </div>
 
+          <!-- Admin Account Credentials & Security Protection Banner -->
+          <div class="admin-credentials-banner" style="background: linear-gradient(135deg, #f8faff 0%, #f5f3ff 100%); border: 1px solid #ddd6fe; border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.06);">
+            <div style="display: flex; align-items: center; gap: 14px; min-width: 260px;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: #6366f1; color: #ffffff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);">
+                <i data-lucide="shield-check" style="width: 24px; height: 24px;"></i>
+              </div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: #0f172a;">ข้อมูลบัญชีผู้ดูแลระบบ (Admin Credentials)</h3>
+                  <span style="font-size: 11px; font-weight: 700; color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 9999px; display: inline-flex; align-items: center; gap: 4px;">
+                    <i data-lucide="lock" style="width: 11px; height: 11px;"></i>
+                    <span>ห้ามลบข้อมูลแอดมิน</span>
+                  </span>
+                </div>
+                <p style="margin: 3px 0 0; font-size: 12.5px; color: #64748b;">บัญชีแอดมินหลักถูกตั้งค่าความปลอดภัย ห้ามลบข้อมูลออกจากระบบ เพื่อป้องกันการสูญเสียสิทธิ์</p>
+              </div>
+            </div>
+
+            <!-- Credentials Box -->
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <!-- Username -->
+              <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <span style="font-size: 11.5px; font-weight: 600; color: #64748b;">Username:</span>
+                <code style="font-family: monospace; font-size: 13.5px; font-weight: 700; color: #0f172a; background: #f1f5f9; padding: 2px 8px; border-radius: 6px;">admin</code>
+                <button type="button" class="btn-copy-cred" onclick="copyCredText('admin', 'Username')" title="คัดลอก Username" style="border: none; background: transparent; cursor: pointer; color: #6366f1; padding: 2px; display: flex; align-items: center;">
+                  <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                </button>
+              </div>
+
+              <!-- Password -->
+              <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <span style="font-size: 11.5px; font-weight: 600; color: #64748b;">Password:</span>
+                <code id="adminDisplayPassword" style="font-family: monospace; font-size: 13.5px; font-weight: 700; color: #0f172a; background: #f1f5f9; padding: 2px 8px; border-radius: 6px; letter-spacing: 2px;">••••••••••••</code>
+                <button type="button" id="btnToggleAdminPw" onclick="toggleAdminMasterPassword()" title="แสดง/ซ่อนรหัสผ่าน" style="border: none; background: transparent; cursor: pointer; color: #64748b; padding: 2px; display: flex; align-items: center;">
+                  <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+                </button>
+                <button type="button" class="btn-copy-cred" onclick="copyCredText('SciAdmin@2026', 'Password')" title="คัดลอก Password" style="border: none; background: transparent; cursor: pointer; color: #6366f1; padding: 2px; display: flex; align-items: center;">
+                  <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Dashboard-Identical Compact Stat Cards Grid -->
           <div class="stat-grid admin-stat-grid" id="adminUsersStatGrid">
             <div class="stat-card blue" id="statCardAdminTotal">

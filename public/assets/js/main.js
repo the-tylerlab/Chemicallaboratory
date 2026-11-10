@@ -21122,6 +21122,24 @@ async function loadAdminData() {
 
     if (Array.isArray(adminUsers)) {
       adminUsers = adminUsers.filter(u => u && u.is_deleted !== true && u.isDeleted !== true);
+
+      // Ensure master admin user is always present and cannot be lost
+      const hasAdminUser = adminUsers.some(u => u.teacherId === 'admin' || u.id === 'u_admin' || u.username === 'admin');
+      if (!hasAdminUser) {
+        adminUsers.unshift({
+          id: "u_admin",
+          teacherId: "admin",
+          name: "อาจารย์ผู้ดูแลระบบ (Admin)",
+          department: "กลุ่มสาระการเรียนรู้วิทยาศาสตร์และเทคโนโลยี",
+          email: "admin@lab.school.ac.th",
+          role: "L3",
+          roleName: "Manager / System Manager",
+          assignedRooms: [],
+          initials: "AD",
+          color: "#8f8cf0"
+        });
+      }
+
       adminUsers.forEach(u => {
         u.color = getRoleColor(u.role);
         u.initials = getUserInitials(u.name);
@@ -21330,6 +21348,7 @@ function renderAdminUsers(filteredList = null) {
   displayUsers.forEach(user => {
     const roleLevel = user.role || 'L1';
     const badgeInfo = getRoleBadgeInfo(roleLevel);
+    const isUserAdmin = roleLevel === 'L3' || roleLevel === 'admin' || user.teacherId === 'admin' || user.id === 'u_admin' || user.username === 'admin';
     
     // Assigned rooms display for L2
     let roomsHtml = '<span style="color: var(--text-muted); font-size: 12px;">-</span>';
@@ -21346,7 +21365,10 @@ function renderAdminUsers(filteredList = null) {
     tr.style.borderBottom = "1px solid #f1f5f9";
     tr.innerHTML = `
       <td style="width: 36px; text-align: center; padding: 9px 4px;">
-        <input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 14px; height: 14px; accent-color: #0f172a; cursor: pointer; border-radius: 4px;">
+        ${isUserAdmin 
+          ? `<input type="checkbox" disabled title="ไม่อนุญาตให้ลบบัญชีแอดมิน (บัญชีได้รับการคุ้มครองความปลอดภัย)" style="width: 14px; height: 14px; opacity: 0.35; cursor: not-allowed; border-radius: 4px;">`
+          : `<input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 14px; height: 14px; accent-color: #0f172a; cursor: pointer; border-radius: 4px;">`
+        }
       </td>
       <td style="padding: 9px 8px; font-family: monospace; font-weight: 700; color: #0f172a; white-space: nowrap; font-size: 12.5px; width: 75px;">
         ${escapeHTML(user.teacherId || user.id || '-')}
@@ -21363,6 +21385,7 @@ function renderAdminUsers(filteredList = null) {
       <td style="padding: 9px 8px; color: #475569; font-size: 11.5px; max-width: 140px; line-height: 1.3;">${escapeHTML(user.department || 'กลุ่มสาระวิทยาศาสตร์')}</td>
       <td style="padding: 9px 8px; white-space: nowrap;">
         <span class="badge-role ${badgeInfo.className}" style="font-size: 11px; padding: 2px 7px; border-radius: 5px;">${badgeInfo.level} ${badgeInfo.name}</span>
+        ${isUserAdmin ? `<span style="font-size: 10px; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 1.5px 6px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; margin-left: 4px;" title="บัญชีผู้ดูแลระบบได้รับการคุ้มครองความปลอดภัย ห้ามลบข้อมูล"><i data-lucide="shield-alert" style="width: 10px; height: 10px;"></i> ห้ามลบ</span>` : ''}
       </td>
       <td style="padding: 9px 8px; font-size: 11.5px; max-width: 120px;">${roomsHtml}</td>
       <td style="padding: 10px 8px; white-space: nowrap; width: 150px; min-width: 150px; text-align: center;">
@@ -21393,7 +21416,10 @@ function renderAdminUsers(filteredList = null) {
       card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
           <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
-            <input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 16px; height: 16px; accent-color: #0f172a; cursor: pointer; border-radius: 4px; flex-shrink: 0;">
+            ${isUserAdmin
+              ? `<input type="checkbox" disabled title="ไม่อนุญาตให้ลบบัญชีแอดมิน" style="width: 16px; height: 16px; opacity: 0.35; cursor: not-allowed; border-radius: 4px; flex-shrink: 0;">`
+              : `<input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 16px; height: 16px; accent-color: #0f172a; cursor: pointer; border-radius: 4px; flex-shrink: 0;">`
+            }
             <div style="width:36px;height:36px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow: 0 2px 5px rgba(0,0,0,0.1);flex-shrink:0;">${getUserInitials(user.name)}</div>
             <div style="min-width: 0; flex: 1;">
               <div style="font-weight: 600; color: #0f172a; font-size: 13.5px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(user.name || '')}</div>
@@ -21414,6 +21440,7 @@ function renderAdminUsers(filteredList = null) {
         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #e2e8f0;">
           <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
             <span class="badge-role ${badgeInfo.className}" style="font-size: 11px; padding: 2px 7px; border-radius: 5px;">${badgeInfo.level} ${badgeInfo.name}</span>
+            ${isUserAdmin ? `<span style="font-size: 10px; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 1.5px 6px; border-radius: 4px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;"><i data-lucide="shield-alert" style="width: 10px; height: 10px;"></i> ห้ามลบ</span>` : ''}
             ${roomsHtml}
           </div>
           <div style="display: flex; align-items: center; gap: 6px;">
@@ -21544,21 +21571,30 @@ window.batchDeleteSelectedUsers = async function() {
     });
   });
 
-  // Guard: Protect currently logged-in user
+  // Guard: Protect currently logged-in user and all Admin (L3) users
   const loggedInUserId = (typeof currentUser !== "undefined" && currentUser) ? (currentUser.id || currentUser.teacherId) : null;
   const filteredUsers = selectedUsers.filter(u => {
     if (loggedInUserId && (u.id === loggedInUserId || u.teacherId === loggedInUserId)) {
       return false;
     }
+    const isTargetAdmin = u.role === 'L3' || u.role === 'admin' || u.teacherId === 'admin' || u.id === 'u_admin';
+    if (isTargetAdmin) {
+      return false;
+    }
     return true;
   });
 
+  const hasAdminSelected = selectedUsers.some(u => u.role === 'L3' || u.role === 'admin' || u.teacherId === 'admin' || u.id === 'u_admin');
+  if (hasAdminSelected) {
+    showToast("ระบบข้ามการลบบัญชีแอดมิน (ไม่อนุญาตให้ลบข้อมูลผู้ดูแลระบบ)", "warning");
+  }
+
   if (filteredUsers.length === 0) {
-    showToast("ไม่สามารถลบบัญชีของตนเองที่กำลังเข้าสู่ระบบอยู่ได้", "warning");
+    showToast("ไม่อนุญาตให้ลบบัญชีแอดมิน หรือบัญชีที่กำลังล็อกอินใช้งานอยู่", "warning");
     return;
   }
 
-  if (filteredUsers.length < selectedUsers.length) {
+  if (filteredUsers.length < selectedUsers.length && !hasAdminSelected) {
     showToast("ระบบข้ามการลบบัญชีที่กำลังล็อกอินใช้งานอยู่ในปัจจุบัน", "info");
   }
 
@@ -23938,6 +23974,25 @@ function openEditUserModal(id) {
     cb.checked = assigned.includes(cb.value);
   });
 
+  // Guard: Protect Admin Account from deletion
+  const isTargetAdmin = currentRole === 'L3' || user.role === 'admin' || user.teacherId === 'admin' || user.id === 'u_admin' || user.username === 'admin';
+  const deleteBtn = document.querySelector("#modalEditUser .btn-danger");
+  if (deleteBtn) {
+    if (isTargetAdmin) {
+      deleteBtn.disabled = true;
+      deleteBtn.style.opacity = "0.5";
+      deleteBtn.style.cursor = "not-allowed";
+      deleteBtn.title = "ไม่อนุญาตให้ลบบัญชีแอดมิน (บัญชีผู้ดูแลระบบได้รับการคุ้มครองความปลอดภัย)";
+      deleteBtn.innerHTML = `<i data-lucide="lock" style="width: 14px; height: 14px;"></i><span>บัญชีแอดมิน (ห้ามลบ)</span>`;
+    } else {
+      deleteBtn.disabled = false;
+      deleteBtn.style.opacity = "1";
+      deleteBtn.style.cursor = "pointer";
+      deleteBtn.title = "ลบผู้ใช้นี้";
+      deleteBtn.innerHTML = `<i data-lucide="trash-2" style="width: 14px; height: 14px;"></i><span>ลบผู้ใช้นี้</span>`;
+    }
+  }
+
   toggleAssignedRoomsField('edit');
   document.getElementById("modalEditUser").style.display = "flex";
   if (window.lucide) lucide.createIcons();
@@ -23988,7 +24043,33 @@ window.toggleEditUserPassVisibility = function() {
     elInput.type = "password";
     if (elIcon) elIcon.setAttribute("data-lucide", "eye");
   }
+};
+
+window.toggleAdminMasterPassword = function() {
+  const el = document.getElementById("adminDisplayPassword");
+  const btn = document.getElementById("btnToggleAdminPw");
+  if (!el) return;
+  if (el.getAttribute("data-revealed") === "true") {
+    el.textContent = "••••••••••••";
+    el.style.letterSpacing = "2px";
+    el.removeAttribute("data-revealed");
+    if (btn) btn.innerHTML = `<i data-lucide="eye" style="width: 14px; height: 14px;"></i>`;
+  } else {
+    el.textContent = "SciAdmin@2026";
+    el.style.letterSpacing = "0.5px";
+    el.setAttribute("data-revealed", "true");
+    if (btn) btn.innerHTML = `<i data-lucide="eye-off" style="width: 14px; height: 14px;"></i>`;
+  }
   if (window.lucide) lucide.createIcons();
+};
+
+window.copyCredText = function(text, label = "ข้อมูล") {
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    if (typeof showToast === 'function') showToast(`คัดลอก ${label} เรียบร้อยแล้ว`, "success");
+  }).catch(() => {
+    prompt(`คัดลอก ${label}:`, text);
+  });
 };
 
 window.copyEditUserPassword = function() {
@@ -24276,9 +24357,22 @@ document.addEventListener("DOMContentLoaded", () => {
 async function deleteAdminUser() {
   const id = document.getElementById("editUserId").value;
   if (!id) return;
-  if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?")) return;
 
   const targetUser = Array.isArray(adminUsers) ? adminUsers.find(u => u.id === id || u.teacherId === id || u.teacher_id === id) : null;
+  const isTargetAdmin = targetUser && (
+    targetUser.role === 'L3' ||
+    targetUser.role === 'admin' ||
+    targetUser.teacherId === 'admin' ||
+    targetUser.id === 'u_admin' ||
+    targetUser.username === 'admin'
+  );
+  if (isTargetAdmin || id === 'admin' || id === 'u_admin') {
+    showToast("ไม่อนุญาตให้ลบข้อมูลแอดมิน (บัญชีผู้ดูแลระบบได้รับการคุ้มครองความปลอดภัย)", "error");
+    return;
+  }
+
+  if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบผู้ใช้นี้?")) return;
+
   const teacherId = targetUser?.teacherId || targetUser?.teacher_id || id;
   const actualId = targetUser?.id || id;
   const cleanId = String(actualId || '').replace(/^u_/, '');

@@ -5433,6 +5433,21 @@ app.delete('/api/users/:id', authenticateToken, requireRole('L3'), async (req, r
   let users = await fetchLiveUsers(true);
   const userToDelete = users.find(u => u.id === targetId || u.teacherId === targetId || u.teacher_id === targetId);
 
+  // Security Guard: Forbid deleting any Admin (L3) or master admin user
+  const isTargetAdmin = userToDelete && (
+    userToDelete.role === 'L3' ||
+    userToDelete.role === 'admin' ||
+    userToDelete.teacherId === 'admin' ||
+    userToDelete.id === 'u_admin' ||
+    userToDelete.username === 'admin'
+  );
+  if (isTargetAdmin || targetId === 'admin' || targetId === 'u_admin') {
+    return res.status(403).json({
+      error: 'FORBIDDEN_ADMIN_PROTECTED',
+      message: 'ไม่อนุญาตให้ลบข้อมูลแอดมิน (Admin account is protected from deletion)'
+    });
+  }
+
   const actor = req.user?.teacherId || req.user?.name || 'admin';
   const teacherId = userToDelete?.teacherId || userToDelete?.teacher_id || targetId;
 
@@ -5495,9 +5510,28 @@ app.post('/api/users/batch-delete', authenticateToken, requireRole('L3'), async 
     return res.status(400).json({ error: "No user IDs provided" });
   }
 
-  const allIds = Array.isArray(teacherIds) ? [...new Set([...ids, ...teacherIds])] : ids;
-
   let users = await fetchLiveUsers(true);
+
+  // Security Guard: Strictly exclude any Admin (L3) user from batch deletion
+  const safeIds = (ids || []).filter(id => {
+    const u = users.find(x => x.id === id || x.teacherId === id);
+    const isTargetAdmin = u && (u.role === 'L3' || u.role === 'admin' || u.teacherId === 'admin' || u.id === 'u_admin' || u.username === 'admin');
+    return !isTargetAdmin && id !== 'admin' && id !== 'u_admin';
+  });
+  const safeTeacherIds = (teacherIds || []).filter(tid => {
+    const u = users.find(x => x.teacherId === tid || x.id === tid);
+    const isTargetAdmin = u && (u.role === 'L3' || u.role === 'admin' || u.teacherId === 'admin' || u.id === 'u_admin' || u.username === 'admin');
+    return !isTargetAdmin && tid !== 'admin' && tid !== 'u_admin';
+  });
+
+  if (safeIds.length === 0 && (ids || []).length > 0) {
+    return res.status(403).json({
+      error: 'FORBIDDEN_ADMIN_PROTECTED',
+      message: 'ไม่อนุญาตให้ลบข้อมูลแอดมิน (Admin accounts cannot be deleted)'
+    });
+  }
+
+  const allIds = Array.isArray(safeTeacherIds) ? [...new Set([...safeIds, ...safeTeacherIds])] : safeIds;
   const deletedUsers = users.filter(u => allIds.includes(u.id) || (u.teacherId && allIds.includes(u.teacherId)));
 
   // 1. Delete in Supabase (Primary Source of Truth)
