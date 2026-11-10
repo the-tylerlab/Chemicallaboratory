@@ -226,14 +226,14 @@
   <link rel="stylesheet" href="assets/css/tailwind.css?v=20261110_zero_fouc">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="assets/css/style.css?v=20261110_render_ready">
-  <link rel="stylesheet" href="assets/css/components/sidebar-redesign.css?v=20261110_render_ready">
-  <link rel="stylesheet" href="assets/css/dashboard-announcement.css?v=20261110_render_ready">
-  <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261110_render_ready">
-  <link rel="stylesheet" href="assets/css/rolling-counter.css?v=20261110_render_ready">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261110_speed_boost">
+  <link rel="stylesheet" href="assets/css/components/sidebar-redesign.css?v=20261110_speed_boost">
+  <link rel="stylesheet" href="assets/css/dashboard-announcement.css?v=20261110_speed_boost">
+  <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261110_speed_boost">
+  <link rel="stylesheet" href="assets/css/rolling-counter.css?v=20261110_speed_boost">
 
   <!-- Core Libraries -->
-  <script src="assets/js/lucide.min.js?v=20261110_render_ready"></script>
+  <script defer src="assets/js/lucide.min.js?v=20261110_speed_boost"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script defer src="assets/js/qrcode.min.js"></script>
   <script defer src="assets/js/bwip-js.min.js"></script>
@@ -661,18 +661,18 @@
   <!-- @include components/modals/help-safety-modal.html -->
 
   <!-- Application Logic -->
-  <script defer src="assets/js/main.js?v=20261110_render_ready"></script>
-  <script defer src="assets/js/dashboard-announcement.js?v=20261110_render_ready"></script>
-  <script defer src="assets/js/rolling-counter.js?v=20261110_render_ready"></script>
+  <script defer src="assets/js/main.js?v=20261110_speed_boost"></script>
+  <script defer src="assets/js/dashboard-announcement.js?v=20261110_speed_boost"></script>
+  <script defer src="assets/js/rolling-counter.js?v=20261110_speed_boost"></script>
   <script>
-    // Safeguard: Ensure skeleton loader is dismissed after max 1800ms regardless of network state
+    // Safeguard: Ensure skeleton loader is dismissed quickly once content is ready
     setTimeout(function() {
       var sk = document.getElementById("app-skeleton-loader");
       if (sk) {
         sk.classList.add("fade-out");
         setTimeout(function() { if (sk && sk.parentNode) sk.remove(); }, 350);
       }
-    }, 1800);
+    }, 1000);
 
     // Standard Lucide Icons Initializer
     function initLucideIcons() {

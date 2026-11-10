@@ -105,11 +105,19 @@ function bundleStyles() {
     }
     const content = fs.readFileSync(fullPath, 'utf8');
     totalBytes += content.length;
-    bundled += `\n/* --- MODULE: ${relPath} --- */\n` + content + '\n';
+    bundled += content + '\n';
   }
 
-  fs.writeFileSync(MAIN_STYLE_PATH, bundled, 'utf8');
-  console.log(`[build_styles] Successfully bundled ${CSS_MODULES.length} modules (${(totalBytes / 1024).toFixed(1)} KB) into style.css`);
+  // Minify CSS for fast network transmission & unblock render pipeline
+  const minified = bundled
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\s*([\{\};:,>])\s*/g, '$1')
+    .replace(/;}/g, '}')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  fs.writeFileSync(MAIN_STYLE_PATH, minified, 'utf8');
+  console.log(`[build_styles] Successfully bundled ${CSS_MODULES.length} modules (${(totalBytes / 1024).toFixed(1)} KB -> ${(minified.length / 1024).toFixed(1)} KB minified) into style.css`);
 }
 
 /**

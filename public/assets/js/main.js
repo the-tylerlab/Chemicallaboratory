@@ -68,10 +68,37 @@ if (typeof window !== "undefined" && window.fetch && !window.__GLOBAL_FETCH_INTE
 // STATE MANAGEMENT & INITIALIZATION
 // ==========================================================================
 
-// Global state variables
-let items = [];
-let transactions = [];
-let bookings = [];
+// Global state variables with Instant Cache-First Hydration (0ms Stale-While-Revalidate)
+let items = (() => {
+  try {
+    const cached = typeof localStorage !== 'undefined' ? localStorage.getItem('lab_items') : null;
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (_) {}
+  return [];
+})();
+let transactions = (() => {
+  try {
+    const cached = typeof localStorage !== 'undefined' ? localStorage.getItem('lab_transactions') : null;
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (_) {}
+  return [];
+})();
+let bookings = (() => {
+  try {
+    const cached = typeof localStorage !== 'undefined' ? localStorage.getItem('lab_bookings') : null;
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (_) {}
+  return [];
+})();
 let labLayouts = {};
 let activityLogs = [];
 let currentPage = 1;
@@ -1877,6 +1904,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (typeof renderDashboardUrgentAlerts === "function") renderDashboardUrgentAlerts();
     if (window.lucide && typeof window.lucide.createIcons === "function") window.lucide.createIcons();
 
+    // Instant Fast-Path: If items and bookings are already hydrated from cache, dismiss skeleton immediately (0ms wait)
+    if (items.length > 0) {
+      setTimeout(dismissSkeletonLoader, 150);
+    }
+
     // 4. Update system version dynamically (non-blocking)
     fetchAppVersion();
 
@@ -1914,17 +1946,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (typeof updateDashboardCalendarStats === "function") updateDashboardCalendarStats();
       if (window.lucide) lucide.createIcons();
 
-      // Ensure smooth skeleton perception (min 350ms, max 1.5s)
+      // Ensure smooth skeleton perception (instant 100ms when cached, max 300ms on cold start)
+      const minWait = items.length > 0 ? 100 : 300;
       const elapsed = Date.now() - initLoadStartTime;
-      const remainingWait = Math.max(0, 350 - elapsed);
+      const remainingWait = Math.max(0, minWait - elapsed);
       setTimeout(dismissSkeletonLoader, remainingWait);
     }).catch(err => {
       console.warn("Parallel cloud sync warning:", err);
       dismissSkeletonLoader();
     });
 
-    // Safety fallback: ensure skeleton is dismissed after max 1500ms
-    setTimeout(dismissSkeletonLoader, 1500);
+    // Safety fallback: ensure skeleton is dismissed after max 900ms
+    setTimeout(dismissSkeletonLoader, 900);
 
   } catch (err) {
     console.error("Application initialization warning:", err);

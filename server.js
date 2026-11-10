@@ -2232,6 +2232,7 @@ app.get('/api/barcode', async (req, res) => {
 // Supabase credentials are server-only. The browser uses the application API,
 // so never serialize SUPABASE_KEY here (it may be the service-role key).
 app.get('/api/config', (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   res.json({
     googleScriptUrl: GOOGLE_SCRIPT_URL || null,
     nodeEnv: NODE_ENV,
@@ -2247,9 +2248,7 @@ app.get('/api/config', (req, res) => {
 
 // 1. GET /api/items — Fetch all items from cloud & local
 app.get('/api/items', async (req, res) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
+  res.setHeader('Cache-Control', 'public, max-age=15, s-maxage=30, stale-while-revalidate=120');
   const items = await fetchLiveItems();
   const sanitized = items.map(({ createdBy, updatedBy, is_deleted, ...rest }) => rest);
   res.json(sanitized);
@@ -3507,9 +3506,7 @@ app.post('/api/bookings/check-conflict', async (req, res) => {
 
 // GET /api/bookings (Public can view to check room availability calendar)
 app.get('/api/bookings', async (req, res) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
+  res.setHeader('Cache-Control', 'public, max-age=15, s-maxage=30, stale-while-revalidate=120');
   const bookings = await fetchLiveBookings();
   res.json(bookings);
 });
@@ -6099,6 +6096,7 @@ app.post('/api/emergency-contacts', authenticateToken, requireRole('L3'), (req, 
 
 // ACADEMIC CLASSES & PROGRAMS SETTINGS
 app.get('/api/academic-classes', async (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
   try {
     const data = await fetchLiveAcademicClasses();
     res.json(data);
