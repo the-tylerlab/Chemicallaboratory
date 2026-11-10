@@ -4536,6 +4536,27 @@ function renderCategoryBreakdown() {
 }
 
 
+let isUrgentAlertsExpanded = false;
+
+window.toggleUrgentAlertsExpand = function(e) {
+  if (e) {
+    if (typeof e.preventDefault === "function") e.preventDefault();
+    if (typeof e.stopPropagation === "function") e.stopPropagation();
+  }
+  isUrgentAlertsExpanded = !isUrgentAlertsExpanded;
+  renderDashboardUrgentAlerts();
+};
+
+window.navigateToUrgentItems = function(e) {
+  if (e) {
+    if (typeof e.preventDefault === "function") e.preventDefault();
+    if (typeof e.stopPropagation === "function") e.stopPropagation();
+  }
+  if (typeof navigateToPanel === "function") {
+    navigateToPanel('all-items', 'all', 'urgent');
+  }
+};
+
 function renderDashboardUrgentAlerts() {
   const container = document.getElementById("dashboardUrgentContainer");
   const countBadge = document.getElementById("dashboardUrgentCount");
@@ -4569,8 +4590,8 @@ function renderDashboardUrgentAlerts() {
   countBadge.innerText = urgentItems.length;
   countBadge.style.display = "inline-flex";
 
-  // Select top 3 urgent alerts
-  const displayItems = urgentItems.slice(0, 3);
+  // Select top 3 urgent alerts or all if expanded
+  const displayItems = isUrgentAlertsExpanded ? urgentItems : urgentItems.slice(0, 3);
   let html = `<div style="display: flex; flex-direction: column; gap: 12px; height: 100%;">`;
   displayItems.forEach(item => {
     const status = getItemStatus(item);
@@ -4607,14 +4628,41 @@ function renderDashboardUrgentAlerts() {
   });
 
   if (urgentItems.length > 3) {
-    html += `
-      <a href="#" onclick="navigateToPanel('all-items')" style="font-size: 12px; color: var(--primary); text-align: center; font-weight: 600; display: block; margin-top: 4px;">
-        ดูรายการแจ้งเตือนด่วนอีก ${urgentItems.length - 3} รายการ...
-      </a>
-    `;
+    if (!isUrgentAlertsExpanded) {
+      html += `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color, #e2e8f0); flex-wrap: wrap;">
+          <button type="button" onclick="navigateToUrgentItems(event)" style="background: none; border: none; font-size: 12px; color: var(--primary, #4f46e5); font-weight: 600; cursor: pointer; padding: 4px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;" title="ไปที่หน้ารายการพัสดุและสารเคมีทั้งหมดที่อยู่ในสถานะเตือนด่วน">
+            <span>ดูรายการแจ้งเตือนด่วนอีก ${urgentItems.length - 3} รายการ...</span>
+            <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+          </button>
+          <span style="color: var(--text-muted, #94a3b8); font-size: 11px;">•</span>
+          <button type="button" onclick="toggleUrgentAlertsExpand(event)" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); font-size: 11px; color: var(--primary, #4f46e5); font-weight: 500; cursor: pointer; padding: 3px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;" title="แสดงรายการเตือนด่วนทั้งหมดในกล่องนี้">
+            <i data-lucide="chevrons-down" style="width: 12px; height: 12px;"></i>
+            <span>คลี่ดูที่นี่</span>
+          </button>
+        </div>
+      `;
+    } else {
+      html += `
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color, #e2e8f0); flex-wrap: wrap;">
+          <button type="button" onclick="toggleUrgentAlertsExpand(event)" style="background: rgba(148, 163, 184, 0.12); border: 1px solid rgba(148, 163, 184, 0.25); font-size: 11px; color: var(--text-color, #334155); font-weight: 500; cursor: pointer; padding: 3px 8px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;">
+            <i data-lucide="chevrons-up" style="width: 12px; height: 12px;"></i>
+            <span>ย่อรายการ (แสดง 3 รายการ)</span>
+          </button>
+          <span style="color: var(--text-muted, #94a3b8); font-size: 11px;">•</span>
+          <button type="button" onclick="navigateToUrgentItems(event)" style="background: none; border: none; font-size: 12px; color: var(--primary, #4f46e5); font-weight: 600; cursor: pointer; padding: 4px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+            <span>เปิดดูในหน้ารายการทั้งหมด (${urgentItems.length} รายการ)</span>
+            <i data-lucide="arrow-right" style="width: 13px; height: 13px;"></i>
+          </button>
+        </div>
+      `;
+    }
   }
   html += `</div>`;
   container.innerHTML = html;
+  if (typeof lucide !== "undefined" && lucide.createIcons) {
+    lucide.createIcons();
+  }
 }
 
 // Category Pill Tabs Filtering & Counts (with L2 Room Isolation RBAC)
@@ -4834,7 +4882,9 @@ function renderItemsTable() {
 
     // 3. Status Filter
     const status = getItemStatus(item);
-    const matchesStatus = filterStatus === "all" || status === filterStatus;
+    const matchesStatus = filterStatus === "all" || 
+      status === filterStatus || 
+      (filterStatus === "urgent" && (status === "expired" || status === "low-stock"));
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
