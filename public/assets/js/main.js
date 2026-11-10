@@ -21367,7 +21367,7 @@ function renderAdminUsers(filteredList = null) {
       <td style="width: 36px; text-align: center; padding: 9px 4px;">
         ${isUserAdmin 
           ? `<input type="checkbox" disabled title="ไม่อนุญาตให้ลบบัญชีแอดมิน (บัญชีได้รับการคุ้มครองความปลอดภัย)" style="width: 14px; height: 14px; opacity: 0.35; cursor: not-allowed; border-radius: 4px;">`
-          : `<input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 14px; height: 14px; accent-color: #0f172a; cursor: pointer; border-radius: 4px;">`
+          : `<input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange('${escapeHTML(user.id)}', this.checked)" style="width: 14px; height: 14px; accent-color: #0f172a; cursor: pointer; border-radius: 4px;">`
         }
       </td>
       <td style="padding: 9px 8px; font-family: monospace; font-weight: 700; color: #0f172a; white-space: nowrap; font-size: 12.5px; width: 75px;">
@@ -21418,7 +21418,7 @@ function renderAdminUsers(filteredList = null) {
           <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
             ${isUserAdmin
               ? `<input type="checkbox" disabled title="ไม่อนุญาตให้ลบบัญชีแอดมิน" style="width: 16px; height: 16px; opacity: 0.35; cursor: not-allowed; border-radius: 4px; flex-shrink: 0;">`
-              : `<input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange()" style="width: 16px; height: 16px; accent-color: #0f172a; cursor: pointer; border-radius: 4px; flex-shrink: 0;">`
+              : `<input type="checkbox" class="user-select-checkbox" data-user-id="${escapeHTML(user.id)}" data-teacher-id="${escapeHTML(user.teacherId || '')}" data-user-name="${escapeHTML(user.name || '')}" data-role="${escapeHTML(user.role || 'L1')}" onchange="onUserSelectionChange('${escapeHTML(user.id)}', this.checked)" style="width: 16px; height: 16px; accent-color: #0f172a; cursor: pointer; border-radius: 4px; flex-shrink: 0;">`
             }
             <div style="width:36px;height:36px;border-radius:50%;background:${getRoleColor(user.role)};color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow: 0 2px 5px rgba(0,0,0,0.1);flex-shrink:0;">${getUserInitials(user.name)}</div>
             <div style="min-width: 0; flex: 1;">
@@ -21514,7 +21514,7 @@ window.filterAdminUsersTable = function() {
 };
 
 window.toggleSelectAllUsers = function(isChecked) {
-  const checkboxes = document.querySelectorAll(".user-select-checkbox");
+  const checkboxes = document.querySelectorAll(".user-select-checkbox:not(:disabled)");
   checkboxes.forEach(cb => {
     cb.checked = isChecked;
   });
@@ -21523,13 +21523,25 @@ window.toggleSelectAllUsers = function(isChecked) {
   }
 };
 
-window.onUserSelectionChange = function() {
-  const checkboxes = document.querySelectorAll(".user-select-checkbox");
-  const total = checkboxes.length;
-  let checkedCount = 0;
-  checkboxes.forEach(cb => {
-    if (cb.checked) checkedCount++;
+window.onUserSelectionChange = function(changedUserId, isChecked) {
+  if (changedUserId !== undefined && typeof isChecked === 'boolean') {
+    document.querySelectorAll(`.user-select-checkbox[data-user-id="${changedUserId}"]:not(:disabled)`).forEach(cb => {
+      cb.checked = isChecked;
+    });
+  }
+
+  // Count unique selectable users currently checked (prevents desktop + mobile double-counting)
+  const checkedBoxes = document.querySelectorAll(".user-select-checkbox:checked");
+  const selectedUserIds = new Set();
+  checkedBoxes.forEach(cb => {
+    const uid = cb.getAttribute("data-user-id");
+    if (uid) selectedUserIds.add(uid);
   });
+
+  // Total unique available selectable users on current page (from desktop table)
+  const availableTableBoxes = document.querySelectorAll("#adminUsersTableBody .user-select-checkbox:not(:disabled)");
+  const total = availableTableBoxes.length;
+  const checkedCount = selectedUserIds.size;
 
   const selectAll = document.getElementById("selectAllUsersCheckbox");
   if (selectAll) {
@@ -21561,15 +21573,21 @@ window.batchDeleteSelectedUsers = async function() {
     return;
   }
 
-  const selectedUsers = [];
+  // Deduplicate by user ID to prevent desktop/mobile duplicate counting
+  const userMap = new Map();
   checkboxes.forEach(cb => {
-    selectedUsers.push({
-      id: cb.getAttribute("data-user-id"),
-      teacherId: cb.getAttribute("data-teacher-id"),
-      name: cb.getAttribute("data-user-name") || cb.getAttribute("data-user-id"),
-      role: cb.getAttribute("data-role") || "L1"
-    });
+    const uid = cb.getAttribute("data-user-id");
+    if (uid && !userMap.has(uid)) {
+      userMap.set(uid, {
+        id: uid,
+        teacherId: cb.getAttribute("data-teacher-id"),
+        name: cb.getAttribute("data-user-name") || uid,
+        role: cb.getAttribute("data-role") || "L1"
+      });
+    }
   });
+
+  const selectedUsers = Array.from(userMap.values());
 
   // Guard: Protect currently logged-in user and all Admin (L3) users
   const loggedInUserId = (typeof currentUser !== "undefined" && currentUser) ? (currentUser.id || currentUser.teacherId) : null;
