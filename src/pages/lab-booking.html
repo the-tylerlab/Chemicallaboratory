@@ -72,88 +72,57 @@
               <div id="bookingSubmitFields">
                 <div class="form-row-2" style="margin-top: 14px; gap: 14px;">
                   <div class="form-group" style="margin-bottom: 0;">
-                    <label for="bookingGradeLevel" class="form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
-                      <span>ระบุระดับชั้นของนักเรียนที่เข้าใช้งาน <span style="color: var(--accent-red);">*</span></span>
-                      <span style="font-size: 11px; font-weight: 400; color: var(--text-muted);">(คลิกเลือกด่วน หรือพิมพ์ระบุ)</span>
-                    </label>
-
-                    <!-- Quick Level Picker Pills -->
-                    <div class="grade-picker-container" id="gradePickerContainer" style="margin-bottom: 6px;">
-                      <div class="grade-pill-row" role="group" aria-label="เลือกระดับชั้นด่วน">
-                        <button type="button" class="grade-pill-btn" data-level="ม.1">ม.1</button>
-                        <button type="button" class="grade-pill-btn" data-level="ม.2">ม.2</button>
-                        <button type="button" class="grade-pill-btn" data-level="ม.3">ม.3</button>
-                        <button type="button" class="grade-pill-btn" data-level="ม.4">ม.4</button>
-                        <button type="button" class="grade-pill-btn" data-level="ม.5">ม.5</button>
-                        <button type="button" class="grade-pill-btn" data-level="ม.6">ม.6</button>
-                        <button type="button" class="grade-pill-btn" data-level="EP">EP</button>
-                        <button type="button" class="grade-pill-btn" data-level="รวม">รวม</button>
-                      </div>
-
-                      <!-- Sub-Room Pills (Appears when level is selected) -->
-                      <div class="grade-sub-row" id="gradeSubRow" style="display: none;">
-                        <span class="grade-sub-label">ห้อง:</span>
-                        <div class="grade-sub-pills" id="gradeSubPills"></div>
-                      </div>
-                    </div>
-
-                    <div style="position: relative; width: 100%;">
-                      <input type="text" id="bookingGradeLevel" class="form-control" list="bookingGradeDatalist" placeholder="เช่น ม.4/1, ม.5/2, ม.ต้น" autocomplete="off" required style="padding-right: 32px; font-weight: 600;">
-                      <button type="button" id="btnClearGradeInput" style="display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 4px; cursor: pointer; color: #94a3b8; border-radius: 4px;" title="ล้างการเลือก">
-                        <i data-lucide="x" style="width: 14px; height: 14px;"></i>
-                      </button>
-                    </div>
-
-                    <datalist id="bookingGradeDatalist">
-                      <option value="ม.1/1">ม.1/1</option>
-                      <option value="ม.1/2">ม.1/2</option>
-                      <option value="ม.1/3">ม.1/3</option>
-                      <option value="ม.1/4">ม.1/4</option>
-                      <option value="ม.2/1">ม.2/1</option>
-                      <option value="ม.2/2">ม.2/2</option>
-                      <option value="ม.2/3">ม.2/3</option>
-                      <option value="ม.2/4">ม.2/4</option>
-                      <option value="ม.3/1">ม.3/1</option>
-                      <option value="ม.3/2">ม.3/2</option>
-                      <option value="ม.3/3">ม.3/3</option>
-                      <option value="ม.3/4">ม.3/4</option>
-                      <option value="ม.4/1">ม.4/1</option>
-                      <option value="ม.4/2">ม.4/2</option>
-                      <option value="ม.4/3">ม.4/3</option>
-                      <option value="ม.4/4">ม.4/4</option>
-                      <option value="ม.5/1">ม.5/1</option>
-                      <option value="ม.5/2">ม.5/2</option>
-                      <option value="ม.5/3">ม.5/3</option>
-                      <option value="ม.6/1">ม.6/1</option>
-                      <option value="ม.6/2">ม.6/2</option>
-                      <option value="ม.6/3">ม.6/3</option>
-                      <option value="EP-M.1">EP-M.1</option>
-                      <option value="EP-M.2">EP-M.2</option>
-                      <option value="EP-M.3">EP-M.3</option>
-                      <option value="EP-M.4">EP-M.4</option>
-                      <option value="EP-M.5">EP-M.5</option>
-                      <option value="EP-M.6">EP-M.6</option>
-                      <option value="ม.ต้น (รวมทุกห้อง)">ม.ต้น (รวมทุกห้อง)</option>
-                      <option value="ม.ปลาย (รวมทุกห้อง)">ม.ปลาย (รวมทุกห้อง)</option>
-                      <option value="ชมรมวิทยาศาสตร์">ชมรมวิทยาศาสตร์</option>
-                    </datalist>
+                    <label for="bookingGradeLevel" class="form-label">ระดับชั้นเรียนของนักเรียนที่เข้าใช้งาน <span style="color: var(--accent-red);">*</span></label>
+                    <select id="bookingGradeLevel" class="form-control" required style="font-weight: 500;">
+                      <option value="" disabled selected>-- เลือกระดับชั้นเรียน --</option>
+                      <optgroup label="มัธยมศึกษาตอนปลาย">
+                        <option value="ม.4/1">ม.4/1</option>
+                        <option value="ม.4/2">ม.4/2</option>
+                        <option value="ม.4/3">ม.4/3</option>
+                        <option value="ม.4/4">ม.4/4</option>
+                        <option value="ม.5/1">ม.5/1</option>
+                        <option value="ม.5/2">ม.5/2</option>
+                        <option value="ม.5/3">ม.5/3</option>
+                        <option value="ม.5/4">ม.5/4</option>
+                        <option value="ม.6/1">ม.6/1</option>
+                        <option value="ม.6/2">ม.6/2</option>
+                        <option value="ม.6/3">ม.6/3</option>
+                        <option value="ม.6/4">ม.6/4</option>
+                      </optgroup>
+                      <optgroup label="มัธยมศึกษาตอนต้น">
+                        <option value="ม.1/1">ม.1/1</option>
+                        <option value="ม.1/2">ม.1/2</option>
+                        <option value="ม.1/3">ม.1/3</option>
+                        <option value="ม.1/4">ม.1/4</option>
+                        <option value="ม.2/1">ม.2/1</option>
+                        <option value="ม.2/2">ม.2/2</option>
+                        <option value="ม.2/3">ม.2/3</option>
+                        <option value="ม.2/4">ม.2/4</option>
+                        <option value="ม.3/1">ม.3/1</option>
+                        <option value="ม.3/2">ม.3/2</option>
+                        <option value="ม.3/3">ม.3/3</option>
+                        <option value="ม.3/4">ม.3/4</option>
+                      </optgroup>
+                      <optgroup label="English Program (EP)">
+                        <option value="EP-M.1">EP-M.1</option>
+                        <option value="EP-M.2">EP-M.2</option>
+                        <option value="EP-M.3">EP-M.3</option>
+                        <option value="EP-M.4">EP-M.4</option>
+                        <option value="EP-M.5">EP-M.5</option>
+                        <option value="EP-M.6">EP-M.6</option>
+                      </optgroup>
+                      <optgroup label="ระดับชั้นภาพรวม / อื่นๆ">
+                        <option value="ม.ต้น (รวม)">ม.ต้น (รวมทุกห้อง)</option>
+                        <option value="ม.ปลาย (รวม)">ม.ปลาย (รวมทุกห้อง)</option>
+                        <option value="ชมรมวิทยาศาสตร์">ชมรมวิทยาศาสตร์</option>
+                        <option value="custom">ระบุอื่นๆ (พิมพ์เอง)...</option>
+                      </optgroup>
+                    </select>
+                    <input type="text" id="bookingGradeLevelCustom" class="form-control" placeholder="พิมพ์ระบุ เช่น ม.4/5 Gifted, โครงการพิเศษ" style="display: none; margin-top: 8px;">
                   </div>
 
                   <div class="form-group" style="margin-bottom: 0;">
-                    <label for="bookingStudentCount" class="form-label" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
-                      <span>จำนวนนักเรียนที่เข้าใช้งานทั้งหมด <span style="color: var(--accent-red);">*</span></span>
-                      <span style="font-size: 11px; font-weight: 400; color: var(--text-muted);">(คลิกเลือกด่วน)</span>
-                    </label>
-
-                    <!-- Quick Count Pills -->
-                    <div class="student-count-quick-pills" style="margin-bottom: 6px;">
-                      <button type="button" class="count-pill-btn" data-count="30">30</button>
-                      <button type="button" class="count-pill-btn" data-count="35">35</button>
-                      <button type="button" class="count-pill-btn" data-count="40">40</button>
-                      <button type="button" class="count-pill-btn" data-count="45">45</button>
-                      <button type="button" class="count-pill-btn" data-count="50">50</button>
-                    </div>
-
+                    <label for="bookingStudentCount" class="form-label">จำนวนนักเรียนที่เข้าใช้งานทั้งหมด <span style="color: var(--accent-red);">*</span></label>
                     <div class="booking-count-control" style="position: relative; width: 100%; display: flex; align-items: center;">
                       <input type="number" id="bookingStudentCount" class="form-control" placeholder="เช่น 35" min="1" max="150" data-rolling-counter required style="padding-right: 48px;">
                       <span style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); font-weight: 500; pointer-events: none;">คน</span>
