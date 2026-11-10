@@ -106,18 +106,134 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="dns-prefetch" href="https://unpkg.com">
 
+  <!-- Critical Skeleton CSS (Guarantees zero-FOUC fullscreen overlay from frame 0) -->
+  <style id="critical-skeleton-css">
+    #app-skeleton-loader {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background-color: #f8fafc !important;
+      z-index: 99999 !important;
+      display: flex !important;
+      flex-direction: row !important;
+      transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      pointer-events: auto !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
+    }
+    #app-skeleton-loader.fade-out {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+    .skeleton-sidebar {
+      width: 240px !important;
+      background-color: #ffffff !important;
+      border-right: 1px solid #e2e8f0 !important;
+      padding: 24px 16px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+      flex-shrink: 0 !important;
+      box-sizing: border-box !important;
+    }
+    .skeleton-logo {
+      height: 40px !important;
+      margin-bottom: 4px !important;
+    }
+    .skeleton-welcome {
+      border: 1px solid #e2e8f0 !important;
+    }
+    .skeleton-menu {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 8px !important;
+      flex: 1 !important;
+    }
+    .skeleton-menu-item {
+      height: 38px !important;
+      background-color: #ffffff !important;
+      border-radius: 10px !important;
+    }
+    .skeleton-footer {
+      height: 38px !important;
+      border-radius: 10px !important;
+      margin-top: auto !important;
+    }
+    .skeleton-main {
+      flex: 1 !important;
+      padding: 32px 40px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 20px !important;
+      overflow-y: hidden !important;
+      background: #f8fafc !important;
+      box-sizing: border-box !important;
+    }
+    .skeleton-header {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 8px !important;
+    }
+    .skeleton-grid {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 16px !important;
+    }
+    .skeleton-stat-card {
+      height: 100px !important;
+      background-color: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 14px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+      padding: 16px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      box-sizing: border-box !important;
+    }
+    .skeleton-content-grid {
+      display: grid !important;
+      grid-template-columns: 2fr 1fr !important;
+      gap: 20px !important;
+      flex: 1 !important;
+    }
+    .skeleton-shimmer,
+    #app-skeleton-loader .animate-pulse,
+    .skeleton-block {
+      background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 35%, #cbd5e1 50%, #e2e8f0 65%, #f1f5f9 100%) !important;
+      background-size: 200% 100% !important;
+      animation: skeleton-shimmer 1.6s ease-in-out infinite !important;
+    }
+    @keyframes skeleton-shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    @media (max-width: 768px) {
+      .skeleton-sidebar { display: none !important; }
+      .skeleton-main { padding: 16px !important; gap: 16px !important; }
+      .skeleton-grid { grid-template-columns: 1fr 1fr !important; }
+      .skeleton-content-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
+
   <!-- Global Design Tokens & Tailwind CSS -->
-  <link rel="stylesheet" href="assets/css/tailwind.css?v=20261011_tw">
+  <link rel="stylesheet" href="assets/css/tailwind.css?v=20261110_zero_fouc">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="assets/css/style.css?v=20261016_qrcode_fix">
-  <link rel="stylesheet" href="assets/css/components/sidebar-redesign.css?v=20261024_sidebar_balanced6">
-  <link rel="stylesheet" href="assets/css/dashboard-announcement.css?v=astryx_1">
-  <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261010_inset">
-  <link rel="stylesheet" href="assets/css/rolling-counter.css?v=20261024_rolling_counter_v3">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261110_zero_fouc">
+  <link rel="stylesheet" href="assets/css/components/sidebar-redesign.css?v=20261110_zero_fouc">
+  <link rel="stylesheet" href="assets/css/dashboard-announcement.css?v=20261110_zero_fouc">
+  <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261110_zero_fouc">
+  <link rel="stylesheet" href="assets/css/rolling-counter.css?v=20261110_zero_fouc">
 
-  <!-- Core Libraries (Deferred to unblock initial HTML parsing & First Contentful Paint) -->
-  <script defer src="assets/js/lucide.min.js"></script>
+  <!-- Core Libraries -->
+  <script src="assets/js/lucide.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script defer src="assets/js/qrcode.min.js"></script>
   <script defer src="assets/js/bwip-js.min.js"></script>
@@ -580,7 +696,8 @@
             
             <div class="alert-tab-content active" id="tab-urgent" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
               <div id="dashboardUrgentContainer" style="display: flex; flex-direction: column; gap: 8px;">
-                <!-- Dynamically populated -->
+                <div class="skeleton-shimmer" style="height: 48px; border-radius: 10px; width: 100%;"></div>
+                <div class="skeleton-shimmer" style="height: 48px; border-radius: 10px; width: 100%; opacity: 0.6;"></div>
               </div>
             </div>
             
@@ -676,7 +793,7 @@
 
               <!-- Month / Week / Day Container -->
               <div class="lab-calendar-content" id="dashCalContent">
-                <!-- Dynamically Rendered by JS -->
+                <div class="skeleton-shimmer" style="width: 100%; height: 280px; border-radius: 12px;"></div>
               </div>
             </div>
 
@@ -727,7 +844,23 @@
                   </h2>
                 </div>
                 <div class="category-breakdown-content" id="categoryBreakdownContainer">
-                  <!-- Dynamically populated -->
+                  <div style="display: flex; flex-direction: column; gap: 12px; padding: 12px 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                      <div class="skeleton-shimmer" style="width: 100px; height: 14px; border-radius: 4px;"></div>
+                      <div class="skeleton-shimmer" style="width: 40px; height: 14px; border-radius: 4px;"></div>
+                    </div>
+                    <div class="skeleton-shimmer" style="width: 100%; height: 8px; border-radius: 4px;"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                      <div class="skeleton-shimmer" style="width: 120px; height: 14px; border-radius: 4px;"></div>
+                      <div class="skeleton-shimmer" style="width: 40px; height: 14px; border-radius: 4px;"></div>
+                    </div>
+                    <div class="skeleton-shimmer" style="width: 100%; height: 8px; border-radius: 4px;"></div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                      <div class="skeleton-shimmer" style="width: 90px; height: 14px; border-radius: 4px;"></div>
+                      <div class="skeleton-shimmer" style="width: 40px; height: 14px; border-radius: 4px;"></div>
+                    </div>
+                    <div class="skeleton-shimmer" style="width: 100%; height: 8px; border-radius: 4px;"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -7025,9 +7158,9 @@
 
 
   <!-- Application Logic -->
-  <script defer src="assets/js/main.js?v=20261109_fix_delete_persistence"></script>
-  <script defer src="assets/js/dashboard-announcement.js?v=astryx_1"></script>
-  <script defer src="assets/js/rolling-counter.js?v=20261024_rolling_counter_v2"></script>
+  <script defer src="assets/js/main.js?v=20261110_zero_fouc"></script>
+  <script defer src="assets/js/dashboard-announcement.js?v=20261110_zero_fouc"></script>
+  <script defer src="assets/js/rolling-counter.js?v=20261110_zero_fouc"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1800ms regardless of network state
     setTimeout(function() {
