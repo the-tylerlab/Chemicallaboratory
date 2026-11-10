@@ -65,6 +65,126 @@ if (typeof window !== "undefined" && window.fetch && !window.__GLOBAL_FETCH_INTE
 }
 
 // ==========================================================================
+// HIGH-PERFORMANCE ICON BATCHER (Prevents Layout Thrashing)
+// ==========================================================================
+(function setupLucideBatcher() {
+  if (typeof window === 'undefined') return;
+  let rafId = null;
+
+  function hookLucide() {
+    if (!window.lucide || window.lucide._batched || typeof window.lucide.createIcons !== 'function') return;
+    const rawCreate = window.lucide.createIcons.bind(window.lucide);
+    window.lucide._batched = true;
+    window.lucide.createIcons = function(options) {
+      if (options && (options.root || options.nameAttrs || options.attrs)) {
+        return rawCreate(options);
+      }
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        rawCreate();
+      });
+    };
+  }
+
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    hookLucide();
+  } else {
+    document.addEventListener('DOMContentLoaded', hookLucide, { once: true });
+    window.addEventListener('load', hookLucide, { once: true });
+  }
+})();
+
+// ==========================================================================
+// HIGH PERFORMANCE ON-DEMAND DYNAMIC SCRIPT LOADERS & IDLE PREFETCH
+// ==========================================================================
+const _dynamicScriptPromises = {};
+function loadDynamicScript(src, testFn) {
+  if (testFn && testFn()) return Promise.resolve();
+  if (_dynamicScriptPromises[src]) return _dynamicScriptPromises[src];
+  _dynamicScriptPromises[src] = new Promise((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      if (testFn && testFn()) return resolve();
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', (e) => reject(e), { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = (e) => reject(e);
+    document.head.appendChild(script);
+  });
+  return _dynamicScriptPromises[src];
+}
+
+async function ensureXLSX() {
+  if (typeof XLSX !== 'undefined') return window.XLSX;
+  try {
+    await loadDynamicScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', () => typeof XLSX !== 'undefined');
+  } catch (err) {
+    console.warn('Failed to dynamically load XLSX from CDN:', err);
+  }
+  return typeof XLSX !== 'undefined' ? window.XLSX : null;
+}
+window.ensureXLSX = ensureXLSX;
+
+async function ensureQRCode() {
+  if (typeof QRCode !== 'undefined') return window.QRCode;
+  try {
+    await loadDynamicScript('assets/js/qrcode.min.js', () => typeof QRCode !== 'undefined');
+  } catch (err) {
+    console.warn('Failed to dynamically load QRCode:', err);
+  }
+  return typeof QRCode !== 'undefined' ? window.QRCode : null;
+}
+window.ensureQRCode = ensureQRCode;
+
+async function ensureBwipJs() {
+  if (typeof bwipjs !== 'undefined') return window.bwipjs;
+  try {
+    await loadDynamicScript('assets/js/bwip-js.min.js', () => typeof bwipjs !== 'undefined');
+  } catch (err) {
+    console.warn('Failed to dynamically load bwipjs:', err);
+  }
+  return typeof bwipjs !== 'undefined' ? window.bwipjs : null;
+}
+window.ensureBwipJs = ensureBwipJs;
+
+async function ensureHtml5Qrcode() {
+  if (typeof Html5Qrcode !== 'undefined') return window.Html5Qrcode;
+  try {
+    await loadDynamicScript('https://unpkg.com/html5-qrcode', () => typeof Html5Qrcode !== 'undefined');
+  } catch (err) {
+    console.warn('Failed to dynamically load Html5Qrcode:', err);
+  }
+  return typeof Html5Qrcode !== 'undefined' ? window.Html5Qrcode : null;
+}
+window.ensureHtml5Qrcode = ensureHtml5Qrcode;
+
+// Non-blocking idle prefetch after page is interactive
+if (typeof window !== 'undefined') {
+  const scheduleIdlePrefetch = () => {
+    const idleFn = window.requestIdleCallback || ((cb) => setTimeout(cb, 2000));
+    idleFn(() => {
+      ensureQRCode().catch(() => {});
+      ensureBwipJs().catch(() => {});
+      idleFn(() => {
+        ensureHtml5Qrcode().catch(() => {});
+        ensureXLSX().catch(() => {});
+      });
+    });
+  };
+  if (document.readyState === 'complete') {
+    scheduleIdlePrefetch();
+  } else {
+    window.addEventListener('load', scheduleIdlePrefetch, { once: true });
+  }
+}
+
+// ==========================================================================
 // STATE MANAGEMENT & INITIALIZATION
 // ==========================================================================
 
@@ -1994,8 +2114,7 @@ async function checkBackendStatus() {
       });
     } catch (_) {
       response = await fetch(`${API_BASE}/items`, { 
-        signal: controller.signal,
-        headers: { 'Cache-Control': 'no-cache' }
+        signal: controller.signal
       });
     }
     clearTimeout(timeoutId);
@@ -2082,8 +2201,7 @@ async function loadAllItems() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
     const response = await fetch(`${API_BASE}/items`, {
-      signal: controller.signal,
-      headers: { 'Cache-Control': 'no-cache' }
+      signal: controller.signal
     });
     clearTimeout(timeoutId);
     if (response.ok) {
@@ -5148,11 +5266,18 @@ document.addEventListener('click', (e) => {
 });
 
 function setupFilterHandlers() {
-  document.getElementById("filterSearch").addEventListener("input", () => {
-    currentPage = 1;
-    renderItemsTable();
-    lucide.createIcons();
-  });
+  let searchDebounceTimer = null;
+  const searchInput = document.getElementById("filterSearch");
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        currentPage = 1;
+        renderItemsTable();
+        lucide.createIcons();
+      }, 120);
+    });
+  }
   
   document.getElementById("filterCategory").addEventListener("change", () => {
     const selectedCategory = document.getElementById("filterCategory").value;
@@ -6358,6 +6483,7 @@ function setupImportModal() {
         const reader = new FileReader();
         reader.onload = async function(e) {
           try {
+            await ensureXLSX();
             const data = new Uint8Array(e.target.result);
             if (typeof XLSX === 'undefined') {
               showToast("ไม่พบไลบรารี XLSX สำหรับอ่านไฟล์ Excel", "error");
@@ -6420,7 +6546,8 @@ function setupImportModal() {
 }
 
 // Download Excel Template (.xlsx) with 2 Sheets: Sheet 1 = Guide, Sheet 2 = Data Entry Table
-function downloadExcelChemicalTemplate() {
+async function downloadExcelChemicalTemplate() {
+  await ensureXLSX();
   if (typeof XLSX === 'undefined') {
     showToast("กำลังดาวน์โหลดเป็นไฟล์ CSV แทนเนื่องจากเบราว์เซอร์ไม่พร้อมใช้งาน Excel", "info");
     downloadCSVTemplate();
@@ -7064,8 +7191,7 @@ async function loadAllTransactions() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
     const response = await fetch(`${API_BASE}/transactions`, {
-      signal: controller.signal,
-      headers: { 'Cache-Control': 'no-cache' }
+      signal: controller.signal
     });
     clearTimeout(timeoutId);
     if (response.ok) {
@@ -12517,8 +12643,11 @@ window.rejectBorrowRequest = async function(txId) {
 
 // Local synchronous QR Code Generator using QRCode.js
 window.generateItemQrDataUrl = function(code, size = 180) {
-  if (typeof QRCode !== 'undefined') {
-    try {
+  if (typeof QRCode === 'undefined') {
+    ensureQRCode();
+    return null;
+  }
+  try {
       let temp = document.getElementById('__hidden_qr_gen__');
       if (!temp) {
         temp = document.createElement('div');
@@ -12547,14 +12676,16 @@ window.generateItemQrDataUrl = function(code, size = 180) {
     } catch (e) {
       console.warn('generateItemQrDataUrl error:', e);
     }
-  }
-  return null;
-};
+    return null;
+  };
 
 // Local Data Matrix Generator using bwipjs in browser or local server endpoint
 window.generateItemDataMatrixUrl = function(code, scale = 3) {
-  if (typeof bwipjs !== 'undefined' && typeof bwipjs.toCanvas === 'function') {
-    try {
+  if (typeof bwipjs === 'undefined' || typeof bwipjs.toCanvas !== 'function') {
+    ensureBwipJs();
+    return null;
+  }
+  try {
       let temp = document.getElementById('__hidden_dm_gen__');
       if (!temp) {
         temp = document.createElement('canvas');
@@ -12574,7 +12705,6 @@ window.generateItemDataMatrixUrl = function(code, scale = 3) {
     } catch (e) {
       console.warn('Local bwip-js Data Matrix error:', e);
     }
-  }
   // Server-rendered endpoint fallback
   const base = typeof API_BASE === 'string' ? API_BASE.replace(/\/api$/, '') : '';
   return `${base}/api/barcode?bcid=datamatrix&text=${encodeURIComponent(code)}&scale=${scale}`;
@@ -13202,7 +13332,8 @@ window.deleteDilution = async function(itemCode, dIdx) {
   }
 };
 
-window.printItemLabel = function(itemCode) {
+window.printItemLabel = async function(itemCode) {
+  await ensureQRCode();
   const roleLevel = getCurrentRoleLevel();
   const isL2Plus = (roleLevel === "L2" || roleLevel === "L3" || roleLevel === "L4" || (typeof userRole !== "undefined" && (userRole === "staff" || userRole === "admin" || userRole === "executive" || userRole === "L2" || userRole === "L3" || userRole === "L4")));
   if (!isL2Plus) {
@@ -15494,12 +15625,25 @@ function setupCameraScanner() {
   });
 }
 
-function startCameraScan() {
+async function startCameraScan() {
   const modal = document.getElementById("cameraScanModal");
   if (!modal) return;
   
   modal.classList.add("active");
   const resultsDiv = document.getElementById("qr-reader-results");
+  if (resultsDiv) {
+    resultsDiv.innerText = "กำลังเตรียมระบบกล้องสแกน...";
+    resultsDiv.style.color = "var(--text-muted)";
+  }
+
+  await ensureHtml5Qrcode();
+  if (typeof Html5Qrcode === 'undefined') {
+    if (resultsDiv) {
+      resultsDiv.innerText = "ไม่สามารถโหลดระบบกล้องสแกนได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่อีกครั้ง";
+      resultsDiv.style.color = "var(--danger)";
+    }
+    return;
+  }
   if (resultsDiv) {
     resultsDiv.innerText = "วางคิวอาร์โค้ดหรือบาร์โค้ดให้อยู่ในกรอบของกล้องเพื่อทำการสแกน";
     resultsDiv.style.color = "var(--text-muted)";
@@ -22738,7 +22882,7 @@ function switchBatchImportMode(mode) {
   }
 }
 
-function downloadUserTemplate(format = 'xlsx') {
+async function downloadUserTemplate(format = 'xlsx') {
   const headers = ["Teacher ID", "ชื่อ - นามสกุล", "ระดับสิทธิ์ (L1/L2/L3/L4)", "กลุ่มสาระ / หน่วยงาน", "อีเมล", "ห้องแล็บที่รับผิดชอบ (สำหรับ L2)"];
   const sampleData = [
     ["1003", "ครูสมใจ หมายมั่น", "L1", "กลุ่มสาระการเรียนรู้วิทยาศาสตร์ (ชีววิทยา)", "somjai.m@lab.school.ac.th", ""],
@@ -22746,6 +22890,10 @@ function downloadUserTemplate(format = 'xlsx') {
     ["3002", "ดร.ชลธิชา ผู้จัดการแล็บ", "L3", "กลุ่มงานบริหารวิชาการและห้องแล็บ", "chonthicha.c@lab.school.ac.th", ""],
     ["4002", "รองผู้อำนวยการ เกษม", "L4", "คณะกรรมการบริหารสถานศึกษา", "kasem.k@lab.school.ac.th", ""]
   ];
+
+  if (format === 'xlsx') {
+    await ensureXLSX();
+  }
 
   if (format === 'xlsx' && typeof XLSX !== 'undefined') {
     const wsData = [headers, ...sampleData];
@@ -22798,7 +22946,8 @@ function handleUserBatchFileUpload(event) {
     };
     reader.readAsText(file, 'UTF-8');
   } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-    reader.onload = function(e) {
+    reader.onload = async function(e) {
+      await ensureXLSX();
       if (typeof XLSX !== 'undefined') {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
