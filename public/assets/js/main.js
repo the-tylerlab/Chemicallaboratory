@@ -1872,7 +1872,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateLoginUI();
     updateUI();
     if (typeof renderItemsTable === "function") renderItemsTable();
-    if (window.lucide) lucide.createIcons();
+    if (typeof renderDashboardCalendar === "function") renderDashboardCalendar();
+    if (typeof renderCategoryBreakdown === "function") renderCategoryBreakdown();
+    if (typeof renderDashboardUrgentAlerts === "function") renderDashboardUrgentAlerts();
+    if (window.lucide && typeof window.lucide.createIcons === "function") window.lucide.createIcons();
 
     // 4. Update system version dynamically (non-blocking)
     fetchAppVersion();

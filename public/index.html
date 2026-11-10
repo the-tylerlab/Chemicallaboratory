@@ -226,14 +226,14 @@
   <link rel="stylesheet" href="assets/css/tailwind.css?v=20261110_zero_fouc">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="assets/css/style.css?v=20261110_zero_fouc">
-  <link rel="stylesheet" href="assets/css/components/sidebar-redesign.css?v=20261110_zero_fouc">
-  <link rel="stylesheet" href="assets/css/dashboard-announcement.css?v=20261110_zero_fouc">
-  <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261110_zero_fouc">
-  <link rel="stylesheet" href="assets/css/rolling-counter.css?v=20261110_zero_fouc">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261110_render_ready">
+  <link rel="stylesheet" href="assets/css/components/sidebar-redesign.css?v=20261110_render_ready">
+  <link rel="stylesheet" href="assets/css/dashboard-announcement.css?v=20261110_render_ready">
+  <link rel="stylesheet" href="assets/css/pages/cabinet-card.css?v=20261110_render_ready">
+  <link rel="stylesheet" href="assets/css/rolling-counter.css?v=20261110_render_ready">
 
   <!-- Core Libraries -->
-  <script src="assets/js/lucide.min.js"></script>
+  <script src="assets/js/lucide.min.js?v=20261110_render_ready"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script defer src="assets/js/qrcode.min.js"></script>
   <script defer src="assets/js/bwip-js.min.js"></script>
@@ -698,8 +698,7 @@
             
             <div class="alert-tab-content active" id="tab-urgent" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
               <div id="dashboardUrgentContainer" style="display: flex; flex-direction: column; gap: 8px;">
-                <div class="skeleton-shimmer" style="height: 48px; border-radius: 10px; width: 100%;"></div>
-                <div class="skeleton-shimmer" style="height: 48px; border-radius: 10px; width: 100%; opacity: 0.6;"></div>
+                <!-- Dynamically populated -->
               </div>
             </div>
             
@@ -795,7 +794,7 @@
 
               <!-- Month / Week / Day Container -->
               <div class="lab-calendar-content" id="dashCalContent">
-                <div class="skeleton-shimmer" style="width: 100%; height: 280px; border-radius: 12px;"></div>
+                <!-- Dynamically Rendered by JS -->
               </div>
             </div>
 
@@ -846,23 +845,7 @@
                   </h2>
                 </div>
                 <div class="category-breakdown-content" id="categoryBreakdownContainer">
-                  <div style="display: flex; flex-direction: column; gap: 12px; padding: 12px 0;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <div class="skeleton-shimmer" style="width: 100px; height: 14px; border-radius: 4px;"></div>
-                      <div class="skeleton-shimmer" style="width: 40px; height: 14px; border-radius: 4px;"></div>
-                    </div>
-                    <div class="skeleton-shimmer" style="width: 100%; height: 8px; border-radius: 4px;"></div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                      <div class="skeleton-shimmer" style="width: 120px; height: 14px; border-radius: 4px;"></div>
-                      <div class="skeleton-shimmer" style="width: 40px; height: 14px; border-radius: 4px;"></div>
-                    </div>
-                    <div class="skeleton-shimmer" style="width: 100%; height: 8px; border-radius: 4px;"></div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                      <div class="skeleton-shimmer" style="width: 90px; height: 14px; border-radius: 4px;"></div>
-                      <div class="skeleton-shimmer" style="width: 40px; height: 14px; border-radius: 4px;"></div>
-                    </div>
-                    <div class="skeleton-shimmer" style="width: 100%; height: 8px; border-radius: 4px;"></div>
-                  </div>
+                  <!-- Dynamically populated -->
                 </div>
               </div>
             </div>
@@ -7160,9 +7143,9 @@
 
 
   <!-- Application Logic -->
-  <script defer src="assets/js/main.js?v=20261110_zero_fouc"></script>
-  <script defer src="assets/js/dashboard-announcement.js?v=20261110_zero_fouc"></script>
-  <script defer src="assets/js/rolling-counter.js?v=20261110_zero_fouc"></script>
+  <script defer src="assets/js/main.js?v=20261110_render_ready"></script>
+  <script defer src="assets/js/dashboard-announcement.js?v=20261110_render_ready"></script>
+  <script defer src="assets/js/rolling-counter.js?v=20261110_render_ready"></script>
   <script>
     // Safeguard: Ensure skeleton loader is dismissed after max 1800ms regardless of network state
     setTimeout(function() {
@@ -7173,87 +7156,22 @@
       }
     }, 1800);
 
-    // Dynamic Lucide Icons Auto-Renderer for newly inserted DOM nodes (safe against infinite re-render loops)
-    (function() {
-      function patchLucide() {
-        if (!window.lucide || typeof window.lucide.createIcons !== 'function' || window.lucide._isSafePatched) return;
-        var originalCreate = window.lucide.createIcons;
-        window.lucide.createIcons = function(options) {
-          // If no unrendered icon placeholders exist, skip immediately to prevent screen flickering & loops
-          var unrendered = document.querySelectorAll('i[data-lucide], span[data-lucide], :not(svg)[data-lucide]');
-          if (unrendered.length === 0) return;
-          try {
-            originalCreate.call(window.lucide, options);
-          } catch(e) {}
-          // Mark rendered SVGs so they are never targeted again
-          document.querySelectorAll('svg.lucide[data-lucide]').forEach(function(svg) {
-            svg.setAttribute('data-lucide-rendered', svg.getAttribute('data-lucide'));
-            svg.removeAttribute('data-lucide');
-          });
-        };
-        window.lucide._isSafePatched = true;
-      }
-
-      var lucideDebounce = null;
-      function triggerLucide() {
-        if (!window.lucide || typeof window.lucide.createIcons !== 'function') {
-          var attempts = 0;
-          var poll = setInterval(function() {
-            attempts++;
-            if (window.lucide && typeof window.lucide.createIcons === 'function') {
-              clearInterval(poll);
-              patchLucide();
-              try { window.lucide.createIcons(); } catch(e) {}
-            } else if (attempts > 30) {
-              clearInterval(poll);
-            }
-          }, 100);
-          return;
+    // Standard Lucide Icons Initializer
+    function initLucideIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try {
+          window.lucide.createIcons();
+        } catch (e) {
+          console.warn("Lucide icons notice:", e);
         }
-        patchLucide();
-        clearTimeout(lucideDebounce);
-        lucideDebounce = setTimeout(function() {
-          try { window.lucide.createIcons(); } catch(e) {}
-        }, 40);
       }
-
-      if (typeof MutationObserver !== 'undefined') {
-        var observer = new MutationObserver(function(mutations) {
-          var hasUnrenderedIcons = false;
-          for (var i = 0; i < mutations.length; i++) {
-            var m = mutations[i];
-            if (m.addedNodes && m.addedNodes.length > 0) {
-              for (var j = 0; j < m.addedNodes.length; j++) {
-                var node = m.addedNodes[j];
-                if (node.nodeType === 1) {
-                  // Skip already rendered SVG elements to completely prevent mutation recursion
-                  if (node.tagName === 'svg' || node.tagName === 'SVG' || node.classList?.contains('lucide')) {
-                    continue;
-                  }
-                  if ((node.hasAttribute('data-lucide') && node.tagName !== 'svg' && node.tagName !== 'SVG') ||
-                      (node.querySelector && node.querySelector('i[data-lucide], span[data-lucide], :not(svg)[data-lucide]'))) {
-                    hasUnrenderedIcons = true;
-                    break;
-                  }
-                }
-              }
-            }
-            if (hasUnrenderedIcons) break;
-          }
-          if (hasUnrenderedIcons) {
-            triggerLucide();
-          }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-      }
-
-      // Initial trigger on load
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', triggerLucide);
-      } else {
-        triggerLucide();
-      }
-    })();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initLucideIcons);
+    } else {
+      initLucideIcons();
+    }
+    window.addEventListener('load', initLucideIcons);
   </script>
   <!-- Agentation: Visual Feedback Toolbar for AI Coding Agents (Loaded ONLY in local dev or with ?agentation) -->
   <script>
