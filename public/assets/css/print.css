@@ -19,6 +19,7 @@
 }
 
 @media print {
+
   /* Hide UI elements that shouldn't be printed */
   .sidebar,
   .mobile-header,
@@ -112,7 +113,8 @@
     border-collapse: collapse !important;
   }
 
-  th, td {
+  th,
+  td {
     border: 1px solid #aaa !important;
     padding: 8px 10px !important;
     font-size: 12px !important;
@@ -166,7 +168,7 @@
   align-items: center !important;
   justify-content: center !important;
   gap: 8px;
- transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease  !important;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease !important;
   border: none;
   cursor: pointer;
   font-family: inherit;
@@ -185,7 +187,7 @@
   gap: 12px;
 }
 
-#borrowBookingDetailsRow > .form-group:first-child {
+#borrowBookingDetailsRow>.form-group:first-child {
   grid-column: span 2;
 }
 
@@ -193,7 +195,8 @@
   #borrowBookingDetailsRow {
     grid-template-columns: 1fr;
   }
-  #borrowBookingDetailsRow > .form-group:first-child {
+
+  #borrowBookingDetailsRow>.form-group:first-child {
     grid-column: span 1;
   }
 }
@@ -255,8 +258,8 @@
   left: -1px;
   right: -1px;
   height: 10px;
-  background-image: 
-    none, 
+  background-image:
+    none,
     none;
   background-position: left bottom;
   background-repeat: repeat-x;
@@ -269,6 +272,7 @@
   0% {
     transform: translateY(-100%);
   }
+
   100% {
     transform: translateY(0);
   }
@@ -309,7 +313,7 @@
   position: relative;
   overflow: hidden;
   height: 350px;
-  background: rgba(0,0,0,0.02);
+  background: rgba(0, 0, 0, 0.02);
   border-radius: var(--border-radius-md);
   border: 1px solid var(--border-color);
   width: 100%;
@@ -325,13 +329,13 @@
     overscroll-behavior: contain;
     overflow-y: auto;
   }
-  
+
   .label-printer-grid {
     grid-template-columns: 1fr;
     gap: 16px;
     min-height: auto;
   }
-  
+
   .label-printer-animation-container {
     height: 280px;
   }
@@ -354,7 +358,7 @@
   position: absolute;
   top: 50px;
   z-index: 10;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.25), inset 0 2px 2px rgba(255,255,255,0.2);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25), inset 0 2px 2px rgba(255, 255, 255, 0.2);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -368,7 +372,7 @@
   background: #110f18;
   border-radius: 4px;
   margin-bottom: 15px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
   position: relative;
 }
 
@@ -381,7 +385,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #10b981; /* Green status light */
+  background: #10b981;
+  /* Green status light */
   box-shadow: 0 0 8px #10b981;
   animation: printer-light-blink 1.5s infinite;
 }
@@ -394,19 +399,28 @@
   font-family: var(--font-sans);
   font-size: 8px;
   font-weight: 700;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.5px;
 }
 
 @keyframes printer-light-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .label-sticker-paper-wrapper {
   position: absolute;
-  top: 125px; /* Moved up to start closer to the printer slot under the printer body */
-  height: 220px; /* Increased to allow it to slide down more */
+  top: 125px;
+  /* Moved up to start closer to the printer slot under the printer body */
+  height: 220px;
+  /* Increased to allow it to slide down more */
   width: 220px;
   overflow: hidden;
   display: flex;
@@ -416,14 +430,18 @@
 
 .label-sticker-paper {
   width: 185px;
-  height: 130px; /* Increased from 105px to 130px to make it longer */
+  height: 130px;
+  /* Increased from 105px to 130px to make it longer */
   background: #ffffff;
-  border: 1.5px dashed #9996f2; /* Match primary theme color */
+  border: 1.5px dashed #9996f2;
+  /* Match primary theme color */
   border-radius: 6px;
   padding: 10px;
-  padding-top: 25px; /* More padding at top to leave space for tear line */
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  transform: translateY(-120%); /* Hide inside the printer */
+  padding-top: 25px;
+  /* More padding at top to leave space for tear line */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-120%);
+  /* Hide inside the printer */
   transition: transform 2.0s cubic-bezier(0.12, 0.85, 0.35, 1);
   box-sizing: border-box;
   display: flex;
@@ -433,13 +451,15 @@
 }
 
 .label-sticker-paper.printing {
-  transform: translateY(20px); /* Slid down 20px further */
+  transform: translateY(20px);
+  /* Slid down 20px further */
 }
 
 /* Perforated tear-off line */
 .label-sticker-tear-line {
   position: absolute;
-  top: 18px; /* 18px from the top of the sticker */
+  top: 18px;
+  /* 18px from the top of the sticker */
   left: 0;
   width: 100%;
   height: 1px;
@@ -607,10 +627,12 @@
   box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
+  height: 100% !important;
 }
 
 .dashboard-grid.admin-mode #pendingRequestsContainer {
-  max-height: 310px !important;
+  flex: 1;
+  max-height: 320px !important;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -635,10 +657,11 @@
   box-sizing: border-box;
   display: flex !important;
   flex-direction: column !important;
+  height: 100% !important;
 }
 
 .dashboard-grid.admin-mode #unifiedAlertsCard .alert-tab-content {
-  max-height: 310px !important;
+  max-height: 320px !important;
   overflow-y: auto;
   flex: 1;
   display: flex;
@@ -650,12 +673,14 @@
 .chevron-icon {
   display: none !important;
 }
+
 .pending-details-body {
   display: flex !important;
 }
 
 /* Adjustments for iPad landscape, tablet, and mobile (widths up to 1200px) */
 @media (max-width: 1200px) {
+
   /* Hide ONLY the filter dropdown on medium/small screens to fit header on one line */
   #pendingRequestsCard #teacherFilterSelect {
     display: none !important;
@@ -665,12 +690,15 @@
   .chevron-icon {
     display: inline-block !important;
   }
+
   .pending-details-body {
     display: none !important;
   }
+
   .pending-request-item.expanded .pending-details-body {
     display: flex !important;
   }
+
   .pending-request-item.expanded .chevron-icon {
     transform: rotate(180deg);
   }
@@ -678,6 +706,7 @@
 
 /* Responsive adjustments for smaller screens (tablet & mobile <= 1024px) */
 @media (max-width: 1024px) {
+
   /* Unlock heights on small screens to let them scroll naturally and expand */
   .dashboard-grid.student-mode #quickMenuCard,
   .dashboard-grid.student-mode #unifiedAlertsCard,
@@ -689,7 +718,7 @@
     height: auto !important;
     max-height: none !important;
   }
-  
+
   .dashboard-grid.student-mode #unifiedAlertsCard .alert-tab-content,
   .dashboard-grid.student-mode #recentItemsContainer,
   .dashboard-grid.student-mode #categoryBreakdownContainer,
@@ -708,7 +737,7 @@
     grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
-  
+
   .dashboard-grid.student-mode .quick-btn {
     padding: 14px 16px !important;
   }

@@ -4579,7 +4579,7 @@ function renderDashboardUrgentAlerts() {
   if (urgentItems.length === 0) {
     countBadge.style.display = "none";
     container.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background-color: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: var(--border-radius-md); color: #10b981; font-size: 13px;">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background-color: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: var(--border-radius-md); color: #10b981; font-size: 13px; height: 100%; flex: 1; justify-content: center;">
         <i data-lucide="check-circle" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
         <div style="font-weight: 500;">คลังพัสดุเรียบร้อยดี! ไม่มีรายการหมดอายุหรือใกล้หมดสต็อกในขณะนี้</div>
       </div>
@@ -4592,7 +4592,8 @@ function renderDashboardUrgentAlerts() {
 
   // Select top 3 urgent alerts or all if expanded
   const displayItems = isUrgentAlertsExpanded ? urgentItems : urgentItems.slice(0, 3);
-  let html = `<div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">`;
+  let html = `<div style="display: flex; flex-direction: column; gap: 8px; width: 100%; height: 100%; flex: 1;">`;
+  html += `<div style="display: flex; flex-direction: column; gap: 8px; flex: 1; ${isUrgentAlertsExpanded ? 'max-height: 240px; overflow-y: auto;' : 'justify-content: space-between;'}">`;
   displayItems.forEach(item => {
     const status = getItemStatus(item);
     const isExpired = status === "expired";
@@ -4608,7 +4609,7 @@ function renderDashboardUrgentAlerts() {
     const originalIndex = items.findIndex(i => i.code === item.code);
 
     html += `
-      <div style="display: flex; gap: 10px; padding: 10px 14px; background-color: ${bg}; border: 1px solid ${border}; border-radius: var(--border-radius-md); transition: var(--transition-fast); align-items: center;">
+      <div style="display: flex; gap: 10px; padding: 10px 14px; background-color: ${bg}; border: 1px solid ${border}; border-radius: var(--border-radius-md); transition: var(--transition-fast); align-items: center; ${isUrgentAlertsExpanded ? '' : 'flex: 1; min-height: 52px;'}">
         <div style="display: flex; flex-direction: column; gap: 3px; flex: 1; justify-content: center;">
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <span style="font-size: 11px; font-weight: 700; color: ${textColor}; background: ${isExpired ? 'rgba(239, 68, 68, 0.1)' : 'rgba(249, 115, 22, 0.1)'}; padding: 2px 6px; border-radius: 4px;">${alertLabel}</span>
@@ -4626,6 +4627,7 @@ function renderDashboardUrgentAlerts() {
       </div>
     `;
   });
+  html += `</div>`;
 
   if (urgentItems.length > 3) {
     if (!isUrgentAlertsExpanded) {
@@ -12239,17 +12241,17 @@ function renderPendingRequests() {
   const totalCount = filteredTx.length + filteredBookings.length;
 
   if (totalCount === 0) {
-    card.style.display = "block";
+    card.style.display = "flex";
     if (countBadge) countBadge.innerText = "0";
     container.innerHTML = `
-      <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px;">
+      <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 13px; display: flex; align-items: center; justify-content: center; height: 100%; flex: 1;">
         ไม่มีคำขอยืมหรือขอจองห้องแล็บรอดำเนินการในขณะนี้
       </div>
     `;
     return;
   }
 
-  card.style.display = "block";
+  card.style.display = "flex";
   if (countBadge) countBadge.innerText = totalCount;
 
   let html = "";

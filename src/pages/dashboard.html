@@ -81,7 +81,7 @@
         <div class="dashboard-grid">
 
           <!-- Pending Requests Card for Admin/Teachers -->
-          <div class="card-container" id="pendingRequestsCard" style="display: none;">
+          <div class="card-container" id="pendingRequestsCard" style="display: none; height: 100%;">
             <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
               <h2 class="card-title" style="display: flex; align-items: center; gap: 8px; margin: 0;">
                 <span>คำขออนุมัติรอดำเนินการ</span>
@@ -90,13 +90,13 @@
                 <span class="badge badge-orange" id="pendingRequestsCount" style="padding: 2px 8px; font-size: 0.75rem;">0</span>
               </div>
             </div>
-            <div id="pendingRequestsContainer" style="flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; max-height: 400px; overflow-y: auto; padding-right: 4px; padding-bottom: 4px;">
+            <div id="pendingRequestsContainer" style="flex: 1; display: flex; flex-direction: column; gap: 8px; justify-content: flex-start; max-height: 320px; overflow-y: auto; padding-right: 4px; padding-bottom: 4px;">
               <!-- Dynamically populated by renderPendingRequests() -->
             </div>
           </div>
 
           <!-- Unified Alerts Panel with Tabs -->
-          <div class="card-container" id="unifiedAlertsCard">
+          <div class="card-container" id="unifiedAlertsCard" style="height: 100%;">
             <div class="card-header" style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px; width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px;">
               <h2 class="card-title" style="margin: 0; display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="bell" style="width: 18px; height: 18px; color: var(--accent-blue);"></i>
