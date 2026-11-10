@@ -127,45 +127,130 @@
 <body>
 
   <!-- ==========================================
-       APP SKELETON LOADER
+       APP SKELETON LOADER (Modern Shimmer UI)
        ========================================== -->
   <script>
     if (window.location.search && window.location.search.indexOf('capture=true') !== -1) {
       document.write('<style>#app-skeleton-loader { display: none !important; }</style>');
     }
   </script>
-  <div id="app-skeleton-loader">
+  <div id="app-skeleton-loader" aria-hidden="true">
     <div class="skeleton-sidebar">
-      <div class="skeleton-logo animate-pulse"></div>
-      <div class="skeleton-welcome animate-pulse"></div>
-      <div class="skeleton-menu">
-        <div class="skeleton-menu-item animate-pulse"></div>
-        <div class="skeleton-menu-item animate-pulse"></div>
-        <div class="skeleton-menu-item animate-pulse"></div>
-        <div class="skeleton-menu-item animate-pulse"></div>
-        <div class="skeleton-menu-item animate-pulse"></div>
-        <div class="skeleton-menu-item animate-pulse"></div>
-        <div class="skeleton-menu-item animate-pulse"></div>
+      <div class="skeleton-logo" style="display: flex; align-items: center; gap: 10px; padding: 0 4px;">
+        <div class="skeleton-shimmer" style="width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;"></div>
+        <div class="skeleton-shimmer" style="width: 85px; height: 20px; border-radius: 6px;"></div>
       </div>
-      <div class="skeleton-footer animate-pulse"></div>
+      <div class="skeleton-welcome skeleton-shimmer" style="height: 44px; border-radius: 10px;"></div>
+      <div class="skeleton-menu">
+        <div class="skeleton-menu-item" style="display: flex; align-items: center; gap: 10px; padding: 0 12px;">
+          <div class="skeleton-shimmer" style="width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;"></div>
+          <div class="skeleton-shimmer" style="width: 80px; height: 14px; border-radius: 4px;"></div>
+        </div>
+        <div class="skeleton-shimmer" style="width: 90px; height: 10px; border-radius: 4px; margin: 8px 12px 4px;"></div>
+        <div class="skeleton-menu-item" style="display: flex; align-items: center; gap: 10px; padding: 0 12px;">
+          <div class="skeleton-shimmer" style="width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;"></div>
+          <div class="skeleton-shimmer" style="width: 95px; height: 14px; border-radius: 4px;"></div>
+        </div>
+        <div class="skeleton-menu-item" style="display: flex; align-items: center; gap: 10px; padding: 0 12px;">
+          <div class="skeleton-shimmer" style="width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;"></div>
+          <div class="skeleton-shimmer" style="width: 85px; height: 14px; border-radius: 4px;"></div>
+        </div>
+        <div class="skeleton-shimmer" style="width: 75px; height: 10px; border-radius: 4px; margin: 8px 12px 4px;"></div>
+        <div class="skeleton-menu-item" style="display: flex; align-items: center; gap: 10px; padding: 0 12px;">
+          <div class="skeleton-shimmer" style="width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;"></div>
+          <div class="skeleton-shimmer" style="width: 110px; height: 14px; border-radius: 4px;"></div>
+        </div>
+        <div class="skeleton-menu-item" style="display: flex; align-items: center; gap: 10px; padding: 0 12px;">
+          <div class="skeleton-shimmer" style="width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;"></div>
+          <div class="skeleton-shimmer" style="width: 90px; height: 14px; border-radius: 4px;"></div>
+        </div>
+        <div class="skeleton-menu-item" style="display: flex; align-items: center; gap: 10px; padding: 0 12px;">
+          <div class="skeleton-shimmer" style="width: 18px; height: 18px; border-radius: 4px; flex-shrink: 0;"></div>
+          <div class="skeleton-shimmer" style="width: 70px; height: 14px; border-radius: 4px;"></div>
+        </div>
+      </div>
+      <div class="skeleton-footer" style="display: flex; align-items: center; gap: 10px; padding: 0 12px; margin-top: auto;">
+        <div class="skeleton-shimmer" style="width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0;"></div>
+        <div class="skeleton-shimmer" style="width: 75px; height: 13px; border-radius: 4px;"></div>
+      </div>
     </div>
     
     <div class="skeleton-main">
       <div class="skeleton-header">
-        <div class="skeleton-title animate-pulse"></div>
-        <div class="skeleton-subtitle animate-pulse"></div>
+        <div class="skeleton-shimmer" style="width: 160px; height: 28px; border-radius: 8px;"></div>
+        <div class="skeleton-shimmer" style="width: 260px; height: 15px; border-radius: 6px;"></div>
+      </div>
+
+      <div class="skeleton-shimmer" style="height: 52px; border-radius: 14px; width: 100%;"></div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 2px;">
+        <div class="skeleton-shimmer" style="width: 100px; height: 36px; border-radius: 8px;"></div>
+        <div class="skeleton-shimmer" style="width: 100px; height: 36px; border-radius: 8px;"></div>
+        <div class="skeleton-shimmer" style="width: 110px; height: 36px; border-radius: 8px;"></div>
       </div>
       
       <div class="skeleton-grid">
-        <div class="skeleton-stat-card animate-pulse"></div>
-        <div class="skeleton-stat-card animate-pulse"></div>
-        <div class="skeleton-stat-card animate-pulse"></div>
-        <div class="skeleton-stat-card animate-pulse"></div>
+        <div class="skeleton-stat-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="skeleton-shimmer" style="width: 80px; height: 14px; border-radius: 4px;"></div>
+            <div class="skeleton-shimmer" style="width: 28px; height: 28px; border-radius: 8px;"></div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 8px;">
+            <div class="skeleton-shimmer" style="width: 48px; height: 24px; border-radius: 6px;"></div>
+            <div class="skeleton-shimmer" style="width: 36px; height: 12px; border-radius: 4px;"></div>
+          </div>
+        </div>
+        <div class="skeleton-stat-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="skeleton-shimmer" style="width: 80px; height: 14px; border-radius: 4px;"></div>
+            <div class="skeleton-shimmer" style="width: 28px; height: 28px; border-radius: 8px;"></div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 8px;">
+            <div class="skeleton-shimmer" style="width: 48px; height: 24px; border-radius: 6px;"></div>
+            <div class="skeleton-shimmer" style="width: 36px; height: 12px; border-radius: 4px;"></div>
+          </div>
+        </div>
+        <div class="skeleton-stat-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="skeleton-shimmer" style="width: 80px; height: 14px; border-radius: 4px;"></div>
+            <div class="skeleton-shimmer" style="width: 28px; height: 28px; border-radius: 8px;"></div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 8px;">
+            <div class="skeleton-shimmer" style="width: 48px; height: 24px; border-radius: 6px;"></div>
+            <div class="skeleton-shimmer" style="width: 36px; height: 12px; border-radius: 4px;"></div>
+          </div>
+        </div>
+        <div class="skeleton-stat-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div class="skeleton-shimmer" style="width: 80px; height: 14px; border-radius: 4px;"></div>
+            <div class="skeleton-shimmer" style="width: 28px; height: 28px; border-radius: 8px;"></div>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 8px;">
+            <div class="skeleton-shimmer" style="width: 48px; height: 24px; border-radius: 6px;"></div>
+            <div class="skeleton-shimmer" style="width: 36px; height: 12px; border-radius: 4px;"></div>
+          </div>
+        </div>
       </div>
       
       <div class="skeleton-content-grid">
-        <div class="skeleton-card animate-pulse" style="height: 380px;"></div>
-        <div class="skeleton-card animate-pulse" style="height: 380px;"></div>
+        <div class="skeleton-card" style="height: 380px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="skeleton-shimmer" style="width: 140px; height: 20px; border-radius: 6px;"></div>
+            <div style="display: flex; gap: 6px;">
+              <div class="skeleton-shimmer" style="width: 45px; height: 28px; border-radius: 6px;"></div>
+              <div class="skeleton-shimmer" style="width: 55px; height: 28px; border-radius: 6px;"></div>
+            </div>
+          </div>
+          <div class="skeleton-shimmer" style="flex: 1; border-radius: 12px;"></div>
+        </div>
+        <div class="skeleton-card" style="height: 380px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+          <div class="skeleton-shimmer" style="width: 150px; height: 20px; border-radius: 6px;"></div>
+          <div style="display: flex; gap: 10px;">
+            <div class="skeleton-shimmer" style="flex: 1; height: 42px; border-radius: 10px;"></div>
+            <div class="skeleton-shimmer" style="flex: 1; height: 42px; border-radius: 10px;"></div>
+          </div>
+          <div class="skeleton-shimmer" style="flex: 1; border-radius: 12px;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -462,14 +547,14 @@
   <script defer src="assets/js/dashboard-announcement.js?v=astryx_1"></script>
   <script defer src="assets/js/rolling-counter.js?v=20261024_rolling_counter_v2"></script>
   <script>
-    // Safeguard: Ensure skeleton loader is dismissed after max 500ms regardless of network state
+    // Safeguard: Ensure skeleton loader is dismissed after max 1800ms regardless of network state
     setTimeout(function() {
       var sk = document.getElementById("app-skeleton-loader");
       if (sk) {
         sk.classList.add("fade-out");
-        setTimeout(function() { if (sk && sk.parentNode) sk.remove(); }, 250);
+        setTimeout(function() { if (sk && sk.parentNode) sk.remove(); }, 350);
       }
-    }, 500);
+    }, 1800);
 
     // Dynamic Lucide Icons Auto-Renderer for newly inserted DOM nodes (safe against infinite re-render loops)
     (function() {

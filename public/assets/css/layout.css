@@ -2497,8 +2497,32 @@ button.menu-item-link:active {
 
 
 /* ==========================================================================
-   APP SKELETON LOADER (Shadcn UI Style)
+   APP SKELETON LOADER (Modern Shimmer UI Style)
    ========================================================================== */
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer,
+#app-skeleton-loader .animate-pulse,
+.skeleton-block {
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 0%,
+    #e2e8f0 35%,
+    #cbd5e1 50%,
+    #e2e8f0 65%,
+    #f1f5f9 100%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite !important;
+}
 
 #app-skeleton-loader {
   position: fixed;
@@ -2506,72 +2530,70 @@ button.menu-item-link:active {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #fafafa;
-  z-index: 9999;
+  background-color: #f8fafc;
+  z-index: 99999;
   display: flex;
-  transition: opacity 0.4s ease, visibility 0.4s ease;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: var(--font-sans);
+  pointer-events: auto;
 }
 
 #app-skeleton-loader.fade-out {
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
 }
 
 /* Skeleton Sidebar */
 .skeleton-sidebar {
-  width: var(--sidebar-width);
+  width: var(--sidebar-width, 240px);
   background-color: #ffffff;
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color, #e2e8f0);
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  flex-shrink: 0;
 }
 
 .skeleton-logo {
-  height: 44px;
-  background-color: #e4e4e7;
-  border-radius: var(--border-radius-md);
-  margin-bottom: 8px;
+  height: 40px;
+  margin-bottom: 4px;
 }
 
 .skeleton-welcome {
-  height: 48px;
-  background-color: #f4f4f5;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color, #e2e8f0);
 }
 
 .skeleton-menu {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   flex: 1;
 }
 
 .skeleton-menu-item {
   height: 38px;
-  background-color: #f4f4f5;
-  border-radius: var(--border-radius-md);
+  background-color: #ffffff;
+  border-radius: var(--border-radius-md, 10px);
 }
 
 .skeleton-footer {
   height: 38px;
-  background-color: #f4f4f5;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-md, 10px);
   margin-top: auto;
 }
 
 /* Skeleton Main Area */
 .skeleton-main {
   flex: 1;
-  padding: 40px;
+  padding: 32px 40px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
   overflow-y: auto;
   margin-left: 0;
+  background: #f8fafc;
 }
 
 .skeleton-header {
@@ -2580,47 +2602,37 @@ button.menu-item-link:active {
   gap: 8px;
 }
 
-.skeleton-title {
-  width: 140px;
-  height: 28px;
-  background-color: #e4e4e7;
-  border-radius: var(--border-radius-sm);
-}
-
-.skeleton-subtitle {
-  width: 280px;
-  height: 16px;
-  background-color: #e4e4e7;
-  border-radius: var(--border-radius-sm);
-}
-
 /* Skeleton Stats Grid */
 .skeleton-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: 16px;
 }
 
 .skeleton-stat-card {
   height: 100px;
   background-color: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: var(--border-radius-lg, 14px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 /* Skeleton Content Panels */
 .skeleton-content-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
 }
 
 .skeleton-card {
   background-color: #ffffff;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: var(--border-radius-lg, 16px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* Pulse Animation */

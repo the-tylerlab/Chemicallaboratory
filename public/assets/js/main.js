@@ -1047,13 +1047,17 @@ async function fetchAppVersion() {
   }
 }
 
+let isSkeletonDismissed = false;
+
 function dismissSkeletonLoader() {
+  if (isSkeletonDismissed) return;
   const skeleton = document.getElementById("app-skeleton-loader");
   if (skeleton) {
+    isSkeletonDismissed = true;
     skeleton.classList.add("fade-out");
     setTimeout(() => {
       if (skeleton && skeleton.parentNode) skeleton.remove();
-    }, 350);
+    }, 400);
   }
 }
 
@@ -1870,9 +1874,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (typeof renderItemsTable === "function") renderItemsTable();
     if (window.lucide) lucide.createIcons();
 
-    // Dismiss skeleton screen immediately so user can interact with the app without waiting
-    dismissSkeletonLoader();
-
     // 4. Update system version dynamically (non-blocking)
     fetchAppVersion();
 
@@ -1886,6 +1887,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.warn("Session verification notice:", e);
     });
 
+    const initLoadStartTime = Date.now();
+
     // Parallel Background Cloud Synchronization (Non-blocking Stale-While-Revalidate)
     Promise.allSettled([
       checkBackendStatus(),
@@ -1897,17 +1900,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       loadActivityLogs(),
       loadAnnouncementSettings(),
       typeof loadLoginBannerSettings === "function" ? loadLoginBannerSettings() : Promise.resolve(),
-      typeof loadAdminData === "function" ? loadAdminData() : Promise.resolve()
+      typeof loadAdminData === "function" ? loadAdminData() : Promise.resolve(),
+      typeof fetchAcademicClassesConfig === "function" ? fetchAcademicClassesConfig() : Promise.resolve()
     ]).then(() => {
+      window.__isItemsLoaded = true;
       updateUI();
       if (typeof renderItemsTable === "function") renderItemsTable();
       if (typeof renderCabinetMap === "function") renderCabinetMap();
       if (typeof renderDashboardCalendar === "function") renderDashboardCalendar();
       if (typeof updateDashboardCalendarStats === "function") updateDashboardCalendarStats();
       if (window.lucide) lucide.createIcons();
+
+      // Ensure smooth skeleton perception (min 350ms, max 1.5s)
+      const elapsed = Date.now() - initLoadStartTime;
+      const remainingWait = Math.max(0, 350 - elapsed);
+      setTimeout(dismissSkeletonLoader, remainingWait);
     }).catch(err => {
       console.warn("Parallel cloud sync warning:", err);
+      dismissSkeletonLoader();
     });
+
+    // Safety fallback: ensure skeleton is dismissed after max 1500ms
+    setTimeout(dismissSkeletonLoader, 1500);
 
   } catch (err) {
     console.error("Application initialization warning:", err);
@@ -4649,6 +4663,29 @@ window.selectCategoryTab = selectCategoryTab;
 window.updateCategoryTabCounts = updateCategoryTabCounts;
 
 // 2. All Items Panel: Filters, Search, Table Rendering and Pagination
+function renderSkeletonTableRows(count = 6, colSpan = 8) {
+  let rows = "";
+  for (let i = 0; i < count; i++) {
+    const opacity = (1 - (i * 0.12)).toFixed(2);
+    rows += `
+      <tr class="skeleton-row" style="opacity: ${opacity};">
+        <td style="text-align: center;"><div class="skeleton-shimmer" style="width: 16px; height: 16px; margin: 0 auto; border-radius: 4px;"></div></td>
+        <td>
+          <div class="skeleton-shimmer" style="width: 75%; height: 14px; border-radius: 4px; margin-bottom: 6px;"></div>
+          <div class="skeleton-shimmer" style="width: 45%; height: 11px; border-radius: 4px;"></div>
+        </td>
+        <td class="text-right"><div class="skeleton-shimmer" style="width: 40px; height: 14px; border-radius: 4px; margin-left: auto;"></div></td>
+        <td><div class="skeleton-shimmer" style="width: 65%; height: 14px; border-radius: 4px;"></div></td>
+        <td><div class="skeleton-shimmer" style="width: 55%; height: 14px; border-radius: 4px;"></div></td>
+        <td><div class="skeleton-shimmer" style="width: 70%; height: 14px; border-radius: 4px;"></div></td>
+        <td><div class="skeleton-shimmer" style="width: 65px; height: 22px; border-radius: 12px;"></div></td>
+        ${colSpan > 7 ? '<td style="text-align: center;"><div class="skeleton-shimmer" style="width: 24px; height: 24px; margin: 0 auto; border-radius: 6px;"></div></td>' : ''}
+      </tr>
+    `;
+  }
+  return rows;
+}
+
 function renderItemsTable() {
   const tableBody = document.getElementById("itemsTableBody");
   if (!tableBody) return;
@@ -4787,6 +4824,13 @@ function renderItemsTable() {
   // Handle empty state after filter
   if (filtered.length === 0) {
     const colSpanVal = isL3Plus ? 8 : 6;
+    if (!window.__isItemsLoaded && (!items || items.length === 0)) {
+      tableBody.innerHTML = renderSkeletonTableRows(6, colSpanVal);
+      document.getElementById("btnPrevPage").disabled = true;
+      document.getElementById("btnNextPage").disabled = true;
+      document.getElementById("paginationInfo").innerText = `กำลังโหลดข้อมูลสารเคมีและพัสดุ...`;
+      return;
+    }
     tableBody.innerHTML = `
       <tr class="empty-state-row">
         <td colspan="${colSpanVal}" class="empty-state-td" style="text-align: center; vertical-align: middle; padding: 56px 24px;">
