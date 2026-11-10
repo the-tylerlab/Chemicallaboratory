@@ -8818,6 +8818,199 @@ window.selectBookingSlot = function(slot, isBooked) {
   renderBookingSlots();
 };
 
+function setupGradePicker() {
+  const container = document.getElementById("gradePickerContainer");
+  const gradeInput = document.getElementById("bookingGradeLevel");
+  const clearBtn = document.getElementById("btnClearGradeInput");
+  const subRow = document.getElementById("gradeSubRow");
+  const subPills = document.getElementById("gradeSubPills");
+  const studentCountInput = document.getElementById("bookingStudentCount");
+
+  if (!gradeInput || !container) return;
+
+  const GRADE_ROOM_MAP = {
+    "ม.1": [
+      { label: "1/1", val: "ม.1/1", count: 35 },
+      { label: "1/2", val: "ม.1/2", count: 35 },
+      { label: "1/3", val: "ม.1/3", count: 35 },
+      { label: "1/4", val: "ม.1/4", count: 35 },
+      { label: "ทุกห้อง", val: "ม.1 (รวม)", count: 70 }
+    ],
+    "ม.2": [
+      { label: "2/1", val: "ม.2/1", count: 35 },
+      { label: "2/2", val: "ม.2/2", count: 35 },
+      { label: "2/3", val: "ม.2/3", count: 35 },
+      { label: "2/4", val: "ม.2/4", count: 35 },
+      { label: "ทุกห้อง", val: "ม.2 (รวม)", count: 70 }
+    ],
+    "ม.3": [
+      { label: "3/1", val: "ม.3/1", count: 35 },
+      { label: "3/2", val: "ม.3/2", count: 35 },
+      { label: "3/3", val: "ม.3/3", count: 35 },
+      { label: "3/4", val: "ม.3/4", count: 35 },
+      { label: "ทุกห้อง", val: "ม.3 (รวม)", count: 70 }
+    ],
+    "ม.4": [
+      { label: "4/1", val: "ม.4/1", count: 35 },
+      { label: "4/2", val: "ม.4/2", count: 35 },
+      { label: "4/3", val: "ม.4/3", count: 35 },
+      { label: "4/4", val: "ม.4/4", count: 35 },
+      { label: "ทุกห้อง", val: "ม.4 (รวม)", count: 70 }
+    ],
+    "ม.5": [
+      { label: "5/1", val: "ม.5/1", count: 35 },
+      { label: "5/2", val: "ม.5/2", count: 35 },
+      { label: "5/3", val: "ม.5/3", count: 35 },
+      { label: "5/4", val: "ม.5/4", count: 35 },
+      { label: "ทุกห้อง", val: "ม.5 (รวม)", count: 70 }
+    ],
+    "ม.6": [
+      { label: "6/1", val: "ม.6/1", count: 35 },
+      { label: "6/2", val: "ม.6/2", count: 35 },
+      { label: "6/3", val: "ม.6/3", count: 35 },
+      { label: "6/4", val: "ม.6/4", count: 35 },
+      { label: "ทุกห้อง", val: "ม.6 (รวม)", count: 70 }
+    ],
+    "EP": [
+      { label: "EP-1", val: "EP-M.1", count: 30 },
+      { label: "EP-2", val: "EP-M.2", count: 30 },
+      { label: "EP-3", val: "EP-M.3", count: 30 },
+      { label: "EP-4", val: "EP-M.4", count: 30 },
+      { label: "EP-5", val: "EP-M.5", count: 30 },
+      { label: "EP-6", val: "EP-M.6", count: 30 }
+    ],
+    "รวม": [
+      { label: "ม.ต้น รวม", val: "ม.ต้น (รวมทุกห้อง)", count: 80 },
+      { label: "ม.ปลาย รวม", val: "ม.ปลาย (รวมทุกห้อง)", count: 80 },
+      { label: "ชมรมวิทย์", val: "ชมรมวิทยาศาสตร์", count: 25 }
+    ]
+  };
+
+  let activeLevel = "";
+
+  function updateClearBtn() {
+    if (clearBtn) {
+      clearBtn.style.display = gradeInput.value.trim() ? "inline-flex" : "none";
+    }
+  }
+
+  function renderSubPills(level) {
+    if (!subPills || !subRow) return;
+    const rooms = GRADE_ROOM_MAP[level];
+    if (!rooms || rooms.length === 0) {
+      subRow.style.display = "none";
+      subPills.innerHTML = "";
+      return;
+    }
+
+    subRow.style.display = "flex";
+    subPills.innerHTML = rooms.map(r => `
+      <button type="button" class="grade-sub-pill-btn ${gradeInput.value === r.val ? 'active' : ''}" data-val="${r.val}" data-suggest-count="${r.count}">
+        ${r.label}
+      </button>
+    `).join("");
+
+    subPills.querySelectorAll(".grade-sub-pill-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const val = btn.getAttribute("data-val");
+        const suggestCount = btn.getAttribute("data-suggest-count");
+        gradeInput.value = val;
+        gradeInput.dispatchEvent(new Event("input", { bubbles: true }));
+        gradeInput.dispatchEvent(new Event("change", { bubbles: true }));
+
+        subPills.querySelectorAll(".grade-sub-pill-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        if (studentCountInput && (!studentCountInput.value || Number(studentCountInput.value) <= 0) && suggestCount) {
+          studentCountInput.value = suggestCount;
+          studentCountInput.dispatchEvent(new Event("input", { bubbles: true }));
+          studentCountInput.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        updateClearBtn();
+      });
+    });
+  }
+
+  const levelBtns = container.querySelectorAll(".grade-pill-btn");
+  levelBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const level = btn.getAttribute("data-level");
+      if (activeLevel === level) {
+        activeLevel = "";
+        btn.classList.remove("active");
+        if (subRow) subRow.style.display = "none";
+        return;
+      }
+
+      activeLevel = level;
+      levelBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      renderSubPills(level);
+    });
+  });
+
+  gradeInput.addEventListener("input", () => {
+    updateClearBtn();
+    const curVal = gradeInput.value.trim();
+    if (subPills) {
+      subPills.querySelectorAll(".grade-sub-pill-btn").forEach(b => {
+        if (b.getAttribute("data-val") === curVal) {
+          b.classList.add("active");
+        } else {
+          b.classList.remove("active");
+        }
+      });
+    }
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      gradeInput.value = "";
+      gradeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      gradeInput.dispatchEvent(new Event("change", { bubbles: true }));
+      levelBtns.forEach(b => b.classList.remove("active"));
+      if (subRow) subRow.style.display = "none";
+      if (subPills) subPills.innerHTML = "";
+      activeLevel = "";
+      updateClearBtn();
+      gradeInput.focus();
+    });
+  }
+
+  const countBtns = document.querySelectorAll(".count-pill-btn");
+  countBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const count = btn.getAttribute("data-count");
+      if (studentCountInput) {
+        studentCountInput.value = count;
+        studentCountInput.dispatchEvent(new Event("input", { bubbles: true }));
+        studentCountInput.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      countBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+    });
+  });
+
+  if (studentCountInput) {
+    studentCountInput.addEventListener("input", () => {
+      const curCount = studentCountInput.value.trim();
+      countBtns.forEach(b => {
+        if (b.getAttribute("data-count") === curCount) {
+          b.classList.add("active");
+        } else {
+          b.classList.remove("active");
+        }
+      });
+    });
+  }
+
+  if (window.lucide && typeof lucide.createIcons === "function") {
+    lucide.createIcons();
+  }
+}
+
 function setupBookingForm() {
   const form = document.getElementById("bookingForm");
   const btnReset = document.getElementById("btnResetBooking");
@@ -8825,6 +9018,8 @@ function setupBookingForm() {
   const bookingRoomSelect = document.getElementById("bookingRoom");
 
   if (!form) return;
+
+  setupGradePicker();
 
   // Set default date to today
   if (bookingDateInput) {
@@ -8872,6 +9067,19 @@ function setupBookingForm() {
     // Reset prep items checklist checkboxes
     document.querySelectorAll('input[name="bookingPrepItem"]').forEach(cb => cb.checked = false);
     
+    // Reset grade & student count quick pickers
+    const gradePillContainer = document.getElementById("gradePickerContainer");
+    if (gradePillContainer) {
+      gradePillContainer.querySelectorAll(".grade-pill-btn").forEach(b => b.classList.remove("active"));
+      const subRow = document.getElementById("gradeSubRow");
+      if (subRow) subRow.style.display = "none";
+      const subPills = document.getElementById("gradeSubPills");
+      if (subPills) subPills.innerHTML = "";
+      const clearBtn = document.getElementById("btnClearGradeInput");
+      if (clearBtn) clearBtn.style.display = "none";
+    }
+    document.querySelectorAll(".count-pill-btn").forEach(b => b.classList.remove("active"));
+
     renderBookingSlots();
   });
 
