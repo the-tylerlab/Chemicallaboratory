@@ -247,7 +247,9 @@
        ========================================== -->
   <script>
     if (window.location.search && window.location.search.indexOf('capture=true') !== -1) {
-      document.write('<style>#app-skeleton-loader { display: none !important; }</style>');
+      var captureStyle = document.createElement('style');
+      captureStyle.textContent = '#app-skeleton-loader { display: none !important; }';
+      document.head.appendChild(captureStyle);
     }
   </script>
   <div id="app-skeleton-loader" aria-hidden="true">

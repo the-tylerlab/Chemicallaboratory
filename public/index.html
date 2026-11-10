@@ -247,7 +247,9 @@
        ========================================== -->
   <script>
     if (window.location.search && window.location.search.indexOf('capture=true') !== -1) {
-      document.write('<style>#app-skeleton-loader { display: none !important; }</style>');
+      var captureStyle = document.createElement('style');
+      captureStyle.textContent = '#app-skeleton-loader { display: none !important; }';
+      document.head.appendChild(captureStyle);
     }
   </script>
   <div id="app-skeleton-loader" aria-hidden="true">
@@ -3837,7 +3839,7 @@
                 <span>คืนค่าเริ่มต้น</span>
               </button>
               <button type="button" class="btn btn-secondary btn-sm" onclick="openProgramModal()" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600;">
-                <i data-lucide="sparkles" style="width: 14px; height: 14px; color: #f59e0b;"></i>
+                <i data-lucide="award" style="width: 14px; height: 14px; color: var(--primary-purple);"></i>
                 <span>เพิ่มโปรแกรม (EP/อื่นๆ)</span>
               </button>
               <button type="button" class="btn btn-primary btn-sm" onclick="openGradeLevelModal()" style="border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600;">
