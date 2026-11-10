@@ -2,7 +2,19 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Agentation } from 'agentation';
 
+function isDevEnvironment() {
+  if (typeof window === 'undefined' || !window.location) return false;
+  const hostname = window.location.hostname;
+  const isLocal = hostname === 'localhost' ||
+                  hostname === '127.0.0.1' ||
+                  hostname === '0.0.0.0' ||
+                  hostname.endsWith('.local');
+  const hasParam = new URLSearchParams(window.location.search).has('agentation');
+  return isLocal || hasParam;
+}
+
 function initAgentation() {
+  if (!isDevEnvironment()) return;
   if (document.getElementById('agentation-root')) return;
 
   const container = document.createElement('div');
@@ -28,7 +40,7 @@ function initAgentation() {
         }
       })
     );
-    console.log('✅ Agentation visual feedback toolbar mounted successfully.');
+    console.log('✅ Agentation visual feedback toolbar mounted (local development mode).');
   } catch (err) {
     console.error('❌ Failed to mount Agentation:', err);
   }
